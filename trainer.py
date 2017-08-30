@@ -68,7 +68,7 @@ def identify_env_input(env_input):
         input_img = len(env_input.shape) == 3 and env_input.shape[-1] == 3
         if input_img:
             env_input_type = 'IMG'
-            env_input_range = zip(env_input.low, env_input.high)[0]
+            env_input_range = list(zip(env_input.low, env_input.high))[0]
         if input_img and image_rgb_or_bw:
             env_input_shape = env_input.shape
             def env_input_process(a): \
@@ -86,7 +86,7 @@ def identify_env_input(env_input):
         else:
             # regular continous, need flatten()
             env_input_shape = (np.prod(env_input_shape), )
-            env_input_range = zip(env_input.low, env_input.high)
+            env_input_range = list(zip(env_input.low, env_input.high))
             def env_input_process(a): return np.array([normalize(a[i], env_input_range[i])
                                                        for i in range(len(a.flatten()))])
 
