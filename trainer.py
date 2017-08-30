@@ -272,7 +272,7 @@ def TrainModel(rlnn, env, args):
                 iteration % save_every_iterations == 0:
             SaveModel(rlnn, save_path, session_id)  # + str(iteration)
 
-    avg_reward_tracking = zip(avg_reward_iters, avg_reward_records)
+    avg_reward_tracking = list(zip(avg_reward_iters, avg_reward_records))
     print("\n=== {} FINISHED ====\n".format(training_testing_session))
     print("Summary: (iter, reward) =", avg_reward_tracking)
 

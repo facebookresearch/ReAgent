@@ -18,6 +18,16 @@ from caffe2.python import model_helper, workspace, brew
 from caffe2.python import net_drawer
 import caffe2.python.predictor.predictor_exporter as pe
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NumpyEncoder, self).default(obj)
 
 # ### Base Model Class for all RL algorithm supported,
 # , defining all necessary functions and interface
@@ -230,7 +240,7 @@ class RLNN(object):
 
     def save_args(self, saving_folder, session_id):
         with open(path.join(saving_folder, session_id + "_args.txt"), 'w') as fid:
-            fid.write(json.dumps(self.saving_args))
+            fid.write(json.dumps(self.saving_args, cls=NumpyEncoder))
             fid.close()
         print("Model saving: sucessfully saved constructor parms.")
 
