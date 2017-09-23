@@ -24,7 +24,7 @@ import gym
 from caffe2.python import core, workspace
 from caffe2.proto import caffe2_pb2
 
-from rlmodels.rlmodel_helper import GRAD_OPTIMIZER, OPTIMIZER_DICT,\
+from rlmodels.rlmodel_helper import OPTIMIZER_DICT, DEFAULT_OPTIMIZER,\
     MODEL_T, MODEL_T_DICT, get_session_id, MODEL_PATH, MONITOR_FOLDER
 
 from rlmodels import DQN_rlnn
@@ -73,20 +73,23 @@ def Run(args):
         learning_rate = args.learning_rate
         discount_gamma = args.discount_gamma
         optimizer = args.optimizer if args.optimizer in OPTIMIZER_DICT \
-            else GRAD_OPTIMIZER.SGD
+            else DEFAULT_OPTIMIZER
         print("Model Optimizer: ", optimizer)
 
         # hidden neural network
-        if model_type == MODEL_T.DQN:
+        if model_type == MODEL_T.DQN or model_type == MODEL_T.SARSA:
             n_hidden_nodes = [64]
             n_hidden_activations = ['relu']
         if model_type == MODEL_T.ACTORCRITIC:
             n_hidden_nodes = [256, 64, 32]
             n_hidden_activations = ['relu', 'relu', 'linear']
+        if model_type == MODEL_T.SARSA:
+             maxq_learning = False
         print("Model NN layers:", n_hidden_nodes, n_hidden_activations)
 
+
         rlnn = None
-        if model_type == MODEL_T.DQN:
+        if model_type == MODEL_T.DQN or model_type == MODEL_T.SARSA:
             rlnn = DQN_rlnn(model_id, model_type.name,
                             state_shape, action_shape,
                             discount_gamma, learning_rate, optimizer,

@@ -79,6 +79,7 @@ class DQN_rlnn(RLNN):
     def get_q_val_action(self, states, actions):
         q_values_original = self.eval_rl_nn(states)
         q_values_actions = q_values_original[actions == 1]
+        q_values_actions = np.expand_dims(q_values_actions, 1)
         return q_values_actions
 
     def get_q_val_best(self, states, all_possible_actions=None):
@@ -94,8 +95,8 @@ class DQN_rlnn(RLNN):
             q_values_final = q_values_original + q_values_filter
 
         q_values_max = np.max(q_values_final, axis=1, keepdims=True)
-        act_all = (q_values_final - q_values_max == 0).astype(np.int32)
-        # act_all = np.argmax(q_values_final, axis=1)
+        act_max = np.argmax(q_values_final, axis=1)
+        act_all = np.eye(self.action_dim)[act_max]
         return act_all, q_values_max, q_values_original
 
     def get_action_policy_single(self, state, policy_test=False):
