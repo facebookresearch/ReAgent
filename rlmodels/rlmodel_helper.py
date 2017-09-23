@@ -12,6 +12,8 @@ All rights reserved.
 
 from caffe2.python.optimizer import (
     build_sgd, build_ftrl, build_adagrad, build_adam)
+from caffe2.python import brew
+
 
 import numpy as np
 from enum import Enum
@@ -79,7 +81,8 @@ MODEL_T_DICT = dict([(op.name, op) for op in MODEL_T])
 
 
 class GRAD_OPTIMIZER(Enum):
-    SGD = 1
+    SGD = 0
+    STEP = 1
     MOMENTUM = 2
     RMSP = 3
     ADAGRAD = 4
@@ -88,7 +91,7 @@ class GRAD_OPTIMIZER(Enum):
 
 
 OPTIMIZER_DICT = dict([(op.name, op) for op in GRAD_OPTIMIZER])
-
+DEFAULT_OPTIMIZER = "SGD"
 
 def add_parameter_update_ops(model, optimizer_input="SGD",
                              base_learning_rate=0.01):
@@ -102,6 +105,64 @@ def add_parameter_update_ops(model, optimizer_input="SGD",
         optimizer_here = build_adam(model, base_learning_rate)
     elif optimizer_rule == GRAD_OPTIMIZER.FTRL:
         optimizer_here = build_ftrl(model, base_learning_rate)
+    else:
+        add_parameter_update_ops_others(model, optimizer_input, base_learning_rate)
+    return
+
+def add_parameter_update_ops_others(model, optimizer_input='SGD',
+                                base_learning_rate=0.01):
+    optimizer_rule = OPTIMIZER_DICT[optimizer_input]
+    iter = brew.iter(model, "iter")
+    lr_policy = "step" if optimizer_rule == GRAD_OPTIMIZER.STEP else "fixed"
+    lr = model.net.LearningRate(
+        [iter],
+        "lr" ,
+        base_lr=base_learning_rate,
+        policy=lr_policy
+    )
+    if optimizer_rule == GRAD_OPTIMIZER.STEP:
+        for param in model.GetParams():
+            if param in model.param_to_grad:
+                param_grad = model.param_to_grad[param]
+                model.net.Mul([param_grad, lr], param_grad+'_lrscaled', broadcast=1)
+                model.net.Sub([param, param_grad+'_lrscaled'], param)
+    elif optimizer_rule == GRAD_OPTIMIZER.MOMENTUM:
+        for param in model.GetParams():
+            if param in model.param_to_grad:
+                param_grad = model.param_to_grad[param]
+                param_momentum = model.param_init_net.ConstantFill(
+                    [param], param + '_momentum', value=0.0
+                )
+                # Update param_grad and param_momentum in place
+                model.net.MomentumSGDUpdate(
+                    [param_grad, param_momentum, lr, param],
+                    [param_grad, param_momentum, param],
+                    momentum=0.9,
+                    nesterov=1,
+                )
+                model.net.Mul([param_grad, lr], [param_grad+'_lrscaled'], broadcast=1)
+                model.net.Sub([param, param_grad+'_lrscaled'], param)
+            else:
+                print("WARNING: param does not has gradient", param)
+    elif optimizer_rule == GRAD_OPTIMIZER.RMSP:
+        for param in model.GetParams():
+            if param in model.param_to_grad:
+                param_grad = model.param_to_grad[param]
+                param_momentum = model.param_init_net.ConstantFill(
+                    [param], param + '_momentum', value=0.0
+                )
+                param_meansq = model.param_init_net.ConstantFill(
+                    [param], param + '_meansq', value=0.0
+                )
+                model.net.RmsProp(
+                    [param_grad, param_meansq, param_momentum, lr],
+                    [param_grad, param_meansq, param_momentum],
+
+                )
+                model.net.Mul([param_grad, lr], param_grad+'_lrscaled', broadcast=1)
+                model.net.Sub([param, param_grad+'_lrscaled'], param)
+            else:
+                print("WARNING: param does not has gradient", param)
     else:
         print("unrecognized in caffe2 setting, using default SGD",
               optimizer_rule)
