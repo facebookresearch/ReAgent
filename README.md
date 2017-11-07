@@ -14,6 +14,10 @@ For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads)
 
 To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
 
+## FAISS
+
+The KNN-DQN model depends on FAISS.  For details on installing FAISS, go here: https://github.com/facebookresearch/faiss
+
 ## OpenAI Gym
 
 OpenAI Gym can be installed using [pip](https://pypi.python.org/pypi/pip) which should come with your python installation in the case of linux or with anaconda in the case of OS/X.  For the basic environments, run:

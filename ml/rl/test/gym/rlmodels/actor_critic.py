@@ -10,11 +10,16 @@ All rights reserved.
 # @package actor-critic
 # Module rl2_caffe2.rlmodels.actor_critic
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import numpy as np
 from caffe2.python import workspace
 
-from .rlmodel_base import RLNN
-from .rlmodel_helper import add_parameter_update_ops, deterministic_noise
+from ml.rl.test.gym.rlmodels.rlmodel_base import RLNN
+from ml.rl.test.gym.rlmodels.rlmodel_helper import add_parameter_update_ops, \
+    deterministic_noise
 
 
 #   [ActorCritic-mujoco](https://arxiv.org/pdf/1509.02971.pdf)  (deepmind)
@@ -22,7 +27,6 @@ from .rlmodel_helper import add_parameter_update_ops, deterministic_noise
 #  * output: action(vector of A-dimension), Qval (vector of 1-dimension)
 #  * uniqueness: 2tower, critic after actor forward, for continuous action only
 class ActorCritic_rlnn(RLNN):
-
     def init_params(self):
         self.noise_sigma = 0.3
         self.output_dim = 1
@@ -31,18 +35,19 @@ class ActorCritic_rlnn(RLNN):
         # 0.1 # scalar for lr of actor compared to critic
 
     # network construction at network level
+
     def construct_rl_nn(self, q_model, trainNetwork=False):
         overall_loss = None
         # actor
-        actor_outputs, actor_model = self.q_network(q_model, self.actor_prefix,
-                                                    self.X_state,
-                                                    self.state_dim,
-                                                    self.action_dim)
+        actor_outputs, actor_model = self.q_network(
+            q_model, self.actor_prefix, self.X_state, self.state_dim,
+            self.action_dim
+        )
         # critic
-        critic_q_values, critic_model = self.q_network(q_model, self.critic_prefix,
-                                                       self.X_state, self.state_dim,
-                                                       self.output_dim,
-                                                       self.X_action, self.action_dim)
+        critic_q_values, critic_model = self.q_network(
+            q_model, self.critic_prefix, self.X_state, self.state_dim,
+            self.output_dim, self.X_action, self.action_dim
+        )
 
         overall_outputs = [actor_outputs, critic_q_values]
 
@@ -56,20 +61,22 @@ class ActorCritic_rlnn(RLNN):
 
             critic_q_state_output = self.critic_prefix + self.state_output_label
             critic_q_state_output_copy = critic_q_state_output + "_copy"
-            actor_model.net.Copy(critic_q_state_output,
-                                 critic_q_state_output_copy)
-            critic_loss = self.create_critic_model_loss_ops(critic_model,
-                                                            critic_q_values,
-                                                            self.Y_qval)
-            actor_loss = self.create_actor_model_loss_ops(actor_model,
-                                                          actor_outputs,
-                                                          weight_a_to_q_copy,
-                                                          critic_q_state_output_copy)
+            actor_model.net.Copy(
+                critic_q_state_output, critic_q_state_output_copy
+            )
+            critic_loss = self.create_critic_model_loss_ops(
+                critic_model, critic_q_values, self.Y_qval
+            )
+            actor_loss = self.create_actor_model_loss_ops(
+                actor_model, actor_outputs, weight_a_to_q_copy,
+                critic_q_state_output_copy
+            )
             overall_loss = [critic_loss, actor_loss]
-            overall_gradient_map = q_model.AddGradientOperators(overall_loss)
+            q_model.AddGradientOperators(overall_loss)
             q_model.StopGradient(weight_a_to_q_copy)
             add_parameter_update_ops(
-                q_model, self.optimizer, self.learning_rate)
+                q_model, self.optimizer, self.learning_rate
+            )
 
         return q_model, overall_outputs, overall_loss
 
@@ -78,26 +85,33 @@ class ActorCritic_rlnn(RLNN):
         prefix = prefix + self.critic_label
         prefix = self.critic_prefix
         dist = model.SquaredL2Distance(
-            [critic_outputs, Y_qval], prefix + "_dist")
+            [critic_outputs, Y_qval], prefix + "_dist"
+        )
         loss = prefix + "_loss"
         loss = dist.AveragedLoss([], loss)
         return loss
 
-    def create_actor_model_loss_ops(self, model, actor_outputs, weight_a_to_q,
-                                    critic_q_state_output):
+    def create_actor_model_loss_ops(
+        self, model, actor_outputs, weight_a_to_q, critic_q_state_output
+    ):
         # Actor is to maximize Q = {w_x} * x + {w_a} * a,
         # thus using (-scale) * {w_a} * a  as loss and then gradient descent
         # scale: as adjustment of learning rate for actor (0.1 suggested)
         prefix = self.actor_prefix
         q_gain_from_a = prefix + "_q_gain_from_a"
-        model.MatMul([actor_outputs, model.net.Transpose(
-            weight_a_to_q)], q_gain_from_a)
+        model.MatMul(
+            [actor_outputs, model.net.Transpose(weight_a_to_q)], q_gain_from_a
+        )
         q_after_gain_from_a = prefix + "_q_after_gain_from_a"
-        model.net.Sum([q_gain_from_a, critic_q_state_output],
-                      q_after_gain_from_a)
+        model.net.Sum(
+            [q_gain_from_a, critic_q_state_output], q_after_gain_from_a
+        )
         neg_scaled_q_loss = prefix + "_neg_scaled_q_loss"
-        model.net.Scale(q_after_gain_from_a, neg_scaled_q_loss,
-                        scale=-self.actor2critic_lr_scalar)
+        model.net.Scale(
+            q_after_gain_from_a,
+            neg_scaled_q_loss,
+            scale=-self.actor2critic_lr_scalar
+        )
         loss = prefix + "_loss"
         loss = model.net.AveragedLoss([neg_scaled_q_loss], loss)
         return loss
@@ -147,7 +161,8 @@ class ActorCritic_rlnn(RLNN):
     def get_action_policy_single(self, state, policy_test=False):
         states = np.array([state]).astype(np.float32)
         act_all, q_values_max, q_values_original = self.get_action_policy_batch(
-            states)
+            states
+        )
         action = act_all[0]
         if not policy_test:
             action = deterministic_noise(action, self.noise_sigma)

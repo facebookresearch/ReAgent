@@ -21,11 +21,11 @@ import gym
 from gym.spaces import Discrete, Box
 from gym import wrappers
 
-from rlmodels.rlmodel_helper import sample_memories,\
+from ml.rl.test.gym.rlmodels.rlmodel_helper import sample_memories,\
     MODEL_T, one_hot, get_session_id, MODEL_PATH, MONITOR_FOLDER
 
-from rlmodels import DQN_rlnn
-from rlmodels import ActorCritic_rlnn
+from ml.rl.test.gym.rlmodels.dqn import DQN_rlnn
+from ml.rl.test.gym.rlmodels.actor_critic import ActorCritic_rlnn
 
 
 def normalize(x, low_high):
@@ -57,11 +57,13 @@ def identify_env_input(env_input):
 
     # common type : Discrete, Box, Tuple, MultiDiscrete, MultiBinary
     if isinstance(env_input, Discrete):
-        env_input_shape = (env_input.n, )   # one_hot discrete
+        env_input_shape = (env_input.n, )  # one_hot discrete
 
-        def env_input_process(a): return one_hot(a, env_input.n)
+        def env_input_process(a):
+            return one_hot(a, env_input.n)
 
-        def env_input_recover(a): return np.argmax(a)
+        def env_input_recover(a):
+            return np.argmax(a)
     elif isinstance(env_input, Box):
         env_input_shape = env_input.shape
         # checking if it is image input type
@@ -71,27 +73,42 @@ def identify_env_input(env_input):
             env_input_range = list(zip(env_input.low, env_input.high))[0]
         if input_img and image_rgb_or_bw:
             env_input_shape = env_input.shape
-            def env_input_process(a): \
+
+            def env_input_process(a):
                 return np.rollaxis(a, 2) * (1.0 / 128.0) - 1.0
-            def env_input_recover(a): \
+
+            def env_input_recover(a):
                 return (np.rollaxis(a, 0, 3) + 1.0) * 128.0
         elif input_img and not image_rgb_or_bw:
             env_input_shape = (env_input.shape[0], env_input.shape[1], 1)
-            def env_input_process(a): \
-                return np.expand_dims(np.matmul(a, np.array([0.299, 0.587, 0.114])), \
-                                      0) * (1.0 / 128.0) - 1.0
-                #return np.expand_dims(np.mean(a, axis=2), 0) * (1.0 / 128.0) - 1.0
-            def env_input_recover(a): \
+
+            def env_input_process(a):
+                return np.expand_dims(
+                    np.matmul(a, np.array([0.299, 0.587, 0.114])), 0
+                ) * (1.0 / 128.0) - 1.0
+
+            def env_input_recover(a):
                 return np.title((a + 1.0) * 128.0, (3, 1, 1))
         else:
-            # regular continous, need flatten()
+            # regular continuous, need flatten()
             env_input_shape = (np.prod(env_input_shape), )
             env_input_range = list(zip(env_input.low, env_input.high))
-            def env_input_process(a): return np.array([normalize(a[i], env_input_range[i])
-                                                       for i in range(len(a.flatten()))])
 
-            def env_input_recover(a): return np.array([denormalize(a[i], env_input_range[i])
-                                                       for i in range(len(a.flatten()))])
+            def env_input_process(a):
+                return np.array(
+                    [
+                        normalize(a[i], env_input_range[i])
+                        for i in range(len(a.flatten()))
+                    ]
+                )
+
+            def env_input_recover(a):
+                return np.array(
+                    [
+                        denormalize(a[i], env_input_range[i])
+                        for i in range(len(a.flatten()))
+                    ]
+                )
     else:
         raise ValueError("Unknown space type: ", env_input)
     return env_input_shape, env_input_type, env_input_range,\
@@ -103,7 +120,10 @@ def Setup(args):
         env = gym.make(args.gymenv)
         print("Env gym: ", args.gymenv)
     else:
-        print("Warning: Env {} not fount in openai gym, quit.".format(args.gymenv))
+        print(
+            "Warning: Env {} not fount in openai gym, quit.".
+            format(args.gymenv)
+        )
         exit()
 
     # if actually render env
@@ -114,19 +134,24 @@ def Setup(args):
         if not os.path.isdir(MONITOR_FOLDER):
             os.mkdir(MONITOR_FOLDER)
         if os.path.isdir(proposed_MONITOR_FOLDER):
-            print("Warning: monitor output folder {} exists, overwriting".
-                  format(proposed_MONITOR_FOLDER))
+            print(
+                "Warning: monitor output folder {} exists, overwriting".
+                format(proposed_MONITOR_FOLDER)
+            )
         else:
             os.mkdir(proposed_MONITOR_FOLDER)
         # overwriting
         env = wrappers.Monitor(env, proposed_MONITOR_FOLDER, force=True)
 
     state_shape, state_type, state_range, _, _ = identify_env_input(
-        env.observation_space)
+        env.observation_space
+    )
     action_shape, _, action_range, _, _ = identify_env_input(env.action_space)
 
-    print("Env setting: state/action type(shape):", env.observation_space,
-          env.action_space)
+    print(
+        "Env setting: state/action type(shape):", env.observation_space,
+        env.action_space
+    )
 
     return env, state_shape, state_type, action_shape, action_range
 
@@ -137,26 +162,27 @@ def TrainModel(rlnn, env, args):
         print("Model not initalized properly, force quit")
         exit()
 
-    state_shape, _, _, state_proc, state_recv = \
+    _, _, _, state_proc, _ = \
         identify_env_input(env.observation_space)
-    action_shape, _, action_range, action_proc, action_recv =\
+    _, _, _, _, action_recv =\
         identify_env_input(env.action_space)
 
     onlyTest = args.test
     renderGym = args.render
-    save_path = args.path or MODEL_PATH
-    session_id = get_session_id(args)
+    save_path = args.path
 
     n_steps = args.number_steps_total
     n_steps_timeout = args.number_steps_timeout
     n_iterations = args.number_iterations
     learning_batch_num_every_iteration = args.learn_batch_num_every_iteration
     learning_every_n_iterations = args.learn_every_n_iterations
+    save_every_iterations = args.save_iteration
+    batch_size = args.batch_size
+
+    session_id = get_session_id(args)
+
     learning_start_iteration = 10
     render_every_iterations = 100
-    save_every_iterations = args.save_iteration
-
-    batch_size = args.batch_size
 
     # Replay memory, epsilon-greedy policy and observation preprocessing
     replay_memory_size = 100000
@@ -192,10 +218,20 @@ def TrainModel(rlnn, env, args):
     training_testing_session = "TESTING"
     if not onlyTest:
         training_testing_session = "TRAINING"
-        print("Training: Train every {} iteration, for {} batches, with batch_size {}".
-              format(learning_every_n_iterations, learning_batch_num_every_iteration, batch_size))
-        print("Training: Reward collected every {}, avg computed every {} over {} test trial".
-              format(reward_count_dump_iter, reward_test_every_iter, reward_avg_over_iter))
+        print(
+            "Training: Train every {} iteration, for {} batches, with batch_size {}".
+            format(
+                learning_every_n_iterations, learning_batch_num_every_iteration,
+                batch_size
+            )
+        )
+        print(
+            "Training: Reward collected every {}, " +
+            "avg computed every {} over {} test trial".format(
+                reward_count_dump_iter, reward_test_every_iter,
+                reward_avg_over_iter
+            )
+        )
     print("\n=== {} START ====\n".format(training_testing_session))
 
     iteration = 0
@@ -208,8 +244,10 @@ def TrainModel(rlnn, env, args):
         if iteration % reward_count_dump_iter == 0:
             last_avg_reward = list(avg_reward_queue)[-reward_avg_over_iter:]
             last_avg_reward = np.mean(np.array(last_avg_reward))
-            print('\rIter {}\t Avg Reward: {}\t'.format(
-                iteration, last_avg_reward))
+            print(
+                '\rIter {}\t Avg Reward: {}\t'.
+                format(iteration, last_avg_reward)
+            )
 
             avg_reward_iters.append(iteration)
             avg_reward_records.append(round(last_avg_reward, 2))
@@ -243,11 +281,13 @@ def TrainModel(rlnn, env, args):
             reward_per_iter += reward
 
             # memorize session in replay memory
-            replay_memory.append((state.astype(np.float32),
-                                  action.astype(np.float32),
-                                  reward, terminal,
-                                  next_state.astype(np.float32),
-                                  next_action.astype(np.float32)))
+            replay_memory.append(
+                (
+                    state.astype(np.float32), action.astype(np.float32), reward,
+                    terminal, next_state.astype(np.float32),
+                    next_action.astype(np.float32)
+                )
+            )
 
             if renderGym and iteration % render_every_iterations == 0:
                 env.render()
@@ -262,13 +302,19 @@ def TrainModel(rlnn, env, args):
             loss_curr = []
             for _ in range(learning_batch_num_every_iteration):
                 batch_samples = sample_memories(replay_memory, batch_size)
-                loss, q_vals_target = rlnn.train(*batch_samples)
+                if (
+                    rlnn.model_type == MODEL_T.DQN_ADAPTED.name or
+                    rlnn.model_type == MODEL_T.SARSA_ADAPTED.name
+                ):
+                    loss = rlnn.train(*batch_samples)
+                else:
+                    loss, _ = rlnn.train(*batch_samples)
                 loss_curr.append(loss)
 
             loss_iters.append(iteration)
             loss_records.append(np.mean(np.array(loss_curr)))
 
-        if save_every_iterations > 0 and \
+        if args.nosave is False and save_every_iterations > 0 and \
                 iteration % save_every_iterations == 0:
             SaveModel(rlnn, save_path, session_id)  # + str(iteration)
 
@@ -276,7 +322,7 @@ def TrainModel(rlnn, env, args):
     print("\n=== {} FINISHED ====\n".format(training_testing_session))
     print("Summary: (iter, reward) =", avg_reward_tracking)
 
-    if not onlyTest:
+    if args.nosave is False and not onlyTest:
         SaveModel(rlnn, save_path, session_id)
 
     return avg_reward_tracking

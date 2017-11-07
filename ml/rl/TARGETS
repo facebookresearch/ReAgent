@@ -1,0 +1,205 @@
+thrift_library(
+    name = "thrift",
+    languages = ["py"],
+    py_base_module = "ml.rl.thrift",
+    thrift_py_options = "json",
+    thrift_srcs = {"thrift/core.thrift": []},
+)
+
+python_library(
+    name = "preprocessing",
+    srcs = util.files("preprocessing/*.py"),
+    deps = [
+    ],
+    external_deps = [
+        "numpy",
+        "scipy",
+    ],
+)
+
+python_library(
+    name = "custom_brew_helpers",
+    srcs = util.files("custom_brew_helpers/*.py"),
+    deps = ["@/caffe2/caffe2/python:caffe2_py"],
+    external_deps = [],
+)
+
+python_library(
+    name = "training",
+    srcs = util.files("training/*.py"),
+    deps = [
+        ":custom_brew_helpers",
+        ":thrift-py",
+        "@/caffe2/caffe2/fb/operators:map_to_matrix_op",
+        "@/caffe2/caffe2/python:caffe2_py",
+        "@/caffe2/caffe2/python:test_util",
+        "@/deeplearning/projects/faiss:pyfaiss",
+        "@/libfb/py:ipython_par",
+        "@/libfb/py/mkl:mkl",
+    ],
+    external_deps = [
+        ("scipy", "any"),
+        ("pandas", "any"),
+    ],
+)
+
+python_library(
+    name = "test_base",
+    srcs = [
+        "test/gridworld/gridworld.py",
+        "test/gridworld/gridworld_base.py",
+        "test/gridworld/gridworld_continuous.py",
+        "test/gridworld/gridworld_evaluator.py",
+        "test/gridworld/limited_action_gridworld.py",
+        "test/preprocessing_util.py",
+    ],
+    deps = [
+        ":preprocessing",
+        ":training",
+        "@/caffe2/caffe2/python:test_util",
+    ],
+    external_deps = [
+        "numpy",
+    ],
+)
+
+python_library(
+    name = "test_gym_base",
+    srcs = [
+        "test/gym/cartpole_environment.py",
+        "test/gym/rlmodels/actor_critic.py",
+        "test/gym/rlmodels/dqn.py",
+        "test/gym/rlmodels/dqn_adapted.py",
+        "test/gym/rlmodels/rlmodel_base.py",
+        "test/gym/rlmodels/rlmodel_base_adapted.py",
+        "test/gym/rlmodels/rlmodel_helper.py",
+        "test/gym/run_rl_gym.py",
+        "test/gym/trainer.py",
+    ],
+    py_version = ">=3",
+    deps = [
+        ":test_base",
+    ],
+    external_deps = [
+        "gym",
+    ],
+)
+
+python_unittest(
+    name = "test_custom_brew_helpers",
+    srcs = [
+        "test/test_custom_brew_helpers.py",
+    ],
+    deps = [
+        ":custom_brew_helpers",
+    ],
+    external_deps = [
+        "numpy",
+        "scipy",
+    ],
+)
+
+python_unittest(
+    name = "test_type_identification",
+    srcs = [
+        "test/test_type_identification.py",
+    ],
+    deps = [
+        ":test_base",
+    ],
+    external_deps = ["numpy"],
+)
+
+python_unittest(
+    name = "test_normalization",
+    srcs = [
+        "test/test_normalization.py",
+    ],
+    deps = [
+        ":test_base",
+    ],
+    external_deps = [
+        "numpy",
+        "ipdb",
+    ],
+)
+
+python_unittest(
+    name = "test_ml_trainer",
+    srcs = ["test/test_ml_trainer.py"],
+    deps = [
+        ":test_base",
+    ],
+    external_deps = [
+        "numpy",
+    ],
+)
+
+python_unittest(
+    name = "test_gridworld",
+    srcs = [
+        "test/gridworld/test_gridworld.py",
+    ],
+    deps = [
+        ":test_base",
+    ],
+    external_deps = [
+        "numpy",
+    ],
+)
+
+python_unittest(
+    name = "test_gridworld_continuous",
+    srcs = [
+        "test/gridworld/test_gridworld_continuous.py",
+    ],
+    deps = [
+        ":test_base",
+    ],
+    external_deps = [
+        "numpy",
+    ],
+)
+
+python_unittest(
+    name = "test_limited_action_gridworld",
+    srcs = [
+        "test/gridworld/test_limited_action_gridworld.py",
+    ],
+    deps = [
+        ":test_base",
+    ],
+    external_deps = [
+        "numpy",
+    ],
+)
+
+python_unittest(
+    name = "test_open_ai_gym",
+    srcs = [
+        "test/test_open_ai_gym.py",
+    ],
+    py_version = ">=3",
+    deps = [
+        ":test_gym_base",
+    ],
+    external_deps = [
+        "numpy",
+        "gym",
+    ],
+)
+
+python_unittest(
+    name = "test_cartpole",
+    srcs = [
+        "test/gym/test_cartpole.py",
+    ],
+    py_version = ">=3",
+    deps = [
+        ":test_gym_base",
+    ],
+    external_deps = [
+        "numpy",
+        "gym",
+    ],
+)

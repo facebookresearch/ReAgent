@@ -10,6 +10,10 @@ All rights reserved.
 # @package rlmodel_base
 # Module rl2_caffe2.rlmodels.rlmodel_base
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import json
 from os import path
 
@@ -17,6 +21,7 @@ import numpy as np
 from caffe2.python import model_helper, workspace, brew
 from caffe2.python import net_drawer
 import caffe2.python.predictor.predictor_exporter as pe
+
 
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -29,17 +34,27 @@ class NumpyEncoder(json.JSONEncoder):
         else:
             return super(NumpyEncoder, self).default(obj)
 
+
 # ### Base Model Class for all RL algorithm supported,
 # , defining all necessary functions and interface
 # 1. DQN-max-action: Deep Q Network
 # 2. Actor-Critic
 class RLNN(object):
-    def __init__(self, model_id, model_type,
-                 state_shape, action_shape,
-                 discount_gamma, learning_rate, optimizer,
-                 n_hidden_nodes, n_hidden_activations,
-                 action_constraints=False,
-                 maxq_learning=False, input_img=True):
+    def __init__(
+        self,
+        model_id,
+        model_type,
+        state_shape,
+        action_shape,
+        discount_gamma,
+        learning_rate,
+        optimizer,
+        n_hidden_nodes,
+        n_hidden_activations,
+        action_constraints=False,
+        maxq_learning=False,
+        input_img=True
+    ):
         self.saving_args = {k: v for k, v in locals().items() if k != 'self'}
 
         self.model_id = model_id
@@ -83,8 +98,9 @@ class RLNN(object):
         self.q_model_train = model_helper.ModelHelper(name="q_model_train")
         self.q_net_train = self.q_model_train.net
 
-        self.q_model_test = model_helper.ModelHelper(name="q_model_test",
-                                                     init_params=False)
+        self.q_model_test = model_helper.ModelHelper(
+            name="q_model_test", init_params=False
+        )
         self.q_net_test = self.q_model_test.net
 
         # Construct NN, note: here train test share same parameter as forward,
@@ -107,36 +123,55 @@ class RLNN(object):
         self.X_state = "X_state"
         self.X_action = "X_action"
         self.Y_qval = "Y_qval"
-        workspace.FeedBlob(self.X_state,
-                           np.random.randn(1, self.state_dim).astype(np.float32))
-        workspace.FeedBlob(self.X_action,
-                           np.random.randn(1, self.action_dim).astype(np.float32))
-        workspace.FeedBlob(self.Y_qval,
-                           np.random.randn(1, self.output_dim).astype(np.float32))
+        workspace.FeedBlob(
+            self.X_state, np.random.randn(1, self.state_dim).astype(np.float32)
+        )
+        workspace.FeedBlob(
+            self.X_action,
+            np.random.randn(1, self.action_dim).astype(np.float32)
+        )
+        workspace.FeedBlob(
+            self.Y_qval, np.random.randn(1, self.output_dim).astype(np.float32)
+        )
 
         self.critic_q_output = self.critic_prefix + self.final_output_label
         self.actor_q_output = self.actor_prefix + self.final_output_label
 
         self.q_model_inputs = [self.X_state, self.X_action]
         self.q_model_outputs = [self.critic_q_output]
+
     #  network construction at network level
     # general construct a next work with input of state (or + action) ,
     # output either action(as actor),  qval for each action (eg dqn),
     # or qval for input action (critic or drrn)
 
-    def q_network(self, model, prefix, X_input, X_inputdim, Y_outputdim,
-                  X_input_action=None, X_input_action_dim=None):
+    def q_network(
+        self,
+        model,
+        prefix,
+        X_input,
+        X_inputdim,
+        Y_outputdim,
+        X_input_action=None,
+        X_input_action_dim=None
+    ):
         last_layer = X_input
         layer_dim_in = X_inputdim
 
         if self.input_Img_CNN:
             last_layer, layer_dim_in = self.setup_cnn_network(
-                model, prefix, last_layer)
+                model, prefix, last_layer
+            )
 
         for n_count, n_hidden in enumerate(self.n_hidden_nodes):
             curr_layer = prefix + 'fc' + str(n_count)
-            brew.fc(model, last_layer, curr_layer,
-                    dim_in=layer_dim_in, dim_out=n_hidden)
+            brew.fc(
+                model,
+                last_layer,
+                curr_layer,
+                dim_in=layer_dim_in,
+                dim_out=n_hidden
+            )
 
             if 'relu' in self.n_hidden_activations[n_count]:
                 brew.relu(model, curr_layer, curr_layer)
@@ -148,8 +183,13 @@ class RLNN(object):
         layer_dim_out = Y_outputdim
         output_layer = prefix + self.state_output_label
 
-        brew.fc(model, curr_layer, output_layer,
-                dim_in=layer_dim_in, dim_out=layer_dim_out)
+        brew.fc(
+            model,
+            curr_layer,
+            output_layer,
+            dim_in=layer_dim_in,
+            dim_out=layer_dim_out
+        )
         used_outputs = output_layer
         output_layer_a = prefix + self.action_output_label
         if self.actor_label in prefix and self.action_constraints:
@@ -160,11 +200,14 @@ class RLNN(object):
         if X_input_action is not None:
             output_layer_critic = prefix + self.critic_output_label
             X_input_action_dim = X_input_action_dim or self.action_dim
-            brew.fc(model, X_input_action, output_layer_a,
-                    dim_in=X_input_action_dim,
-                    dim_out=layer_dim_out)
-            brew.sum(model, [output_layer, output_layer_a],
-                     output_layer_critic)
+            brew.fc(
+                model,
+                X_input_action,
+                output_layer_a,
+                dim_in=X_input_action_dim,
+                dim_out=layer_dim_out
+            )
+            brew.sum(model, [output_layer, output_layer_a], output_layer_critic)
             used_outputs = output_layer_critic
 
         final_outputs = prefix + self.final_output_label
@@ -198,17 +241,27 @@ class RLNN(object):
         action, _, _ = self.get_action_policy_single(state, policy_test)
         return action
 
-    # interface utilties/functions for trainer/runner
-    def train(self, states, actions, rewards, terminals,
-              next_states, next_actions=None, next_possible_actions=None):
+    # interface utilities/functions for trainer/runner
+    def train(
+        self,
+        states,
+        actions,
+        rewards,
+        terminals,
+        next_states,
+        next_actions=None,
+        next_possible_actions=None
+    ):
         gamma = self.discount_gamma
         if not self.maxq_learning and next_actions is not None:
             next_q_values_action = self.get_q_val_action(
-                next_states, next_actions)
+                next_states, next_actions
+            )
             q_vals_next = next_q_values_action
         else:
             next_q_values_max = self.get_q_val_best(
-                next_states, next_possible_actions)
+                next_states, next_possible_actions
+            )
             q_vals_next = next_q_values_max
 
         q_vals_target = rewards + (1.0 - terminals) * gamma * q_vals_next
@@ -218,10 +271,12 @@ class RLNN(object):
         return loss, q_vals_target
 
     def save_nn_structure(self, saving_folder, session_id):
-        with open(path.join(saving_folder, session_id + "_train.pbtxt"), 'w') as fid:
+        with open(path.join(saving_folder, session_id + "_train.pbtxt"),
+                  'w') as fid:
             fid.write(str(self.q_model_train.net.Proto()))
 
-        with open(path.join(saving_folder, session_id + "_test.pbtxt"), 'w') as fid:
+        with open(path.join(saving_folder, session_id + "_test.pbtxt"),
+                  'w') as fid:
             fid.write(str(self.q_model_test.net.Proto()))
 
     def save_nn_params(self, saving_folder, session_id):
@@ -236,24 +291,29 @@ class RLNN(object):
         )
         # save the model to a file. Use minidb as the file format
         pe.save_to_db("minidb", save_file_path, pe_meta)
-        print("Model saving: sucessfully saved parameters/weights for models.")
+        print("Model saving: successfully saved parameters/weights for models.")
 
     def save_args(self, saving_folder, session_id):
-        with open(path.join(saving_folder, session_id + "_args.txt"), 'w') as fid:
+        with open(path.join(saving_folder, session_id + "_args.txt"),
+                  'w') as fid:
             fid.write(json.dumps(self.saving_args, cls=NumpyEncoder))
             fid.close()
-        print("Model saving: sucessfully saved constructor parms.")
+        print("Model saving: successfully saved constructor parms.")
 
-    def load_nn_params(self, saving_folder, session_id, continue_training=False):
+    def load_nn_params(
+        self, saving_folder, session_id, continue_training=False
+    ):
         load_file_path = path.join(saving_folder, session_id + "_model.minidb")
         print("Model loading: from path {}".format(load_file_path))
         # TODO? reset the workspace, and load the predict net
         workspace.ResetWorkspace()
         predict_net = pe.prepare_prediction_net(load_file_path, "minidb")
         workspace.RunNetOnce(predict_net)
-        print("Model loading: workspace blobs: {}".format(str(workspace.Blobs())))
+        print(
+            "Model loading: workspace blobs: {}".format(str(workspace.Blobs()))
+        )
         self.q_model_test.net = predict_net
-        print("Model loading: sucessfully loaded constructor params.")
+        print("Model loading: successfully loaded constructor params.")
 
     def visualize_nn(self, model):
         graph = net_drawer.GetPydotGraph(model.Proto().op, rankdir="LR")
@@ -265,17 +325,22 @@ class RLNN(object):
     def visualize_nn_train(self):
         self.visualize_nn(self.q_model_train)
 
-    def setup_cnn_parameters(self, conv_n_maps=None, conv_kernels=None,
-                                conv_pools_kernels_strides=None, conv_pools=None):
+    def setup_cnn_parameters(
+        self,
+        conv_n_maps=None,
+        conv_kernels=None,
+        conv_pools_kernels_strides=None,
+        conv_pools=None
+    ):
         # default cnn model structure if empty or None
         self.conv_n_maps = [32, 64, 64] if conv_n_maps is None else conv_n_maps
         self.conv_kernels = [8, 4, 3] if conv_kernels is None else conv_kernels
-        self.conv_pools_kernels_strides =  [4, 4, 2] \
+        self.conv_pools_kernels_strides = [4, 4, 2] \
             if conv_pools_kernels_strides is None else conv_pools_kernels_strides
         self.conv_pools = ['max', 'max', 'max'] \
             if conv_pools is None else conv_pools
 
-        self.input_channels = self.state_shape[2]  # 3? rgb or assumed cast to bw
+        self.input_channels = self.state_shape[2]
         self.input_height = self.state_shape[0]
         self.input_width = self.state_shape[1]
         self.input_frames = 1  # look back frames, only for video input
@@ -288,28 +353,41 @@ class RLNN(object):
         final_height = self.input_height
         final_width = self.input_width
 
-        for n_maps, kernel_size, stride, pools in zip(self.conv_n_maps,
-                                                      self.conv_kernels,
-                                                      self.conv_pools_kernels_strides,
-                                                      self.conv_pools):
+        for n_maps, kernel_size, stride, pools in zip(
+            self.conv_n_maps, self.conv_kernels,
+            self.conv_pools_kernels_strides, self.conv_pools
+        ):
             curr_layer = prefix + 'conv' + str(layer_count)
-            brew.conv(model, last_layer, curr_layer,
-                      dim_in=layer_dim_in,
-                      dim_out=n_maps,
-                      kernel=kernel_size) # order='NCHW'
+            brew.conv(
+                model,
+                last_layer,
+                curr_layer,
+                dim_in=layer_dim_in,
+                dim_out=n_maps,
+                kernel=kernel_size
+            )  # order='NCHW'
 
             curr_layer_pool = prefix + pools + 'pool' + str(layer_count)
             if 'max' in pools:
-                brew.max_pool(model, curr_layer, curr_layer_pool,
-                              kernel=stride,
-                              stride=stride)
+                brew.max_pool(
+                    model,
+                    curr_layer,
+                    curr_layer_pool,
+                    kernel=stride,
+                    stride=stride
+                )
             elif 'avg' in pools:
-                brew.average_pool(model, curr_layer, curr_layer_pool,
-                                  kernel=stride,
-                                  stride=stride)
+                brew.average_pool(
+                    model,
+                    curr_layer,
+                    curr_layer_pool,
+                    kernel=stride,
+                    stride=stride
+                )
             else:
                 raise Exception(
-                    "CNN Pooling type not supported {}".format(pools))
+                    "CNN Pooling type not supported {}".format(pools)
+                )
 
             layer_count += 1
             layer_dim_in = n_maps
@@ -319,7 +397,10 @@ class RLNN(object):
             final_width = (final_width - kernel_size + 1) // stride
 
         cnn_output_dim = self.conv_n_maps[-1] * final_height * final_width
-        print("cnn final shape: {}x{}x{} = {} ".format(
-                str(self.conv_n_maps[-1]), str(final_height), str(final_width),
-                str(cnn_output_dim)))
+        print(
+            "cnn final shape: {}x{}x{} = {} ".format(
+                str(self.conv_n_maps[-1]),
+                str(final_height), str(final_width), str(cnn_output_dim)
+            )
+        )
         return last_layer, cnn_output_dim
