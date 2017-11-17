@@ -38,29 +38,29 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
               self).__init__(normalization_parameters, parameters)
         self._max_q = parameters.rl.maxq_learning
 
-    def get_maxq_actions(self, states, possible_next_actions):
+    def get_maxq_actions(self, next_states, possible_next_actions):
         """
         Takes in an array of states and outputs an array of the same shape whose
         ith entry is the action a that maximizes Q(state_i, a). Only considers
         Q values of possible actions.
 
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
+        :param next_states: Numpy array with shape (batch_size, state_dim). Each row
+            contains a representation of a next_state.
         :param possible_next_actions: Numpy array with shape (batch_size, action_dim).
             possible_next_actions[i][j] = 1 iff the agent can take action j from
             state i.
         """
-        q_values = self.get_q_values(states, possible_next_actions, False)
+        q_values = self.get_max_q_values(next_states, possible_next_actions, False)
         # TODO: Speed this up
         q_values_mask = np.zeros(
-            [states.shape[0], self.num_actions], dtype=np.float32
+            [next_states.shape[0], self.num_actions], dtype=np.float32
         )
         for i, a in enumerate(q_values):
             q_values_mask[i] = a
         return q_values_mask
 
     def action_values(self, states, action_idx):
-        return self.get_q_values(states, None, False)[:, action_idx]
+        return self.get_q_values_all_actions(states, False)[:, action_idx]
 
     def stream(
         self, states, actions, rewards, next_states, next_actions, is_terminals,

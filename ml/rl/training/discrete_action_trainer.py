@@ -91,20 +91,18 @@ class DiscreteActionTrainer(RLTrainer):
 
         :param states: Numpy array with shape (batch_size, state_dim). The ith
             row is a representation of the ith transition's state.
-        :param actions: It is a Numpy array with
-            shape (batch_size, action_dim). The ith row contains the one-hotted
-            representation of the ith transition's action: actions[i][j] = 1 if
-            action_i == j else 0.
+        :param actions: Numpy array with shape (batch_size, action_dim). The ith
+            row contains the one-hotted representation of the ith transition's
+            action: actions[i][j] = 1 if action_i == j else 0.
         :param rewards: Numpy array with shape (batch_size, 1). The ith entry is
             the reward experienced at the ith transition.
         :param terminals: Numpy array with shape (batch_size, 1). The ith entry
             is equal to 1 iff the ith transition's state is terminal.
         :param next_states: Numpy array with shape (batch_size, state_dim). The
             ith row is a representation of the ith transition's next state.
-        :param next_actions: It is a Numpy array with
-            shape (batch_size, action_dim). The ith row contains the one-hotted
-            representation of the ith transition's action: next_actions[i][j] = 1 if
-            next_action_i == j else 0.
+        :param next_actions: Numpy array with shape (batch_size, action_dim). The
+            ith row contains the one-hotted representation of the ith transition's
+            action: next_actions[i][j] = 1 if next_action_i == j else 0.
         :param possible_next_actions: Numpy array with shape (batch_size, action_dim).
             possible_next_actions[i][j] = 1 iff the agent can take action j from
             state i.
@@ -118,7 +116,7 @@ class DiscreteActionTrainer(RLTrainer):
             assert next_actions.shape == (batch_size, self.num_actions)
         if possible_next_actions is not None:
             assert possible_next_actions.shape == (batch_size, self.num_actions)
-        return RLTrainer.train(
+        RLTrainer.train(
             self,
             states,
             actions,
@@ -158,12 +156,10 @@ class DiscreteActionTrainer(RLTrainer):
             self.loss_blob
         )
 
-    def run_train_rl_nn(self, states, actions, q_vals_target):
+    def update_model(self, states, actions, q_vals_target):
         """
-        Takes in states, actions, and computed target q values from a batch
-        of transitions.
+        Takes in states, actions, and target q values. Updates the model:
 
-        Runs the training Q Network:
             Runs the forward pass, computing Q(states, actions).
                 Q(states, actions)[i][j] is an approximation of Q*(states[i], action_j).
             Comptutes Loss of Q(states, actions) with respect to q_vals_targets
@@ -172,8 +168,7 @@ class DiscreteActionTrainer(RLTrainer):
         :param states: Numpy array with shape (batch_size, state_dim). The ith
             row is a representation of the ith transition's state.
         :param actions: Numpy array with shape (batch_size, action_dim). The ith
-            row contains the one-hotted representation of the ith transition's
-            action: actions[i][j] = 1 if action_i == j else 0
+            row contains the one-hotted representation of the ith action.
         :param q_vals_targets: Numpy array with shape (batch_size, 1). The ith
             row is the label to train against for the data from the ith transition.
         """
@@ -182,22 +177,47 @@ class DiscreteActionTrainer(RLTrainer):
         workspace.FeedBlob(self.labels_blob, q_vals_target)
         workspace.RunNet(self.train_model.net)
 
-    def get_maxq_labels(self, states, possible_next_actions):
+    def get_max_q_values(
+        self, next_states, possible_next_actions=None, use_target_network=True
+    ):
         """
-        Takes in an array of states and outputs an array of the same shape whose
-        ith entry = max_a Q(state_i, a). Only considers Q values of possible actions.
+        Takes in an array of next_states and outputs an array of the same shape
+        whose ith entry = max_{possible_next_actions} Q(state_i, a).
 
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
+        :param next_states: Numpy array with shape (batch_size, state_dim). Each
+            row contains a representation of a state.
         :param possible_next_actions: Numpy array with shape (batch_size, action_dim).
             possible_next_actions[i][j] = 1 iff the agent can take action j from
             state i.
+        :use_target_network: Boolean that indicates whether or not to use this
+            trainer's TargetNetwork to compute Q values.
         """
-        q_values = self.get_q_values(states, possible_next_actions, True)
+        q_values = self.get_q_values_all_actions(next_states, use_target_network)
+
+        if possible_next_actions is not None:
+            mask = np.multiply(
+                np.logical_not(possible_next_actions),
+                self.ACTION_NOT_POSSIBLE_VAL
+            )
+            q_values += mask
+
         return np.max(q_values, axis=1, keepdims=True)
 
-    def get_q_values(
-        self, states, possible_next_actions=None, use_target_network=True
+    def get_q_values(self, states, actions):
+        """
+        Takes in a set of states and actions and returns Q(states, actions).
+
+        :param states: Numpy array with shape (batch_size, state_dim). Each row
+            contains a representation of a state.
+        :param actions: Numpy array with shape (batch_size, action_dim). The ith
+            row contains the one-hotted representation of the ith action.
+        """
+        q_values = self.get_q_values_all_actions(states, False)
+        q_values_selected = q_values * actions
+        return np.max(q_values_selected, axis=1)
+
+    def get_q_values_all_actions(
+        self, states, use_target_network=True
     ):
         """
         Takes in a set of states and runs the test Q Network on them.
@@ -206,9 +226,6 @@ class DiscreteActionTrainer(RLTrainer):
         Q(states, actions)[i][j] is an approximation of Q*(states[i], action_j).
         Note that action_j takes on every possible action (of which there are
         self.action_dim_. Stores blob in self.output_blob and returns its value.
-
-        If possible_next_actions is supplied, then q_values for impossible actions
-        are set to self.ACTION_NOT_POSSIBLE_VAL.
 
         :param states: Numpy array with shape (batch_size, state_dim). Each row
             contains a representation of a state.
@@ -219,31 +236,24 @@ class DiscreteActionTrainer(RLTrainer):
             trainer's TargetNetwork to compute Q values.
         """
         if use_target_network:
-            q_values = self.target_network.target_values(states)
+            return self.target_network.target_values(states)
         else:
             workspace.FeedBlob(self.input_blob, states.astype(np.float32))
             workspace.RunNet(self.score_model.net)
-            q_values = workspace.FetchBlob(self.output_blob)
+            return workspace.FetchBlob(self.output_blob)
 
-        if possible_next_actions is not None:
-            mask = np.multiply(
-                np.logical_not(possible_next_actions),
-                self.ACTION_NOT_POSSIBLE_VAL
-            )
-            q_values += mask
-        return q_values
-
-    def get_sarsa_labels(self, states, actions):
+    def get_sarsa_values(self, next_states, next_actions):
         """
-        Takes in a set of states and corresponding actions. For each
-        (state_i, action_i) pair, calculates Q(state, action). Returns these q
-        values in a Numpy array of shape (batch_size, 1).
+        Takes in a set of next_states and corresponding next_actions. For each
+        (next_state_i, next_action_i) pair, calculates Q(next_state, next_action).
+        Returns these q values in a Numpy array of shape (batch_size, 1).
 
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
+        :param next_states: Numpy array with shape (batch_size, state_dim). Each row
             contains a representation of a state.
-        :param actions: Numpy array with shape (batch_size, action_dim).
+        :param actions: Numpy array with shape (batch_size, action_dim). The ith
+            row contains the one-hotted representation of the ith next_action.
         """
-        return self.get_maxq_labels(states, actions)
+        return self.get_max_q_values(next_states, next_actions)
 
     def predictor(self):
         """
@@ -254,3 +264,11 @@ class DiscreteActionTrainer(RLTrainer):
             self, self._state_features, self._actions,
             self._state_normalization_parameters
         )
+
+    def get_policy(self, state):
+        """
+        Returns the action with the highest approximated q-value for the given
+        state.
+        """
+        q_values = self.get_q_values_all_actions(np.array([state]), False)
+        return np.argmax(q_values[0])

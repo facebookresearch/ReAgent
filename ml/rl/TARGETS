@@ -66,13 +66,14 @@ python_library(
 python_library(
     name = "test_gym_base",
     srcs = [
-        "test/gym/cartpole_environment.py",
+        "test/gym/open_ai_gym_environment.py",
         "test/gym/rlmodels/actor_critic.py",
         "test/gym/rlmodels/dqn.py",
         "test/gym/rlmodels/dqn_adapted.py",
         "test/gym/rlmodels/rlmodel_base.py",
         "test/gym/rlmodels/rlmodel_base_adapted.py",
         "test/gym/rlmodels/rlmodel_helper.py",
+        "test/gym/run_gym.py",
         "test/gym/run_rl_gym.py",
         "test/gym/trainer.py",
     ],
@@ -90,6 +91,7 @@ python_unittest(
     srcs = [
         "test/test_custom_brew_helpers.py",
     ],
+    check_types = True,
     deps = [
         ":custom_brew_helpers",
     ],
@@ -104,6 +106,7 @@ python_unittest(
     srcs = [
         "test/test_type_identification.py",
     ],
+    check_types = True,
     deps = [
         ":test_base",
     ],
@@ -115,6 +118,7 @@ python_unittest(
     srcs = [
         "test/test_normalization.py",
     ],
+    check_types = True,
     deps = [
         ":test_base",
     ],
@@ -127,6 +131,7 @@ python_unittest(
 python_unittest(
     name = "test_ml_trainer",
     srcs = ["test/test_ml_trainer.py"],
+    check_types = True,
     deps = [
         ":test_base",
     ],
@@ -140,6 +145,7 @@ python_unittest(
     srcs = [
         "test/gridworld/test_gridworld.py",
     ],
+    check_types = True,
     deps = [
         ":test_base",
     ],
@@ -153,6 +159,7 @@ python_unittest(
     srcs = [
         "test/gridworld/test_gridworld_continuous.py",
     ],
+    check_types = True,
     deps = [
         ":test_base",
     ],
@@ -166,6 +173,7 @@ python_unittest(
     srcs = [
         "test/gridworld/test_limited_action_gridworld.py",
     ],
+    check_types = True,
     deps = [
         ":test_base",
     ],
@@ -179,6 +187,7 @@ python_unittest(
     srcs = [
         "test/test_open_ai_gym.py",
     ],
+    check_types = True,
     py_version = ">=3",
     deps = [
         ":test_gym_base",
@@ -194,6 +203,7 @@ python_unittest(
     srcs = [
         "test/gym/test_cartpole.py",
     ],
+    check_types = True,
     py_version = ">=3",
     deps = [
         ":test_gym_base",

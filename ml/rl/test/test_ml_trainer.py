@@ -12,9 +12,115 @@ import unittest
 from caffe2.python import workspace
 
 from ml.rl.training.ml_trainer import MLTrainer
-from ml.rl.training.ml_trainer_extension import \
-    MLTrainerIP  # , MLTrainerExt
 from ml.rl.thrift.core.ttypes import TrainingParameters
+from ml.rl.training.ml_trainer_extension import MLTrainerIP
+
+
+def gen_training_data(
+    num_features, num_training_samples, num_outputs, noise_scale=0.1,
+):
+    np.random.seed(0)
+    random.seed(1)
+    input_distribution = stats.norm()
+    training_inputs = input_distribution.rvs(
+        size=(num_training_samples, num_features)
+    ).astype(np.float32)
+    weights = np.random.normal(
+        size=(num_outputs, num_features)
+    ).astype(np.float32).transpose()
+    noise = np.multiply(
+        np.random.normal(size=(num_training_samples, num_outputs)), noise_scale
+    )
+    training_outputs = (
+        np.dot(training_inputs, weights) + noise
+    ).astype(np.float32)
+
+    return training_inputs, training_outputs, weights, input_distribution
+
+
+def gen_training_and_test_data(
+    num_features,
+    num_training_samples,
+    num_test_datapoints,
+    num_outputs,
+    noise_scale=0.1
+):
+    training_inputs, training_outputs, weights, input_distribution = (
+        gen_training_data(
+            num_features, num_training_samples, num_outputs, noise_scale
+        )
+    )
+
+    test_inputs = input_distribution.rvs(
+        size=(num_test_datapoints, num_features)
+    ).astype(np.float32)
+    test_outputs = np.dot(test_inputs, weights).astype(np.float32)
+    return training_inputs, training_outputs, test_inputs, test_outputs, weights
+
+
+def _train(
+    trainer,
+    num_features,
+    num_training_samples,
+    num_test_datapoints,
+    num_outputs,
+    num_training_iterations
+):
+    training_inputs, training_outputs, test_inputs, test_outputs, weights = (
+        gen_training_and_test_data(
+            num_features, num_training_samples, num_test_datapoints, num_outputs
+        )
+    )
+    for _ in range(num_training_iterations):
+        trainer.train(training_inputs, training_outputs)
+
+    return test_inputs, test_outputs, weights
+
+
+def get_prediction_dist(
+    trainer,
+    num_outputs=1,
+    num_features=4,
+    num_training_samples=100,
+    num_test_datapoints=10,
+    num_training_iterations=10000,
+):
+    test_inputs, test_outputs, _ = _train(
+        trainer,
+        num_features,
+        num_training_samples,
+        num_test_datapoints,
+        num_outputs,
+        num_training_iterations
+    )
+
+    predictions = trainer.score(test_inputs)
+    dist = np.linalg.norm(test_outputs - predictions)
+    return dist
+
+
+def get_weight_dist(
+        trainer,
+        num_outputs=1,
+        num_features=4,
+        num_training_samples=100,
+        num_test_datapoints=10,
+        num_training_iterations=10000,
+):
+    _, _, weights = _train(
+        trainer,
+        num_features,
+        num_training_samples,
+        num_test_datapoints,
+        num_outputs,
+        num_training_iterations
+    )
+
+    trained_weights = np.concatenate(
+        [workspace.FetchBlob(w) for w in trainer.weights], axis=0
+    ).transpose()
+    dist = np.linalg.norm(trained_weights - weights)
+    return dist
 
 
 class TestMLTrainer(unittest.TestCase):
@@ -39,23 +145,109 @@ class TestMLTrainer(unittest.TestCase):
                 TrainingParameters([1.3, 1], ['linear'], 100, 0.001, 'ADAM')
             )
 
-    def test_linear_regression_adam(self):
+    def test_identity(self):
+        # this is to test corner case of nn w.o. weights, just identity
+        # might be useful when reduce from actor-critic, also normalizations
         np.random.seed(0)
         random.seed(1)
         num_features = 4
         num_training_samples = 100
-        num_outputs = 1  # change if to test mutliple output
+
         input_distribution = stats.norm()
         training_inputs = input_distribution.rvs(
             size=(num_training_samples, num_features)
         ).astype(np.float32)
-        weights = [[-1, 0.5, 2, 3]]
-        if num_outputs == 2:
-            weights += [[2, -0.5, 4, 1]]
-        weights = np.array(weights).transpose()
-        noise = np.random.normal(size=(num_training_samples, num_outputs)) * 0.1
-        training_outputs = np.dot(training_inputs, weights) + noise
-        training_outputs = training_outputs.astype(np.float32)
+        training_outputs = training_inputs.astype(np.float32)
+
+        trainer = MLTrainer(
+            "Identity",
+            TrainingParameters(
+                layers=[num_features],
+                activations=[],
+                minibatch_size=100,
+                learning_rate=0.1,
+                optimizer='ADAM'
+            )
+        )
+        identity_output = trainer.score(training_inputs)
+        for _ in range(100):
+            trainer.train(training_inputs, training_outputs)
+        identity_output = trainer.score(training_inputs)
+        self.assertTrue(
+            np.linalg.norm(identity_output - training_outputs) < 0.01
+        )
+
+    def test_sgd_dropout_predictions(self):
+        num_features = 4
+        num_outputs = 1
+
+        trainer = MLTrainer(
+            "Linear Regression",
+            TrainingParameters(
+                layers=[num_features, num_outputs],
+                activations=['linear'],
+                minibatch_size=100,
+                learning_rate=0.001,
+                optimizer='SGD',
+                gamma=0.9999,
+                lr_policy='step',
+                dropout_ratio=0.05
+            )
+        )
+
+        dist = get_prediction_dist(
+            trainer, num_features=num_features, num_outputs=num_outputs
+        )
+        self.assertLess(dist, 1.0)
+
+    def test_sgd_weights(self):
+        num_features = 4
+        num_outputs = 1
+
+        trainer = MLTrainer(
+            "Linear Regression",
+            TrainingParameters(
+                layers=[num_features, num_outputs],
+                activations=['linear'],
+                minibatch_size=100,
+                learning_rate=0.001,
+                optimizer='SGD',
+                gamma=0.9999,
+                lr_policy='step'
+            )
+        )
+
+        dist = get_weight_dist(
+            trainer, num_features=num_features, num_outputs=num_outputs
+        )
+
+        self.assertLess(dist, 0.1)
+
+    def test_adam_dropout_predictions(self):
+        num_features = 4
+        num_outputs = 1
+
+        trainer = MLTrainer(
+            "Linear Regression",
+            TrainingParameters(
+                layers=[num_features, num_outputs],
+                activations=['linear'],
+                minibatch_size=100,
+                learning_rate=0.1,
+                optimizer='ADAM',
+                dropout_ratio=0.1
+            )
+        )
+
+        dist = get_prediction_dist(
+            trainer, num_features=num_features, num_outputs=num_outputs
+        )
+
+        self.assertLess(dist, 2.0)
+
+    def test_adam_weights(self):
+        num_features = 4
+        num_outputs = 1
 
         trainer = MLTrainer(
             "Linear Regression",
@@ -67,114 +259,26 @@ class TestMLTrainer(unittest.TestCase):
                 optimizer='ADAM'
             )
         )
-        for _ in range(10000):
-            trainer.train(training_inputs, training_outputs)
 
-        trained_weights = np.concatenate(
-            [workspace.FetchBlob(w) for w in trainer.weights], axis=0
-        ).transpose()
-        weights_diff = trained_weights - weights
-
-        self.assertTrue(np.linalg.norm(weights_diff) < 0.05)
-
-    def test_linear_regression_sgd(self):
-        np.random.seed(0)
-        random.seed(1)
-        num_features = 4
-        num_training_samples = 100
-        num_outputs = 1  # change if to test mutliple output
-        input_distribution = stats.norm()
-        training_inputs = input_distribution.rvs(
-            size=(num_training_samples, num_features)
-        ).astype(np.float32)
-        weights = [[-1, 0.5, 2, 3]]
-        if num_outputs == 2:
-            weights += [[2, -0.5, 4, 1]]
-        weights = np.array(weights).transpose()
-        noise = np.random.normal(size=(num_training_samples, num_outputs)) * 0.1
-        training_outputs = np.dot(training_inputs, weights) + noise
-        training_outputs = training_outputs.astype(np.float32)
-        gamma = 0.9999
-
-        trainer = MLTrainer(
-            "Linear Regression",
-            TrainingParameters(
-                layers=[num_features, num_outputs],
-                activations=['linear'],
-                minibatch_size=100,
-                learning_rate=0.001,
-                optimizer='SGD',
-                lr_policy='step',
-                gamma=gamma,
-            )
-        )
-        for i in range(10000):
-            trainer.train(training_inputs, training_outputs)
-            curr_neg_LR = np.asscalar(
-                workspace.FetchBlob('SgdOptimizer_0_lr_cpu')
-            )
-            expected_neg_LR = -1.0 * trainer.learning_rate * np.power(gamma, i)
-
-            self.assertTrue(np.isclose(curr_neg_LR, expected_neg_LR, rtol=0.1))
-
-        trained_weights = np.concatenate(
-            [workspace.FetchBlob(w) for w in trainer.weights], axis=0
-        ).transpose()
-        weights_diff = trained_weights - weights
-        self.assertTrue(np.linalg.norm(weights_diff) < 0.05)
-
-    def test_identity(self):
-        # this is to test corner case of nn w.o. weights, just identity
-        # might be useful when reduce from actor-critic, also normalizations
-        np.random.seed(0)
-        random.seed(1)
-        num_features = 4
-        num_training_samples = 100
-        input_distribution = stats.norm()
-        training_inputs = input_distribution.rvs(
-            size=(num_training_samples, num_features)
-        ).astype(np.float32)
-        training_outputs = training_inputs.astype(np.float32)
-        trainer = MLTrainer(
-            "Identity",
-            TrainingParameters(
-                layers=[num_features],
-                activations=[],
-                minibatch_size=100,
-                learning_rate=0.001
-            )
-        )
-        identity_output = trainer.score(training_inputs)
-        for _ in range(100):
-            trainer.train(training_inputs, training_outputs)
-        identity_output = trainer.score(training_inputs)
-        self.assertTrue(
-            np.linalg.norm(identity_output - training_outputs) < 0.01
+        dist = get_weight_dist(
+            trainer, num_features=num_features, num_outputs=num_outputs
         )
 
-    def test_scaledoutput_regression(self):
+        self.assertLess(dist, 0.1)
+
+    def test_scaledoutput_regression_weights(self):
         # this is testing if scaled/inner-product in final layer,
         #  using same case but transformed to (wx+b) * (1/y) = 1,
         #  in this test case, learned weight should be regularized on columns
-        np.random.seed(0)
-        random.seed(1)
         num_features = 4
         num_training_samples = 100
         num_outputs = 2
-        input_distribution = stats.norm()
-        training_inputs = input_distribution.rvs(
-            size=(num_training_samples, num_features)
-        ).astype(np.float32)
-        # weights = np.array([[-1, 0.5, 2, 3], [2, -0.5, 4, 1]]).transpose()
-        weights = [[-1, 0.5, 2, 3]]
-        if num_outputs == 2:
-            weights += [[2, -0.5, 4, 1]]
-        weights = np.array(weights).transpose()
 
-        noise = np.random.normal(size=(num_training_samples,
-                                       num_outputs)) * 0.01
-        training_outputs = np.dot(training_inputs, weights) + noise
-        training_outputs = training_outputs.astype(np.float32)
+        training_inputs, training_outputs, weights, _ = (
+            gen_training_data(
+                num_features, num_training_samples, num_outputs, 0.01
+            )
+        )
 
         trainer = MLTrainerIP(
             "Linear Regression",
@@ -186,8 +290,10 @@ class TestMLTrainer(unittest.TestCase):
             ),
             scaled_output=True
         )
-        training_labels = np.ones((training_inputs.shape[0],
-                                   1)).astype(np.float32)
+
+        training_labels = np.ones(
+            (training_inputs.shape[0], 1)
+        ).astype(np.float32)
         training_scale = np.where(
             training_outputs == 0, 0, 1.0 / (num_outputs * training_outputs)
         )
@@ -207,6 +313,5 @@ class TestMLTrainer(unittest.TestCase):
             scaling = 1.0 / trained_weights[0, i] * weights[0, i]
             scale_trained_weights[:, i] = trained_weights[:, i] * scaling
 
-        weights_diff = scale_trained_weights - weights
-
-        self.assertTrue(np.linalg.norm(weights_diff) < 0.05)
+        dist = np.linalg.norm(scale_trained_weights - weights)
+        self.assertLess(dist, 0.1)

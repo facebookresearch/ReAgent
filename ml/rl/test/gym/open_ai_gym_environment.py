@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import collections
 import numpy as np
 import gym
-import random
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
 
@@ -32,32 +31,21 @@ def sample_memories(replay_memory, batch_size):
     return cols
 
 
-def max_q(predictor, state, actions, features, action_dim):
-    predict_input = dict(
-        [(f, np.array([state[i]])) for i, f in enumerate(features)]
-    )
-    q_values = predictor.predict(predict_input)
-    best_value = None
-    best_action = None
-    for action, key in enumerate(actions):
-        q_action = q_values[key][0][0]
-        if best_value is None or q_action > best_value:
-            best_value = q_action
-            best_action = action
-    action_mask = np.zeros([action_dim], dtype=np.float32)
-    action_mask[best_action] = 1.0
-    return action_mask
-
-
 class OpenAIGymEnvironment:
-    def __init__(self, epsilon=0.2, replay_memory_size=10000):
+    def __init__(self, gymenv, epsilon=0.2, max_replay_memory_size=10000):
         self.epsilon = epsilon
-        self.replay_memory = collections.deque([], maxlen=replay_memory_size)
-        self.replay_memory.clear()
+        self.replay_memory = []
+        self.max_replay_memory_size = max_replay_memory_size
+        self.memory_num = 0
+        self.skip_insert_until = self.max_replay_memory_size
 
-        self.env, self.action_dim, self.state_dim = create_env(self.GYMENV)
+        self.env, self.action_dim, self.state_dim = create_env(gymenv)
         self.state_features = [str(sf) for sf in range(self.state_dim)]
         self.actions = [str(a) for a in range(self.action_dim)]
+
+    @property
+    def requires_discrete_actions(self):
+        return isinstance(self.env.action_space, gym.spaces.Discrete)
 
     def get_replay_samples(self, batch_size):
         """
@@ -118,20 +106,37 @@ class OpenAIGymEnvironment:
             ]
         )
 
-    def policy(self, predictor, next_state, test):
+    def policy(self, trainer, next_state, test):
+        action = np.zeros([self.action_dim], dtype=np.float32)
         if not test and np.random.rand() < self.epsilon:
-            action = np.zeros([self.action_dim], dtype=np.float32)
-            action[np.random.randint(self.action_dim)] = 1.0
-            return action
-        return max_q(
-            predictor, next_state, self.actions, self.state_features,
-            self.action_dim
+            action_idx = np.random.randint(self.action_dim)
+        else:
+            action_idx = trainer.get_policy(next_state)
+        action[action_idx] = 1.0
+        return action
+
+    def insert_into_memory(
+        self, state, action, reward, next_state, next_action, terminal,
+        possible_next_actions
+    ):
+        item = (
+            state, action, reward, next_state, next_action, terminal,
+            possible_next_actions
         )
 
-    def run_episode(self, predictor, test=False):
+        if self.memory_num < self.max_replay_memory_size:
+            self.replay_memory.append(item)
+        elif self.memory_num >= self.skip_insert_until:
+            p = float(self.max_replay_memory_size) / self.memory_num
+            self.skip_insert_until += np.random.geometric(p)
+            rand_index = np.random.randint(self.max_replay_memory_size)
+            self.replay_memory[rand_index] = item
+        self.memory_num += 1
+
+    def run_episode(self, trainer, test=False):
         terminal = False
         next_state = self.env.reset()
-        next_action = self.policy(predictor, next_state, test)
+        next_action = self.policy(trainer, next_state, test)
         reward_sum = 0
 
         while not terminal:
@@ -143,26 +148,16 @@ class OpenAIGymEnvironment:
                 action_index
             )
             next_state = next_state_unprocessed
-            next_action = self.policy(predictor, next_state, test)
+            next_action = self.policy(trainer, next_state, test)
             reward_sum += reward
 
             possible_next_actions = [
                 0 if terminal else 1 for __ in range(self.action_dim)
             ]
 
-            self.replay_memory.append(
-                (
-                    state, action, reward, next_state, next_action, terminal,
-                    possible_next_actions
-                )
+            self.insert_into_memory(
+                state, action, reward, next_state, next_action, terminal,
+                possible_next_actions
             )
 
         return reward_sum
-
-
-class CartpoleV0Environment(OpenAIGymEnvironment):
-    GYMENV = 'CartPole-v0'
-
-
-class CartpoleV1Environment(OpenAIGymEnvironment):
-    GYMENV = 'CartPole-v1'
