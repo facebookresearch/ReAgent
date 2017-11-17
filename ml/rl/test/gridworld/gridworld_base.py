@@ -6,15 +6,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import collections
-import datetime
 import numpy as np
 import random
-from typing import Tuple, Dict, List, Optional
+import datetime
+from typing import Tuple, List, Dict, Optional
 
-from ml.rl.training.training_data_page import \
-    TrainingDataPage
-from ml.rl.preprocessing.normalization import \
-    NormalizationParameters
+from ml.rl.preprocessing.normalization import NormalizationParameters
+from ml.rl.training.training_data_page import TrainingDataPage
 
 # Environment parameters
 DISCOUNT = 0.9
@@ -51,7 +49,17 @@ class GridworldBase(object):
     """
 
     # Must be overridden by derived class
-    ACTIONS: List[str] = []
+    ACTIONS: List[str] = ['L', 'R', 'U', 'D']
+
+    grid = np.array(
+        [
+            [S, 0, 0, 0, 0],  #
+            [0, 0, 0, 0, 0],  #
+            [0, 0, 0, 0, 0],  #
+            [0, 0, 0, 0, 0],  #
+            [0, 0, 0, 0, G],  #
+        ]
+    )
 
     width = 5
     height = 5
@@ -299,7 +307,7 @@ class GridworldBase(object):
                 )
         return results
 
-    def generate_samples(
+    def generate_samples_discrete(
         self, num_transitions, epsilon, with_possible=True
     ) -> Tuple[List[Dict[str, float]], List[str], List[float], List[
         Dict[str, float]
@@ -360,7 +368,7 @@ class GridworldBase(object):
             possible_next_actions, reward_timelines
         )
 
-    def preprocess_samples(
+    def preprocess_samples_discrete(
         self,
         states: List[Dict[str, float]],
         actions: List[str],
@@ -441,3 +449,14 @@ class GridworldBase(object):
             reward_timelines=reward_timelines,
             ds=[datetime.date.today().strftime('%Y-%m-%d')] * len(states)
         )
+
+    def generate_samples(
+        self, num_transitions, epsilon, with_possible=True
+    ):
+        raise Exception("Virtual")
+
+    def preprocess_samples(
+        self, states, actions, rewards, next_states, next_actions, is_terminals,
+        possible_next_actions, reward_timelines
+    ):
+        raise Exception("Virtual")

@@ -67,7 +67,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         the same shape.
 
         :param states: Numpy array with shape (batch_size, state_dim) containing
-            raw state inputs
+            raw state inputs.
         """
         normalized_actions = normalize_features(
             actions, self._action_features,
@@ -94,17 +94,15 @@ class ContinuousActionDQNTrainer(RLTrainer):
             for pna in possible_next_actions:
                 if pna.shape[0] > 0:
                     assert pna.shape[1] == self.num_action_features
-        return RLTrainer.train(
+        RLTrainer.train(
             self, states, actions, rewards, next_states, next_actions,
             terminals, possible_next_actions
         )
 
-    def run_train_rl_nn(self, states, actions, q_vals_target):
+    def update_model(self, states, actions, q_vals_target):
         """
-        Takes in states, actions, and computed target q values from a batch
-        of transitions.
+        Takes in states, actions, and target q values. Updates the model:
 
-        Runs the training Q Network:
             Runs the forward pass, computing Q(states, actions).
                 Q(states, actions)[i][j] is an approximation of Q*(states[i], action_j).
             Comptutes Loss of Q(states, actions) with respect to q_vals_targets
@@ -113,8 +111,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         :param states: Numpy array with shape (batch_size, state_dim). The ith
             row is a representation of the ith transition's state.
         :param actions: Numpy array with shape (batch_size, action_dim). The ith
-            row contains the one-hotted representation of the ith transition's
-            action: actions[i][j] = 1 if action_i == j else 0
+            row is a representation of the ith transition's action.
         :param q_vals_targets: Numpy array with shape (batch_size, 1). The ith
             row is the label to train against for the data from the ith transition.
         """
@@ -125,10 +122,22 @@ class ContinuousActionDQNTrainer(RLTrainer):
         workspace.RunNet(self.train_model.net)
         self.q_values = self.output_blob
 
-    def get_maxq_labels(self, states, possible_next_actions):
+    def get_max_q_values(self, next_states, possible_next_actions):
+        """
+        Takes in an array of next_states and outputs an array of the same shape
+        whose ith entry = max_{possible_next_actions} Q(state_i, a). Uses target
+        network for Q(state_i, a) approximation.
+
+        :param next_states: Numpy array with shape (batch_size, state_dim). Each
+            row contains a representation of a state.
+        :param possible_next_actions: List of sets of possible next actions. The
+            ith element of this list is a matrix PNA_i such that PNA_i[j] is the
+            parametric representation of the jth possible action from the ith
+            next_state.
+        """
         total_size = 0
         sizes = []
-        for i in range(len(states)):
+        for i in range(len(next_states)):
             num_possible_actions = possible_next_actions[i].shape[0]
             sizes.append(num_possible_actions)
             total_size += num_possible_actions
@@ -138,7 +147,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         )
         cursor = 0
         num_total_features = self.num_state_features + self.num_action_features
-        for i in range(len(states)):
+        for i in range(len(next_states)):
             possible_actions = possible_next_actions[i]
             num_possible_actions = possible_actions.shape[0]
             if num_possible_actions == 0:
@@ -146,7 +155,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
             cursor_end = cursor + num_possible_actions
             inputs_to_score[cursor:cursor_end, 0:self.num_state_features] \
                 = np.repeat(
-                    states[i].reshape(1, self.num_state_features),
+                    next_states[i].reshape(1, self.num_state_features),
                     num_possible_actions,
                     axis=0)
             inputs_to_score[cursor:cursor_end,
@@ -155,8 +164,8 @@ class ContinuousActionDQNTrainer(RLTrainer):
             cursor += num_possible_actions
         all_q_values = self.target_network.target_values(inputs_to_score)
         cursor = 0
-        q_values = np.zeros([len(states), 1], dtype=np.float32)
-        for i in range(len(states)):
+        q_values = np.zeros([len(next_states), 1], dtype=np.float32)
+        for i in range(len(next_states)):
             num_possible_actions = possible_next_actions[i].shape[0]
             if num_possible_actions == 0:
                 continue
@@ -166,15 +175,31 @@ class ContinuousActionDQNTrainer(RLTrainer):
             cursor += num_possible_actions
         return q_values
 
-    def get_sarsa_labels(self, states, actions):
+    def get_q_values(self, states, actions):
+        """
+        Takes in a set of states and actions and returns Q(states, actions).
+
+        :param states: Numpy array with shape (batch_size, state_dim). The ith
+            row is a representation of the ith transition's state.
+        :param actions: Numpy array with shape (batch_size, action_dim). The ith
+            row is a representation of the ith transition's action.
+        """
+        workspace.FeedBlob(
+            self.input_blob, np.concatenate([states, actions], axis=1)
+        )
+        workspace.RunNet(self.score_model.net)
+        return workspace.FetchBlob(self.output_blob)
+
+    def get_sarsa_values(self, states, actions):
         """
         Takes in a set of states and corresponding actions. For each
         (state_i, action_i) pair, calculates Q(state, action). Returns these q
         values in a Numpy array of shape (batch_size, 1).
 
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
-        :param actions: Numpy array with shape (batch_size, action_dim).
+        :param states: Numpy array with shape (batch_size, state_dim). The ith
+            row is a representation of the ith transition's state.
+        :param actions: Numpy array with shape (batch_size, action_dim). The ith
+            row is a representation of the ith transition's action.
         """
         return self.target_network.target_values(
             np.concatenate([states, actions], axis=1)

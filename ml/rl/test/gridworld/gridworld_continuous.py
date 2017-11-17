@@ -11,12 +11,12 @@ import random
 from typing import Tuple, Dict, List
 
 from ml.rl.test.gridworld.gridworld_base import default_normalizer
-from ml.rl.test.gridworld.gridworld import Gridworld
+from ml.rl.test.gridworld.gridworld_base import GridworldBase
 from ml.rl.training.training_data_page import \
     TrainingDataPage
 
 
-class GridworldContinuous(Gridworld):
+class GridworldContinuous(GridworldBase):
     @property
     def normalization_action(self):
         return default_normalizer(self.ACTIONS)
@@ -27,9 +27,9 @@ class GridworldContinuous(Gridworld):
                List[Dict[str, float]], List[Dict[str, float]], List[bool],
                List[List[Dict[str, float]]], List[Dict[int, float]]]:
         states, actions, rewards, next_states, next_actions, is_terminals,\
-            possible_next_actions, reward_timelines = \
-            Gridworld.generate_samples(
-                self, num_transitions, epsilon, with_possible)
+            possible_next_actions, reward_timelines =\
+            self.generate_samples_discrete(
+                num_transitions, epsilon, with_possible)
         continuous_actions = [{a: 1.0} for a in actions]
         continuous_next_actions = [
             {
@@ -134,6 +134,6 @@ class GridworldContinuous(Gridworld):
         string_actions = []
         for action in actions:
             string_actions.append(list(action.keys())[0])
-        return Gridworld.true_values_for_sample(
+        return GridworldBase.true_values_for_sample(
             self, states, string_actions, assume_optimal_policy
         )

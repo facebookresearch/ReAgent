@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -6,23 +8,35 @@ from __future__ import division
 import numpy as np
 import scipy
 import scipy.stats
-import six
+import six.moves
+from typing import List
 
 # @build:deps [
 # @/caffe2/caffe2/python:caffe2_py
 # ]
 
-from caffe2.python import workspace, model_helper, brew
+from caffe2.python import workspace, brew
+from caffe2.python.model_helper import ModelHelper
+
+from ml.rl.thrift.core.ttypes import TrainingParameters
 from ml.rl.custom_brew_helpers.fc import fc_explicit_param_names
 from ml.rl.training.model_update_helper import AddParameterUpdateOps
 
-brew.Register(fc_explicit_param_names)
+brew.Register(fc_explicit_param_names)  # type: ignore
 
 
 def MakeForwardPassOps(
-    model, model_id, input_blob, output_blob, weights, biases, activations,
-    layers
-):
+    model: ModelHelper,
+    model_id: str,
+    input_blob: str,
+    output_blob: str,
+    weights: List[str],
+    biases: List[str],
+    activations: List[str],
+    layers: List[int],
+    dropout_ratio: float,
+    is_test: bool = False,
+) -> None:
     """Perform a forward pass of a multi-layer perceptron
 
         :param model: The ModelHelper object whose net will execute this pass
@@ -35,6 +49,9 @@ def MakeForwardPassOps(
         :param activations: A list of strings describing the activation functions
              Currently only 'linear' and 'relu' are supported
         :param layers: A list of integers describing the layer sizes
+        :param dropout_ratio: The fraction of nodes to drop out during training.
+        :param is_test: Indicates whether or not this forward pass should skip
+            node dropout.
     """
     num_layer_connections = len(layers) - 1
     for x in six.moves.range(num_layer_connections):
@@ -55,7 +72,7 @@ def MakeForwardPassOps(
         weight_name = weights[x]
         bias_name = biases[x]
 
-        brew.fc_explicit_param_names(
+        brew.fc_explicit_param_names(  # type: ignore
             model,
             inputs,
             outputs,
@@ -80,24 +97,30 @@ def MakeForwardPassOps(
         elif activation == 'linear':
             pass
         else:
-            raise "Unknown activation function"
+            raise Exception("Unknown activation function")
+
+        if dropout_ratio:
+            brew.dropout(
+                model,
+                outputs,
+                outputs,
+                ratio=dropout_ratio,
+                is_test=is_test
+            )
 
     # support identity
     if len(weights) == 0:
         model.net.NanCheck(input_blob, output_blob)
 
 
-def GenerateLossOps(model, model_id, output_blob, label_blob, loss_blob):
+def GenerateLossOps(
+    model: ModelHelper, model_id: str, output_blob: str, label_blob: str,
+    loss_blob: str
+) -> None:
     # The loss function is computed by a squared L2 distance, and then averaged
     # over all items in the minibatch.
     dist = model.SquaredL2Distance([label_blob, output_blob], model_id + "dist")
     model.AveragedLoss(dist, loss_blob)
-
-
-def shuffle_data(arrays):
-    shuffle_indices = np.arange(arrays[0].shape[0])
-    np.random.shuffle(shuffle_indices)
-    return [array[shuffle_indices, ...] for array in arrays]
 
 
 class MLTrainer:
@@ -107,9 +130,9 @@ class MLTrainer:
 
     def __init__(
         self,
-        name,
-        parameters,
-    ):
+        name: str,
+        parameters: TrainingParameters,
+    ) -> None:
         """
 
         :param name: A unique name for this trainer used to create the data on the
@@ -125,6 +148,7 @@ class MLTrainer:
 
         self.gamma = parameters.gamma
         self.lr_policy = parameters.lr_policy
+        self.dropout_ratio = parameters.dropout_ratio
 
         self._validate_inputs()
         self._setup_initial_blobs()
@@ -165,22 +189,22 @@ class MLTrainer:
         MakeForwardPassOps(
             self.train_model, self.model_id + "_train", self.input_blob,
             self.output_blob, self.weights, self.biases, self.activations,
-            self.layers
+            self.layers, self.dropout_ratio, False
         )
 
     def _build_fwd_pass_score_model(self):
         MakeForwardPassOps(
             self.score_model, self.model_id + "_score", self.input_blob,
             self.output_blob, self.weights, self.biases, self.activations,
-            self.layers
+            self.layers, self.dropout_ratio, True
         )
 
     def _setup_initial_blobs(self):
         # Define models
-        self.score_model = model_helper.ModelHelper(
+        self.score_model = ModelHelper(
             name="score_" + self.model_id
         )
-        self.train_model = model_helper.ModelHelper(
+        self.train_model = ModelHelper(
             name="trainfirst_" + self.model_id
         )
 
@@ -195,8 +219,8 @@ class MLTrainer:
         workspace.FeedBlob(self.loss_blob, np.zeros(1, dtype=np.float32))
 
         # Create blobs for model parameters
-        self.weights = []
-        self.biases = []
+        self.weights: List[str] = []
+        self.biases: List[str] = []
 
         for x in six.moves.range(len(self.layers) - 1):
             dim_in = self.layers[x]
@@ -235,21 +259,22 @@ class MLTrainer:
             policy=self.lr_policy,
         )
 
-    def build_predictor(self, model, input_blob, output_blob):
+    def build_predictor(self, model, input_blob, output_blob) -> List[str]:
         MakeForwardPassOps(
             model, self.model_id + "_score", input_blob, output_blob,
-            self.weights, self.biases, self.activations, self.layers
+            self.weights, self.biases, self.activations, self.layers,
+            self.dropout_ratio, is_test=True
         )
         return self.weights + self.biases
 
-    def score(self, inputs):
+    def score(self, inputs) -> np.ndarray:
         """Score a set of training data
 
         :param inputs: A numpy array containing examples to score
         """
         # previous (below) assume output is scalar always, which may not true
         # outputs = np.zeros([inputs.shape[0], 1]) #outputs[batch_start:batch_end]
-        outputs = []
+        outputs: List[np.ndarray] = []
         for batch_start in six.moves.range(
             0, inputs.shape[0], self.minibatch_size
         ):
@@ -261,12 +286,11 @@ class MLTrainer:
         return outputs
 
     def train(self, inputs, labels):
-        """ Train on a set of data
+        """ Train on a set of data. Expects data to be shuffled.
 
         :param inputs: A numpy array containing training examples
         :param labels: A numpy array containing the ground truth labels
         """
-        inputs, labels = shuffle_data([inputs, labels])
         for batch_start in six.moves.range(
             0, inputs.shape[0], self.minibatch_size
         ):
@@ -285,9 +309,9 @@ class MLTrainer:
             )
 
     @property
-    def output(self):
+    def output(self) -> np.ndarray:
         return workspace.FetchBlob(self.output_blob)
 
     @property
-    def loss(self):
+    def loss(self) -> np.ndarray:
         return workspace.FetchBlob('loss')

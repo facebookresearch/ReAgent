@@ -131,6 +131,7 @@ class TrainingParameters(object):
      - activations
      - lr_policy
      - gamma
+     - dropout_ratio
     """
 
     thrift_spec = (
@@ -153,9 +154,10 @@ class TrainingParameters(object):
         ], ),  # 5
         (6, TType.STRING, 'lr_policy', 'UTF8', "fixed", ),  # 6
         (7, TType.DOUBLE, 'gamma', None, 0.999, ),  # 7
+        (8, TType.DOUBLE, 'dropout_ratio', None, 0, ),  # 8
     )
 
-    def __init__(self, minibatch_size=thrift_spec[1][4], learning_rate=thrift_spec[2][4], optimizer=thrift_spec[3][4], layers=thrift_spec[4][4], activations=thrift_spec[5][4], lr_policy=thrift_spec[6][4], gamma=thrift_spec[7][4],):
+    def __init__(self, minibatch_size=thrift_spec[1][4], learning_rate=thrift_spec[2][4], optimizer=thrift_spec[3][4], layers=thrift_spec[4][4], activations=thrift_spec[5][4], lr_policy=thrift_spec[6][4], gamma=thrift_spec[7][4], dropout_ratio=thrift_spec[8][4],):
         self.minibatch_size = minibatch_size
         self.learning_rate = learning_rate
         self.optimizer = optimizer
@@ -178,6 +180,7 @@ class TrainingParameters(object):
         self.activations = activations
         self.lr_policy = lr_policy
         self.gamma = gamma
+        self.dropout_ratio = dropout_ratio
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -233,6 +236,11 @@ class TrainingParameters(object):
                     self.gamma = iprot.readDouble()
                 else:
                     iprot.skip(ftype)
+            elif fid == 8:
+                if ftype == TType.DOUBLE:
+                    self.dropout_ratio = iprot.readDouble()
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -276,6 +284,10 @@ class TrainingParameters(object):
         if self.gamma is not None:
             oprot.writeFieldBegin('gamma', TType.DOUBLE, 7)
             oprot.writeDouble(self.gamma)
+            oprot.writeFieldEnd()
+        if self.dropout_ratio is not None:
+            oprot.writeFieldBegin('dropout_ratio', TType.DOUBLE, 8)
+            oprot.writeDouble(self.dropout_ratio)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()

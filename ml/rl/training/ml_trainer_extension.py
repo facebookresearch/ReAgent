@@ -7,7 +7,7 @@ import numpy as np
 import six
 
 from ml.rl.training.ml_trainer import \
-    shuffle_data, MLTrainer, MakeForwardPassOps, GenerateLossOps
+    MLTrainer, MakeForwardPassOps, GenerateLossOps
 
 # @build:deps [
 # @/caffe2/caffe2/python:caffe2_py
@@ -48,7 +48,8 @@ def MakeFowardPassExtensionOps(
     MakeForwardPassOps(
         model, model_id + "_ext", concat_input, external_output_blob,
         extension_mltrainer.weights, extension_mltrainer.biases,
-        extension_mltrainer.activations, extension_mltrainer.layers
+        extension_mltrainer.activations, extension_mltrainer.layers,
+        extension_mltrainer.dropout_ratio, False
     )
 
 
@@ -89,7 +90,7 @@ class MLTrainerIP(MLTrainer):
         MLTrainer.__init__(
             self,
             name,
-            parameters,
+            parameters
         )
 
     def _setup_initial_blobs(self):
@@ -102,7 +103,7 @@ class MLTrainerIP(MLTrainer):
         MakeForwardPassOps(
             self.train_model, self.model_id + "_train", self.input_blob,
             self.output_blob, self.weights, self.biases, self.activations,
-            self.layers
+            self.layers, self.dropout_ratio
         )
         if self.scaled_output:
             MakeFowardPassScaledOps(
@@ -139,7 +140,8 @@ class MLTrainerIP(MLTrainer):
     ):
         MakeForwardPassOps(
             model, self.model_id + "_score", input_blob, output_blob,
-            self.weights, self.biases, self.activations, self.layers
+            self.weights, self.biases, self.activations, self.layers,
+            self.dropout_ratio, True
         )
 
         MakeFowardPassScaledOps(
@@ -162,7 +164,6 @@ class MLTrainerIP(MLTrainer):
         return np.sum(outputs * scale, axis=1)
 
     def train_wexternal(self, inputs, labels, external):
-        inputs, external, labels = shuffle_data([inputs, external, labels])
         for batch_start in six.moves.range(
             0, inputs.shape[0], self.minibatch_size
         ):
@@ -212,7 +213,7 @@ class MLTrainerExt(MLTrainerIP):
         MakeForwardPassOps(
             self.train_model, self.model_id + "_train", self.input_blob,
             self.output_blob, self.weights, self.biases, self.activations,
-            self.layers
+            self.layers, self.dropout_ratio
         )
         if self.extension_mltrainer is not None:
             MakeFowardPassExtensionOps(
@@ -250,7 +251,8 @@ class MLTrainerExt(MLTrainerIP):
     ):
         MakeForwardPassOps(
             model, self.model_id + "_score", input_blob, output_blob,
-            self.weights, self.biases, self.activations, self.layers
+            self.weights, self.biases, self.activations, self.layers,
+            self.dropout_ratio, True
         )
 
         MakeFowardPassExtensionOps(

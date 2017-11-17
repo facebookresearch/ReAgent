@@ -57,7 +57,7 @@ class TargetNetwork(object):
         MakeForwardPassOps(
             self._predict_model, trainer.model_id + "_target", self.input_blob,
             self.output_blob, self._weights, self._biases, trainer.activations,
-            trainer.layers
+            trainer.layers, trainer.dropout_ratio, True
         )
         workspace.RunNetOnce(self._predict_model.param_init_net)
         workspace.CreateNet(self._predict_model.net)
