@@ -162,8 +162,8 @@ We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind
      
 Both of these accept discrete and parametric action inputs.
 
-  * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/misc_updates/ml/rl/training/discrete_action_trainer.py)
-  * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/misc_updates/ml/rl/training/continuous_action_dqn_trainer.py)
+  * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/training/discrete_action_trainer.py)
+  * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/training/continuous_action_dqn_trainer.py)
 
 # Contact us
 
