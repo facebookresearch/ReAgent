@@ -82,6 +82,7 @@ class DiscreteActionPredictor(RLPredictor):
         for i, inp in enumerate(normalized_input_blobs):
             logger.info("input# {}: {}".format(i, inp))
         net.Concat(normalized_input_blobs, [input_blob, output_dim], axis=1)
+        net.NanCheck(input_blob, input_blob)
 
         q_values = "q_values"
         workspace.FeedBlob(q_values, np.zeros(1, dtype=np.float32))

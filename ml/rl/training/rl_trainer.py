@@ -101,20 +101,24 @@ class RLTrainer(MLTrainer):
         if terminals.ndim == 1:
             terminals = terminals.reshape(-1, 1)
 
+        use_next_actions = next_actions is not None
+        use_pna = possible_next_actions is not None
+        use_rt = reward_timelines is not None
+
         num_buffers = 8
         if self._buffers is not None and self._buffers[0].shape[0] > 0:
             actions = np.concatenate([self._buffers[0], actions])
             current_states = np.concatenate([self._buffers[1], current_states])
             rewards = np.concatenate([self._buffers[2], rewards])
             next_states = np.concatenate([self._buffers[3], next_states])
-            if next_actions is not None:
+            if use_next_actions:
                 next_actions = np.concatenate([self._buffers[4], next_actions])
             terminals = np.concatenate([self._buffers[5], terminals])
-            if possible_next_actions is not None:
+            if use_pna:
                 possible_next_actions = np.concatenate(
                     [self._buffers[6], possible_next_actions]
                 )
-            if reward_timelines is not None:
+            if use_rt:
                 reward_timelines = np.concatenate(
                     [self._buffers[7], reward_timelines]
                 )
@@ -126,46 +130,47 @@ class RLTrainer(MLTrainer):
         for batch_start in range(0, page_size, self.minibatch_size):
             batch_end = batch_start + self.minibatch_size
             if page_size < batch_end:
-                break
                 self._buffers = [[] for _ in range(num_buffers)]
-                self._buffers[0] = actions[batch_start:batch_end]
-                self._buffers[1] = current_states[batch_start:batch_end]
-                self._buffers[2] = rewards[batch_start:batch_end]
-                self._buffers[3] = next_states[batch_start:batch_end]
-                if next_actions:
-                    self._buffers[4] = next_actions[batch_start:batch_end]
-                self._buffers[5] = terminals[batch_start:batch_end]
-                if possible_next_actions:
-                    self._buffers[6] = possible_next_actions[batch_start:
-                                                             batch_end]
-                if reward_timelines:
-                    self._buffers[7] = reward_timelines[batch_start:batch_end]
+                self._buffers[0] = actions[batch_start:]
+                self._buffers[1] = current_states[batch_start:]
+                self._buffers[2] = rewards[batch_start:]
+                self._buffers[3] = next_states[batch_start:]
+                if use_next_actions:
+                    self._buffers[4] = next_actions[batch_start:]
+                self._buffers[5] = terminals[batch_start:]
+                if use_pna:
+                    self._buffers[6] = possible_next_actions[batch_start:]
+                if use_rt:
+                    self._buffers[7] = reward_timelines[batch_start:]
             else:
-                na = None
-                if next_actions is not None:
-                    na = next_actions[batch_start:batch_end]
-                pna = None
-                if possible_next_actions is not None:
-                    pna = possible_next_actions[batch_start:batch_end]
-                rt = None
-                if reward_timelines is not None:
-                    rt = reward_timelines[batch_start:batch_end]
-                predictions, td_loss = self.train(
-                    current_states[batch_start:batch_end],
-                    actions[batch_start:batch_end],
+                na_batch = (
+                    next_actions[batch_start:batch_end] if use_next_actions
+                    else None
+                )
+                pna_batch = (
+                    possible_next_actions[batch_start:batch_end] if use_pna
+                    else None
+                )
+                rt_batch = (
+                    reward_timelines[batch_start:batch_end] if use_rt
+                    else None
+                )
+                current_states_batch = current_states[batch_start:batch_end]
+                actions_batch = actions[batch_start:batch_end]
+                self.train(
+                    current_states_batch,
+                    actions_batch,
                     rewards[batch_start:batch_end],
                     next_states[batch_start:batch_end],
-                    na,
+                    na_batch,
                     terminals[batch_start:batch_end],
-                    pna,
+                    pna_batch
                 )
                 if evaluator is not None:
                     evaluator.report(
-                        rt,
-                        self.get_maxq_labels(
-                            current_states[batch_start:batch_end],
-                            actions[batch_start:batch_end]
-                        ), td_loss
+                        rt_batch, self.get_q_values(
+                            current_states_batch, actions_batch
+                        ), workspace.FetchBlob(self.loss_blob)
                     )
             self._iteration += 1
 
@@ -193,23 +198,15 @@ class RLTrainer(MLTrainer):
 
         :param states: Numpy array with shape (batch_size, state_dim). The ith
             row is a representation of the ith transition's state.
-        :param actions: It is a Numpy array with
-            shape (batch_size, action_dim). The ith row contains the one-hotted
-            representation of the ith transition's action: actions[i][j] = 1 if
-            action_i == j else 0.
+        :param actions: See subclass' `train` documentation.
         :param rewards: Numpy array with shape (batch_size, 1). The ith entry is
             the reward experienced at the ith transition.
         :param terminals: Numpy array with shape (batch_size, 1). The ith entry
             is equal to 1 iff the ith transition's state is terminal.
         :param next_states: Numpy array with shape (batch_size, state_dim). The
             ith row is a representation of the ith transition's next state.
-        :param next_actions: It is a Numpy array with
-            shape (batch_size, action_dim). The ith row contains the one-hotted
-            representation of the ith transition's action: next_actions[i][j] = 1 if
-            next_action_i == j else 0.
-        :param possible_next_actions: Numpy array with shape (batch_size, action_dim).
-            possible_next_actions[i][j] = 1 iff the agent can take action j from
-            state i.
+        :param next_actions: See subclass' `train` documentation.
+        :param possible_next_actions: See subclass' `get_maxq_labels` documentation.
         """
 
         batch_size = states.shape[0]
@@ -222,24 +219,19 @@ class RLTrainer(MLTrainer):
         q_vals_target = np.copy(rewards)
         if self._iteration >= self.reward_burnin:
             if self.maxq_learning:
-                next_q_values = self.get_maxq_labels(
+                next_q_values = self.get_max_q_values(
                     next_states, possible_next_actions
                 )
             else:
-                next_q_values = self.get_sarsa_labels(next_states, next_actions)
+                next_q_values = self.get_sarsa_values(next_states, next_actions)
 
             q_vals_target += (
                 1.0 - terminals
             ) * self.rl_discount_rate * next_q_values
 
-        self.run_train_rl_nn(states, actions, q_vals_target)
+        self.update_model(states, actions, q_vals_target)
 
         if self._iteration >= self.reward_burnin:
             self.target_network.enable_slow_updates()
         self.target_network.target_update()
         self._iteration += 1
-
-        return (
-            np.squeeze(workspace.FetchBlob(self.q_values)),
-            workspace.FetchBlob(self.loss_blob)
-        )

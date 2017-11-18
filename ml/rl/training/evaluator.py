@@ -26,7 +26,6 @@ class Evaluator(object):
         self.td_loss = []
 
     def report(self, reward_timelines, predictions, td_loss):
-        predictions = np.squeeze(predictions, axis=1)
         ground_truth = [
             test_values_from_timeline(self._discount_factor, rt)
             for rt in reward_timelines

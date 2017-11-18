@@ -135,7 +135,7 @@ class TestGridworldContinuous(unittest.TestCase):
             self._trainer.stream_df(tbp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
-        self.assertLess(evaluator.mc_loss[-1], 0.05)
+        self.assertLess(evaluator.mc_loss[-1], 0.1)
 
     def test_evaluator_timeline(self):
         states, actions, rewards, next_states, next_actions, is_terminal,\

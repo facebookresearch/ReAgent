@@ -1,132 +1,175 @@
 # Caffe2 Reinforcement Learning Models
 
-Reinforcement Learning (RL) is an area of machine learning focused on agents maximizing a total reward after a duration in an environment.  The agent is often some robot or game avatar, but it can also be a recommender system, a notification bot, and a variety of other avatars that make decisions.  The reward can be points in a game, or more engaging content on a website.  Facebook uses reinforcement learning to power several efforts in the company.  Sharing an open-source fork of our caffe2 RL framework allows us to give back to the open source community and also collaborate with other institutions as RL finds more applications in industry.
+How would you teach a robot to balance a pole? Or safely land a space ship? Or even to walk?
 
-This project, called RL_Caffe2, contains several RL implementations built on [caffe2](http://caffe2.ai/) and running inside [OpenAI Gym](gym.openai.com).
+Using reinforcement learning (RL), you wouldn't have to teach it how to do any of these things: only what to do. RL formalizes our intuitions about trial and error – agents take actions, experience feedback, and adjust their behavior accordingly.
+
+An agent may start with awful performance: the cart drops the pole immediately; when the space ship careens left, it tilts further; the walker can't take one step without falling. But with experience from exploration and failure, it learns. Soon enough, the agent is behaving in a way you never explicitly told it to, and is achieving the goals you implicitly set forth. It takes actions that optimize for the reward system you designed, often coming up with solutions and employing strategies you hadn't thought of.
+
+While historically, RL has been primarily used in the context of robotics and game-playing, it can be employed in a variety of problem spaces. At Facebook, we're working on using RL at scale: suggesting people you may know, notifying you about page updates, personalizing our video bitrate serving, and more.
+
+Advances in RL theory, including the advent of Deep Query Networks and Deep Actor-Critic models, allow us to use function approximation to approach problems with large state and action spaces.  This project, called RL_Caffe2, contains Deep RL implementations built on [caffe2](http://caffe2.ai/). We provide support for running them inside [OpenAI Gym](gym.openai.com).
 
 # Requirements
 
-RL_Caffe2 runs on any platform that supports caffe2 and OpenAI Gym.  Notably, windows support for OpenAI Gym is being tracked here: https://github.com/openai/gym/issues/11 .
+### Recommended: Anaconda
 
-For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads) instead of the system implementation of python.  The system python does not support upgrading numpy and is outdated in other ways.  Install anaconda and ensure that you are on the anaconda version of python before installing the other dependencies.
+For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads) instead of the system implementation of python. Install anaconda and verify you are using anaconda's version of python before installing other dependencies: `which python` should yield an anaconda path.
 
-## Caffe2
+### Caffe2
 
-To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
+RL_Caffe2 runs on any platform that supports caffe2. To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
 
-## FAISS
 
-The KNN-DQN model depends on FAISS.  For details on installing FAISS, go here: https://github.com/facebookresearch/faiss
+### Thrift
+[Thrift](https://github.com/facebook/fbthrift) is Facebook's RPC framework.
+```
+brew install thrift
+```
 
-## OpenAI Gym
+### OpenAI Gym
 
-OpenAI Gym can be installed using [pip](https://pypi.python.org/pypi/pip) which should come with your python installation in the case of linux or with anaconda in the case of OS/X.  For the basic environments, run:
+Running models in OpenAI Gym environments requires platforms with OpenAI Gym support. Windows support for OpenAI Gym is being tracked [here](https://github.com/openai/gym/issues/11).
 
+OpenAI Gym can be installed using [pip](https://pypi.python.org/pypi/pip) which should come with your python installation in the case of linux or with anaconda in the case of OS/X.  To install the basic environments ([classic control](https://gym.openai.com/envs#classic_control), [toy text](https://gym.openai.com/envs#toy_text), and [algorithmic](https://gym.openai.com/envs#algorithmic)), run:
 ```
 pip install gym
 ```
 
-This installs the basic version with these domains:
-- [algorithmic](https://gym.openai.com/envs#algorithmic)
-- [toy_text](https://gym.openai.com/envs#toy_text)
-- [classic_control](https://gym.openai.com/envs#classic_control)
-
-To install all environments, run this instead:
-
+To install [all environments](https://gym.openai.com/envs/), run this instead:
 ```
 pip install "gym[all]"
 ```
 
-# Installing RL_Caffe2
+# Installation and setup
 
-Clone and Install from source:
+Clone from source:
 ```
-  git clone https://github.com/caffe2/reinforcement-learning-models
-  cd reinforcement-learning-models
-  python setup.py build
+git clone https://github.com/caffe2/reinforcement-learning-models
 ```
 
-Checking arguments from helper
-```
-  python run_rl_gym.py -h
-```
-
-## Running OpenAI Gym Examples
-
-Train models by specifying openai-gym environment, model id, type and other hyper parameters (by default, using environment and model setting: -g CartPole-v0 -m DQN):
-```
-  python run_rl_gym.py -g CartPole-v0 -l 0.1
-  python run_rl_gym.py -g CartPole-v1 -y 2 -z 200
-  python run_rl_gym.py -g Acrobot-v1 -w 1000 -r
-  python run_rl_gym.py -g FrozenLake-v0 -l 0.5 -y 2 -z 100 -i 5000
-  python run_rl_gym.py -g MountainCar-v0 -l 0.1 -w 5000
-  python run_rl_gym.py -g MountainCarContinuous-v0 -m ACTORCRITIC
-  python run_rl_gym.py -g Pendulum-v0 -m ACTORCRITIC -l 0.01 -y 10 -z 500 -x -1 -i 50000 -w 10000 -c
-```
-
-If you installed caffe2 from source, you may need to first run:
+If you just installed caffe2 from source, you may have to run:
 ```
 export PYTHONPATH=/usr/local:$PYTHONPATH
 ```
 
-Evaluate models with -t option and specifying openai-gym environment, model id and type:
+To make thrift accessible to our system, run from within the root directory:
 ```
-  python run_rl_gym.py -t [... rests same as trainer]
-```
-
-## Validating On OpenAI Gym
-
-### Cartpole V0
-
-A pole is attached by an un-actuated joint to a cart, which moves along a frictionless track. https://gym.openai.com/envs/CartPole-v0
-
-```
-python run_rl_gym.py -g CartPole-v0 -o ADAGRAD -l 0.1
+thrift --gen py --out . ml/rl/thrift/core.thrift
 ```
 
-When validating, the average reward should be > 195.0
+# Running Unit Tests
 
+From within the root directory, run all of our unit tests with:
 ```
-python run_rl_gym.py -g CartPole-v0 -o ADAGRAD -l 0.1 -t
-```
-
-### Cartpole V1
-
-```
-python run_rl_gym.py -g CartPole-v1 -y 2 -z 200
+python -m unittest discover
 ```
 
-Average reward should be > 475
+To run a specific unit test:
+```
+python -m unittest <path/to/unit_test.py>
+```
+
+# Running Models in OpenAI Gym
+
+You can run RL models of your specification on OpenAI Gym environments of your choice.
+
+### Quickstart
 
 ```
-python run_rl_gym.py -g CartPole-v1 -y 2 -z 200 -t
+cd ml/rl/test/gym
+python run_gym.py -p default_open_ai_gym_args.json
 ```
 
-### Additional environments
+The script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. The success criteria for different environments are listed [here](https://gym.openai.com/envs).
 
-Check out this page for the success criteria of additional environments: https://gym.openai.com/envs
+### Selecting an environment and specifying model parameters
 
-# Implementation Details
+[default\_open\_ai\_gym\_args.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/default_open_ai_gym_args.json) specifies the use of an RL model whose backing neural net has 5 layers in the [CartPole-v0 environment](https://gym.openai.com/envs/CartPole-v0/):
 
-Currently we are releasing SARSA, DQN-max-action, and Actor-Critic models.
+```json
+{
+    "env": "CartPole-v0",
+    "rl": {
+        "reward_discount_factor": 0.99,
+        "target_update_rate": 0.1,
+        "reward_burnin": 10,
+        "maxq_learning": 1
+    },
+    "training": {
+        "layers": [-1, 256, 128, 64, -1],
+        "activations": ["relu", "relu", "relu", "linear"],
+        "minibatch_size": 128,
+        "learning_rate": 0.005,
+        "optimizer": "ADAM",
+        "learning_rate_decay": 0.9
+    },
+    "run_details": {
+        "num_episodes": 301,
+        "train_every": 10,
+        "train_after": 10,
+        "test_every": 100,
+        "test_after": 10,
+        "num_train_batches": 100,
+        "train_batch_size": 1024,
+        "avg_over_num_episodes": 100
+    }
+}
+```
 
-## Supported Models:
+You can supply a different JSON parameter file, modifying the fields to your liking.
 
-1. SARSA: on-policy td-learing
-   * input: state: _s_t_, discrete action: _a_t_
-   * output: value_of_a: _Q(s_t, a_t)_
-2. DQN-max-action: Deep Q Network from [dqn-Atari by Deepmind](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf)
-   * input: state: _s_t_
-   * output: value_max_a: _Q_max(s_t, a)_
-3. Actor-Critic: [ActorCritic-mujoco](https://arxiv.org/pdf/1509.02971.pdf)  (deepmind)
-   * input: state: _s_t_, continuous action: _a_t_
-   * output: policy: _u(s_t)_, value_of_u: _Q(s_t, u(s_t))_
+* **env**: The OpenAI gym environment to use. See [their site](https://gym.openai.com/envs) for a full list.
+* **rl**
+  * **reward\_discount\_factor**: A measure of how quickly the model's target network updates
+  * **target\_update\_rate**: A measure of how quickly the model's target network updates
+  * **reward_burnin**: The iteration after which to use the model's target network to construct target values
+  * **maxq_learning**: 1 for Q-learning, 0 for SARSA
+* **training**
+  * **layers**: An array whose ith entry specifies the number of nodes in the ith layer of the Neural Net. Use `-1` for the input and output layers; our models will fill in the appropriate values based on your choice of environment
+  * **activations**: A array whose ith entry specifies the activation function to use between the ith and i+1th layers. Valid choices are `"linear"` and `"relu"`. Note that this array should have one fewer entry than your entry for *layers*
+  * **minibatch_size**: The number of transitions to train the Neural Net on at a time. This will not effect the total number of datapoints supplied. In general, lower/higher minibatch sizes perform better with lower/higher learning rates
+  * **learning_rate**: Learning rate for the neural net
+  * **optimizer**: Neural net weight update algorithm. Valid choices are `"SGD"`, `"ADAM"`, `"ADAGRAD"`, and `"FTRL"`
+  * **learning\_rate\_decay**: Factor by which the learning rate decreases after each training minibatch
+* **run_details**
+  * **num_episodes**: Number of episodes run the mode and to collect new data over
+  * **train_every**: Number of episodes between each training cycle
+  * **train_after** Number of episodes after which to enable training
+  * **test_every**: Number of episodes between each test cycle
+  * **test_after**: Number of episodes after which to enable testing
+  * **num\_train\_batches**: Number of batches to train over each training cycle
+  * **train\_batch\_size**: Number of transitions to include in each training batch. Note that these will each be further broken down into minibatches of size *minibatch_size*
+  * **avg\_over\_num\_episodes**: Number of episodes to run every test cycle. After each cycle, the script will report an average over the scores of the episodes run within it. The typical choice is `100`, but this should be set according to the [success criteria](https://gym.openai.com/envs) for your environment.
+
+
+
+# Supported Models:
+
+We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf).
+
+1. [Max-Q-Learning](https://en.wikipedia.org/wiki/Q-learning) (as demonstrated in paper): 
+   * input: state: _s_, action _a_
+   * output: scalar  _Q(s, a)_
+   * update target on transition {state, action, reward, next\_state, next\_action}:
+     * Q\_target(state, action) = reward + reward\_discount\_factor * max_\{possible\_next\_action} Q(next\_state, possible\_next\_action)
+2. [SARSA](https://en.wikipedia.org/wiki/State%E2%80%93action%E2%80%93reward%E2%80%93state%E2%80%93action):
+   * input: state _s_, action _a_
+   * output: scalar _Q(s, a)_
+   * update target on transition {state, action, reward, next\_state, next\_action}:
+     * Q\_target(state, action) = reward + reward\_discount\_factor * Q(next\_state, next\_action)
+
+     
+Both of these accept discrete and parametric action inputs.
+
+  * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/misc_updates/ml/rl/training/discrete_action_trainer.py)
+  * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/misc_updates/ml/rl/training/continuous_action_dqn_trainer.py)
 
 # Contact us
 
 If there are any issues/feedback with the implementations, feel free to file an issue: https://github.com/caffe2/reinforcement-learning-models/issues
 
-Otherwise feel free to contact jjg@fb.com with questions.
+Otherwise feel free to contact jjg@fb.com or nishadsingh@fb.com with questions.
 
 # License
 

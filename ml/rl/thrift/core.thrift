@@ -5,7 +5,7 @@ struct RLParameters {
   2: double epsilon = 0.1,
   3: double target_update_rate = 0.01,
   4: i32 reward_burnin = 1,
-  5: bool maxq_learning = true
+  5: bool maxq_learning = true,
 }
 
 struct TrainingParameters {
@@ -16,6 +16,7 @@ struct TrainingParameters {
   5: list<string> activations = ['relu', 'relu', 'relu', 'linear']
   6: string lr_policy = 'fixed',
   7: double gamma = 0.999,
+  8: double dropout_ratio = 0.0,
 }
 
 struct ActionBudget {
