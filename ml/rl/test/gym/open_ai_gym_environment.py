@@ -4,8 +4,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import collections
-import numpy as np
 import gym
+import numpy as np
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
 
@@ -133,7 +133,7 @@ class OpenAIGymEnvironment:
             self.replay_memory[rand_index] = item
         self.memory_num += 1
 
-    def run_episode(self, trainer, test=False):
+    def run_episode(self, trainer, test=False, render=False):
         terminal = False
         next_state = self.env.reset()
         next_action = self.policy(trainer, next_state, test)
@@ -143,6 +143,9 @@ class OpenAIGymEnvironment:
             state = next_state
             action = next_action
             action_index = np.argmax(action)
+
+            if render:
+                self.env.render()
 
             next_state_unprocessed, reward, terminal, _ = self.env.step(
                 action_index

@@ -12,7 +12,7 @@
         "minibatch_size": 128,
         "learning_rate": 0.005,
         "optimizer": "ADAM",
-        "learning_rate_decay": 0.9
+        "learning_rate_decay": 0.999
     },
     "run_details": {
         "num_episodes": 301,
@@ -22,6 +22,8 @@
         "test_after": 10,
         "num_train_batches": 100,
         "train_batch_size": 1024,
-        "avg_over_num_episodes": 100
+        "avg_over_num_episodes": 100,
+        "render": 1,
+        "render_every": 30
     }
 }
