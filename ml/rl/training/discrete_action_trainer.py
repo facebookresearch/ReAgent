@@ -281,5 +281,7 @@ class DiscreteActionTrainer(RLTrainer):
         Returns the index of the action with the highest approximated q-value
         for the given state.
         """
-        q_values = self.get_q_values_all_actions(np.array([state]), False)
+        q_values = self.get_q_values_all_actions(
+            np.array([state], dtype=np.float32), False
+        )
         return np.argmax(q_values[0])

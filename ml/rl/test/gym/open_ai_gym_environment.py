@@ -65,12 +65,12 @@ class OpenAIGymEnvironment:
         states, actions, rewards, next_states, next_actions, terminals,\
             possible_next_actions = sample_memories(self.replay_memory, batch_size)
         return (
-            np.array(states, dtype=np.float32), np.array(
-                actions, dtype=np.float32
-            ), np.array(rewards, dtype=np.float32), np.array(
-                next_states, dtype=np.float32
-            ), np.array(next_actions,
-                        dtype=np.float32), np.array(terminals, dtype=np.bool),
+            np.array(states, dtype=np.float32),
+            np.array(actions, dtype=np.float32),
+            np.array(rewards, dtype=np.float32),
+            np.array(next_states, dtype=np.float32),
+            np.array(next_actions, dtype=np.float32),
+            True - np.array(terminals, dtype=np.bool),
             np.array(possible_next_actions, dtype=np.float32), None, None
         )
 
