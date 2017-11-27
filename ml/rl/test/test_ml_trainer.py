@@ -72,7 +72,7 @@ def _train(
         )
     )
     for _ in range(num_training_iterations):
-        trainer.train(training_inputs, training_outputs)
+        trainer.train_batch(training_inputs, training_outputs)
 
     return test_inputs, test_outputs, weights
 
@@ -171,7 +171,7 @@ class TestMLTrainer(unittest.TestCase):
         )
         identity_output = trainer.score(training_inputs)
         for _ in range(100):
-            trainer.train(training_inputs, training_outputs)
+            trainer.train_batch(training_inputs, training_outputs)
         identity_output = trainer.score(training_inputs)
         self.assertTrue(
             np.linalg.norm(identity_output - training_outputs) < 0.01

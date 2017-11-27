@@ -48,14 +48,14 @@ Clone from source:
 git clone https://github.com/caffe2/reinforcement-learning-models
 ```
 
-If you just installed caffe2 from source, you may have to run:
-```
-export PYTHONPATH=/usr/local:$PYTHONPATH
-```
-
 To make thrift accessible to our system, run from within the root directory:
 ```
 thrift --gen py --out . ml/rl/thrift/core.thrift
+```
+
+To access caffe2 (if you installed from) and import our modules successfuly:
+```
+export PYTHONPATH=/usr/local:$PYTHONPATH
 ```
 
 # Running Unit Tests
@@ -77,8 +77,7 @@ You can run RL models of your specification on OpenAI Gym environments of your c
 ### Quickstart
 
 ```
-cd ml/rl/test/gym
-python run_gym.py -p default_open_ai_gym_args.json
+python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/default_open_ai_gym_args.json
 ```
 
 The script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. The success criteria for different environments are listed [here](https://gym.openai.com/envs).

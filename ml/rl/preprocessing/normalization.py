@@ -4,24 +4,22 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import namedtuple
-import json
-
-import numpy as np
 from scipy import stats
-from scipy import special
+import json
+import numpy as np
 import six
 
 from ml.rl.preprocessing import identify_types
-
-BOX_COX_MIN_FRACTION = 1e-4
-BOX_COX_MIN_VALUE = 1e-4
-BOX_COX_MAX_STDDEV = 1e8
-MISSING_VALUE = -1337.1337
 
 NormalizationParameters = namedtuple(
     'NormalizationParameters',
     ['feature_type', 'boxcox_lambda', 'boxcox_shift', 'mean', 'stddev']
 )
+
+BOX_COX_MAX_STDDEV = 1e8
+BOX_COX_MIN_FRACTION = 1e-4
+BOX_COX_MIN_VALUE = 1e-4
+MISSING_VALUE = -1337.1337
 
 
 def _identify_parameter(values, feature_type):
@@ -67,44 +65,6 @@ def identify_parameters(feature_values, types):
             feature_values[feature_name], types[feature_name]
         )
     return parameters
-
-
-def identify_parameters_dict(features_dict, types_dict):
-    return {
-        feature_name:
-        _identify_parameter(feature_values, types_dict[feature_name])
-        for feature_name, feature_values in six.iteritems(features_dict)
-    }
-
-
-def preprocess_feature(feature, parameters):
-    is_not_empty = 1 - np.isclose(feature, MISSING_VALUE)
-    if parameters.feature_type == identify_types.BINARY:
-        # Binary features are always 1 unless they are 0
-        return ((feature != 0) * is_not_empty).astype(np.float32)
-    if parameters.boxcox_lambda is not None:
-        feature = stats.boxcox(
-            np.maximum(feature - parameters.boxcox_shift, BOX_COX_MIN_VALUE),
-            parameters.boxcox_lambda
-        )
-    # No *= to ensure consistent out-of-place operation.
-    if parameters.feature_type == identify_types.PROBABILITY:
-        feature = np.clip(feature, 0.01, 0.99)
-        feature = special.logit(feature)
-    else:
-        feature = feature - parameters.mean
-        feature /= parameters.stddev
-    feature *= is_not_empty
-    return feature
-
-
-def preprocess(features, parameters):
-    result = {}
-    for feature_name in features:
-        result[feature_name] = preprocess_feature(
-            features[feature_name], parameters[feature_name]
-        )
-    return result
 
 
 def write_parameters(f, parameters):

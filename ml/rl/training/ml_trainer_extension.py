@@ -4,10 +4,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import numpy as np
-import six
 
-from ml.rl.training.ml_trainer import \
-    MLTrainer, MakeForwardPassOps, GenerateLossOps
+from ml.rl.training.ml_trainer import MLTrainer, MakeForwardPassOps, GenerateLossOps
 
 # @build:deps [
 # @/caffe2/caffe2/python:caffe2_py
@@ -163,17 +161,7 @@ class MLTrainerIP(MLTrainer):
         assert (outputs.shape == scale.shape)
         return np.sum(outputs * scale, axis=1)
 
-    def train_wexternal(self, inputs, labels, external):
-        for batch_start in six.moves.range(
-            0, inputs.shape[0], self.minibatch_size
-        ):
-            batch_end = min(batch_start + self.minibatch_size, inputs.shape[0])
-            self.train_batch_wexternal(
-                inputs[batch_start:batch_end], labels[batch_start:batch_end],
-                external[batch_start:batch_end]
-            )
-
-    def train_batch_wexternal(self, inputs, labels, external, evaluate=False):
+    def train_wexternal(self, inputs, labels, external, evaluate=False):
         workspace.FeedBlob(self.input_blob, inputs)
         workspace.FeedBlob(self.labels_blob, labels)
         workspace.FeedBlob(self.external_blob, external)

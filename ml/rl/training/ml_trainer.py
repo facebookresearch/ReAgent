@@ -18,8 +18,8 @@ from typing import List
 from caffe2.python import workspace, brew
 from caffe2.python.model_helper import ModelHelper
 
-from ml.rl.thrift.core.ttypes import TrainingParameters
 from ml.rl.custom_brew_helpers.fc import fc_explicit_param_names
+from ml.rl.thrift.core.ttypes import TrainingParameters
 from ml.rl.training.model_update_helper import AddParameterUpdateOps
 
 brew.Register(fc_explicit_param_names)  # type: ignore
@@ -37,21 +37,22 @@ def MakeForwardPassOps(
     dropout_ratio: float,
     is_test: bool = False,
 ) -> None:
-    """Perform a forward pass of a multi-layer perceptron
+    """
+    Performs a forward pass of a multi-layer perceptron.
 
-        :param model: The ModelHelper object whose net will execute this pass
-        :param model_id: A unique string for this model that is used to hold
-            activation levels
-        :param input_blob: The blob containing the input data
-        :param output_blob: The blob where the output data will be placed
-        :param weights: A list of blobs containing the weights
-        :param biases: A list of blobs containing the bias nodes
-        :param activations: A list of strings describing the activation functions
-             Currently only 'linear' and 'relu' are supported
-        :param layers: A list of integers describing the layer sizes
-        :param dropout_ratio: The fraction of nodes to drop out during training.
-        :param is_test: Indicates whether or not this forward pass should skip
-            node dropout.
+    :param model: The ModelHelper object whose net will execute this pass
+    :param model_id: A unique string for this model that is used to hold
+        activation levels
+    :param input_blob: The blob containing the input data
+    :param output_blob: The blob where the output data will be placed
+    :param weights: A list of blobs containing the weights
+    :param biases: A list of blobs containing the bias nodes
+    :param activations: A list of strings describing the activation functions
+         Currently only 'linear' and 'relu' are supported
+    :param layers: A list of integers describing the layer sizes
+    :param dropout_ratio: The fraction of nodes to drop out during training.
+    :param is_test: Indicates whether or not this forward pass should skip
+        node dropout.
     """
     num_layer_connections = len(layers) - 1
     for x in six.moves.range(num_layer_connections):
@@ -117,8 +118,16 @@ def GenerateLossOps(
     model: ModelHelper, model_id: str, output_blob: str, label_blob: str,
     loss_blob: str
 ) -> None:
-    # The loss function is computed by a squared L2 distance, and then averaged
-    # over all items in the minibatch.
+    """
+    Adds loss operators to net. The loss function is computed by a squared L2
+    distance, and then averaged over all items in the minibatch.
+
+    :param model: ModelHelper object to add loss operators to.
+    :param model_id: String identifier.
+    :param output_blob: Blob containing output of net.
+    :param label_blob: Blob containing labels.
+    :param loss_blob: Blob in which to store loss.
+    """
     dist = model.SquaredL2Distance([label_blob, output_blob], model_id + "dist")
     model.AveragedLoss(dist, loss_blob)
 
@@ -143,7 +152,6 @@ class MLTrainer:
         self.optimizer = parameters.optimizer
         self.layers = parameters.layers
         self.activations = parameters.activations
-        self.minibatch_size = parameters.minibatch_size
         self.learning_rate = parameters.learning_rate
 
         self.gamma = parameters.gamma
@@ -205,7 +213,7 @@ class MLTrainer:
             name="score_" + self.model_id
         )
         self.train_model = ModelHelper(
-            name="trainfirst_" + self.model_id
+            name="train_" + self.model_id
         )
 
         # Create input, output, labels, and loss blobs
@@ -231,11 +239,7 @@ class MLTrainer:
             self.weights.append(weight_name)
             self.biases.append(bias_name)
 
-            bias = np.zeros(
-                shape=[
-                    dim_out,
-                ], dtype=np.float32
-            )
+            bias = np.zeros(shape=[dim_out, ], dtype=np.float32)
             workspace.FeedBlob(bias_name, bias)
 
             gain = np.sqrt(2) if self.activations[x] == 'relu' else 1
@@ -267,46 +271,27 @@ class MLTrainer:
         )
         return self.weights + self.biases
 
-    def score(self, inputs) -> np.ndarray:
-        """Score a set of training data
-
-        :param inputs: A numpy array containing examples to score
+    def score(self, inputs: np.ndarray) -> np.ndarray:
         """
-        # previous (below) assume output is scalar always, which may not true
-        # outputs = np.zeros([inputs.shape[0], 1]) #outputs[batch_start:batch_end]
-        outputs: List[np.ndarray] = []
-        for batch_start in six.moves.range(
-            0, inputs.shape[0], self.minibatch_size
-        ):
-            batch_end = min(batch_start + self.minibatch_size, inputs.shape[0])
-            workspace.FeedBlob(self.input_blob, inputs[batch_start:batch_end])
-            workspace.RunNetOnce(self.score_model.net)
-            outputs += workspace.FetchBlob(self.output_blob).tolist()
-        outputs = np.array(outputs).astype(np.float32)
-        return outputs
+        Runs the net on a set of data and returns the outputs.
 
-    def train(self, inputs, labels):
-        """ Train on a set of data. Expects data to be shuffled.
-
-        :param inputs: A numpy array containing training examples
-        :param labels: A numpy array containing the ground truth labels
+        :param inputs: Numpy array containing examples to score.
         """
-        for batch_start in six.moves.range(
-            0, inputs.shape[0], self.minibatch_size
-        ):
-            batch_end = min(batch_start + self.minibatch_size, inputs.shape[0])
-            self.train_batch(
-                inputs[batch_start:batch_end], labels[batch_start:batch_end]
-            )
+        workspace.FeedBlob(self.input_blob, inputs)
+        workspace.RunNet(self.score_model.net)
+        return workspace.FetchBlob(self.output_blob)
 
-    def train_batch(self, inputs, labels, evaluate=False):
+    def train_batch(self, inputs: np.ndarray, labels: np.ndarray) -> None:
+        """
+        Trains net on inputs and labels. Please ensure that inputs are batched
+        to an appropriate size and are shuffled.
+
+        :param inputs: Numpy array containing training examples.
+        :param labels: Numpy array containing training labels.
+        """
         workspace.FeedBlob(self.input_blob, inputs)
         workspace.FeedBlob(self.labels_blob, labels)
-        workspace.RunNetOnce(self.train_model.net)
-        if evaluate:
-            return (
-                np.squeeze(workspace.FetchBlob(self.output_blob)), self.loss
-            )
+        workspace.RunNet(self.train_model.net)
 
     @property
     def output(self) -> np.ndarray:
