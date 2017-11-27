@@ -11,17 +11,13 @@ import random
 import numpy as np
 import unittest
 
-from ml.rl.training.discrete_action_trainer import \
-    DiscreteActionTrainer
-from ml.rl.thrift.core.ttypes import \
-    RLParameters, TrainingParameters, \
+from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.thrift.core.ttypes import RLParameters, TrainingParameters,\
     DiscreteActionModelParameters, ActionBudget
 from ml.rl.training.limited_discrete_action_trainer import \
     LimitedActionDiscreteActionTrainer
-from ml.rl.test.gridworld.gridworld_base import \
-    DISCOUNT
-from ml.rl.test.gridworld.limited_action_gridworld import \
-    LimitedActionGridworld
+from ml.rl.test.gridworld.gridworld_base import DISCOUNT
+from ml.rl.test.gridworld.limited_action_gridworld import LimitedActionGridworld
 
 IterationResult = collections.namedtuple(
     'IterationResult', [

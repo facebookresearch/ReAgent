@@ -10,7 +10,7 @@ import numpy as np
 import random
 from typing import Tuple, Dict, List
 
-from ml.rl.test.gridworld.gridworld_base import default_normalizer
+from ml.rl.test.utils import default_normalizer
 from ml.rl.test.gridworld.gridworld_base import GridworldBase
 from ml.rl.training.training_data_page import \
     TrainingDataPage

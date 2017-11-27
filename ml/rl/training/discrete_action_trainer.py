@@ -1,18 +1,26 @@
+#!/usr/bin/env python3
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from typing import Dict, Optional
 import numpy as np
+
 from caffe2.python import workspace
 
 import logging
 logger = logging.getLogger(__name__)
 
+from ml.rl.preprocessing.normalization import NormalizationParameters
+from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
-from ml.rl.training.ml_trainer import MLTrainer
+from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.ml_trainer import GenerateLossOps
+from ml.rl.training.ml_trainer import MLTrainer
 from ml.rl.training.rl_trainer import RLTrainer
+from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class DiscreteActionTrainer(RLTrainer):
@@ -20,7 +28,11 @@ class DiscreteActionTrainer(RLTrainer):
     #     legitimate action
     ACTION_NOT_POSSIBLE_VAL = -1e20
 
-    def __init__(self, state_normalization_parameters, parameters):
+    def __init__(
+        self,
+        state_normalization_parameters: Dict[str, NormalizationParameters],
+        parameters: DiscreteActionModelParameters
+    ) -> None:
         self._actions = parameters.actions
         if parameters.training.layers[0] is None or\
            parameters.training.layers[0] == -1:
@@ -36,25 +48,26 @@ class DiscreteActionTrainer(RLTrainer):
 
         RLTrainer.__init__(self, state_normalization_parameters, parameters)
 
-    def get_actions(self):
-        return self._actions
-
     @property
-    def num_actions(self):
-        return len(self._actions)
+    def num_actions(self) -> int:
+        return 0 if self._actions is None else len(self._actions)
 
-    def stream_df(self, df, evaluator):
-        """Load large batch as training set. This batch will further be broken
-        down into minibatches
+    def stream_df(
+        self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
+    ) -> None:
+        """
+        Loads a large batch of transitions from a page of training data. This
+        batch will further be broken down into minibatches for training.
 
-        :param df a batch of data.
+        :param tdp: TrainingDataPage object that supplies transitions.
+        :param evaluator: Evaluator object to record TD and compute MC losses.
         """
         # terminal states have no next_action=1
-        is_terminal = df.next_action.sum(axis=1) < 1e-6
-        return self.stream(
-            self._prepare_states(df.state_features), df.action, df.reward,
-            self._prepare_states(df.next_state_features), df.next_action,
-            is_terminal, df.possible_next_actions, df.reward_timelines,
+        is_not_terminal = tdp.next_action.sum(axis=1) >= 1e-6
+        self.stream(
+            self._normalize_states(tdp.state_features), tdp.action, tdp.reward,
+            self._normalize_states(tdp.next_state_features), tdp.next_action,
+            is_not_terminal, tdp.possible_next_actions, tdp.reward_timelines,
             evaluator
         )
 
@@ -69,23 +82,23 @@ class DiscreteActionTrainer(RLTrainer):
 
     def train(
         self,
-        states,
-        actions,
-        rewards,
-        next_states,
-        next_actions,
-        terminals,
-        possible_next_actions,
-    ):
+        states: np.ndarray,
+        actions: np.ndarray,
+        rewards: np.ndarray,
+        next_states: np.ndarray,
+        next_actions: Optional[np.ndarray],
+        not_terminals: np.ndarray,
+        possible_next_actions: np.ndarray,
+    ) -> None:
         """
         Takes in a batch of transitions. For transition i, calculates target qval:
             next_q_values_i = {
-                max_a Q(next_state_i, a),  self.max_qlearning
-                Q(next_state_i, next_action_i), !self.max_qlearning
+                max_{pna_i} Q(next_state_i, pna_i), self.maxq_learning
+                Q(next_state_i, next_action_i), self.sarsa
             }
             q_val_target_i = {
-                r_i, terminals_i
-                r_i + gamma * next_q_values_i, !terminals_i
+                r_i + gamma * next_q_values_i, not_terminals_i
+                r_i, !not_terminals_i
             }
         Trains Q Network on the q_val_targets as labels.
 
@@ -96,8 +109,8 @@ class DiscreteActionTrainer(RLTrainer):
             action: actions[i][j] = 1 if action_i == j else 0.
         :param rewards: Numpy array with shape (batch_size, 1). The ith entry is
             the reward experienced at the ith transition.
-        :param terminals: Numpy array with shape (batch_size, 1). The ith entry
-            is equal to 1 iff the ith transition's state is terminal.
+        :param not_terminals: Numpy array with shape (batch_size, 1). The ith entry
+            is equal to 1 iff the ith transition's state is not terminal.
         :param next_states: Numpy array with shape (batch_size, state_dim). The
             ith row is a representation of the ith transition's next state.
         :param next_actions: Numpy array with shape (batch_size, action_dim). The
@@ -111,20 +124,14 @@ class DiscreteActionTrainer(RLTrainer):
         batch_size = states.shape[0]
         assert actions.shape == (batch_size, self.num_actions)
         assert next_states.shape == (batch_size, self.num_state_features)
-        assert terminals.shape == (batch_size, 1)
+        assert not_terminals.shape == (batch_size, 1)
         if next_actions is not None:
             assert next_actions.shape == (batch_size, self.num_actions)
         if possible_next_actions is not None:
             assert possible_next_actions.shape == (batch_size, self.num_actions)
         RLTrainer.train(
-            self,
-            states,
-            actions,
-            rewards,
-            next_states,
-            next_actions,
-            terminals,
-            possible_next_actions,
+            self, states, actions, rewards, next_states, next_actions,
+            not_terminals, possible_next_actions,
         )
 
     def _generate_train_model_loss(self):
@@ -149,14 +156,16 @@ class DiscreteActionTrainer(RLTrainer):
         q_val_select = self.train_model.net.Mul(
             [self.output_blob, self.action_blob],
         ).ReduceBackSum()
-        self.q_values = self.train_model.net.ExpandDims(q_val_select, dims=[1])
+        q_values = self.train_model.net.ExpandDims(q_val_select, dims=[1])
 
         GenerateLossOps(
-            self.train_model, self.model_id, self.labels_blob, self.q_values,
+            self.train_model, self.model_id, self.labels_blob, q_values,
             self.loss_blob
         )
 
-    def update_model(self, states, actions, q_vals_target):
+    def update_model(
+        self, states: np.ndarray, actions: np.ndarray, q_vals_target: np.ndarray
+    ) -> None:
         """
         Takes in states, actions, and target q values. Updates the model:
 
@@ -172,17 +181,18 @@ class DiscreteActionTrainer(RLTrainer):
         :param q_vals_targets: Numpy array with shape (batch_size, 1). The ith
             row is the label to train against for the data from the ith transition.
         """
-        workspace.FeedBlob(self.input_blob, states)
         workspace.FeedBlob(self.action_blob, actions)
-        workspace.FeedBlob(self.labels_blob, q_vals_target)
-        workspace.RunNet(self.train_model.net)
+        self.train_batch(states, q_vals_target)
 
     def get_max_q_values(
-        self, next_states, possible_next_actions=None, use_target_network=True
-    ):
+        self,
+        next_states: np.ndarray,
+        possible_next_actions: Optional[np.ndarray] = None,
+        use_target_network: Optional[bool] = True
+    ) -> np.ndarray:
         """
         Takes in an array of next_states and outputs an array of the same shape
-        whose ith entry = max_{possible_next_actions} Q(state_i, a).
+        whose ith entry = max_{pna} Q(state_i, pna).
 
         :param next_states: Numpy array with shape (batch_size, state_dim). Each
             row contains a representation of a state.
@@ -203,7 +213,9 @@ class DiscreteActionTrainer(RLTrainer):
 
         return np.max(q_values, axis=1, keepdims=True)
 
-    def get_q_values(self, states, actions):
+    def get_q_values(
+        self, states: np.ndarray, actions: np.ndarray
+    ) -> np.ndarray:
         """
         Takes in a set of states and actions and returns Q(states, actions).
 
@@ -217,8 +229,8 @@ class DiscreteActionTrainer(RLTrainer):
         return np.max(q_values_selected, axis=1)
 
     def get_q_values_all_actions(
-        self, states, use_target_network=True
-    ):
+        self, states: np.ndarray, use_target_network: Optional[bool] = True
+    ) -> np.ndarray:
         """
         Takes in a set of states and runs the test Q Network on them.
 
@@ -237,12 +249,11 @@ class DiscreteActionTrainer(RLTrainer):
         """
         if use_target_network:
             return self.target_network.target_values(states)
-        else:
-            workspace.FeedBlob(self.input_blob, states.astype(np.float32))
-            workspace.RunNet(self.score_model.net)
-            return workspace.FetchBlob(self.output_blob)
+        return self.score(states)
 
-    def get_sarsa_values(self, next_states, next_actions):
+    def get_sarsa_values(
+        self, next_states: np.ndarray, next_actions: np.ndarray
+    ) -> np.ndarray:
         """
         Takes in a set of next_states and corresponding next_actions. For each
         (next_state_i, next_action_i) pair, calculates Q(next_state, next_action).
@@ -255,7 +266,7 @@ class DiscreteActionTrainer(RLTrainer):
         """
         return self.get_max_q_values(next_states, next_actions)
 
-    def predictor(self):
+    def predictor(self) -> DiscreteActionPredictor:
         """
         Builds a DiscreteActionPredictor using the MLTrainer underlying this
         DiscreteActionTrainer.
@@ -265,10 +276,10 @@ class DiscreteActionTrainer(RLTrainer):
             self._state_normalization_parameters
         )
 
-    def get_policy(self, state):
+    def get_policy(self, state: np.ndarray) -> int:
         """
-        Returns the action with the highest approximated q-value for the given
-        state.
+        Returns the index of the action with the highest approximated q-value
+        for the given state.
         """
         q_values = self.get_q_values_all_actions(np.array([state]), False)
         return np.argmax(q_values[0])

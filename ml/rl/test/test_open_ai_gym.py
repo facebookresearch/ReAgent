@@ -53,3 +53,31 @@ class TestOpenAIGym(unittest.TestCase):
         )
         self.assertGreater(avg_recent_rewards[-1], final_score_bar)
 
+    def test_maxq_learning_cartpole_v1(self):
+        env = OpenAIGymEnvironment('CartPole-v1')
+        maxq_discrete_action_parameters = DiscreteActionModelParameters(
+            actions=env.actions,
+            rl=RLParameters(
+                gamma=self.reward_discount_factor,
+                target_update_rate=self.target_update_rate,
+                reward_burnin=self.reward_burnin,
+                maxq_learning=True
+            ),
+            training=TrainingParameters(
+                layers=[-1, 64, 12, -1],
+                activations=["relu", "relu", "linear"],
+                minibatch_size=self.minibatch_size,
+                learning_rate=self.learning_rate,
+                optimizer=self.optimizer,
+                gamma=self.lr_decay
+            )
+        )
+        trainer = DiscreteActionTrainer(
+            env.normalization, maxq_discrete_action_parameters
+        )
+        final_score_bar = 400.0
+        avg_recent_rewards = run(
+            env, trainer, "discrete action trainer cartpole v1",
+            final_score_bar
+        )
+        self.assertGreater(avg_recent_rewards[-1], final_score_bar)

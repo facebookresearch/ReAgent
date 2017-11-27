@@ -9,8 +9,7 @@ thrift_library(
 python_library(
     name = "preprocessing",
     srcs = util.files("preprocessing/*.py"),
-    deps = [
-    ],
+    deps = ["@/caffe2/caffe2/python:caffe2_py"],
     external_deps = [
         "numpy",
         "scipy",
@@ -52,6 +51,7 @@ python_library(
         "test/gridworld/gridworld_evaluator.py",
         "test/gridworld/limited_action_gridworld.py",
         "test/preprocessing_util.py",
+        "test/utils.py",
     ],
     deps = [
         ":preprocessing",
@@ -131,6 +131,18 @@ python_unittest(
 python_unittest(
     name = "test_ml_trainer",
     srcs = ["test/test_ml_trainer.py"],
+    check_types = True,
+    deps = [
+        ":test_base",
+    ],
+    external_deps = [
+        "numpy",
+    ],
+)
+
+python_unittest(
+    name = "test_continuous_action_dqn_trainer",
+    srcs = ["test/gridworld/test_continuous_action_dqn_trainer.py"],
     check_types = True,
     deps = [
         ":test_base",

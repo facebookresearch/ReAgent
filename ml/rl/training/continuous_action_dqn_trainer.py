@@ -1,79 +1,83 @@
+#!/usr/bin/env python3
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-from caffe2.python import workspace
+from typing import List, Dict, Optional
+
+from caffe2.python import core
 
 import logging
 logger = logging.getLogger(__name__)
 
-from ml.rl.training.continuous_action_dqn_predictor import \
+from ml.rl.preprocessing.normalization import NormalizationParameters
+from ml.rl.preprocessing.preprocessor_net import prepare_normalization,\
+    normalize_dense_matrix
+from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
+from ml.rl.training.continuous_action_dqn_predictor import\
     ContinuousActionDQNPredictor
+from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.ml_trainer import MLTrainer
-from ml.rl.training.rl_trainer import RLTrainer, normalize_features, \
-    replace_nans
+from ml.rl.training.rl_trainer import RLTrainer
+from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class ContinuousActionDQNTrainer(RLTrainer):
     def __init__(
-        self, state_normalization_parameters, action_normalization_parameters,
-        rl_parameters
-    ):
-        num_state_features = len(list(state_normalization_parameters.keys()))
-        num_action_features = len(list(action_normalization_parameters.keys()))
-        if rl_parameters.training.layers[0] is None or\
-           rl_parameters.training.layers[0] == -1:
-            rl_parameters.training.layers[0] = num_state_features +\
-                num_action_features
-
-        assert rl_parameters.training.layers[-1] == 1,\
-            "Set layers[-1] to 1"
-
+        self,
+        state_normalization_parameters: Dict[str, NormalizationParameters],
+        action_normalization_parameters: Dict[str, NormalizationParameters],
+        parameters: ContinuousActionModelParameters
+    ) -> None:
         self._action_features = list(action_normalization_parameters.keys())
+        num_state_features = len(list(state_normalization_parameters.keys()))
+        if parameters.training.layers[0] is None or\
+           parameters.training.layers[0] == -1:
+            parameters.training.layers[0] = num_state_features +\
+                self.num_action_features
+
+        assert parameters.training.layers[-1] == 1, "Set layers[-1] to 1"
+
         self._action_normalization_parameters = action_normalization_parameters
-        RLTrainer.__init__(self, state_normalization_parameters, rl_parameters)
+        RLTrainer.__init__(self, state_normalization_parameters, parameters)
         print(action_normalization_parameters)
 
-    def get_action_features(self):
+        self._prepare_action_normalization()
+
+    def get_action_features(self) -> List[str]:
         return self._action_features
 
     @property
-    def num_action_features(self):
+    def num_action_features(self) -> int:
         return len(self._action_features)
 
-    def stream_df(self, df, evaluator=None):
-        """Load large batch as training set. This batch will further be broken
-        down into minibatches
-
-        :param df a batch of data.
+    def _normalize_actions(self, actions: np.ndarray) -> np.ndarray:
         """
-        is_terminal = np.array(
-            [pna.shape[0] == 0 for pna in df.possible_next_actions],
-            dtype=np.bool
-        )
-        return self.stream(
-            self._prepare_states(df.state_features),
-            self._prepare_actions(df.action), df.reward,
-            self._prepare_states(df.next_state_features),
-            self._prepare_actions(df.next_action), is_terminal,
-            df.possible_next_actions, df.reward_timelines, evaluator
+        Normalizes input actions and replaces NaNs with 0. Returns a matrix of
+        the same shape. Make sure to have set up the underlying normalization net
+        with `_prepare_action_normalization`.
+
+        :param states: Numpy array with shape (batch_size, action_dim) containing
+            raw state inputs
+        """
+        return normalize_dense_matrix(
+            actions, self.num_action_features, self.action_norm_blobs,
+            self.action_norm_net, self.action_norm_blobname_template
         )
 
-    def _prepare_actions(self, actions):
+    def _prepare_action_normalization(self):
         """
-        Normalizes input states and replaces NaNs with 0. Returns a matrix of
-        the same shape.
-
-        :param states: Numpy array with shape (batch_size, state_dim) containing
-            raw state inputs.
+        Sets up operators for action normalization net.
         """
-        normalized_actions = normalize_features(
-            actions, self._action_features,
-            self._action_normalization_parameters
+        self.action_norm_net = core.Net("action_norm_net")
+        self.action_norm_blobname_template = '{}_input_action'
+        self.action_norm_blobs = prepare_normalization(
+            self.action_norm_net, self._action_normalization_parameters,
+            self._action_features, self.action_norm_blobname_template
         )
-        return replace_nans(normalized_actions)
 
     def _setup_initial_blobs(self):
         self.input_dim = self.num_state_features + self.num_action_features
@@ -81,10 +85,79 @@ class ContinuousActionDQNTrainer(RLTrainer):
 
         MLTrainer._setup_initial_blobs(self)
 
+    def _convert_to_net_inputs(
+        self, states: np.ndarray, actions: np.ndarray
+    ) -> np.ndarray:
+        """
+        Shapes states and actions into an input format compatible with this
+        Trainer's underlying net and its target network's net.
+        """
+        return np.concatenate([states, actions], axis=1)
+
+    def stream_df(
+        self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
+    ) -> None:
+        """
+        Loads a large batch of transitions from a page of training data. This
+        batch will further be broken down into minibatches for training.
+
+        :param tdp: TrainingDataPage object that supplies transitions.
+        :param evaluator: Evaluator object to record TD and compute MC losses.
+        """
+        is_not_terminal = np.array(
+            [pna.shape[0] != 0 for pna in tdp.possible_next_actions],
+            dtype=np.bool
+        )
+
+        # If we encounter GPU out of memory errors, normalize within minibatches
+        self.stream(
+            self._normalize_states(tdp.state_features),
+            self._normalize_actions(tdp.action), tdp.reward,
+            self._normalize_states(tdp.next_state_features),
+            tdp.next_action, is_not_terminal, tdp.possible_next_actions,
+            tdp.reward_timelines, evaluator
+        )
+
     def train(
-        self, states, actions, rewards, next_states, next_actions, terminals,
-        possible_next_actions
-    ):
+        self,
+        states: np.ndarray,
+        actions: np.ndarray,
+        rewards: np.ndarray,
+        next_states: np.ndarray,
+        next_actions: Optional[np.ndarray],
+        not_terminals: np.ndarray,
+        possible_next_actions: Optional[List[np.ndarray]]
+    ) -> None:
+        """
+        Takes in a batch of transitions. For transition i, calculates target qval:
+            next_q_values_i = {
+                max_{pna_i} Q(next_state_i, pna_i), self.maxq_learning
+                Q(next_state_i, next_action_i), self.sarsa
+            }
+            q_val_target_i = {
+                r_i + gamma * next_q_values_i, not_terminals_i
+                r_i, !not_terminals_i
+            }
+        Trains Q Network on the q_val_targets as labels.
+
+        :param states: Numpy array with shape (batch_size, state_dim). The ith
+            row is a representation of the ith transition's state.
+        :param actions: Numpy array with shape (batch_size, action_dim). The ith
+            row is a representation of the ith transition's action.
+        :param rewards: Numpy array with shape (batch_size, 1). The ith entry is
+            the reward experienced at the ith transition.
+        :param not_terminals: Numpy array with shape (batch_size, 1). The ith entry
+            is equal to 1 iff the ith transition's state is not terminal.
+        :param next_states: Numpy array with shape (batch_size, state_dim). The
+            ith row is a representation of the ith transition's next state.
+        :param next_actions: Numpy array with shape (batch_size, action_dim). The
+            ith row is a representation of the ith transition's next_action.
+            These have not been normalized.
+        :param possible_next_actions: List of sets of possible next actions. The
+            ith element of this list is a matrix PNA_i such that PNA_i[j] is the
+            parametric representation of the jth possible action from the ith
+            next_state. These have not been normalized.
+        """
         batch_size = states.shape[0]
         assert actions.shape == (batch_size, self.num_action_features)
         if next_actions is not None:
@@ -96,10 +169,12 @@ class ContinuousActionDQNTrainer(RLTrainer):
                     assert pna.shape[1] == self.num_action_features
         RLTrainer.train(
             self, states, actions, rewards, next_states, next_actions,
-            terminals, possible_next_actions
+            not_terminals, possible_next_actions
         )
 
-    def update_model(self, states, actions, q_vals_target):
+    def update_model(
+        self, states: np.ndarray, actions: np.ndarray, q_vals_target: np.ndarray
+    ) -> None:
         """
         Takes in states, actions, and target q values. Updates the model:
 
@@ -115,25 +190,23 @@ class ContinuousActionDQNTrainer(RLTrainer):
         :param q_vals_targets: Numpy array with shape (batch_size, 1). The ith
             row is the label to train against for the data from the ith transition.
         """
-        workspace.FeedBlob(
-            self.input_blob, np.concatenate([states, actions], axis=1)
-        )
-        workspace.FeedBlob(self.labels_blob, q_vals_target)
-        workspace.RunNet(self.train_model.net)
-        self.q_values = self.output_blob
+        inputs = self._convert_to_net_inputs(states, actions)
+        self.train_batch(inputs, q_vals_target)
 
-    def get_max_q_values(self, next_states, possible_next_actions):
+    def get_max_q_values(
+        self, next_states: np.ndarray, possible_next_actions: List[np.ndarray]
+    ) -> np.ndarray:
         """
         Takes in an array of next_states and outputs an array of the same shape
-        whose ith entry = max_{possible_next_actions} Q(state_i, a). Uses target
-        network for Q(state_i, a) approximation.
+        whose ith entry = max_{pna} Q(state_i, pna). Uses target network for
+        Q(state_i, pna) approximation.
 
         :param next_states: Numpy array with shape (batch_size, state_dim). Each
             row contains a representation of a state.
         :param possible_next_actions: List of sets of possible next actions. The
             ith element of this list is a matrix PNA_i such that PNA_i[j] is the
             parametric representation of the jth possible action from the ith
-            next_state.
+            next_state. These have not been normalized.
         """
         total_size = 0
         sizes = []
@@ -141,6 +214,13 @@ class ContinuousActionDQNTrainer(RLTrainer):
             num_possible_actions = possible_next_actions[i].shape[0]
             sizes.append(num_possible_actions)
             total_size += num_possible_actions
+
+        normalized_stacked_pna = self._normalize_actions(
+            np.row_stack(
+                list(filter(lambda pna: pna.shape[0] > 0, possible_next_actions))
+            )
+        )
+
         inputs_to_score = np.zeros(
             [total_size, self.num_state_features + self.num_action_features],
             dtype=np.float32
@@ -148,11 +228,11 @@ class ContinuousActionDQNTrainer(RLTrainer):
         cursor = 0
         num_total_features = self.num_state_features + self.num_action_features
         for i in range(len(next_states)):
-            possible_actions = possible_next_actions[i]
-            num_possible_actions = possible_actions.shape[0]
+            num_possible_actions = sizes[i]
             if num_possible_actions == 0:
                 continue
             cursor_end = cursor + num_possible_actions
+            possible_actions = normalized_stacked_pna[cursor:cursor_end]
             inputs_to_score[cursor:cursor_end, 0:self.num_state_features] \
                 = np.repeat(
                     next_states[i].reshape(1, self.num_state_features),
@@ -166,7 +246,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         cursor = 0
         q_values = np.zeros([len(next_states), 1], dtype=np.float32)
         for i in range(len(next_states)):
-            num_possible_actions = possible_next_actions[i].shape[0]
+            num_possible_actions = sizes[i]
             if num_possible_actions == 0:
                 continue
             q_values[i, 0] = np.max(
@@ -175,7 +255,9 @@ class ContinuousActionDQNTrainer(RLTrainer):
             cursor += num_possible_actions
         return q_values
 
-    def get_q_values(self, states, actions):
+    def get_q_values(
+        self, states: np.ndarray, actions: np.ndarray
+    ) -> np.ndarray:
         """
         Takes in a set of states and actions and returns Q(states, actions).
 
@@ -184,28 +266,28 @@ class ContinuousActionDQNTrainer(RLTrainer):
         :param actions: Numpy array with shape (batch_size, action_dim). The ith
             row is a representation of the ith transition's action.
         """
-        workspace.FeedBlob(
-            self.input_blob, np.concatenate([states, actions], axis=1)
-        )
-        workspace.RunNet(self.score_model.net)
-        return workspace.FetchBlob(self.output_blob)
+        return self.score(self._convert_to_net_inputs(states, actions))
 
-    def get_sarsa_values(self, states, actions):
+    def get_sarsa_values(
+        self, next_states: np.ndarray, next_actions: np.ndarray
+    ) -> np.ndarray:
         """
-        Takes in a set of states and corresponding actions. For each
-        (state_i, action_i) pair, calculates Q(state, action). Returns these q
-        values in a Numpy array of shape (batch_size, 1).
+        Takes in a set of next_states and corresponding next_actions. For each
+        (next_state_i, next_action_i) pair, calculates Q(next_state, next_action).
+        Returns these q values in a Numpy array of shape (batch_size, 1).
 
-        :param states: Numpy array with shape (batch_size, state_dim). The ith
-            row is a representation of the ith transition's state.
-        :param actions: Numpy array with shape (batch_size, action_dim). The ith
-            row is a representation of the ith transition's action.
+        :param next_states: Numpy array with shape (batch_size, state_dim). The
+            ith row is a representation of the ith transition's next_state.
+        :param next_actions: Numpy array with shape (batch_size, action_dim).
+            The ith row is a representation of the ith transition's next_action.
+            Note that these are not normalized.
         """
-        return self.target_network.target_values(
-            np.concatenate([states, actions], axis=1)
+        inputs = self._convert_to_net_inputs(
+            next_states, self._normalize_actions(next_actions)
         )
+        return self.target_network.target_values(inputs)
 
-    def predictor(self):
+    def predictor(self) -> ContinuousActionDQNPredictor:
         """
         Builds a ContinuousActionPredictor using the MLTrainer underlying this
         ContinuousActionTrainer.

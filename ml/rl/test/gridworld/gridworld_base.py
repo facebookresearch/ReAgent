@@ -11,8 +11,8 @@ import random
 import datetime
 from typing import Tuple, List, Dict, Optional
 
-from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.training.training_data_page import TrainingDataPage
+from ml.rl.test.utils import default_normalizer
 
 # Environment parameters
 DISCOUNT = 0.9
@@ -22,24 +22,6 @@ EPSILON = 0.1
 W = 1  # Walls
 S = 2  # Starting position
 G = 3  # Goal position
-
-
-def default_normalizer(feats):
-    # only for one hot
-    normalization = collections.OrderedDict(
-        [
-            (
-                feats[i], NormalizationParameters(
-                    feature_type="CONTINUOUS",
-                    boxcox_lambda=None,
-                    boxcox_shift=0,
-                    mean=0,
-                    stddev=1
-                )
-            ) for i in range(len(feats))
-        ]
-    )
-    return normalization
 
 
 class GridworldBase(object):
@@ -453,10 +435,10 @@ class GridworldBase(object):
     def generate_samples(
         self, num_transitions, epsilon, with_possible=True
     ):
-        raise Exception("Virtual")
+        raise NotImplementedError()
 
     def preprocess_samples(
         self, states, actions, rewards, next_states, next_actions, is_terminals,
         possible_next_actions, reward_timelines
     ):
-        raise Exception("Virtual")
+        raise NotImplementedError()

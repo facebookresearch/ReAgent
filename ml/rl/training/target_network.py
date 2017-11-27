@@ -23,6 +23,7 @@ class TargetNetwork(object):
 
     def __init__(self, trainer, target_update_rate):
         self._target_update_rate = target_update_rate
+        self.enabled_slow_updates = False
         self._update_rate_blob = trainer.model_id + "_target_update_rate"
         workspace.FeedBlob(
             self._update_rate_blob, np.array([1], dtype=np.float32)
@@ -80,14 +81,16 @@ class TargetNetwork(object):
         workspace.CreateNet(self._update_model.net)
 
     def enable_slow_updates(self):
-        workspace.FeedBlob(
-            self._update_rate_blob,
-            np.array([self._target_update_rate], dtype=np.float32)
-        )
-        workspace.FeedBlob(
-            self._retain_rate_blob,
-            np.array([1 - self._target_update_rate], dtype=np.float32)
-        )
+        if not self.enabled_slow_updates:
+            workspace.FeedBlob(
+                self._update_rate_blob,
+                np.array([self._target_update_rate], dtype=np.float32)
+            )
+            workspace.FeedBlob(
+                self._retain_rate_blob,
+                np.array([1 - self._target_update_rate], dtype=np.float32)
+            )
+            self.enabled_slow_updates = True
 
     def target_update(self):
         """ Updates the weights of the target network according to the

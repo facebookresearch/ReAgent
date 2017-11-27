@@ -80,13 +80,13 @@ class TestGridworldContinuous(unittest.TestCase):
             possible_next_actions, reward_timelines
         )
 
-        self.assertTrue(evaluator.evaluate(predictor) > 0.15)
+        self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
         for _ in range(1):
             self._trainer.stream_df(tbp)
             evaluator.evaluate(predictor)
 
-        self.assertTrue(evaluator.evaluate(predictor) < 0.05)
+        self.assertLess(evaluator.evaluate(predictor), 0.05)
 
     def test_trainer_single_batch_maxq(self):
         new_rl_parameters = ContinuousActionModelParameters(

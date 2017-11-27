@@ -5,12 +5,10 @@ from __future__ import unicode_literals
 
 import collections
 
-from ml.rl.preprocessing.normalization import \
-    NormalizationParameters
+from ml.rl.preprocessing.normalization import NormalizationParameters
 
 
 def default_normalizer(feats):
-    # only for one hot
     normalization = collections.OrderedDict(
         [
             (
