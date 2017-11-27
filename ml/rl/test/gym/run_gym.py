@@ -25,20 +25,24 @@ def run(
     test_after=10,
     num_train_batches=100,
     train_batch_size=1024,
-    avg_over_num_episodes=100
+    avg_over_num_episodes=100,
+    render=False,
+    render_every=10
 ):
     avg_reward_history = []
 
     for i in range(num_episodes):
-        env.run_episode(trainer, False)
+        env.run_episode(trainer, False, render and i % render_every == 0)
 
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
                 trainer.stream(*env.get_replay_samples(train_batch_size))
         if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
             reward_sum = 0.0
-            for _ in range(avg_over_num_episodes):
-                reward_sum += env.run_episode(trainer, True)
+            for test_i in range(avg_over_num_episodes):
+                reward_sum += env.run_episode(
+                    trainer, True, render and test_i % render_every == 0
+                )
             avg_rewards = round(reward_sum / avg_over_num_episodes, 2)
             print(
                 "Achieved an average reward score of {} over {} iterations"
@@ -68,7 +72,8 @@ def main(args):
     with open(args.parameters, 'r') as f:
         params = json.load(f)
 
-    env = OpenAIGymEnvironment(params['env'])
+    env_type = params['env']
+    env = OpenAIGymEnvironment(env_type)
 
     rl_settings = params['rl']
     training_settings = params['training']
@@ -98,7 +103,7 @@ def main(args):
         raise Exception("Unsupported env type")
 
     run(
-        env, trainer, "test run", **params["run_details"]
+        env, trainer, "{} test run".format(env_type), **params["run_details"]
     )
 
 

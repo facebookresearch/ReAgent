@@ -101,7 +101,7 @@ The script will construct an RL model and run it in an OpenAI Gym environemnt, p
         "minibatch_size": 128,
         "learning_rate": 0.005,
         "optimizer": "ADAM",
-        "learning_rate_decay": 0.9
+        "learning_rate_decay": 0.999
     },
     "run_details": {
         "num_episodes": 301,
@@ -111,7 +111,9 @@ The script will construct an RL model and run it in an OpenAI Gym environemnt, p
         "test_after": 10,
         "num_train_batches": 100,
         "train_batch_size": 1024,
-        "avg_over_num_episodes": 100
+        "avg_over_num_episodes": 100,
+        "render": 1,
+        "render_every": 30
     }
 }
 ```
@@ -140,6 +142,8 @@ You can supply a different JSON parameter file, modifying the fields to your lik
   * **num\_train\_batches**: Number of batches to train over each training cycle
   * **train\_batch\_size**: Number of transitions to include in each training batch. Note that these will each be further broken down into minibatches of size *minibatch_size*
   * **avg\_over\_num\_episodes**: Number of episodes to run every test cycle. After each cycle, the script will report an average over the scores of the episodes run within it. The typical choice is `100`, but this should be set according to the [success criteria](https://gym.openai.com/envs) for your environment.
+  * **render**: Whether or not to render the OpenAI environment in training and testing episodes. Note that some environments don't support rendering
+  * **render_every**: Number of episodes between each rendered episode
 
 
 
