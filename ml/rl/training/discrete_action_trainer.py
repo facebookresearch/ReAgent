@@ -280,8 +280,10 @@ class DiscreteActionTrainer(RLTrainer):
         """
         Returns the index of the action with the highest approximated q-value
         for the given state.
+
+        :param state: A Numpy array of shape (state_dim, ) containing a single
+            state vector. Not yet normalized.
         """
-        q_values = self.get_q_values_all_actions(
-            np.array([state], dtype=np.float32), False
-        )
+        inputs = self.normalize_states(np.array([state], dtype=np.float32))
+        q_values = self.get_q_values_all_actions(inputs, False)
         return np.argmax(q_values[0])
