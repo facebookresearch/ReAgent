@@ -72,7 +72,7 @@ python -m unittest <path/to/unit_test.py>
 
 # Running Models in OpenAI Gym
 
-You can run RL models of your specification on OpenAI Gym environments of your choice. Right now, we only support environments that supply `Box(x, )` state representations and require `Discrete(y)` inputs.
+You can run RL models of your specification on OpenAI Gym environments of your choice. Right now, we only support environments that supply `Box(x, )` state representations and require `Discrete(y)` action inputs.
 
 ### Quickstart
 
@@ -80,14 +80,20 @@ You can run RL models of your specification on OpenAI Gym environments of your c
 python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/maxq_cartpole_v0.json
 ```
 
-Te [run_gym.py](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/run_gym.py) script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials.
+The [run_gym.py](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/run_gym.py) script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. In general, you can run RL models in OpenAI Gym environments with:
 
-Feel free to create your own input JSON files to select different environments and change model parameters. The success criteria for different environments can be found [here](https://gym.openai.com/envs). We currently supply default arguments for the following environments:
+```
+python ml/rl/test/gym/run_gym.py -p <parameters_file> [-s <score_bar>] [-g <gpu_id>]
+```
+* **parameters_file**: Path to your JSON parameters file
+* **score_bar** (optional): Scalar score you hope to achieve. Once your model scores at least *score_bar* well averaged over 100 test trials, training will stop and the script will exit. If left empty, training will continue until you compplete `num_iterations` iterations (see details on parameters in the next section).
+* **gpu_id** (optional): If set to your machine's GPU id (typically `0`), the model will run its training and inference on your GPU. Otherwise it will use your CPU.
+
+Feel free to create your own parameter files to select different environments and change model parameters. The success criteria for different environments can be found [here](https://gym.openai.com/envs). We currently supply default arguments for the following environments:
 
 * [CartPole-v0](https://gym.openai.com/envs/CartPole-v0/) environment: [maxq\_cartpole\_v0.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_cartpole_v0.json)
 * [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/) environment: [maxq\_cartpole\_v1.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_cartpole_v1.json)
 * [LunarLander-v2](https://gym.openai.com/envs/LunarLander-v2/) environment: [maxq\_lunarlander\_v2.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_lunarlander_v2.json)
-
 
 
 ### Modifying the parameters file
