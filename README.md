@@ -20,6 +20,8 @@ For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads)
 
 RL_Caffe2 runs on any platform that supports caffe2. To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
 
+You may need to override caffe2's cmake defaults to use homebrew's protoc instead of Anaconda's protoc and to use Anaconda's Python instead of system Python.
+
 
 ### Thrift
 [Thrift](https://github.com/facebook/fbthrift) is Facebook's RPC framework.
@@ -41,7 +43,7 @@ To install [all environments](https://gym.openai.com/envs/), run this instead:
 pip install "gym[all]"
 ```
 
-# Installation and setup
+# Installation and Setup
 
 Clone from source:
 ```
@@ -163,7 +165,7 @@ You can supply a different JSON parameter file, modifying the fields to your lik
 
 
 
-# Supported Models:
+# Supported Models
 
 We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf).
 
@@ -184,7 +186,7 @@ Both of these accept discrete and parametric action inputs.
   * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/training/discrete_action_trainer.py)
   * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/training/continuous_action_dqn_trainer.py)
 
-# Contact us
+# Contact Us
 
 If there are any issues/feedback with the implementations, feel free to file an issue: https://github.com/caffe2/reinforcement-learning-models/issues
 
