@@ -55,7 +55,7 @@ To make thrift accessible to our system, run from within the root directory:
 thrift --gen py --out . ml/rl/thrift/core.thrift
 ```
 
-To access caffe2 (if you installed from) and import our modules successfuly:
+To access caffe2 and import our modules:
 ```
 export PYTHONPATH=/usr/local:$PYTHONPATH
 ```
