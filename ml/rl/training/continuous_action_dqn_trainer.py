@@ -94,7 +94,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         """
         return np.concatenate([states, actions], axis=1)
 
-    def stream_df(
+    def stream_tdp(
         self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
     ) -> None:
         """
@@ -104,17 +104,19 @@ class ContinuousActionDQNTrainer(RLTrainer):
         :param tdp: TrainingDataPage object that supplies transitions.
         :param evaluator: Evaluator object to record TD and compute MC losses.
         """
-        is_not_terminal = np.array(
-            [pna.shape[0] != 0 for pna in tdp.possible_next_actions],
-            dtype=np.bool
-        )
+        not_terminals = tdp.not_terminals
+        if tdp.not_terminals is None:
+            not_terminals = np.array(
+                [pna.shape[0] != 0 for pna in tdp.possible_next_actions],
+                dtype=np.bool
+            )
 
         # If we encounter GPU out of memory errors, normalize within minibatches
         self.stream(
-            self._normalize_states(tdp.state_features),
-            self._normalize_actions(tdp.action), tdp.reward,
-            self._normalize_states(tdp.next_state_features),
-            tdp.next_action, is_not_terminal, tdp.possible_next_actions,
+            self._normalize_states(tdp.states),
+            self._normalize_actions(tdp.actions), tdp.rewards,
+            self._normalize_states(tdp.next_states),
+            tdp.next_actions, not_terminals, tdp.possible_next_actions,
             tdp.reward_timelines, evaluator
         )
 

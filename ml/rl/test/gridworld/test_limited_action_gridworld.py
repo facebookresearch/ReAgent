@@ -173,7 +173,7 @@ class TestLimitedActionGridworld(unittest.TestCase):
                 iteration_result.possible_next_actions,
                 None,
             )
-            trainer.stream_df(tdp, None)
+            trainer.stream_tdp(tdp, None)
             initial_state = iteration_result.current_state
         initial_state = self._env.reset()
         iteration_result = _collect_samples(
@@ -240,7 +240,7 @@ class TestLimitedActionGridworld(unittest.TestCase):
             )
             initial_state = iteration_result.current_state
             for _ in range(updates_per_iteration):
-                trainer.stream_df(tdp, None)
+                trainer.stream_tdp(tdp, None)
 
         state = self._env.reset()
         evaluation_results = _collect_samples(self._env, policy, 10000, state)

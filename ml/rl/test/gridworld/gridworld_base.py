@@ -422,11 +422,11 @@ class GridworldBase(object):
             reward_timelines = np.array(reward_timelines, dtype=np.object)
 
         return TrainingDataPage(
-            state_features=states,
-            action=actions_one_hot,
-            reward=rewards,
-            next_state_features=next_states,
-            next_action=next_actions_one_hot,
+            states=states,
+            actions=actions_one_hot,
+            rewards=rewards,
+            next_states=next_states,
+            next_actions=next_actions_one_hot,
             possible_next_actions=possible_next_actions_mask,
             reward_timelines=reward_timelines,
             ds=[datetime.date.today().strftime('%Y-%m-%d')] * len(states)

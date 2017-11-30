@@ -1,0 +1,30 @@
+{
+    "env": "LunarLander-v2",
+    "rl": {
+        "reward_discount_factor": 0.99,
+        "target_update_rate": 0.01,
+        "reward_burnin": 10,
+        "maxq_learning": 1,
+        "epsilon": 0.5
+    },
+    "training": {
+        "layers": [-1, 256, 128, 64, -1],
+        "activations": ["relu", "relu", "relu", "linear"],
+        "minibatch_size": 1024,
+        "learning_rate": 0.001,
+        "optimizer": "ADAM",
+        "learning_rate_decay": 0.999
+    },
+    "run_details": {
+        "num_episodes": 901,
+        "train_every": 10,
+        "train_after": 10,
+        "test_every": 100,
+        "test_after": 10,
+        "num_train_batches": 100,
+        "train_batch_size": 2056,
+        "avg_over_num_episodes": 100,
+        "render": 0,
+        "render_every": 100
+    }
+}

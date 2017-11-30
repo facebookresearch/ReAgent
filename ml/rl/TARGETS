@@ -67,15 +67,7 @@ python_library(
     name = "test_gym_base",
     srcs = [
         "test/gym/open_ai_gym_environment.py",
-        "test/gym/rlmodels/actor_critic.py",
-        "test/gym/rlmodels/dqn.py",
-        "test/gym/rlmodels/dqn_adapted.py",
-        "test/gym/rlmodels/rlmodel_base.py",
-        "test/gym/rlmodels/rlmodel_base_adapted.py",
-        "test/gym/rlmodels/rlmodel_helper.py",
         "test/gym/run_gym.py",
-        "test/gym/run_rl_gym.py",
-        "test/gym/trainer.py",
     ],
     py_version = ">=3",
     deps = [
@@ -197,23 +189,7 @@ python_unittest(
 python_unittest(
     name = "test_open_ai_gym",
     srcs = [
-        "test/test_open_ai_gym.py",
-    ],
-    check_types = True,
-    py_version = ">=3",
-    deps = [
-        ":test_gym_base",
-    ],
-    external_deps = [
-        "numpy",
-        "gym",
-    ],
-)
-
-python_unittest(
-    name = "test_cartpole",
-    srcs = [
-        "test/gym/test_cartpole.py",
+        "test/gym/test_open_ai_gym.py",
     ],
     check_types = True,
     py_version = ">=3",

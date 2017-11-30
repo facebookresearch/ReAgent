@@ -27,7 +27,8 @@ class RLTrainer(MLTrainer):
     def __init__(
         self,
         state_normalization_parameters: Dict[str, NormalizationParameters],
-        parameters
+        parameters,
+        skip_normalization: Optional[bool] = False
     ) -> None:
         print(state_normalization_parameters)
         print(parameters)
@@ -48,6 +49,7 @@ class RLTrainer(MLTrainer):
         self._buffers = None
         self.minibatch_size = parameters.training.minibatch_size
 
+        self.skip_normalization = skip_normalization
         self._prepare_state_normalization()
 
     def _normalize_states(self, states: np.ndarray) -> np.ndarray:
@@ -59,6 +61,8 @@ class RLTrainer(MLTrainer):
         :param states: Numpy array with shape (batch_size, state_dim) containing
             raw state inputs
         """
+        if self.skip_normalization:
+            return states
         return normalize_dense_matrix(
             states, self.num_state_features, self.state_norm_blobs,
             self.state_norm_net, self.state_norm_blobname_template
@@ -68,6 +72,8 @@ class RLTrainer(MLTrainer):
         """
         Sets up operators for action normalization net.
         """
+        if self.skip_normalization:
+            return
         self.state_norm_net = core.Net("state_norm_net")
         self.state_norm_blobname_template = '{}_input_state'
         self.state_norm_blobs = prepare_normalization(
@@ -95,7 +101,7 @@ class RLTrainer(MLTrainer):
         """
         raise NotImplementedError()
 
-    def stream_df(
+    def stream_tdp(
         self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
     ) -> None:
         """
@@ -155,11 +161,13 @@ class RLTrainer(MLTrainer):
         raise NotImplementedError()
 
     def stream(
-        self, current_states, actions, rewards, next_states, next_actions,
+        self, states, actions, rewards, next_states, next_actions,
         not_terminals, possible_next_actions, reward_timelines, evaluator
     ):
-        """Load large batch as training set. This batch will further be broken
-        down into minibatches
+        """
+        Load large batch as training set. This batch will further be broken
+        down into minibatches. Assumes that states, next_states, and actions
+        (in the parametric action case) need no further normalization.
         """
 
         if rewards.ndim == 1:
@@ -174,7 +182,7 @@ class RLTrainer(MLTrainer):
         num_buffers = 8
         if self._buffers is not None and self._buffers[0].shape[0] > 0:
             actions = np.concatenate([self._buffers[0], actions])
-            current_states = np.concatenate([self._buffers[1], current_states])
+            states = np.concatenate([self._buffers[1], states])
             rewards = np.concatenate([self._buffers[2], rewards])
             next_states = np.concatenate([self._buffers[3], next_states])
             if use_next_actions:
@@ -190,14 +198,14 @@ class RLTrainer(MLTrainer):
                 )
 
         self._buffers = None
-        page_size = current_states.shape[0]
+        page_size = states.shape[0]
 
         for batch_start in range(0, page_size, self.minibatch_size):
             batch_end = batch_start + self.minibatch_size
             if page_size < batch_end:
                 self._buffers = [[] for _ in range(num_buffers)]
                 self._buffers[0] = actions[batch_start:]
-                self._buffers[1] = current_states[batch_start:]
+                self._buffers[1] = states[batch_start:]
                 self._buffers[2] = rewards[batch_start:]
                 self._buffers[3] = next_states[batch_start:]
                 if use_next_actions:
@@ -219,10 +227,10 @@ class RLTrainer(MLTrainer):
                 rt_batch = (
                     reward_timelines[batch_start:batch_end] if use_rt else None
                 )
-                current_states_batch = current_states[batch_start:batch_end]
+                states_batch = states[batch_start:batch_end]
                 actions_batch = actions[batch_start:batch_end]
                 self.train(
-                    current_states_batch,
+                    states_batch,
                     actions_batch,
                     rewards[batch_start:batch_end],
                     next_states[batch_start:batch_end],
@@ -233,7 +241,7 @@ class RLTrainer(MLTrainer):
                 if evaluator is not None:
                     evaluator.report(
                         rt_batch, self.get_q_values(
-                            current_states_batch, actions_batch
+                            states_batch, actions_batch
                         ), workspace.FetchBlob(self.loss_blob)
                     )
 
@@ -245,7 +253,7 @@ class RLTrainer(MLTrainer):
         next_states: np.ndarray,
         next_actions: Optional[np.ndarray],
         not_terminals: np.ndarray,
-        possible_next_actions: Optional[List],
+        possible_next_actions: Optional[List]
     ) -> None:
         """
         Takes in a batch of transitions. For transition i, calculates target qval:

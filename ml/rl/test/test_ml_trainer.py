@@ -177,6 +177,39 @@ class TestMLTrainer(unittest.TestCase):
             np.linalg.norm(identity_output - training_outputs) < 0.01
         )
 
+    def test_step_learning_rate(self):
+        num_features = 4
+        num_training_samples = 100
+        num_test_datapoints = 10
+        num_outputs = 1
+        training_inputs, training_outputs, test_inputs, test_outputs, weights = (
+            gen_training_and_test_data(
+                num_features, num_training_samples, num_test_datapoints, num_outputs
+            )
+        )
+
+        gamma = 0.9999
+        trainer = MLTrainer(
+            "Linear Regression",
+            TrainingParameters(
+                layers=[num_features, num_outputs],
+                activations=['linear'],
+                minibatch_size=100,
+                learning_rate=0.001,
+                optimizer='SGD',
+                lr_policy='step',
+                gamma=gamma,
+            )
+        )
+        for i in range(10000):
+            trainer.train_batch(training_inputs, training_outputs)
+            curr_neg_LR = np.asscalar(
+                workspace.FetchBlob('SgdOptimizer_0_lr_cpu')
+            )
+            expected_neg_LR = -1.0 * trainer.learning_rate * np.power(gamma, i)
+
+            self.assertTrue(np.isclose(curr_neg_LR, expected_neg_LR, rtol=0.1))
+
     def test_sgd_dropout_predictions(self):
         num_features = 4
         num_outputs = 1
