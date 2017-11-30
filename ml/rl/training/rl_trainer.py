@@ -106,7 +106,7 @@ class RLTrainer(MLTrainer):
     ) -> None:
         """
         Loads a large batch of transitions from a page of training data. This
-        batch will further be broken down into minibatches for training.
+        batch will be further broken down into minibatches for training.
 
         :param tdp: TrainingDataPage object that supplies transitions.
         :param evaluator: Evaluator object to record TD and compute MC losses.
@@ -165,9 +165,9 @@ class RLTrainer(MLTrainer):
         not_terminals, possible_next_actions, reward_timelines, evaluator
     ):
         """
-        Load large batch as training set. This batch will further be broken
-        down into minibatches. Assumes that states, next_states, and actions
-        (in the parametric action case) need no further normalization.
+        Load large batch as training set. This batch will be broken down into
+        minibatches. Assumes that states, next_states, and actions (in the
+        parametric action case) need no further normalization.
         """
 
         if rewards.ndim == 1:

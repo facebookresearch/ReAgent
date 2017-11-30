@@ -7,17 +7,22 @@ import sys
 import argparse
 import json
 
+from caffe2.proto import caffe2_pb2
+from caffe2.python import core
+
 from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.thrift.core.ttypes import\
     RLParameters, TrainingParameters, DiscreteActionModelParameters
+
+USE_CPU = -1
 
 
 def run(
     env,
     trainer,
     test_run_name,
-    final_score_bar,
+    score_bar,
     num_episodes=301,
     train_every=10,
     train_after=10,
@@ -51,7 +56,7 @@ def run(
                 .format(avg_rewards, avg_over_num_episodes)
             )
             avg_reward_history.append(avg_rewards)
-            if final_score_bar is not None and avg_rewards > final_score_bar:
+            if score_bar is not None and avg_rewards > score_bar:
                 break
 
     print(
@@ -63,19 +68,25 @@ def run(
 
 def main(args):
     parser = argparse.ArgumentParser(
-        description="Train a RL net to play in openAI GYM."
+        description="Train a RL net to play in an OpenAI Gym environment."
     )
     parser.add_argument(
         "-p",
         "--parameters",
-        help="Path to JSON parameters file"
+        help="Path to JSON parameters file."
     )
     parser.add_argument(
-        "-f",
-        "--final-score-bar",
-        help="Bar for averaged tests scores",
+        "-s",
+        "--score-bar",
+        help="Bar for averaged tests scores.",
         type=float,
         default=None
+    )
+    parser.add_argument(
+        "-g",
+        "--gpu_id",
+        help="If set, will use GPU with specified ID. Otherwise will use CPU.",
+        default=USE_CPU
     )
     args = parser.parse_args(args)
     with open(args.parameters, 'r') as f:
@@ -91,28 +102,31 @@ def main(args):
     env_type = params['env']
     env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'])
 
-    if env.requires_discrete_actions:
-        trainer_params = DiscreteActionModelParameters(
-            actions=env.actions,
-            rl=RLParameters(**rl_settings),
-            training=TrainingParameters(**training_settings)
-        )
+    trainer_params = DiscreteActionModelParameters(
+        actions=env.actions,
+        rl=RLParameters(**rl_settings),
+        training=TrainingParameters(**training_settings)
+    )
+
+    device = core.DeviceOption(
+        caffe2_pb2.CPU if args.gpu_id == USE_CPU else caffe2_pb2.CUDA,
+        args.gpu_id
+    )
+    with core.DeviceScope(device):
         trainer = DiscreteActionTrainer(
             env.normalization, trainer_params, skip_normalization=True
         )
-    else:
-        raise Exception("Unsupported env type")
-
-    return run(
-        env, trainer, "{} test run".format(env_type), args.final_score_bar,
-        **params["run_details"]
-    )
+        return run(
+            env, trainer, "{} test run".format(env_type), args.score_bar,
+            **params["run_details"]
+        )
 
 
 if __name__ == '__main__':
     args = sys.argv
-    if len(args) != 3 and len(args) != 5:
+    if len(args) not in [3, 5, 7]:
         raise Exception(
-            "Usage: python run_gym.py -p <parameters_file> [-f <final_score_bar>]"
+            "Usage: python run_gym.py -p <parameters_file>" +
+            " [-s <score_bar>] [-g <gpu_id>]"
         )
     main(args[1:])

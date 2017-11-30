@@ -10,22 +10,6 @@ from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
-def create_env(gymenv):
-    """
-    Creates a gym environment object.
-
-    :param gymenv: String identifier for desired environment.
-    """
-    if gymenv not in [e.id for e in gym.envs.registry.all()]:
-        raise Exception(
-            "Warning: Env {} not fount in OpenAI Gym. Quitting.".format(gymenv)
-        )
-    env = gym.make(gymenv)
-    action_dim = env.action_space.n
-    state_dim = env.observation_space.shape[0]
-    return env, action_dim, state_dim
-
-
 class OpenAIGymEnvironment:
     def __init__(self, gymenv, epsilon=0.2, max_replay_memory_size=10000):
         """
@@ -43,13 +27,36 @@ class OpenAIGymEnvironment:
         self.memory_num = 0
         self.skip_insert_until = self.max_replay_memory_size
 
-        self.env, self.action_dim, self.state_dim = create_env(gymenv)
+        self._create_env(gymenv)
         self.state_features = [str(sf) for sf in range(self.state_dim)]
         self.actions = [str(a) for a in range(self.action_dim)]
 
-    @property
-    def requires_discrete_actions(self):
-        return isinstance(self.env.action_space, gym.spaces.Discrete)
+    def _create_env(self, gymenv):
+        """
+        Creates a gym environment object and checks if it is supported. We
+        support environments that supply Box(x, ) state representations and
+        require Discrete(y) action inputs.
+
+        :param gymenv: String identifier for desired environment.
+        """
+        if gymenv not in [e.id for e in gym.envs.registry.all()]:
+            raise Exception("Env {} not found in OpenAI Gym.".format(gymenv))
+        self.env = gym.make(gymenv)
+
+        supports_state = isinstance(
+            self.env.observation_space, gym.spaces.Box
+        ) and len(self.env.observation_space.shape) == 1
+        supports_action = isinstance(self.env.action_space, gym.spaces.Discrete)
+
+        if not supports_state and supports_action:
+            raise Exception(
+                "Unsupported environment state or action type: {}, {}".format(
+                    self.env.observation_space, self.env.action_space
+                )
+            )
+
+        self.action_dim = self.env.action_space.n
+        self.state_dim = self.env.observation_space.shape[0]
 
     def sample_memories(self, batch_size):
         """
