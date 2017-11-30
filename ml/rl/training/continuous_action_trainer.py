@@ -463,7 +463,7 @@ class ContinuousActionTrainer(RLTrainer):
             ), critic_trainer
         ]
 
-    def stream_df(self, df, evaluator=None):
+    def stream_tdp(self, df, evaluator=None):
         """Load large batch as training set. This batch will further be broken
         down into minibatches
 

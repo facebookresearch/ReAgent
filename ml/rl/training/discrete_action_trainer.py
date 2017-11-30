@@ -31,7 +31,8 @@ class DiscreteActionTrainer(RLTrainer):
     def __init__(
         self,
         state_normalization_parameters: Dict[str, NormalizationParameters],
-        parameters: DiscreteActionModelParameters
+        parameters: DiscreteActionModelParameters,
+        skip_normalization: Optional[bool] = False
     ) -> None:
         self._actions = parameters.actions
         if parameters.training.layers[0] is None or\
@@ -46,13 +47,15 @@ class DiscreteActionTrainer(RLTrainer):
         assert parameters.training.layers[-1] == self.num_actions,\
             "Set layers[-1] to a the number of actions or a default placeholder value"
 
-        RLTrainer.__init__(self, state_normalization_parameters, parameters)
+        RLTrainer.__init__(
+            self, state_normalization_parameters, parameters, skip_normalization
+        )
 
     @property
     def num_actions(self) -> int:
         return 0 if self._actions is None else len(self._actions)
 
-    def stream_df(
+    def stream_tdp(
         self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
     ) -> None:
         """
@@ -62,12 +65,16 @@ class DiscreteActionTrainer(RLTrainer):
         :param tdp: TrainingDataPage object that supplies transitions.
         :param evaluator: Evaluator object to record TD and compute MC losses.
         """
-        # terminal states have no next_action=1
-        is_not_terminal = tdp.next_action.sum(axis=1) >= 1e-6
+        not_terminals = tdp.not_terminals
+        if not_terminals is None:
+            # Terminal states' corresponding next_action vectors' values are all 0
+            not_terminals = tdp.next_actions.sum(axis=1) >= 1e-6
+
+        # If we encounter GPU out of memory errors, normalize within minibatches
         self.stream(
-            self._normalize_states(tdp.state_features), tdp.action, tdp.reward,
-            self._normalize_states(tdp.next_state_features), tdp.next_action,
-            is_not_terminal, tdp.possible_next_actions, tdp.reward_timelines,
+            self._normalize_states(tdp.states), tdp.actions, tdp.rewards,
+            self._normalize_states(tdp.next_states), tdp.next_actions,
+            not_terminals, tdp.possible_next_actions, tdp.reward_timelines,
             evaluator
         )
 
@@ -120,7 +127,6 @@ class DiscreteActionTrainer(RLTrainer):
             possible_next_actions[i][j] = 1 iff the agent can take action j from
             state i.
         """
-
         batch_size = states.shape[0]
         assert actions.shape == (batch_size, self.num_actions)
         assert next_states.shape == (batch_size, self.num_state_features)
@@ -284,6 +290,6 @@ class DiscreteActionTrainer(RLTrainer):
         :param state: A Numpy array of shape (state_dim, ) containing a single
             state vector. Not yet normalized.
         """
-        inputs = self.normalize_states(np.array([state], dtype=np.float32))
+        inputs = self._normalize_states(np.array([state], dtype=np.float32))
         q_values = self.get_q_values_all_actions(inputs, False)
         return np.argmax(q_values[0])

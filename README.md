@@ -72,19 +72,27 @@ python -m unittest <path/to/unit_test.py>
 
 # Running Models in OpenAI Gym
 
-You can run RL models of your specification on OpenAI Gym environments of your choice.
+You can run RL models of your specification on OpenAI Gym environments of your choice. Right now, we only support environments that supply `Box(x, )` state representations and require `Discrete(y)` inputs.
 
 ### Quickstart
 
 ```
-python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/default_open_ai_gym_args.json
+python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/maxq_cartpole_v0.json
 ```
 
-The script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. The success criteria for different environments are listed [here](https://gym.openai.com/envs).
+Te [run_gym.py](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/run_gym.py) script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials.
 
-### Selecting an environment and specifying model parameters
+Feel free to create your own input JSON files to select different environments and change model parameters. The success criteria for different environments can be found [here](https://gym.openai.com/envs). We currently supply default arguments for the following environments:
 
-[default\_open\_ai\_gym\_args.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/default_open_ai_gym_args.json) specifies the use of an RL model whose backing neural net has 5 layers in the [CartPole-v0 environment](https://gym.openai.com/envs/CartPole-v0/):
+* [CartPole-v0](https://gym.openai.com/envs/CartPole-v0/) environment: [maxq\_cartpole\_v0.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_cartpole_v0.json)
+* [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/) environment: [maxq\_cartpole\_v1.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_cartpole_v1.json)
+* [LunarLander-v2](https://gym.openai.com/envs/LunarLander-v2/) environment: [maxq\_lunarlander\_v2.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_lunarlander_v2.json)
+
+
+
+### Modifying the parameters file
+
+As an example, The Cartpole-v0 default parameter file we supply specifies the use of an RL model whose backing neural net has 5 layers:
 
 ```json
 {
@@ -93,7 +101,8 @@ The script will construct an RL model and run it in an OpenAI Gym environemnt, p
         "reward_discount_factor": 0.99,
         "target_update_rate": 0.1,
         "reward_burnin": 10,
-        "maxq_learning": 1
+        "maxq_learning": 1,
+        "epsilon": 0.2
     },
     "training": {
         "layers": [-1, 256, 128, 64, -1],
@@ -112,20 +121,21 @@ The script will construct an RL model and run it in an OpenAI Gym environemnt, p
         "num_train_batches": 100,
         "train_batch_size": 1024,
         "avg_over_num_episodes": 100,
-        "render": 1,
-        "render_every": 30
+        "render": 0,
+        "render_every": 100
     }
 }
 ```
 
 You can supply a different JSON parameter file, modifying the fields to your liking.
 
-* **env**: The OpenAI gym environment to use. See [their site](https://gym.openai.com/envs) for a full list.
+* **env**: The OpenAI gym environment to use
 * **rl**
   * **reward\_discount\_factor**: A measure of how quickly the model's target network updates
   * **target\_update\_rate**: A measure of how quickly the model's target network updates
   * **reward_burnin**: The iteration after which to use the model's target network to construct target values
   * **maxq_learning**: 1 for Q-learning, 0 for SARSA
+  * **epsilon**: Fraction of the time the agent should select a random action during training
 * **training**
   * **layers**: An array whose ith entry specifies the number of nodes in the ith layer of the Neural Net. Use `-1` for the input and output layers; our models will fill in the appropriate values based on your choice of environment
   * **activations**: A array whose ith entry specifies the activation function to use between the ith and i+1th layers. Valid choices are `"linear"` and `"relu"`. Note that this array should have one fewer entry than your entry for *layers*
@@ -141,7 +151,7 @@ You can supply a different JSON parameter file, modifying the fields to your lik
   * **test_after**: Number of episodes after which to enable testing
   * **num\_train\_batches**: Number of batches to train over each training cycle
   * **train\_batch\_size**: Number of transitions to include in each training batch. Note that these will each be further broken down into minibatches of size *minibatch_size*
-  * **avg\_over\_num\_episodes**: Number of episodes to run every test cycle. After each cycle, the script will report an average over the scores of the episodes run within it. The typical choice is `100`, but this should be set according to the [success criteria](https://gym.openai.com/envs) for your environment.
+  * **avg\_over\_num\_episodes**: Number of episodes to run every test cycle. After each cycle, the script will report an average over the scores of the episodes run within it.The typical choice is `100`, but this should be set according to the [success criteria](https://gym.openai.com/envs) for your environment
   * **render**: Whether or not to render the OpenAI environment in training and testing episodes. Note that some environments don't support rendering
   * **render_every**: Number of episodes between each rendered episode
 

@@ -95,7 +95,7 @@ class TestGridworld(unittest.TestCase):
         self.assertGreater(evaluator.evaluate(predictor), 0.4)
 
         for _ in range(2):
-            maxq_trainer.stream_df(tbp, None)
+            maxq_trainer.stream_tdp(tbp, None)
             evaluator.evaluate(predictor)
 
         print("Post-Training eval", evaluator.evaluate(predictor))
@@ -115,7 +115,7 @@ class TestGridworld(unittest.TestCase):
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
         for _ in range(1):
-            self._trainer.stream_df(tbp, None)
+            self._trainer.stream_tdp(tbp, None)
             evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
@@ -136,7 +136,7 @@ class TestGridworld(unittest.TestCase):
         )
 
         for _ in range(1):
-            self._trainer.stream_df(tbp, evaluator)
+            self._trainer.stream_tdp(tbp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
         self.assertLess(evaluator.mc_loss[-1], 0.05)
@@ -152,7 +152,7 @@ class TestGridworld(unittest.TestCase):
             possible_next_actions, reward_timelines
         )
         for _ in range(1):
-            self._trainer.stream_df(tdp, evaluator)
+            self._trainer.stream_tdp(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.2)
         self.assertLess(evaluator.mc_loss[-1], 0.2)

@@ -118,11 +118,11 @@ class GridworldContinuous(GridworldBase):
         )
 
         return TrainingDataPage(
-            state_features=states,
-            action=actions,
-            reward=rewards,
-            next_state_features=next_states,
-            next_action=next_actions,
+            states=states,
+            actions=actions,
+            rewards=rewards,
+            next_states=next_states,
+            next_actions=next_actions,
             possible_next_actions=continuous_possible_next_actions,
             reward_timelines=reward_timelines,
             ds=[datetime.date.today().strftime('%Y-%m-%d')] * len(rewards)
