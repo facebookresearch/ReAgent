@@ -14,7 +14,7 @@ Advances in RL theory, including the advent of Deep Query Networks and Deep Acto
 
 ### Recommended: Anaconda
 
-For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads) instead of the system implementation of python. Install anaconda and verify you are using anaconda's version of python before installing other dependencies: `which python` should yield an anaconda path.
+For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads) instead of the system implementation of python. Install anaconda and verify you are using Anaconda's version of python before installing other dependencies: `which python` should yield an Anaconda path.
 
 ### Caffe2
 
@@ -33,7 +33,7 @@ brew install thrift
 
 Running models in OpenAI Gym environments requires platforms with OpenAI Gym support. Windows support for OpenAI Gym is being tracked [here](https://github.com/openai/gym/issues/11).
 
-OpenAI Gym can be installed using [pip](https://pypi.python.org/pypi/pip) which should come with your python installation in the case of linux or with anaconda in the case of OS/X.  To install the basic environments ([classic control](https://gym.openai.com/envs#classic_control), [toy text](https://gym.openai.com/envs#toy_text), and [algorithmic](https://gym.openai.com/envs#algorithmic)), run:
+OpenAI Gym can be installed using [pip](https://pypi.python.org/pypi/pip) which should come with your python installation in the case of linux or with anaconda in the case of OSX.  To install the basic environments ([classic control](https://gym.openai.com/envs#classic_control), [toy text](https://gym.openai.com/envs#toy_text), and [algorithmic](https://gym.openai.com/envs#algorithmic)), run:
 ```
 pip install gym
 ```
@@ -88,8 +88,8 @@ The [run_gym.py](https://github.com/caffe2/reinforcement-learning-models/tree/ma
 python ml/rl/test/gym/run_gym.py -p <parameters_file> [-s <score_bar>] [-g <gpu_id>]
 ```
 * **parameters_file**: Path to your JSON parameters file
-* **score_bar** (optional): Scalar score you hope to achieve. Once your model scores at least *score_bar* well averaged over 100 test trials, training will stop and the script will exit. If left empty, training will continue until you compplete `num_iterations` iterations (see details on parameters in the next section).
-* **gpu_id** (optional): If set to your machine's GPU id (typically `0`), the model will run its training and inference on your GPU. Otherwise it will use your CPU.
+* **score_bar** (optional): Scalar score you hope to achieve. Once your model scores at least *score_bar* well averaged over 100 test trials, training will stop and the script will exit. If left empty, training will continue until you complete collect data from *num_episodes* episodes (see details on parameters in the next section)
+* **gpu_id** (optional): If set to your machine's GPU id (typically `0`), the model will run its training and inference on your GPU. Otherwise it will use your CPU
 
 Feel free to create your own parameter files to select different environments and change model parameters. The success criteria for different environments can be found [here](https://gym.openai.com/envs). We currently supply default arguments for the following environments:
 
@@ -151,7 +151,7 @@ You can supply a different JSON parameter file, modifying the fields to your lik
   * **learning_rate**: Learning rate for the neural net
   * **optimizer**: Neural net weight update algorithm. Valid choices are `"SGD"`, `"ADAM"`, `"ADAGRAD"`, and `"FTRL"`
   * **learning\_rate\_decay**: Factor by which the learning rate decreases after each training minibatch
-* **run_details**
+* **run_details** (reading the code that uses these might be helpful: [run\_gym.py](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/test/gym/run_gym.py#L21))
   * **num_episodes**: Number of episodes run the mode and to collect new data over
   * **train_every**: Number of episodes between each training cycle
   * **train_after** Number of episodes after which to enable training
@@ -188,10 +188,10 @@ Both of these accept discrete and parametric action inputs.
 
 # Contact Us
 
-If there are any issues/feedback with the implementations, feel free to file an issue: https://github.com/caffe2/reinforcement-learning-models/issues
+If you identify any issues or have feedback, please [file an issue](https://github.com/caffe2/reinforcement-learning-models/issues).
 
-Otherwise feel free to contact jjg@fb.com or nishadsingh@fb.com with questions.
+Otherwise feel free to contact <jjg@fb.com> or <nishadsingh@fb.com> with questions.
 
 # License
 
-rl_caffe2 is BSD-licensed. We also provide an additional patent grant.
+RL_Caffe2 is BSD-licensed. We also provide an additional patent grant.
