@@ -15,6 +15,9 @@ from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import NormalizationParameters,\
     MISSING_VALUE, BOX_COX_MIN_VALUE
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class PreprocessorNet:
     ZERO = 'ZERO'
@@ -31,10 +34,12 @@ class PreprocessorNet:
                 self.MISSING, np.array([MISSING_VALUE], dtype=np.float32)
             )
             workspace.FeedBlob(
-                self.MISSING_U, np.array([MISSING_VALUE + 1e-4], dtype=np.float32)
+                self.MISSING_U,
+                np.array([MISSING_VALUE + 1e-4], dtype=np.float32)
             )
             workspace.FeedBlob(
-                self.MISSING_L, np.array([MISSING_VALUE - 1e-4], dtype=np.float32)
+                self.MISSING_L,
+                np.array([MISSING_VALUE - 1e-4], dtype=np.float32)
             )
             self.parameters = [
                 self.ZERO, self.MISSING, self.MISSING_L, self.MISSING_U
@@ -65,7 +70,7 @@ class PreprocessorNet:
             self._net.Or([is_gt_zero, is_lt_zero], [bool_blob])
             self._net.Cast([bool_blob], [blob], to=caffe2_pb2.TensorProto.FLOAT)
         elif normalization_parameters.feature_type == identify_types.PROBABILITY:
-            self._net.Clip([blob], [blob], minimum=0.01, maximum=0.99)
+            self._net.Clip([blob], [blob], min=0.01, max=0.99)
             self._net.Logit([blob], [blob])
         else:
             if normalization_parameters.boxcox_lambda is not None:
@@ -102,7 +107,7 @@ class PreprocessorNet:
             self._net.Div([blob, stddev], [blob], broadcast=1, axis=0)
             parameters = parameters + [mean, stddev]
 
-        zeros = "zeros"
+        zeros = blob + "_zeros"
         self._net.ConstantFill([blob], [zeros], value=0.)
         output_blob = blob + "_preprocessed"
         self._net.Where([is_empty, zeros, blob], [output_blob])
@@ -112,11 +117,8 @@ class PreprocessorNet:
 
 
 def normalize_dense_matrix(
-    inputs: np.ndarray,
-    num_features: int,
-    norm_blob_map: Dict[int, str],
-    norm_net: core.Net,
-    blobname_template: str
+    inputs: np.ndarray, num_features: int, norm_blob_map: Dict[int, str],
+    norm_net: core.Net, blobname_template: str
 ) -> np.ndarray:
     """
     Normalizes inputs according to parameters. Expects a dense matrix whose ith
@@ -133,6 +135,7 @@ def normalize_dense_matrix(
     :param norm_net: Caffe2 net for normalization.
     :param blobname_template: String template for input blobs to norm_net.
     """
+    assert inputs.shape[1] == num_features
     with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
         for idx in range(num_features):
             input_blob = blobname_template.format(idx)
@@ -140,16 +143,14 @@ def normalize_dense_matrix(
         workspace.RunNet(norm_net)
         for idx in range(num_features):
             normalized_input_blob = norm_blob_map[idx]
-            inputs[:, idx] = workspace.FetchBlob(normalized_input_blob)
+            normalized_inputs = workspace.FetchBlob(normalized_input_blob)
+            inputs[:, idx] = normalized_inputs
     return inputs
 
 
 def normalize_feature_map(
-    feature_value_map: Dict[str, np.ndarray],
-    norm_net: core.Net,
-    features: List[str],
-    norm_blob_map: Dict[int, str],
-    blobname_template: str
+    feature_value_map: Dict[str, np.ndarray], norm_net: core.Net,
+    features: List[str], norm_blob_map: Dict[int, str], blobname_template: str
 ):
     """
     Normalizes the features in feature_value_map and returns another dictionary
@@ -173,17 +174,15 @@ def normalize_feature_map(
         workspace.RunNet(norm_net)
         for idx, feature_name in enumerate(features):
             normalized_input_blob = norm_blob_map[idx]
-            normalized_features[feature_name] = workspace.FetchBlob(
-                normalized_input_blob
-            )
+            normalized_features[feature_name
+                               ] = workspace.FetchBlob(normalized_input_blob)
     return normalized_features
 
 
 def prepare_normalization(
     norm_net: core.Net,
     normalization_params: Dict[str, NormalizationParameters],
-    features: List[str],
-    blobname_template: str
+    features: List[str], blobname_template: str
 ) -> Dict[int, str]:
     """
     Sets up operators for normalization net and returns a mapping from feature
@@ -214,12 +213,11 @@ def prepare_normalization(
             normalized_input_blob, _ = preprocessor.preprocess_blob(
                 reshaped_input_blob, normalization_params[feature]
             )
-            norm_net.ReplaceNaN(
-                normalized_input_blob, normalized_input_blob
-            )
+            norm_net.ReplaceNaN(normalized_input_blob, normalized_input_blob)
             norm_net.Reshape(
                 [normalized_input_blob],
-                [normalized_input_blob, original_shape], shape=[1, -1]
+                [normalized_input_blob, original_shape],
+                shape=[1, -1]
             )
             norm_blob_map[idx] = normalized_input_blob
         workspace.CreateNet(norm_net)

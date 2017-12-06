@@ -86,7 +86,7 @@ class TestGridworld(unittest.TestCase):
             possible_next_actions, reward_timelines = \
             self._env.generate_samples(100000, 1.0)
         predictor = maxq_trainer.predictor()
-        tbp = self._env.preprocess_samples(
+        tdp = self._env.preprocess_samples(
             states, actions, rewards, next_states, next_actions, is_terminal,
             possible_next_actions, reward_timelines
         )
@@ -95,7 +95,7 @@ class TestGridworld(unittest.TestCase):
         self.assertGreater(evaluator.evaluate(predictor), 0.4)
 
         for _ in range(2):
-            maxq_trainer.stream_tdp(tbp, None)
+            maxq_trainer.stream_tdp(tdp, None)
             evaluator.evaluate(predictor)
 
         print("Post-Training eval", evaluator.evaluate(predictor))
@@ -107,16 +107,37 @@ class TestGridworld(unittest.TestCase):
             self._env.generate_samples(100000, 1.0)
         predictor = self._trainer.predictor()
         evaluator = GridworldEvaluator(self._env, False)
-        tbp = self._env.preprocess_samples(
+        tdp = self._env.preprocess_samples(
             states, actions, rewards, next_states, next_actions, is_terminal,
             possible_next_actions, reward_timelines
         )
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
-        for _ in range(1):
-            self._trainer.stream_tdp(tbp, None)
-            evaluator.evaluate(predictor)
+        self._trainer.stream_tdp(tdp, None)
+        evaluator.evaluate(predictor)
+
+        self.assertLess(evaluator.evaluate(predictor), 0.05)
+
+    def test_trainer_many_batch_sarsa(self):
+        states, actions, rewards, next_states, next_actions, is_terminal,\
+            possible_next_actions, reward_timelines = \
+            self._env.generate_samples(100000, 1.0)
+        predictor = self._trainer.predictor()
+        evaluator = GridworldEvaluator(self._env, False)
+        tdp = self._env.preprocess_samples(
+            states, actions, rewards, next_states, next_actions, is_terminal,
+            possible_next_actions, reward_timelines
+        )
+
+        print("Pre-Training eval", evaluator.evaluate(predictor))
+        self.assertGreater(evaluator.evaluate(predictor), 0.15)
+
+        for i in range(0, tdp.size(), 10):
+            self._trainer.stream_tdp(tdp.get_sub_page(i, i + 10), None)
+
+        print("Post-Training eval", evaluator.evaluate(predictor))
+        evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
@@ -130,13 +151,13 @@ class TestGridworld(unittest.TestCase):
         for tv in true_values:
             reward_timelines.append({0: tv})
         evaluator = Evaluator(self._trainer, DISCOUNT)
-        tbp = self._env.preprocess_samples(
+        tdp = self._env.preprocess_samples(
             states, actions, rewards, next_states, next_actions, is_terminal,
             possible_next_actions, reward_timelines
         )
 
         for _ in range(1):
-            self._trainer.stream_tdp(tbp, evaluator)
+            self._trainer.stream_tdp(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
         self.assertLess(evaluator.mc_loss[-1], 0.05)

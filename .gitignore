@@ -106,3 +106,7 @@ ENV/
 # local output
 /outputs
 .DS_Store
+
+# Thrift output
+ml/rl/thrift/__init__.py
+ml/rl/thrift/core/

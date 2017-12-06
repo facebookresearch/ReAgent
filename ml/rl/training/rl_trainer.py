@@ -217,12 +217,12 @@ class RLTrainer(MLTrainer):
                     self._buffers[7] = reward_timelines[batch_start:]
             else:
                 na_batch = (
-                    next_actions[batch_start:batch_end] if use_next_actions
-                    else None
+                    next_actions[batch_start:batch_end]
+                    if use_next_actions else None
                 )
                 pna_batch = (
-                    possible_next_actions[batch_start:batch_end] if use_pna
-                    else None
+                    possible_next_actions[batch_start:batch_end]
+                    if use_pna else None
                 )
                 rt_batch = (
                     reward_timelines[batch_start:batch_end] if use_rt else None
@@ -230,13 +230,10 @@ class RLTrainer(MLTrainer):
                 states_batch = states[batch_start:batch_end]
                 actions_batch = actions[batch_start:batch_end]
                 self.train(
-                    states_batch,
-                    actions_batch,
+                    states_batch, actions_batch,
                     rewards[batch_start:batch_end],
-                    next_states[batch_start:batch_end],
-                    na_batch,
-                    not_terminals[batch_start:batch_end],
-                    pna_batch
+                    next_states[batch_start:batch_end], na_batch,
+                    not_terminals[batch_start:batch_end], pna_batch
                 )
                 if evaluator is not None:
                     evaluator.report(
@@ -280,7 +277,8 @@ class RLTrainer(MLTrainer):
         :param possible_next_actions: See subclass' `train` documentation.
         """
 
-        batch_size = states.shape[0]
+        batch_size = self.minibatch_size
+        assert states.shape[0] == self.minibatch_size
         assert states.shape == (batch_size, self.num_state_features)
         assert rewards.shape == (batch_size, 1)
         assert rewards.dtype == np.float32
@@ -290,7 +288,9 @@ class RLTrainer(MLTrainer):
         q_vals_target = np.copy(rewards)
         if self.training_iteration >= self.reward_burnin:
             if self.training_iteration == self.reward_burnin:
-                logger.info("Minibatch number == reward_burnin. Starting RL updates.")
+                logger.info(
+                    "Minibatch number == reward_burnin. Starting RL updates."
+                )
             if self.maxq_learning:
                 next_q_values = self.get_max_q_values(
                     next_states, possible_next_actions

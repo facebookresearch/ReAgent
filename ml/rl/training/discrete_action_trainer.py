@@ -136,8 +136,14 @@ class DiscreteActionTrainer(RLTrainer):
         if possible_next_actions is not None:
             assert possible_next_actions.shape == (batch_size, self.num_actions)
         RLTrainer.train(
-            self, states, actions, rewards, next_states, next_actions,
-            not_terminals, possible_next_actions,
+            self,
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            not_terminals,
+            possible_next_actions,
         )
 
     def _generate_train_model_loss(self):
@@ -208,7 +214,9 @@ class DiscreteActionTrainer(RLTrainer):
         :use_target_network: Boolean that indicates whether or not to use this
             trainer's TargetNetwork to compute Q values.
         """
-        q_values = self.get_q_values_all_actions(next_states, use_target_network)
+        q_values = self.get_q_values_all_actions(
+            next_states, use_target_network
+        )
 
         if possible_next_actions is not None:
             mask = np.multiply(

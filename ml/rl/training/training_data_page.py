@@ -35,3 +35,19 @@ class TrainingDataPage(object):
         self.reward_timelines = reward_timelines
         self.ds = ds
         self.not_terminals = not_terminals
+
+    def size(self) -> int:
+        return len(self.states)
+
+    def get_sub_page(self, start, end):
+        return TrainingDataPage(
+            self.states[start:end],
+            self.actions[start:end],
+            self.rewards[start:end],
+            self.next_states[start:end],
+            self.next_actions[start:end],
+            self.possible_next_actions[start:end],
+            self.reward_timelines[start:end],
+            self.ds[start:end],
+            None if self.not_terminals is None else self.not_terminals[start:end]
+        )

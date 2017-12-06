@@ -51,7 +51,9 @@ class TestNormalization(unittest.TestCase):
         )
         for k, v in six.iteritems(normalized_features):
             self.assertTrue(np.all(np.isfinite(v)))
-            if normalization_parameters[k].feature_type == identify_types.PROBABILITY:
+            if normalization_parameters[
+                k
+            ].feature_type == identify_types.PROBABILITY:
                 sigmoidv = special.expit(v)
                 self.assertTrue(
                     np.all(
@@ -74,7 +76,8 @@ class TestNormalization(unittest.TestCase):
                     )
                 )
 
-                has_boxcox = normalization_parameters[k].boxcox_lambda is not None
+                has_boxcox = normalization_parameters[k
+                                                     ].boxcox_lambda is not None
                 is_ctd = types[k] == identify_types.CONTINUOUS
                 # This should be true at the moment
                 self.assertTrue(is_ctd == has_boxcox)
@@ -104,8 +107,7 @@ class TestNormalization(unittest.TestCase):
                 np.maximum(
                     feature - parameters.boxcox_shift,
                     normalization.BOX_COX_MIN_VALUE
-                ),
-                parameters.boxcox_lambda
+                ), parameters.boxcox_lambda
             )
         # No *= to ensure consistent out-of-place operation.
         if parameters.feature_type == identify_types.PROBABILITY:
