@@ -169,7 +169,7 @@ You can supply a different JSON parameter file, modifying the fields to your lik
 
 We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf).
 
-1. [Max-Q-Learning](https://en.wikipedia.org/wiki/Q-learning) (as demonstrated in paper): 
+1. [Max-Q-Learning](https://en.wikipedia.org/wiki/Q-learning) (as demonstrated in paper):
    * input: state: _s_, action _a_
    * output: scalar  _Q(s, a)_
    * update target on transition {state, action, reward, next\_state, next\_action}:
@@ -180,7 +180,7 @@ We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind
    * update target on transition {state, action, reward, next\_state, next\_action}:
      * Q\_target(state, action) = reward + reward\_discount\_factor * Q(next\_state, next\_action)
 
-     
+
 Both of these accept discrete and parametric action inputs.
 
   * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/training/discrete_action_trainer.py)
