@@ -90,7 +90,7 @@ class PreprocessorNet:
                     )
                 )
                 self._net.Sub([blob, boxcox_shift], [blob], broadcast=1, axis=0)
-                self._net.Clip([blob], [blob], minimum=BOX_COX_MIN_VALUE)
+                self._net.Clip([blob], [blob], min=BOX_COX_MIN_VALUE)
                 self._net.BatchBoxCox([blob, boxcox_lambda, self.ZERO], [blob])
                 parameters = [boxcox_lambda, boxcox_shift]
 
