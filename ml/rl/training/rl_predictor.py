@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import numpy as np
 import six
-import sys
 import uuid
 # @build:deps [
 # @/caffe2/caffe2/fb:log_file_db
@@ -59,12 +58,7 @@ class RLPredictor(object):
         for parameter in self._parameters:
             if np.any(np.isnan(workspace.FetchBlob(parameter))):
                 logger.info("WARNING: parameter {} is nan".format(parameter))
-        try:
-            save_to_db(db_type, db_path, meta)
-        except Exception:
-            logger.info(
-                "Warning:failed to save model to db" + sys.exc_info()[0]
-            )
+        save_to_db(db_type, db_path, meta)
         workspace.SwitchWorkspace(previous_workspace)
 
     @classmethod

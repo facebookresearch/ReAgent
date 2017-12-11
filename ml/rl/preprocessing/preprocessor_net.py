@@ -111,7 +111,6 @@ class PreprocessorNet:
         self._net.ConstantFill([blob], [zeros], value=0.)
         output_blob = blob + "_preprocessed"
         self._net.Where([is_empty, zeros, blob], [output_blob])
-        self._net.ConstantFill([blob], [blob], value=MISSING_VALUE)
 
         return output_blob, parameters
 

@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import numpy as np
 
 from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
-from caffe2.python import model_helper
+from caffe2.python import core, model_helper
 from caffe2.python import workspace
 
 from ml.rl.training.rl_predictor import RLPredictor
@@ -62,7 +62,7 @@ class ContinuousActionDQNPredictor(RLPredictor):
         model = model_helper.ModelHelper(name="predictor")
         net = model.net
         normalizer = PreprocessorNet(net)
-        parameters = normalizer.parameters[:]
+        parameters = list(normalizer.parameters[:])
         normalized_input_blobs = []
         zero = "ZERO_from_trainers"
         workspace.FeedBlob(zero, np.array(0))
@@ -83,15 +83,26 @@ class ContinuousActionDQNPredictor(RLPredictor):
             parameters.extend(blob_parameters)
             normalized_input_blobs.append(normalized_input_blob)
 
-        input_blob = "PredictorInput"
+        concatenated_input_blob = "PredictorInput"
         output_dim = "PredictorOutputDim"
         for i, inp in enumerate(normalized_input_blobs):
             logger.info("input# {}: {}".format(i, inp))
-        net.Concat(normalized_input_blobs, [input_blob, output_dim], axis=1)
+        net.Concat(
+            normalized_input_blobs, [concatenated_input_blob, output_dim],
+            axis=1
+        )
 
         q_values = "Q"
         workspace.FeedBlob(q_values, np.zeros(1, dtype=np.float32))
-        parameters.extend(trainer.build_predictor(model, input_blob, q_values))
+        trainer.build_predictor(model, concatenated_input_blob, q_values)
+        parameters.extend(model.GetAllParams())
+
+        for input_blob in input_blobs:
+            net.ConstantFill(
+                [input_blob], [input_blob],
+                value=MISSING_VALUE,
+                dtype=core.DataType.FLOAT
+            )
 
         output_blobs = [q_values]
 

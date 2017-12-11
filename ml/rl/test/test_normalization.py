@@ -177,6 +177,11 @@ class TestNormalization(unittest.TestCase):
                     feature_name,
                     feature_value_map[feature_name].astype(np.float32)
                 )
+            else:
+                workspace.FeedBlob(
+                    feature_name,
+                    normalization.MISSING_VALUE * np.ones(1, dtype=np.float32)
+                )
         workspace.RunNetOnce(net)
 
         for feature_name in feature_value_map:
