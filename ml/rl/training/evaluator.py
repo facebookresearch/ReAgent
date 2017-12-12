@@ -37,3 +37,11 @@ class Evaluator(object):
         logger.info(
             "MC LOSS: {0:.3f} TD LOSS: {1:.3f}".format(mc_loss, td_loss_mean)
         )
+
+    def get_recent_td_loss(self):
+        begin = max(0, len(self.td_loss) - 100)
+        return np.mean(np.array(self.td_loss[begin:]))
+
+    def get_recent_mc_loss(self):
+        begin = max(0, len(self.mc_loss) - 100)
+        return np.mean(np.array(self.mc_loss[begin:]))

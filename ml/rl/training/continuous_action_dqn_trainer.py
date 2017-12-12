@@ -72,6 +72,8 @@ class ContinuousActionDQNTrainer(RLTrainer):
         """
         Sets up operators for action normalization net.
         """
+        if self.skip_normalization:
+            return
         self.action_norm_net = core.Net("action_norm_net")
         self.action_norm_blobname_template = '{}_input_action'
         self.action_norm_blobs = prepare_normalization(
@@ -111,22 +113,19 @@ class ContinuousActionDQNTrainer(RLTrainer):
                 dtype=np.bool
             )
 
-        # If we encounter GPU out of memory errors, normalize within minibatches
+        # Note: We don't normalize possible_next_actions in here for performance
+        # reasons and memory constraints
         self.stream(
             self._normalize_states(tdp.states),
             self._normalize_actions(tdp.actions), tdp.rewards,
             self._normalize_states(tdp.next_states),
-            tdp.next_actions, not_terminals, tdp.possible_next_actions,
-            tdp.reward_timelines, evaluator
+            self._normalize_actions(tdp.next_actions), not_terminals,
+            tdp.possible_next_actions, tdp.reward_timelines, evaluator
         )
 
     def train(
-        self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        next_states: np.ndarray,
-        next_actions: Optional[np.ndarray],
+        self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray,
+        next_states: np.ndarray, next_actions: Optional[np.ndarray],
         not_terminals: np.ndarray,
         possible_next_actions: Optional[List[np.ndarray]]
     ) -> None:
@@ -154,11 +153,10 @@ class ContinuousActionDQNTrainer(RLTrainer):
             ith row is a representation of the ith transition's next state.
         :param next_actions: Numpy array with shape (batch_size, action_dim). The
             ith row is a representation of the ith transition's next_action.
-            These have not been normalized.
         :param possible_next_actions: List of sets of possible next actions. The
             ith element of this list is a matrix PNA_i such that PNA_i[j] is the
             parametric representation of the jth possible action from the ith
-            next_state. These have not been normalized.
+            next_state.
         """
         batch_size = states.shape[0]
         assert actions.shape == (batch_size, self.num_action_features)
@@ -219,7 +217,9 @@ class ContinuousActionDQNTrainer(RLTrainer):
 
         normalized_stacked_pna = self._normalize_actions(
             np.row_stack(
-                list(filter(lambda pna: pna.shape[0] > 0, possible_next_actions))
+                list(
+                    filter(lambda pna: pna.shape[0] > 0, possible_next_actions)
+                )
             )
         )
 
@@ -284,9 +284,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
             The ith row is a representation of the ith transition's next_action.
             Note that these are not normalized.
         """
-        inputs = self._convert_to_net_inputs(
-            next_states, self._normalize_actions(next_actions)
-        )
+        inputs = self._convert_to_net_inputs(next_states, next_actions)
         return self.target_network.target_values(inputs)
 
     def predictor(self) -> ContinuousActionDQNPredictor:
