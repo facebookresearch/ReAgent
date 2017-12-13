@@ -55,7 +55,7 @@ class DiscreteActionPredictor(RLPredictor):
         input_blobs = features[:]
         model = model_helper.ModelHelper(name="predictor")
         net = model.net
-        normalizer = PreprocessorNet(net)
+        normalizer = PreprocessorNet(net, True)
         parameters = list(normalizer.parameters[:])
         normalized_input_blobs = []
         zero = "ZERO_from_trainers"

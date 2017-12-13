@@ -25,7 +25,9 @@ class PreprocessorNet:
     MISSING_U = 'MISSING_VALUE_U'
     MISSING_L = 'MISSING_VALUE_L'
 
-    def __init__(self, net: core.Net) -> None:
+    def __init__(self, net: core.Net, clip_anomalies: bool) -> None:
+        self.clip_anomalies = clip_anomalies
+
         # BatchBoxCox isn't implemented on CUDA GPU so we need to use CPU
         with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
             self._net = net
@@ -107,6 +109,8 @@ class PreprocessorNet:
             self._net.Div([blob, stddev], [blob], broadcast=1, axis=0)
             parameters = parameters + [mean, stddev]
 
+        if self.clip_anomalies:
+            self._net.Clip([blob], [blob], min=-3.0, max=3.0)
         zeros = blob + "_zeros"
         self._net.ConstantFill([blob], [zeros], value=0.)
         output_blob = blob + "_preprocessed"
@@ -148,8 +152,11 @@ def normalize_dense_matrix(
 
 
 def normalize_feature_map(
-    feature_value_map: Dict[str, np.ndarray], norm_net: core.Net,
-    features: List[str], norm_blob_map: Dict[int, str], blobname_template: str
+    feature_value_map: Dict[str, np.ndarray],
+    norm_net: core.Net,
+    features: List[str],
+    norm_blob_map: Dict[int, str],
+    blobname_template: str,
 ):
     """
     Normalizes the features in feature_value_map and returns another dictionary
@@ -181,7 +188,7 @@ def normalize_feature_map(
 def prepare_normalization(
     norm_net: core.Net,
     normalization_params: Dict[str, NormalizationParameters],
-    features: List[str], blobname_template: str
+    features: List[str], blobname_template: str, clip_anomalies: bool
 ) -> Dict[int, str]:
     """
     Sets up operators for normalization net and returns a mapping from feature
@@ -198,7 +205,7 @@ def prepare_normalization(
     """
     norm_blob_map = {}
     with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
-        preprocessor = PreprocessorNet(norm_net)
+        preprocessor = PreprocessorNet(norm_net, clip_anomalies)
         for idx, feature in enumerate(features):
             input_blob = blobname_template.format(idx)
             reshaped_input_blob = input_blob + '_reshaped'

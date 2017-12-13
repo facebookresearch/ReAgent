@@ -78,7 +78,7 @@ class RLTrainer(MLTrainer):
         self.state_norm_blobname_template = '{}_input_state'
         self.state_norm_blobs = prepare_normalization(
             self.state_norm_net, self._state_normalization_parameters,
-            self._state_features, self.state_norm_blobname_template
+            self._state_features, self.state_norm_blobname_template, True
         )
 
     def get_state_features(self) -> List[str]:
@@ -230,27 +230,21 @@ class RLTrainer(MLTrainer):
                 states_batch = states[batch_start:batch_end]
                 actions_batch = actions[batch_start:batch_end]
                 self.train(
-                    states_batch, actions_batch,
-                    rewards[batch_start:batch_end],
+                    states_batch, actions_batch, rewards[batch_start:batch_end],
                     next_states[batch_start:batch_end], na_batch,
                     not_terminals[batch_start:batch_end], pna_batch
                 )
                 if evaluator is not None:
                     evaluator.report(
-                        rt_batch, self.get_q_values(
-                            states_batch, actions_batch
-                        ), workspace.FetchBlob(self.loss_blob)
+                        rt_batch,
+                        self.get_q_values(states_batch, actions_batch),
+                        workspace.FetchBlob(self.loss_blob)
                     )
 
     def train(
-        self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        next_states: np.ndarray,
-        next_actions: Optional[np.ndarray],
-        not_terminals: np.ndarray,
-        possible_next_actions: Optional[List]
+        self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray,
+        next_states: np.ndarray, next_actions: Optional[np.ndarray],
+        not_terminals: np.ndarray, possible_next_actions: Optional[List]
     ) -> None:
         """
         Takes in a batch of transitions. For transition i, calculates target qval:

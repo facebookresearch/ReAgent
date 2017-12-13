@@ -33,7 +33,8 @@ class TestNormalization(unittest.TestCase):
         norm_net = core.Net("net")
         blobname_template = '{}_blob'
         blob_map = prepare_normalization(
-            norm_net, normalization_parameters, features, blobname_template
+            norm_net, normalization_parameters, features, blobname_template,
+            False
         )
 
         normalized_features = normalize_feature_map(
@@ -139,7 +140,7 @@ class TestNormalization(unittest.TestCase):
         test_features[u'186'] = 0
 
         net = core.Net("PreprocessingTestNet")
-        preprocessor = PreprocessorNet(net)
+        preprocessor = PreprocessorNet(net, False)
         for feature_name in feature_value_map:
             workspace.FeedBlob(feature_name, np.array([0], dtype=np.int32))
             preprocessor.preprocess_blob(

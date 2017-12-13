@@ -17,7 +17,10 @@ from ml.rl.training.ml_trainer_extension import MLTrainerIP
 
 
 def gen_training_data(
-    num_features, num_training_samples, num_outputs, noise_scale=0.1,
+    num_features,
+    num_training_samples,
+    num_outputs,
+    noise_scale=0.1,
 ):
     np.random.seed(0)
     random.seed(1)
@@ -25,15 +28,13 @@ def gen_training_data(
     training_inputs = input_distribution.rvs(
         size=(num_training_samples, num_features)
     ).astype(np.float32)
-    weights = np.random.normal(
-        size=(num_outputs, num_features)
-    ).astype(np.float32).transpose()
+    weights = np.random.normal(size=(num_outputs, num_features)
+                              ).astype(np.float32).transpose()
     noise = np.multiply(
         np.random.normal(size=(num_training_samples, num_outputs)), noise_scale
     )
-    training_outputs = (
-        np.dot(training_inputs, weights) + noise
-    ).astype(np.float32)
+    training_outputs = (np.dot(training_inputs, weights) +
+                        noise).astype(np.float32)
 
     return training_inputs, training_outputs, weights, input_distribution
 
@@ -59,12 +60,8 @@ def gen_training_and_test_data(
 
 
 def _train(
-    trainer,
-    num_features,
-    num_training_samples,
-    num_test_datapoints,
-    num_outputs,
-    num_training_iterations
+    trainer, num_features, num_training_samples, num_test_datapoints,
+    num_outputs, num_training_iterations
 ):
     training_inputs, training_outputs, test_inputs, test_outputs, weights = (
         gen_training_and_test_data(
@@ -86,12 +83,8 @@ def get_prediction_dist(
     num_training_iterations=10000,
 ):
     test_inputs, test_outputs, _ = _train(
-        trainer,
-        num_features,
-        num_training_samples,
-        num_test_datapoints,
-        num_outputs,
-        num_training_iterations
+        trainer, num_features, num_training_samples, num_test_datapoints,
+        num_outputs, num_training_iterations
     )
 
     predictions = trainer.score(test_inputs)
@@ -100,20 +93,16 @@ def get_prediction_dist(
 
 
 def get_weight_dist(
-        trainer,
-        num_outputs=1,
-        num_features=4,
-        num_training_samples=100,
-        num_test_datapoints=10,
-        num_training_iterations=10000,
+    trainer,
+    num_outputs=1,
+    num_features=4,
+    num_training_samples=100,
+    num_test_datapoints=10,
+    num_training_iterations=10000,
 ):
     _, _, weights = _train(
-        trainer,
-        num_features,
-        num_training_samples,
-        num_test_datapoints,
-        num_outputs,
-        num_training_iterations
+        trainer, num_features, num_training_samples, num_test_datapoints,
+        num_outputs, num_training_iterations
     )
 
     trained_weights = np.concatenate(
@@ -144,38 +133,6 @@ class TestMLTrainer(unittest.TestCase):
                 "Test model",
                 TrainingParameters([1.3, 1], ['linear'], 100, 0.001, 'ADAM')
             )
-
-    def test_identity(self):
-        # this is to test corner case of nn w.o. weights, just identity
-        # might be useful when reduce from actor-critic, also normalizations
-        np.random.seed(0)
-        random.seed(1)
-        num_features = 4
-        num_training_samples = 100
-
-        input_distribution = stats.norm()
-        training_inputs = input_distribution.rvs(
-            size=(num_training_samples, num_features)
-        ).astype(np.float32)
-        training_outputs = training_inputs.astype(np.float32)
-
-        trainer = MLTrainer(
-            "Identity",
-            TrainingParameters(
-                layers=[num_features],
-                activations=[],
-                minibatch_size=100,
-                learning_rate=0.1,
-                optimizer='ADAM'
-            )
-        )
-        identity_output = trainer.score(training_inputs)
-        for _ in range(100):
-            trainer.train_batch(training_inputs, training_outputs)
-        identity_output = trainer.score(training_inputs)
-        self.assertTrue(
-            np.linalg.norm(identity_output - training_outputs) < 0.01
-        )
 
     def test_sgd_dropout_predictions(self):
         num_features = 4
@@ -291,9 +248,8 @@ class TestMLTrainer(unittest.TestCase):
             scaled_output=True
         )
 
-        training_labels = np.ones(
-            (training_inputs.shape[0], 1)
-        ).astype(np.float32)
+        training_labels = np.ones((training_inputs.shape[0],
+                                   1)).astype(np.float32)
         training_scale = np.where(
             training_outputs == 0, 0, 1.0 / (num_outputs * training_outputs)
         )

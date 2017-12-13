@@ -78,7 +78,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         self.action_norm_blobname_template = '{}_input_action'
         self.action_norm_blobs = prepare_normalization(
             self.action_norm_net, self._action_normalization_parameters,
-            self._action_features, self.action_norm_blobname_template
+            self._action_features, self.action_norm_blobname_template, True
         )
 
     def _setup_initial_blobs(self):

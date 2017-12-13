@@ -54,6 +54,7 @@ def MakeForwardPassOps(
     :param is_test: Indicates whether or not this forward pass should skip
         node dropout.
     """
+    model.net.NanCheck([input_blob], [input_blob])
     num_layer_connections = len(layers) - 1
     for x in six.moves.range(num_layer_connections):
         inputs = None
@@ -100,18 +101,12 @@ def MakeForwardPassOps(
         else:
             raise Exception("Unknown activation function")
 
-        if dropout_ratio:
+        if dropout_ratio > 0.01:
             brew.dropout(
-                model,
-                outputs,
-                outputs,
-                ratio=dropout_ratio,
-                is_test=is_test
+                model, outputs, outputs, ratio=dropout_ratio, is_test=is_test
             )
 
-    # support identity
-    if len(weights) == 0:
-        model.net.NanCheck(input_blob, output_blob)
+    model.net.NanCheck([output_blob], [output_blob])
 
 
 def GenerateLossOps(
@@ -209,12 +204,8 @@ class MLTrainer:
 
     def _setup_initial_blobs(self):
         # Define models
-        self.score_model = ModelHelper(
-            name="score_" + self.model_id
-        )
-        self.train_model = ModelHelper(
-            name="train_" + self.model_id
-        )
+        self.score_model = ModelHelper(name="score_" + self.model_id)
+        self.train_model = ModelHelper(name="train_" + self.model_id)
 
         # Create input, output, labels, and loss blobs
         self.input_blob = "ModelInput_" + self.model_id
@@ -239,7 +230,11 @@ class MLTrainer:
             self.weights.append(weight_name)
             self.biases.append(bias_name)
 
-            bias = np.zeros(shape=[dim_out, ], dtype=np.float32)
+            bias = np.zeros(
+                shape=[
+                    dim_out,
+                ], dtype=np.float32
+            )
             workspace.FeedBlob(bias_name, bias)
 
             gain = np.sqrt(2) if self.activations[x] == 'relu' else 1
@@ -265,9 +260,16 @@ class MLTrainer:
 
     def build_predictor(self, model, input_blob, output_blob) -> List[str]:
         MakeForwardPassOps(
-            model, self.model_id + "_score", input_blob, output_blob,
-            self.weights, self.biases, self.activations, self.layers,
-            self.dropout_ratio, is_test=True
+            model,
+            self.model_id + "_score",
+            input_blob,
+            output_blob,
+            self.weights,
+            self.biases,
+            self.activations,
+            self.layers,
+            self.dropout_ratio,
+            is_test=True
         )
         return self.weights + self.biases
 
