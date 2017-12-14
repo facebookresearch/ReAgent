@@ -15,9 +15,9 @@ from caffe2.python import core, workspace
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing import normalization
 from ml.rl.preprocessing.preprocessor_net import prepare_normalization,\
-    PreprocessorNet, normalize_feature_map
+    PreprocessorNet, normalize_feature_map, normalize_dense_matrix
 from ml.rl.test import preprocessing_util
-
+from ml.rl.preprocessing.normalization import NormalizationParameters
 
 class TestNormalization(unittest.TestCase):
     def test_prepare_normalization_and_normalize(self):
@@ -82,6 +82,104 @@ class TestNormalization(unittest.TestCase):
                 is_ctd = types[k] == identify_types.CONTINUOUS
                 # This should be true at the moment
                 self.assertTrue(is_ctd == has_boxcox)
+
+    def test_normalize_feature_map_enum(self):
+        feature_name_1 = 'f1'
+        feature_name_2 = 'f2'
+        feature_name_3 = 'f3'
+        normalization_parameters = {
+            feature_name_1: NormalizationParameters(
+                identify_types.ENUM, None, None, None, None, [12.0, 4.2, 2.1]
+            ),
+            feature_name_2: NormalizationParameters(
+                identify_types.CONTINUOUS, None, 0, 0, 1, None
+            ),
+            feature_name_3: NormalizationParameters(
+                identify_types.ENUM, None, None, None, None, [15.1, -3.2]
+            )
+        }
+
+        feature_value_map = {
+            feature_name_1: np.array([2.1, 4.2, 12.0, 12.0], dtype=np.float32),
+            feature_name_2: np.array([1.9, 2.2, 5.0, 1.0], dtype=np.float32),
+            feature_name_3: np.array([-3.2, -3.2, 15.1, 15.1], dtype=np.float32)
+        }
+
+        features = list(feature_value_map.keys())
+        norm_net = core.Net("net")
+        blobname_template = '{}_blob'
+        blob_map = prepare_normalization(
+            norm_net, normalization_parameters, features, blobname_template, False
+        )
+        normalized_features = normalize_feature_map(
+            feature_value_map, norm_net, features, blob_map, blobname_template
+        )
+
+        for v in normalized_features.values():
+            self.assertTrue(np.all(np.isfinite(v)))
+
+        np.testing.assert_array_equal(
+            np.array([
+                [0, 0, 1],
+                [0, 1, 0],
+                [1, 0, 0],
+                [1, 0, 0]
+            ]),
+            normalized_features[feature_name_1]
+        )
+        np.testing.assert_array_equal(
+            np.array([
+                [1.9, 2.2, 5.0, 1.0]
+            ], dtype=np.float32),
+            normalized_features[feature_name_2]
+        )
+        np.testing.assert_array_equal(
+            np.array([
+                [0, 1],
+                [0, 1],
+                [1, 0],
+                [1, 0]
+            ]),
+            normalized_features[feature_name_3]
+        )
+
+    def test_normalize_dense_matrix_enum(self):
+        normalization_parameters = {
+            'f1': NormalizationParameters(
+                identify_types.ENUM, None, None, None, None, [12.0, 4.2, 2.1]
+            ),
+            'f2': NormalizationParameters(
+                identify_types.CONTINUOUS, None, 0, 0, 1, None
+            ),
+            'f3': NormalizationParameters(
+                identify_types.ENUM, None, None, None, None, [15.1, -3.2]
+            )
+        }
+        features = list(normalization_parameters.keys())
+        norm_net = core.Net("net")
+        blobname_template = '{}_blob'
+        blob_map = prepare_normalization(
+            norm_net, normalization_parameters, features, blobname_template, False
+        )
+
+        inputs = np.array([
+            [12.0, 1.0, 15.1],
+            [4.2, 2.0, -3.2],
+            [2.1, 3.0, 15.1]
+        ], dtype=np.float32)
+        normalized_outputs = normalize_dense_matrix(
+            inputs, features, normalization_parameters, blob_map, norm_net,
+            blobname_template
+        )
+
+        np.testing.assert_array_equal(
+            np.array([
+                [1, 0, 0, 1.0, 1, 0],
+                [0, 1, 0, 2.0, 0, 1],
+                [0, 0, 1, 3.0, 1, 0]
+            ]),
+            normalized_outputs
+        )
 
     def test_persistency(self):
         feature_value_map = preprocessing_util.read_data()

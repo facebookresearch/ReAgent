@@ -13,6 +13,7 @@ from caffe2.python import workspace
 import logging
 logger = logging.getLogger(__name__)
 
+from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
@@ -35,9 +36,19 @@ class DiscreteActionTrainer(RLTrainer):
         skip_normalization: Optional[bool] = False
     ) -> None:
         self._actions = parameters.actions
-        if parameters.training.layers[0] is None or\
-           parameters.training.layers[0] == -1:
-            parameters.training.layers[0] = len(state_normalization_parameters)
+
+        self.num_state_features = sum(
+            map(
+                lambda np: (
+                    len(np.possible_values) if np.feature_type == identify_types.ENUM
+                    else 1
+                ),
+                state_normalization_parameters.values()
+            )
+        )
+
+        if parameters.training.layers[0] in [None, -1, 1]:
+            parameters.training.layers[0] = self.num_state_features
 
         # There is a logical 1-dimensional output for each state/action pair,
         # but the underlying network computes num_actions-dimensional outputs
@@ -50,6 +61,10 @@ class DiscreteActionTrainer(RLTrainer):
         RLTrainer.__init__(
             self, state_normalization_parameters, parameters, skip_normalization
         )
+
+    @property
+    def num_processed_state_features(self) -> int:
+        return self.num_state_features
 
     @property
     def num_actions(self) -> int:
@@ -79,7 +94,7 @@ class DiscreteActionTrainer(RLTrainer):
         )
 
     def _setup_initial_blobs(self):
-        self.input_dim = self.num_state_features
+        self.input_dim = self.num_processed_state_features
         self.output_dim = self.num_actions
 
         self.action_blob = "action"
@@ -129,7 +144,7 @@ class DiscreteActionTrainer(RLTrainer):
         """
         batch_size = states.shape[0]
         assert actions.shape == (batch_size, self.num_actions)
-        assert next_states.shape == (batch_size, self.num_state_features)
+        assert next_states.shape == (batch_size, self.num_processed_state_features)
         assert not_terminals.shape == (batch_size, 1)
         if next_actions is not None:
             assert next_actions.shape == (batch_size, self.num_actions)

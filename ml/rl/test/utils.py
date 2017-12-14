@@ -17,7 +17,8 @@ def default_normalizer(feats):
                     boxcox_lambda=None,
                     boxcox_shift=0,
                     mean=0,
-                    stddev=1
+                    stddev=1,
+                    possible_values=None
                 )
             ) for i in range(len(feats))
         ]

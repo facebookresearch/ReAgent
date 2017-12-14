@@ -8,7 +8,7 @@ from __future__ import division
 import numpy as np
 from typing import List, Dict
 
-from caffe2.python import workspace, core
+from caffe2.python import workspace, core, dyndep
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
 
 from ml.rl.preprocessing import identify_types
@@ -17,6 +17,8 @@ from ml.rl.preprocessing.normalization import NormalizationParameters,\
 
 import logging
 logger = logging.getLogger(__name__)
+
+dyndep.InitOpsLibrary('@/caffe2/caffe2/fb/operators:replace_values_op')
 
 
 class PreprocessorNet:
@@ -74,6 +76,39 @@ class PreprocessorNet:
         elif normalization_parameters.feature_type == identify_types.PROBABILITY:
             self._net.Clip([blob], [blob], min=0.01, max=0.99)
             self._net.Logit([blob], [blob])
+        elif normalization_parameters.feature_type == identify_types.ENUM:
+            possible_values_blobname = '{}__possible_values'.format(blob)
+            output_blob = "{}__output".format(blob)
+            blob_reshaped = "{}__reshaped".format(blob)
+            blob_original_shape = "{}__original_shape".format(blob)
+            output_blob_flattened = "{}__output_flattened".format(blob)
+            output_blob_cast = "{}__output_cast".format(blob)
+            index_size = "{}__index_size".format(blob)
+            one_hot_out = "{}__one_hot_out".format(blob)
+
+            possible_values = normalization_parameters.possible_values
+            workspace.FeedBlob(
+                possible_values_blobname,
+                np.array(possible_values, dtype=np.float32)
+            )
+            workspace.FeedBlob(index_size, np.array(len(possible_values)))
+
+            self._net.Reshape(
+                [blob], [blob_reshaped, blob_original_shape], shape=[1, -1]
+            )
+            self._net.ReplaceValuesOp(
+                [blob_reshaped, possible_values_blobname], [output_blob]
+            )
+            self._net.FlattenToVec([output_blob], [output_blob_flattened])
+            self._net.Cast(
+                [output_blob_flattened], [output_blob_cast],
+                to=caffe2_pb2.TensorProto.INT64
+            )
+            self._net.OneHot([output_blob_cast, index_size], [one_hot_out])
+            self._net.Cast(
+                [one_hot_out], [output_blob], to=caffe2_pb2.TensorProto.FLOAT
+            )
+            return output_blob, parameters
         else:
             if normalization_parameters.boxcox_lambda is not None:
                 boxcox_shift = '{}__boxcox_shift'.format(blob)
@@ -120,8 +155,9 @@ class PreprocessorNet:
 
 
 def normalize_dense_matrix(
-    inputs: np.ndarray, num_features: int, norm_blob_map: Dict[int, str],
-    norm_net: core.Net, blobname_template: str
+    inputs: np.ndarray, features: List[str],
+    normalization_params: Dict[str, NormalizationParameters],
+    norm_blob_map: Dict[int, str], norm_net: core.Net, blobname_template: str
 ) -> np.ndarray:
     """
     Normalizes inputs according to parameters. Expects a dense matrix whose ith
@@ -132,23 +168,46 @@ def normalize_dense_matrix(
 
     :param inputs: Numpy array with inputs to normalize. Should be of
         shape (any, num_features).
-    :param num_features: Integer number of features.
+    :param features: Array of feature names.
+    :param normalization_params: Mapping from feature names to
+        NormalizationParameters.
     :param norm_blob_map: Dictionary that stores a mapping from feature index
         to input normalization blob name.
     :param norm_net: Caffe2 net for normalization.
     :param blobname_template: String template for input blobs to norm_net.
     """
-    assert inputs.shape[1] == num_features
+    num_input_features = len(features)
+    num_output_features = sum(
+        map(
+            lambda np: (
+                len(np.possible_values) if np.feature_type == identify_types.ENUM
+                else 1
+            ),
+            normalization_params.values()
+        )
+    )
+    assert inputs.shape[1] == num_input_features
+    outputs = np.zeros((inputs.shape[0], num_output_features), dtype=np.float32)
+
     with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
-        for idx in range(num_features):
+        for idx in range(num_input_features):
             input_blob = blobname_template.format(idx)
             workspace.FeedBlob(input_blob, inputs[:, idx])
         workspace.RunNet(norm_net)
-        for idx in range(num_features):
+
+        output_col = 0
+        for idx, feature in enumerate(features):
             normalized_input_blob = norm_blob_map[idx]
             normalized_inputs = workspace.FetchBlob(normalized_input_blob)
-            inputs[:, idx] = normalized_inputs
-    return inputs
+            normalization_param = normalization_params[feature]
+            if normalization_param.feature_type == identify_types.ENUM:
+                next_output_col = output_col + len(normalization_param.possible_values)
+                outputs[:, output_col:next_output_col] = normalized_inputs
+            else:
+                next_output_col = output_col + 1
+                outputs[:, output_col] = normalized_inputs
+            output_col = next_output_col
+    return outputs
 
 
 def normalize_feature_map(
@@ -216,15 +275,17 @@ def prepare_normalization(
                 [input_blob], [reshaped_input_blob, original_shape],
                 shape=[-1, 1]
             )
+            normalization_param = normalization_params[feature]
             normalized_input_blob, _ = preprocessor.preprocess_blob(
-                reshaped_input_blob, normalization_params[feature]
+                reshaped_input_blob, normalization_param
             )
             norm_net.ReplaceNaN(normalized_input_blob, normalized_input_blob)
-            norm_net.Reshape(
-                [normalized_input_blob],
-                [normalized_input_blob, original_shape],
-                shape=[1, -1]
-            )
+            if normalization_param.feature_type != identify_types.ENUM:
+                norm_net.Reshape(
+                    [normalized_input_blob],
+                    [normalized_input_blob, original_shape],
+                    shape=[1, -1]
+                )
             norm_blob_map[idx] = normalized_input_blob
         workspace.CreateNet(norm_net)
     return norm_blob_map

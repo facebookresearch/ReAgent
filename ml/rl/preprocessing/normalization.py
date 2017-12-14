@@ -13,7 +13,10 @@ from ml.rl.preprocessing import identify_types
 
 NormalizationParameters = namedtuple(
     'NormalizationParameters',
-    ['feature_type', 'boxcox_lambda', 'boxcox_shift', 'mean', 'stddev']
+    [
+        'feature_type', 'boxcox_lambda', 'boxcox_shift', 'mean', 'stddev',
+        'possible_values'  # assumes this is present for ENUM type and is sorted
+    ]
 )
 
 BOX_COX_MAX_STDDEV = 1e8
@@ -54,7 +57,7 @@ def _identify_parameter(values, feature_type):
             stddev = 1
         values /= stddev
     return NormalizationParameters(
-        feature_type, boxcox_lambda, boxcox_shift, mean, stddev
+        feature_type, boxcox_lambda, boxcox_shift, mean, stddev, None
     )
 
 
@@ -80,5 +83,7 @@ def load_parameters(f):
     parameter_map = json.load(f)
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameter_map):
+        if 'possible_values' not in feature_parameters:
+            feature_parameters['possible_values'] = None
         parameters[feature] = NormalizationParameters(**feature_parameters)
     return parameters

@@ -62,7 +62,7 @@ class GridworldContinuous(GridworldBase):
         is_terminals: List[bool],
         possible_next_actions: List[List[Dict[str, float]]],
         reward_timelines: List[Dict[int, float]],
-    ):
+    ) -> TrainingDataPage:
         # Shuffle
         merged = list(
             zip(

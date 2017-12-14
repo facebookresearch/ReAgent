@@ -64,8 +64,9 @@ class RLTrainer(MLTrainer):
         if self.skip_normalization:
             return states
         return normalize_dense_matrix(
-            states, self.num_state_features, self.state_norm_blobs,
-            self.state_norm_net, self.state_norm_blobname_template
+            states, self._state_features, self._state_normalization_parameters,
+            self.state_norm_blobs, self.state_norm_net,
+            self.state_norm_blobname_template
         )
 
     def _prepare_state_normalization(self):
@@ -85,8 +86,11 @@ class RLTrainer(MLTrainer):
         return self._state_features
 
     @property
-    def num_state_features(self) -> int:
-        return len(self._state_features)
+    def num_processed_state_features(self) -> int:
+        """
+        Returns the number of features in each preprocessed state.
+        """
+        raise NotImplementedError()
 
     @property
     def sarsa(self) -> bool:
@@ -273,10 +277,10 @@ class RLTrainer(MLTrainer):
 
         batch_size = self.minibatch_size
         assert states.shape[0] == self.minibatch_size
-        assert states.shape == (batch_size, self.num_state_features)
+        assert states.shape == (batch_size, self.num_processed_state_features)
         assert rewards.shape == (batch_size, 1)
         assert rewards.dtype == np.float32
-        assert next_states.shape == (batch_size, self.num_state_features)
+        assert next_states.shape == (batch_size, self.num_processed_state_features)
         assert not_terminals.shape == (batch_size, 1)
 
         q_vals_target = np.copy(rewards)
