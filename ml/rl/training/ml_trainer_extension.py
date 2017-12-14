@@ -165,7 +165,7 @@ class MLTrainerIP(MLTrainer):
         workspace.FeedBlob(self.input_blob, inputs)
         workspace.FeedBlob(self.labels_blob, labels)
         workspace.FeedBlob(self.external_blob, external)
-        workspace.RunNetOnce(self.train_model.net)
+        workspace.RunNet(self.train_model.net)
         if evaluate:
             return (
                 np.squeeze(workspace.FetchBlob(self.external_output_blob)),

@@ -29,7 +29,7 @@ class ContinuousActionDQNPredictor(RLPredictor):
             workspace.FeedBlob(name, np.atleast_1d(value).astype(np.float32))
         for name, value in actions.items():
             workspace.FeedBlob(name, np.atleast_1d(value).astype(np.float32))
-        workspace.RunNetOnce(self._net)
+        workspace.RunNet(self._net)
         result = {'Q': workspace.FetchBlob(self._output_blobs[0])}
         workspace.SwitchWorkspace(previous_workspace)
         return result

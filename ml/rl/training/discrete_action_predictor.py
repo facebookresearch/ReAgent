@@ -28,7 +28,7 @@ class DiscreteActionPredictor(RLPredictor):
                 input_blob,
                 np.atleast_1d(states[input_blob]).astype(np.float32)
             )
-        workspace.RunNetOnce(self._net)
+        workspace.RunNet(self._net)
         result = {
             output: workspace.FetchBlob(output)
             for output in self._output_blobs

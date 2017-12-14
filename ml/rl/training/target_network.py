@@ -96,7 +96,7 @@ class TargetNetwork(object):
         """ Updates the weights of the target network according to the
             target_update_rate
         """
-        workspace.RunNetOnce(self._update_model.net)
+        workspace.RunNet(self._update_model.net)
 
     def target_values(self, states):
         """ Estimates the values for the given states using the target network
@@ -104,5 +104,5 @@ class TargetNetwork(object):
         :param states The given states
         """
         workspace.FeedBlob(self.input_blob, states)
-        workspace.RunNetOnce(self._predict_model.net)
+        workspace.RunNet(self._predict_model.net)
         return workspace.FetchBlob(self.output_blob)
