@@ -2,13 +2,13 @@
 
 How would you teach a robot to balance a pole? Or safely land a space ship? Or even to walk?
 
-Using reinforcement learning (RL), you wouldn't have to teach it how to do any of these things: only what to do. RL formalizes our intuitions about trial and error – agents take actions, experience feedback, and adjust their behavior accordingly.
+Using reinforcement learning (RL), you wouldn't have to teach it how to do any of these things: only what to do. RL formalizes our intuitions about trial and error – agents take actions, experience feedback, and adjust their behavior accordingly.
 
 An agent may start with awful performance: the cart drops the pole immediately; when the space ship careens left, it tilts further; the walker can't take one step without falling. But with experience from exploration and failure, it learns. Soon enough, the agent is behaving in a way you never explicitly told it to, and is achieving the goals you implicitly set forth. It takes actions that optimize for the reward system you designed, often coming up with solutions and employing strategies you hadn't thought of.
 
 While historically, RL has been primarily used in the context of robotics and game-playing, it can be employed in a variety of problem spaces. At Facebook, we're working on using RL at scale: suggesting people you may know, notifying you about page updates, personalizing our video bitrate serving, and more.
 
-Advances in RL theory, including the advent of Deep Query Networks and Deep Actor-Critic models, allow us to use function approximation to approach problems with large state and action spaces.  This project, called RL_Caffe2, contains Deep RL implementations built on [caffe2](http://caffe2.ai/). We provide support for running them inside [OpenAI Gym](gym.openai.com).
+Advances in RL theory, including the advent of Deep Query Networks and Deep Actor-Critic models, allow us to use function approximation to approach problems with large state and action spaces.  This project, called BlueWhale, contains Deep RL implementations built on [caffe2](http://caffe2.ai/). We provide support for running them inside [OpenAI Gym](gym.openai.com).
 
 # Requirements
 
@@ -18,7 +18,7 @@ For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads)
 
 ### Caffe2
 
-RL_Caffe2 runs on any platform that supports caffe2. To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
+BlueWhale runs on any platform that supports caffe2. To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
 
 You may need to override caffe2's cmake defaults to use homebrew's protoc instead of Anaconda's protoc and to use Anaconda's Python instead of system Python.
 
@@ -47,7 +47,7 @@ pip install "gym[all]"
 
 Clone from source:
 ```
-git clone https://github.com/caffe2/reinforcement-learning-models
+git clone https://github.com/caffe2/BlueWhale
 ```
 
 To make thrift accessible to our system, run from within the root directory:
@@ -82,7 +82,7 @@ You can run RL models of your specification on OpenAI Gym environments of your c
 python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/maxq_cartpole_v0.json
 ```
 
-The [run_gym.py](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/run_gym.py) script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. In general, you can run RL models in OpenAI Gym environments with:
+The [run_gym.py](https://github.com/caffe2/BlueWhale/tree/master/ml/rl/test/gym/run_gym.py) script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. In general, you can run RL models in OpenAI Gym environments with:
 
 ```
 python ml/rl/test/gym/run_gym.py -p <parameters_file> [-s <score_bar>] [-g <gpu_id>]
@@ -93,9 +93,9 @@ python ml/rl/test/gym/run_gym.py -p <parameters_file> [-s <score_bar>] [-g <gpu_
 
 Feel free to create your own parameter files to select different environments and change model parameters. The success criteria for different environments can be found [here](https://gym.openai.com/envs). We currently supply default arguments for the following environments:
 
-* [CartPole-v0](https://gym.openai.com/envs/CartPole-v0/) environment: [maxq\_cartpole\_v0.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_cartpole_v0.json)
-* [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/) environment: [maxq\_cartpole\_v1.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_cartpole_v1.json)
-* [LunarLander-v2](https://gym.openai.com/envs/LunarLander-v2/) environment: [maxq\_lunarlander\_v2.json](https://github.com/caffe2/reinforcement-learning-models/tree/master/ml/rl/test/gym/maxq_lunarlander_v2.json)
+* [CartPole-v0](https://gym.openai.com/envs/CartPole-v0/) environment: [maxq\_cartpole\_v0.json](https://github.com/caffe2/BlueWhale/tree/master/ml/rl/test/gym/maxq_cartpole_v0.json)
+* [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/) environment: [maxq\_cartpole\_v1.json](https://github.com/caffe2/BlueWhale/tree/master/ml/rl/test/gym/maxq_cartpole_v1.json)
+* [LunarLander-v2](https://gym.openai.com/envs/LunarLander-v2/) environment: [maxq\_lunarlander\_v2.json](https://github.com/caffe2/BlueWhale/tree/master/ml/rl/test/gym/maxq_lunarlander_v2.json)
 
 
 ### Modifying the parameters file
@@ -151,7 +151,7 @@ You can supply a different JSON parameter file, modifying the fields to your lik
   * **learning_rate**: Learning rate for the neural net
   * **optimizer**: Neural net weight update algorithm. Valid choices are `"SGD"`, `"ADAM"`, `"ADAGRAD"`, and `"FTRL"`
   * **learning\_rate\_decay**: Factor by which the learning rate decreases after each training minibatch
-* **run_details** (reading the code that uses these might be helpful: [run\_gym.py](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/test/gym/run_gym.py#L21))
+* **run_details** (reading the code that uses these might be helpful: [run\_gym.py](https://github.com/caffe2/BlueWhale/blob/master/ml/rl/test/gym/run_gym.py#L21))
   * **num_episodes**: Number of episodes run the mode and to collect new data over
   * **train_every**: Number of episodes between each training cycle
   * **train_after** Number of episodes after which to enable training
@@ -183,15 +183,15 @@ We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind
 
 Both of these accept discrete and parametric action inputs.
 
-  * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/training/discrete_action_trainer.py)
-  * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/caffe2/reinforcement-learning-models/blob/master/ml/rl/training/continuous_action_dqn_trainer.py)
+  * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/caffe2/BlueWhale/blob/master/ml/rl/training/discrete_action_trainer.py)
+  * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/caffe2/BlueWhale/blob/master/ml/rl/training/continuous_action_dqn_trainer.py)
 
 # Contact Us
 
-If you identify any issues or have feedback, please [file an issue](https://github.com/caffe2/reinforcement-learning-models/issues).
+If you identify any issues or have feedback, please [file an issue](https://github.com/caffe2/BlueWhale/issues).
 
 Otherwise feel free to contact <jjg@fb.com> or <nishadsingh@fb.com> with questions.
 
 # License
 
-RL_Caffe2 is BSD-licensed. We also provide an additional patent grant.
+BlueWhale is BSD-licensed. We also provide an additional patent grant.
