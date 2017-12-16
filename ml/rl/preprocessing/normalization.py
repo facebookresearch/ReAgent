@@ -9,6 +9,9 @@ import json
 import numpy as np
 import six
 
+import logging
+logger = logging.getLogger(__name__)
+
 from ml.rl.preprocessing import identify_types
 
 NormalizationParameters = namedtuple(
@@ -30,10 +33,12 @@ def _identify_parameter(values, feature_type):
     boxcox_shift = 0
     mean = 0
     stddev = 1
-    assert feature_type == identify_types.CONTINUOUS or \
-        feature_type == identify_types.PROBABILITY or \
-        feature_type == identify_types.BINARY,\
-        "unknown type {}".format(feature_type)
+    possible_values = None
+    assert feature_type in [
+        identify_types.CONTINUOUS, identify_types.PROBABILITY,
+        identify_types.BINARY, identify_types.ENUM
+    ], "unknown type {}".format(feature_type)
+
     min_value = np.min(values)
     max_value = np.max(values)
     if feature_type == identify_types.CONTINUOUS:
@@ -49,15 +54,19 @@ def _identify_parameter(values, feature_type):
             values = candidate_values
             boxcox_lambda = lmbda
 
-    if feature_type != identify_types.BINARY:
+    if feature_type not in [identify_types.BINARY, identify_types.ENUM]:
         mean = np.mean(values)
         values = values - mean
         stddev = np.std(values, ddof=1)
         if np.isclose(stddev, 0) or not np.isfinite(stddev):
             stddev = 1
         values /= stddev
+
+    if feature_type == identify_types.ENUM:
+        possible_values = list(np.unique(values))
+
     return NormalizationParameters(
-        feature_type, boxcox_lambda, boxcox_shift, mean, stddev, None
+        feature_type, boxcox_lambda, boxcox_shift, mean, stddev, possible_values
     )
 
 
@@ -83,11 +92,22 @@ def identify_parameters(feature_values, types):
 
 
 def write_parameters(f, parameters):
+    types = [
+        identify_types.BINARY, identify_types.PROBABILITY,
+        identify_types.CONTINUOUS, identify_types.ENUM
+    ]
+    counts = dict([(param_type, []) for param_type in types])
+    for feature_name in parameters:
+        counts[parameters[feature_name].feature_type].append(feature_name)
+    for param_type in types:
+        logger.info("{} features: {}".format(param_type, counts[param_type]))
+
     json.dump(
         {
             feature_name: parameters[feature_name]._asdict()
             for feature_name in parameters
-        }, f
+        },
+        f
     )
 
 

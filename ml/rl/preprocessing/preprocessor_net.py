@@ -64,6 +64,7 @@ class PreprocessorNet:
         self._net.GT([blob, self.MISSING_L], [is_empty_l], broadcast=1)
         self._net.LT([blob, self.MISSING_U], [is_empty_u], broadcast=1)
         self._net.And([is_empty_l, is_empty_u], [is_empty])
+        output_blob = blob + "_preprocessed"
         parameters: List[str] = []
         if normalization_parameters.feature_type == identify_types.BINARY:
             is_gt_zero = blob + "__is_gt_zero"
@@ -78,13 +79,14 @@ class PreprocessorNet:
             self._net.Logit([blob], [blob])
         elif normalization_parameters.feature_type == identify_types.ENUM:
             possible_values_blobname = '{}__possible_values'.format(blob)
-            output_blob = "{}__output".format(blob)
             blob_reshaped = "{}__reshaped".format(blob)
             blob_original_shape = "{}__original_shape".format(blob)
             output_blob_flattened = "{}__output_flattened".format(blob)
             output_blob_cast = "{}__output_cast".format(blob)
             index_size = "{}__index_size".format(blob)
             one_hot_out = "{}__one_hot_out".format(blob)
+            is_not_empty = "{}__is_not_empty".format(blob)
+            is_not_empty_cast = "{}__is_not_empty_cast".format(blob)
 
             possible_values = normalization_parameters.possible_values
             workspace.FeedBlob(
@@ -106,7 +108,15 @@ class PreprocessorNet:
             )
             self._net.OneHot([output_blob_cast, index_size], [one_hot_out])
             self._net.Cast(
-                [one_hot_out], [output_blob], to=caffe2_pb2.TensorProto.FLOAT
+                [one_hot_out], [blob], to=caffe2_pb2.TensorProto.FLOAT
+            )
+            self._net.Not([is_empty], [is_not_empty])
+            self._net.Cast(
+                [is_not_empty], [is_not_empty_cast],
+                to=caffe2_pb2.TensorProto.FLOAT
+            )
+            self._net.Mul(
+                [blob, is_not_empty_cast], [output_blob], broadcast=1, axis=0
             )
             return output_blob, parameters
         else:
@@ -148,7 +158,6 @@ class PreprocessorNet:
             self._net.Clip([blob], [blob], min=-3.0, max=3.0)
         zeros = blob + "_zeros"
         self._net.ConstantFill([blob], [zeros], value=0.)
-        output_blob = blob + "_preprocessed"
         self._net.Where([is_empty, zeros, blob], [output_blob])
 
         return output_blob, parameters

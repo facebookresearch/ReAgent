@@ -19,6 +19,7 @@ from ml.rl.preprocessing.preprocessor_net import prepare_normalization,\
 from ml.rl.test import preprocessing_util
 from ml.rl.preprocessing.normalization import NormalizationParameters
 
+
 class TestNormalization(unittest.TestCase):
     def test_prepare_normalization_and_normalize(self):
         feature_value_map = preprocessing_util.read_data()
@@ -52,9 +53,8 @@ class TestNormalization(unittest.TestCase):
         )
         for k, v in six.iteritems(normalized_features):
             self.assertTrue(np.all(np.isfinite(v)))
-            if normalization_parameters[
-                k
-            ].feature_type == identify_types.PROBABILITY:
+            feature_type = normalization_parameters[k].feature_type
+            if feature_type == identify_types.PROBABILITY:
                 sigmoidv = special.expit(v)
                 self.assertTrue(
                     np.all(
@@ -63,6 +63,21 @@ class TestNormalization(unittest.TestCase):
                         )
                     )
                 )
+            elif feature_type == identify_types.ENUM:
+                possible_values = normalization_parameters[k].possible_values
+                self.assertEqual(v.shape[0], len(feature_value_map[k]))
+                self.assertEqual(v.shape[1], len(possible_values))
+
+                possible_value_map = {}
+                for i, possible_value in enumerate(possible_values):
+                    possible_value_map[possible_value] = i
+
+                for i, row in enumerate(v):
+                    original_feature = feature_value_map[k][i]
+                    self.assertEqual(
+                        possible_value_map[original_feature],
+                        np.where(row == 1)[0][0]
+                    )
             else:
                 one_stddev = np.isclose(np.std(v, ddof=1), 1, atol=0.00001)
                 zero_stddev = np.isclose(np.std(v, ddof=1), 0, atol=0.00001)
@@ -102,7 +117,9 @@ class TestNormalization(unittest.TestCase):
         feature_value_map = {
             feature_name_1: np.array([2.1, 4.2, 12.0, 12.0], dtype=np.float32),
             feature_name_2: np.array([1.9, 2.2, 5.0, 1.0], dtype=np.float32),
-            feature_name_3: np.array([-3.2, -3.2, 15.1, 15.1], dtype=np.float32)
+            feature_name_3: np.array(
+                [-3.2, -3.2, 15.1, normalization.MISSING_VALUE], dtype=np.float32
+            )
         }
 
         features = list(feature_value_map.keys())
@@ -138,7 +155,7 @@ class TestNormalization(unittest.TestCase):
                 [0, 1],
                 [0, 1],
                 [1, 0],
-                [1, 0]
+                [0, 0]  # Missing value should go to all 0
             ]),
             normalized_features[feature_name_3]
         )
@@ -165,7 +182,8 @@ class TestNormalization(unittest.TestCase):
         inputs = np.array([
             [12.0, 1.0, 15.1],
             [4.2, 2.0, -3.2],
-            [2.1, 3.0, 15.1]
+            [2.1, 3.0, 15.1],
+            [2.1, 3.0, normalization.MISSING_VALUE]
         ], dtype=np.float32)
         normalized_outputs = normalize_dense_matrix(
             inputs, features, normalization_parameters, blob_map, norm_net,
@@ -176,7 +194,8 @@ class TestNormalization(unittest.TestCase):
             np.array([
                 [1, 0, 0, 1.0, 1, 0],
                 [0, 1, 0, 2.0, 0, 1],
-                [0, 0, 1, 3.0, 1, 0]
+                [0, 0, 1, 3.0, 1, 0],
+                [0, 0, 1, 3.0, 0, 0]  # Missing values should go to all 0
             ]),
             normalized_outputs
         )
@@ -212,6 +231,15 @@ class TestNormalization(unittest.TestCase):
         if parameters.feature_type == identify_types.PROBABILITY:
             feature = np.clip(feature, 0.01, 0.99)
             feature = special.logit(feature)
+        elif parameters.feature_type == identify_types.ENUM:
+            possible_values = parameters.possible_values
+            mapping = {}
+            for i, possible_value in enumerate(possible_values):
+                mapping[possible_value] = i
+            output_feature = np.zeros((len(feature), len(possible_values)))
+            for i, val in enumerate(feature):
+                output_feature[i][mapping[val]] = 1.0
+            return output_feature
         else:
             feature = feature - parameters.mean
             feature /= parameters.stddev
