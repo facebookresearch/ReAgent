@@ -13,8 +13,8 @@ from caffe2.python import core
 import logging
 logger = logging.getLogger(__name__)
 
-from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing.normalization import NormalizationParameters
+from ml.rl.preprocessing.normalization import NormalizationParameters,\
+    get_num_output_features
 from ml.rl.preprocessing.preprocessor_net import prepare_normalization,\
     normalize_dense_matrix
 from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
@@ -31,18 +31,17 @@ class ContinuousActionDQNTrainer(RLTrainer):
         self,
         state_normalization_parameters: Dict[str, NormalizationParameters],
         action_normalization_parameters: Dict[str, NormalizationParameters],
-        parameters: ContinuousActionModelParameters
+        parameters: ContinuousActionModelParameters,
+        skip_normalization: Optional[bool] = False
     ) -> None:
         self._action_features = list(action_normalization_parameters.keys())
+        self.num_unprocessed_action_features = len(self._action_features)
+        self.num_processed_action_features = get_num_output_features(
+            action_normalization_parameters
+        )
 
-        self.num_state_features = sum(
-            map(
-                lambda np: (
-                    len(np.possible_values) if np.feature_type == identify_types.ENUM
-                    else 1
-                ),
-                state_normalization_parameters.values()
-            )
+        self.num_processed_state_features = get_num_output_features(
+            state_normalization_parameters
         )
 
         if parameters.training.layers[0] is None or\
@@ -53,7 +52,9 @@ class ContinuousActionDQNTrainer(RLTrainer):
         assert parameters.training.layers[-1] == 1, "Set layers[-1] to 1"
 
         self._action_normalization_parameters = action_normalization_parameters
-        RLTrainer.__init__(self, state_normalization_parameters, parameters)
+        RLTrainer.__init__(
+            self, state_normalization_parameters, parameters, skip_normalization
+        )
         print(action_normalization_parameters)
 
         self._prepare_action_normalization()
@@ -62,12 +63,12 @@ class ContinuousActionDQNTrainer(RLTrainer):
         return self._action_features
 
     @property
-    def num_processed_state_features(self) -> int:
-        return self.num_state_features
+    def num_state_features(self) -> int:
+        return self.num_processed_state_features
 
     @property
     def num_action_features(self) -> int:
-        return len(self._action_features)
+        return self.num_processed_action_features
 
     def _normalize_actions(self, actions: np.ndarray) -> np.ndarray:
         """
@@ -75,13 +76,15 @@ class ContinuousActionDQNTrainer(RLTrainer):
         the same shape. Make sure to have set up the underlying normalization net
         with `_prepare_action_normalization`.
 
-        :param states: Numpy array with shape (batch_size, action_dim) containing
-            raw state inputs
+        :param actions: Numpy array with shape (batch_size, action_dim) containing
+            raw actions inputs
         """
+        if self.skip_normalization:
+            return actions
         return normalize_dense_matrix(
             actions, self._action_features, self._action_normalization_parameters,
             self.action_norm_blobs, self.action_norm_net,
-            self.action_norm_blobname_template
+            self.action_norm_blobname_template, self.num_action_features
         )
 
     def _prepare_action_normalization(self):
@@ -98,7 +101,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         )
 
     def _setup_initial_blobs(self):
-        self.input_dim = self.num_processed_state_features + self.num_action_features
+        self.input_dim = self.num_state_features + self.num_action_features
         self.output_dim = 1
 
         MLTrainer._setup_initial_blobs(self)
@@ -182,7 +185,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
             assert len(possible_next_actions) == batch_size
             for pna in possible_next_actions:
                 if pna.shape[0] > 0:
-                    assert pna.shape[1] == self.num_action_features
+                    assert pna.shape[1] == self.num_unprocessed_action_features
         RLTrainer.train(
             self, states, actions, rewards, next_states, next_actions,
             not_terminals, possible_next_actions
@@ -239,8 +242,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
             )
         )
 
-        num_total_features = self.num_processed_state_features +\
-            self.num_action_features
+        num_total_features = self.num_state_features + self.num_action_features
         inputs_to_score = np.zeros(
             [total_size, num_total_features],
             dtype=np.float32
@@ -252,13 +254,13 @@ class ContinuousActionDQNTrainer(RLTrainer):
                 continue
             cursor_end = cursor + num_possible_actions
             possible_actions = normalized_stacked_pna[cursor:cursor_end]
-            inputs_to_score[cursor:cursor_end, 0:self.num_processed_state_features] \
+            inputs_to_score[cursor:cursor_end, 0:self.num_state_features] \
                 = np.repeat(
-                    next_states[i].reshape(1, self.num_processed_state_features),
+                    next_states[i].reshape(1, self.num_state_features),
                     num_possible_actions,
                     axis=0)
             inputs_to_score[cursor:cursor_end,
-                            self.num_processed_state_features:num_total_features] = \
+                            self.num_state_features:num_total_features] = \
                             possible_actions
             cursor += num_possible_actions
         all_q_values = self.target_network.target_values(inputs_to_score)

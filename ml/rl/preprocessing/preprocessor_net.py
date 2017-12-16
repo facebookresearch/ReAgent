@@ -6,14 +6,14 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from caffe2.python import workspace, core, dyndep
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
 
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import NormalizationParameters,\
-    MISSING_VALUE, BOX_COX_MIN_VALUE
+    get_num_output_features, MISSING_VALUE, BOX_COX_MIN_VALUE
 
 import logging
 logger = logging.getLogger(__name__)
@@ -157,7 +157,8 @@ class PreprocessorNet:
 def normalize_dense_matrix(
     inputs: np.ndarray, features: List[str],
     normalization_params: Dict[str, NormalizationParameters],
-    norm_blob_map: Dict[int, str], norm_net: core.Net, blobname_template: str
+    norm_blob_map: Dict[int, str], norm_net: core.Net, blobname_template: str,
+    num_output_features: Optional[int] = None,
 ) -> np.ndarray:
     """
     Normalizes inputs according to parameters. Expects a dense matrix whose ith
@@ -175,17 +176,14 @@ def normalize_dense_matrix(
         to input normalization blob name.
     :param norm_net: Caffe2 net for normalization.
     :param blobname_template: String template for input blobs to norm_net.
+    :param num_output_features: The number of features in an output processed
+        datapoint. If set to None, this function will compute it.
     """
     num_input_features = len(features)
-    num_output_features = sum(
-        map(
-            lambda np: (
-                len(np.possible_values) if np.feature_type == identify_types.ENUM
-                else 1
-            ),
-            normalization_params.values()
-        )
-    )
+
+    num_output_features = \
+        num_output_features or get_num_output_features(normalization_params)
+
     assert inputs.shape[1] == num_input_features
     outputs = np.zeros((inputs.shape[0], num_output_features), dtype=np.float32)
 

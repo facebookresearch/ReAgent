@@ -61,6 +61,18 @@ def _identify_parameter(values, feature_type):
     )
 
 
+def get_num_output_features(normalization_parmeters):
+    return sum(
+        map(
+            lambda np: (
+                len(np.possible_values) if np.feature_type == identify_types.ENUM
+                else 1
+            ),
+            normalization_parmeters.values()
+        )
+    )
+
+
 def identify_parameters(feature_values, types):
     parameters = {}
     for feature_name in feature_values:
