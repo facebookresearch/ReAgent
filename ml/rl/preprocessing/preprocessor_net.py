@@ -216,25 +216,26 @@ def normalize_dense_matrix(
     assert inputs.shape[1] == num_input_features
     outputs = np.zeros((inputs.shape[0], num_output_features), dtype=np.float32)
 
-    for idx in range(num_input_features):
-        input_blob = blobname_template.format(idx)
-        workspace.FeedBlob(input_blob, inputs[:, idx])
-    workspace.RunNet(norm_net)
+    with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
+        for idx in range(num_input_features):
+            input_blob = blobname_template.format(idx)
+            workspace.FeedBlob(input_blob, inputs[:, idx])
+        workspace.RunNet(norm_net)
 
-    output_col = 0
-    for idx, feature in enumerate(features):
-        normalized_input_blob = norm_blob_map[idx]
-        normalized_inputs = workspace.FetchBlob(normalized_input_blob)
-        normalization_param = normalization_params[feature]
-        if normalization_param.feature_type == identify_types.ENUM:
-            next_output_col = output_col + len(
-                normalization_param.possible_values
-            )
-            outputs[:, output_col:next_output_col] = normalized_inputs
-        else:
-            next_output_col = output_col + 1
-            outputs[:, output_col] = normalized_inputs
-        output_col = next_output_col
+        output_col = 0
+        for idx, feature in enumerate(features):
+            normalized_input_blob = norm_blob_map[idx]
+            normalized_inputs = workspace.FetchBlob(normalized_input_blob)
+            normalization_param = normalization_params[feature]
+            if normalization_param.feature_type == identify_types.ENUM:
+                next_output_col = output_col + len(
+                    normalization_param.possible_values
+                )
+                outputs[:, output_col:next_output_col] = normalized_inputs
+            else:
+                next_output_col = output_col + 1
+                outputs[:, output_col] = normalized_inputs
+            output_col = next_output_col
     return outputs
 
 
@@ -258,16 +259,17 @@ def normalize_feature_map(
     :param blobname_template: String template for input blobs to norm_net.
     """
     normalized_features = {}
-    for idx, feature in enumerate(features):
-        input_blob = blobname_template.format(idx)
-        workspace.FeedBlob(
-            input_blob, feature_value_map[feature].astype(np.float32)
-        )
-    workspace.RunNet(norm_net)
-    for idx, feature_name in enumerate(features):
-        normalized_input_blob = norm_blob_map[idx]
-        normalized_features[feature_name
-                           ] = workspace.FetchBlob(normalized_input_blob)
+    with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
+        for idx, feature in enumerate(features):
+            input_blob = blobname_template.format(idx)
+            workspace.FeedBlob(
+                input_blob, feature_value_map[feature].astype(np.float32)
+            )
+        workspace.RunNet(norm_net)
+        for idx, feature_name in enumerate(features):
+            normalized_input_blob = norm_blob_map[idx]
+            normalized_features[feature_name] = \
+                workspace.FetchBlob(normalized_input_blob)
     return normalized_features
 
 
@@ -290,27 +292,29 @@ def prepare_normalization(
     :param blobname_template: String template for input blobs to norm_net.
     """
     norm_blob_map = {}
-    preprocessor = PreprocessorNet(norm_net, clip_anomalies)
-    for idx, feature in enumerate(features):
-        input_blob = blobname_template.format(idx)
-        reshaped_input_blob = input_blob + '_reshaped'
-        original_shape = input_blob + '_original_shape'
+    with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
+        preprocessor = PreprocessorNet(norm_net, clip_anomalies)
+        for idx, feature in enumerate(features):
+            input_blob = blobname_template.format(idx)
+            reshaped_input_blob = input_blob + '_reshaped'
+            original_shape = input_blob + '_original_shape'
 
-        workspace.FeedBlob(input_blob, np.zeros(1, dtype=np.float32))
-        norm_net.Reshape(
-            [input_blob], [reshaped_input_blob, original_shape], shape=[-1, 1]
-        )
-        normalization_param = normalization_params[feature]
-        normalized_input_blob, _ = preprocessor.preprocess_blob(
-            reshaped_input_blob, normalization_param
-        )
-        norm_net.ReplaceNaN(normalized_input_blob, normalized_input_blob)
-        if normalization_param.feature_type != identify_types.ENUM:
+            workspace.FeedBlob(input_blob, np.zeros(1, dtype=np.float32))
             norm_net.Reshape(
-                [normalized_input_blob],
-                [normalized_input_blob, original_shape],
-                shape=[1, -1]
+                [input_blob], [reshaped_input_blob, original_shape],
+                shape=[-1, 1]
             )
-        norm_blob_map[idx] = normalized_input_blob
-    workspace.CreateNet(norm_net)
+            normalization_param = normalization_params[feature]
+            normalized_input_blob, _ = preprocessor.preprocess_blob(
+                reshaped_input_blob, normalization_param
+            )
+            norm_net.ReplaceNaN(normalized_input_blob, normalized_input_blob)
+            if normalization_param.feature_type != identify_types.ENUM:
+                norm_net.Reshape(
+                    [normalized_input_blob],
+                    [normalized_input_blob, original_shape],
+                    shape=[1, -1]
+                )
+            norm_blob_map[idx] = normalized_input_blob
+        workspace.CreateNet(norm_net)
     return norm_blob_map
