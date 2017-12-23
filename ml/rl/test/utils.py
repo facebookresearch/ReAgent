@@ -18,7 +18,8 @@ def default_normalizer(feats):
                     boxcox_shift=0,
                     mean=0,
                     stddev=1,
-                    possible_values=None
+                    possible_values=None,
+                    quantiles=None,
                 )
             ) for i in range(len(feats))
         ]

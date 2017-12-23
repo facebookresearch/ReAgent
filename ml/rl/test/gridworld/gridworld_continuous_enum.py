@@ -19,14 +19,15 @@ class GridworldContinuousEnum(GridworldContinuous):
     def normalization(self):
         return {
             'f':
-                NormalizationParameters(
-                    feature_type="ENUM",
-                    boxcox_lambda=None,
-                    boxcox_shift=None,
-                    mean=None,
-                    stddev=None,
-                    possible_values=[float(i) for i in range(len(self.STATES))]
-                )
+            NormalizationParameters(
+                feature_type="ENUM",
+                boxcox_lambda=None,
+                boxcox_shift=None,
+                mean=None,
+                stddev=None,
+                possible_values=[float(i) for i in range(len(self.STATES))],
+                quantiles=None,
+            )
         }
 
     def preprocess_samples(
@@ -44,8 +45,9 @@ class GridworldContinuousEnum(GridworldContinuous):
             self, states, actions, rewards, next_states, next_actions,
             is_terminals, possible_next_actions, reward_timelines
         )
-        tdp.states = np.where(tdp.states == 1.0)[1].reshape(-1, 1).astype(np.float32)
-        tdp.next_states = np.where(
-            tdp.next_states == 1.0
-        )[1].reshape(-1, 1).astype(np.float32)
+        tdp.states = np.where(tdp.states == 1.0)[1].reshape(-1, 1
+                                                           ).astype(np.float32)
+        tdp.next_states = np.where(tdp.next_states == 1.0)[1].reshape(
+            -1, 1
+        ).astype(np.float32)
         return tdp

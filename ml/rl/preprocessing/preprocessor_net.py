@@ -13,7 +13,7 @@ import caffe2.proto.caffe2_pb2 as caffe2_pb2
 
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import NormalizationParameters,\
-    get_num_output_features, MISSING_VALUE, BOX_COX_MIN_VALUE
+    get_num_output_features, MISSING_VALUE, BOX_COX_MARGIN
 
 import logging
 logger = logging.getLogger(__name__)
@@ -62,6 +62,7 @@ class PreprocessorNet:
         is_not_empty_bool = blob + "__isnotemptybool"
         is_not_empty = blob + "__isnotempty"
         output_blob = blob + "_preprocessed"
+        zeros = blob + "_zeros"
 
         self._net.GT([blob, self.MISSING_L], [is_empty_l], broadcast=1)
         self._net.LT([blob, self.MISSING_U], [is_empty_u], broadcast=1)
@@ -125,14 +126,57 @@ class PreprocessorNet:
                 [blob, is_not_empty_cast], [output_blob], broadcast=1, axis=0
             )
             return output_blob, parameters
-        else:
+        elif normalization_parameters.feature_type == identify_types.QUANTILE:
+            # This transformation replaces a set of values with their quantile.
+            # The quantile boundaries are provided, so the quantile index can be
+            # measured by the # of boundaries that are crossed.  We use the >=
+            # operator on each quantile to count the number of boundaries
+            # crossed.
+            sum_quantile_blob = self._net.NextBlob()
+            self._net.ConstantFill([blob], [sum_quantile_blob], value=0.)
+            for quantile in normalization_parameters.quantiles:
+                quantile_blob = self._net.NextBlob('quantile_blob')
+                workspace.FeedBlob(
+                    quantile_blob, np.array([quantile], dtype=np.float32)
+                )
+
+                quantile_ge_blob = self._net.NextBlob('quantile_ge_blob')
+                self._net.GE(
+                    [blob, quantile_blob], [quantile_ge_blob], broadcast=1
+                )
+                quantile_ge_blob_float = self._net.NextBlob(
+                    'quantile_ge_blob_float'
+                )
+                self._net.Cast(
+                    [quantile_ge_blob], [quantile_ge_blob_float],
+                    to=caffe2_pb2.TensorProto.FLOAT
+                )
+                self._net.Add(
+                    [sum_quantile_blob, quantile_ge_blob_float],
+                    [sum_quantile_blob]
+                )
+                parameters.append(quantile_blob)
+            num_quantiles = self._net.NextBlob('num_quantiles')
+            workspace.FeedBlob(
+                num_quantiles,
+                np.array(
+                    [len(normalization_parameters.quantiles)], dtype=np.float32
+                )
+            )
+            # Divide by the number of quantiles to normalize to the range [0,1]
+            self._net.Div(
+                [sum_quantile_blob, num_quantiles], [sum_quantile_blob],
+                broadcast=1,
+                axis=0
+            )
+            blob = sum_quantile_blob
+        elif normalization_parameters.feature_type == identify_types.CONTINUOUS:
             if normalization_parameters.boxcox_lambda is not None:
                 boxcox_shift = '{}__boxcox_shift'.format(blob)
                 workspace.FeedBlob(
                     boxcox_shift,
                     np.array(
-                        normalization_parameters.boxcox_shift * -1,
-                        dtype=np.float32
+                        normalization_parameters.boxcox_shift, dtype=np.float32
                     )
                 )
                 boxcox_lambda = '{}__boxcox_lambda'.format(blob)
@@ -144,7 +188,7 @@ class PreprocessorNet:
                     )
                 )
                 self._net.Add([blob, boxcox_shift], [blob], broadcast=1, axis=0)
-                self._net.Clip([blob], [blob], min=BOX_COX_MIN_VALUE)
+                self._net.Clip([blob], [blob], min=BOX_COX_MARGIN)
                 if abs(normalization_parameters.boxcox_lambda) < 1e-6:
                     self._net.Log([blob], [blob])
                 else:
@@ -170,10 +214,14 @@ class PreprocessorNet:
             self._net.Sub([blob, mean], [blob], broadcast=1, axis=0)
             self._net.Div([blob, stddev], [blob], broadcast=1, axis=0)
             parameters = parameters + [mean, stddev]
+            if self.clip_anomalies:
+                self._net.Clip([blob], [blob], min=-3.0, max=3.0)
+        else:
+            raise NotImplementedError(
+                "Invalid feature type: {}".
+                format(normalization_parameters.feature_type)
+            )
 
-        if self.clip_anomalies:
-            self._net.Clip([blob], [blob], min=-3.0, max=3.0)
-        zeros = blob + "_zeros"
         self._net.ConstantFill([blob], [zeros], value=0.)
         self._net.Mul([blob, is_not_empty], [output_blob])
 

@@ -10,6 +10,7 @@ BINARY = "BINARY"
 PROBABILITY = "PROBABILITY"
 CONTINUOUS = "CONTINUOUS"
 ENUM = "ENUM"
+QUANTILE = "QUANTILE"
 
 ROW_DELIM = '\n'
 COLUMN_DELIM = ';'
@@ -33,7 +34,7 @@ def _is_continuous(feature_values):
 def _is_enum(feature_values, enum_threshold):
     are_all_ints = np.vectorize(lambda val: float(val).is_integer())
     return (
-        float(len(np.unique(feature_values))) < enum_threshold and
+        len(np.unique(feature_values)) <= enum_threshold and
         np.all(are_all_ints(feature_values))
     )
 
@@ -56,4 +57,7 @@ def identify_types(feature_values, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
 
 def identify_types_dict(feature_values, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
     types = identify_types(feature_values, enum_threshold)
-    return {feature_name: types[feature_name] for feature_name in feature_values}
+    return {
+        feature_name: types[feature_name]
+        for feature_name in feature_values
+    }
