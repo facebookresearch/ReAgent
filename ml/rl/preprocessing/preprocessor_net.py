@@ -44,7 +44,7 @@ class PreprocessorNet:
             self.MISSING_L, np.array([MISSING_VALUE - 1e-4], dtype=np.float32)
         )
         self.parameters = [
-            self.ZERO, self.MISSING, self.MISSING_L, self.MISSING_U
+            self.ZERO, self.ONE, self.MISSING, self.MISSING_L, self.MISSING_U
         ]
 
     def preprocess_blob(self, blob, normalization_parameters):
