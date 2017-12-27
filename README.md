@@ -74,7 +74,7 @@ python -m unittest <path/to/unit_test.py>
 
 # Running Models in OpenAI Gym
 
-You can run RL models of your specification on OpenAI Gym environments of your choice. Right now, we only support environments that supply `Box(x, )` state representations and require `Discrete(y)` action inputs.
+You can run RL models of your specification on OpenAI Gym environments of your choice. Right now, we only support environments that supply `Box(x, )` or `Box(x, y, z)` (image) state representations and require `Discrete(y)` action inputs.
 
 ### Quickstart
 
@@ -97,6 +97,9 @@ Feel free to create your own parameter files to select different environments an
 * [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/) environment: [maxq\_cartpole\_v1.json](https://github.com/caffe2/BlueWhale/tree/master/ml/rl/test/gym/maxq_cartpole_v1.json)
 * [LunarLander-v2](https://gym.openai.com/envs/LunarLander-v2/) environment: [maxq\_lunarlander\_v2.json](https://github.com/caffe2/BlueWhale/tree/master/ml/rl/test/gym/maxq_lunarlander_v2.json)
 
+Feel free to try out image-based environments too! The parameters we supply will get you a model that runs and trains quickly, not one that performs well:
+
+* [Asteroids-v0](https://gym.openai.com/envs/Asteroids-v0/) environment: [maxq\_asteroids\_v0.json](https://github.com/caffe2/BlueWhale/tree/master/ml/rl/test/gym/maxq_asteroids_v0.json)
 
 ### Modifying the parameters file
 

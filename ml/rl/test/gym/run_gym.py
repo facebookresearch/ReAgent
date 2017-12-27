@@ -12,6 +12,7 @@ from caffe2.python import core
 
 from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.training.discrete_action_conv_trainer import DiscreteActionConvTrainer
 from ml.rl.thrift.core.ttypes import\
     RLParameters, TrainingParameters, DiscreteActionModelParameters
 
@@ -113,9 +114,15 @@ def main(args):
         args.gpu_id
     )
     with core.DeviceScope(device):
-        trainer = DiscreteActionTrainer(
-            env.normalization, trainer_params, skip_normalization=True
-        )
+        if env.img:
+            trainer = DiscreteActionConvTrainer(
+                trainer_params, env.height, env.width, env.num_input_channels,
+                env.action_dim, **params['cnn']
+            )
+        else:
+            trainer = DiscreteActionTrainer(
+                env.normalization, trainer_params, skip_normalization=True
+            )
         return run(
             env, trainer, "{} test run".format(env_type), args.score_bar,
             **params["run_details"]

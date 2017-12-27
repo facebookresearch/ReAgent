@@ -28,7 +28,8 @@ class OpenAIGymEnvironment:
         self.skip_insert_until = self.max_replay_memory_size
 
         self._create_env(gymenv)
-        self.state_features = [str(sf) for sf in range(self.state_dim)]
+        if not self.img:
+            self.state_features = [str(sf) for sf in range(self.state_dim)]
         self.actions = [str(a) for a in range(self.action_dim)]
 
     def _create_env(self, gymenv):
@@ -45,7 +46,7 @@ class OpenAIGymEnvironment:
 
         supports_state = isinstance(
             self.env.observation_space, gym.spaces.Box
-        ) and len(self.env.observation_space.shape) == 1
+        ) and len(self.env.observation_space.shape) in [1, 3]
         supports_action = isinstance(self.env.action_space, gym.spaces.Discrete)
 
         if not supports_state and supports_action:
@@ -56,7 +57,14 @@ class OpenAIGymEnvironment:
             )
 
         self.action_dim = self.env.action_space.n
-        self.state_dim = self.env.observation_space.shape[0]
+
+        if (len(self.env.observation_space.shape) == 1):
+            self.state_dim = self.env.observation_space.shape[0]
+            self.img = False
+        elif len(self.env.observation_space.shape) == 3:
+            self.height, self.weight, self.num_input_channels = \
+                self.env.observation_space.shape
+            self.img = True
 
     def sample_memories(self, batch_size):
         """
