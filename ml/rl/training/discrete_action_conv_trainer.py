@@ -18,6 +18,7 @@ from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.ml_conv_trainer import MLConvTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.training.ml_trainer import GenerateLossOps
+from ml.rl.training.target_network import TargetNetwork
 
 
 class DiscreteActionConvTrainer(MLConvTrainer):
@@ -51,6 +52,10 @@ class DiscreteActionConvTrainer(MLConvTrainer):
             self, "ml_conv_trainer", parameters.training, init_height, init_width,
             conv_dims, conv_height_kernels, conv_width_kernels, pool_kernels_strides,
             pool_types, num_input_channels
+        )
+
+        self.target_network = TargetNetwork(
+            self, parameters.rl.target_update_rate
         )
 
         self.reward_burnin = parameters.rl.reward_burnin
@@ -114,6 +119,10 @@ class DiscreteActionConvTrainer(MLConvTrainer):
         self.update_model(states, actions, q_vals_target)
 
         self.training_iteration += 1
+        if self.training_iteration >= self.reward_burnin:
+            self.target_network.enable_slow_updates()
+        self.target_network.target_update()
+        self.training_iteration += 1
 
     def _setup_initial_blobs(self):
         self.action_blob = "action"
@@ -160,6 +169,8 @@ class DiscreteActionConvTrainer(MLConvTrainer):
     def get_q_values_all_actions(
         self, states: np.ndarray, use_target_network: Optional[bool] = True
     ) -> np.ndarray:
+        if use_target_network:
+            return self.target_network.target_values(states)
         return self.score(states)
 
     def get_policy(self, state: np.ndarray) -> int:

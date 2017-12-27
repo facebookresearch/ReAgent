@@ -11,8 +11,8 @@ import numpy as np
 # ]
 
 from caffe2.python import model_helper, workspace
-from ml.rl.training.ml_trainer import \
-    MakeForwardPassOps
+from ml.rl.training.ml_trainer import MakeForwardPassOps
+from ml.rl.training.ml_conv_trainer import MLConvTrainer, MakeConvPassOps
 
 
 class TargetNetwork(object):
@@ -22,63 +22,94 @@ class TargetNetwork(object):
     """
 
     def __init__(self, trainer, target_update_rate):
+        self._trainer = trainer
         self._target_update_rate = target_update_rate
         self.enabled_slow_updates = False
-        self._update_rate_blob = trainer.model_id + "_target_update_rate"
+        self.tn_model_id = self._trainer.model_id + "_target"
+        self._is_conv_tn = isinstance(self._trainer, MLConvTrainer)
+
+        self._setup_initial_blobs()
+        self._setup_predict_net()
+        self._setup_update_net()
+
+        workspace.RunNetOnce(self._predict_model.param_init_net)
+        workspace.CreateNet(self._predict_model.net)
+        workspace.RunNetOnce(self._update_model.param_init_net)
+        workspace.CreateNet(self._update_model.net)
+
+    def _setup_initial_blobs(self):
+        self._update_rate_blob = self.tn_model_id + "_update_rate"
         workspace.FeedBlob(
             self._update_rate_blob, np.array([1], dtype=np.float32)
         )
-        self._retain_rate_blob = trainer.model_id + "_target_retain_rate"
+        self._retain_rate_blob = self.tn_model_id + "_retain_rate"
         workspace.FeedBlob(
             self._retain_rate_blob, np.array([0], dtype=np.float32)
         )
-
-        self._trainer = trainer
-        self._weights = [weight + "_target" for weight in trainer.weights]
-        for target_weight, source_weight in zip(self._weights, trainer.weights):
-            workspace.FeedBlob(
-                target_weight, workspace.FetchBlob(source_weight)
-            )
-        self._biases = [bias + "_target" for bias in trainer.biases]
-        for target_bias, source_bias in zip(self._biases, trainer.biases):
-            workspace.FeedBlob(target_bias, workspace.FetchBlob(source_bias))
-
-        self._update_model = model_helper.ModelHelper(
-            name="TargetUpdateModel_" + trainer.model_id
-        )
-        self._predict_model = model_helper.ModelHelper(
-            name="TargetPredictModel_" + trainer.model_id
-        )
-
-        self.input_blob = "TargetInput_" + trainer.model_id
+        self.input_blob = "TargetInput_" + self.tn_model_id
         workspace.FeedBlob(self.input_blob, np.zeros(1, dtype=np.float32))
-        self.output_blob = "TargetOutput_" + trainer.model_id
+        self.output_blob = "TargetOutput_" + self.tn_model_id
         workspace.FeedBlob(self.output_blob, np.zeros(1, dtype=np.float32))
 
-        MakeForwardPassOps(
-            self._predict_model, trainer.model_id + "_target", self.input_blob,
-            self.output_blob, self._weights, self._biases, trainer.activations,
-            trainer.layers, trainer.dropout_ratio, True
-        )
-        workspace.RunNetOnce(self._predict_model.param_init_net)
-        workspace.CreateNet(self._predict_model.net)
+        if self._is_conv_tn:
+            self.output_conv_blob = "TargetConvOutput_" + self.tn_model_id
+            workspace.FeedBlob(self.output_conv_blob, np.zeros(1, dtype=np.float32))
 
-        for source_weight, target_weight in zip(trainer.weights, self._weights):
+        self._weights = self._copy_params(self._trainer.weights)
+        self._biases = self._copy_params(self._trainer.biases)
+
+        if self._is_conv_tn:
+            self._conv_weights = self._copy_params(self._trainer.conv_weights)
+            self._conv_biases = self._copy_params(self._trainer.conv_biases)
+
+        self._update_model = model_helper.ModelHelper(
+            name="TargetUpdateModel_" + self.tn_model_id
+        )
+        self._predict_model = model_helper.ModelHelper(
+            name="TargetPredictModel_" + self.tn_model_id
+        )
+
+    def _setup_predict_net(self):
+        fc_input_blob = self.input_blob
+
+        if self._is_conv_tn:
+            MakeConvPassOps(
+                self._predict_model, self.tn_model_id, self._trainer.dims,
+                self._trainer.conv_height_kernels, self._trainer.conv_width_kernels,
+                self._trainer.pool_kernels_strides, self._trainer.pool_types,
+                self.input_blob, self.output_conv_blob, self._conv_weights,
+                self._conv_biases
+            )
+            fc_input_blob = self.output_conv_blob
+
+        MakeForwardPassOps(
+            self._predict_model, self.tn_model_id, fc_input_blob,
+            self.output_blob, self._weights, self._biases, self._trainer.activations,
+            self._trainer.layers, self._trainer.dropout_ratio, True
+        )
+
+    def _setup_update_net(self):
+        self._add_update_ops(self._trainer.weights, self._weights)
+        self._add_update_ops(self._trainer.biases, self._biases)
+
+        if self._is_conv_tn:
+            self._add_update_ops(self._trainer.conv_weights, self._conv_weights)
+            self._add_update_ops(self._trainer.conv_biases, self._conv_biases)
+
+    def _copy_params(self, params):
+        copied_params = [param + "_target" for param in params]
+        for target_param, source_param in zip(copied_params, params):
+            workspace.FeedBlob(target_param, workspace.FetchBlob(source_param))
+        return copied_params
+
+    def _add_update_ops(self, source_params, target_params):
+        for source_param, target_param in zip(source_params, target_params):
             self._update_model.net.WeightedSum(
                 [
-                    target_weight, self._retain_rate_blob, source_weight,
+                    target_param, self._retain_rate_blob, source_param,
                     self._update_rate_blob
-                ], [target_weight]
+                ], [target_param]
             )
-        for source_bias, target_bias in zip(trainer.biases, self._biases):
-            self._update_model.net.WeightedSum(
-                [
-                    target_bias, self._retain_rate_blob, source_bias,
-                    self._update_rate_blob
-                ], [target_bias]
-            )
-        workspace.RunNetOnce(self._update_model.param_init_net)
-        workspace.CreateNet(self._update_model.net)
 
     def enable_slow_updates(self):
         if not self.enabled_slow_updates:
