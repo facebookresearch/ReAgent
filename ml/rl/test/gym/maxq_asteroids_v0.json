@@ -28,10 +28,10 @@
         "render_every": 100
     },
     "cnn": {
-        "conv_dims": [2, 3, 1, 4],
-        "conv_height_kernels": [3, 2, 3, 2],
-        "conv_width_kernels": [3, 2, 3, 4],
-        "pool_kernels_strides": [2, 4, 3, 1],
-        "pool_types": ["max", "avg", "max", "max"]
+        "conv_dims": [-1, 2, 3, 1],
+        "conv_height_kernels": [3, 2, 3],
+        "conv_width_kernels": [3, 2, 3],
+        "pool_kernels_strides": [2, 4, 3],
+        "pool_types": ["max", "avg", "max"]
     }
 }

@@ -48,3 +48,19 @@ struct ContinuousActionModelParameters {
   2: TrainingParameters training = {},
   3: KnnParameters knn,
 }
+
+struct CNNModelParameters {
+  1: list<i32> conv_dims,
+  2: list<i32> conv_height_kernels,
+  3: list<i32> conv_width_kernels,
+  4: list<i32> pool_kernels_strides,
+  5: list<string> pool_types,
+}
+
+struct DiscreteActionConvModelParameters {
+  1: DiscreteActionModelParameters fc_parameters,
+  2: CNNModelParameters cnn_parameters,
+  3: i32 num_input_channels,
+  4: i32 img_height,
+  5: i32 img_width
+}

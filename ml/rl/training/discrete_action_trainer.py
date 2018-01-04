@@ -36,11 +36,9 @@ class DiscreteActionTrainer(RLTrainer):
         skip_normalization: Optional[bool] = False
     ) -> None:
         self._actions = parameters.actions
-
         self.num_processed_state_features = get_num_output_features(
             state_normalization_parameters
         )
-
         if parameters.training.layers[0] in [None, -1, 1]:
             parameters.training.layers[0] = self.num_state_features
 
@@ -96,7 +94,7 @@ class DiscreteActionTrainer(RLTrainer):
 
         MLTrainer._setup_initial_blobs(self)
 
-    def train(
+    def _validate_train_inputs(
         self,
         states: np.ndarray,
         actions: np.ndarray,
@@ -105,38 +103,9 @@ class DiscreteActionTrainer(RLTrainer):
         next_actions: Optional[np.ndarray],
         not_terminals: np.ndarray,
         possible_next_actions: np.ndarray,
-    ) -> None:
-        """
-        Takes in a batch of transitions. For transition i, calculates target qval:
-            next_q_values_i = {
-                max_{pna_i} Q(next_state_i, pna_i), self.maxq_learning
-                Q(next_state_i, next_action_i), self.sarsa
-            }
-            q_val_target_i = {
-                r_i + gamma * next_q_values_i, not_terminals_i
-                r_i, !not_terminals_i
-            }
-        Trains Q Network on the q_val_targets as labels.
-
-        :param states: Numpy array with shape (batch_size, state_dim). The ith
-            row is a representation of the ith transition's state.
-        :param actions: Numpy array with shape (batch_size, action_dim). The ith
-            row contains the one-hotted representation of the ith transition's
-            action: actions[i][j] = 1 if action_i == j else 0.
-        :param rewards: Numpy array with shape (batch_size, 1). The ith entry is
-            the reward experienced at the ith transition.
-        :param not_terminals: Numpy array with shape (batch_size, 1). The ith entry
-            is equal to 1 iff the ith transition's state is not terminal.
-        :param next_states: Numpy array with shape (batch_size, state_dim). The
-            ith row is a representation of the ith transition's next state.
-        :param next_actions: Numpy array with shape (batch_size, action_dim). The
-            ith row contains the one-hotted representation of the ith transition's
-            action: next_actions[i][j] = 1 if next_action_i == j else 0.
-        :param possible_next_actions: Numpy array with shape (batch_size, action_dim).
-            possible_next_actions[i][j] = 1 iff the agent can take action j from
-            state i.
-        """
-        batch_size = states.shape[0]
+    ):
+        batch_size = self.minibatch_size
+        assert states.shape == (batch_size, self.num_state_features)
         assert actions.shape == (batch_size, self.num_actions)
         assert next_states.shape == (batch_size, self.num_state_features)
         assert not_terminals.shape == (batch_size, 1)
@@ -144,16 +113,6 @@ class DiscreteActionTrainer(RLTrainer):
             assert next_actions.shape == (batch_size, self.num_actions)
         if possible_next_actions is not None:
             assert possible_next_actions.shape == (batch_size, self.num_actions)
-        RLTrainer.train(
-            self,
-            states,
-            actions,
-            rewards,
-            next_states,
-            next_actions,
-            not_terminals,
-            possible_next_actions,
-        )
 
     def _generate_train_model_loss(self):
         """

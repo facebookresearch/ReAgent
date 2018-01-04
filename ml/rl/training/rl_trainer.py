@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 
 from caffe2.python import workspace, core
 
@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.preprocessing.preprocessor_net import prepare_normalization,\
     normalize_dense_matrix
+from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
+    ContinuousActionModelParameters
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.ml_trainer import MLTrainer
 from ml.rl.training.rl_predictor import RLPredictor
@@ -27,16 +29,17 @@ class RLTrainer(MLTrainer):
     def __init__(
         self,
         state_normalization_parameters: Dict[str, NormalizationParameters],
-        parameters,
+        parameters: Union[
+            DiscreteActionModelParameters, ContinuousActionModelParameters
+        ],
         skip_normalization: Optional[bool] = False
     ) -> None:
         print(state_normalization_parameters)
         print(parameters)
 
-        self._state_features = list(state_normalization_parameters.keys())
         self._state_normalization_parameters = state_normalization_parameters
-
         MLTrainer.__init__(self, "rl_trainer", parameters.training)
+
         self.target_network = TargetNetwork(
             self, parameters.rl.target_update_rate
         )
@@ -75,6 +78,7 @@ class RLTrainer(MLTrainer):
         """
         if self.skip_normalization:
             return
+        self._state_features = list(self._state_normalization_parameters.keys())
         self.state_norm_net = core.Net("state_norm_net")
         self.state_norm_blobname_template = '{}_input_state'
         self.state_norm_blobs = prepare_normalization(
@@ -162,6 +166,18 @@ class RLTrainer(MLTrainer):
         :param q_vals_targets: Numpy array with shape (batch_size, 1). The ith
             row is the label to train against for the data from the ith transition.
         """
+        raise NotImplementedError()
+
+    def _validate_train_inputs(
+        self,
+        states: np.ndarray,
+        actions: np.ndarray,
+        rewards: np.ndarray,
+        next_states: np.ndarray,
+        next_actions: Optional[np.ndarray],
+        not_terminals: np.ndarray,
+        possible_next_actions: np.ndarray,
+    ):
         raise NotImplementedError()
 
     def stream(
@@ -275,12 +291,14 @@ class RLTrainer(MLTrainer):
         :param possible_next_actions: See subclass' `train` documentation.
         """
 
+        self._validate_train_inputs(
+            states, actions, rewards, next_states, next_actions, not_terminals,
+            possible_next_actions
+        )
+
         batch_size = self.minibatch_size
-        assert states.shape[0] == self.minibatch_size
-        assert states.shape == (batch_size, self.num_state_features)
         assert rewards.shape == (batch_size, 1)
         assert rewards.dtype == np.float32
-        assert next_states.shape == (batch_size, self.num_state_features)
         assert not_terminals.shape == (batch_size, 1)
 
         q_vals_target = np.copy(rewards)

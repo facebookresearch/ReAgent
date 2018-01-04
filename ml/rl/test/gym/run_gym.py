@@ -12,9 +12,10 @@ from caffe2.python import core
 
 from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
-from ml.rl.training.discrete_action_conv_trainer import DiscreteActionConvTrainer
-from ml.rl.thrift.core.ttypes import\
-    RLParameters, TrainingParameters, DiscreteActionModelParameters
+from ml.rl.training.conv.discrete_action_conv_trainer import DiscreteActionConvTrainer
+from ml.rl.thrift.core.ttypes import RLParameters, TrainingParameters,\
+    DiscreteActionModelParameters, DiscreteActionConvModelParameters,\
+    CNNModelParameters
 
 USE_CPU = -1
 
@@ -102,7 +103,6 @@ def main(args):
 
     env_type = params['env']
     env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'])
-
     trainer_params = DiscreteActionModelParameters(
         actions=env.actions,
         rl=RLParameters(**rl_settings),
@@ -116,8 +116,13 @@ def main(args):
     with core.DeviceScope(device):
         if env.img:
             trainer = DiscreteActionConvTrainer(
-                trainer_params, env.height, env.width, env.num_input_channels,
-                env.action_dim, **params['cnn']
+                DiscreteActionConvModelParameters(
+                    fc_parameters=trainer_params,
+                    cnn_parameters=CNNModelParameters(**params['cnn']),
+                    num_input_channels=env.num_input_channels,
+                    img_height=env.height,
+                    img_width=env.width
+                )
             )
         else:
             trainer = DiscreteActionTrainer(

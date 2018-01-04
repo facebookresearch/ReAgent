@@ -62,7 +62,7 @@ class OpenAIGymEnvironment:
             self.state_dim = self.env.observation_space.shape[0]
             self.img = False
         elif len(self.env.observation_space.shape) == 3:
-            self.height, self.weight, self.num_input_channels = \
+            self.height, self.width, self.num_input_channels = \
                 self.env.observation_space.shape
             self.img = True
 

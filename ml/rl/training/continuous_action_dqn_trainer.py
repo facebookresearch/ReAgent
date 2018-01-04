@@ -142,41 +142,12 @@ class ContinuousActionDQNTrainer(RLTrainer):
             tdp.possible_next_actions, tdp.reward_timelines, evaluator
         )
 
-    def train(
+    def _validate_train_inputs(
         self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray,
         next_states: np.ndarray, next_actions: Optional[np.ndarray],
         not_terminals: np.ndarray,
         possible_next_actions: Optional[List[np.ndarray]]
     ) -> None:
-        """
-        Takes in a batch of transitions. For transition i, calculates target qval:
-            next_q_values_i = {
-                max_{pna_i} Q(next_state_i, pna_i), self.maxq_learning
-                Q(next_state_i, next_action_i), self.sarsa
-            }
-            q_val_target_i = {
-                r_i + gamma * next_q_values_i, not_terminals_i
-                r_i, !not_terminals_i
-            }
-        Trains Q Network on the q_val_targets as labels.
-
-        :param states: Numpy array with shape (batch_size, state_dim). The ith
-            row is a representation of the ith transition's state.
-        :param actions: Numpy array with shape (batch_size, action_dim). The ith
-            row is a representation of the ith transition's action.
-        :param rewards: Numpy array with shape (batch_size, 1). The ith entry is
-            the reward experienced at the ith transition.
-        :param not_terminals: Numpy array with shape (batch_size, 1). The ith entry
-            is equal to 1 iff the ith transition's state is not terminal.
-        :param next_states: Numpy array with shape (batch_size, state_dim). The
-            ith row is a representation of the ith transition's next state.
-        :param next_actions: Numpy array with shape (batch_size, action_dim). The
-            ith row is a representation of the ith transition's next_action.
-        :param possible_next_actions: List of sets of possible next actions. The
-            ith element of this list is a matrix PNA_i such that PNA_i[j] is the
-            parametric representation of the jth possible action from the ith
-            next_state.
-        """
         batch_size = states.shape[0]
         assert actions.shape == (batch_size, self.num_action_features)
         if next_actions is not None:
@@ -186,10 +157,6 @@ class ContinuousActionDQNTrainer(RLTrainer):
             for pna in possible_next_actions:
                 if pna.shape[0] > 0:
                     assert pna.shape[1] == self.num_unprocessed_action_features
-        RLTrainer.train(
-            self, states, actions, rewards, next_states, next_actions,
-            not_terminals, possible_next_actions
-        )
 
     def update_model(
         self, states: np.ndarray, actions: np.ndarray, q_vals_target: np.ndarray

@@ -19,7 +19,7 @@ from caffe2.python import workspace, brew
 from caffe2.python.model_helper import ModelHelper
 
 from ml.rl.custom_brew_helpers.conv import conv_explicit_param_names
-from ml.rl.thrift.core.ttypes import TrainingParameters
+from ml.rl.thrift.core.ttypes import TrainingParameters, CNNModelParameters
 from ml.rl.training.ml_trainer import MakeForwardPassOps, MLTrainer
 
 brew.Register(conv_explicit_param_names)  # type: ignore
@@ -94,25 +94,20 @@ class MLConvTrainer(MLTrainer):
     def __init__(
         self,
         name: str,
-        parameters: TrainingParameters,
-        init_height: int,
-        init_width: int,
-        conv_dims: List[int],
-        conv_height_kernels: List[int],
-        conv_width_kernels: List[int],
-        pool_kernels_strides: List[int],
-        pool_types: List[str],
-        num_input_channels: int
+        fc_parameters: TrainingParameters,
+        cnn_parameters: CNNModelParameters,
+        img_height: int,
+        img_width: int
     ) -> None:
-        self.init_height = init_height
-        self.init_width = init_width
-        self.dims = [num_input_channels] + conv_dims
-        self.conv_height_kernels = conv_height_kernels
-        self.conv_width_kernels = conv_width_kernels
-        self.pool_kernels_strides = pool_kernels_strides
-        self.pool_types = pool_types
+        self.init_height = img_height
+        self.init_width = img_width
+        self.dims = cnn_parameters.conv_dims
+        self.conv_height_kernels = cnn_parameters.conv_height_kernels
+        self.conv_width_kernels = cnn_parameters.conv_width_kernels
+        self.pool_kernels_strides = cnn_parameters.pool_kernels_strides
+        self.pool_types = cnn_parameters.pool_types
 
-        MLTrainer.__init__(self, name, parameters)
+        MLTrainer.__init__(self, name, fc_parameters)
 
     def _set_conv_dimensions(self):
         heights = [self.init_height]
@@ -213,17 +208,3 @@ class MLConvTrainer(MLTrainer):
             self.weights, self.biases, self.activations, self.layers,
             self.dropout_ratio, False
         )
-
-    def build_predictor(self, model, input_blob, output_blob) -> List[str]:
-        model_id = self.model_id + "_score"
-        MakeConvPassOps(
-            model, model_id, self.dims, self.conv_height_kernels,
-            self.conv_width_kernels, self.pool_kernels_strides, self.pool_types,
-            input_blob, self.output_conv_blob, self.conv_weights, self.conv_biases
-        )
-        MakeForwardPassOps(
-            model, model_id, self.output_conv_blob, output_blob, self.weights,
-            self.biases, self.activations, self.layers, self.dropout_ratio,
-            is_test=True
-        )
-        return self.weights + self.biases

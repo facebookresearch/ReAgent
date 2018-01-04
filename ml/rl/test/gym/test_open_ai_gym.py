@@ -28,5 +28,8 @@ class TestOpenAIGym(unittest.TestCase):
         )
         self.assertGreater(results[-1], score_bar)
 
-    def test_maxq_cartpole_v0(self):
-        self._test("maxq_cartpole_v0.json", 180.0)
+    # def test_maxq_cartpole_v0(self):
+    #     self._test("maxq_cartpole_v0.json", 180.0)
+
+    def test_asteroids_v0(self):
+        self._test("maxq_asteroids_v0.json", 200.0)

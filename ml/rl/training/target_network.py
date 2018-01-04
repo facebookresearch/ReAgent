@@ -12,7 +12,7 @@ import numpy as np
 
 from caffe2.python import model_helper, workspace
 from ml.rl.training.ml_trainer import MakeForwardPassOps
-from ml.rl.training.ml_conv_trainer import MLConvTrainer, MakeConvPassOps
+from ml.rl.training.conv.ml_conv_trainer import MLConvTrainer, MakeConvPassOps
 
 
 class TargetNetwork(object):
