@@ -3,8 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import io
-
 from scipy import special, stats
 import numpy as np
 import six
@@ -232,11 +230,8 @@ class TestNormalization(unittest.TestCase):
             feature_value_map
         )
 
-        with io.StringIO() as f:
-            normalization.write_parameters(f, normalization_parameters)
-            f.seek(0)
-            read_parameters = normalization.load_parameters(f)
-
+        s = normalization.serialize(normalization_parameters)
+        read_parameters = normalization.deserialize(s)
         self.assertEqual(read_parameters, normalization_parameters)
 
     def preprocess_feature(self, feature, parameters):

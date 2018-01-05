@@ -4,7 +4,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-import six
 
 BINARY = "BINARY"
 PROBABILITY = "PROBABILITY"
@@ -39,9 +38,9 @@ def _is_enum(feature_values, enum_threshold):
     )
 
 
-def identify_types(feature_values, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
+def identify_types(feature_values_map, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
     result = {}
-    for feature_name, values in six.iteritems(feature_values):
+    for feature_name, values in feature_values_map.items():
         if _is_binary(values):
             result[feature_name] = BINARY
         elif _is_probability(values):
@@ -53,11 +52,3 @@ def identify_types(feature_values, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
         else:
             assert False
     return result
-
-
-def identify_types_dict(feature_values, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
-    types = identify_types(feature_values, enum_threshold)
-    return {
-        feature_name: types[feature_name]
-        for feature_name in feature_values
-    }

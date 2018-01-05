@@ -126,53 +126,38 @@ def get_num_output_features(normalization_parmeters):
 
 
 def identify_parameters(
-    feature_values,
+    feature_value_map,
     max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
     quantile_size=DEFAULT_MAX_QUANTILE_SIZE,
     quantile_k2_threshold=DEFAULT_QUANTILE_K2_THRESHOLD,
 ):
-    initial_feature_types = identify_types.identify_types_dict(
-        feature_values, max_unique_enum_values
+    initial_feature_types = identify_types.identify_types(
+        feature_value_map, max_unique_enum_values
     )
     parameters = {}
-    for feature_name in feature_values:
-        if len(feature_values[feature_name]) >= MINIMUM_SAMPLES_TO_IDENTIFY:
+    for feature_name, feature_values in feature_value_map.items():
+        if feature_values.shape[0] >= MINIMUM_SAMPLES_TO_IDENTIFY:
             logger.info("Identifying feature {}".format(feature_name))
             parameters[feature_name] = _identify_parameter(
-                feature_values[feature_name],
-                initial_feature_types[feature_name], quantile_size,
-                quantile_k2_threshold
+                feature_values, initial_feature_types[feature_name],
+                quantile_size, quantile_k2_threshold
             )
+        else:
+            logger.info("Feature {} has too few samples".format(feature_name))
     return parameters
 
 
-def write_parameters(f, parameters):
-    types = [
-        identify_types.BINARY,
-        identify_types.PROBABILITY,
-        identify_types.CONTINUOUS,
-        identify_types.ENUM,
-        identify_types.QUANTILE,
-    ]
-    counts = dict([(param_type, []) for param_type in types])
-    for feature_name in parameters:
-        counts[parameters[feature_name].feature_type].append(feature_name)
-    for param_type in types:
-        logger.info("{} features: {}".format(param_type, counts[param_type]))
-
-    json.dump(
-        {
-            feature_name: parameters[feature_name]._asdict()
-            for feature_name in parameters
-        }, f
-    )
-
-
-def load_parameters(f):
-    parameter_map = json.load(f)
+def deserialize(parameters_json):
     parameters = {}
-    for feature, feature_parameters in six.iteritems(parameter_map):
-        if 'possible_values' not in feature_parameters:
-            feature_parameters['possible_values'] = None
-        parameters[feature] = NormalizationParameters(**feature_parameters)
+    for feature, feature_parameters in six.iteritems(parameters_json):
+        parameters[feature] = NormalizationParameters(
+            **json.loads(feature_parameters)
+        )
     return parameters
+
+
+def serialize(parameters):
+    parameters_json = {}
+    for feature, feature_parameters in six.iteritems(parameters):
+        parameters_json[feature] = json.dumps(feature_parameters._asdict())
+    return parameters_json
