@@ -7,8 +7,9 @@ from __future__ import unicode_literals
 
 import numpy as np
 
+from caffe2.proto import caffe2_pb2
 from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
-from caffe2.python import core, model_helper
+from caffe2.python import model_helper
 from caffe2.python import workspace
 
 from ml.rl.training.rl_predictor import RLPredictor
@@ -20,24 +21,19 @@ logger = logging.getLogger(__name__)
 
 class ContinuousActionDQNPredictor(RLPredictor):
     def predict(self, states, actions):
-        """ Returns values for each state
-        :param states states as feature -> value dict
+        """ Returns values for each state/action pair
+        :param states states as list of feature -> value dict
+        :param actions actions as list of feature -> value dict
         """
-        previous_workspace = workspace.CurrentWorkspace()
-        workspace.SwitchWorkspace(self._workspace_id)
-        for name, value in states.items():
-            workspace.FeedBlob(name, np.atleast_1d(value).astype(np.float32))
-        for name, value in actions.items():
-            workspace.FeedBlob(name, np.atleast_1d(value).astype(np.float32))
-        workspace.RunNet(self._net)
-        result = {'Q': workspace.FetchBlob(self._output_blobs[0])}
-        workspace.SwitchWorkspace(previous_workspace)
-        return result
+
+        examples = []
+        for i in range(len(states)):
+            examples.append({**states[i], **actions[i]})
+        return RLPredictor.predict(self, examples)
 
     def get_predictor_export_meta(self):
         return PredictorExportMeta(
-            self._net, self._parameters + self._input_blobs, [],
-            self._output_blobs
+            self._net, self._parameters, self._input_blobs, self._output_blobs
         )
 
     @classmethod
@@ -57,28 +53,55 @@ class ContinuousActionDQNPredictor(RLPredictor):
             list(state_normalization_parameters.items()) +
             list(action_normalization_parameters.items())
         )
-        input_blobs = state_features + action_features
+        features = state_features + action_features
 
+        int_features = [int(feature) for feature in features]
+        inputs = [
+            'input/float_features.lengths', 'input/float_features.keys',
+            'input/float_features.values'
+        ]
+        workspace.FeedBlob(
+            'input/float_features.lengths', np.zeros(1, dtype=np.int32)
+        )
+        workspace.FeedBlob(
+            'input/float_features.keys', np.zeros(1, dtype=np.int64)
+        )
+        workspace.FeedBlob(
+            'input/float_features.values', np.zeros(1, dtype=np.float32)
+        )
         model = model_helper.ModelHelper(name="predictor")
         net = model.net
+        dense_input = net.NextBlob('dense_input')
+        default_input_value = net.NextBlob('default_input_value')
+        net.GivenTensorFill(
+            [], [default_input_value], shape=[], values=[MISSING_VALUE]
+        )
+        net.SparseToDenseMask(
+            [
+                'input/float_features.keys',
+                'input/float_features.values',
+                default_input_value,
+                'input/float_features.lengths',
+            ], [dense_input],
+            mask=int_features
+        )
+        for i, feature in enumerate(features):
+            net.Slice(
+                [dense_input],
+                [feature],
+                starts=[0, i],
+                ends=[-1, (i + 1)],
+            )
         normalizer = PreprocessorNet(net, True)
         parameters = list(normalizer.parameters[:])
         normalized_input_blobs = []
         zero = "ZERO_from_trainers"
         workspace.FeedBlob(zero, np.array(0))
         parameters.append(zero)
-        for input_blob in input_blobs:
-            workspace.FeedBlob(
-                input_blob, MISSING_VALUE * np.ones(1, dtype=np.float32)
-            )
-            reshaped_input_blob = input_blob + "_reshaped"
-            net.Reshape(
-                [input_blob],
-                [reshaped_input_blob, input_blob + "_original_shape"],
-                shape=[-1, 1]
-            )
+        for feature in features:
             normalized_input_blob, blob_parameters = normalizer.preprocess_blob(
-                reshaped_input_blob, normalization_parameters[input_blob]
+                feature,
+                normalization_parameters[feature],
             )
             parameters.extend(blob_parameters)
             normalized_input_blobs.append(normalized_input_blob)
@@ -91,25 +114,56 @@ class ContinuousActionDQNPredictor(RLPredictor):
             normalized_input_blobs, [concatenated_input_blob, output_dim],
             axis=1
         )
+        net.NanCheck(concatenated_input_blob, concatenated_input_blob)
 
-        q_values = "Q"
-        workspace.FeedBlob(q_values, np.zeros(1, dtype=np.float32))
-        trainer.build_predictor(model, concatenated_input_blob, q_values)
+        q_lengths = "output/string_weighted_multi_categorical_features.values.lengths"
+        workspace.FeedBlob(q_lengths, np.array([1], dtype=np.int32))
+        q_keys = "output/string_weighted_multi_categorical_features.values.keys"
+        workspace.FeedBlob(q_keys, np.array(['a']))
+        q_values_matrix = net.NextBlob('q_values_matrix')
+        trainer.build_predictor(model, concatenated_input_blob, q_values_matrix)
         parameters.extend(model.GetAllParams())
 
-        for input_blob in input_blobs:
-            net.ConstantFill(
-                [input_blob], [input_blob],
-                value=MISSING_VALUE,
-                dtype=core.DataType.FLOAT
-            )
+        q_values = 'output/string_weighted_multi_categorical_features.values.values'
+        workspace.FeedBlob(q_values, np.array([1.0]))
+        net.FlattenToVec([q_values_matrix], [q_values])
+        net.ConstantFill(
+            [q_values], [q_keys],
+            value="Q",
+            dtype=caffe2_pb2.TensorProto.STRING
+        )
+        net.ConstantFill(
+            [q_values], [q_lengths],
+            value=1,
+            dtype=caffe2_pb2.TensorProto.INT32
+        )
 
-        output_blobs = [q_values]
+        q_feature_lengths = "output/string_weighted_multi_categorical_features.lengths"
+        workspace.FeedBlob(q_feature_lengths, np.array([1], dtype=np.int32))
+        net.ConstantFill(
+            [q_values], [q_feature_lengths],
+            value=1,
+            dtype=caffe2_pb2.TensorProto.INT32
+        )
+        q_feature_keys = "output/string_weighted_multi_categorical_features.keys"
+        workspace.FeedBlob(q_feature_keys, np.array([0], dtype=np.int64))
+        net.ConstantFill(
+            [q_values], [q_feature_keys],
+            value=0,
+            dtype=caffe2_pb2.TensorProto.INT64
+        )
+
+        output_blobs = [
+            q_feature_lengths,
+            q_feature_keys,
+            q_lengths,
+            q_keys,
+            q_values,
+        ]
 
         workspace.RunNetOnce(model.param_init_net)
         workspace.CreateNet(net)
         predictor = cls(
-            net, input_blobs, output_blobs, parameters,
-            workspace.CurrentWorkspace()
+            net, inputs, output_blobs, parameters, workspace.CurrentWorkspace()
         )
         return predictor

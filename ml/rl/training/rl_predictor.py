@@ -40,6 +40,54 @@ class RLPredictor(object):
         self._parameters = parameters
         self._workspace_id = workspace_id
 
+    def predict(self, examples):
+        """ Returns values for each state
+        :param examples A list of feature -> value dict examples
+        """
+        previous_workspace = workspace.CurrentWorkspace()
+        workspace.SwitchWorkspace(self._workspace_id)
+        workspace.FeedBlob(
+            'input/float_features.lengths',
+            np.array([len(e) for e in examples], dtype=np.int32)
+        )
+        workspace.FeedBlob(
+            'input/float_features.keys',
+            np.array([list(e.keys())
+                      for e in examples], dtype=np.int32).flatten()
+        )
+        workspace.FeedBlob(
+            'input/float_features.values',
+            np.array([list(e.values())
+                      for e in examples], dtype=np.float32).flatten()
+        )
+        workspace.RunNet(self._net)
+
+        output_lengths = workspace.FetchBlob(
+            'output/string_weighted_multi_categorical_features.values.lengths'
+        )
+        output_names = workspace.FetchBlob(
+            'output/string_weighted_multi_categorical_features.values.keys'
+        )
+        output_values = workspace.FetchBlob(
+            'output/string_weighted_multi_categorical_features.values.values'
+        )
+
+        results = []
+
+        cursor = 0
+        for length in output_lengths:
+            cursor_begin = cursor
+            cursor_end = cursor_begin + length
+            cursor = cursor_end
+
+            result = {}
+            for x in range(cursor_begin, cursor_end):
+                result[output_names[x].decode("utf-8")] = output_values[x]
+            results.append(result)
+
+        workspace.SwitchWorkspace(previous_workspace)
+        return results
+
     def get_predictor_export_meta(self):
         """
         Returns a PredictorExportMeta object
@@ -56,7 +104,12 @@ class RLPredictor(object):
         workspace.SwitchWorkspace(self._workspace_id)
         meta = self.get_predictor_export_meta()
         for parameter in self._parameters:
-            if np.any(np.isnan(workspace.FetchBlob(parameter))):
+            parameter_data = workspace.FetchBlob(parameter)
+            logger.info("DATA TYPE " + parameter_data.dtype.kind)
+            if parameter_data.dtype.kind in {'U', 'S', 'O'}:
+                continue  # Don't bother checking string blobs for nan
+            logger.info("Checking parameter {} for nan".format(parameter))
+            if np.any(np.isnan(parameter_data)):
                 logger.info("WARNING: parameter {} is nan".format(parameter))
         save_to_db(db_type, db_path, meta)
         workspace.SwitchWorkspace(previous_workspace)

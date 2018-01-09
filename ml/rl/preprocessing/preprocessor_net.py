@@ -100,7 +100,9 @@ class PreprocessorNet:
                 possible_values_blobname,
                 np.array(possible_values, dtype=np.float32)
             )
+            parameters.append(possible_values_blobname)
             workspace.FeedBlob(index_size, np.array(len(possible_values)))
+            parameters.append(index_size)
 
             self._net.Reshape(
                 [blob], [blob_reshaped, blob_original_shape], shape=[1, -1]
@@ -139,6 +141,7 @@ class PreprocessorNet:
                 workspace.FeedBlob(
                     quantile_blob, np.array([quantile], dtype=np.float32)
                 )
+                parameters.append(quantile_blob)
 
                 quantile_ge_blob = self._net.NextBlob('quantile_ge_blob')
                 self._net.GE(
@@ -155,7 +158,6 @@ class PreprocessorNet:
                     [sum_quantile_blob, quantile_ge_blob_float],
                     [sum_quantile_blob]
                 )
-                parameters.append(quantile_blob)
             num_quantiles = self._net.NextBlob('num_quantiles')
             workspace.FeedBlob(
                 num_quantiles,
@@ -163,6 +165,7 @@ class PreprocessorNet:
                     [len(normalization_parameters.quantiles)], dtype=np.float32
                 )
             )
+            parameters.append(num_quantiles)
             # Divide by the number of quantiles to normalize to the range [0,1]
             self._net.Div(
                 [sum_quantile_blob, num_quantiles], [sum_quantile_blob],

@@ -152,7 +152,7 @@ class GridworldBase(object):
 
     def _no_cheat_step(self, state, action: str) -> int:
         p = self.transition_probabilities(state, action)
-        return np.random.choice(self.num_states, p=p)
+        return np.random.choice(self.size, p=p)
 
     def step(self, action: str,
              with_possible=True) -> Tuple[int, float, bool, List[str]]:
@@ -184,6 +184,10 @@ class GridworldBase(object):
 
     @property
     def num_states(self):
+        return self.width * self.height
+
+    @property
+    def size(self):
         return self.width * self.height
 
     def is_terminal(self, state):
@@ -233,8 +237,8 @@ class GridworldBase(object):
         return possible_actions
 
     def q_transition_matrix(self, assume_optimal_policy):
-        T = np.zeros((self.num_states, self.num_states))
-        for state in range(self.num_states):
+        T = np.zeros((self.size, self.size))
+        for state in range(self.size):
             if not self.is_terminal(state):
                 poss_a = self.ACTIONS
                 if self.USING_ONLY_VALID_ACTION:
@@ -258,7 +262,7 @@ class GridworldBase(object):
         return T
 
     def reward_vector(self):
-        return np.array([self.reward(s) for s in range(self.num_states)])
+        return np.array([self.reward(s) for s in range(self.size)])
 
     def true_q_values(self, discount, assume_optimal_policy):
         R = self.reward_vector()
@@ -266,9 +270,7 @@ class GridworldBase(object):
         print(R)
         T = self.q_transition_matrix(assume_optimal_policy)
         print('T:', T)
-        return np.linalg.solve(
-            np.eye(self.num_states, self.num_states) - (discount * T), R
-        )
+        return np.linalg.solve(np.eye(self.size, self.size) - (discount * T), R)
 
     def true_values_for_sample(
         self, states, actions, assume_optimal_policy: bool
@@ -386,13 +388,13 @@ class GridworldBase(object):
         x = []
         for state in states:
             a = [0.0] * self.num_states
-            a[int(list(state.keys())[0])] = 1.0
+            a[int(list(state.keys())[0])] = float(list(state.values())[0])
             x.append(a)
         states = np.array(x, dtype=np.float32)
         x = []
         for state in next_states:
             a = [0.0] * self.num_states
-            a[int(list(state.keys())[0])] = 1.0
+            a[int(list(state.keys())[0])] = float(list(state.values())[0])
             x.append(a)
         next_states = np.array(x, dtype=np.float32)
         actions_one_hot = np.zeros(
@@ -432,9 +434,7 @@ class GridworldBase(object):
             ds=[datetime.date.today().strftime('%Y-%m-%d')] * len(states)
         )
 
-    def generate_samples(
-        self, num_transitions, epsilon, with_possible=True
-    ):
+    def generate_samples(self, num_transitions, epsilon, with_possible=True):
         raise NotImplementedError()
 
     def preprocess_samples(

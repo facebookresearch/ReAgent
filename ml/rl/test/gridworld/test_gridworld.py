@@ -15,8 +15,7 @@ from ml.rl.thrift.core.ttypes import \
     RLParameters, TrainingParameters, DiscreteActionModelParameters
 from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_enum import GridworldEnum
-from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator, \
-    GridworldEnumEvaluator
+from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 
 
@@ -24,21 +23,8 @@ class DataProvider(object):
     @staticmethod
     def envs():
         return [
-            (Gridworld(),),
-            (GridworldEnum(),)
-        ]
-
-    @staticmethod
-    def envs_and_evaluators():
-        return [
-            (
-                Gridworld(),
-                GridworldEvaluator
-            ),
-            (
-                GridworldEnum(),
-                GridworldEnumEvaluator
-            ),
+            (Gridworld(), ),
+            (GridworldEnum(), ),
         ]
 
 
@@ -63,7 +49,8 @@ class TestGridworld(unittest.TestCase):
             optimizer='ADAM',
         )
         return DiscreteActionTrainer(
-            environment.normalization, DiscreteActionModelParameters(
+            environment.normalization,
+            DiscreteActionModelParameters(
                 actions=environment.ACTIONS,
                 rl=rl_parameters,
                 training=training_parameters
@@ -92,8 +79,8 @@ class TestGridworld(unittest.TestCase):
             # layers[-1] should be 1
             DiscreteActionTrainer(env.normalization, invalid_sarsa_params)
 
-    @data_provider(DataProvider.envs_and_evaluators, new_fixture=True)
-    def test_trainer_single_batch_maxq(self, environment, evaluator_class):
+    @data_provider(DataProvider.envs, new_fixture=True)
+    def test_trainer_single_batch_maxq(self, environment):
         maxq_sarsa_parameters = DiscreteActionModelParameters(
             actions=environment.ACTIONS,
             rl=RLParameters(
@@ -122,9 +109,9 @@ class TestGridworld(unittest.TestCase):
             states, actions, rewards, next_states, next_actions, is_terminal,
             possible_next_actions, reward_timelines
         )
-        evaluator = evaluator_class(environment, True)
+        evaluator = GridworldEvaluator(environment, True)
         print("Pre-Training eval", evaluator.evaluate(predictor))
-        self.assertGreater(evaluator.evaluate(predictor), 0.4)
+        self.assertGreater(evaluator.evaluate(predictor), 0.3)
 
         for _ in range(2):
             maxq_trainer.stream_tdp(tdp, None)
@@ -133,12 +120,12 @@ class TestGridworld(unittest.TestCase):
         print("Post-Training eval", evaluator.evaluate(predictor))
         self.assertLess(evaluator.evaluate(predictor), 0.1)
 
-    @data_provider(DataProvider.envs_and_evaluators, new_fixture=True)
-    def test_trainer_single_batch_sarsa(self, environment, evaluator_class):
+    @data_provider(DataProvider.envs, new_fixture=True)
+    def test_trainer_single_batch_sarsa(self, environment):
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
             environment.generate_samples(100000, 1.0)
-        evaluator = evaluator_class(environment, False)
+        evaluator = GridworldEvaluator(environment, False)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         tdp = environment.preprocess_samples(
@@ -153,14 +140,14 @@ class TestGridworld(unittest.TestCase):
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
-    @data_provider(DataProvider.envs_and_evaluators, new_fixture=True)
-    def test_trainer_many_batch_sarsa(self, environment, evaluator_class):
+    @data_provider(DataProvider.envs, new_fixture=True)
+    def test_trainer_many_batch_sarsa(self, environment):
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
             environment.generate_samples(100000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
-        evaluator = evaluator_class(environment, False)
+        evaluator = GridworldEvaluator(environment, False)
         tdp = environment.preprocess_samples(
             states, actions, rewards, next_states, next_actions, is_terminal,
             possible_next_actions, reward_timelines
@@ -169,8 +156,8 @@ class TestGridworld(unittest.TestCase):
         print("Pre-Training eval", evaluator.evaluate(predictor))
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
-        for i in range(0, tdp.size(), 10):
-            trainer.stream_tdp(tdp.get_sub_page(i, i + 10), None)
+        for i in range(0, tdp.size(), 100):
+            trainer.stream_tdp(tdp.get_sub_page(i, i + 100), None)
 
         print("Post-Training eval", evaluator.evaluate(predictor))
         evaluator.evaluate(predictor)

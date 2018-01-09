@@ -5,20 +5,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from typing import Dict, List, Optional
-import numpy as np
+from typing import Dict, List, Tuple
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
 
 from ml.rl.test.gridworld.gridworld import Gridworld
-from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class GridworldEnum(Gridworld):
     @property
+    def num_states(self):
+        return 1
+
+    @property
     def normalization(self):
         return {
-            'f':
+            '0':
             NormalizationParameters(
                 feature_type="ENUM",
                 boxcox_lambda=None,
@@ -30,24 +32,31 @@ class GridworldEnum(Gridworld):
             )
         }
 
-    def preprocess_samples(
-        self,
-        states: List[Dict[str, float]],
-        actions: List[str],
-        rewards: List[float],
-        next_states: List[Dict[str, float]],
-        next_actions: List[str],
-        is_terminals: List[bool],
-        possible_next_actions: List[List[str]],
-        reward_timelines: Optional[List[Dict[int, float]]],
-    ) -> TrainingDataPage:
-        tdp = self.preprocess_samples_discrete(
-            states, actions, rewards, next_states, next_actions, is_terminals,
-            possible_next_actions, reward_timelines
+    def generate_samples(
+        self, num_transitions, epsilon, with_possible=True
+    ) -> Tuple[List[Dict[str, float]], List[str], List[float], List[
+        Dict[str, float]
+    ], List[str], List[bool], List[List[str]], List[Dict[int, float]]]:
+        states, actions, rewards, next_states, next_actions, is_terminals, \
+            possible_next_actions, reward_timelines = Gridworld.generate_samples(
+                self, num_transitions, epsilon, with_possible)
+        enum_states = []
+        for state in states:
+            enum_states.append({'0': float(list(state.keys())[0])})
+        enum_next_states = []
+        for state in next_states:
+            enum_next_states.append({'0': float(list(state.keys())[0])})
+        return (
+            enum_states, actions, rewards, enum_next_states, next_actions,
+            is_terminals, possible_next_actions, reward_timelines
         )
-        tdp.states = np.where(tdp.states == 1.0)[1].reshape(-1, 1
-                                                           ).astype(np.float32)
-        tdp.next_states = np.where(tdp.next_states == 1.0)[1].reshape(
-            -1, 1
-        ).astype(np.float32)
-        return tdp
+
+    def true_values_for_sample(
+        self, enum_states, actions, assume_optimal_policy: bool
+    ):
+        states = []
+        for state in enum_states:
+            states.append({str(int(list(state.values())[0])): 1})
+        return Gridworld.true_values_for_sample(
+            self, states, actions, assume_optimal_policy
+        )

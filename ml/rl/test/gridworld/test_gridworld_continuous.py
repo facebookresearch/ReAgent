@@ -30,28 +30,15 @@ from ml.rl.test.gridworld.gridworld_continuous import \
 from ml.rl.test.gridworld.gridworld_continuous_enum import \
     GridworldContinuousEnum
 from ml.rl.test.gridworld.gridworld_evaluator import \
-    GridworldContinuousEvaluator, GridworldContinuousEnumEvaluator
+    GridworldContinuousEvaluator
 
 
 class DataProvider(object):
     @staticmethod
     def envs():
         return [
-            (GridworldContinuous(),),
-            (GridworldContinuousEnum(),)
-        ]
-
-    @staticmethod
-    def envs_and_evaluators():
-        return [
-            (
-                GridworldContinuous(),
-                GridworldContinuousEvaluator
-            ),
-            (
-                GridworldContinuousEnum(),
-                GridworldContinuousEnumEvaluator
-            ),
+            (GridworldContinuous(), ),
+            (GridworldContinuousEnum(), ),
         ]
 
 
@@ -76,9 +63,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 learning_rate=0.01,
                 optimizer='ADAM',
             ),
-            knn=KnnParameters(
-                model_type='DQN',
-            )
+            knn=KnnParameters(model_type='DQN', )
         )
 
     def get_sarsa_trainer(self, environment):
@@ -87,14 +72,14 @@ class TestGridworldContinuous(unittest.TestCase):
             self.get_sarsa_parameters()
         )
 
-    @data_provider(DataProvider.envs_and_evaluators, new_fixture=True)
-    def test_trainer_single_batch_sarsa(self, environment, evaluator_class):
+    @data_provider(DataProvider.envs, new_fixture=True)
+    def test_trainer_single_batch_sarsa(self, environment):
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
             environment.generate_samples(100000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
-        evaluator = evaluator_class(environment, False)
+        evaluator = GridworldContinuousEvaluator(environment, False)
         tdp = environment.preprocess_samples(
             states, actions, rewards, next_states, next_actions, is_terminal,
             possible_next_actions, reward_timelines
@@ -107,8 +92,8 @@ class TestGridworldContinuous(unittest.TestCase):
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
-    @data_provider(DataProvider.envs_and_evaluators, new_fixture=True)
-    def test_trainer_single_batch_maxq(self, environment, evaluator_class):
+    @data_provider(DataProvider.envs, new_fixture=True)
+    def test_trainer_single_batch_maxq(self, environment):
         rl_parameters = self.get_sarsa_parameters()
         new_rl_parameters = ContinuousActionModelParameters(
             rl=RLParameters(
@@ -133,7 +118,7 @@ class TestGridworldContinuous(unittest.TestCase):
             states, actions, rewards, next_states, next_actions, is_terminal,
             possible_next_actions, reward_timelines
         )
-        evaluator = evaluator_class(environment, True)
+        evaluator = GridworldContinuousEvaluator(environment, True)
         self.assertGreater(evaluator.evaluate(predictor), 0.4)
 
         for _ in range(2):
@@ -161,7 +146,7 @@ class TestGridworldContinuous(unittest.TestCase):
         trainer.stream_tdp(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
-        self.assertLess(evaluator.mc_loss[-1], 0.102)
+        self.assertLess(evaluator.mc_loss[-1], 0.12)
 
     @data_provider(DataProvider.envs, new_fixture=True)
     def test_evaluator_timeline(self, environment):

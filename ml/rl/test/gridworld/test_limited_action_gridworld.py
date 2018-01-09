@@ -29,13 +29,12 @@ IterationResult = collections.namedtuple(
 
 
 def _build_policy(env, predictor, epsilon):
-    eye = np.eye(env.num_states)
-    q_values = predictor.predict(
-        {str(i): eye[i]
-         for i in range(env.num_states)}
-    )
+    states = []
+    for state in range(env.num_states):
+        states.append({state: 1.0})
+    q_values = predictor.predict(states)
     policy_vector = [
-        env.ACTIONS[np.argmax([q_values[action][i] for action in env.ACTIONS])]
+        env.ACTIONS[np.argmax([q_values[i][action] for action in env.ACTIONS])]
         for i in range(env.num_states)
     ]
 

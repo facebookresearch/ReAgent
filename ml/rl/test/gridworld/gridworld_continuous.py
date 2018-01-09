@@ -19,7 +19,14 @@ from ml.rl.training.training_data_page import \
 class GridworldContinuous(GridworldBase):
     @property
     def normalization_action(self):
-        return default_normalizer(self.ACTIONS)
+        return default_normalizer(
+            [
+                str(x)
+                for x in list(
+                    range(self.num_states, self.num_states + self.num_actions)
+                )
+            ]
+        )
 
     def generate_samples(
         self, num_transitions, epsilon, with_possible=True
@@ -30,10 +37,14 @@ class GridworldContinuous(GridworldBase):
             possible_next_actions, reward_timelines =\
             self.generate_samples_discrete(
                 num_transitions, epsilon, with_possible)
-        continuous_actions = [{a: 1.0} for a in actions]
+        continuous_actions = [
+            {
+                str(self.ACTIONS.index(a) + self.num_states): 1.0
+            } for a in actions
+        ]
         continuous_next_actions = [
             {
-                a: 1.0
+                str(self.ACTIONS.index(a) + self.num_states): 1.0
             } if a is not '' else {} for a in next_actions
         ]
         continuous_possible_next_actions = []
@@ -41,7 +52,7 @@ class GridworldContinuous(GridworldBase):
             continuous_possible_next_actions.append(
                 [
                     {
-                        a: 1.0
+                        str(self.ACTIONS.index(a) + self.num_states): 1.0
                     } if a is not None else {} for a in possible_next_action
                 ]
             )
@@ -77,27 +88,29 @@ class GridworldContinuous(GridworldBase):
         x = []
         for state in states:
             a = [0.0] * self.num_states
-            a[int(list(state.keys())[0])] = 1.0
+            a[int(list(state.keys())[0])] = float(list(state.values())[0])
             x.append(a)
         states = np.array(x, dtype=np.float32)
         x = []
         for state in next_states:
             a = [0.0] * self.num_states
-            a[int(list(state.keys())[0])] = 1.0
+            a[int(list(state.keys())[0])] = float(list(state.values())[0])
             x.append(a)
         next_states = np.array(x, dtype=np.float32)
         x = []
         for action in actions:
             a = [0.0] * self.num_actions
             if len(action) > 0:
-                a[self.ACTIONS.index(list(action.keys())[0])] = 1.0
+                a[int(list(action.keys())[0]) - self.num_states] = \
+                    float(list(action.values())[0])
             x.append(a)
         actions = np.array(x, dtype=np.float32)
         x = []
         for action in next_actions:
             a = [0.0] * self.num_actions
             if len(action) > 0:
-                a[self.ACTIONS.index(list(action.keys())[0])] = 1.0
+                a[int(list(action.keys())[0]) - self.num_states] = \
+                    float(list(action.values())[0])
             x.append(a)
         next_actions = np.array(x, dtype=np.float32)
         rewards = np.array(rewards, dtype=np.float32)
@@ -108,7 +121,8 @@ class GridworldContinuous(GridworldBase):
             for action in pnas:
                 a = [0.0] * self.num_actions
                 if len(action) > 0:
-                    a[self.ACTIONS.index(list(action.keys())[0])] = 1.0
+                    a[int(list(action.keys())[0]) - self.num_states] = \
+                        float(list(action.values())[0])
                 pna.append(a)
             continuous_possible_next_actions.append(
                 np.array(pna, dtype=np.float32)
@@ -133,7 +147,9 @@ class GridworldContinuous(GridworldBase):
     ):
         string_actions = []
         for action in actions:
-            string_actions.append(list(action.keys())[0])
+            string_actions.append(
+                self.ACTIONS[int(list(action.keys())[0]) - self.num_states]
+            )
         return GridworldBase.true_values_for_sample(
             self, states, string_actions, assume_optimal_policy
         )
