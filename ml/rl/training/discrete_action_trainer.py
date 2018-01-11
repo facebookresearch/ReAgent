@@ -54,6 +54,9 @@ class DiscreteActionTrainer(RLTrainer):
             self, state_normalization_parameters, parameters, skip_normalization
         )
 
+    def _normalize_actions(self, actions: str) -> str:
+        return actions
+
     @property
     def num_state_features(self) -> int:
         return self.num_processed_state_features
@@ -77,12 +80,10 @@ class DiscreteActionTrainer(RLTrainer):
             # Terminal states' corresponding next_action vectors' values are all 0
             not_terminals = tdp.next_actions.sum(axis=1) >= 1e-6
 
-        # If we encounter GPU out of memory errors, normalize within minibatches
         self.stream(
-            self._normalize_states(tdp.states), tdp.actions, tdp.rewards,
-            self._normalize_states(tdp.next_states), tdp.next_actions,
-            not_terminals, tdp.possible_next_actions, tdp.reward_timelines,
-            evaluator
+            tdp.states, tdp.actions, tdp.rewards, tdp.next_states,
+            tdp.next_actions, not_terminals, tdp.possible_next_actions,
+            tdp.reward_timelines, evaluator
         )
 
     def _setup_initial_blobs(self):

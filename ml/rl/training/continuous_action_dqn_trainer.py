@@ -71,20 +71,13 @@ class ContinuousActionDQNTrainer(RLTrainer):
         return self.num_processed_action_features
 
     def _normalize_actions(self, actions: np.ndarray) -> np.ndarray:
-        """
-        Normalizes input actions and replaces NaNs with 0. Returns a matrix of
-        the same shape. Make sure to have set up the underlying normalization net
-        with `_prepare_action_normalization`.
-
-        :param actions: Numpy array with shape (batch_size, action_dim) containing
-            raw actions inputs
-        """
         if self.skip_normalization:
             return actions
         return normalize_dense_matrix(
-            actions, self._action_features, self._action_normalization_parameters,
-            self.action_norm_blobs, self.action_norm_net,
-            self.action_norm_blobname_template, self.num_action_features
+            actions, self._action_features,
+            self._action_normalization_parameters, self.action_norm_blobs,
+            self.action_norm_net, self.action_norm_blobname_template,
+            self.num_action_features
         )
 
     def _prepare_action_normalization(self):
@@ -132,14 +125,10 @@ class ContinuousActionDQNTrainer(RLTrainer):
                 dtype=np.bool
             )
 
-        # Note: We don't normalize possible_next_actions in here for performance
-        # reasons and memory constraints
         self.stream(
-            self._normalize_states(tdp.states),
-            self._normalize_actions(tdp.actions), tdp.rewards,
-            self._normalize_states(tdp.next_states),
-            self._normalize_actions(tdp.next_actions), not_terminals,
-            tdp.possible_next_actions, tdp.reward_timelines, evaluator
+            tdp.states, tdp.actions, tdp.rewards, tdp.next_states,
+            tdp.next_actions, not_terminals, tdp.possible_next_actions,
+            tdp.reward_timelines, evaluator
         )
 
     def _validate_train_inputs(
@@ -211,8 +200,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
 
         num_total_features = self.num_state_features + self.num_action_features
         inputs_to_score = np.zeros(
-            [total_size, num_total_features],
-            dtype=np.float32
+            [total_size, num_total_features], dtype=np.float32
         )
         cursor = 0
         for i in range(len(next_states)):

@@ -29,9 +29,8 @@ class RLTrainer(MLTrainer):
     def __init__(
         self,
         state_normalization_parameters: Dict[str, NormalizationParameters],
-        parameters: Union[
-            DiscreteActionModelParameters, ContinuousActionModelParameters
-        ],
+        parameters: Union[DiscreteActionModelParameters,
+                          ContinuousActionModelParameters],
         skip_normalization: Optional[bool] = False
     ) -> None:
         print(state_normalization_parameters)
@@ -71,6 +70,18 @@ class RLTrainer(MLTrainer):
             self.state_norm_blobs, self.state_norm_net,
             self.state_norm_blobname_template, self.num_state_features
         )
+
+    def _normalize_actions(self, actions):
+        """
+        Normalizes input actions and replaces NaNs with 0. Returns a matrix of
+        the same shape. Make sure to have set up the underlying normalization net
+        with `_prepare_action_normalization`.
+
+        :param actions: String (discrete actions) or Numpy array (continuous
+            actions) with shape (batch_size, action_dim) containing
+            raw actions inputs
+        """
+        raise NotImplementedError()
 
     def _prepare_state_normalization(self):
         """
@@ -237,7 +248,8 @@ class RLTrainer(MLTrainer):
                     self._buffers[7] = reward_timelines[batch_start:]
             else:
                 na_batch = (
-                    next_actions[batch_start:batch_end]
+                    self.
+                    _normalize_actions(next_actions[batch_start:batch_end])
                     if use_next_actions else None
                 )
                 pna_batch = (
@@ -247,11 +259,18 @@ class RLTrainer(MLTrainer):
                 rt_batch = (
                     reward_timelines[batch_start:batch_end] if use_rt else None
                 )
-                states_batch = states[batch_start:batch_end]
-                actions_batch = actions[batch_start:batch_end]
+                states_batch = self._normalize_states(
+                    states[batch_start:batch_end]
+                )
+                next_states_batch = self._normalize_states(
+                    next_states[batch_start:batch_end]
+                )
+                actions_batch = self._normalize_actions(
+                    actions[batch_start:batch_end]
+                )
                 self.train(
                     states_batch, actions_batch, rewards[batch_start:batch_end],
-                    next_states[batch_start:batch_end], na_batch,
+                    next_states_batch, na_batch,
                     not_terminals[batch_start:batch_end], pna_batch
                 )
                 if evaluator is not None:

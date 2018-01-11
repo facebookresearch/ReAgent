@@ -56,13 +56,13 @@ class PreprocessorNet:
 
         Call this from a CPU context and ensure the input blob exists in it.
         """
-        is_empty_u = blob + "__isempty_u"
-        is_empty_l = blob + "__isempty_l"
-        is_empty = blob + "__isempty"
-        is_not_empty_bool = blob + "__isnotemptybool"
-        is_not_empty = blob + "__isnotempty"
-        output_blob = blob + "_preprocessed"
-        zeros = blob + "_zeros"
+        is_empty_u = self._net.NextBlob(blob + "__isempty_u")
+        is_empty_l = self._net.NextBlob(blob + "__isempty_l")
+        is_empty = self._net.NextBlob(blob + "__isempty")
+        is_not_empty_bool = self._net.NextBlob(blob + "__isnotemptybool")
+        is_not_empty = self._net.NextBlob(blob + "__isnotempty")
+        output_blob = self._net.NextBlob(blob + "_preprocessed")
+        zeros = self._net.NextBlob(blob + "_zeros")
 
         self._net.GT([blob, self.MISSING_L], [is_empty_l], broadcast=1)
         self._net.LT([blob, self.MISSING_U], [is_empty_u], broadcast=1)
@@ -74,26 +74,36 @@ class PreprocessorNet:
         )
         parameters: List[str] = []
         if normalization_parameters.feature_type == identify_types.BINARY:
-            is_gt_zero = blob + "__is_gt_zero"
-            is_lt_zero = blob + "__is_lt_zero"
+            is_gt_zero = self._net.NextBlob(blob + "__is_gt_zero")
+            is_lt_zero = self._net.NextBlob(blob + "__is_lt_zero")
             self._net.GT([blob, self.ZERO], [is_gt_zero], broadcast=1)
             self._net.LT([blob, self.ZERO], [is_lt_zero], broadcast=1)
-            bool_blob = blob + "__bool"
+            bool_blob = self._net.NextBlob(blob + "__bool")
             self._net.Or([is_gt_zero, is_lt_zero], [bool_blob])
             self._net.Cast([bool_blob], [blob], to=caffe2_pb2.TensorProto.FLOAT)
         elif normalization_parameters.feature_type == identify_types.PROBABILITY:
             self._net.Clip([blob], [blob], min=0.01, max=0.99)
             self._net.Logit([blob], [blob])
         elif normalization_parameters.feature_type == identify_types.ENUM:
-            possible_values_blobname = '{}__possible_values'.format(blob)
-            blob_reshaped = "{}__reshaped".format(blob)
-            blob_original_shape = "{}__original_shape".format(blob)
-            output_blob_flattened = "{}__output_flattened".format(blob)
-            output_blob_cast = "{}__output_cast".format(blob)
-            index_size = "{}__index_size".format(blob)
-            one_hot_out = "{}__one_hot_out".format(blob)
-            is_not_empty = "{}__is_not_empty".format(blob)
-            is_not_empty_cast = "{}__is_not_empty_cast".format(blob)
+            possible_values_blobname = self._net.NextBlob(
+                '{}__possible_values'.format(blob)
+            )
+            blob_reshaped = self._net.NextBlob("{}__reshaped".format(blob))
+            blob_original_shape = self._net.NextBlob(
+                "{}__original_shape".format(blob)
+            )
+            output_blob_flattened = self._net.NextBlob(
+                "{}__output_flattened".format(blob)
+            )
+            output_blob_cast = self._net.NextBlob(
+                "{}__output_cast".format(blob)
+            )
+            index_size = self._net.NextBlob("{}__index_size".format(blob))
+            one_hot_out = self._net.NextBlob("{}__one_hot_out".format(blob))
+            is_not_empty = self._net.NextBlob("{}__is_not_empty".format(blob))
+            is_not_empty_cast = self._net.NextBlob(
+                "{}__is_not_empty_cast".format(blob)
+            )
 
             possible_values = normalization_parameters.possible_values
             workspace.FeedBlob(
@@ -134,7 +144,7 @@ class PreprocessorNet:
             # measured by the # of boundaries that are crossed.  We use the >=
             # operator on each quantile to count the number of boundaries
             # crossed.
-            sum_quantile_blob = self._net.NextBlob()
+            sum_quantile_blob = self._net.NextBlob('sum_quantile_blob')
             self._net.ConstantFill([blob], [sum_quantile_blob], value=0.)
             for quantile in normalization_parameters.quantiles:
                 quantile_blob = self._net.NextBlob('quantile_blob')
@@ -175,14 +185,18 @@ class PreprocessorNet:
             blob = sum_quantile_blob
         elif normalization_parameters.feature_type == identify_types.CONTINUOUS:
             if normalization_parameters.boxcox_lambda is not None:
-                boxcox_shift = '{}__boxcox_shift'.format(blob)
+                boxcox_shift = self._net.NextBlob(
+                    '{}__boxcox_shift'.format(blob)
+                )
                 workspace.FeedBlob(
                     boxcox_shift,
                     np.array(
                         normalization_parameters.boxcox_shift, dtype=np.float32
                     )
                 )
-                boxcox_lambda = '{}__boxcox_lambda'.format(blob)
+                boxcox_lambda = self._net.NextBlob(
+                    '{}__boxcox_lambda'.format(blob)
+                )
                 workspace.FeedBlob(
                     boxcox_lambda,
                     np.array(
@@ -205,11 +219,11 @@ class PreprocessorNet:
                     )
                 parameters = [boxcox_lambda, boxcox_shift]
 
-            mean = '{}__preprocess_mean'.format(blob)
+            mean = self._net.NextBlob('{}__preprocess_mean'.format(blob))
             workspace.FeedBlob(
                 mean, np.array(normalization_parameters.mean, dtype=np.float32)
             )
-            stddev = '{}__preprocess_stddev'.format(blob)
+            stddev = self._net.NextBlob('{}__preprocess_stddev'.format(blob))
             workspace.FeedBlob(
                 stddev,
                 np.array(normalization_parameters.stddev, dtype=np.float32)
