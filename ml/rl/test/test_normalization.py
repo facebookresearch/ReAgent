@@ -22,9 +22,11 @@ class TestNormalization(unittest.TestCase):
     def test_prepare_normalization_and_normalize(self):
         feature_value_map = preprocessing_util.read_data()
 
-        normalization_parameters = normalization.identify_parameters(
-            feature_value_map, 10
-        )
+        normalization_parameters = {}
+        for name, values in feature_value_map.items():
+            normalization_parameters[name] = normalization.identify_parameter(
+                values, 10
+            )
         for k, v in normalization_parameters.items():
             if k == 'normal':
                 self.assertEqual(v.feature_type, 'CONTINUOUS')
@@ -225,10 +227,11 @@ class TestNormalization(unittest.TestCase):
 
     def test_persistency(self):
         feature_value_map = preprocessing_util.read_data()
-
-        normalization_parameters = normalization.identify_parameters(
-            feature_value_map
-        )
+        normalization_parameters = {}
+        for name, values in feature_value_map.items():
+            normalization_parameters[name] = normalization.identify_parameter(
+                values
+            )
 
         s = normalization.serialize(normalization_parameters)
         read_parameters = normalization.deserialize(s)
@@ -281,9 +284,11 @@ class TestNormalization(unittest.TestCase):
 
     def test_preprocessing_network(self):
         feature_value_map = preprocessing_util.read_data()
-        normalization_parameters = normalization.identify_parameters(
-            feature_value_map
-        )
+        normalization_parameters = {}
+        for name, values in feature_value_map.items():
+            normalization_parameters[name] = normalization.identify_parameter(
+                values
+            )
         test_features = self.preprocess(
             feature_value_map, normalization_parameters
         )

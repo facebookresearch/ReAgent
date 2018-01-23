@@ -37,9 +37,14 @@ MINIMUM_SAMPLES_TO_IDENTIFY = 20
 DEFAULT_MAX_QUANTILE_SIZE = 20
 
 
-def _identify_parameter(
-    values, feature_type, quantile_size, quantile_k2_threshold
+def identify_parameter(
+    values,
+    max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
+    quantile_size=DEFAULT_MAX_QUANTILE_SIZE,
+    quantile_k2_threshold=DEFAULT_QUANTILE_K2_THRESHOLD,
 ):
+    feature_type = identify_types.identify_type(values, max_unique_enum_values)
+
     boxcox_lambda = None
     boxcox_shift = 0
     mean = 0
@@ -125,28 +130,6 @@ def get_num_output_features(normalization_parmeters):
     )
 
 
-def identify_parameters(
-    feature_value_map,
-    max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
-    quantile_size=DEFAULT_MAX_QUANTILE_SIZE,
-    quantile_k2_threshold=DEFAULT_QUANTILE_K2_THRESHOLD,
-):
-    initial_feature_types = identify_types.identify_types(
-        feature_value_map, max_unique_enum_values
-    )
-    parameters = {}
-    for feature_name, feature_values in feature_value_map.items():
-        if feature_values.shape[0] >= MINIMUM_SAMPLES_TO_IDENTIFY:
-            logger.info("Identifying feature {}".format(feature_name))
-            parameters[feature_name] = _identify_parameter(
-                feature_values, initial_feature_types[feature_name],
-                quantile_size, quantile_k2_threshold
-            )
-        else:
-            logger.info("Feature {} has too few samples".format(feature_name))
-    return parameters
-
-
 def deserialize(parameters_json):
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
@@ -156,8 +139,12 @@ def deserialize(parameters_json):
     return parameters
 
 
+def serialize_one(feature_parameters):
+    return json.dumps(feature_parameters._asdict())
+
+
 def serialize(parameters):
     parameters_json = {}
     for feature, feature_parameters in six.iteritems(parameters):
-        parameters_json[feature] = json.dumps(feature_parameters._asdict())
+        parameters_json[feature] = serialize_one(feature_parameters)
     return parameters_json

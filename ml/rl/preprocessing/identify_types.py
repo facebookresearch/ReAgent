@@ -38,17 +38,14 @@ def _is_enum(feature_values, enum_threshold):
     )
 
 
-def identify_types(feature_values_map, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
-    result = {}
-    for feature_name, values in feature_values_map.items():
-        if _is_binary(values):
-            result[feature_name] = BINARY
-        elif _is_probability(values):
-            result[feature_name] = PROBABILITY
-        elif _is_enum(values, enum_threshold):
-            result[feature_name] = ENUM
-        elif _is_continuous(values):
-            result[feature_name] = CONTINUOUS
-        else:
-            assert False
-    return result
+def identify_type(values, enum_threshold=DEFAULT_MAX_UNIQUE_ENUM):
+    if _is_binary(values):
+        return BINARY
+    elif _is_probability(values):
+        return PROBABILITY
+    elif _is_enum(values, enum_threshold):
+        return ENUM
+    elif _is_continuous(values):
+        return CONTINUOUS
+    else:
+        assert False

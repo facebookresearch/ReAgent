@@ -13,7 +13,9 @@ class TestTypeIdentification(unittest.TestCase):
     def test_identification(self):
         feature_value_map = preprocessing_util.read_data()
 
-        types = identify_types.identify_types(feature_value_map)
+        types = {}
+        for name, values in feature_value_map.items():
+            types[name] = identify_types.identify_type(values)
 
         # Examples through manual inspection
         self.assertEqual(types[identify_types.BINARY], identify_types.BINARY)
