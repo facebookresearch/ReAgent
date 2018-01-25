@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import collections
 import numpy as np
 import random
-import datetime
 from typing import Tuple, List, Dict, Optional
 
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -431,7 +430,6 @@ class GridworldBase(object):
             next_actions=next_actions_one_hot,
             possible_next_actions=possible_next_actions_mask,
             reward_timelines=reward_timelines,
-            ds=[datetime.date.today().strftime('%Y-%m-%d')] * len(states)
         )
 
     def generate_samples(self, num_transitions, epsilon, with_possible=True):

@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import datetime
 import numpy as np
 import random
 from typing import Tuple, Dict, List
@@ -139,7 +138,6 @@ class GridworldContinuous(GridworldBase):
             next_actions=next_actions,
             possible_next_actions=continuous_possible_next_actions,
             reward_timelines=reward_timelines,
-            ds=[datetime.date.today().strftime('%Y-%m-%d')] * len(rewards)
         )
 
     def true_values_for_sample(
