@@ -20,7 +20,11 @@ For mac users, we recommend using [Anaconda](https://www.continuum.io/downloads)
 
 BlueWhale runs on any platform that supports caffe2. To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
 
-You may need to override caffe2's cmake defaults to use homebrew's protoc instead of Anaconda's protoc and to use Anaconda's Python instead of system Python.
+You may need to override caffe2's cmake defaults to use homebrew's protoc instead of Anaconda's protoc and to use Anaconda's Python instead of system Python.  Also add the following switch when running cmake to make sure caffe2 uses python3:
+
+```
+cmake -DPYTHON_EXECUTABLE=`which python3`
+```
 
 
 ### Thrift
