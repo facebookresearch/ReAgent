@@ -7,8 +7,6 @@ import random
 import numpy as np
 import unittest
 
-from libfb.py.testutil import data_provider
-
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.thrift.core.ttypes import \
@@ -17,15 +15,6 @@ from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_enum import GridworldEnum
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
-
-
-class DataProvider(object):
-    @staticmethod
-    def envs():
-        return [
-            (Gridworld(), ),
-            (GridworldEnum(), ),
-        ]
 
 
 class TestGridworld(unittest.TestCase):
@@ -79,8 +68,8 @@ class TestGridworld(unittest.TestCase):
             # layers[-1] should be 1
             DiscreteActionTrainer(env.normalization, invalid_sarsa_params)
 
-    @data_provider(DataProvider.envs, new_fixture=True)
-    def test_trainer_single_batch_maxq(self, environment):
+    def test_trainer_single_batch_maxq(self):
+        environment = Gridworld()
         maxq_sarsa_parameters = DiscreteActionModelParameters(
             actions=environment.ACTIONS,
             rl=RLParameters(
@@ -120,8 +109,8 @@ class TestGridworld(unittest.TestCase):
         print("Post-Training eval", evaluator.evaluate(predictor))
         self.assertLess(evaluator.evaluate(predictor), 0.1)
 
-    @data_provider(DataProvider.envs, new_fixture=True)
-    def test_trainer_single_batch_sarsa(self, environment):
+    def test_trainer_single_batch_sarsa(self):
+        environment = Gridworld()
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
             environment.generate_samples(100000, 1.0)
@@ -140,8 +129,28 @@ class TestGridworld(unittest.TestCase):
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
-    @data_provider(DataProvider.envs, new_fixture=True)
-    def test_trainer_many_batch_sarsa(self, environment):
+    def test_trainer_single_batch_sarsa_enum(self):
+        environment = GridworldEnum()
+        states, actions, rewards, next_states, next_actions, is_terminal,\
+            possible_next_actions, reward_timelines = \
+            environment.generate_samples(100000, 1.0)
+        evaluator = GridworldEvaluator(environment, False)
+        trainer = self.get_sarsa_trainer(environment)
+        predictor = trainer.predictor()
+        tdp = environment.preprocess_samples(
+            states, actions, rewards, next_states, next_actions, is_terminal,
+            possible_next_actions, reward_timelines
+        )
+
+        self.assertGreater(evaluator.evaluate(predictor), 0.15)
+
+        trainer.stream_tdp(tdp, None)
+        evaluator.evaluate(predictor)
+
+        self.assertLess(evaluator.evaluate(predictor), 0.05)
+
+    def test_trainer_many_batch_sarsa(self):
+        environment = Gridworld()
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
             environment.generate_samples(100000, 1.0)
@@ -164,8 +173,8 @@ class TestGridworld(unittest.TestCase):
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
-    @data_provider(DataProvider.envs, new_fixture=True)
-    def test_evaluator_ground_truth(self, environment):
+    def test_evaluator_ground_truth(self):
+        environment = Gridworld()
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, _ = environment.generate_samples(100000, 1.0)
         true_values = environment.true_values_for_sample(states, actions, False)
@@ -185,8 +194,8 @@ class TestGridworld(unittest.TestCase):
         self.assertLess(evaluator.td_loss[-1], 0.05)
         self.assertLess(evaluator.mc_loss[-1], 0.05)
 
-    @data_provider(DataProvider.envs, new_fixture=True)
-    def test_evaluator_timeline(self, environment):
+    def test_evaluator_timeline(self):
+        environment = Gridworld()
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
             environment.generate_samples(100000, 1.0)

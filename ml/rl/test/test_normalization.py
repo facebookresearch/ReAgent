@@ -118,8 +118,7 @@ class TestNormalization(unittest.TestCase):
         normalization_parameters = {
             feature_name_1:
             NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [12.0, 4.2, 2.1],
-                None
+                identify_types.ENUM, None, None, None, None, [12, 4, 2], None
             ),
             feature_name_2:
             NormalizationParameters(
@@ -127,20 +126,17 @@ class TestNormalization(unittest.TestCase):
             ),
             feature_name_3:
             NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [15.1, -3.2], None
+                identify_types.ENUM, None, None, None, None, [15, 3], None
             )
         }
 
         feature_value_map = {
             feature_name_1:
-            np.array([2.1, 4.2, 12.0, 12.0], dtype=np.float32),
+            np.array([2, 4, 12, 12], dtype=np.float32),
             feature_name_2:
             np.array([1.9, 2.2, 5.0, 1.0], dtype=np.float32),
             feature_name_3:
-            np.array(
-                [-3.2, -3.2, 15.1, normalization.MISSING_VALUE],
-                dtype=np.float32
-            )
+            np.array([3, 3, 15, normalization.MISSING_VALUE], dtype=np.float32)
         }
 
         features = list(feature_value_map.keys())
@@ -181,8 +177,7 @@ class TestNormalization(unittest.TestCase):
         normalization_parameters = {
             'f1':
             NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [12.0, 4.2, 2.1],
-                None
+                identify_types.ENUM, None, None, None, None, [12, 4, 2], None
             ),
             'f2':
             NormalizationParameters(
@@ -190,7 +185,7 @@ class TestNormalization(unittest.TestCase):
             ),
             'f3':
             NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [15.1, -3.2], None
+                identify_types.ENUM, None, None, None, None, [15, 3], None
             )
         }
         features = list(normalization_parameters.keys())
@@ -203,8 +198,8 @@ class TestNormalization(unittest.TestCase):
 
         inputs = np.array(
             [
-                [12.0, 1.0, 15.1], [4.2, 2.0, -3.2], [2.1, 3.0, 15.1],
-                [2.1, 3.0, normalization.MISSING_VALUE]
+                [12, 1.0, 15], [4, 2.0, 3], [2, 3.0, 15],
+                [2, 3.0, normalization.MISSING_VALUE]
             ],
             dtype=np.float32
         )

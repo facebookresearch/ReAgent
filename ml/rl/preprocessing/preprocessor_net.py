@@ -18,8 +18,6 @@ from ml.rl.preprocessing.normalization import NormalizationParameters,\
 import logging
 logger = logging.getLogger(__name__)
 
-dyndep.InitOpsLibrary('@/caffe2/caffe2/fb/operators:replace_values_op')
-
 
 class PreprocessorNet:
     ONE = 'ONE'
@@ -85,49 +83,45 @@ class PreprocessorNet:
             self._net.Clip([blob], [blob], min=0.01, max=0.99)
             self._net.Logit([blob], [blob])
         elif normalization_parameters.feature_type == identify_types.ENUM:
-            possible_values_blobname = self._net.NextBlob(
-                '{}__possible_values'.format(blob)
-            )
-            blob_reshaped = self._net.NextBlob("{}__reshaped".format(blob))
-            blob_original_shape = self._net.NextBlob(
-                "{}__original_shape".format(blob)
-            )
-            output_blob_flattened = self._net.NextBlob(
-                "{}__output_flattened".format(blob)
-            )
-            output_blob_cast = self._net.NextBlob(
-                "{}__output_cast".format(blob)
-            )
-            index_size = self._net.NextBlob("{}__index_size".format(blob))
-            one_hot_out = self._net.NextBlob("{}__one_hot_out".format(blob))
             is_not_empty = self._net.NextBlob("{}__is_not_empty".format(blob))
             is_not_empty_cast = self._net.NextBlob(
                 "{}__is_not_empty_cast".format(blob)
             )
 
-            possible_values = normalization_parameters.possible_values
-            workspace.FeedBlob(
-                possible_values_blobname,
-                np.array(possible_values, dtype=np.float32)
-            )
-            parameters.append(possible_values_blobname)
-            workspace.FeedBlob(index_size, np.array(len(possible_values)))
-            parameters.append(index_size)
+            possible_values = [
+                int(x) for x in normalization_parameters.possible_values
+            ]
 
-            self._net.Reshape(
-                [blob], [blob_reshaped, blob_original_shape], shape=[1, -1]
+            flat_blob = self._net.NextBlob('flat_blob')
+            self._net.FlattenToVec([blob], [flat_blob])
+            values_blob = self._net.NextBlob('values_blob')
+            self._net.ConstantFill(
+                [flat_blob],
+                [values_blob],
+                value=1.0,
+                dtype=core.DataType.FLOAT,
             )
-            self._net.ReplaceValuesOp(
-                [blob_reshaped, possible_values_blobname], [output_blob]
+            one_length_blob = self._net.NextBlob('one_length_blob')
+            self._net.ConstantFill(
+                [flat_blob],
+                [one_length_blob],
+                value=1,
+                dtype=core.DataType.INT32,
             )
-            self._net.FlattenToVec([output_blob], [output_blob_flattened])
+            int_blob = self._net.NextBlob('int_blob')
             self._net.Cast(
-                [output_blob_flattened], [output_blob_cast],
-                to=caffe2_pb2.TensorProto.INT64
+                [flat_blob], [int_blob], to=caffe2_pb2.TensorProto.INT32
             )
-            self._net.OneHot([output_blob_cast, index_size], [one_hot_out])
-            self._net.Cast(
-                [one_hot_out], [blob], to=caffe2_pb2.TensorProto.FLOAT
+            default_values = self._net.NextBlob('default_values')
+            output_without_missing = self._net.NextBlob(
+                'output_without_missing'
+            )
+            workspace.FeedBlob(default_values, np.array(0.0, dtype=np.float32))
+            parameters.append(default_values)
+            self._net.SparseToDenseMask(
+                [int_blob, values_blob, default_values, one_length_blob],
+                [output_without_missing],
+                mask=list(possible_values),
             )
             self._net.Not([is_empty], [is_not_empty])
             self._net.Cast(
@@ -135,7 +129,9 @@ class PreprocessorNet:
                 to=caffe2_pb2.TensorProto.FLOAT
             )
             self._net.Mul(
-                [blob, is_not_empty_cast], [output_blob], broadcast=1, axis=0
+                [output_without_missing, is_not_empty_cast], [output_blob],
+                broadcast=1,
+                axis=0
             )
             return output_blob, parameters
         elif normalization_parameters.feature_type == identify_types.QUANTILE:

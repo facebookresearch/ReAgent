@@ -20,16 +20,13 @@ def get_file_path(file_name):
 
 
 class TestOpenAIGym(unittest.TestCase):
-
     def _test(self, param_fname, score_bar):
         param_file_path = get_file_path(param_fname)
-        results = main(
-            ['-p', param_file_path, '-s', str(score_bar)]
-        )
+        results = main(['-p', param_file_path, '-s', str(score_bar)])
         self.assertGreater(results[-1], score_bar)
 
-    # def test_maxq_cartpole_v0(self):
-    #     self._test("maxq_cartpole_v0.json", 180.0)
+    def test_maxq_cartpole_v0(self):
+        self._test("maxq_cartpole_v0.json", 180.0)
 
-    def test_asteroids_v0(self):
-        self._test("maxq_asteroids_v0.json", 200.0)
+    # def test_asteroids_v0(self):
+    #     self._test("maxq_asteroids_v0.json", 200.0)

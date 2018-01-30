@@ -51,9 +51,8 @@ class OpenAIGymEnvironment:
 
         if not supports_state and supports_action:
             raise Exception(
-                "Unsupported environment state or action type: {}, {}".format(
-                    self.env.observation_space, self.env.action_space
-                )
+                "Unsupported environment state or action type: {}, {}".
+                format(self.env.observation_space, self.env.action_space)
             )
 
         self.action_dim = self.env.action_space.n
@@ -96,8 +95,8 @@ class OpenAIGymEnvironment:
             np.array(rewards, dtype=np.float32),
             np.array(next_states, dtype=np.float32),
             np.array(next_actions, dtype=np.float32),
-            np.array(possible_next_actions, dtype=np.float32),
-            None, None, np.logical_not(terminals, dtype=np.bool)
+            np.array(possible_next_actions, dtype=np.float32), None,
+            np.logical_not(terminals, dtype=np.bool)
         )
 
     @property
