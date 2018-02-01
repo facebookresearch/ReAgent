@@ -44,7 +44,8 @@ def run(
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
                 trainer.stream_tdp(
-                    env.get_training_data_page(train_batch_size), evaluator=None
+                    env.get_training_data_page(train_batch_size),
+                    evaluator=None
                 )
         if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
             reward_sum = 0.0
@@ -75,25 +76,29 @@ def main(args):
     parser.add_argument(
         "-p",
         "--parameters",
-        help="Path to JSON parameters file."
+        help="Path to JSON parameters file.",
     )
     parser.add_argument(
         "-s",
         "--score-bar",
         help="Bar for averaged tests scores.",
         type=float,
-        default=None
+        default=None,
     )
     parser.add_argument(
         "-g",
         "--gpu_id",
         help="If set, will use GPU with specified ID. Otherwise will use CPU.",
-        default=USE_CPU
+        default=USE_CPU,
     )
     args = parser.parse_args(args)
     with open(args.parameters, 'r') as f:
         params = json.load(f)
 
+    return run_gym(params, args.score_bar, args.gpu_id)
+
+
+def run_gym(params, score_bar, gpu_id):
     rl_settings = params['rl']
     training_settings = params['training']
     rl_settings['gamma'] = rl_settings['reward_discount_factor']
@@ -110,8 +115,8 @@ def main(args):
     )
 
     device = core.DeviceOption(
-        caffe2_pb2.CPU if args.gpu_id == USE_CPU else caffe2_pb2.CUDA,
-        args.gpu_id
+        caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA,
+        gpu_id,
     )
     with core.DeviceScope(device):
         if env.img:
@@ -129,7 +134,7 @@ def main(args):
                 env.normalization, trainer_params, skip_normalization=True
             )
         return run(
-            env, trainer, "{} test run".format(env_type), args.score_bar,
+            env, trainer, "{} test run".format(env_type), score_bar,
             **params["run_details"]
         )
 

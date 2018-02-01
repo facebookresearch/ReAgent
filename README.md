@@ -26,6 +26,9 @@ You may need to override caffe2's cmake defaults to use homebrew's protoc instea
 cmake -DPYTHON_EXECUTABLE=`which python3`
 ```
 
+Also make sure cmake is using the **homebrew** version of thrift, google log, etc..  Sometimes caffe2
+will try to use the anaconda version of these libraries, and that will almost certainly cause
+errors.
 
 ### Thrift
 [Thrift](https://github.com/facebook/fbthrift) is Facebook's RPC framework.
@@ -61,7 +64,7 @@ thrift --gen py --out . ml/rl/thrift/core.thrift
 
 To access caffe2 and import our modules:
 ```
-export PYTHONPATH=/usr/local:$PYTHONPATH
+export PYTHONPATH=/usr/local:./:$PYTHONPATH
 ```
 
 # Running Unit Tests
