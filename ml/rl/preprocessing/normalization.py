@@ -42,6 +42,8 @@ def identify_parameter(
     max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
     quantile_size=DEFAULT_MAX_QUANTILE_SIZE,
     quantile_k2_threshold=DEFAULT_QUANTILE_K2_THRESHOLD,
+    skip_box_cox=False,
+    skip_quantiles=False,
 ):
     feature_type = identify_types.identify_type(values, max_unique_enum_values)
 
@@ -88,9 +90,10 @@ def identify_parameter(
                    not np.isclose(stddev, 0):
                     values = candidate_values
                     boxcox_lambda = float(lmbda)
-        if boxcox_lambda is None:
+        if boxcox_lambda is None or skip_box_cox:
             boxcox_shift = None
-        if boxcox_lambda is None and k2_original > quantile_k2_threshold:
+            boxcox_lambda = None
+        if boxcox_lambda is None and k2_original > quantile_k2_threshold and (not skip_quantiles):
             feature_type = identify_types.QUANTILE
             quantiles = mquantiles(
                 values,
