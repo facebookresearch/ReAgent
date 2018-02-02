@@ -44,8 +44,10 @@ def identify_parameter(
     quantile_k2_threshold=DEFAULT_QUANTILE_K2_THRESHOLD,
     skip_box_cox=False,
     skip_quantiles=False,
+    feature_type=None
 ):
-    feature_type = identify_types.identify_type(values, max_unique_enum_values)
+    if feature_type is None:
+        feature_type = identify_types.identify_type(values, max_unique_enum_values)
 
     boxcox_lambda = None
     boxcox_shift = 0

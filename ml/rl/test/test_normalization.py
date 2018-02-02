@@ -333,3 +333,15 @@ class TestNormalization(unittest.TestCase):
                     test_features[feature_name][non_matching].tolist()
                 )
             )
+
+    def test_type_override(self):
+        # Take a feature that should be identified as probability
+        feature_value_map = preprocessing_util.read_data()
+        probability_values = feature_value_map[identify_types.PROBABILITY]
+
+        # And ask for a binary anyways
+        parameter = normalization.identify_parameter(
+            probability_values,
+            feature_type=identify_types.BINARY
+        )
+        self.assertEqual(parameter.feature_type, 'BINARY')
