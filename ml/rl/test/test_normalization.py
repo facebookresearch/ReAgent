@@ -19,6 +19,23 @@ from ml.rl.preprocessing.normalization import NormalizationParameters
 
 
 class TestNormalization(unittest.TestCase):
+    def _value_to_quantile(self, original_value, quantiles):
+        n_quantiles = len(quantiles)
+        right = np.searchsorted(quantiles, original_value)
+        if right == 0:
+            interpolated = 0.0
+        elif right == n_quantiles:
+            interpolated = 1.0
+        elif quantiles[right] == original_value:
+            interpolated = (right - 1) / float(n_quantiles)
+        else:
+            left = right - 1
+            step = 1.0 / float(n_quantiles) \
+                / (quantiles[right] - quantiles[left])
+            interpolated = left / float(n_quantiles) + \
+                step * (original_value - quantiles[left])
+        return interpolated
+
     def test_prepare_normalization_and_normalize(self):
         feature_value_map = preprocessing_util.read_data()
 
@@ -88,15 +105,11 @@ class TestNormalization(unittest.TestCase):
                         np.where(row == 1)[0][0]
                     )
             elif feature_type == identify_types.QUANTILE:
-                quantiles = normalization_parameters[k].quantiles
                 for i, feature in enumerate(v[0]):
                     original_feature = feature_value_map[k][i]
-                    count = 0
-                    for quantile in quantiles:
-                        if original_feature >= quantile:
-                            count += 1
-                    count /= float(len(quantiles))
-                    self.assertAlmostEqual(feature, count, 2)
+                    expected = self._value_to_quantile(
+                        original_feature, normalization_parameters[k].quantiles)
+                    self.assertAlmostEqual(feature, expected, 2)
             elif feature_type == identify_types.BINARY:
                 pass
             elif feature_type == identify_types.CONTINUOUS:
@@ -249,11 +262,11 @@ class TestNormalization(unittest.TestCase):
             feature = np.clip(feature, 0.01, 0.99)
             feature = special.logit(feature)
         elif parameters.feature_type == identify_types.QUANTILE:
-            quantiles = parameters.quantiles
-            values = np.zeros(feature.shape)
-            for quantile in quantiles:
-                values += feature >= quantile
-            feature = values / float(len(quantiles))
+            transformed_feature = np.zeros_like(feature)
+            for i in six.moves.range(feature.shape[0]):
+                transformed_feature[i] = self._value_to_quantile(feature[i],
+                    parameters.quantiles)
+            feature = transformed_feature
         elif parameters.feature_type == identify_types.ENUM:
             possible_values = parameters.possible_values
             mapping = {}
@@ -298,14 +311,18 @@ class TestNormalization(unittest.TestCase):
 
         workspace.CreateNet(net)
 
-        for feature_name in feature_value_map:
-            workspace.FeedBlob(feature_name, feature_value_map[feature_name])
+        for feature_name, feature_value in six.iteritems(feature_value_map):
+            feature_value = np.expand_dims(feature_value, -1)
+            workspace.FeedBlob(feature_name, feature_value)
         workspace.RunNetOnce(net)
 
         for feature_name in feature_value_map:
             normalized_features = workspace.FetchBlob(
                 feature_name + "_preprocessed"
             )
+            if feature_name != identify_types.ENUM:
+                normalized_features = np.squeeze(normalized_features, -1)
+
             tolerance = 0.01
             if feature_name == 'boxcox':
                 # At the limit, boxcox has some numerical instability

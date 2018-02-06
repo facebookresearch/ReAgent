@@ -136,49 +136,27 @@ class PreprocessorNet:
             return output_blob, parameters
         elif normalization_parameters.feature_type == identify_types.QUANTILE:
             # This transformation replaces a set of values with their quantile.
-            # The quantile boundaries are provided, so the quantile index can be
-            # measured by the # of boundaries that are crossed.  We use the >=
-            # operator on each quantile to count the number of boundaries
-            # crossed.
-            sum_quantile_blob = self._net.NextBlob('sum_quantile_blob')
-            self._net.ConstantFill([blob], [sum_quantile_blob], value=0.)
-            for quantile in normalization_parameters.quantiles:
-                quantile_blob = self._net.NextBlob('quantile_blob')
-                workspace.FeedBlob(
-                    quantile_blob, np.array([quantile], dtype=np.float32)
-                )
-                parameters.append(quantile_blob)
+            # The quantile boundaries are provided in the normalization params.
 
-                quantile_ge_blob = self._net.NextBlob('quantile_ge_blob')
-                self._net.GE(
-                    [blob, quantile_blob], [quantile_ge_blob], broadcast=1
-                )
-                quantile_ge_blob_float = self._net.NextBlob(
-                    'quantile_ge_blob_float'
-                )
-                self._net.Cast(
-                    [quantile_ge_blob], [quantile_ge_blob_float],
-                    to=caffe2_pb2.TensorProto.FLOAT
-                )
-                self._net.Add(
-                    [sum_quantile_blob, quantile_ge_blob_float],
-                    [sum_quantile_blob]
-                )
-            num_quantiles = self._net.NextBlob('num_quantiles')
-            workspace.FeedBlob(
-                num_quantiles,
-                np.array(
-                    [len(normalization_parameters.quantiles)], dtype=np.float32
-                )
-            )
-            parameters.append(num_quantiles)
-            # Divide by the number of quantiles to normalize to the range [0,1]
-            self._net.Div(
-                [sum_quantile_blob, num_quantiles], [sum_quantile_blob],
-                broadcast=1,
-                axis=0
-            )
-            blob = sum_quantile_blob
+            quantile_blob = self._net.NextBlob('quantile_blob')
+            num_boundaries_blob = self._net.NextBlob('num_boundaries_blob')
+            quantile_size = len(normalization_parameters.quantiles)
+            workspace.FeedBlob(num_boundaries_blob, np.array(
+                [quantile_size], dtype=np.int32))
+            parameters.append(num_boundaries_blob)
+
+            quantiles_blob = self._net.NextBlob('quantiles_blob')
+            quantile_values = np.array(
+                normalization_parameters.quantiles, dtype=np.float32)
+            quantile_labels = np.arange(
+                quantile_size, dtype=np.float32) / float(quantile_size)
+            quantiles = np.vstack([quantile_values, quantile_labels]).T
+            workspace.FeedBlob(quantiles_blob, quantiles)
+            parameters.append(quantiles_blob)
+
+            self._net.Percentile(
+                [blob, quantiles_blob, num_boundaries_blob], [quantile_blob])
+            blob = quantile_blob
         elif normalization_parameters.feature_type == identify_types.CONTINUOUS:
             if normalization_parameters.boxcox_lambda is not None:
                 boxcox_shift = self._net.NextBlob(
