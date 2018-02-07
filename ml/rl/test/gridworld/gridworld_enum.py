@@ -27,7 +27,7 @@ class GridworldEnum(Gridworld):
                 boxcox_shift=None,
                 mean=None,
                 stddev=None,
-                possible_values=[float(i) for i in range(len(self.STATES))],
+                possible_values=list(range(len(self.STATES))),
                 quantiles=None,
             )
         }

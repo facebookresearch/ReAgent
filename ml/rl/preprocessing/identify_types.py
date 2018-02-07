@@ -33,8 +33,9 @@ def _is_continuous(feature_values):
 def _is_enum(feature_values, enum_threshold):
     are_all_ints = np.vectorize(lambda val: float(val).is_integer())
     return (
-        len(np.unique(feature_values)) <= enum_threshold and
-        np.all(are_all_ints(feature_values))
+        np.min(feature_values) >= 0 and  # All values must be positive
+        len(np.unique(feature_values)) <= enum_threshold
+        and np.all(are_all_ints(feature_values))
     )
 
 

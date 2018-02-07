@@ -39,12 +39,12 @@ class TestOpenAIGym(unittest.TestCase):
                   "linear"
                 ],
                 "minibatch_size": 128,
-                "learning_rate": 0.005,
+                "learning_rate": 0.05,
                 "optimizer": "ADAM",
                 "learning_rate_decay": 0.999
               },
               "run_details": {
-                "num_episodes": 101,
+                "num_episodes": 201,
                 "train_every": 10,
                 "train_after": 10,
                 "test_every": 100,

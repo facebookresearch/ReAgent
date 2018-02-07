@@ -88,9 +88,19 @@ class PreprocessorNet:
                 "{}__is_not_empty_cast".format(blob)
             )
 
-            possible_values = [
-                int(x) for x in normalization_parameters.possible_values
-            ]
+            possible_values = normalization_parameters.possible_values
+            for x in possible_values:
+                if x < 0:
+                    logger.fatal(
+                        "Invalid enum possible value for feature " + blob + ": "
+                        + str(x) + " " +
+                        str(normalization_parameters.possible_values)
+                    )
+                    raise Exception(
+                        "Invalid enum possible value for feature " + blob + ": "
+                        + str(x) + " " +
+                        str(normalization_parameters.possible_values)
+                    )
 
             flat_blob = self._net.NextBlob('flat_blob')
             self._net.FlattenToVec([blob], [flat_blob])
@@ -122,6 +132,7 @@ class PreprocessorNet:
                 [int_blob, values_blob, default_values, one_length_blob],
                 [output_without_missing],
                 mask=list(possible_values),
+                max_skipped_indices=int(1e9),
             )
             self._net.Not([is_empty], [is_not_empty])
             self._net.Cast(

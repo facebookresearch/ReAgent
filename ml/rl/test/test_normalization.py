@@ -27,7 +27,7 @@ class TestNormalization(unittest.TestCase):
         elif right == n_quantiles:
             interpolated = 1.0
         elif quantiles[right] == original_value:
-            interpolated = (right - 1) / float(n_quantiles)
+            interpolated = right / float(n_quantiles)
         else:
             left = right - 1
             step = 1.0 / float(n_quantiles) \
@@ -108,7 +108,8 @@ class TestNormalization(unittest.TestCase):
                 for i, feature in enumerate(v[0]):
                     original_feature = feature_value_map[k][i]
                     expected = self._value_to_quantile(
-                        original_feature, normalization_parameters[k].quantiles)
+                        original_feature, normalization_parameters[k].quantiles
+                    )
                     self.assertAlmostEqual(feature, expected, 2)
             elif feature_type == identify_types.BINARY:
                 pass
@@ -264,8 +265,9 @@ class TestNormalization(unittest.TestCase):
         elif parameters.feature_type == identify_types.QUANTILE:
             transformed_feature = np.zeros_like(feature)
             for i in six.moves.range(feature.shape[0]):
-                transformed_feature[i] = self._value_to_quantile(feature[i],
-                    parameters.quantiles)
+                transformed_feature[i] = self._value_to_quantile(
+                    feature[i], parameters.quantiles
+                )
             feature = transformed_feature
         elif parameters.feature_type == identify_types.ENUM:
             possible_values = parameters.possible_values
@@ -358,7 +360,6 @@ class TestNormalization(unittest.TestCase):
 
         # And ask for a binary anyways
         parameter = normalization.identify_parameter(
-            probability_values,
-            feature_type=identify_types.BINARY
+            probability_values, feature_type=identify_types.BINARY
         )
         self.assertEqual(parameter.feature_type, 'BINARY')

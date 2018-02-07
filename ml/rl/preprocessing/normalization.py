@@ -24,7 +24,7 @@ NormalizationParameters = namedtuple(
         'boxcox_shift',
         'mean',
         'stddev',
-        'possible_values',  # Assume present for ENUM type and sorted
+        'possible_values',  # Assume present for ENUM type
         'quantiles',  # Assume present for QUANTILE type and sorted
     ]
 )
@@ -47,7 +47,9 @@ def identify_parameter(
     feature_type=None
 ):
     if feature_type is None:
-        feature_type = identify_types.identify_type(values, max_unique_enum_values)
+        feature_type = identify_types.identify_type(
+            values, max_unique_enum_values
+        )
 
     boxcox_lambda = None
     boxcox_shift = 0
@@ -95,12 +97,18 @@ def identify_parameter(
         if boxcox_lambda is None or skip_box_cox:
             boxcox_shift = None
             boxcox_lambda = None
-        if boxcox_lambda is None and k2_original > quantile_k2_threshold and (not skip_quantiles):
+        if boxcox_lambda is None and k2_original > quantile_k2_threshold and (
+            not skip_quantiles
+        ):
             feature_type = identify_types.QUANTILE
-            quantiles = mquantiles(
-                values,
-                np.arange(quantile_size, dtype=np.float32) /
-                float(quantile_size)
+            quantiles = np.unique(
+                mquantiles(
+                    values,
+                    np.arange(quantile_size + 1, dtype=np.float32) /
+                    float(quantile_size),
+                    alphap=0.0,
+                    betap=1.0,
+                )
             ).astype(float).tolist()
             logger.info(
                 "Feature is non-normal, using quantiles: {}".format(quantiles)
@@ -115,7 +123,7 @@ def identify_parameter(
         values /= stddev
 
     if feature_type == identify_types.ENUM:
-        possible_values = np.unique(values).astype(float).tolist()
+        possible_values = np.unique(values.astype(int)).tolist()
 
     return NormalizationParameters(
         feature_type, boxcox_lambda, boxcox_shift, mean, stddev,
@@ -138,9 +146,19 @@ def get_num_output_features(normalization_parmeters):
 def deserialize(parameters_json):
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
-        parameters[feature] = NormalizationParameters(
-            **json.loads(feature_parameters)
-        )
+        params = NormalizationParameters(**json.loads(feature_parameters))
+        # Check for negative enum IDs
+        if params.feature_type == identify_types.ENUM:
+            for x in params.possible_values:
+                if x < 0:
+                    logger.fatal(
+                        "Invalid enum ID: " + str(x) + " in feature: " + feature
+                        + " with possible_values " +
+                        str(params.possible_values) + " (raw: " +
+                        feature_parameters + ")"
+                    )
+                    raise Exception("Invalid enum ID")
+        parameters[feature] = params
     return parameters
 
 
