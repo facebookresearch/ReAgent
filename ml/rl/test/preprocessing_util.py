@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import numpy as np
 from scipy import stats
 
-from ml.rl.preprocessing.identify_types import BINARY, QUANTILE, ENUM, PROBABILITY
+from ml.rl.preprocessing.identify_types import BINARY, CONTINUOUS, BOXCOX, \
+    QUANTILE, ENUM, PROBABILITY
 
 
 def read_data():
@@ -15,15 +16,26 @@ def read_data():
     feature_value_map[BINARY] = stats.bernoulli.rvs(
         0.5, size=10000
     ).astype(np.float32)
-    feature_value_map['normal'] = stats.norm.rvs(size=10000).astype(np.float32)
-    feature_value_map['boxcox'] = stats.expon.rvs(size=10000).astype(np.float32)
+    feature_value_map[BINARY + "_2"] = stats.bernoulli.rvs(
+        0.5, size=10000
+    ).astype(np.float32)
+    feature_value_map[CONTINUOUS] = \
+        stats.norm.rvs(size=10000).astype(np.float32)
+    feature_value_map[CONTINUOUS +
+                      "_2"] = stats.norm.rvs(size=10000).astype(np.float32)
+    feature_value_map[BOXCOX] = stats.expon.rvs(size=10000).astype(np.float32)
     feature_value_map[ENUM] = (stats.randint.rvs(0, 10, size=10000) *
                                1000).astype(np.float32)
     feature_value_map[QUANTILE] = np.concatenate(
-        (stats.norm.rvs(size=10000), stats.expon.rvs(size=10000))
+        (stats.norm.rvs(size=5000), stats.expon.rvs(size=5000))
     ).astype(np.float32)
     feature_value_map[PROBABILITY] = stats.beta.rvs(
         a=2.0, b=2.0, size=10000
     ).astype(np.float32)
 
-    return feature_value_map
+    features = [
+        BINARY, BINARY + '_2', PROBABILITY, CONTINUOUS, CONTINUOUS + '_2',
+        BOXCOX, ENUM, QUANTILE
+    ]
+
+    return features, feature_value_map

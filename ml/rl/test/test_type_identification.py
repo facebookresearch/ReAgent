@@ -11,7 +11,7 @@ from ml.rl.test import preprocessing_util
 
 class TestTypeIdentification(unittest.TestCase):
     def test_identification(self):
-        feature_value_map = preprocessing_util.read_data()
+        _, feature_value_map = preprocessing_util.read_data()
 
         types = {}
         for name, values in feature_value_map.items():
@@ -19,8 +19,14 @@ class TestTypeIdentification(unittest.TestCase):
 
         # Examples through manual inspection
         self.assertEqual(types[identify_types.BINARY], identify_types.BINARY)
-        self.assertEqual(types['normal'], identify_types.CONTINUOUS)
-        self.assertEqual(types['boxcox'], identify_types.CONTINUOUS)
+        self.assertEqual(
+            types[identify_types.CONTINUOUS], identify_types.CONTINUOUS
+        )
+
+        # We don't yet know the boxcox type
+        self.assertEqual(
+            types[identify_types.BOXCOX], identify_types.CONTINUOUS
+        )
 
         # We don't yet know the quantile type
         self.assertEqual(

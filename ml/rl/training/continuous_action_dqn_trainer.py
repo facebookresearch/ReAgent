@@ -8,15 +8,14 @@ from __future__ import unicode_literals
 import numpy as np
 from typing import List, Dict, Optional
 
-from caffe2.python import core
+from caffe2.python import core, workspace
 
 import logging
 logger = logging.getLogger(__name__)
 
 from ml.rl.preprocessing.normalization import NormalizationParameters,\
     get_num_output_features
-from ml.rl.preprocessing.preprocessor_net import prepare_normalization,\
-    normalize_dense_matrix
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
 from ml.rl.training.continuous_action_dqn_predictor import\
     ContinuousActionDQNPredictor
@@ -73,12 +72,9 @@ class ContinuousActionDQNTrainer(RLTrainer):
     def _normalize_actions(self, actions: np.ndarray) -> np.ndarray:
         if self.skip_normalization:
             return actions
-        return normalize_dense_matrix(
-            actions, self._action_features,
-            self._action_normalization_parameters, self.action_norm_blobs,
-            self.action_norm_net, self.action_norm_blobname_template,
-            self.num_action_features
-        )
+        workspace.FeedBlob(self.action_input_matrix, actions)
+        workspace.RunNetOnce(self.action_norm_net)
+        return workspace.FetchBlob(self.action_preprocessed_matrix)
 
     def _prepare_action_normalization(self):
         """
@@ -87,11 +83,13 @@ class ContinuousActionDQNTrainer(RLTrainer):
         if self.skip_normalization:
             return
         self.action_norm_net = core.Net("action_norm_net")
-        self.action_norm_blobname_template = '{}_input_action'
-        self.action_norm_blobs = prepare_normalization(
-            self.action_norm_net, self._action_normalization_parameters,
-            self._action_features, self.action_norm_blobname_template, True
-        )
+        self.action_preprocessor = PreprocessorNet(self.action_norm_net, True)
+        self.action_input_matrix = 'action_input_matrix'
+        self.action_preprocessed_matrix, _ = \
+            self.action_preprocessor.normalize_dense_matrix(
+                self.action_input_matrix, self._action_features,
+                self._action_normalization_parameters, 'action'
+            )
 
     def _setup_initial_blobs(self):
         self.input_dim = self.num_state_features + self.num_action_features
@@ -266,8 +264,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         Builds a ContinuousActionPredictor using the MLTrainer underlying this
         ContinuousActionTrainer.
         """
-        return ContinuousActionDQNPredictor.from_trainers(
-            self, self._state_features, self._action_features,
-            self._state_normalization_parameters,
+        return ContinuousActionDQNPredictor.export(
+            self, self._state_normalization_parameters,
             self._action_normalization_parameters
         )

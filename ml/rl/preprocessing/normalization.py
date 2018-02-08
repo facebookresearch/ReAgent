@@ -58,8 +58,10 @@ def identify_parameter(
     possible_values = None
     quantiles = None
     assert feature_type in [
-        identify_types.CONTINUOUS, identify_types.PROBABILITY,
-        identify_types.BINARY, identify_types.ENUM, identify_types.QUANTILE
+        identify_types.CONTINUOUS,
+        identify_types.PROBABILITY,
+        identify_types.BINARY,
+        identify_types.ENUM,
     ], "unknown type {}".format(feature_type)
     assert len(
         values
@@ -97,6 +99,8 @@ def identify_parameter(
         if boxcox_lambda is None or skip_box_cox:
             boxcox_shift = None
             boxcox_lambda = None
+        if boxcox_lambda is not None:
+            feature_type = identify_types.BOXCOX
         if boxcox_lambda is None and k2_original > quantile_k2_threshold and (
             not skip_quantiles
         ):
@@ -114,7 +118,8 @@ def identify_parameter(
                 "Feature is non-normal, using quantiles: {}".format(quantiles)
             )
 
-    if feature_type == identify_types.CONTINUOUS:
+    if feature_type == identify_types.CONTINUOUS or \
+            feature_type == identify_types.BOXCOX:
         mean = float(np.mean(values))
         values = values - mean
         stddev = float(np.std(values, ddof=1))

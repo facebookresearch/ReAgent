@@ -254,9 +254,8 @@ class DiscreteActionTrainer(RLTrainer):
         Builds a DiscreteActionPredictor using the MLTrainer underlying this
         DiscreteActionTrainer.
         """
-        return DiscreteActionPredictor.from_trainers(
-            self, self._state_features, self._actions,
-            self._state_normalization_parameters
+        return DiscreteActionPredictor.export(
+            self, self._actions, self._state_normalization_parameters
         )
 
     def get_policy(self, state: np.ndarray) -> int:

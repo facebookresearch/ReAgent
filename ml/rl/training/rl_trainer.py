@@ -14,8 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
-from ml.rl.preprocessing.preprocessor_net import prepare_normalization,\
-    normalize_dense_matrix
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
     ContinuousActionModelParameters
 from ml.rl.training.evaluator import Evaluator
@@ -65,11 +64,9 @@ class RLTrainer(MLTrainer):
         """
         if self.skip_normalization:
             return states
-        return normalize_dense_matrix(
-            states, self._state_features, self._state_normalization_parameters,
-            self.state_norm_blobs, self.state_norm_net,
-            self.state_norm_blobname_template, self.num_state_features
-        )
+        workspace.FeedBlob(self.state_input_matrix, states)
+        workspace.RunNetOnce(self.state_norm_net)
+        return workspace.FetchBlob(self.state_preprocessed_matrix)
 
     def _normalize_actions(self, actions):
         """
@@ -91,11 +88,13 @@ class RLTrainer(MLTrainer):
             return
         self._state_features = list(self._state_normalization_parameters.keys())
         self.state_norm_net = core.Net("state_norm_net")
-        self.state_norm_blobname_template = '{}_input_state'
-        self.state_norm_blobs = prepare_normalization(
-            self.state_norm_net, self._state_normalization_parameters,
-            self._state_features, self.state_norm_blobname_template, True
-        )
+        self.state_preprocessor = PreprocessorNet(self.state_norm_net, True)
+        self.state_input_matrix = 'state_input_matrix'
+        self.state_preprocessed_matrix, _ = \
+            self.state_preprocessor.normalize_dense_matrix(
+                self.state_input_matrix, self._state_features,
+                self._state_normalization_parameters, 'state'
+            )
 
     def get_state_features(self) -> List[str]:
         return self._state_features
