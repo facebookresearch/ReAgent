@@ -9,12 +9,14 @@ import numpy as np
 from typing import List, Dict, Optional, Union
 
 from caffe2.python import workspace, core
+import caffe2.proto.caffe2_pb2 as caffe2_pb2
 
 import logging
 logger = logging.getLogger(__name__)
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet, \
+    sort_features_by_normalization
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
     ContinuousActionModelParameters
 from ml.rl.training.evaluator import Evaluator
@@ -36,6 +38,9 @@ class RLTrainer(MLTrainer):
         print(parameters)
 
         self._state_normalization_parameters = state_normalization_parameters
+        self._state_features, _ = sort_features_by_normalization(
+            self._state_normalization_parameters
+        )
         MLTrainer.__init__(self, "rl_trainer", parameters.training)
 
         self.target_network = TargetNetwork(
@@ -64,9 +69,10 @@ class RLTrainer(MLTrainer):
         """
         if self.skip_normalization:
             return states
-        workspace.FeedBlob(self.state_input_matrix, states)
-        workspace.RunNetOnce(self.state_norm_net)
-        return workspace.FetchBlob(self.state_preprocessed_matrix)
+        with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
+            workspace.FeedBlob(self.state_input_matrix, states)
+            workspace.RunNetOnce(self.state_norm_net)
+            return workspace.FetchBlob(self.state_preprocessed_matrix)
 
     def _normalize_actions(self, actions):
         """
@@ -86,15 +92,15 @@ class RLTrainer(MLTrainer):
         """
         if self.skip_normalization:
             return
-        self._state_features = list(self._state_normalization_parameters.keys())
-        self.state_norm_net = core.Net("state_norm_net")
-        self.state_preprocessor = PreprocessorNet(self.state_norm_net, True)
-        self.state_input_matrix = 'state_input_matrix'
-        self.state_preprocessed_matrix, _ = \
-            self.state_preprocessor.normalize_dense_matrix(
-                self.state_input_matrix, self._state_features,
-                self._state_normalization_parameters, 'state'
-            )
+        with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
+            self.state_norm_net = core.Net("state_norm_net")
+            self.state_preprocessor = PreprocessorNet(self.state_norm_net, True)
+            self.state_input_matrix = 'state_input_matrix'
+            self.state_preprocessed_matrix, _ = \
+                self.state_preprocessor.normalize_dense_matrix(
+                    self.state_input_matrix, self._state_features,
+                    self._state_normalization_parameters, 'state'
+                )
 
     def get_state_features(self) -> List[str]:
         return self._state_features

@@ -9,13 +9,15 @@ import numpy as np
 from typing import List, Dict, Optional
 
 from caffe2.python import core, workspace
+import caffe2.proto.caffe2_pb2 as caffe2_pb2
 
 import logging
 logger = logging.getLogger(__name__)
 
 from ml.rl.preprocessing.normalization import NormalizationParameters,\
     get_num_output_features
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet, \
+    sort_features_by_normalization
 from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
 from ml.rl.training.continuous_action_dqn_predictor import\
     ContinuousActionDQNPredictor
@@ -33,7 +35,9 @@ class ContinuousActionDQNTrainer(RLTrainer):
         parameters: ContinuousActionModelParameters,
         skip_normalization: Optional[bool] = False
     ) -> None:
-        self._action_features = list(action_normalization_parameters.keys())
+        self._action_features, _ = sort_features_by_normalization(
+            action_normalization_parameters
+        )
         self.num_unprocessed_action_features = len(self._action_features)
         self.num_processed_action_features = get_num_output_features(
             action_normalization_parameters
@@ -72,9 +76,10 @@ class ContinuousActionDQNTrainer(RLTrainer):
     def _normalize_actions(self, actions: np.ndarray) -> np.ndarray:
         if self.skip_normalization:
             return actions
-        workspace.FeedBlob(self.action_input_matrix, actions)
-        workspace.RunNetOnce(self.action_norm_net)
-        return workspace.FetchBlob(self.action_preprocessed_matrix)
+        with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
+            workspace.FeedBlob(self.action_input_matrix, actions)
+            workspace.RunNetOnce(self.action_norm_net)
+            return workspace.FetchBlob(self.action_preprocessed_matrix)
 
     def _prepare_action_normalization(self):
         """
@@ -82,14 +87,17 @@ class ContinuousActionDQNTrainer(RLTrainer):
         """
         if self.skip_normalization:
             return
-        self.action_norm_net = core.Net("action_norm_net")
-        self.action_preprocessor = PreprocessorNet(self.action_norm_net, True)
-        self.action_input_matrix = 'action_input_matrix'
-        self.action_preprocessed_matrix, _ = \
-            self.action_preprocessor.normalize_dense_matrix(
-                self.action_input_matrix, self._action_features,
-                self._action_normalization_parameters, 'action'
+        with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
+            self.action_norm_net = core.Net("action_norm_net")
+            self.action_preprocessor = PreprocessorNet(
+                self.action_norm_net, True
             )
+            self.action_input_matrix = 'action_input_matrix'
+            self.action_preprocessed_matrix, _ = \
+                self.action_preprocessor.normalize_dense_matrix(
+                    self.action_input_matrix, self._action_features,
+                    self._action_normalization_parameters, 'action'
+                )
 
     def _setup_initial_blobs(self):
         self.input_dim = self.num_state_features + self.num_action_features
