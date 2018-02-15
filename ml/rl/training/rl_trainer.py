@@ -34,8 +34,8 @@ class RLTrainer(MLTrainer):
                           ContinuousActionModelParameters],
         skip_normalization: Optional[bool] = False
     ) -> None:
-        print(state_normalization_parameters)
-        print(parameters)
+        logger.info(str(parameters))
+        logger.info(str(state_normalization_parameters))
 
         self._state_normalization_parameters = state_normalization_parameters
         self._state_features, _ = sort_features_by_normalization(

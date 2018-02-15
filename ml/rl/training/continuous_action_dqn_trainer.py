@@ -38,11 +38,12 @@ class ContinuousActionDQNTrainer(RLTrainer):
         self._action_features, _ = sort_features_by_normalization(
             action_normalization_parameters
         )
-        self.num_unprocessed_action_features = len(self._action_features)
         self.num_processed_action_features = get_num_output_features(
             action_normalization_parameters
         )
-
+        self.num_unprocessed_action_features = len(self._action_features)
+        if skip_normalization:
+            self.num_unprocessed_action_features = self.num_processed_action_features
         self.num_processed_state_features = get_num_output_features(
             state_normalization_parameters
         )
@@ -58,7 +59,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         RLTrainer.__init__(
             self, state_normalization_parameters, parameters, skip_normalization
         )
-        print(action_normalization_parameters)
+        logger.info(str(action_normalization_parameters))
 
         self._prepare_action_normalization()
 
