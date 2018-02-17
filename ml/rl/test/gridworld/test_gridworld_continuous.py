@@ -14,11 +14,11 @@ import random
 import numpy as np
 import unittest
 
-from ml.rl.training.evaluator import \
-    Evaluator
-from ml.rl.thrift.core.ttypes import \
-    RLParameters, TrainingParameters, \
-    ContinuousActionModelParameters, KnnParameters
+from ml.rl.training.evaluator import Evaluator
+from ml.rl.thrift.core.ttypes import (
+    RLParameters, TrainingParameters, ContinuousActionModelParameters,
+    KnnParameters
+)
 from ml.rl.training.continuous_action_dqn_trainer import \
     ContinuousActionDQNTrainer
 from ml.rl.test.gridworld.gridworld_base import \
@@ -46,7 +46,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 maxq_learning=False,
             ),
             training=TrainingParameters(
-                layers=[-1, 200, 1],
+                layers=[-1, 200, -1],
                 activations=['linear', 'linear'],
                 minibatch_size=1024,
                 learning_rate=0.01,
@@ -57,8 +57,9 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def get_sarsa_trainer(self, environment):
         return ContinuousActionDQNTrainer(
-            environment.normalization, environment.normalization_action,
-            self.get_sarsa_parameters()
+            self.get_sarsa_parameters(),
+            environment.normalization,
+            environment.normalization_action,
         )
 
     def test_trainer_single_batch_sarsa(self):
@@ -115,8 +116,9 @@ class TestGridworldContinuous(unittest.TestCase):
             knn=rl_parameters.knn
         )
         maxq_trainer = ContinuousActionDQNTrainer(
-            environment.normalization, environment.normalization_action,
-            new_rl_parameters
+            new_rl_parameters,
+            environment.normalization,
+            environment.normalization_action,
         )
 
         states, actions, rewards, next_states, next_actions, is_terminal,\

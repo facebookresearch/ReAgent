@@ -13,11 +13,10 @@ from ml.rl.training.training_data_page import \
 
 
 class Gridworld(GridworldBase):
-
     def generate_samples(
         self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[List[Dict[str, float]], List[str], List[float], List[
-        Dict[str, float]
+    ) -> Tuple[List[Dict[int, float]], List[str], List[float], List[
+        Dict[int, float]
     ], List[str], List[bool], List[List[str]], List[Dict[int, float]]]:
         return self.generate_samples_discrete(
             num_transitions, epsilon, with_possible
@@ -25,10 +24,10 @@ class Gridworld(GridworldBase):
 
     def preprocess_samples(
         self,
-        states: List[Dict[str, float]],
+        states: List[Dict[int, float]],
         actions: List[str],
         rewards: List[float],
-        next_states: List[Dict[str, float]],
+        next_states: List[Dict[int, float]],
         next_actions: List[str],
         is_terminals: List[bool],
         possible_next_actions: List[List[str]],

@@ -8,8 +8,15 @@ from __future__ import unicode_literals
 
 class TrainingDataPage(object):
     __slots__ = [
-        'states', 'actions', 'rewards', 'next_states', 'next_actions',
-        'possible_next_actions', 'reward_timelines', 'not_terminals'
+        'states',
+        'actions',
+        'rewards',
+        'next_states',
+        'next_actions',
+        'possible_next_actions',
+        'possible_next_actions_lengths',
+        'reward_timelines',
+        'not_terminals',
     ]
 
     def __init__(
@@ -42,13 +49,22 @@ class TrainingDataPage(object):
         return len(self.states)
 
     def get_sub_page(self, start, end):
+        if isinstance(self.possible_next_actions, (list, tuple)):
+            assert len(self.possible_next_actions) == 2, "Invalid size for pna"
+            sub_pna = (
+                self.possible_next_actions[0][start:end],
+                self.possible_next_actions[1][start:end]
+            )
+        else:
+            sub_pna = self.possible_next_actions[start:end],
+
         return TrainingDataPage(
             self.states[start:end],
             self.actions[start:end],
             self.rewards[start:end],
             self.next_states[start:end],
             self.next_actions[start:end],
-            self.possible_next_actions[start:end],
+            sub_pna,
             self.reward_timelines[start:end],
             None
             if self.not_terminals is None else self.not_terminals[start:end],

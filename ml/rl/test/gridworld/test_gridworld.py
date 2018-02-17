@@ -31,42 +31,20 @@ class TestGridworld(unittest.TestCase):
             maxq_learning=False
         )
         training_parameters = TrainingParameters(
-            layers=[-1, 1],
+            layers=[-1, -1],
             activations=['linear'],
             minibatch_size=1024,
             learning_rate=0.01,
             optimizer='ADAM',
         )
         return DiscreteActionTrainer(
-            environment.normalization,
             DiscreteActionModelParameters(
                 actions=environment.ACTIONS,
                 rl=rl_parameters,
                 training=training_parameters
-            )
-        )
-
-    def test_sarsa_layer_validation(self):
-        env = Gridworld()
-        invalid_sarsa_params = DiscreteActionModelParameters(
-            actions=env.ACTIONS,
-            rl=RLParameters(
-                gamma=DISCOUNT,
-                target_update_rate=0.5,
-                reward_burnin=10,
-                maxq_learning=False
             ),
-            training=TrainingParameters(
-                layers=[-1, 3],
-                activations=['linear'],
-                minibatch_size=32,
-                learning_rate=0.1,
-                optimizer='SGD',
-            )
+            environment.normalization,
         )
-        with self.assertRaises(Exception):
-            # layers[-1] should be 1
-            DiscreteActionTrainer(env.normalization, invalid_sarsa_params)
 
     def test_trainer_single_batch_maxq(self):
         environment = Gridworld()
@@ -88,7 +66,8 @@ class TestGridworld(unittest.TestCase):
         )
         # construct the new trainer that using maxq
         maxq_trainer = DiscreteActionTrainer(
-            environment.normalization, maxq_sarsa_parameters
+            maxq_sarsa_parameters,
+            environment.normalization,
         )
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
@@ -165,8 +144,8 @@ class TestGridworld(unittest.TestCase):
         print("Pre-Training eval", evaluator.evaluate(predictor))
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
-        for i in range(0, tdp.size(), 100):
-            trainer.stream_tdp(tdp.get_sub_page(i, i + 100), None)
+        for i in range(0, tdp.size(), 1024):
+            trainer.stream_tdp(tdp.get_sub_page(i, i + 1024), None)
 
         print("Post-Training eval", evaluator.evaluate(predictor))
         evaluator.evaluate(predictor)

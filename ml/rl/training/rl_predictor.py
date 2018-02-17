@@ -13,10 +13,6 @@ from caffe2.python import workspace
 from caffe2.python.predictor_constants import predictor_constants
 from caffe2.python.predictor.predictor_py_utils import GetBlobs
 
-from ml.rl.preprocessing.preprocessor_net import (
-    PreprocessorNet, MISSING_VALUE, sort_features_by_normalization
-)
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -34,8 +30,9 @@ class RLPredictor(object):
         """
         self._net = net
         self._input_blobs = [
-            'input/float_features.lengths', 'input/float_features.keys',
-            'input/float_features.values'
+            'input/float_features.lengths',
+            'input/float_features.keys',
+            'input/float_features.values',
         ]
         self._output_blobs = [
             'output/string_weighted_multi_categorical_features.keys',
@@ -157,54 +154,6 @@ class RLPredictor(object):
             print("Normalized Feature {}: {}".format(name, norm_blob_value))
 
         workspace.SwitchWorkspace(previous_workspace)
-
-    @classmethod
-    def _sparse_to_normalized_dense(
-        cls, net, normalization_parameters, normalization_prefix
-    ):
-        parameters = []
-        sorted_features, feature_starts = sort_features_by_normalization(
-            normalization_parameters
-        )
-
-        int_features = [int(feature) for feature in sorted_features]
-        workspace.FeedBlob(
-            'input/float_features.lengths', np.zeros(1, dtype=np.int32)
-        )
-        workspace.FeedBlob(
-            'input/float_features.keys', np.zeros(1, dtype=np.int32)
-        )
-        workspace.FeedBlob(
-            'input/float_features.values', np.zeros(1, dtype=np.float32)
-        )
-        dense_input = net.NextBlob('dense_input')
-        workspace.FeedBlob(dense_input, np.zeros(1, dtype=np.float32))
-        default_input_value = net.NextBlob('default_input_value')
-        workspace.FeedBlob(
-            default_input_value, np.array([MISSING_VALUE], dtype=np.float32)
-        )
-        parameters.append(default_input_value)
-        net.GivenTensorFill(
-            [], [default_input_value], shape=[], values=[MISSING_VALUE]
-        )
-        net.SparseToDenseMask(
-            [
-                'input/float_features.keys',
-                'input/float_features.values',
-                default_input_value,
-                'input/float_features.lengths',
-            ], [dense_input],
-            mask=int_features
-        )
-        normalized_dense_matrix = net.NextBlob('normalized_dense_matrix')
-        normalizer = PreprocessorNet(net, True)
-        parameters = list(normalizer.parameters[:])
-        normalized_dense_matrix, new_parameters = normalizer.normalize_dense_matrix(
-            dense_input, sorted_features, normalization_parameters,
-            normalization_prefix
-        )
-        parameters.extend(new_parameters)
-        return normalized_dense_matrix, parameters
 
     @classmethod
     def _forward_pass(cls, model, trainer, normalized_dense_matrix, actions):

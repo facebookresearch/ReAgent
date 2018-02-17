@@ -148,7 +148,8 @@ class TestLimitedActionGridworld(unittest.TestCase):
         )
 
         trainer = DiscreteActionTrainer(
-            self._env.normalization, q_learning_parameters
+            q_learning_parameters,
+            self._env.normalization,
         )
 
         predictor = trainer.predictor()
@@ -208,7 +209,8 @@ class TestLimitedActionGridworld(unittest.TestCase):
         )
 
         trainer = LimitedActionDiscreteActionTrainer(
-            self._env.normalization, q_learning_parameters
+            q_learning_parameters,
+            self._env.normalization,
         )
 
         predictor = trainer.predictor()

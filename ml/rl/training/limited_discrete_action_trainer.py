@@ -5,10 +5,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from typing import Dict, Any
 import collections
 import numpy as np
 import six
 
+from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.rl_trainer import RLTrainer
 
@@ -16,10 +18,10 @@ from ml.rl.training.rl_trainer import RLTrainer
 class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
     def __init__(
         self,
-        normalization_parameters,
         parameters,
-    ):
-        self._quantile_states = collections.deque(
+        normalization_parameters: Dict[int, NormalizationParameters],
+    ) -> None:
+        self._quantile_states: Any = collections.deque(
             maxlen=parameters.action_budget.window_size
         )
         self._quantile = 100 - parameters.action_budget.action_limit
@@ -34,8 +36,11 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         self._quantile_update_frequency = \
             parameters.action_budget.quantile_update_frequency
         self._update_counter = 0
-        super(self.__class__,
-              self).__init__(normalization_parameters, parameters)
+        DiscreteActionTrainer.__init__(
+            self,
+            parameters,
+            normalization_parameters,
+        )
         self._max_q = parameters.rl.maxq_learning
 
     def get_maxq_actions(self, next_states, possible_next_actions):
@@ -50,7 +55,9 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
             possible_next_actions[i][j] = 1 iff the agent can take action j from
             state i.
         """
-        q_values = self.get_max_q_values(next_states, possible_next_actions, False)
+        q_values = self.get_max_q_values(
+            next_states, possible_next_actions, False
+        )
         # TODO: Speed this up
         q_values_mask = np.zeros(
             [next_states.shape[0], self.num_actions], dtype=np.float32

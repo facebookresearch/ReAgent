@@ -57,8 +57,20 @@ class PreprocessorNet:
         workspace.FeedBlob(
             self.MISSING_L, np.array([MISSING_VALUE - 1e-4], dtype=np.float32)
         )
+        self.MISSING_SCALAR = net.NextBlob('MISSING_SCALAR')
+        workspace.FeedBlob(
+            self.MISSING_SCALAR, np.array([MISSING_VALUE], dtype=np.float32)
+        )
+        net.GivenTensorFill(
+            [], [self.MISSING_SCALAR], shape=[], values=[MISSING_VALUE]
+        )
         self.parameters = [
-            self.ZERO, self.ONE, self.MISSING, self.MISSING_L, self.MISSING_U
+            self.ZERO,
+            self.ONE,
+            self.MISSING,
+            self.MISSING_L,
+            self.MISSING_U,
+            self.MISSING_SCALAR,
         ]
 
     def preprocess_blob(self, blob, normalization_parameters):
@@ -268,6 +280,37 @@ class PreprocessorNet:
         self._net.Mul([blob, is_not_empty], [output_blob])
 
         return output_blob, parameters
+
+    def normalize_sparse_matrix(
+        self,
+        lengths_blob: str,
+        keys_blob: str,
+        values_blob: str,
+        normalization_parameters: Dict[str, NormalizationParameters],
+        blobname_prefix: str,
+    ) -> Tuple[str, List[str]]:
+        sorted_features, _ = sort_features_by_normalization(
+            normalization_parameters
+        )
+        int_features = [int(feature) for feature in sorted_features]
+
+        dense_input = self._net.NextBlob('dense_input')
+        workspace.FeedBlob(dense_input, np.zeros(1, dtype=np.float32))
+        self._net.SparseToDenseMask(
+            [
+                keys_blob,
+                values_blob,
+                self.MISSING_SCALAR,
+                lengths_blob,
+            ], [dense_input],
+            mask=int_features
+        )
+        return self.normalize_dense_matrix(
+            dense_input,
+            sorted_features,
+            normalization_parameters,
+            blobname_prefix,
+        )
 
     def normalize_dense_matrix(
         self,

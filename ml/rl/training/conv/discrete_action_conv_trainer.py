@@ -5,11 +5,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from typing import Optional
+from typing import Dict, Optional
 import numpy as np
 
 from caffe2.python import workspace
 
+from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.thrift.core.ttypes import DiscreteActionConvModelParameters
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
@@ -23,6 +24,7 @@ class DiscreteActionConvTrainer(RLConvTrainer, DiscreteActionTrainer):
     def __init__(
         self,
         parameters: DiscreteActionConvModelParameters,
+        normalization_parameters: Dict[int, NormalizationParameters],
     ) -> None:
         fc_parameters = parameters.fc_parameters
         cnn_parameters = parameters.cnn_parameters
@@ -46,6 +48,8 @@ class DiscreteActionConvTrainer(RLConvTrainer, DiscreteActionTrainer):
 
         cnn_parameters.conv_dims[0] = parameters.num_input_channels
 
+        assert fc_parameters.actions is not None
+        assert fc_parameters.training is not None
         self._actions = fc_parameters.actions
         if fc_parameters.training.layers[-1] in [None, -1]:
             fc_parameters.training.layers[-1] = self.num_actions
@@ -54,8 +58,12 @@ class DiscreteActionConvTrainer(RLConvTrainer, DiscreteActionTrainer):
             "Set layers[-1] to a the number of actions or a default placeholder value"
 
         RLConvTrainer.__init__(
-            self, fc_parameters, cnn_parameters, parameters.img_height,
-            parameters.img_width
+            self,
+            fc_parameters,
+            cnn_parameters,
+            parameters.img_height,
+            parameters.img_width,
+            normalization_parameters,
         )
 
     @property

@@ -44,7 +44,7 @@ class TestOpenAIGym(unittest.TestCase):
                 "learning_rate_decay": 0.999
               },
               "run_details": {
-                "num_episodes": 201,
+                "num_episodes": 301,
                 "train_every": 10,
                 "train_after": 10,
                 "test_every": 100,

@@ -9,7 +9,10 @@ import collections
 import numpy as np
 import random
 from typing import Tuple, List, Dict, Optional
+from caffe2.python import core, workspace
 
+from ml.rl.preprocessing.caffe_utils import dict_list_to_blobs
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.test.utils import default_normalizer
 
@@ -44,7 +47,7 @@ class GridworldBase(object):
 
     width = 5
     height = 5
-    STATES = [str(i) for i in range(width * height)]
+    STATES = list(range(width * height))
 
     USING_ONLY_VALID_ACTION = True
 
@@ -292,19 +295,19 @@ class GridworldBase(object):
 
     def generate_samples_discrete(
         self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[List[Dict[str, float]], List[str], List[float], List[
-        Dict[str, float]
+    ) -> Tuple[List[Dict[int, float]], List[str], List[float], List[
+        Dict[int, float]
     ], List[str], List[bool], List[List[str]], List[Dict[int, float]]]:
         states = []
-        actions = []
+        actions: List[str] = []
         rewards = []
         next_states = []
-        next_actions = []
+        next_actions: List[str] = []
         is_terminals = []
         state: int = -1
         is_terminal = True
         next_action = None
-        possible_next_actions = []
+        possible_next_actions: List[List[str]] = []
         transition = 0
         last_terminal = -1
         reward_timelines = []
@@ -325,10 +328,10 @@ class GridworldBase(object):
             if next_action is None:
                 next_action = ''
 
-            states.append({str(state): 1.0})
+            states.append({state: 1.0})
             actions.append(action)
             rewards.append(reward)
-            next_states.append({str(next_state): 1.0})
+            next_states.append({next_state: 1.0})
             next_actions.append(next_action)
             is_terminals.append(is_terminal)
             possible_next_actions.append(possible_next_action)
@@ -353,10 +356,10 @@ class GridworldBase(object):
 
     def preprocess_samples_discrete(
         self,
-        states: List[Dict[str, float]],
+        states: List[Dict[int, float]],
         actions: List[str],
         rewards: List[float],
-        next_states: List[Dict[str, float]],
+        next_states: List[Dict[int, float]],
         next_actions: List[str],
         is_terminals: List[bool],
         possible_next_actions: List[List[str]],
@@ -384,18 +387,25 @@ class GridworldBase(object):
             states, actions, rewards, next_states, next_actions, \
                 is_terminals, possible_next_actions, reward_timelines = zip(*merged)
 
-        x = []
-        for state in states:
-            a = [0.0] * self.num_states
-            a[int(list(state.keys())[0])] = float(list(state.values())[0])
-            x.append(a)
-        states = np.array(x, dtype=np.float32)
-        x = []
-        for state in next_states:
-            a = [0.0] * self.num_states
-            a[int(list(state.keys())[0])] = float(list(state.values())[0])
-            x.append(a)
-        next_states = np.array(x, dtype=np.float32)
+        net = core.Net('gridworld_preprocessing')
+        preprocessor = PreprocessorNet(net, True)
+        lengths, keys, values = dict_list_to_blobs(states, 'states')
+        state_matrix, _ = preprocessor.normalize_sparse_matrix(
+            lengths,
+            keys,
+            values,
+            self.normalization,
+            'state_norm',
+        )
+        lengths, keys, values = dict_list_to_blobs(next_states, 'next_states')
+        next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
+            lengths,
+            keys,
+            values,
+            self.normalization,
+            'next_state_norm',
+        )
+        workspace.RunNetOnce(net)
         actions_one_hot = np.zeros(
             [len(actions), len(self.ACTIONS)], dtype=np.float32
         )
@@ -423,10 +433,10 @@ class GridworldBase(object):
             reward_timelines = np.array(reward_timelines, dtype=np.object)
 
         return TrainingDataPage(
-            states=states,
+            states=workspace.FetchBlob(state_matrix),
             actions=actions_one_hot,
             rewards=rewards,
-            next_states=next_states,
+            next_states=workspace.FetchBlob(next_state_matrix),
             next_actions=next_actions_one_hot,
             possible_next_actions=possible_next_actions_mask,
             reward_timelines=reward_timelines,

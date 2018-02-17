@@ -127,11 +127,13 @@ def run_gym(params, score_bar, gpu_id):
                     num_input_channels=env.num_input_channels,
                     img_height=env.height,
                     img_width=env.width
-                )
+                ),
+                env.normalization,
             )
         else:
             trainer = DiscreteActionTrainer(
-                env.normalization, trainer_params, skip_normalization=True
+                trainer_params,
+                env.normalization,
             )
         return run(
             env, trainer, "{} test run".format(env_type), score_bar,

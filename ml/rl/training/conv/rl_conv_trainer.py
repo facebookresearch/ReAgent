@@ -5,6 +5,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from typing import Dict
+
+from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.training.target_network import TargetNetwork
 from ml.rl.thrift.core.ttypes import CNNModelParameters,\
     DiscreteActionModelParameters
@@ -19,12 +22,14 @@ class RLConvTrainer(MLConvTrainer, RLTrainer):
         cnn_parameters: CNNModelParameters,
         img_height: int,
         img_width: int,
+        normalization_parameters: Dict[int, NormalizationParameters],
     ) -> None:
         MLConvTrainer.__init__(
             self, "ml_conv_trainer", fc_parameters.training, cnn_parameters,
             img_height, img_width
         )
 
+        self.state_normalization_parameters = normalization_parameters
         self.target_network = TargetNetwork(
             self, fc_parameters.rl.target_update_rate
         )

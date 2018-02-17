@@ -6,22 +6,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-from typing import List, Dict, Optional, Union
+from typing import Optional, Union
 
-from caffe2.python import workspace, core
-import caffe2.proto.caffe2_pb2 as caffe2_pb2
+from caffe2.python import workspace
 
 import logging
 logger = logging.getLogger(__name__)
 
-from ml.rl.preprocessing.normalization import NormalizationParameters
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet, \
-    sort_features_by_normalization
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
     ContinuousActionModelParameters
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.ml_trainer import MLTrainer
-from ml.rl.training.rl_predictor import RLPredictor
 from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -29,18 +24,16 @@ from ml.rl.training.training_data_page import TrainingDataPage
 class RLTrainer(MLTrainer):
     def __init__(
         self,
-        state_normalization_parameters: Dict[str, NormalizationParameters],
         parameters: Union[DiscreteActionModelParameters,
                           ContinuousActionModelParameters],
-        skip_normalization: Optional[bool] = False
     ) -> None:
         logger.info(str(parameters))
-        logger.info(str(state_normalization_parameters))
 
-        self._state_normalization_parameters = state_normalization_parameters
-        self._state_features, _ = sort_features_by_normalization(
-            self._state_normalization_parameters
-        )
+        assert parameters.training.layers[0] >= 0,\
+            "Set layers[0] to a the number of features"
+
+        self.num_features = parameters.training.layers[0]
+
         MLTrainer.__init__(self, "rl_trainer", parameters.training)
 
         self.target_network = TargetNetwork(
@@ -52,65 +45,7 @@ class RLTrainer(MLTrainer):
         self.rl_discount_rate = parameters.rl.gamma
 
         self.training_iteration = 0
-        self._buffers = None
         self.minibatch_size = parameters.training.minibatch_size
-
-        self.skip_normalization = skip_normalization
-        self._prepare_state_normalization()
-
-    def _normalize_states(self, states: np.ndarray) -> np.ndarray:
-        """
-        Normalizes input states and replaces NaNs with 0. Returns a matrix of
-        the same shape. Make sure to have set up the underlying normalization net
-        with `_prepare_state_normalization`.
-
-        :param states: Numpy array with shape (batch_size, state_dim) containing
-            raw state inputs
-        """
-        if self.skip_normalization:
-            return states
-        with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
-            workspace.FeedBlob(self.state_input_matrix, states)
-            workspace.RunNetOnce(self.state_norm_net)
-            return workspace.FetchBlob(self.state_preprocessed_matrix)
-
-    def _normalize_actions(self, actions):
-        """
-        Normalizes input actions and replaces NaNs with 0. Returns a matrix of
-        the same shape. Make sure to have set up the underlying normalization net
-        with `_prepare_action_normalization`.
-
-        :param actions: String (discrete actions) or Numpy array (continuous
-            actions) with shape (batch_size, action_dim) containing
-            raw actions inputs
-        """
-        raise NotImplementedError()
-
-    def _prepare_state_normalization(self):
-        """
-        Sets up operators for action normalization net.
-        """
-        if self.skip_normalization:
-            return
-        with core.DeviceScope(core.DeviceOption(caffe2_pb2.CPU)):
-            self.state_norm_net = core.Net("state_norm_net")
-            self.state_preprocessor = PreprocessorNet(self.state_norm_net, True)
-            self.state_input_matrix = 'state_input_matrix'
-            self.state_preprocessed_matrix, _ = \
-                self.state_preprocessor.normalize_dense_matrix(
-                    self.state_input_matrix, self._state_features,
-                    self._state_normalization_parameters, 'state'
-                )
-
-    def get_state_features(self) -> List[str]:
-        return self._state_features
-
-    @property
-    def num_state_features(self) -> int:
-        """
-        Returns the number of features in each preprocessed state.
-        """
-        raise NotImplementedError()
 
     @property
     def sarsa(self) -> bool:
@@ -118,12 +53,6 @@ class RLTrainer(MLTrainer):
         Returns whether or not this trainer generates target values using SARSA.
         """
         return not self.maxq_learning
-
-    def predictor(self) -> RLPredictor:
-        """
-        Builds a Predictor using the networks undrlying this Trainer.
-        """
-        raise NotImplementedError()
 
     def stream_tdp(
         self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
@@ -184,18 +113,6 @@ class RLTrainer(MLTrainer):
         """
         raise NotImplementedError()
 
-    def _validate_train_inputs(
-        self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        next_states: np.ndarray,
-        next_actions: Optional[np.ndarray],
-        not_terminals: np.ndarray,
-        possible_next_actions: np.ndarray,
-    ):
-        raise NotImplementedError()
-
     def stream(
         self, states, actions, rewards, next_states, next_actions,
         not_terminals, possible_next_actions, reward_timelines, evaluator
@@ -215,64 +132,41 @@ class RLTrainer(MLTrainer):
         use_pna = possible_next_actions is not None and self.maxq_learning
         use_rt = reward_timelines is not None
 
-        num_buffers = 8
-        if self._buffers is not None and self._buffers[0].shape[0] > 0:
-            actions = np.concatenate([self._buffers[0], actions])
-            states = np.concatenate([self._buffers[1], states])
-            rewards = np.concatenate([self._buffers[2], rewards])
-            next_states = np.concatenate([self._buffers[3], next_states])
-            if use_next_actions:
-                next_actions = np.concatenate([self._buffers[4], next_actions])
-            not_terminals = np.concatenate([self._buffers[5], not_terminals])
-            if use_pna:
-                possible_next_actions = np.concatenate(
-                    [self._buffers[6], possible_next_actions]
-                )
-            if use_rt:
-                reward_timelines = np.concatenate(
-                    [self._buffers[7], reward_timelines]
-                )
-
-        self._buffers = None
         page_size = states.shape[0]
 
+        pna_cursor = 0
         for batch_start in range(0, page_size, self.minibatch_size):
             batch_end = batch_start + self.minibatch_size
             if page_size < batch_end:
-                self._buffers = [[] for _ in range(num_buffers)]
-                self._buffers[0] = actions[batch_start:]
-                self._buffers[1] = states[batch_start:]
-                self._buffers[2] = rewards[batch_start:]
-                self._buffers[3] = next_states[batch_start:]
-                if use_next_actions:
-                    self._buffers[4] = next_actions[batch_start:]
-                self._buffers[5] = not_terminals[batch_start:]
-                if use_pna:
-                    self._buffers[6] = possible_next_actions[batch_start:]
-                if use_rt:
-                    self._buffers[7] = reward_timelines[batch_start:]
+                # Skip the remainder
+                continue
             else:
                 na_batch = (
-                    self.
-                    _normalize_actions(next_actions[batch_start:batch_end])
+                    next_actions[batch_start:batch_end]
                     if use_next_actions else None
                 )
-                pna_batch = (
-                    possible_next_actions[batch_start:batch_end]
-                    if use_pna else None
-                )
+                pna_batch = None
+                if use_pna:
+                    if isinstance(possible_next_actions, (list, tuple)):
+                        assert len(possible_next_actions) == 2
+                        pna_batch_lengths = possible_next_actions[1][
+                            batch_start:batch_end
+                        ]
+                        total_length = np.sum(pna_batch_lengths)
+                        pna_batch = (
+                            possible_next_actions[0]
+                            [pna_cursor:(pna_cursor + total_length)],
+                            pna_batch_lengths,
+                        )
+                        pna_cursor += total_length
+                    else:
+                        pna_batch = possible_next_actions[batch_start:batch_end]
                 rt_batch = (
                     reward_timelines[batch_start:batch_end] if use_rt else None
                 )
-                states_batch = self._normalize_states(
-                    states[batch_start:batch_end]
-                )
-                next_states_batch = self._normalize_states(
-                    next_states[batch_start:batch_end]
-                )
-                actions_batch = self._normalize_actions(
-                    actions[batch_start:batch_end]
-                )
+                states_batch = states[batch_start:batch_end]
+                next_states_batch = next_states[batch_start:batch_end]
+                actions_batch = actions[batch_start:batch_end]
                 self.train(
                     states_batch, actions_batch, rewards[batch_start:batch_end],
                     next_states_batch, na_batch,
@@ -286,9 +180,14 @@ class RLTrainer(MLTrainer):
                     )
 
     def train(
-        self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray,
-        next_states: np.ndarray, next_actions: Optional[np.ndarray],
-        not_terminals: np.ndarray, possible_next_actions: Optional[List]
+        self,
+        states: np.ndarray,
+        actions: np.ndarray,
+        rewards: np.ndarray,
+        next_states: np.ndarray,
+        next_actions: Optional[np.ndarray],
+        not_terminals: np.ndarray,
+        possible_next_actions,
     ) -> None:
         """
         Takes in a batch of transitions. For transition i, calculates target qval:
@@ -315,15 +214,12 @@ class RLTrainer(MLTrainer):
         :param possible_next_actions: See subclass' `train` documentation.
         """
 
-        self._validate_train_inputs(
-            states, actions, rewards, next_states, next_actions, not_terminals,
-            possible_next_actions
-        )
-
         batch_size = self.minibatch_size
         assert rewards.shape == (batch_size, 1)
         assert rewards.dtype == np.float32
-        assert not_terminals.shape == (batch_size, 1)
+        assert not_terminals.shape == (
+            batch_size, 1
+        ), 'terminals invalid ' + str(not_terminals.shape)
 
         q_vals_target = np.copy(rewards)
         if self.training_iteration >= self.reward_burnin:

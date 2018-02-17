@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from typing import Dict, Optional
+from typing import Optional, Dict
 import numpy as np
 
 from caffe2.python import workspace
@@ -13,8 +13,9 @@ from caffe2.python import workspace
 import logging
 logger = logging.getLogger(__name__)
 
-from ml.rl.preprocessing.normalization import NormalizationParameters,\
-    get_num_output_features
+from ml.rl.preprocessing.normalization import (
+    NormalizationParameters, get_num_output_features
+)
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
 from ml.rl.training.evaluator import Evaluator
@@ -31,39 +32,21 @@ class DiscreteActionTrainer(RLTrainer):
 
     def __init__(
         self,
-        state_normalization_parameters: Dict[str, NormalizationParameters],
         parameters: DiscreteActionModelParameters,
-        skip_normalization: Optional[bool] = False
+        normalization_parameters: Dict[int, NormalizationParameters],
     ) -> None:
-        self._actions = parameters.actions
-        self.num_processed_state_features = get_num_output_features(
-            state_normalization_parameters
-        )
-        if parameters.training.layers[0] in [None, -1, 1]:
-            parameters.training.layers[0] = self.num_state_features
+        self._actions = parameters.actions if parameters.actions is not None else []
 
-        # There is a logical 1-dimensional output for each state/action pair,
-        # but the underlying network computes num_actions-dimensional outputs
-        if parameters.training.layers[-1] in [None, -1, 1]:
-            parameters.training.layers[-1] = self.num_actions
+        self.state_normalization_parameters = normalization_parameters
+        num_features = get_num_output_features(normalization_parameters)
+        parameters.training.layers[0] = num_features
+        parameters.training.layers[-1] = self.num_actions
 
-        assert parameters.training.layers[-1] == self.num_actions,\
-            "Set layers[-1] to a the number of actions or a default placeholder value"
-
-        RLTrainer.__init__(
-            self, state_normalization_parameters, parameters, skip_normalization
-        )
-
-    def _normalize_actions(self, actions: str) -> str:
-        return actions
-
-    @property
-    def num_state_features(self) -> int:
-        return self.num_processed_state_features
+        RLTrainer.__init__(self, parameters)
 
     @property
     def num_actions(self) -> int:
-        return 0 if self._actions is None else len(self._actions)
+        return len(self._actions)
 
     def stream_tdp(
         self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
@@ -87,33 +70,13 @@ class DiscreteActionTrainer(RLTrainer):
         )
 
     def _setup_initial_blobs(self):
-        self.input_dim = self.num_state_features
+        self.input_dim = self.num_features
         self.output_dim = self.num_actions
 
         self.action_blob = "action"
         workspace.FeedBlob(self.action_blob, np.zeros(1, dtype=np.float32))
 
         MLTrainer._setup_initial_blobs(self)
-
-    def _validate_train_inputs(
-        self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        next_states: np.ndarray,
-        next_actions: Optional[np.ndarray],
-        not_terminals: np.ndarray,
-        possible_next_actions: np.ndarray,
-    ):
-        batch_size = self.minibatch_size
-        assert states.shape == (batch_size, self.num_state_features)
-        assert actions.shape == (batch_size, self.num_actions)
-        assert next_states.shape == (batch_size, self.num_state_features)
-        assert not_terminals.shape == (batch_size, 1)
-        if next_actions is not None:
-            assert next_actions.shape == (batch_size, self.num_actions)
-        if possible_next_actions is not None:
-            assert possible_next_actions.shape == (batch_size, self.num_actions)
 
     def _generate_train_model_loss(self):
         """
@@ -255,7 +218,9 @@ class DiscreteActionTrainer(RLTrainer):
         DiscreteActionTrainer.
         """
         return DiscreteActionPredictor.export(
-            self, self._actions, self._state_normalization_parameters
+            self,
+            self._actions,
+            self.state_normalization_parameters,
         )
 
     def get_policy(self, state: np.ndarray) -> int:
@@ -266,6 +231,6 @@ class DiscreteActionTrainer(RLTrainer):
         :param state: A Numpy array of shape (state_dim, ) containing a single
             state vector. Not yet normalized.
         """
-        inputs = self._normalize_states(np.array([state], dtype=np.float32))
+        inputs = np.array([state], dtype=np.float32)
         q_values = self.get_q_values_all_actions(inputs, False)
         return np.argmax(q_values[0])
