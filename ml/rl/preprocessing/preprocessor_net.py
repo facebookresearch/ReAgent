@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import numpy as np
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Tuple
 
 from caffe2.python import workspace, core
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
@@ -14,11 +14,10 @@ import caffe2.proto.caffe2_pb2 as caffe2_pb2
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import NormalizationParameters, \
     MISSING_VALUE
-from ml.rl.preprocessing.identify_types import FEATURE_TYPES, ENUM
+from ml.rl.preprocessing.identify_types import FEATURE_TYPES
 
 import logging
 logger = logging.getLogger(__name__)
-
 
 def sort_features_by_normalization(normalization_parameters):
     """
@@ -119,72 +118,111 @@ class PreprocessorNet:
             self._net.Clip([blob], [blob], min=0.01, max=0.99)
             self._net.Logit([blob], [blob])
         elif feature_type == identify_types.ENUM:
-            if len(normalization_parameters) != 1:
-                raise Exception(
-                    "Only a single enum feature is allowed per call to preprocess_blob"
-                )
-            normalization_parameter = normalization_parameters[0]
-            is_not_empty = self._net.NextBlob("{}__is_not_empty".format(blob))
-            is_not_empty_cast = self._net.NextBlob(
-                "{}__is_not_empty_cast".format(blob)
-            )
+            for parameter in normalization_parameters:
+                possible_values = parameter.possible_values
+                for x in possible_values:
+                    if x < 0:
+                        logger.fatal(
+                            "Invalid enum possible value for feature: "
+                            + str(x) + " " +
+                            str(parameter.possible_values)
+                        )
+                        raise Exception(
+                            "Invalid enum possible value for feature " + blob + ": "
+                            + str(x) + " " +
+                            str(parameter.possible_values)
+                        )
 
-            possible_values = normalization_parameter.possible_values
-            for x in possible_values:
-                if x < 0:
-                    logger.fatal(
-                        "Invalid enum possible value for feature " + blob + ": "
-                        + str(x) + " " +
-                        str(normalization_parameter.possible_values)
-                    )
-                    raise Exception(
-                        "Invalid enum possible value for feature " + blob + ": "
-                        + str(x) + " " +
-                        str(normalization_parameter.possible_values)
-                    )
-
-            flat_blob = self._net.NextBlob('flat_blob')
-            self._net.FlattenToVec([blob], [flat_blob])
-            values_blob = self._net.NextBlob('values_blob')
-            self._net.ConstantFill(
-                [flat_blob],
-                [values_blob],
-                value=1.0,
-                dtype=core.DataType.FLOAT,
-            )
-            one_length_blob = self._net.NextBlob('one_length_blob')
-            self._net.ConstantFill(
-                [flat_blob],
-                [one_length_blob],
-                value=1,
-                dtype=core.DataType.INT32,
-            )
             int_blob = self._net.NextBlob('int_blob')
             self._net.Cast(
-                [flat_blob], [int_blob], to=caffe2_pb2.TensorProto.INT32
+                [blob], [int_blob],
+                to=core.DataType.INT32,
             )
-            default_values = self._net.NextBlob('default_values')
-            output_without_missing = self._net.NextBlob(
-                'output_without_missing'
+
+            output_int_blob = self._net.NextBlob('output_int_blob')
+            feature_lengths_blob = self._net.NextBlob('feature_lengths_blob')
+            feature_values_blob = self._net.NextBlob('feature_values_blob')
+            one_hot_output = self._net.NextBlob('one_hot_output')
+
+            # Batch one hot transform with MISSING_VALUE as a possible value
+            feature_lengths = [
+                len(p.possible_values) + 1 for p in normalization_parameters
+            ]
+            workspace.FeedBlob(
+                feature_lengths_blob,
+                np.array(feature_lengths, dtype=np.int32),
             )
-            workspace.FeedBlob(default_values, np.array(0.0, dtype=np.float32))
-            parameters.append(default_values)
-            self._net.SparseToDenseMask(
-                [int_blob, values_blob, default_values, one_length_blob],
-                [output_without_missing],
-                mask=list(possible_values),
-                max_skipped_indices=int(1e9),
+
+            feature_values = [
+                x
+                for p in normalization_parameters
+                for x in p.possible_values + [int(MISSING_VALUE)]
+            ]
+
+            workspace.FeedBlob(
+                feature_values_blob,
+                np.array(feature_values, dtype=np.int32),
             )
-            self._net.Not([is_empty], [is_not_empty])
+
+            parameters.extend([feature_values_blob, feature_lengths_blob])
+
+            self._net.BatchOneHot(
+                [int_blob, feature_lengths_blob, feature_values_blob],
+                [one_hot_output],
+            )
+
+            # Remove missing values with a mask
+            flattened_one_hot = self._net.NextBlob('flattened_one_hot')
+            self._net.FlattenToVec([one_hot_output], [flattened_one_hot])
+            cols_to_include = [
+                [1] * len(p.possible_values) + [0]
+                for p in normalization_parameters
+            ]
+            cols_to_include = [x for col in cols_to_include for x in col]
+            mask = self._net.NextBlob('mask')
+            workspace.FeedBlob(mask, np.array(cols_to_include, dtype=np.int32))
+            parameters.append(mask)
+
+            zero_vec = self._net.NextBlob('zero_vec')
+            self._net.ConstantFill(
+                [one_hot_output], [zero_vec], value=0,
+                dtype=caffe2_pb2.TensorProto.INT32)
+
+            repeated_mask_int = self._net.NextBlob('repeated_mask_int')
+            repeated_mask_bool = self._net.NextBlob('repeated_mask_bool')
+
+            self._net.Add([zero_vec, mask], [repeated_mask_int], broadcast=1)
             self._net.Cast(
-                [is_not_empty], [is_not_empty_cast],
-                to=caffe2_pb2.TensorProto.FLOAT
+                [repeated_mask_int], [repeated_mask_bool], to=core.DataType.BOOL)
+
+            flattened_repeated_mask = self._net.NextBlob('flattened_repeated_mask')
+            self._net.FlattenToVec([repeated_mask_bool], [flattened_repeated_mask])
+
+            flattened_one_hot_proc = self._net.NextBlob('flattened_one_hot_proc')
+            self._net.BooleanMask(
+                [flattened_one_hot, flattened_repeated_mask],
+                [flattened_one_hot_proc, flattened_one_hot_proc + 'indices'])
+
+            one_hot_shape = self._net.NextBlob('one_hot_shape')
+            self._net.Shape([one_hot_output], [one_hot_shape])
+            target_shape = self._net.NextBlob('target_shape')
+            shape_delta = self._net.NextBlob('shape_delta')
+            workspace.FeedBlob(
+                shape_delta,
+                np.array([0, len(normalization_parameters)], dtype=np.int64))
+            parameters.append(shape_delta)
+            self._net.Sub([one_hot_shape, shape_delta], [target_shape], broadcast=1)
+            self._net.Reshape(
+                [flattened_one_hot_proc, target_shape],
+                [output_int_blob, output_int_blob + '_old_shape'],
             )
-            self._net.Mul(
-                [output_without_missing, is_not_empty_cast], [output_blob],
-                broadcast=1,
-                axis=0
+
+            self._net.Cast(
+                [output_int_blob],
+                [output_blob],
+                to=core.DataType.FLOAT,
             )
+
             return output_blob, parameters
         elif feature_type == identify_types.QUANTILE:
             # This transformation replaces a set of values with their quantile.
@@ -349,43 +387,24 @@ class PreprocessorNet:
                     end_index = feature_starts[i + 1]
                 if start_index == end_index:
                     continue  # No features of this type
-                if feature_type == ENUM:
-                    # Each enum feature must be processed independently
-                    for x in range(start_index, end_index):
-                        sliced_input_features = self._get_input_blob(
-                            blobname_prefix, feature_type, features[x]
-                        )
-                        self._net.Slice(
-                            [input_matrix],
-                            [sliced_input_features],
-                            starts=[0, x],
-                            ends=[-1, x + 1],
-                        )
-                        normalized_input_blob, blob_parameters = self.preprocess_blob(
-                            sliced_input_features,
-                            [normalization_parameters[features[x]]],
-                        )
-                        parameters.extend(blob_parameters)
-                        normalized_input_blobs.append(normalized_input_blob)
-                else:
-                    sliced_input_features = self._get_input_blob(
-                        blobname_prefix, feature_type, None
-                    )
-                    self._net.Slice(
-                        [input_matrix],
-                        [sliced_input_features],
-                        starts=[0, start_index],
-                        ends=[-1, end_index],
-                    )
-                    normalized_input_blob, blob_parameters = self.preprocess_blob(
-                        sliced_input_features,
-                        [
-                            normalization_parameters[x]
-                            for x in features[start_index:end_index]
-                        ],
-                    )
-                    parameters.extend(blob_parameters)
-                    normalized_input_blobs.append(normalized_input_blob)
+                sliced_input_features = self._get_input_blob(
+                    blobname_prefix, feature_type
+                )
+                self._net.Slice(
+                    [input_matrix],
+                    [sliced_input_features],
+                    starts=[0, start_index],
+                    ends=[-1, end_index],
+                )
+                normalized_input_blob, blob_parameters = self.preprocess_blob(
+                    sliced_input_features,
+                    [
+                        normalization_parameters[x]
+                        for x in features[start_index:end_index]
+                    ],
+                )
+                parameters.extend(blob_parameters)
+                normalized_input_blobs.append(normalized_input_blob)
             concatenated_input_blob = blobname_prefix + "_concatenated_input_blob"
             concatenated_input_blob_dim = blobname_prefix + \
                 "_concatenated_input_blob_dim"
@@ -420,9 +439,6 @@ class PreprocessorNet:
         return feature_starts
 
     def _get_input_blob(
-        self, prefix: str, feature_type: str, feature_id: Optional[str]
+        self, prefix: str, feature_type: str
     ) -> str:
-        if feature_type == ENUM:
-            return "{}_{}_{}".format(prefix, feature_type, feature_id)
-        else:
-            return "{}_{}".format(prefix, feature_type)
+        return "{}_{}".format(prefix, feature_type)
