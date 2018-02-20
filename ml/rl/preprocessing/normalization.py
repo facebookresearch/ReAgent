@@ -108,7 +108,7 @@ def identify_parameter(
             quantiles = np.unique(
                 mquantiles(
                     values,
-                    np.arange(quantile_size + 1, dtype=np.float32) /
+                    np.arange(quantile_size + 1, dtype=np.float64) /
                     float(quantile_size),
                     alphap=0.0,
                     betap=1.0,
