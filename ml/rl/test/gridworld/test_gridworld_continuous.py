@@ -33,6 +33,7 @@ from ml.rl.test.gridworld.gridworld_evaluator import \
 
 class TestGridworldContinuous(unittest.TestCase):
     def setUp(self):
+        self.minibatch_size = 1024
         super(self.__class__, self).setUp()
         np.random.seed(0)
         random.seed(0)
@@ -48,7 +49,7 @@ class TestGridworldContinuous(unittest.TestCase):
             training=TrainingParameters(
                 layers=[-1, 200, -1],
                 activations=['linear', 'linear'],
-                minibatch_size=1024,
+                minibatch_size=self.minibatch_size,
                 learning_rate=0.01,
                 optimizer='ADAM',
             ),
@@ -62,7 +63,7 @@ class TestGridworldContinuous(unittest.TestCase):
             environment.normalization_action,
         )
 
-    def test_trainer_single_batch_sarsa(self):
+    def test_trainer_sarsa(self):
         environment = GridworldContinuous()
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
@@ -70,19 +71,27 @@ class TestGridworldContinuous(unittest.TestCase):
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False)
-        tdp = environment.preprocess_samples(
-            states, actions, rewards, next_states, next_actions, is_terminal,
-            possible_next_actions, reward_timelines
+        tdps = environment.preprocess_samples(
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminal,
+            possible_next_actions,
+            reward_timelines,
+            self.minibatch_size,
         )
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
-        trainer.stream_tdp(tdp)
+        for tdp in tdps:
+            trainer.stream_tdp(tdp)
         evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
-    def test_trainer_single_batch_sarsa_enum(self):
+    def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
         states, actions, rewards, next_states, next_actions, is_terminal,\
             possible_next_actions, reward_timelines = \
@@ -90,19 +99,27 @@ class TestGridworldContinuous(unittest.TestCase):
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False)
-        tdp = environment.preprocess_samples(
-            states, actions, rewards, next_states, next_actions, is_terminal,
-            possible_next_actions, reward_timelines
+        tdps = environment.preprocess_samples(
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminal,
+            possible_next_actions,
+            reward_timelines,
+            self.minibatch_size,
         )
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
-        trainer.stream_tdp(tdp)
+        for tdp in tdps:
+            trainer.stream_tdp(tdp)
         evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
-    def test_trainer_single_batch_maxq(self):
+    def test_trainer_maxq(self):
         environment = GridworldContinuous()
         rl_parameters = self.get_sarsa_parameters()
         new_rl_parameters = ContinuousActionModelParameters(
@@ -125,15 +142,23 @@ class TestGridworldContinuous(unittest.TestCase):
             possible_next_actions, reward_timelines = \
             environment.generate_samples(100000, 1.0)
         predictor = maxq_trainer.predictor()
-        tbp = environment.preprocess_samples(
-            states, actions, rewards, next_states, next_actions, is_terminal,
-            possible_next_actions, reward_timelines
+        tdps = environment.preprocess_samples(
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminal,
+            possible_next_actions,
+            reward_timelines,
+            self.minibatch_size,
         )
         evaluator = GridworldContinuousEvaluator(environment, True)
         self.assertGreater(evaluator.evaluate(predictor), 0.4)
 
         for _ in range(2):
-            maxq_trainer.stream_tdp(tbp)
+            for tdp in tdps:
+                maxq_trainer.stream_tdp(tdp)
             evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.1)
@@ -149,12 +174,20 @@ class TestGridworldContinuous(unittest.TestCase):
             reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(trainer, DISCOUNT)
-        tdp = environment.preprocess_samples(
-            states, actions, rewards, next_states, next_actions, is_terminal,
-            possible_next_actions, reward_timelines
+        tdps = environment.preprocess_samples(
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminal,
+            possible_next_actions,
+            reward_timelines,
+            self.minibatch_size,
         )
 
-        trainer.stream_tdp(tdp, evaluator)
+        for tdp in tdps:
+            trainer.stream_tdp(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
         self.assertLess(evaluator.mc_loss[-1], 0.12)
@@ -167,11 +200,19 @@ class TestGridworldContinuous(unittest.TestCase):
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(trainer, DISCOUNT)
 
-        tdp = environment.preprocess_samples(
-            states, actions, rewards, next_states, next_actions, is_terminal,
-            possible_next_actions, reward_timelines
+        tdps = environment.preprocess_samples(
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminal,
+            possible_next_actions,
+            reward_timelines,
+            self.minibatch_size,
         )
-        trainer.stream_tdp(tdp, evaluator)
+        for tdp in tdps:
+            trainer.stream_tdp(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.2)
         self.assertLess(evaluator.mc_loss[-1], 0.2)

@@ -32,8 +32,16 @@ class Gridworld(GridworldBase):
         is_terminals: List[bool],
         possible_next_actions: List[List[str]],
         reward_timelines: Optional[List[Dict[int, float]]],
-    ) -> TrainingDataPage:
+        minibatch_size: int,
+    ) -> List[TrainingDataPage]:
         return self.preprocess_samples_discrete(
-            states, actions, rewards, next_states, next_actions, is_terminals,
-            possible_next_actions, reward_timelines
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminals,
+            possible_next_actions,
+            reward_timelines,
+            minibatch_size,
         )

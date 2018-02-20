@@ -123,61 +123,27 @@ class RLTrainer(MLTrainer):
         parametric action case) need no further normalization.
         """
 
-        if rewards.ndim == 1:
-            rewards = rewards.reshape(-1, 1)
-        if not_terminals.ndim == 1:
-            not_terminals = not_terminals.reshape(-1, 1)
-
-        use_next_actions = next_actions is not None and self.sarsa
-        use_pna = possible_next_actions is not None and self.maxq_learning
-        use_rt = reward_timelines is not None
+        assert rewards.ndim == 2
+        assert not_terminals.ndim == 2
 
         page_size = states.shape[0]
+        assert page_size == self.minibatch_size
 
-        pna_cursor = 0
-        for batch_start in range(0, page_size, self.minibatch_size):
-            batch_end = batch_start + self.minibatch_size
-            if page_size < batch_end:
-                # Skip the remainder
-                continue
-            else:
-                na_batch = (
-                    next_actions[batch_start:batch_end]
-                    if use_next_actions else None
-                )
-                pna_batch = None
-                if use_pna:
-                    if isinstance(possible_next_actions, (list, tuple)):
-                        assert len(possible_next_actions) == 2
-                        pna_batch_lengths = possible_next_actions[1][
-                            batch_start:batch_end
-                        ]
-                        total_length = np.sum(pna_batch_lengths)
-                        pna_batch = (
-                            possible_next_actions[0]
-                            [pna_cursor:(pna_cursor + total_length)],
-                            pna_batch_lengths,
-                        )
-                        pna_cursor += total_length
-                    else:
-                        pna_batch = possible_next_actions[batch_start:batch_end]
-                rt_batch = (
-                    reward_timelines[batch_start:batch_end] if use_rt else None
-                )
-                states_batch = states[batch_start:batch_end]
-                next_states_batch = next_states[batch_start:batch_end]
-                actions_batch = actions[batch_start:batch_end]
-                self.train(
-                    states_batch, actions_batch, rewards[batch_start:batch_end],
-                    next_states_batch, na_batch,
-                    not_terminals[batch_start:batch_end], pna_batch
-                )
-                if evaluator is not None:
-                    evaluator.report(
-                        rt_batch,
-                        self.get_q_values(states_batch, actions_batch),
-                        workspace.FetchBlob(self.loss_blob)
-                    )
+        self.train(
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            not_terminals,
+            possible_next_actions,
+        )
+        if evaluator is not None:
+            evaluator.report(
+                reward_timelines,
+                self.get_q_values(states, actions),
+                workspace.FetchBlob(self.loss_blob),
+            )
 
     def train(
         self,
@@ -215,7 +181,10 @@ class RLTrainer(MLTrainer):
         """
 
         batch_size = self.minibatch_size
-        assert rewards.shape == (batch_size, 1)
+        assert rewards.shape == (
+            batch_size, 1
+        ), "Invalid reward shape: " + \
+            str(rewards.shape) + " != " + str(self.minibatch_size)
         assert rewards.dtype == np.float32
         assert not_terminals.shape == (
             batch_size, 1

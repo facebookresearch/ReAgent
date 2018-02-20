@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
+from typing import List
 
 import numpy as np
 
@@ -10,7 +14,7 @@ import numpy as np
 # @/caffe2/caffe2/python:caffe2_py
 # ]
 
-from caffe2.python import model_helper, workspace
+from caffe2.python import model_helper, workspace, core
 from ml.rl.training.ml_trainer import MakeForwardPassOps
 from ml.rl.training.conv.ml_conv_trainer import MLConvTrainer, MakeConvPassOps
 
@@ -53,7 +57,9 @@ class TargetNetwork(object):
 
         if self._is_conv_tn:
             self.output_conv_blob = "TargetConvOutput_" + self.tn_model_id
-            workspace.FeedBlob(self.output_conv_blob, np.zeros(1, dtype=np.float32))
+            workspace.FeedBlob(
+                self.output_conv_blob, np.zeros(1, dtype=np.float32)
+            )
 
         self._weights = self._copy_params(self._trainer.weights)
         self._biases = self._copy_params(self._trainer.biases)
@@ -75,7 +81,8 @@ class TargetNetwork(object):
         if self._is_conv_tn:
             MakeConvPassOps(
                 self._predict_model, self.tn_model_id, self._trainer.dims,
-                self._trainer.conv_height_kernels, self._trainer.conv_width_kernels,
+                self._trainer.conv_height_kernels,
+                self._trainer.conv_width_kernels,
                 self._trainer.pool_kernels_strides, self._trainer.pool_types,
                 self.input_blob, self.output_conv_blob, self._conv_weights,
                 self._conv_biases
@@ -84,8 +91,9 @@ class TargetNetwork(object):
 
         MakeForwardPassOps(
             self._predict_model, self.tn_model_id, fc_input_blob,
-            self.output_blob, self._weights, self._biases, self._trainer.activations,
-            self._trainer.layers, self._trainer.dropout_ratio, True
+            self.output_blob, self._weights, self._biases,
+            self._trainer.activations, self._trainer.layers,
+            self._trainer.dropout_ratio, True
         )
 
     def _setup_update_net(self):
@@ -129,11 +137,36 @@ class TargetNetwork(object):
         """
         workspace.RunNet(self._update_model.net)
 
-    def target_values(self, states):
-        """ Estimates the values for the given states using the target network
+    def target_values(self, inputs):
+        """ Estimates the values for the given inputs using the target network
 
-        :param states The given states
+        :param inputs The given inputs
         """
-        workspace.FeedBlob(self.input_blob, states)
+        workspace.FeedBlob(self.input_blob, inputs)
         workspace.RunNet(self._predict_model.net)
         return workspace.FetchBlob(self.output_blob)
+
+    def target_values_concat(self, inputs):
+        """ Estimates the values for the given inputs using the target network
+
+        :param inputs The given inputs
+        """
+        self._concat_inputs(inputs)
+        workspace.RunNet(self._predict_model.net)
+        return workspace.FetchBlob(self.output_blob)
+
+    def _concat_inputs(self, inputs: List[np.ndarray]) -> None:
+        blobs_to_concat = []
+        for i, input in enumerate(inputs):
+            blob_name = self.input_blob + "_part_" + str(i)
+            workspace.FeedBlob(blob_name, input)
+            blobs_to_concat.append(blob_name)
+        split_info = 'dummy_split_info'
+        workspace.RunOperatorOnce(
+            core.CreateOperator(
+                'Concat',
+                blobs_to_concat,
+                [self.input_blob, split_info],
+                axis=1,
+            )
+        )

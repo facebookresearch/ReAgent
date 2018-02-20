@@ -15,7 +15,7 @@ from typing import List
 # @/caffe2/caffe2/python:caffe2_py
 # ]
 
-from caffe2.python import workspace, brew
+from caffe2.python import core, workspace, brew
 from caffe2.python.model_helper import ModelHelper
 
 from ml.rl.custom_brew_helpers.fc import fc_explicit_param_names
@@ -283,7 +283,21 @@ class MLTrainer:
         workspace.RunNet(self.score_model.net)
         return workspace.FetchBlob(self.output_blob)
 
-    def train_batch(self, inputs: np.ndarray, labels: np.ndarray) -> None:
+    def score_concat(self, inputs: List[np.ndarray]) -> np.ndarray:
+        """
+        Runs the net on a set of data and returns the outputs.
+
+        :param inputs: Numpy array containing examples to score.
+        """
+        self._concat_inputs(inputs)
+        workspace.RunNet(self.score_model.net)
+        return workspace.FetchBlob(self.output_blob)
+
+    def train_batch(
+        self,
+        inputs: np.ndarray,
+        labels: np.ndarray,
+    ) -> None:
         """
         Trains net on inputs and labels. Please ensure that inputs are batched
         to an appropriate size and are shuffled.
@@ -295,6 +309,22 @@ class MLTrainer:
         workspace.FeedBlob(self.labels_blob, labels)
         workspace.RunNet(self.train_model.net)
 
+    def train_batch_concat(
+        self,
+        inputs: List[np.ndarray],
+        labels: np.ndarray,
+    ) -> None:
+        """
+        Trains net on inputs and labels. Please ensure that inputs are batched
+        to an appropriate size and are shuffled.
+
+        :param inputs: Numpy array containing training examples.
+        :param labels: Numpy array containing training labels.
+        """
+        self._concat_inputs(inputs)
+        workspace.FeedBlob(self.labels_blob, labels)
+        workspace.RunNet(self.train_model.net)
+
     @property
     def output(self) -> np.ndarray:
         return workspace.FetchBlob(self.output_blob)
@@ -302,3 +332,19 @@ class MLTrainer:
     @property
     def loss(self) -> np.ndarray:
         return workspace.FetchBlob('loss')
+
+    def _concat_inputs(self, inputs: List[np.ndarray]) -> None:
+        blobs_to_concat = []
+        for i, input in enumerate(inputs):
+            blob_name = self.input_blob + "_part_" + str(i)
+            workspace.FeedBlob(blob_name, input)
+            blobs_to_concat.append(blob_name)
+        split_info = 'dummy_split_info'
+        workspace.RunOperatorOnce(
+            core.CreateOperator(
+                'Concat',
+                blobs_to_concat,
+                [self.input_blob, split_info],
+                axis=1,
+            )
+        )

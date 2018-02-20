@@ -76,7 +76,8 @@ class GridworldContinuous(GridworldBase):
         is_terminals: List[bool],
         possible_next_actions: List[List[Dict[int, float]]],
         reward_timelines: List[Dict[int, float]],
-    ) -> TrainingDataPage:
+        minibatch_size: int,
+    ) -> List[TrainingDataPage]:
         # Shuffle
         merged = list(
             zip(
@@ -122,7 +123,7 @@ class GridworldContinuous(GridworldBase):
             self.normalization_action,
             'next_action_norm',
         )
-        rewards = np.array(rewards, dtype=np.float32)
+        rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
 
         pnas_lengths = []
         pnas_flat = []
@@ -142,18 +143,35 @@ class GridworldContinuous(GridworldBase):
         )
         workspace.RunNetOnce(net)
 
-        return TrainingDataPage(
-            states=workspace.FetchBlob(state_matrix),
-            actions=workspace.FetchBlob(action_matrix),
-            rewards=rewards,
-            next_states=workspace.FetchBlob(next_state_matrix),
-            next_actions=workspace.FetchBlob(next_action_matrix),
-            possible_next_actions=(
-                workspace.FetchBlob(possible_next_actions_matrix),
-                pnas_lengths,
-            ),
-            reward_timelines=reward_timelines,
+        states_ndarray = workspace.FetchBlob(state_matrix)
+        actions_ndarray = workspace.FetchBlob(action_matrix)
+        next_states_ndarray = workspace.FetchBlob(next_state_matrix)
+        next_actions_ndarray = workspace.FetchBlob(next_action_matrix)
+        possible_next_actions_ndarray = workspace.FetchBlob(
+            possible_next_actions_matrix
         )
+        tdps = []
+        pnas_start = 0
+        for start in range(0, states_ndarray.shape[0], minibatch_size):
+            end = start + minibatch_size
+            if end > states_ndarray.shape[0]:
+                break
+            pnas_end = pnas_start + np.sum(pnas_lengths[start:end])
+            pnas = possible_next_actions_ndarray[pnas_start:pnas_end]
+            pnas_start = pnas_end
+            tdps.append(
+                TrainingDataPage(
+                    states=states_ndarray[start:end],
+                    actions=actions_ndarray[start:end],
+                    rewards=rewards[start:end],
+                    next_states=next_states_ndarray[start:end],
+                    next_actions=next_actions_ndarray[start:end],
+                    possible_next_actions=(pnas, pnas_lengths[start:end]),
+                    reward_timelines=reward_timelines[start:end]
+                    if reward_timelines else None,
+                )
+            )
+        return tdps
 
     def true_values_for_sample(
         self, states, actions, assume_optimal_policy: bool

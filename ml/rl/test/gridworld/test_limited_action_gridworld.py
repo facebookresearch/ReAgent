@@ -95,9 +95,10 @@ def _collect_samples(env, policy, num_steps, initial_state):
 
 class TestLimitedActionGridworld(unittest.TestCase):
     def setUp(self):
-        super(self.__class__, self).setUp()
+        self.minibatch_size = 32
         np.random.seed(0)
         random.seed(0)
+        super(self.__class__, self).setUp()
 
         self._env = LimitedActionGridworld()
         self._rl_parameters = RLParameters(
@@ -140,7 +141,7 @@ class TestLimitedActionGridworld(unittest.TestCase):
             training=TrainingParameters(
                 layers=[self._env.width * self._env.height, 1],
                 activations=['linear'],
-                minibatch_size=32,
+                minibatch_size=self.minibatch_size,
                 learning_rate=0.05,
                 optimizer='SGD',
                 lr_policy='fixed'
@@ -163,7 +164,7 @@ class TestLimitedActionGridworld(unittest.TestCase):
         for _ in range(num_iterations):
             policy = _build_policy(self._env, predictor, 0)
 
-            tdp = self._env.preprocess_samples(
+            tdps = self._env.preprocess_samples(
                 iteration_result.states,
                 iteration_result.actions,
                 iteration_result.rewards,
@@ -172,8 +173,10 @@ class TestLimitedActionGridworld(unittest.TestCase):
                 iteration_result.is_terminals,
                 iteration_result.possible_next_actions,
                 None,
+                self.minibatch_size,
             )
-            trainer.stream_tdp(tdp, None)
+            for tdp in tdps:
+                trainer.stream_tdp(tdp, None)
             initial_state = iteration_result.current_state
         initial_state = self._env.reset()
         iteration_result = _collect_samples(
@@ -186,7 +189,8 @@ class TestLimitedActionGridworld(unittest.TestCase):
         target_cheat_percentage = 50
         epsilon = 0.2
         num_iterations = 30
-        num_steps = 1024 * 10
+        self.minibatch_size = 1024
+        num_steps = self.minibatch_size * 10
         updates_per_iteration = 1
 
         q_learning_parameters = DiscreteActionModelParameters(
@@ -195,7 +199,7 @@ class TestLimitedActionGridworld(unittest.TestCase):
             training=TrainingParameters(
                 layers=[-1, -1],
                 activations=['linear'],
-                minibatch_size=1024,
+                minibatch_size=self.minibatch_size,
                 learning_rate=0.05,
                 optimizer='ADAM',
             ),
@@ -222,7 +226,7 @@ class TestLimitedActionGridworld(unittest.TestCase):
             iteration_result = _collect_samples(
                 self._env, policy, num_steps, initial_state
             )
-            tdp = self._env.preprocess_samples(
+            tdps = self._env.preprocess_samples(
                 iteration_result.states,
                 iteration_result.actions,
                 iteration_result.rewards,
@@ -231,6 +235,7 @@ class TestLimitedActionGridworld(unittest.TestCase):
                 iteration_result.is_terminals,
                 iteration_result.possible_next_actions,
                 None,
+                self.minibatch_size,
             )
             print(
                 "iter: {} ({}), ratio: {}, steps to solve: {}, quantile: {}".
@@ -241,7 +246,8 @@ class TestLimitedActionGridworld(unittest.TestCase):
             )
             initial_state = iteration_result.current_state
             for _ in range(updates_per_iteration):
-                trainer.stream_tdp(tdp, None)
+                for tdp in tdps:
+                    trainer.stream_tdp(tdp, None)
 
         state = self._env.reset()
         evaluation_results = _collect_samples(self._env, policy, 10000, state)

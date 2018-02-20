@@ -61,7 +61,9 @@ class DiscreteActionTrainer(RLTrainer):
         not_terminals = tdp.not_terminals
         if not_terminals is None:
             # Terminal states' corresponding next_action vectors' values are all 0
-            not_terminals = tdp.next_actions.sum(axis=1) >= 1e-6
+            not_terminals = (tdp.next_actions.sum(axis=1) >= 1e-6).reshape(
+                -1, 1
+            )
 
         self.stream(
             tdp.states, tdp.actions, tdp.rewards, tdp.next_states,

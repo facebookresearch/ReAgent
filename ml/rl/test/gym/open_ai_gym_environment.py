@@ -92,11 +92,11 @@ class OpenAIGymEnvironment:
         return TrainingDataPage(
             np.array(states, dtype=np.float32),
             np.array(actions, dtype=np.float32),
-            np.array(rewards, dtype=np.float32),
+            np.array(rewards, dtype=np.float32).reshape(-1, 1),
             np.array(next_states, dtype=np.float32),
             np.array(next_actions, dtype=np.float32),
             np.array(possible_next_actions, dtype=np.float32), None,
-            np.logical_not(terminals, dtype=np.bool)
+            np.logical_not(terminals, dtype=np.bool).reshape(-1, 1)
         )
 
     @property

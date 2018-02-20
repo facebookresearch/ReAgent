@@ -86,9 +86,20 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         else:
             q_next_actions = next_actions
         penalty = self._reward_penalty(actions, q_next_actions, is_terminals)
+        assert penalty.shape == rewards.shape, "" + str(
+            penalty.shape
+        ) + "" + str(rewards.shape)
         RLTrainer.stream(
-            self, states, actions, rewards - penalty, next_states, next_actions,
-            is_terminals, possible_next_actions, None, evaluator
+            self,
+            states,
+            actions,
+            rewards - penalty,
+            next_states,
+            next_actions,
+            is_terminals,
+            possible_next_actions,
+            None,
+            evaluator,
         )
 
     def _update_quantile(self):
@@ -115,7 +126,7 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         return (
             (
                 (actions[:, self._limited_action] > 0.999) -
-                self._discount_factor * (1 - is_terminals) *
+                self._discount_factor * (1 - is_terminals[:, 0]) *
                 (next_actions[:, self._limited_action] > 0.999)
             ) * self.quantile_value
-        ).astype(np.float32)
+        ).astype(np.float32).reshape(-1, 1)

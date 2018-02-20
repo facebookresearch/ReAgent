@@ -31,7 +31,6 @@ def run(
     test_every=100,
     test_after=10,
     num_train_batches=100,
-    train_batch_size=1024,
     avg_over_num_episodes=100,
     render=False,
     render_every=10
@@ -43,10 +42,10 @@ def run(
 
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
-                trainer.stream_tdp(
-                    env.get_training_data_page(train_batch_size),
-                    evaluator=None
-                )
+                tdp = env.get_training_data_page(trainer.minibatch_size)
+                assert tdp.states.shape[0] <= trainer.minibatch_size
+                if tdp.states.shape[0] == trainer.minibatch_size:
+                    trainer.stream_tdp(tdp, evaluator=None)
         if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
             reward_sum = 0.0
             for test_i in range(avg_over_num_episodes):

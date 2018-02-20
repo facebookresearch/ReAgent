@@ -364,7 +364,8 @@ class GridworldBase(object):
         is_terminals: List[bool],
         possible_next_actions: List[List[str]],
         reward_timelines: Optional[List[Dict[int, float]]],
-    ) -> TrainingDataPage:
+        minibatch_size: int,
+    ) -> List[TrainingDataPage]:
         # Shuffle
         if reward_timelines is None:
             merged = list(
@@ -411,7 +412,7 @@ class GridworldBase(object):
         )
         for i, action in enumerate(actions):
             actions_one_hot[i, self.ACTIONS.index(action)] = 1
-        rewards = np.array(rewards, dtype=np.float32)
+        rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
         next_actions_one_hot = np.zeros(
             [len(next_actions), len(self.ACTIONS)], dtype=np.float32
         )
@@ -428,25 +429,49 @@ class GridworldBase(object):
         possible_next_actions_mask = np.array(
             possible_next_actions_mask, dtype=np.float32
         )
-        is_terminals = np.array(is_terminals, dtype=np.bool)
+        is_terminals = np.array(is_terminals, dtype=np.bool).reshape(-1, 1)
         if reward_timelines is not None:
             reward_timelines = np.array(reward_timelines, dtype=np.object)
 
-        return TrainingDataPage(
-            states=workspace.FetchBlob(state_matrix),
-            actions=actions_one_hot,
-            rewards=rewards,
-            next_states=workspace.FetchBlob(next_state_matrix),
-            next_actions=next_actions_one_hot,
-            possible_next_actions=possible_next_actions_mask,
-            reward_timelines=reward_timelines,
-        )
+        states_ndarray = workspace.FetchBlob(state_matrix)
+        next_states_ndarray = workspace.FetchBlob(next_state_matrix)
+        tdps = []
+        for start in range(0, states_ndarray.shape[0], minibatch_size):
+            end = start + minibatch_size
+            if end > states_ndarray.shape[0]:
+                break
+            tdps.append(
+                TrainingDataPage(
+                    states=states_ndarray[start:end],
+                    actions=actions_one_hot[start:end],
+                    rewards=rewards[start:end],
+                    next_states=next_states_ndarray[start:end],
+                    next_actions=next_actions_one_hot[start:end],
+                    possible_next_actions=possible_next_actions_mask[start:end],
+                    reward_timelines=reward_timelines[start:end]
+                    if reward_timelines is not None else None,
+                )
+            )
+        return tdps
 
-    def generate_samples(self, num_transitions, epsilon, with_possible=True):
+    def generate_samples(
+        self,
+        num_transitions,
+        epsilon,
+        with_possible=True,
+    ):
         raise NotImplementedError()
 
     def preprocess_samples(
-        self, states, actions, rewards, next_states, next_actions, is_terminals,
-        possible_next_actions, reward_timelines
+        self,
+        states,
+        actions,
+        rewards,
+        next_states,
+        next_actions,
+        is_terminals,
+        possible_next_actions,
+        reward_timelines,
+        minibatch_size,
     ):
         raise NotImplementedError()

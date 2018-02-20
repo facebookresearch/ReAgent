@@ -47,15 +47,6 @@ class ContinuousActionDQNTrainer(RLTrainer):
 
         MLTrainer._setup_initial_blobs(self)
 
-    def _convert_to_net_inputs(
-        self, states: np.ndarray, actions: np.ndarray
-    ) -> np.ndarray:
-        """
-        Shapes states and actions into an input format compatible with this
-        Trainer's underlying net and its target network's net.
-        """
-        return np.concatenate([states, actions], axis=1)
-
     def stream_tdp(
         self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
     ) -> None:
@@ -68,7 +59,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         """
         not_terminals = tdp.not_terminals
         if tdp.not_terminals is None:
-            not_terminals = tdp.possible_next_actions[1] > 0
+            not_terminals = (tdp.possible_next_actions[1] > 0).reshape(-1, 1)
 
         self.stream(
             tdp.states, tdp.actions, tdp.rewards, tdp.next_states,
@@ -94,8 +85,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         :param q_vals_targets: Numpy array with shape (batch_size, 1). The ith
             row is the label to train against for the data from the ith transition.
         """
-        inputs = self._convert_to_net_inputs(states, actions)
-        self.train_batch(inputs, q_vals_target)
+        self.train_batch_concat([states, actions], q_vals_target)
 
     def get_max_q_values(
         self, next_states: np.ndarray,
@@ -163,7 +153,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         :param actions: Numpy array with shape (batch_size, action_dim). The ith
             row is a representation of the ith transition's action.
         """
-        return self.score(self._convert_to_net_inputs(states, actions))
+        return self.score_concat([states, actions])
 
     def get_sarsa_values(
         self, next_states: np.ndarray, next_actions: np.ndarray
@@ -179,8 +169,9 @@ class ContinuousActionDQNTrainer(RLTrainer):
             The ith row is a representation of the ith transition's next_action.
             Note that these are not normalized.
         """
-        inputs = self._convert_to_net_inputs(next_states, next_actions)
-        return self.target_network.target_values(inputs)
+        return self.target_network.target_values_concat(
+            [next_states, next_actions]
+        )
 
     def predictor(self) -> ContinuousActionDQNPredictor:
         """
