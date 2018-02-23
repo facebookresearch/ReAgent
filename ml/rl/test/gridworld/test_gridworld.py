@@ -25,11 +25,15 @@ class TestGridworld(unittest.TestCase):
         super(self.__class__, self).setUp()
 
     def get_sarsa_trainer(self, environment):
+        return self.get_sarsa_trainer_reward_boost(environment, {})
+
+    def get_sarsa_trainer_reward_boost(self, environment, reward_shape):
         rl_parameters = RLParameters(
             gamma=DISCOUNT,
             target_update_rate=0.5,
             reward_burnin=10,
-            maxq_learning=False
+            maxq_learning=False,
+            reward_boost=reward_shape,
         )
         training_parameters = TrainingParameters(
             layers=[-1, -1],
@@ -206,3 +210,27 @@ class TestGridworld(unittest.TestCase):
 
         self.assertLess(evaluator.td_loss[-1], 0.2)
         self.assertLess(evaluator.mc_loss[-1], 0.2)
+
+    def test_reward_boost(self):
+        environment = Gridworld()
+        reward_boost = {'L': 100, 'R': 200, 'U': 300, 'D': 400}
+        trainer = self.get_sarsa_trainer_reward_boost(environment, reward_boost)
+        predictor = trainer.predictor()
+        states, actions, rewards, next_states, next_actions, is_terminal,\
+            possible_next_actions, reward_timelines = \
+            environment.generate_samples(100000, 1.0)
+        rewards_update = []
+        for action, reward in zip(actions, rewards):
+            rewards_update.append(reward - reward_boost[action])
+        evaluator = GridworldEvaluator(environment, False)
+
+        tdps = environment.preprocess_samples(
+            states, actions, rewards_update, next_states, next_actions,
+            is_terminal, possible_next_actions, reward_timelines,
+            self.minibatch_size,)
+
+        self.assertGreater(evaluator.evaluate(predictor), 0.15)
+        for tdp in tdps:
+            trainer.stream_tdp(tdp, None)
+
+        self.assertLess(evaluator.evaluate(predictor), 0.05)

@@ -20,7 +20,6 @@ from ml.rl.training.ml_trainer import MLTrainer
 from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
 
-
 class RLTrainer(MLTrainer):
     def __init__(
         self,
@@ -43,7 +42,6 @@ class RLTrainer(MLTrainer):
         self.reward_burnin = parameters.rl.reward_burnin
         self.maxq_learning = parameters.rl.maxq_learning
         self.rl_discount_rate = parameters.rl.gamma
-
         self.training_iteration = 0
         self.minibatch_size = parameters.training.minibatch_size
 
@@ -128,22 +126,57 @@ class RLTrainer(MLTrainer):
 
         page_size = states.shape[0]
         assert page_size == self.minibatch_size
+        use_next_actions = next_actions is not None and self.sarsa
+        use_pna = possible_next_actions is not None and self.maxq_learning
+        use_rt = reward_timelines is not None
 
-        self.train(
-            states,
-            actions,
-            rewards,
-            next_states,
-            next_actions,
-            not_terminals,
-            possible_next_actions,
-        )
-        if evaluator is not None:
-            evaluator.report(
-                reward_timelines,
-                self.get_q_values(states, actions),
-                workspace.FetchBlob(self.loss_blob),
-            )
+        page_size = states.shape[0]
+
+        pna_cursor = 0
+        for batch_start in range(0, page_size, self.minibatch_size):
+            batch_end = batch_start + self.minibatch_size
+            if page_size < batch_end:
+                # Skip the remainder
+                continue
+            else:
+                na_batch = (
+                    next_actions[batch_start:batch_end]
+                    if use_next_actions else None
+                )
+                pna_batch = None
+                if use_pna:
+                    if isinstance(possible_next_actions, (list, tuple)):
+                        assert len(possible_next_actions) == 2
+                        pna_batch_lengths = possible_next_actions[1][
+                            batch_start:batch_end
+                        ]
+                        total_length = np.sum(pna_batch_lengths)
+                        pna_batch = (
+                            possible_next_actions[0]
+                            [pna_cursor:(pna_cursor + total_length)],
+                            pna_batch_lengths,
+                        )
+                        pna_cursor += total_length
+                    else:
+                        pna_batch = possible_next_actions[batch_start:batch_end]
+                rt_batch = (
+                    reward_timelines[batch_start:batch_end] if use_rt else None
+                )
+                states_batch = states[batch_start:batch_end]
+                next_states_batch = next_states[batch_start:batch_end]
+                actions_batch = actions[batch_start:batch_end]
+                rewards_batch = rewards[batch_start:batch_end]
+                self.train(
+                    states_batch, actions_batch, rewards_batch,
+                    next_states_batch, na_batch,
+                    not_terminals[batch_start:batch_end], pna_batch
+                )
+                if evaluator is not None:
+                    evaluator.report(
+                        rt_batch,
+                        self.get_q_values(states_batch, actions_batch),
+                        workspace.FetchBlob(self.loss_blob)
+                    )
 
     def train(
         self,

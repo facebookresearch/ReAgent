@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from typing import Optional, Dict
+from typing import Dict, Optional, List
 import numpy as np
 
 from caffe2.python import workspace
@@ -36,7 +36,11 @@ class DiscreteActionTrainer(RLTrainer):
         normalization_parameters: Dict[int, NormalizationParameters],
     ) -> None:
         self._actions = parameters.actions if parameters.actions is not None else []
-
+        self.reward_shape = {}  # type: Dict[int, float]
+        if parameters.rl.reward_boost is not None and self._actions is not None:
+            for k in parameters.rl.reward_boost.keys():
+                i = self._actions.index(k)
+                self.reward_shape[i] = parameters.rl.reward_boost[k]
         self.state_normalization_parameters = normalization_parameters
         num_features = get_num_output_features(normalization_parameters)
         parameters.training.layers[0] = num_features
@@ -236,3 +240,14 @@ class DiscreteActionTrainer(RLTrainer):
         inputs = np.array([state], dtype=np.float32)
         q_values = self.get_q_values_all_actions(inputs, False)
         return np.argmax(q_values[0])
+
+    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray,
+        next_states: np.ndarray, next_actions: Optional[np.ndarray],
+        not_terminals: np.ndarray, possible_next_actions: Optional[List]) -> None:
+        rewards_batch = rewards
+        if self.reward_shape is not None:
+            for action_index, boost in self.reward_shape.items():
+                rewards_batch += (actions[:, action_index] * boost).reshape(-1, 1)
+        super(DiscreteActionTrainer, self).train(states, actions,
+        rewards_batch, next_states, next_actions, not_terminals,
+        possible_next_actions)

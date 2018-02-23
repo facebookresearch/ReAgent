@@ -6,6 +6,7 @@ struct RLParameters {
   3: double target_update_rate = 0.01,
   4: i32 reward_burnin = 1,
   5: bool maxq_learning = true,
+  6: map<string, double> reward_boost,
 }
 
 struct TrainingParameters {
