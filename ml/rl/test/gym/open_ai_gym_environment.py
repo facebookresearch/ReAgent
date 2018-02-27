@@ -111,11 +111,12 @@ class OpenAIGymEnvironment:
         :param next_state: State to evaluate trainer's policy on.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         """
+        next_state = next_state.astype(np.float32).reshape(1, -1)
         action = np.zeros([self.action_dim], dtype=np.float32)
         if not test and np.random.rand() < self.epsilon:
             action_idx = np.random.randint(self.action_dim)
         else:
-            action_idx = trainer.get_policy(next_state)
+            action_idx = trainer.get_policy(next_state, None)
         action[action_idx] = 1.0
         return action
 

@@ -15,6 +15,8 @@ import numpy as np
 # ]
 
 from caffe2.python import model_helper, workspace, core
+
+from ml.rl.caffe_utils import C2
 from ml.rl.training.ml_trainer import MakeForwardPassOps
 from ml.rl.training.conv.ml_conv_trainer import MLConvTrainer, MakeConvPassOps
 
@@ -137,14 +139,25 @@ class TargetNetwork(object):
         """
         workspace.RunNet(self._update_model.net)
 
-    def target_values(self, inputs):
+    def target_values(self, input_blob: str) -> str:
         """ Estimates the values for the given inputs using the target network
 
         :param inputs The given inputs
         """
-        workspace.FeedBlob(self.input_blob, inputs)
-        workspace.RunNet(self._predict_model.net)
-        return workspace.FetchBlob(self.output_blob)
+        output_blob = C2.NextBlob("output_blob")
+        MakeForwardPassOps(
+            C2.model(),
+            self.tn_model_id,
+            input_blob,
+            output_blob,
+            self._weights,
+            self._biases,
+            self._trainer.activations,
+            self._trainer.layers,
+            self._trainer.dropout_ratio,
+            True,
+        )
+        return output_blob
 
     def target_values_concat(self, inputs):
         """ Estimates the values for the given inputs using the target network

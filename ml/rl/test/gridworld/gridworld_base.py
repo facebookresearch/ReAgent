@@ -11,7 +11,7 @@ import random
 from typing import Tuple, List, Dict, Optional
 from caffe2.python import core, workspace
 
-from ml.rl.preprocessing.caffe_utils import dict_list_to_blobs
+from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.test.utils import default_normalizer
@@ -389,20 +389,21 @@ class GridworldBase(object):
                 is_terminals, possible_next_actions, reward_timelines = zip(*merged)
 
         net = core.Net('gridworld_preprocessing')
+        C2.set_net(net)
         preprocessor = PreprocessorNet(net, True)
-        lengths, keys, values = dict_list_to_blobs(states, 'states')
+        saa = StackedAssociativeArray.from_dict_list(states, 'states')
         state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            lengths,
-            keys,
-            values,
+            saa.lengths,
+            saa.keys,
+            saa.values,
             self.normalization,
             'state_norm',
         )
-        lengths, keys, values = dict_list_to_blobs(next_states, 'next_states')
+        saa = StackedAssociativeArray.from_dict_list(next_states, 'next_states')
         next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            lengths,
-            keys,
-            values,
+            saa.lengths,
+            saa.keys,
+            saa.values,
             self.normalization,
             'next_state_norm',
         )
@@ -430,6 +431,7 @@ class GridworldBase(object):
             possible_next_actions_mask, dtype=np.float32
         )
         is_terminals = np.array(is_terminals, dtype=np.bool).reshape(-1, 1)
+        not_terminals = np.logical_not(is_terminals)
         if reward_timelines is not None:
             reward_timelines = np.array(reward_timelines, dtype=np.object)
 
@@ -446,6 +448,7 @@ class GridworldBase(object):
                     actions=actions_one_hot[start:end],
                     rewards=rewards[start:end],
                     next_states=next_states_ndarray[start:end],
+                    not_terminals=not_terminals[start:end],
                     next_actions=next_actions_one_hot[start:end],
                     possible_next_actions=possible_next_actions_mask[start:end],
                     reward_timelines=reward_timelines[start:end]

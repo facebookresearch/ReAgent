@@ -86,7 +86,7 @@ class TestGridworldContinuous(unittest.TestCase):
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
         for tdp in tdps:
-            trainer.stream_tdp(tdp)
+            trainer.train_numpy(tdp, None)
         evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
@@ -114,7 +114,7 @@ class TestGridworldContinuous(unittest.TestCase):
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
         for tdp in tdps:
-            trainer.stream_tdp(tdp)
+            trainer.train_numpy(tdp, None)
         evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
@@ -158,7 +158,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
         for _ in range(2):
             for tdp in tdps:
-                maxq_trainer.stream_tdp(tdp)
+                maxq_trainer.train_numpy(tdp, None)
             evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.1)
@@ -187,7 +187,7 @@ class TestGridworldContinuous(unittest.TestCase):
         )
 
         for tdp in tdps:
-            trainer.stream_tdp(tdp, evaluator)
+            trainer.train_numpy(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
         self.assertLess(evaluator.mc_loss[-1], 0.12)
@@ -212,7 +212,7 @@ class TestGridworldContinuous(unittest.TestCase):
             self.minibatch_size,
         )
         for tdp in tdps:
-            trainer.stream_tdp(tdp, evaluator)
+            trainer.train_numpy(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.2)
         self.assertLess(evaluator.mc_loss[-1], 0.2)

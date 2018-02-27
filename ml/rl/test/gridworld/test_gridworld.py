@@ -95,7 +95,7 @@ class TestGridworld(unittest.TestCase):
 
         for _ in range(2):
             for tdp in tdps:
-                maxq_trainer.stream_tdp(tdp, None)
+                maxq_trainer.train_numpy(tdp, None)
             evaluator.evaluate(predictor)
 
         print("Post-Training eval", evaluator.evaluate(predictor))
@@ -124,7 +124,7 @@ class TestGridworld(unittest.TestCase):
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
         for tdp in tdps:
-            trainer.stream_tdp(tdp, None)
+            trainer.train_numpy(tdp, None)
         evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
@@ -152,7 +152,7 @@ class TestGridworld(unittest.TestCase):
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
         for tdp in tdps:
-            trainer.stream_tdp(tdp, None)
+            trainer.train_numpy(tdp, None)
         evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
@@ -181,7 +181,7 @@ class TestGridworld(unittest.TestCase):
         )
 
         for tdp in tdps:
-            trainer.stream_tdp(tdp, evaluator)
+            trainer.train_numpy(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
         self.assertLess(evaluator.mc_loss[-1], 0.05)
@@ -206,7 +206,7 @@ class TestGridworld(unittest.TestCase):
             self.minibatch_size,
         )
         for tdp in tdps:
-            trainer.stream_tdp(tdp, evaluator)
+            trainer.train_numpy(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.2)
         self.assertLess(evaluator.mc_loss[-1], 0.2)
@@ -225,12 +225,19 @@ class TestGridworld(unittest.TestCase):
         evaluator = GridworldEvaluator(environment, False)
 
         tdps = environment.preprocess_samples(
-            states, actions, rewards_update, next_states, next_actions,
-            is_terminal, possible_next_actions, reward_timelines,
-            self.minibatch_size,)
+            states,
+            actions,
+            rewards_update,
+            next_states,
+            next_actions,
+            is_terminal,
+            possible_next_actions,
+            reward_timelines,
+            self.minibatch_size,
+        )
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
         for tdp in tdps:
-            trainer.stream_tdp(tdp, None)
+            trainer.train_numpy(tdp, None)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)

@@ -70,15 +70,14 @@ class DiscreteActionConvTrainer(RLConvTrainer, DiscreteActionTrainer):
     def num_state_features(self) -> int:
         raise NotImplementedError()
 
-    def stream_tdp(
-        self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
-    ) -> None:
-        self.stream(
-            self._reshape_states(tdp.states), tdp.actions, tdp.rewards,
-            self._reshape_states(tdp.next_states), tdp.next_actions,
-            tdp.not_terminals, tdp.possible_next_actions, tdp.reward_timelines,
-            evaluator
-        )
+    def train_numpy(
+        self,
+        tdp: TrainingDataPage,
+        evaluator: Optional[Evaluator],
+    ):
+        tdp.states = self._reshape_states(tdp.states)
+        tdp.next_states = self._reshape_states(tdp.next_states)
+        self.train_numpy(tdp, evaluator)
 
     def _reshape_states(self, inputs):
         """
@@ -106,7 +105,8 @@ class DiscreteActionConvTrainer(RLConvTrainer, DiscreteActionTrainer):
 
         MLConvTrainer._setup_initial_blobs(self)
 
-    def get_policy(self, state: np.ndarray) -> int:
+    def get_policy(self, state: np.ndarray, possible_next_actions) -> int:
+        assert possible_next_actions is None
         inputs = self._reshape_states(np.array([state], dtype=np.float32))
         q_values = self.get_q_values_all_actions(inputs, False)
         return np.argmax(q_values[0])

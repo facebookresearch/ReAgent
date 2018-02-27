@@ -10,6 +10,7 @@ import unittest
 
 from caffe2.python import core, workspace
 
+from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing import normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
@@ -57,6 +58,7 @@ class TestNormalization(unittest.TestCase):
                 assert v.feature_type == k or v.feature_type + "_2" + k
 
         norm_net = core.Net("net")
+        C2.set_net(norm_net)
         preprocessor = PreprocessorNet(norm_net, False)
         input_matrix = np.zeros([10000, len(features)], dtype=np.float32)
         for i, feature in enumerate(features):
@@ -158,6 +160,7 @@ class TestNormalization(unittest.TestCase):
             )
         }
         norm_net = core.Net("net")
+        C2.set_net(norm_net)
         preprocessor = PreprocessorNet(norm_net, False)
 
         inputs = np.zeros([4, 3], dtype=np.float32)
@@ -258,6 +261,7 @@ class TestNormalization(unittest.TestCase):
         )
 
         net = core.Net("PreprocessingTestNet")
+        C2.set_net(net)
         preprocessor = PreprocessorNet(net, False)
         for feature_name in feature_value_map:
             workspace.FeedBlob(feature_name, np.array([0], dtype=np.int32))

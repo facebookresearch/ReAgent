@@ -9,6 +9,7 @@ from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from caffe2.python import model_helper
 from caffe2.python import workspace
 
+from ml.rl.caffe_utils import C2
 from ml.rl.training.rl_predictor import RLPredictor
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 
@@ -33,6 +34,7 @@ class DiscreteActionPredictor(RLPredictor):
 
         model = model_helper.ModelHelper(name="predictor")
         net = model.net
+        C2.set_model(model)
 
         workspace.FeedBlob(
             'input/float_features.lengths', np.zeros(1, dtype=np.int32)

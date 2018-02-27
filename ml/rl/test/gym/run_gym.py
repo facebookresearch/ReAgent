@@ -45,7 +45,7 @@ def run(
                 tdp = env.get_training_data_page(trainer.minibatch_size)
                 assert tdp.states.shape[0] <= trainer.minibatch_size
                 if tdp.states.shape[0] == trainer.minibatch_size:
-                    trainer.stream_tdp(tdp, evaluator=None)
+                    trainer.train_numpy(tdp, evaluator=None)
         if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
             reward_sum = 0.0
             for test_i in range(avg_over_num_episodes):

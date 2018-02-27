@@ -11,7 +11,7 @@ from typing import Tuple, Dict, List
 
 from caffe2.python import core, workspace
 
-from ml.rl.preprocessing.caffe_utils import dict_list_to_blobs
+from ml.rl.caffe_utils import C2, StackedAssociativeArray, StackedArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.utils import default_normalizer
 from ml.rl.test.gridworld.gridworld_base import GridworldBase
@@ -90,54 +90,57 @@ class GridworldContinuous(GridworldBase):
             possible_next_actions, reward_timelines = zip(*merged)
 
         net = core.Net('gridworld_preprocessing')
+        C2.set_net(net)
         preprocessor = PreprocessorNet(net, True)
-        lengths, keys, values = dict_list_to_blobs(states, 'states')
+        saa = StackedAssociativeArray.from_dict_list(states, 'states')
         state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            lengths,
-            keys,
-            values,
+            saa.lengths,
+            saa.keys,
+            saa.values,
             self.normalization,
             'state_norm',
         )
-        lengths, keys, values = dict_list_to_blobs(next_states, 'next_states')
+        saa = StackedAssociativeArray.from_dict_list(next_states, 'next_states')
         next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            lengths,
-            keys,
-            values,
+            saa.lengths,
+            saa.keys,
+            saa.values,
             self.normalization,
             'next_state_norm',
         )
-        lengths, keys, values = dict_list_to_blobs(actions, 'action')
+        saa = StackedAssociativeArray.from_dict_list(actions, 'action')
         action_matrix, _ = preprocessor.normalize_sparse_matrix(
-            lengths,
-            keys,
-            values,
+            saa.lengths,
+            saa.keys,
+            saa.values,
             self.normalization_action,
             'action_norm',
         )
-        lengths, keys, values = dict_list_to_blobs(next_actions, 'next_action')
+        saa = StackedAssociativeArray.from_dict_list(
+            next_actions, 'next_action'
+        )
         next_action_matrix, _ = preprocessor.normalize_sparse_matrix(
-            lengths,
-            keys,
-            values,
+            saa.lengths,
+            saa.keys,
+            saa.values,
             self.normalization_action,
             'next_action_norm',
         )
         rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
 
-        pnas_lengths = []
+        pnas_lengths_list = []
         pnas_flat = []
         for pnas in possible_next_actions:
-            pnas_lengths.append(len(pnas))
+            pnas_lengths_list.append(len(pnas))
             pnas_flat.extend(pnas)
-        lengths, keys, values = dict_list_to_blobs(
+        saa = StackedAssociativeArray.from_dict_list(
             pnas_flat, 'possible_next_actions'
         )
-        pnas_lengths = np.array(pnas_lengths, dtype=np.int32)
+        pnas_lengths = np.array(pnas_lengths_list, dtype=np.int32)
         possible_next_actions_matrix, _ = preprocessor.normalize_sparse_matrix(
-            lengths,
-            keys,
-            values,
+            saa.lengths,
+            saa.keys,
+            saa.values,
             self.normalization_action,
             'possible_next_action_norm',
         )
@@ -166,7 +169,10 @@ class GridworldContinuous(GridworldBase):
                     rewards=rewards[start:end],
                     next_states=next_states_ndarray[start:end],
                     next_actions=next_actions_ndarray[start:end],
-                    possible_next_actions=(pnas, pnas_lengths[start:end]),
+                    possible_next_actions=StackedArray(
+                        pnas_lengths[start:end], pnas
+                    ),
+                    not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
                     reward_timelines=reward_timelines[start:end]
                     if reward_timelines else None,
                 )

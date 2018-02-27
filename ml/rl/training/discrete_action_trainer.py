@@ -5,30 +5,32 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from typing import Dict, Optional, List
 import numpy as np
+from typing import Dict, Optional
 
+import caffe2.proto.caffe2_pb2 as caffe2_pb2
 from caffe2.python import workspace
+from caffe2.python.model_helper import ModelHelper
 
 import logging
 logger = logging.getLogger(__name__)
 
+from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters, get_num_output_features
 )
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
-from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.model_update_helper import AddParameterUpdateOps
 from ml.rl.training.ml_trainer import GenerateLossOps
-from ml.rl.training.ml_trainer import MLTrainer
+from ml.rl.training.ml_trainer import MLTrainer, MakeForwardPassOps
 from ml.rl.training.rl_trainer import RLTrainer
-from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class DiscreteActionTrainer(RLTrainer):
     # Set to a very large negative number.  Guaranteed to be worse than any
     #     legitimate action
-    ACTION_NOT_POSSIBLE_VAL = -1e20
+    ACTION_NOT_POSSIBLE_VAL = -1e9
 
     def __init__(
         self,
@@ -48,73 +50,36 @@ class DiscreteActionTrainer(RLTrainer):
 
         RLTrainer.__init__(self, parameters)
 
+        self._create_all_q_score_net()
+
     @property
     def num_actions(self) -> int:
         return len(self._actions)
 
-    def stream_tdp(
-        self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
-    ) -> None:
-        """
-        Loads a large batch of transitions from a page of training data. This
-        batch will further be broken down into minibatches for training.
-
-        :param tdp: TrainingDataPage object that supplies transitions.
-        :param evaluator: Evaluator object to record TD and compute MC losses.
-        """
-        not_terminals = tdp.not_terminals
-        if not_terminals is None:
-            # Terminal states' corresponding next_action vectors' values are all 0
-            not_terminals = (tdp.next_actions.sum(axis=1) >= 1e-6).reshape(
-                -1, 1
-            )
-
-        self.stream(
-            tdp.states, tdp.actions, tdp.rewards, tdp.next_states,
-            tdp.next_actions, not_terminals, tdp.possible_next_actions,
-            tdp.reward_timelines, evaluator
-        )
+    def get_possible_next_actions(self):
+        return 'possible_next_actions'
 
     def _setup_initial_blobs(self):
         self.input_dim = self.num_features
         self.output_dim = self.num_actions
 
-        self.action_blob = "action"
-        workspace.FeedBlob(self.action_blob, np.zeros(1, dtype=np.float32))
-
         MLTrainer._setup_initial_blobs(self)
 
-    def _generate_train_model_loss(self):
-        """
-        Computes Q(state_i, action_i) for each transition i in the batch
-        being trained on.
-            Does an elementwise multiplication of Q(states, actions), stored in
-            self.output_blob, and the one-hotted action matrix stored in
-            self.action_blob. This results in a matrix M such that
-            M_{i,j} = 0 if action_i != j else Q(state_i, action_j).
-
-            Sums across each row of M. Each should only have one non-zero entry.
-            This results in an array q_val_select with shape (1, batch_size) such
-            that q_val_select[i] = Q(state_i, action_i).
-
-            Sets q_val_select_shaped to the transpose of q_val_select. This now
-            contains Q(state_i, action_i) for each transition i in the batch.
-
-        Computes loss of q_vals_targets, stored in self.labels_blob, with
-        respect to Q(state_i, action_i), and stores the result in self.loss_blob.
-        """
-        q_val_select = self.train_model.net.Mul(
-            [self.output_blob, self.action_blob],
-        ).ReduceBackSum()
-        q_values = self.train_model.net.ExpandDims(q_val_select, dims=[1])
-
-        GenerateLossOps(
-            self.train_model, self.model_id, self.labels_blob, q_values,
-            self.loss_blob
+    def _create_all_q_score_net(self) -> None:
+        self.all_q_score_model = ModelHelper(
+            name="all_q_score_" + self.model_id
         )
+        C2.set_model(self.all_q_score_model)
+        self.all_q_score_output = self.get_q_values_all_actions('states', True)
+        workspace.RunNetOnce(self.all_q_score_model.param_init_net)
+        workspace.CreateNet(self.all_q_score_model.net)
+        C2.set_model(None)
 
     def update_model(
-        self, states: np.ndarray, actions: np.ndarray, q_vals_target: np.ndarray
+        self,
+        states: str,
+        actions: str,
+        q_vals_target: str,
     ) -> None:
         """
         Takes in states, actions, and target q values. Updates the model:
@@ -131,20 +96,67 @@ class DiscreteActionTrainer(RLTrainer):
         :param q_vals_targets: Numpy array with shape (batch_size, 1). The ith
             row is the label to train against for the data from the ith transition.
         """
-        workspace.FeedBlob(self.action_blob, actions)
-        self.train_batch(states, q_vals_target)
+        model = C2.model()
+        q_vals_target = C2.StopGradient(q_vals_target)
+        output_blob = C2.NextBlob("train_output")
+        MakeForwardPassOps(
+            model,
+            self.model_id,
+            states,
+            output_blob,
+            self.weights,
+            self.biases,
+            self.activations,
+            self.layers,
+            self.dropout_ratio,
+            False,
+        )
+        q_val_select = C2.ReduceBackSum(C2.Mul(output_blob, actions))
+        q_values = C2.ExpandDims(q_val_select, dims=[1])
+
+        self.loss_blob = GenerateLossOps(
+            model,
+            q_values,
+            q_vals_target,
+        )
+        model.AddGradientOperators([self.loss_blob])
+        for param in model.params:
+            if param in model.param_to_grad:
+                param_grad = model.param_to_grad[param]
+                param_grad = C2.NanCheck(param_grad)
+        AddParameterUpdateOps(
+            model,
+            optimizer_input=self.optimizer,
+            base_learning_rate=self.learning_rate,
+            gamma=self.gamma,
+            policy=self.lr_policy,
+        )
+
+    def get_q_values(
+        self,
+        states: str,
+        actions: str,
+        use_target_network: bool,
+    ) -> str:
+        # actions and possible_next_actions are the same matrix, only that
+        # actions is one-hot.  Because of this, we can call get_max_q_values.
+        return self.get_max_q_values(
+            states,
+            actions,
+            use_target_network,
+        )
 
     def get_max_q_values(
         self,
-        next_states: np.ndarray,
-        possible_next_actions: Optional[np.ndarray] = None,
-        use_target_network: Optional[bool] = True
-    ) -> np.ndarray:
+        states: str,
+        possible_actions: str,
+        use_target_network: bool,
+    ) -> str:
         """
-        Takes in an array of next_states and outputs an array of the same shape
+        Takes in an array of states and outputs an array of the same shape
         whose ith entry = max_{pna} Q(state_i, pna).
 
-        :param next_states: Numpy array with shape (batch_size, state_dim). Each
+        :param states: Numpy array with shape (batch_size, state_dim). Each
             row contains a representation of a state.
         :param possible_next_actions: Numpy array with shape (batch_size, action_dim).
             possible_next_actions[i][j] = 1 iff the agent can take action j from
@@ -152,37 +164,36 @@ class DiscreteActionTrainer(RLTrainer):
         :use_target_network: Boolean that indicates whether or not to use this
             trainer's TargetNetwork to compute Q values.
         """
-        q_values = self.get_q_values_all_actions(
-            next_states, use_target_network
+        q_values = self.get_q_values_all_actions(states, use_target_network)
+
+        # Set the q values of impossible actions to a very large negative
+        #    number.
+        inverse_pna = C2.ConstantFill(
+            possible_actions,
+            value=1.0,
         )
+        inverse_pna = C2.Sub(
+            inverse_pna,
+            possible_actions,
+        )
+        inverse_pna = C2.Mul(
+            inverse_pna,
+            self.ACTION_NOT_POSSIBLE_VAL,
+            broadcast=1,
+        )
+        q_values = C2.Add(q_values, inverse_pna)
 
-        if possible_next_actions is not None:
-            mask = np.multiply(
-                np.logical_not(possible_next_actions),
-                self.ACTION_NOT_POSSIBLE_VAL
-            )
-            q_values += mask
-
-        return np.max(q_values, axis=1, keepdims=True)
-
-    def get_q_values(
-        self, states: np.ndarray, actions: np.ndarray
-    ) -> np.ndarray:
-        """
-        Takes in a set of states and actions and returns Q(states, actions).
-
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
-        :param actions: Numpy array with shape (batch_size, action_dim). The ith
-            row contains the one-hotted representation of the ith action.
-        """
-        q_values = self.get_q_values_all_actions(states, False)
-        q_values_selected = q_values * actions
-        return np.max(q_values_selected, axis=1)
+        q_values_max = C2.ReduceBackMax(
+            q_values,
+            num_reduce_dims=1,
+        )
+        return C2.ExpandDims(q_values_max, dims=[1])
 
     def get_q_values_all_actions(
-        self, states: np.ndarray, use_target_network: Optional[bool] = True
-    ) -> np.ndarray:
+        self,
+        states: str,
+        use_target_network: bool,
+    ) -> str:
         """
         Takes in a set of states and runs the test Q Network on them.
 
@@ -201,22 +212,89 @@ class DiscreteActionTrainer(RLTrainer):
         """
         if use_target_network:
             return self.target_network.target_values(states)
-        return self.score(states)
+        else:
+            all_q_values = C2.NextBlob("all_q_values")
+            MakeForwardPassOps(
+                C2.model(),
+                self.model_id + "_score",
+                states,
+                all_q_values,
+                self.weights,
+                self.biases,
+                self.activations,
+                self.layers,
+                self.dropout_ratio,
+                True,
+            )
+            return all_q_values
 
-    def get_sarsa_values(
-        self, next_states: np.ndarray, next_actions: np.ndarray
-    ) -> np.ndarray:
-        """
-        Takes in a set of next_states and corresponding next_actions. For each
-        (next_state_i, next_action_i) pair, calculates Q(next_state, next_action).
-        Returns these q values in a Numpy array of shape (batch_size, 1).
+    def _create_reward_train_net(self) -> None:
+        self.reward_train_model = ModelHelper(
+            name="reward_train_" + self.model_id
+        )
+        C2.set_model(self.reward_train_model)
+        if self.reward_shape is not None:
+            for action_index, boost in self.reward_shape.items():
+                action_boost = C2.Mul(
+                    C2.Slice(
+                        'actions',
+                        starts=[0, action_index],
+                        ends=[-1, action_index + 1],
+                    ),
+                    boost,
+                    broadcast=1,
+                )
+                C2.net().Sum(['rewards', action_boost], ['rewards'])
+        self.update_model('states', 'actions', 'rewards')
+        workspace.RunNetOnce(self.reward_train_model.param_init_net)
+        workspace.CreateNet(self.reward_train_model.net)
+        C2.set_model(None)
 
-        :param next_states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
-        :param actions: Numpy array with shape (batch_size, action_dim). The ith
-            row contains the one-hotted representation of the ith next_action.
-        """
-        return self.get_max_q_values(next_states, next_actions)
+    def _create_rl_train_net(self) -> None:
+        self.rl_train_model = ModelHelper(name="rl_train_" + self.model_id)
+        C2.set_model(self.rl_train_model)
+
+        if self.reward_shape is not None:
+            for action_index, boost in self.reward_shape.items():
+                action_boost = C2.Mul(
+                    C2.Slice(
+                        'actions',
+                        starts=[0, action_index],
+                        ends=[-1, action_index + 1],
+                    ),
+                    boost,
+                    broadcast=1,
+                )
+                C2.net().Sum(['rewards', action_boost], ['rewards'])
+
+        if self.maxq_learning:
+            next_q_values = self.get_max_q_values(
+                'next_states',
+                self.get_possible_next_actions(),
+                True,
+            )
+        else:
+            next_q_values = self.get_q_values(
+                'next_states', 'next_actions', True
+            )
+
+        q_vals_target = C2.Add(
+            'rewards',
+            C2.Mul(
+                C2.Mul(
+                    C2.Cast('not_terminals',
+                            to=caffe2_pb2.TensorProto.FLOAT),  # type: ignore
+                    self.rl_discount_rate,
+                    broadcast=1,
+                ),
+                next_q_values
+            )
+        )
+
+        self.update_model('states', 'actions', q_vals_target)
+        workspace.RunNetOnce(self.rl_train_model.param_init_net)
+        workspace.CreateNet(self.rl_train_model.net)
+        C2.set_model(None)
 
     def predictor(self) -> DiscreteActionPredictor:
         """
@@ -229,25 +307,25 @@ class DiscreteActionTrainer(RLTrainer):
             self.state_normalization_parameters,
         )
 
-    def get_policy(self, state: np.ndarray) -> int:
+    def get_policy(
+        self,
+        states: np.ndarray,
+        possible_next_actions: Optional[np.ndarray],
+    ) -> int:
         """
         Returns the index of the action with the highest approximated q-value
         for the given state.
 
-        :param state: A Numpy array of shape (state_dim, ) containing a single
-            state vector. Not yet normalized.
+        :param state: A Numpy array of shape (N, state_dim) containing a
+            set of normalized state vectors.
         """
-        inputs = np.array([state], dtype=np.float32)
-        q_values = self.get_q_values_all_actions(inputs, False)
-        return np.argmax(q_values[0])
-
-    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray,
-        next_states: np.ndarray, next_actions: Optional[np.ndarray],
-        not_terminals: np.ndarray, possible_next_actions: Optional[List]) -> None:
-        rewards_batch = rewards
-        if self.reward_shape is not None:
-            for action_index, boost in self.reward_shape.items():
-                rewards_batch += (actions[:, action_index] * boost).reshape(-1, 1)
-        super(DiscreteActionTrainer, self).train(states, actions,
-        rewards_batch, next_states, next_actions, not_terminals,
-        possible_next_actions)
+        assert self.q_score_model is not None
+        workspace.FeedBlob('states', states)
+        if possible_next_actions is not None:
+            workspace.FeedBlob('actions', possible_next_actions)
+            workspace.RunNetOnce(self.q_score_model.net)
+            q_values = workspace.FetchBlob(self.q_score_output)
+        else:
+            workspace.RunNetOnce(self.all_q_score_model.net)
+            q_values = workspace.FetchBlob(self.all_q_score_output)
+        return np.argmax(q_values, axis=1).reshape(-1, 1)

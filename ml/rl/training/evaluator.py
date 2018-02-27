@@ -26,10 +26,12 @@ class Evaluator(object):
         self.td_loss = []
 
     def report(self, reward_timelines, predictions, td_loss):
-        ground_truth = [
-            test_values_from_timeline(self._discount_factor, rt)
-            for rt in reward_timelines
-        ]
+        ground_truth = np.array(
+            [
+                test_values_from_timeline(self._discount_factor, rt)
+                for rt in reward_timelines
+            ]
+        ).reshape(-1, 1)
         mc_loss = float(np.mean(np.abs(ground_truth - predictions)))
         td_loss_mean = float(np.mean(td_loss))
         self.mc_loss.append(mc_loss)

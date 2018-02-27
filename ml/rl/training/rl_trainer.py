@@ -5,20 +5,24 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import numpy as np
-from typing import Optional, Union
-
-from caffe2.python import workspace
+from typing import Dict, List, Optional, Union
 
 import logging
 logger = logging.getLogger(__name__)
 
+import numpy as np
+
+from caffe2.python import workspace
+from caffe2.python.model_helper import ModelHelper
+
+from ml.rl.caffe_utils import C2, StackedArray
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
     ContinuousActionModelParameters
-from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.ml_trainer import MLTrainer
 from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
+from ml.rl.training.evaluator import Evaluator
+
 
 class RLTrainer(MLTrainer):
     def __init__(
@@ -44,29 +48,41 @@ class RLTrainer(MLTrainer):
         self.rl_discount_rate = parameters.rl.gamma
         self.training_iteration = 0
         self.minibatch_size = parameters.training.minibatch_size
+        self.parameters = parameters
+        self.loss_blob: Optional[str] = None
 
-    @property
-    def sarsa(self) -> bool:
-        """
-        Returns whether or not this trainer generates target values using SARSA.
-        """
-        return not self.maxq_learning
+        workspace.FeedBlob('states', np.array([0], dtype=np.float32))
+        workspace.FeedBlob('actions', np.array([0], dtype=np.float32))
+        workspace.FeedBlob('rewards', np.array([0], dtype=np.float32))
+        workspace.FeedBlob('next_states', np.array([0], dtype=np.float32))
+        workspace.FeedBlob('not_terminals', np.array([0], dtype=np.float32))
+        workspace.FeedBlob('next_actions', np.array([0], dtype=np.float32))
+        workspace.FeedBlob(
+            'possible_next_actions', np.array([0], dtype=np.float32)
+        )
+        workspace.FeedBlob(
+            'possible_next_actions_lengths', np.array([0], dtype=np.float32)
+        )
 
-    def stream_tdp(
-        self, tdp: TrainingDataPage, evaluator: Optional[Evaluator] = None
-    ) -> None:
-        """
-        Loads a large batch of transitions from a page of training data. This
-        batch will be further broken down into minibatches for training.
+        self.rl_train_model: Optional[ModelHelper] = None
+        self.reward_train_model: Optional[ModelHelper] = None
+        self.q_score_model: Optional[ModelHelper] = None
+        self._create_reward_train_net()
+        self._create_rl_train_net()
+        self._create_q_score_net()
+        assert self.rl_train_model is not None
+        assert self.reward_train_model is not None
+        assert self.q_score_model is not None
 
-        :param tdp: TrainingDataPage object that supplies transitions.
-        :param evaluator: Evaluator object to record TD and compute MC losses.
-        """
+    def get_possible_next_actions(self):
         raise NotImplementedError()
 
     def get_max_q_values(
-        self, next_states: np.ndarray, possible_next_actions
-    ) -> np.ndarray:
+        self,
+        next_states: str,
+        possible_next_actions,
+        use_target_network: bool,
+    ) -> str:
         """
         Takes in an array of next_states and outputs an array of the same shape
         whose ith entry = max_{pna} Q(state_i, pna). Uses target network for
@@ -78,9 +94,12 @@ class RLTrainer(MLTrainer):
         """
         raise NotImplementedError()
 
-    def get_sarsa_values(
-        self, next_states: np.ndarray, next_actions: np.ndarray
-    ) -> np.ndarray:
+    def get_q_values(
+        self,
+        states: str,
+        actions: str,
+        use_target_network: bool,
+    ) -> str:
         """
         Takes in a set of next_states and corresponding next_actions. For each
         (next_state_i, next_action_i) pair, calculates Q(next_state, next_action).
@@ -93,7 +112,10 @@ class RLTrainer(MLTrainer):
         raise NotImplementedError()
 
     def update_model(
-        self, states: np.ndarray, actions: np.ndarray, q_vals_target: np.ndarray
+        self,
+        states: str,
+        actions: str,
+        q_vals_target: str,
     ) -> None:
         """
         Takes in states, actions, and target q values. Updates the model:
@@ -111,136 +133,74 @@ class RLTrainer(MLTrainer):
         """
         raise NotImplementedError()
 
-    def stream(
-        self, states, actions, rewards, next_states, next_actions,
-        not_terminals, possible_next_actions, reward_timelines, evaluator
+    def _create_reward_train_net(self) -> None:
+        raise NotImplementedError()
+
+    def _create_rl_train_net(self) -> None:
+        raise NotImplementedError()
+
+    def _create_q_score_net(self) -> None:
+        self.q_score_model = ModelHelper(name="q_score_" + self.model_id)
+        C2.set_model(self.q_score_model)
+        self.q_score_output = self.get_q_values('states', 'actions', True)
+        workspace.RunNetOnce(self.q_score_model.param_init_net)
+        workspace.CreateNet(self.q_score_model.net)
+        C2.set_model(None)
+
+    def train_numpy(
+        self,
+        tdp: TrainingDataPage,
+        evaluator: Optional[Evaluator],
     ):
-        """
-        Load large batch as training set. This batch will be broken down into
-        minibatches. Assumes that states, next_states, and actions (in the
-        parametric action case) need no further normalization.
-        """
-
-        assert rewards.ndim == 2
-        assert not_terminals.ndim == 2
-
-        page_size = states.shape[0]
-        assert page_size == self.minibatch_size
-        use_next_actions = next_actions is not None and self.sarsa
-        use_pna = possible_next_actions is not None and self.maxq_learning
-        use_rt = reward_timelines is not None
-
-        page_size = states.shape[0]
-
-        pna_cursor = 0
-        for batch_start in range(0, page_size, self.minibatch_size):
-            batch_end = batch_start + self.minibatch_size
-            if page_size < batch_end:
-                # Skip the remainder
-                continue
+        workspace.FeedBlob('states', tdp.states)
+        workspace.FeedBlob('actions', tdp.actions)
+        workspace.FeedBlob('rewards', tdp.rewards)
+        workspace.FeedBlob('next_states', tdp.next_states)
+        workspace.FeedBlob('not_terminals', tdp.not_terminals)
+        if self.maxq_learning:
+            if isinstance(tdp.possible_next_actions, StackedArray):
+                workspace.FeedBlob(
+                    'possible_next_actions', tdp.possible_next_actions.values
+                )
+                workspace.FeedBlob(
+                    'possible_next_actions_lengths',
+                    tdp.possible_next_actions.lengths
+                )
             else:
-                na_batch = (
-                    next_actions[batch_start:batch_end]
-                    if use_next_actions else None
+                workspace.FeedBlob(
+                    'possible_next_actions', tdp.possible_next_actions
                 )
-                pna_batch = None
-                if use_pna:
-                    if isinstance(possible_next_actions, (list, tuple)):
-                        assert len(possible_next_actions) == 2
-                        pna_batch_lengths = possible_next_actions[1][
-                            batch_start:batch_end
-                        ]
-                        total_length = np.sum(pna_batch_lengths)
-                        pna_batch = (
-                            possible_next_actions[0]
-                            [pna_cursor:(pna_cursor + total_length)],
-                            pna_batch_lengths,
-                        )
-                        pna_cursor += total_length
-                    else:
-                        pna_batch = possible_next_actions[batch_start:batch_end]
-                rt_batch = (
-                    reward_timelines[batch_start:batch_end] if use_rt else None
-                )
-                states_batch = states[batch_start:batch_end]
-                next_states_batch = next_states[batch_start:batch_end]
-                actions_batch = actions[batch_start:batch_end]
-                rewards_batch = rewards[batch_start:batch_end]
-                self.train(
-                    states_batch, actions_batch, rewards_batch,
-                    next_states_batch, na_batch,
-                    not_terminals[batch_start:batch_end], pna_batch
-                )
-                if evaluator is not None:
-                    evaluator.report(
-                        rt_batch,
-                        self.get_q_values(states_batch, actions_batch),
-                        workspace.FetchBlob(self.loss_blob)
-                    )
+        else:
+            workspace.FeedBlob('next_actions', tdp.next_actions)
+        self.train(tdp.reward_timelines, evaluator)
 
     def train(
         self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        next_states: np.ndarray,
-        next_actions: Optional[np.ndarray],
-        not_terminals: np.ndarray,
-        possible_next_actions,
+        reward_timelines: Optional[List[Dict[int, float]]],
+        evaluator: Optional[Evaluator],
     ) -> None:
-        """
-        Takes in a batch of transitions. For transition i, calculates target qval:
-            next_q_values_i = {
-                max_{pna_i} Q(next_state_i, pna_i), self.maxq_learning
-                Q(next_state_i, next_action_i), self.sarsa
-            }
-            q_val_target_i = {
-                r_i + gamma * next_q_values_i, not_terminals_i
-                r_i, !not_terminals_i
-            }
-        Trains Q Network on the q_val_targets as labels.
+        assert self.rl_train_model is not None
+        assert self.reward_train_model is not None
+        assert self.q_score_model is not None
 
-        :param states: Numpy array with shape (batch_size, state_dim). The ith
-            row is a representation of the ith transition's state.
-        :param actions: See subclass' `train` documentation.
-        :param rewards: Numpy array with shape (batch_size, 1). The ith entry is
-            the reward experienced at the ith transition.
-        :param not_terminals: Numpy array with shape (batch_size, 1). The ith entry
-            is equal to 1 iff the ith transition's state is not terminal.
-        :param next_states: Numpy array with shape (batch_size, state_dim). The
-            ith row is a representation of the ith transition's next state.
-        :param next_actions: See subclass' `train` documentation.
-        :param possible_next_actions: See subclass' `train` documentation.
-        """
-
-        batch_size = self.minibatch_size
-        assert rewards.shape == (
-            batch_size, 1
-        ), "Invalid reward shape: " + \
-            str(rewards.shape) + " != " + str(self.minibatch_size)
-        assert rewards.dtype == np.float32
-        assert not_terminals.shape == (
-            batch_size, 1
-        ), 'terminals invalid ' + str(not_terminals.shape)
-
-        q_vals_target = np.copy(rewards)
         if self.training_iteration >= self.reward_burnin:
             if self.training_iteration == self.reward_burnin:
                 logger.info(
                     "Minibatch number == reward_burnin. Starting RL updates."
                 )
-            if self.maxq_learning:
-                next_q_values = self.get_max_q_values(
-                    next_states, possible_next_actions
-                )
-            else:
-                next_q_values = self.get_sarsa_values(next_states, next_actions)
+                self.target_network.enable_slow_updates()
+            workspace.RunNet(self.rl_train_model.net)
+        else:
+            workspace.RunNet(self.reward_train_model.net)
 
-            q_vals_target += not_terminals * self.rl_discount_rate * next_q_values
-
-        self.update_model(states, actions, q_vals_target)
-
-        if self.training_iteration >= self.reward_burnin:
-            self.target_network.enable_slow_updates()
         self.target_network.target_update()
         self.training_iteration += 1
+        workspace.RunNet(self.q_score_model.net)
+        if evaluator is not None:
+            assert reward_timelines is not None
+            assert self.loss_blob is not None
+            evaluator.report(
+                reward_timelines,
+                workspace.FetchBlob(self.q_score_output),
+                workspace.FetchBlob(self.loss_blob),
+            )

@@ -10,6 +10,8 @@ import collections
 import numpy as np
 import six
 
+from caffe2.python import workspace
+
 from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.rl_trainer import RLTrainer
@@ -43,62 +45,41 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         )
         self._max_q = parameters.rl.maxq_learning
 
-    def get_maxq_actions(self, next_states, possible_next_actions):
-        """
-        Takes in an array of states and outputs an array of the same shape whose
-        ith entry is the action a that maximizes Q(state_i, a). Only considers
-        Q values of possible actions.
-
-        :param next_states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a next_state.
-        :param possible_next_actions: Numpy array with shape (batch_size, action_dim).
-            possible_next_actions[i][j] = 1 iff the agent can take action j from
-            state i.
-        """
-        q_values = self.get_max_q_values(
-            next_states, possible_next_actions, False
-        )
-        # TODO: Speed this up
-        q_values_mask = np.zeros(
-            [next_states.shape[0], self.num_actions], dtype=np.float32
-        )
-        for i, a in enumerate(q_values):
-            q_values_mask[i] = a
-        return q_values_mask
-
     def action_values(self, states, action_idx):
-        return self.get_q_values_all_actions(states, False)[:, action_idx]
+        workspace.FeedBlob('states', states)
+        workspace.RunNetOnce(self.all_q_score_model.net)
+        q = workspace.FetchBlob(self.all_q_score_output)
+        return q[:, action_idx]
 
-    def stream(
-        self, states, actions, rewards, next_states, next_actions, is_terminals,
-        possible_next_actions, reward_timelines, evaluator
-    ):
-        self._quantile_states.extendleft(states)
+    def train_numpy(self, tdp, evaluator):
+        self._quantile_states.extendleft(tdp.states)
         if self._update_counter % self._quantile_update_frequency == \
                 self._quantile_update_frequency - 1:
             self._update_quantile()
         self._update_counter += 1
 
         if self._max_q:
-            q_next_actions = self.get_maxq_actions(
-                next_states, possible_next_actions
+            q_next_actions = self.get_policy(
+                tdp.next_states, tdp.possible_next_actions
             )
+            q_next_actions_mask = np.zeros(
+                [q_next_actions.shape[0], self.num_actions], dtype=np.float32
+            )
+            for x in range(q_next_actions.shape[0]):
+                q_next_actions_mask[q_next_actions[x, 0], 0] = 1.0
+            q_next_actions = q_next_actions_mask
         else:
-            q_next_actions = next_actions
-        penalty = self._reward_penalty(actions, q_next_actions, is_terminals)
-        assert penalty.shape == rewards.shape, "" + str(
+            q_next_actions = tdp.next_actions
+        penalty = self._reward_penalty(
+            tdp.actions, q_next_actions, tdp.not_terminals
+        )
+        assert penalty.shape == tdp.rewards.shape, "" + str(
             penalty.shape
-        ) + "" + str(rewards.shape)
-        RLTrainer.stream(
+        ) + "" + str(tdp.rewards.shape)
+        tdp.rewards = tdp.rewards - penalty
+        RLTrainer.train_numpy(
             self,
-            states,
-            actions,
-            rewards - penalty,
-            next_states,
-            next_actions,
-            is_terminals,
-            possible_next_actions,
-            None,
+            tdp,
             evaluator,
         )
 
@@ -122,11 +103,15 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         self.quantile_value += self._quantile_update_rate * target
         print("QUANTILE:", self.quantile_value)
 
-    def _reward_penalty(self, actions, next_actions, is_terminals):
+    def _reward_penalty(self, actions, next_actions, not_terminals):
+        print(not_terminals)
+        print(not_terminals.shape)
+        print(actions.shape)
+        print(next_actions.shape)
         return (
             (
                 (actions[:, self._limited_action] > 0.999) -
-                self._discount_factor * (1 - is_terminals[:, 0]) *
+                self._discount_factor * (not_terminals[:, 0]) *
                 (next_actions[:, self._limited_action] > 0.999)
             ) * self.quantile_value
         ).astype(np.float32).reshape(-1, 1)

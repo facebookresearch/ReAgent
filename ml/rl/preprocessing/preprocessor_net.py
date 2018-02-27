@@ -11,6 +11,7 @@ from typing import List, Dict, Tuple
 from caffe2.python import workspace, core
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
 
+from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import NormalizationParameters, \
     MISSING_VALUE
@@ -18,6 +19,7 @@ from ml.rl.preprocessing.identify_types import FEATURE_TYPES
 
 import logging
 logger = logging.getLogger(__name__)
+
 
 def sort_features_by_normalization(normalization_parameters):
     """
@@ -123,19 +125,19 @@ class PreprocessorNet:
                 for x in possible_values:
                     if x < 0:
                         logger.fatal(
-                            "Invalid enum possible value for feature: "
-                            + str(x) + " " +
-                            str(parameter.possible_values)
+                            "Invalid enum possible value for feature: " +
+                            str(x) + " " + str(parameter.possible_values)
                         )
                         raise Exception(
-                            "Invalid enum possible value for feature " + blob + ": "
-                            + str(x) + " " +
+                            "Invalid enum possible value for feature " + blob +
+                            ": " + str(x) + " " +
                             str(parameter.possible_values)
                         )
 
             int_blob = self._net.NextBlob('int_blob')
             self._net.Cast(
-                [blob], [int_blob],
+                [blob],
+                [int_blob],
                 to=core.DataType.INT32,
             )
 
@@ -185,23 +187,34 @@ class PreprocessorNet:
 
             zero_vec = self._net.NextBlob('zero_vec')
             self._net.ConstantFill(
-                [one_hot_output], [zero_vec], value=0,
-                dtype=caffe2_pb2.TensorProto.INT32)
+                [one_hot_output], [zero_vec],
+                value=0,
+                dtype=caffe2_pb2.TensorProto.INT32
+            )
 
             repeated_mask_int = self._net.NextBlob('repeated_mask_int')
             repeated_mask_bool = self._net.NextBlob('repeated_mask_bool')
 
             self._net.Add([zero_vec, mask], [repeated_mask_int], broadcast=1)
             self._net.Cast(
-                [repeated_mask_int], [repeated_mask_bool], to=core.DataType.BOOL)
+                [repeated_mask_int], [repeated_mask_bool],
+                to=core.DataType.BOOL
+            )
 
-            flattened_repeated_mask = self._net.NextBlob('flattened_repeated_mask')
-            self._net.FlattenToVec([repeated_mask_bool], [flattened_repeated_mask])
+            flattened_repeated_mask = self._net.NextBlob(
+                'flattened_repeated_mask'
+            )
+            self._net.FlattenToVec(
+                [repeated_mask_bool], [flattened_repeated_mask]
+            )
 
-            flattened_one_hot_proc = self._net.NextBlob('flattened_one_hot_proc')
+            flattened_one_hot_proc = self._net.NextBlob(
+                'flattened_one_hot_proc'
+            )
             self._net.BooleanMask(
                 [flattened_one_hot, flattened_repeated_mask],
-                [flattened_one_hot_proc, flattened_one_hot_proc + 'indices'])
+                [flattened_one_hot_proc, flattened_one_hot_proc + 'indices']
+            )
 
             one_hot_shape = self._net.NextBlob('one_hot_shape')
             self._net.Shape([one_hot_output], [one_hot_shape])
@@ -209,9 +222,12 @@ class PreprocessorNet:
             shape_delta = self._net.NextBlob('shape_delta')
             workspace.FeedBlob(
                 shape_delta,
-                np.array([0, len(normalization_parameters)], dtype=np.int64))
+                np.array([0, len(normalization_parameters)], dtype=np.int64)
+            )
             parameters.append(shape_delta)
-            self._net.Sub([one_hot_shape, shape_delta], [target_shape], broadcast=1)
+            self._net.Sub(
+                [one_hot_shape, shape_delta], [target_shape], broadcast=1
+            )
             self._net.Reshape(
                 [flattened_one_hot_proc, target_shape],
                 [output_int_blob, output_int_blob + '_old_shape'],
@@ -332,15 +348,11 @@ class PreprocessorNet:
         )
         int_features = [int(feature) for feature in sorted_features]
 
-        dense_input = self._net.NextBlob('dense_input')
-        workspace.FeedBlob(dense_input, np.zeros(1, dtype=np.float32))
-        self._net.SparseToDenseMask(
-            [
-                keys_blob,
-                values_blob,
-                self.MISSING_SCALAR,
-                lengths_blob,
-            ], [dense_input],
+        dense_input, _ = C2.SparseToDenseMask(
+            keys_blob,
+            values_blob,
+            self.MISSING_SCALAR,
+            lengths_blob,
             mask=int_features
         )
         return self.normalize_dense_matrix(
@@ -390,7 +402,7 @@ class PreprocessorNet:
                 sliced_input_features = self._get_input_blob(
                     blobname_prefix, feature_type
                 )
-                self._net.Slice(
+                C2.net().Slice(
                     [input_matrix],
                     [sliced_input_features],
                     starts=[0, start_index],
@@ -405,17 +417,12 @@ class PreprocessorNet:
                 )
                 parameters.extend(blob_parameters)
                 normalized_input_blobs.append(normalized_input_blob)
-            concatenated_input_blob = blobname_prefix + "_concatenated_input_blob"
-            concatenated_input_blob_dim = blobname_prefix + \
-                "_concatenated_input_blob_dim"
             for i, inp in enumerate(normalized_input_blobs):
                 logger.info("input# {}: {}".format(i, inp))
-            self._net.Concat(
-                normalized_input_blobs,
-                [concatenated_input_blob, concatenated_input_blob_dim],
-                axis=1
+            concatenated_input_blob, concatenated_input_blob_dim = C2.Concat(
+                *normalized_input_blobs, axis=1
             )
-            self._net.NanCheck(concatenated_input_blob, concatenated_input_blob)
+            concatenated_input_blob = C2.NanCheck(concatenated_input_blob)
             return concatenated_input_blob, parameters
 
     def _get_type_boundaries(
@@ -438,7 +445,5 @@ class PreprocessorNet:
             on_feature_type += 1
         return feature_starts
 
-    def _get_input_blob(
-        self, prefix: str, feature_type: str
-    ) -> str:
+    def _get_input_blob(self, prefix: str, feature_type: str) -> str:
         return "{}_{}".format(prefix, feature_type)
