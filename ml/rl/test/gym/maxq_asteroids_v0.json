@@ -1,37 +1,66 @@
 {
-    "env": "Asteroids-v0",
-    "rl": {
-        "reward_discount_factor": 0.99,
-        "target_update_rate": 0.1,
-        "reward_burnin": 10,
-        "maxq_learning": 1,
-        "epsilon": 0.2
-    },
-    "training": {
-        "layers": [-1, 128, 64, -1],
-        "activations": ["relu", "relu", "linear"],
-        "minibatch_size": 128,
-        "learning_rate": 0.05,
-        "optimizer": "ADAM",
-        "learning_rate_decay": 0.999
-    },
-    "run_details": {
-        "num_episodes": 30,
-        "train_every": 5,
-        "train_after": 1,
-        "test_every": 5,
-        "test_after": 1,
-        "num_train_batches": 5,
-        "train_batch_size": 50,
-        "avg_over_num_episodes": 5,
-        "render": 0,
-        "render_every": 100
-    },
-    "cnn": {
-        "conv_dims": [-1, 2, 3, 1],
-        "conv_height_kernels": [3, 2, 3],
-        "conv_width_kernels": [3, 2, 3],
-        "pool_kernels_strides": [2, 4, 3],
-        "pool_types": ["max", "avg", "max"]
-    }
+  "env": "Asteroids-v0",
+  "rl": {
+    "reward_discount_factor": 0.99,
+    "target_update_rate": 0.1,
+    "reward_burnin": 10,
+    "maxq_learning": 1,
+    "epsilon": 0.2
+  },
+  "training": {
+    "layers": [
+      -1,
+      128,
+      64,
+      -1
+    ],
+    "activations": [
+      "relu",
+      "relu",
+      "linear"
+    ],
+    "minibatch_size": 128,
+    "learning_rate": 0.05,
+    "optimizer": "ADAM",
+    "learning_rate_decay": 0.999
+  },
+  "run_details": {
+    "num_episodes": 30,
+    "train_every": 5,
+    "train_after": 1,
+    "test_every": 5,
+    "test_after": 1,
+    "num_train_batches": 5,
+    "avg_over_num_episodes": 5,
+    "render": 0,
+    "render_every": 100
+  },
+  "cnn": {
+    "conv_dims": [
+      -1,
+      2,
+      3,
+      1
+    ],
+    "conv_height_kernels": [
+      3,
+      2,
+      3
+    ],
+    "conv_width_kernels": [
+      3,
+      2,
+      3
+    ],
+    "pool_kernels_strides": [
+      2,
+      4,
+      3
+    ],
+    "pool_types": [
+      "max",
+      "avg",
+      "max"
+    ]
+  }
 }

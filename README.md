@@ -26,14 +26,39 @@ You may need to override caffe2's cmake defaults to use homebrew's protoc instea
 cmake -DPYTHON_EXECUTABLE=`which python3`
 ```
 
-Also make sure cmake is using the **homebrew** version of thrift, google log, etc..  Sometimes caffe2
+Also make sure cmake is using the **homebrew** version of glog, etc..  Sometimes caffe2
 will try to use the anaconda version of these libraries, and that will almost certainly cause
 errors.
 
-### Thrift
-[Thrift](https://github.com/facebook/fbthrift) is Facebook's RPC framework.
+### FBThrift
+[FBThrift](https://github.com/facebook/fbthrift) is Facebook's RPC framework.  Note that
+we require *FBThrift*, not Apache Thrift.  Here are instructions for getting on OS/X
+
 ```
-brew install thrift
+# Install deps with homebrew
+brew install openssl zstd folly
+
+# Wangle isn't in homebrew and needs to be installed manually
+git clone https://github.com/facebook/wangle.git
+cd wangle/build
+cmake ../ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+make -j8
+make install
+cd ../..
+
+# Install FBThrift
+git clone https://github.com/facebook/fbthrift
+cd fbthrift
+mkdir build
+cd build
+cmake ../ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+make -j8
+make install
+
+# Install python bindings for FBThrift (There may be some compile errors, they can
+#   be ignored)
+cd ../thrift/lib/py
+python setup.py install
 ```
 
 ### OpenAI Gym
@@ -55,11 +80,12 @@ pip install "gym[all]"
 Clone from source:
 ```
 git clone https://github.com/caffe2/BlueWhale
+cd BlueWhale
 ```
 
-To make thrift accessible to our system, run from within the root directory:
+Create thrift generated code within the root directory:
 ```
-thrift --gen py --out . ml/rl/thrift/core.thrift
+thrift1 --gen py:json --out . ml/rl/thrift/core.thrift
 ```
 
 To access caffe2 and import our modules:
@@ -137,7 +163,6 @@ As an example, The Cartpole-v0 default parameter file we supply specifies the us
         "test_every": 100,
         "test_after": 10,
         "num_train_batches": 100,
-        "train_batch_size": 1024,
         "avg_over_num_episodes": 100,
         "render": 0,
         "render_every": 100
@@ -168,7 +193,6 @@ You can supply a different JSON parameter file, modifying the fields to your lik
   * **test_every**: Number of episodes between each test cycle
   * **test_after**: Number of episodes after which to enable testing
   * **num\_train\_batches**: Number of batches to train over each training cycle
-  * **train\_batch\_size**: Number of transitions to include in each training batch. Note that these will each be further broken down into minibatches of size *minibatch_size*
   * **avg\_over\_num\_episodes**: Number of episodes to run every test cycle. After each cycle, the script will report an average over the scores of the episodes run within it.The typical choice is `100`, but this should be set according to the [success criteria](https://gym.openai.com/envs) for your environment
   * **render**: Whether or not to render the OpenAI environment in training and testing episodes. Note that some environments don't support rendering
   * **render_every**: Number of episodes between each rendered episode
