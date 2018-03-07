@@ -40,9 +40,9 @@ def _build_policy(env, predictor, epsilon):
 
     def policy(state) -> str:
         if np.random.random() < epsilon:
-            return np.random.choice(env.ACTIONS)
+            return np.random.choice(env.ACTIONS)  # type: ignore
         else:
-            return policy_vector[state]
+            return policy_vector[state]  # type: ignore
 
     return policy
 

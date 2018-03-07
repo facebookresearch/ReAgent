@@ -14,7 +14,7 @@ from ml.rl.training.training_data_page import TrainingDataPage
 
 class LimitedActionGridworld(GridworldBase):
     # Left, RIGHT, UP, DOWN, CHEAT
-    ACTIONS = ['L', 'R', 'U', 'D', 'C']
+    ACTIONS: List[str] = ['L', 'R', 'U', 'D', 'C']
 
     grid = np.array(
         [
