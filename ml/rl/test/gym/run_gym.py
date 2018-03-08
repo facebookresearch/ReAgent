@@ -37,8 +37,10 @@ def run(
 ):
     avg_reward_history = []
 
+    predictor = trainer.predictor()
+
     for i in range(num_episodes):
-        env.run_episode(trainer, False, render and i % render_every == 0)
+        env.run_episode(predictor, False, render and i % render_every == 0)
 
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
@@ -50,7 +52,7 @@ def run(
             reward_sum = 0.0
             for test_i in range(avg_over_num_episodes):
                 reward_sum += env.run_episode(
-                    trainer, True, render and test_i % render_every == 0
+                    predictor, True, render and test_i % render_every == 0
                 )
             avg_rewards = round(reward_sum / avg_over_num_episodes, 2)
             print(

@@ -51,8 +51,9 @@ class OpenAIGymEnvironment:
 
         if not supports_state and supports_action:
             raise Exception(
-                "Unsupported environment state or action type: {}, {}".
-                format(self.env.observation_space, self.env.action_space)
+                "Unsupported environment state or action type: {}, {}".format(
+                    self.env.observation_space, self.env.action_space
+                )
             )
 
         self.action_dim = self.env.action_space.n
@@ -103,12 +104,12 @@ class OpenAIGymEnvironment:
     def normalization(self):
         return default_normalizer(self.state_features)
 
-    def policy(self, trainer, next_state, test):
+    def policy(self, predictor, next_state, test):
         """
         Selects the next action.
 
-        :param trainer: RLTrainer object whose policy to follow.
-        :param next_state: State to evaluate trainer's policy on.
+        :param predictor: RLPredictor object whose policy to follow.
+        :param next_state: State to evaluate predictor's policy on.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         """
         next_state = next_state.astype(np.float32).reshape(1, -1)
@@ -116,7 +117,18 @@ class OpenAIGymEnvironment:
         if not test and np.random.rand() < self.epsilon:
             action_idx = np.random.randint(self.action_dim)
         else:
-            action_idx = trainer.get_policy(next_state, None)
+            # Convert next_state to a list[dict[int,float]]
+            next_state_dict = [{}]
+            for i in range(next_state.shape[1]):
+                next_state_dict[0][i] = next_state[0][i]
+            action_score_dict = predictor.predict(next_state_dict)[0]
+            best_action = None
+            best_score = None
+            for action_name, action_score in action_score_dict.items():
+                if best_action is None or best_score < action_score:
+                    best_action = action_name
+                    best_score = action_score
+            action_idx = self.actions.index(best_action)
         action[action_idx] = 1.0
         return action
 
@@ -142,18 +154,18 @@ class OpenAIGymEnvironment:
             self.replay_memory[rand_index] = item
         self.memory_num += 1
 
-    def run_episode(self, trainer, test=False, render=False):
+    def run_episode(self, predictor, test=False, render=False):
         """
         Runs an episode of the environment. Inserts transitions into replay
         memory and returns the sum of rewards experienced in the episode.
 
-        :param trainer: RLTrainer object whose policy to follow.
+        :param predictor: RLPredictor object whose policy to follow.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         :param render: Whether or not to render the episode.
         """
         terminal = False
         next_state = self.env.reset()
-        next_action = self.policy(trainer, next_state, test)
+        next_action = self.policy(predictor, next_state, test)
         reward_sum = 0
 
         while not terminal:
@@ -165,7 +177,7 @@ class OpenAIGymEnvironment:
                 self.env.render()
 
             next_state, reward, terminal, _ = self.env.step(action_index)
-            next_action = self.policy(trainer, next_state, test)
+            next_action = self.policy(predictor, next_state, test)
             reward_sum += reward
 
             possible_next_actions = [

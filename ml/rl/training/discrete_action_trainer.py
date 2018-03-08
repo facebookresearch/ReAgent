@@ -306,26 +306,3 @@ class DiscreteActionTrainer(RLTrainer):
             self._actions,
             self.state_normalization_parameters,
         )
-
-    def get_policy(
-        self,
-        states: np.ndarray,
-        possible_next_actions: Optional[np.ndarray],
-    ) -> int:
-        """
-        Returns the index of the action with the highest approximated q-value
-        for the given state.
-
-        :param state: A Numpy array of shape (N, state_dim) containing a
-            set of normalized state vectors.
-        """
-        assert self.q_score_model is not None
-        workspace.FeedBlob('states', states)
-        if possible_next_actions is not None:
-            workspace.FeedBlob('actions', possible_next_actions)
-            workspace.RunNetOnce(self.q_score_model.net)
-            q_values = workspace.FetchBlob(self.q_score_output)
-        else:
-            workspace.RunNetOnce(self.all_q_score_model.net)
-            q_values = workspace.FetchBlob(self.all_q_score_output)
-        return np.argmax(q_values, axis=1).reshape(-1, 1)

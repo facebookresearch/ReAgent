@@ -59,9 +59,11 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         self._update_counter += 1
 
         if self._max_q:
-            q_next_actions = self.get_policy(
-                tdp.next_states, tdp.possible_next_actions
-            )
+            workspace.FeedBlob('states', tdp.states)
+            workspace.FeedBlob('actions', tdp.possible_next_actions)
+            workspace.RunNetOnce(self.q_score_model.net)
+            q_values = workspace.FetchBlob(self.q_score_output)
+            q_next_actions = np.argmax(q_values, axis=1).reshape(-1, 1)
             q_next_actions_mask = np.zeros(
                 [q_next_actions.shape[0], self.num_actions], dtype=np.float32
             )
