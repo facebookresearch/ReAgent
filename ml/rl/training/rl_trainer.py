@@ -46,6 +46,7 @@ class RLTrainer(MLTrainer):
         self.reward_burnin = parameters.rl.reward_burnin
         self.maxq_learning = parameters.rl.maxq_learning
         self.rl_discount_rate = parameters.rl.gamma
+        self.rl_temperature = parameters.rl.temperature
         self.training_iteration = 0
         self.minibatch_size = parameters.training.minibatch_size
         self.parameters = parameters

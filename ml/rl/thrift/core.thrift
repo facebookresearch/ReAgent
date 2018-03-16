@@ -7,6 +7,7 @@ struct RLParameters {
   4: i32 reward_burnin = 1,
   5: bool maxq_learning = true,
   6: map<string, double> reward_boost,
+  7: double temperature = 1,
 }
 
 struct TrainingParameters {

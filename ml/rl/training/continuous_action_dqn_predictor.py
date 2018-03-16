@@ -99,7 +99,7 @@ class ContinuousActionDQNPredictor(RLPredictor):
             [state_action_normalized, state_action_normalized_dim],
             axis=1
         )
-        new_parameters = RLPredictor._forward_pass(
+        new_parameters, _ = RLPredictor._forward_pass(
             model,
             trainer,
             state_action_normalized,

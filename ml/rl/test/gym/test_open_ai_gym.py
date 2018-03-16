@@ -24,7 +24,8 @@ class TestOpenAIGym(unittest.TestCase):
                 "target_update_rate": 0.2,
                 "reward_burnin": 1,
                 "maxq_learning": 1,
-                "epsilon": 0.2
+                "epsilon": 0.0,
+                "temperature": 1
               },
               "training": {
                 "layers": [

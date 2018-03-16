@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -42,6 +44,32 @@ class RLPredictor(object):
             'output/string_weighted_multi_categorical_features.values.values',
         ]
         self._parameters = parameters
+
+    def discrete_action_policy(self, examples) -> np.ndarray:
+        """ Returns np array of indexes of actions to take for each state
+        :param examples A list of feature -> value dict examples
+        """
+        workspace.FeedBlob(
+            'input/float_features.lengths',
+            np.array([len(e) for e in examples], dtype=np.int32)
+        )
+        workspace.FeedBlob(
+            'input/float_features.keys',
+            np.array([list(e.keys()) for e in examples],
+                     dtype=np.int32).flatten()
+        )
+        workspace.FeedBlob(
+            'input/float_features.values',
+            np.array([list(e.values()) for e in examples],
+                     dtype=np.float32).flatten()
+        )
+        workspace.RunNet(self._net)
+
+        # [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
+        output_values = workspace.FetchBlob(
+            'output/string_single_categorical_features.values'
+        )
+        return output_values
 
     def predict(self, examples):
         """ Returns values for each state
@@ -223,4 +251,4 @@ class RLPredictor(object):
             'output/string_weighted_multi_categorical_features.values.values'
         workspace.FeedBlob(output_values, np.array([1.0]))
         C2.net().FlattenToVec([q_values], [output_values])
-        return parameters
+        return parameters, q_values

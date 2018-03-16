@@ -7,6 +7,7 @@ import gym
 import numpy as np
 
 from ml.rl.test.utils import default_normalizer
+from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -121,14 +122,19 @@ class OpenAIGymEnvironment:
             next_state_dict = [{}]
             for i in range(next_state.shape[1]):
                 next_state_dict[0][i] = next_state[0][i]
-            action_score_dict = predictor.predict(next_state_dict)[0]
-            best_action = None
-            best_score = None
-            for action_name, action_score in action_score_dict.items():
-                if best_action is None or best_score < action_score:
-                    best_action = action_name
-                    best_score = action_score
-            action_idx = self.actions.index(best_action)
+            # For DiscreteActionPredictors use the output policy directly
+            if isinstance(predictor, DiscreteActionPredictor):
+                action_str = predictor.discrete_action_policy(next_state_dict)[1]
+                action_idx = self.actions.index(action_str.decode("utf-8"))
+            else:
+                action_score_dict = predictor.predict(next_state_dict)[0]
+                best_action = None
+                best_score = None
+                for action_name, action_score in action_score_dict.items():
+                    if best_action is None or best_score < action_score:
+                        best_action = action_name
+                        best_score = action_score
+                action_idx = self.actions.index(best_action)
         action[action_idx] = 1.0
         return action
 
