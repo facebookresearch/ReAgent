@@ -23,6 +23,8 @@ from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.training.evaluator import Evaluator
 
+RL_TRAINER_MODEL_ID = "rl_trainer"
+
 
 class RLTrainer(MLTrainer):
     def __init__(
@@ -37,7 +39,7 @@ class RLTrainer(MLTrainer):
 
         self.num_features = parameters.training.layers[0]
 
-        MLTrainer.__init__(self, "rl_trainer", parameters.training)
+        MLTrainer.__init__(self, RL_TRAINER_MODEL_ID, parameters.training)
 
         self.target_network = TargetNetwork(
             self, parameters.rl.target_update_rate

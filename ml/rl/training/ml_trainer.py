@@ -156,6 +156,8 @@ class MLTrainer:
         self.gamma = parameters.gamma
         self.lr_policy = parameters.lr_policy
         self.dropout_ratio = parameters.dropout_ratio
+        self.skip_random_weight_init = \
+            (parameters.warm_start_model_path is not None)
 
         self._validate_inputs()
         self._setup_initial_blobs()
@@ -188,18 +190,19 @@ class MLTrainer:
             self.weights.append(weight_name)
             self.biases.append(bias_name)
 
-            bias = np.zeros(
-                shape=[
-                    dim_out,
-                ], dtype=np.float32
-            )
-            workspace.FeedBlob(bias_name, bias)
+            if not self.skip_random_weight_init:
+                bias = np.zeros(
+                    shape=[
+                        dim_out,
+                    ], dtype=np.float32
+                )
+                workspace.FeedBlob(bias_name, bias)
 
-            gain = np.sqrt(2) if self.activations[x] == 'relu' else 1
-            weights = scipy.stats.norm(0, gain * np.sqrt(1 / dim_in)).rvs(
-                size=[dim_out, dim_in]
-            ).astype(np.float32)
-            workspace.FeedBlob(weight_name, weights)
+                gain = np.sqrt(2) if self.activations[x] == 'relu' else 1
+                weights = scipy.stats.norm(0, gain * np.sqrt(1 / dim_in)).rvs(
+                    size=[dim_out, dim_in]
+                ).astype(np.float32)
+                workspace.FeedBlob(weight_name, weights)
 
     def build_predictor(self, model, input_blob, output_blob) -> List[str]:
         MakeForwardPassOps(
