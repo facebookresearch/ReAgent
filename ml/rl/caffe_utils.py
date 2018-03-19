@@ -114,6 +114,22 @@ class StackedAssociativeArray(object):
         self.keys = keys
         self.values = values
 
+    def to_python(self) -> List[Dict[Any, Any]]:
+        keys = workspace.FetchBlob(self.keys)
+        lengths = workspace.FetchBlob(self.lengths)
+        values = workspace.FetchBlob(self.values)
+        retval: List[Dict[Any, Any]] = []
+        cursor = 0
+        for length in lengths:
+            d = {}
+            for _ in range(length):
+                key = keys[cursor]
+                value = values[cursor]
+                d[key] = value
+                cursor += 1
+            retval.append(d)
+        return retval
+
     @classmethod
     def from_dict_list(
         cls,
@@ -141,3 +157,44 @@ class StackedAssociativeArray(object):
         )
 
         return cls(lengths_blob, keys_blob, values_blob)
+
+
+class StackedTwoLevelAssociativeArray(object):
+    def __init__(
+        self,
+        outer_lengths: str,
+        outer_keys: str,
+        inner_lengths: str,
+        inner_keys: str,
+        inner_values: str,
+    ) -> None:
+        self.outer_lengths = outer_lengths
+        self.outer_keys = outer_keys
+        self.inner_lengths = inner_lengths
+        self.inner_keys = inner_keys
+        self.inner_values = inner_values
+
+    def to_python(self) -> List[Dict[Any, Dict[Any, Any]]]:
+        outer_keys = workspace.FetchBlob(self.outer_keys)
+        outer_lengths = workspace.FetchBlob(self.outer_lengths)
+        inner_keys = workspace.FetchBlob(self.inner_keys)
+        inner_lengths = workspace.FetchBlob(self.inner_lengths)
+        inner_values = workspace.FetchBlob(self.inner_values)
+        retval: List[Dict[Any, Dict[Any, Any]]] = []
+        outer_cursor = 0
+        inner_cursor = 0
+        for length in outer_lengths:
+            outer_dict = {}
+            for _ in range(length):
+                outer_key = outer_keys[outer_cursor]
+                inner_length = inner_lengths[outer_cursor]
+                outer_cursor += 1
+                inner_dict = {}
+                for _ in range(inner_length):
+                    inner_key = inner_keys[inner_cursor]
+                    inner_value = inner_values[inner_cursor]
+                    inner_cursor += 1
+                    inner_dict[inner_key] = inner_value
+                outer_dict[outer_key] = inner_dict
+            retval.append(outer_dict)
+        return retval
