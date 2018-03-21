@@ -3,25 +3,27 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import sys
 import argparse
 import json
+import sys
 
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
 
-from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
+from ml.rl.test.gym.open_ai_gym_environment import ModelType, OpenAIGymEnvironment
+from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.conv.discrete_action_conv_trainer import DiscreteActionConvTrainer
 from ml.rl.thrift.core.ttypes import RLParameters, TrainingParameters,\
     DiscreteActionModelParameters, DiscreteActionConvModelParameters,\
-    CNNModelParameters
+    CNNModelParameters, ContinuousActionModelParameters, KnnParameters
 
 USE_CPU = -1
 
 
 def run(
     env,
+    model_type,
     trainer,
     test_run_name,
     score_bar,
@@ -33,7 +35,7 @@ def run(
     num_train_batches=100,
     avg_over_num_episodes=100,
     render=False,
-    render_every=10
+    render_every=10,
 ):
     avg_reward_history = []
 
@@ -44,7 +46,7 @@ def run(
 
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
-                tdp = env.get_training_data_page(trainer.minibatch_size)
+                tdp = env.get_training_data_page(trainer.minibatch_size, model_type)
                 assert tdp.states.shape[0] <= trainer.minibatch_size
                 if tdp.states.shape[0] == trainer.minibatch_size:
                     trainer.train_numpy(tdp, evaluator=None)
@@ -109,35 +111,51 @@ def run_gym(params, score_bar, gpu_id):
 
     env_type = params['env']
     env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'])
-    trainer_params = DiscreteActionModelParameters(
-        actions=env.actions,
-        rl=RLParameters(**rl_settings),
-        training=TrainingParameters(**training_settings)
-    )
-
+    model_type = params['model_type']
     device = core.DeviceOption(
         caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA,
         gpu_id,
     )
     with core.DeviceScope(device):
-        if env.img:
-            trainer = DiscreteActionConvTrainer(
-                DiscreteActionConvModelParameters(
-                    fc_parameters=trainer_params,
-                    cnn_parameters=CNNModelParameters(**params['cnn']),
-                    num_input_channels=env.num_input_channels,
-                    img_height=env.height,
-                    img_width=env.width
-                ),
-                env.normalization,
+        if model_type == ModelType.DISCRETE_ACTION.value:
+            trainer_params = DiscreteActionModelParameters(
+                actions=env.actions,
+                rl=RLParameters(**rl_settings),
+                training=TrainingParameters(**training_settings)
             )
-        else:
-            trainer = DiscreteActionTrainer(
+            if env.img:
+                trainer = DiscreteActionConvTrainer(
+                    DiscreteActionConvModelParameters(
+                        fc_parameters=trainer_params,
+                        cnn_parameters=CNNModelParameters(**params['cnn']),
+                        num_input_channels=env.num_input_channels,
+                        img_height=env.height,
+                        img_width=env.width
+                    ),
+                    env.normalization,
+                )
+            else:
+                trainer = DiscreteActionTrainer(
+                    trainer_params,
+                    env.normalization,
+                )
+        elif model_type == ModelType.PARAMETRIC_ACTION.value:
+            trainer_params = ContinuousActionModelParameters(
+                rl=RLParameters(**rl_settings),
+                training=TrainingParameters(**training_settings),
+                knn=KnnParameters(model_type='DQN', ),
+            )
+            trainer = ContinuousActionDQNTrainer(
                 trainer_params,
                 env.normalization,
+                env.normalization_action
             )
+        else:
+            raise NotImplementedError(
+                "Model of type {} not supported".format(model_type))
+
         return run(
-            env, trainer, "{} test run".format(env_type), score_bar,
+            env, model_type, trainer, "{} test run".format(env_type), score_bar,
             **params["run_details"]
         )
 
