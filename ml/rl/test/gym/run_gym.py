@@ -42,19 +42,17 @@ def run(
     predictor = trainer.predictor()
 
     for i in range(num_episodes):
-        env.run_episode(predictor, False, render and i % render_every == 0)
-
+        env.run_episode(model_type, predictor, False, render and i % render_every == 0)
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
-                tdp = env.get_training_data_page(trainer.minibatch_size, model_type)
-                assert tdp.states.shape[0] <= trainer.minibatch_size
-                if tdp.states.shape[0] == trainer.minibatch_size:
-                    trainer.train_numpy(tdp, evaluator=None)
+                env.sample_and_load_training_data(
+                    trainer.minibatch_size, model_type, trainer.maxq_learning)
+                trainer.train(reward_timelines=None, evaluator=None)
         if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
             reward_sum = 0.0
             for test_i in range(avg_over_num_episodes):
                 reward_sum += env.run_episode(
-                    predictor, True, render and test_i % render_every == 0
+                    model_type, predictor, True, render and test_i % render_every == 0
                 )
             avg_rewards = round(reward_sum / avg_over_num_episodes, 2)
             print(

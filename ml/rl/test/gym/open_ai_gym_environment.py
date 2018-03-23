@@ -10,14 +10,11 @@ import enum
 import gym
 import numpy as np
 
-from caffe2.python import core, workspace
+from caffe2.python import workspace
 
-from ml.rl.caffe_utils import C2, StackedAssociativeArray, StackedArray
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.continuous_action_dqn_predictor import ContinuousActionDQNPredictor
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
-from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class ModelType(enum.Enum):
@@ -85,10 +82,9 @@ class OpenAIGymEnvironment:
         """
         Samples transitions from replay memory uniformly at random.
 
-        :param replay_memroy: Array of transitions.
         :param batch_size: Number of sampled transitions to return.
         """
-        cols = [[], [], [], [], [], [], []]
+        cols = [[], [], [], [], [], [], [], []]
         indices = np.random.permutation(len(self.replay_memory))[:batch_size]
         for idx in indices:
             memory = self.replay_memory[idx]
@@ -96,73 +92,54 @@ class OpenAIGymEnvironment:
                 col.append(value)
         return cols
 
-    def get_action_feature_keys(self):
-        """Return feature key of each available action under parametric model."""
-        return [x for x in range(self.state_dim, self.state_dim + self.action_dim)]
-
-    def preprocess_pna_samples(self, possible_next_actions) -> StackedArray:
-        """Preprocess possible next actions for use in the parametric action
-        q-learning model."""
-        action_keys_list = self.get_action_feature_keys()
-        net = core.Net('gym_preprocessing')
-        C2.set_net(net)
-        preprocessor = PreprocessorNet(net, True)
-
-        pnas_raw = []
-        for action_val_list in possible_next_actions:
-            out_list = []
-            for i, val in enumerate(action_val_list):
-                if val != 0:
-                    out_list.append({action_keys_list[i]: val})
-            pnas_raw.append(out_list)
-
-        pnas_lengths_list = []
-        pnas_flat = []
-        for pnas in pnas_raw:
-            pnas_lengths_list.append(len(pnas))
-            pnas_flat.extend(pnas)
-
-        saa = StackedAssociativeArray.from_dict_list(
-            pnas_flat, 'possible_next_actions'
-        )
-        pnas_lengths = np.array(pnas_lengths_list, dtype=np.int32)
-        possible_next_actions_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization_action,
-            'possible_next_action_norm',
-        )
-        workspace.RunNetOnce(net)
-        possible_next_actions_ndarray = workspace.FetchBlob(
-            possible_next_actions_matrix)
-        return StackedArray(pnas_lengths, possible_next_actions_ndarray)
-
-    def get_training_data_page(self, num_samples, model_type):
+    def sample_and_load_training_data(
+        self,
+        num_samples,
+        model_type,
+        maxq_learning,
+    ):
         """
-        Returns a TrainingDataPage with shuffled, transformed transitions from
-        replay memory.
+        Loads and preprocesses shuffled, transformed transitions from
+        replay memory into the training net.
 
         :param num_samples: Number of transitions to sample from replay memory.
+        :param model_type: Model type (discrete, parametric).
+        :param maxq_learning: Boolean indicating to use q-learning or sarsa.
         """
-        states, actions, rewards, next_states, next_actions, terminals,\
-            possible_next_actions = self.sample_memories(num_samples)
+        states, actions, rewards, next_states, next_actions,\
+            terminals, possible_next_actions,\
+            possible_next_actions_lengths = self.sample_memories(num_samples)
 
-        if model_type == ModelType.PARAMETRIC_ACTION.value:
-            possible_next_actions = self.preprocess_pna_samples(possible_next_actions)
-        else:
-            possible_next_actions = np.array(possible_next_actions, np.float32)
-
-        return TrainingDataPage(
-            states=np.array(states, dtype=np.float32),
-            actions=np.array(actions, dtype=np.float32),
-            rewards=np.array(rewards, dtype=np.float32).reshape(-1, 1),
-            next_states=np.array(next_states, dtype=np.float32),
-            next_actions=np.array(next_actions, dtype=np.float32),
-            possible_next_actions=possible_next_actions,
-            reward_timelines=None,
-            not_terminals=np.logical_not(terminals, dtype=np.bool).reshape(-1, 1)
+        workspace.FeedBlob('states', np.array(states, dtype=np.float32))
+        workspace.FeedBlob('actions', np.array(actions, dtype=np.float32))
+        workspace.FeedBlob(
+            'rewards',
+            np.array(rewards, dtype=np.float32).reshape(-1, 1)
         )
+        workspace.FeedBlob('next_states', np.array(next_states, dtype=np.float32))
+        workspace.FeedBlob(
+            'not_terminals',
+            np.logical_not(terminals, dtype=np.bool).reshape(-1, 1)
+        )
+
+        # SARSA algorithm does not need possible next actions so return
+        if not maxq_learning:
+            workspace.FeedBlob('next_actions', np.array(next_actions, dtype=np.float32))
+            return
+
+        if model_type == ModelType.DISCRETE_ACTION.value:
+            possible_next_actions = np.array(possible_next_actions, np.float32)
+            workspace.FeedBlob('possible_next_actions', possible_next_actions)
+            return
+
+        pnas = []
+        for pna_matrix in possible_next_actions:
+            for row in pna_matrix:
+                pnas.append(row)
+
+        workspace.FeedBlob('possible_next_actions_lengths',
+            np.array(possible_next_actions_lengths, dtype=np.int32))
+        workspace.FeedBlob('possible_next_actions', np.array(pnas, dtype=np.float32))
 
     @property
     def normalization(self):
@@ -216,7 +193,7 @@ class OpenAIGymEnvironment:
 
     def insert_into_memory(
         self, state, action, reward, next_state, next_action, terminal,
-        possible_next_actions
+        possible_next_actions, possible_next_actions_lengths
     ):
         """
         Inserts transition into replay memory in such a way that retrieving
@@ -224,7 +201,7 @@ class OpenAIGymEnvironment:
         """
         item = (
             state, action, reward, next_state, next_action, terminal,
-            possible_next_actions
+            possible_next_actions, possible_next_actions_lengths
         )
 
         if self.memory_num < self.max_replay_memory_size:
@@ -236,11 +213,12 @@ class OpenAIGymEnvironment:
             self.replay_memory[rand_index] = item
         self.memory_num += 1
 
-    def run_episode(self, predictor, test=False, render=False):
+    def run_episode(self, model_type, predictor, test=False, render=False):
         """
         Runs an episode of the environment. Inserts transitions into replay
         memory and returns the sum of rewards experienced in the episode.
 
+        :param model_type: Model type (discrete, parametric).
         :param predictor: RLPredictor object whose policy to follow.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         :param render: Whether or not to render the episode.
@@ -262,13 +240,22 @@ class OpenAIGymEnvironment:
             next_action = self.policy(predictor, next_state, test)
             reward_sum += reward
 
-            possible_next_actions = [
-                0 if terminal else 1 for __ in range(self.action_dim)
-            ]
+            if model_type == ModelType.DISCRETE_ACTION.value:
+                possible_next_actions = [
+                    0 if terminal else 1 for __ in range(self.action_dim)
+                ]
+                possible_next_actions_lengths = self.action_dim
+            else:
+                if terminal:
+                    possible_next_actions = np.array([])
+                    possible_next_actions_lengths = 0
+                else:
+                    possible_next_actions = np.eye(self.action_dim)
+                    possible_next_actions_lengths = self.action_dim
 
             self.insert_into_memory(
                 state, action, reward, next_state, next_action, terminal,
-                possible_next_actions
+                possible_next_actions, possible_next_actions_lengths
             )
 
         return reward_sum

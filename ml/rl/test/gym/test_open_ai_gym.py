@@ -42,13 +42,13 @@ class TestOpenAIGym(unittest.TestCase):
                   "relu",
                   "linear"
                 ],
-                "minibatch_size": 128,
+                "minibatch_size": 256,
                 "learning_rate": 0.01,
                 "optimizer": "ADAM",
                 "learning_rate_decay": 0.999
               },
               "run_details": {
-                "num_episodes": 501,
+                "num_episodes": 601,
                 "train_every": 10,
                 "train_after": 10,
                 "test_every": 100,
@@ -90,13 +90,13 @@ class TestOpenAIGym(unittest.TestCase):
                   "relu",
                   "linear"
                 ],
-                "minibatch_size": 128,
+                "minibatch_size": 256,
                 "learning_rate": 0.01,
                 "optimizer": "ADAM",
                 "learning_rate_decay": 0.999
               },
               "run_details": {
-                "num_episodes": 501,
+                "num_episodes": 601,
                 "train_every": 10,
                 "train_after": 10,
                 "test_every": 100,

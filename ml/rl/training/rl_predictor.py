@@ -46,7 +46,7 @@ class RLPredictor(object):
         self._parameters = parameters
 
     def discrete_action_policy(self, examples) -> np.ndarray:
-        """ Returns np array of indexes of actions to take for each state
+        """ Returns np array of action names to take for each state
         :param examples A list of feature -> value dict examples
         """
         workspace.FeedBlob(
