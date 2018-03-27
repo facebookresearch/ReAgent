@@ -41,6 +41,17 @@ class ContinuousActionDQNTrainer(RLTrainer):
             state_normalization_parameters
         ) + get_num_output_features(action_normalization_parameters)
 
+        # ensure state and action IDs have no intersection
+        overlapping_features = (
+            set(state_normalization_parameters.keys()) &
+            set(action_normalization_parameters.keys())
+        )
+        assert (
+            len(overlapping_features) == 0
+        ), "There are some overlapping state and action features: " + str(
+            overlapping_features
+        )
+
         parameters.training.layers[0] = num_features
         parameters.training.layers[-1] = 1
 
