@@ -173,21 +173,18 @@ class OpenAIGymEnvironment:
             next_state_dict = [{}]
             for i in range(next_state.shape[1]):
                 next_state_dict[0][i] = next_state[0][i]
-            # For DiscreteActionPredictors use the output policy directly
             if isinstance(predictor, DiscreteActionPredictor):
-                action_str = predictor.discrete_action_policy(next_state_dict)[1]
+                action_str = predictor.policy(next_state_dict)[1]
                 action_idx = self.actions.index(action_str.decode("utf-8"))
             elif isinstance(predictor, ContinuousActionDQNPredictor):
                 normed_action_keys = sorted(self.normalization_action.keys())
-                best_action = None
-                best_score = None
+                states, actions = [], []
                 for action_key in normed_action_keys:
-                    action_score = predictor.predict(
-                        next_state_dict, [{action_key: 1}])[0]['Q']
-                    if best_action is None or best_score < action_score:
-                        best_action = action_key
-                        best_score = action_score
-                action_idx = normed_action_keys.index(best_action)
+                    states.append(next_state_dict[0])
+                    actions.append({action_key: 1})
+                action_idx = predictor.policy(states, actions)[1]
+                action_to_take = list(actions[action_idx].keys())
+                action_idx = normed_action_keys.index(action_to_take[0])
         action[action_idx] = 1.0
         return action
 

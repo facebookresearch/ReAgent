@@ -44,8 +44,9 @@ class RLPredictor(object):
             'output/string_weighted_multi_categorical_features.values.values',
         ]
         self._parameters = parameters
+        self.is_discrete = None
 
-    def discrete_action_policy(self, examples) -> np.ndarray:
+    def policy(self, examples) -> np.ndarray:
         """ Returns np array of action names to take for each state
         :param examples A list of feature -> value dict examples
         """
@@ -65,11 +66,17 @@ class RLPredictor(object):
         )
         workspace.RunNet(self._net)
 
-        # [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
-        output_values = workspace.FetchBlob(
-            'output/string_single_categorical_features.values'
-        )
-        return output_values
+        if self.is_discrete:
+            # discrete action policy has string values (action names)
+            return workspace.FetchBlob(
+                'output/string_single_categorical_features.values')
+        elif not self.is_discrete:
+            # [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
+            # parametric action policy has int values (action indexes)
+            return workspace.FetchBlob('output/int_single_categorical_features.values')
+        else:
+            raise Exception('is_discrete property {} not valid'.format(
+                self.is_discrete))
 
     def predict(self, examples):
         """ Returns values for each state

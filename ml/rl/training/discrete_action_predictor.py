@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 class DiscreteActionPredictor(RLPredictor):
     def __init__(self, net, parameters):
         RLPredictor.__init__(self, net, parameters)
+        self.is_discrete = True
         self._output_blobs.extend([
             'output/string_single_categorical_features.keys',
             'output/string_single_categorical_features.lengths',
@@ -77,7 +78,7 @@ class DiscreteActionPredictor(RLPredictor):
 
         # Get 1 x n action index tensor under the max_q policy
         max_q_act_idxs = 'max_q_policy_actions'
-        C2.net().Flatten([C2.RowWiseArgMax(q_values)], [max_q_act_idxs], axis=0)
+        C2.net().Flatten([C2.ArgMax(q_values)], [max_q_act_idxs], axis=0)
         shape_of_num_of_states = 'num_states_shape'
         C2.net().FlattenToVec([max_q_act_idxs], [shape_of_num_of_states])
         num_states, _ = C2.Reshape(C2.Size(shape_of_num_of_states), shape=[1])
@@ -89,16 +90,17 @@ class DiscreteActionPredictor(RLPredictor):
             temperature, np.array([trainer.rl_temperature], dtype=np.float32))
         tempered_q_values = C2.Div(q_values, "temperature", broadcast=1)
         softmax_values = C2.Softmax(tempered_q_values)
-        tempered_softmax_values = C2.Div(softmax_values, "temperature", broadcast=1)
         softmax_act_idxs_nested = 'softmax_act_idxs_nested'
-        C2.net().WeightedSample([tempered_softmax_values], [softmax_act_idxs_nested])
+        C2.net().WeightedSample([softmax_values], [softmax_act_idxs_nested])
         softmax_act_idxs = 'softmax_policy_actions'
         C2.net().Flatten([softmax_act_idxs_nested], [softmax_act_idxs], axis=0)
 
         # Concat action index tensors to get 2 x n tensor - [[max_q], [softmax]]
         # transpose & flatten to get [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
-        C2.net().Append([max_q_act_idxs, softmax_act_idxs], [max_q_act_idxs])
-        transposed_action_idxs = C2.Transpose(max_q_act_idxs)
+        max_q_act_blob = C2.Cast(max_q_act_idxs, to=caffe2_pb2.TensorProto.INT64)
+        softmax_act_blob = C2.Cast(softmax_act_idxs, to=caffe2_pb2.TensorProto.INT64)
+        C2.net().Append([max_q_act_blob, softmax_act_blob], [max_q_act_blob])
+        transposed_action_idxs = C2.Transpose(max_q_act_blob)
         flat_transposed_action_idxs = C2.FlattenToVec(transposed_action_idxs)
         output_values = 'output/string_single_categorical_features.values'
         workspace.FeedBlob(output_values, np.zeros(1, dtype=np.int64))

@@ -48,7 +48,7 @@ class TestOpenAIGym(unittest.TestCase):
                 "learning_rate_decay": 0.999
               },
               "run_details": {
-                "num_episodes": 601,
+                "num_episodes": 701,
                 "train_every": 10,
                 "train_after": 10,
                 "test_every": 100,
@@ -75,7 +75,7 @@ class TestOpenAIGym(unittest.TestCase):
                 "target_update_rate": 0.2,
                 "reward_burnin": 1,
                 "maxq_learning": 1,
-                "epsilon": 0.1,
+                "epsilon": 0.0,
                 "temperature": 1
               },
               "training": {
@@ -96,7 +96,7 @@ class TestOpenAIGym(unittest.TestCase):
                 "learning_rate_decay": 0.999
               },
               "run_details": {
-                "num_episodes": 601,
+                "num_episodes": 701,
                 "train_every": 10,
                 "train_after": 10,
                 "test_every": 100,
