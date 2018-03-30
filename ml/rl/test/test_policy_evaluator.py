@@ -166,7 +166,7 @@ class TestPolicyEvaluator(unittest.TestCase):
             workspace.FeedBlob(model_output, np.array([1.0], dtype=np.float32))
             model_outputs.append(model_output)
         max_action = C2.FlattenToVec(
-            C2.RowWiseArgMax(C2.Transpose(C2.Sum(*model_outputs)))
+            C2.ArgMax(C2.Transpose(C2.Sum(*model_outputs)))
         )
         one_blob = C2.NextBlob('one')
         workspace.FeedBlob(one_blob, np.array([1.0], dtype=np.float32))
