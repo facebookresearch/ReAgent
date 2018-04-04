@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # @build:deps [
 # @/caffe2/caffe2/python:caffe2_py
 # @/caffe2/caffe2/fb/data:hive_reader_python
-# @/caffe2/proto:fb_protobuf
+# @/caffe2/caffe2/proto:fb_protobuf
 # @/hiveio:par_init
 # ]
 
