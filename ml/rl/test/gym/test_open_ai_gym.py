@@ -89,5 +89,21 @@ class TestOpenAIGym(unittest.TestCase):
         config['rl']['maxq_learning'] = 0
         self._test(config, 180)
 
-    # def test_asteroids_v0(self):
-    #     self._test("maxq_asteroids_v0.json", 200.0)
+    def test_ddpg_pendulum_v0(self):
+        """Test deep deterministic policy gradient algo on Pendulum-v0."""
+        config = {
+            'env': 'Pendulum-v0',
+            'model_type': 'continuous',
+            'rl': {
+                'reward_discount_factor': .99,
+                'epsilon': 0.0,
+            },
+            'training': {
+                'learning_rate_decay': 0.999,
+                'minibatch_size': 128
+            },
+            'run_details': {
+                'num_episodes': 300,
+            }
+        }
+        self._test(config, -1300)

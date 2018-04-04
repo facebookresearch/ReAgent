@@ -11,6 +11,7 @@ from caffe2.proto import caffe2_pb2
 from caffe2.python import core
 
 from ml.rl.test.gym.open_ai_gym_environment import ModelType, OpenAIGymEnvironment
+from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.conv.discrete_action_conv_trainer import DiscreteActionConvTrainer
@@ -45,9 +46,12 @@ def run(
         env.run_episode(model_type, predictor, False, render and i % render_every == 0)
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
-                env.sample_and_load_training_data(
-                    trainer.minibatch_size, model_type, trainer.maxq_learning)
-                trainer.train(reward_timelines=None, evaluator=None)
+                if model_type == ModelType.CONTINUOUS_ACTION.value:
+                    trainer.train()
+                else:
+                    env.sample_and_load_training_data_c2(
+                        trainer.minibatch_size, model_type, trainer.maxq_learning)
+                    trainer.train(reward_timelines=None, evaluator=None)
         if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
             reward_sum = 0.0
             for test_i in range(avg_over_num_episodes):
@@ -110,12 +114,13 @@ def run_gym(params, score_bar, gpu_id):
     env_type = params['env']
     env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'])
     model_type = params['model_type']
-    device = core.DeviceOption(
+    c2_device = core.DeviceOption(
         caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA,
         gpu_id,
     )
-    with core.DeviceScope(device):
-        if model_type == ModelType.DISCRETE_ACTION.value:
+
+    if model_type == ModelType.DISCRETE_ACTION.value:
+        with core.DeviceScope(c2_device):
             trainer_params = DiscreteActionModelParameters(
                 actions=env.actions,
                 rl=RLParameters(**rl_settings),
@@ -137,7 +142,8 @@ def run_gym(params, score_bar, gpu_id):
                     trainer_params,
                     env.normalization,
                 )
-        elif model_type == ModelType.PARAMETRIC_ACTION.value:
+    elif model_type == ModelType.PARAMETRIC_ACTION.value:
+        with core.DeviceScope(c2_device):
             trainer_params = ContinuousActionModelParameters(
                 rl=RLParameters(**rl_settings),
                 training=TrainingParameters(**training_settings),
@@ -148,14 +154,21 @@ def run_gym(params, score_bar, gpu_id):
                 env.normalization,
                 env.normalization_action
             )
-        else:
-            raise NotImplementedError(
-                "Model of type {} not supported".format(model_type))
+    elif model_type == ModelType.CONTINUOUS_ACTION.value:
+            trainer_params = ContinuousActionModelParameters(
+                rl=RLParameters(**rl_settings),
+                training=TrainingParameters(**training_settings),
+                knn=None,
+            )
+            trainer = DDPGTrainer(trainer_params, env.state_dim, env.action_dim)
+    else:
+        raise NotImplementedError(
+            "Model of type {} not supported".format(model_type))
 
-        return run(
-            env, model_type, trainer, "{} test run".format(env_type), score_bar,
-            **params["run_details"]
-        )
+    return run(
+        env, model_type, trainer, "{} test run".format(env_type), score_bar,
+        **params["run_details"]
+    )
 
 
 if __name__ == '__main__':

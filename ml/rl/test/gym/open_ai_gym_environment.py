@@ -13,6 +13,7 @@ import numpy as np
 from caffe2.python import workspace
 
 from ml.rl.test.utils import default_normalizer
+from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.continuous_action_dqn_predictor import ContinuousActionDQNPredictor
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
 
@@ -20,6 +21,12 @@ from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
 class ModelType(enum.Enum):
     DISCRETE_ACTION = 'discrete'
     PARAMETRIC_ACTION = 'parametric'
+    CONTINUOUS_ACTION = 'continuous'
+
+
+class EnvType(enum.Enum):
+    DISCRETE_ACTION = 'discrete'
+    CONTINUOUS_ACTION = 'continuous'
 
 
 class OpenAIGymEnvironment:
@@ -42,13 +49,14 @@ class OpenAIGymEnvironment:
         self._create_env(gymenv)
         if not self.img:
             self.state_features = [str(sf) for sf in range(self.state_dim)]
-        self.actions = [str(a) for a in range(self.action_dim)]
+        if self.action_type == EnvType.DISCRETE_ACTION:
+            self.actions = [str(a) for a in range(self.action_dim)]
 
     def _create_env(self, gymenv):
         """
         Creates a gym environment object and checks if it is supported. We
         support environments that supply Box(x, ) state representations and
-        require Discrete(y) action inputs.
+        require Discrete(y) or Box(y,) action inputs.
 
         :param gymenv: String identifier for desired environment.
         """
@@ -59,7 +67,8 @@ class OpenAIGymEnvironment:
         supports_state = isinstance(
             self.env.observation_space, gym.spaces.Box
         ) and len(self.env.observation_space.shape) in [1, 3]
-        supports_action = isinstance(self.env.action_space, gym.spaces.Discrete)
+        supports_action =\
+            type(self.env.action_space) in (gym.spaces.Discrete, gym.spaces.Box)
 
         if not supports_state and supports_action:
             raise Exception(
@@ -68,7 +77,12 @@ class OpenAIGymEnvironment:
                 )
             )
 
-        self.action_dim = self.env.action_space.n
+        if isinstance(self.env.action_space, gym.spaces.Discrete):
+            self.action_type = EnvType.DISCRETE_ACTION
+            self.action_dim = self.env.action_space.n
+        elif isinstance(self.env.action_space, gym.spaces.Box):
+            self.action_type = EnvType.CONTINUOUS_ACTION
+            self.action_dim = self.env.action_space.shape[0]
 
         if (len(self.env.observation_space.shape) == 1):
             self.state_dim = self.env.observation_space.shape[0]
@@ -92,7 +106,7 @@ class OpenAIGymEnvironment:
                 col.append(value)
         return cols
 
-    def sample_and_load_training_data(
+    def sample_and_load_training_data_c2(
         self,
         num_samples,
         model_type,
@@ -185,6 +199,8 @@ class OpenAIGymEnvironment:
                 action_idx = predictor.policy(states, actions)[1]
                 action_to_take = list(actions[action_idx].keys())
                 action_idx = normed_action_keys.index(action_to_take[0])
+            elif isinstance(predictor, DDPGPredictor):
+                return self.env.action_space.sample()
         action[action_idx] = 1.0
         return action
 
@@ -228,12 +244,16 @@ class OpenAIGymEnvironment:
         while not terminal:
             state = next_state
             action = next_action
-            action_index = np.argmax(action)
 
             if render:
                 self.env.render()
 
-            next_state, reward, terminal, _ = self.env.step(action_index)
+            if self.action_type == EnvType.DISCRETE_ACTION:
+                action_index = np.argmax(action)
+                next_state, reward, terminal, _ = self.env.step(action_index)
+            else:
+                next_state, reward, terminal, _ = self.env.step(action)
+
             next_action = self.policy(predictor, next_state, test)
             reward_sum += reward
 
@@ -242,13 +262,16 @@ class OpenAIGymEnvironment:
                     0 if terminal else 1 for __ in range(self.action_dim)
                 ]
                 possible_next_actions_lengths = self.action_dim
-            else:
+            elif model_type == ModelType.PARAMETRIC_ACTION.value:
                 if terminal:
                     possible_next_actions = np.array([])
                     possible_next_actions_lengths = 0
                 else:
                     possible_next_actions = np.eye(self.action_dim)
                     possible_next_actions_lengths = self.action_dim
+            elif model_type == ModelType.CONTINUOUS_ACTION.value:
+                possible_next_actions = None
+                possible_next_actions_lengths = None
 
             self.insert_into_memory(
                 state, action, reward, next_state, next_action, terminal,
