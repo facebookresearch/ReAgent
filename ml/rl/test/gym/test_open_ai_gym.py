@@ -13,7 +13,7 @@ class TestOpenAIGym(unittest.TestCase):
         results = run_gym(parameters_string, score_bar, USE_CPU)
         self.assertGreater(results[-1], score_bar)
 
-    def _get_base_test_config(self):
+    def _get_discrete_base_test_config(self):
         base_config_dict = {
             'env': 'CartPole-v0',
             'model_type': 'discrete',
@@ -59,7 +59,7 @@ class TestOpenAIGym(unittest.TestCase):
     def test_discrete_qlearning_softmax_cartpole_v0(self):
         """Test discrete action q-learning model on cartpole using
         a softmax policy."""
-        config = self._get_base_test_config()
+        config = self._get_discrete_base_test_config()
         config['model_type'] = 'discrete'
         config['rl']['maxq_learning'] = 1
         self._test(config, 180)
@@ -67,7 +67,7 @@ class TestOpenAIGym(unittest.TestCase):
     def test_discrete_sarsa_softmax_cartpole_v0(self):
         """Test discrete action sarsa model on cartpole using
         a softmax policy."""
-        config = self._get_base_test_config()
+        config = self._get_discrete_base_test_config()
         config['model_type'] = 'discrete'
         config['rl']['maxq_learning'] = 0
         config['training']['minibatch_size'] = 200
@@ -76,7 +76,7 @@ class TestOpenAIGym(unittest.TestCase):
     def test_parametric_qlearning_softmax_cartpole_v0(self):
         """Test parametric action q-learning model on cartpole using
         a softmax policy."""
-        config = self._get_base_test_config()
+        config = self._get_discrete_base_test_config()
         config['model_type'] = 'parametric'
         config['rl']['maxq_learning'] = 1
         self._test(config, 180)
@@ -84,7 +84,7 @@ class TestOpenAIGym(unittest.TestCase):
     def test_parametric_sarsa_softmax_cartpole_v0(self):
         """Test parametric action sarsa model on cartpole using
         a softmax policy."""
-        config = self._get_base_test_config()
+        config = self._get_discrete_base_test_config()
         config['model_type'] = 'parametric'
         config['rl']['maxq_learning'] = 0
         self._test(config, 180)
@@ -98,9 +98,25 @@ class TestOpenAIGym(unittest.TestCase):
                 'reward_discount_factor': .99,
                 'epsilon': 0.0,
             },
-            'training': {
-                'learning_rate_decay': 0.999,
-                'minibatch_size': 128
+            'actor_training': {
+                'layers': [
+                    -1,
+                    128,
+                    64,
+                    -1
+                ],
+                'activations': [
+                    'relu',
+                    'relu',
+                    'tanh'
+                ],
+                'minibatch_size': 128,
+                'learning_rate': 0.01,
+                'optimizer': 'ADAM',
+                'learning_rate_decay': 0.999
+            },
+            'critic_training': {
+                'learning_rate_decay': 0.999
             },
             'run_details': {
                 'num_episodes': 300,

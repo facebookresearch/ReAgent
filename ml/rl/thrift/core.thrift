@@ -67,3 +67,9 @@ struct DiscreteActionConvModelParameters {
   4: i32 img_height,
   5: i32 img_width
 }
+
+struct DDPGModelParameters {
+  1: RLParameters rl = {},
+  2: TrainingParameters actor_training = {}
+  3: TrainingParameters critic_training = {}
+}

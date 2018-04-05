@@ -77,6 +77,7 @@ class OpenAIGymEnvironment:
                 )
             )
 
+        self.action_space = self.env.action_space
         if isinstance(self.env.action_space, gym.spaces.Discrete):
             self.action_type = EnvType.DISCRETE_ACTION
             self.action_dim = self.env.action_space.n
@@ -200,7 +201,8 @@ class OpenAIGymEnvironment:
                 action_to_take = list(actions[action_idx].keys())
                 action_idx = normed_action_keys.index(action_to_take[0])
             elif isinstance(predictor, DDPGPredictor):
-                return self.env.action_space.sample()
+                actions = predictor.predict(next_state_dict)
+                return np.array([actions[0].data.numpy()])
         action[action_idx] = 1.0
         return action
 

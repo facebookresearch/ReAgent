@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
+import collections
 import json
 import sys
 
@@ -17,9 +18,14 @@ from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.conv.discrete_action_conv_trainer import DiscreteActionConvTrainer
 from ml.rl.thrift.core.ttypes import RLParameters, TrainingParameters,\
     DiscreteActionModelParameters, DiscreteActionConvModelParameters,\
-    CNNModelParameters, ContinuousActionModelParameters, KnnParameters
+    CNNModelParameters, ContinuousActionModelParameters, KnnParameters,\
+    DDPGModelParameters
 
 USE_CPU = -1
+
+EnvDetails = collections.namedtuple(
+    'EnvDetails',
+    ['state_dim', 'action_dim', 'action_range'])
 
 
 def run(
@@ -105,11 +111,8 @@ def main(args):
 
 def run_gym(params, score_bar, gpu_id):
     rl_settings = params['rl']
-    training_settings = params['training']
     rl_settings['gamma'] = rl_settings['reward_discount_factor']
     del rl_settings['reward_discount_factor']
-    training_settings['gamma'] = training_settings['learning_rate_decay']
-    del training_settings['learning_rate_decay']
 
     env_type = params['env']
     env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'])
@@ -121,6 +124,9 @@ def run_gym(params, score_bar, gpu_id):
 
     if model_type == ModelType.DISCRETE_ACTION.value:
         with core.DeviceScope(c2_device):
+            training_settings = params['training']
+            training_settings['gamma'] = training_settings['learning_rate_decay']
+            del training_settings['learning_rate_decay']
             trainer_params = DiscreteActionModelParameters(
                 actions=env.actions,
                 rl=RLParameters(**rl_settings),
@@ -144,6 +150,9 @@ def run_gym(params, score_bar, gpu_id):
                 )
     elif model_type == ModelType.PARAMETRIC_ACTION.value:
         with core.DeviceScope(c2_device):
+            training_settings = params['training']
+            training_settings['gamma'] = training_settings['learning_rate_decay']
+            del training_settings['learning_rate_decay']
             trainer_params = ContinuousActionModelParameters(
                 rl=RLParameters(**rl_settings),
                 training=TrainingParameters(**training_settings),
@@ -155,12 +164,22 @@ def run_gym(params, score_bar, gpu_id):
                 env.normalization_action
             )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
-            trainer_params = ContinuousActionModelParameters(
+            actor_settings = params['actor_training']
+            actor_settings['gamma'] = actor_settings['learning_rate_decay']
+            del actor_settings['learning_rate_decay']
+            critic_settings = params['critic_training']
+            critic_settings['gamma'] = critic_settings['learning_rate_decay']
+            del critic_settings['learning_rate_decay']
+            trainer_params = DDPGModelParameters(
                 rl=RLParameters(**rl_settings),
-                training=TrainingParameters(**training_settings),
-                knn=None,
+                actor_training=TrainingParameters(**actor_settings),
+                critic_training=TrainingParameters(**critic_settings),
             )
-            trainer = DDPGTrainer(trainer_params, env.state_dim, env.action_dim)
+            trainer = DDPGTrainer(trainer_params, EnvDetails(
+                state_dim=env.state_dim,
+                action_dim=env.action_dim,
+                action_range=(env.action_space.low, env.action_space.high),
+            ))
     else:
         raise NotImplementedError(
             "Model of type {} not supported".format(model_type))
