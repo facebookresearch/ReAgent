@@ -1,0 +1,45 @@
+{
+  "env": "Pendulum-v0",
+  "model_type": "continuous",
+  "rl": {
+      "reward_discount_factor": 0.99,
+      "epsilon": 0.0
+  },
+  "actor_training": {
+      "layers": [
+          -1,
+          128,
+          64,
+          -1
+      ],
+      "activations": [
+          "relu",
+          "relu",
+          "tanh"
+      ],
+      "minibatch_size": 128,
+      "learning_rate": 0.01,
+      "optimizer": "ADAM",
+      "learning_rate_decay": 0.999
+  },
+  "critic_training": {
+      "layers": [
+          -1,
+          128,
+          64,
+          -1
+      ],
+      "activations": [
+          "relu",
+          "relu",
+          "linear"
+      ],
+      "minibatch_size": 128,
+      "learning_rate": 0.01,
+      "optimizer": "ADAM",
+      "learning_rate_decay": 0.999
+  },
+  "run_details": {
+      "num_episodes": 300
+  }
+}

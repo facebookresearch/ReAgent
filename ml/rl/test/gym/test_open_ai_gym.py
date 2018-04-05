@@ -116,10 +116,24 @@ class TestOpenAIGym(unittest.TestCase):
                 'learning_rate_decay': 0.999
             },
             'critic_training': {
+                'layers': [
+                    -1,
+                    128,
+                    64,
+                    -1
+                ],
+                'activations': [
+                    'relu',
+                    'relu',
+                    'linear'
+                ],
+                'minibatch_size': 128,
+                'learning_rate': 0.01,
+                'optimizer': 'ADAM',
                 'learning_rate_decay': 0.999
             },
             'run_details': {
                 'num_episodes': 300,
             }
         }
-        self._test(config, -1300)
+        self._test(config, -1500)
