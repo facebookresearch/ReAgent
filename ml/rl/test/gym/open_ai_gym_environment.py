@@ -105,7 +105,7 @@ class OpenAIGymEnvironment:
             memory = self.replay_memory[idx]
             for col, value in zip(cols, memory):
                 col.append(value)
-        return cols
+        return [np.array(x) for x in cols]
 
     def sample_and_load_training_data_c2(
         self,
@@ -201,8 +201,7 @@ class OpenAIGymEnvironment:
                 action_to_take = list(actions[action_idx].keys())
                 action_idx = normed_action_keys.index(action_to_take[0])
             elif isinstance(predictor, DDPGPredictor):
-                actions = predictor.predict_action(next_state_dict)
-                return np.array([actions[0].data.numpy()])
+                return predictor.predict_action(next_state_dict)
         action[action_idx] = 1.0
         return action
 
@@ -228,7 +227,7 @@ class OpenAIGymEnvironment:
             self.replay_memory[rand_index] = item
         self.memory_num += 1
 
-    def run_episode(self, model_type, predictor, test=False, render=False):
+    def run_episode(self, model_type, predictor, max_steps, test=False, render=False):
         """
         Runs an episode of the environment. Inserts transitions into replay
         memory and returns the sum of rewards experienced in the episode.
@@ -242,6 +241,7 @@ class OpenAIGymEnvironment:
         next_state = self.env.reset()
         next_action = self.policy(predictor, next_state, test)
         reward_sum = 0
+        num_steps_taken = 0
 
         while not terminal:
             state = next_state
@@ -256,6 +256,7 @@ class OpenAIGymEnvironment:
             else:
                 next_state, reward, terminal, _ = self.env.step(action)
 
+            num_steps_taken += 1
             next_action = self.policy(predictor, next_state, test)
             reward_sum += reward
 
@@ -276,8 +277,12 @@ class OpenAIGymEnvironment:
                 possible_next_actions_lengths = None
 
             self.insert_into_memory(
-                state, action, reward, next_state, next_action, terminal,
+                np.float32(state), action, np.float32(reward),
+                np.float32(next_state), next_action, terminal,
                 possible_next_actions, possible_next_actions_lengths
             )
+
+            if max_steps and num_steps_taken >= max_steps:
+                break
 
         return reward_sum

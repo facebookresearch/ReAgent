@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from copy import deepcopy
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,40 +12,53 @@ from typing import List
 
 class DDPGPredictor(object):
     def __init__(self, trainer) -> None:
+        # Init actor network, actor target network, actor optimizer
         self.actor = ActorNet(trainer.env_details.action_range,
             trainer.actor_params.layers, trainer.actor_params.activations)
+        self.actor_target = deepcopy(self.actor)
+        self.actor_optimizer = trainer.optimizer_func(
+            self.actor.parameters(), trainer.learning_rate)
+
+        # Init critic network, critic target network, critic optimizer
         self.critic = CriticNet(trainer.critic_params.layers,
             trainer.critic_params.activations)
+        self.critic_target = deepcopy(self.critic)
+        self.critic_optimizer = trainer.optimizer_func(
+            self.critic.parameters(), trainer.learning_rate)
 
-    def predict_action(self, states) -> List[List[float]]:
+    def predict_action(self, states) -> np.ndarray:
         """ Returns list of actions output from actor network
         :param states states as list of states to produce actions for
         """
         examples = []
         for state in states:
-            example = np.zeros([len(state)])
+            example = np.zeros([len(state)], dtype=np.float32)
             for k, v in state.items():
                 example[k] = v
             examples.append(example)
-        output = [self.actor(example) for example in examples]
-        return output
+        actions = self.actor(Variable(torch.from_numpy(np.array(examples))))
+        return actions.data.numpy()
 
-    def predict_q_value(self, states, actions) -> List[float]:
+    def predict_q_value(self, states, actions) -> np.ndarray:
         """ Returns list of q values from critic network for <state, action> inputs
         :param states states as list of state dicts
         :param actions actions as list of action dicts
         """
-        examples = []
+        state_list, action_list = [], []
         for i in range(len(states)):
-            state = np.zeros([len(states[i])])
+            state = np.zeros([len(states[i])], dtype=np.float32)
             for k, v in states[i].items():
                 state[k] = v
-            action = np.zeros([len(actions[i])])
+            state_list.append(state)
+            action = np.zeros([len(actions[i])], dtype=np.float32)
             for k, v in actions[i].items():
                 action[k - len(state)] = v
-            examples.append((state, action))
-        output = [self.critic(example[0], example[1]) for example in examples]
-        return output
+            action_list.append(action)
+        output = self.critic(
+            Variable(torch.from_numpy(np.array(state_list))),
+            Variable(torch.from_numpy(np.array(action_list)))
+        )
+        return output.data.numpy()
 
     @classmethod
     def export_actor(cls, trainer):
@@ -70,7 +85,7 @@ class ActorNet(nn.Module):
         valid pytorch activation names.
         :param state state as list of state features
         """
-        x = Variable(torch.from_numpy(state).float())
+        x = state
         for i, activation in enumerate(self.activations):
             activation_func = getattr(F, activation)
             fc_func = getattr(self, self.layer_names[i])
@@ -101,10 +116,7 @@ class CriticNet(nn.Module):
         :param state state as list of state features
         :param state action as list of action features
         """
-        x = torch.cat(
-            (Variable(torch.from_numpy(state).float()),
-            Variable(torch.from_numpy(action).float())), dim=0
-        )
+        x = torch.cat((state, action), dim=1)
         for i, activation in enumerate(self.activations):
             activation_func = getattr(F, activation)
             fc_func = getattr(self, self.layer_names[i])

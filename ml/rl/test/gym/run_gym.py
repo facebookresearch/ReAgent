@@ -19,6 +19,7 @@ from ml.rl.training.conv.discrete_action_conv_trainer import DiscreteActionConvT
 from ml.rl.thrift.core.ttypes import RLParameters, TrainingParameters,\
     DiscreteActionModelParameters, DiscreteActionConvModelParameters,\
     CNNModelParameters, ContinuousActionModelParameters, KnnParameters,\
+    DDPGRLParameters, DDPGNetworkParameters, DDPGTrainingParameters,\
     DDPGModelParameters
 
 USE_CPU = -1
@@ -35,6 +36,7 @@ def run(
     test_run_name,
     score_bar,
     num_episodes=301,
+    max_steps=None,
     train_every=10,
     train_after=10,
     test_every=100,
@@ -49,11 +51,13 @@ def run(
     predictor = trainer.predictor()
 
     for i in range(num_episodes):
-        env.run_episode(model_type, predictor, False, render and i % render_every == 0)
+        env.run_episode(model_type, predictor, max_steps, False,
+            render and i % render_every == 0)
         if i % train_every == 0 and i > train_after:
             for _ in range(num_train_batches):
                 if model_type == ModelType.CONTINUOUS_ACTION.value:
-                    trainer.train()
+                    training_samples = env.sample_memories(trainer.minibatch_size)
+                    trainer.train(predictor, training_samples)
                 else:
                     env.sample_and_load_training_data_c2(
                         trainer.minibatch_size, model_type, trainer.maxq_learning)
@@ -61,9 +65,8 @@ def run(
         if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
             reward_sum = 0.0
             for test_i in range(avg_over_num_episodes):
-                reward_sum += env.run_episode(
-                    model_type, predictor, True, render and test_i % render_every == 0
-                )
+                reward_sum += env.run_episode(model_type, predictor, max_steps, True,
+                    render and test_i % render_every == 0)
             avg_rewards = round(reward_sum / avg_over_num_episodes, 2)
             print(
                 "Achieved an average reward score of {} over {} iterations"
@@ -164,16 +167,16 @@ def run_gym(params, score_bar, gpu_id):
                 env.normalization_action
             )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
+            training_settings = params['shared_training']
+            training_settings['gamma'] = training_settings['learning_rate_decay']
+            del training_settings['learning_rate_decay']
             actor_settings = params['actor_training']
-            actor_settings['gamma'] = actor_settings['learning_rate_decay']
-            del actor_settings['learning_rate_decay']
             critic_settings = params['critic_training']
-            critic_settings['gamma'] = critic_settings['learning_rate_decay']
-            del critic_settings['learning_rate_decay']
             trainer_params = DDPGModelParameters(
-                rl=RLParameters(**rl_settings),
-                actor_training=TrainingParameters(**actor_settings),
-                critic_training=TrainingParameters(**critic_settings),
+                rl=DDPGRLParameters(**rl_settings),
+                shared_training=DDPGTrainingParameters(**training_settings),
+                actor_training=DDPGNetworkParameters(**actor_settings),
+                critic_training=DDPGNetworkParameters(**critic_settings),
             )
             trainer = DDPGTrainer(trainer_params, EnvDetails(
                 state_dim=env.state_dim,

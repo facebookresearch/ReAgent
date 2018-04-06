@@ -9,8 +9,8 @@ from ml.rl.test.gym.run_gym import run_gym, USE_CPU
 
 
 class TestOpenAIGym(unittest.TestCase):
-    def _test(self, parameters_string, score_bar):
-        results = run_gym(parameters_string, score_bar, USE_CPU)
+    def _test(self, config, score_bar):
+        results = run_gym(config, score_bar, USE_CPU)
         self.assertGreater(results[-1], score_bar)
 
     def _get_discrete_base_test_config(self):
@@ -97,6 +97,13 @@ class TestOpenAIGym(unittest.TestCase):
             'rl': {
                 'reward_discount_factor': .99,
                 'epsilon': 0.0,
+                'target_update_rate': 0.001
+            },
+            'shared_training': {
+                'minibatch_size': 128,
+                'learning_rate': 0.001,
+                'optimizer': 'ADAM',
+                'learning_rate_decay': 0.999
             },
             'actor_training': {
                 'layers': [
@@ -110,10 +117,6 @@ class TestOpenAIGym(unittest.TestCase):
                     'relu',
                     'tanh'
                 ],
-                'minibatch_size': 128,
-                'learning_rate': 0.01,
-                'optimizer': 'ADAM',
-                'learning_rate_decay': 0.999
             },
             'critic_training': {
                 'layers': [
@@ -127,13 +130,14 @@ class TestOpenAIGym(unittest.TestCase):
                     'relu',
                     'linear'
                 ],
-                'minibatch_size': 128,
-                'learning_rate': 0.01,
-                'optimizer': 'ADAM',
-                'learning_rate_decay': 0.999
             },
             'run_details': {
-                'num_episodes': 300,
+                'num_episodes': 500,
+                'max_steps': 1000,
+                'train_every': 10,
+                'train_after': 10,
+                'test_every': 50,
+                'test_after': 10,
             }
         }
-        self._test(config, -1500)
+        self._test(config, -1600)

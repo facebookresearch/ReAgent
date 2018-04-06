@@ -68,8 +68,28 @@ struct DiscreteActionConvModelParameters {
   5: i32 img_width
 }
 
+struct DDPGRLParameters {
+  1: double gamma = 0.9,
+  2: double epsilon = 0.1,
+  3: double target_update_rate = 0.001,
+  4: i32 reward_burnin = 1
+}
+
+struct DDPGNetworkParameters {
+  1: list<i32> layers = [-1, 512, 256, 128, 1],
+  2: list<string> activations = ['relu', 'relu', 'relu', 'tanh'],
+}
+
+struct DDPGTrainingParameters {
+  1: i32 minibatch_size = 128,
+  2: double learning_rate = 0.01,
+  3: string optimizer = 'ADAM',
+  4: double gamma = 0.999
+}
+
 struct DDPGModelParameters {
-  1: RLParameters rl = {},
-  2: TrainingParameters actor_training = {}
-  3: TrainingParameters critic_training = {}
+  1: DDPGRLParameters rl = {},
+  2: DDPGTrainingParameters shared_training = {},
+  3: DDPGNetworkParameters actor_training = {},
+  4: DDPGNetworkParameters critic_training = {}
 }
