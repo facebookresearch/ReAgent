@@ -1,6 +1,6 @@
 # BlueWhale (Applied Reinforcement Learning @ Facebook)
 
-![BlueWhale Logo](https://raw.githubusercontent.com/facebook/BlueWhale/master/logo/cover_image_light.png)
+![BlueWhale Logo](https://raw.githubusercontent.com/facebookresearch/BlueWhale/master/logo/cover_image_light.png)
 
 How would you teach a robot to balance a pole? Or safely land a space ship? Or even to walk?
 
@@ -33,7 +33,7 @@ will try to use the anaconda version of these libraries, and that will cause err
 
 ### FBThrift
 
-[FBThrift](https://github.com/facebook/fbthrift) is Facebook's RPC framework.  Note that
+[FBThrift](https://github.com/facebookresearch/fbthrift) is Facebook's RPC framework.  Note that
 we require *FBThrift*, not Apache Thrift.  Here are instructions for getting on OS/X
 
 ```
@@ -41,7 +41,7 @@ we require *FBThrift*, not Apache Thrift.  Here are instructions for getting on 
 brew install openssl zstd folly
 
 # Wangle isn't in homebrew and needs to be installed manually
-git clone https://github.com/facebook/wangle.git
+git clone https://github.com/facebookresearch/wangle.git
 cd wangle/build
 cmake ../ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
 make -j8
@@ -49,7 +49,7 @@ make install
 cd ../..
 
 # Install FBThrift
-git clone https://github.com/facebook/fbthrift
+git clone https://github.com/facebookresearch/fbthrift
 cd fbthrift
 mkdir build
 cd build
@@ -84,7 +84,7 @@ pip install "gym[all]"
 Clone from source:
 
 ```
-git clone https://github.com/facebook/BlueWhale
+git clone https://github.com/facebookresearch/BlueWhale
 cd BlueWhale
 ```
 
@@ -124,7 +124,7 @@ You can run RL models of your specification on OpenAI Gym environments of your c
 python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/maxq_cartpole_v0.json
 ```
 
-The [run_gym.py](https://github.com/facebook/BlueWhale/tree/master/ml/rl/test/gym/run_gym.py) script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. In general, you can run RL models in OpenAI Gym environments with:
+The [run_gym.py](https://github.com/facebookresearch/BlueWhale/tree/master/ml/rl/test/gym/run_gym.py) script will construct an RL model and run it in an OpenAI Gym environemnt, periodically reporting scores averaged over several trials. In general, you can run RL models in OpenAI Gym environments with:
 
 ```
 python ml/rl/test/gym/run_gym.py -p <parameters_file> [-s <score_bar>] [-g <gpu_id>]
@@ -135,13 +135,13 @@ python ml/rl/test/gym/run_gym.py -p <parameters_file> [-s <score_bar>] [-g <gpu_
 
 Feel free to create your own parameter files to select different environments and change model parameters. The success criteria for different environments can be found [here](https://gym.openai.com/envs). We currently supply default arguments for the following environments:
 
-* [CartPole-v0](https://gym.openai.com/envs/CartPole-v0/) environment: [maxq\_cartpole\_v0.json](https://github.com/facebook/BlueWhale/tree/master/ml/rl/test/gym/maxq_cartpole_v0.json)
-* [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/) environment: [maxq\_cartpole\_v1.json](https://github.com/facebook/BlueWhale/tree/master/ml/rl/test/gym/maxq_cartpole_v1.json)
-* [LunarLander-v2](https://gym.openai.com/envs/LunarLander-v2/) environment: [maxq\_lunarlander\_v2.json](https://github.com/facebook/BlueWhale/tree/master/ml/rl/test/gym/maxq_lunarlander_v2.json)
+* [CartPole-v0](https://gym.openai.com/envs/CartPole-v0/) environment: [maxq\_cartpole\_v0.json](https://github.com/facebookresearch/BlueWhale/tree/master/ml/rl/test/gym/maxq_cartpole_v0.json)
+* [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/) environment: [maxq\_cartpole\_v1.json](https://github.com/facebookresearch/BlueWhale/tree/master/ml/rl/test/gym/maxq_cartpole_v1.json)
+* [LunarLander-v2](https://gym.openai.com/envs/LunarLander-v2/) environment: [maxq\_lunarlander\_v2.json](https://github.com/facebookresearch/BlueWhale/tree/master/ml/rl/test/gym/maxq_lunarlander_v2.json)
 
 Feel free to try out image-based environments too! The parameters we supply will get you a model that runs and trains quickly, not one that performs well:
 
-* [Asteroids-v0](https://gym.openai.com/envs/Asteroids-v0/) environment: [maxq\_asteroids\_v0.json](https://github.com/facebook/BlueWhale/tree/master/ml/rl/test/gym/maxq_asteroids_v0.json)
+* [Asteroids-v0](https://gym.openai.com/envs/Asteroids-v0/) environment: [maxq\_asteroids\_v0.json](https://github.com/facebookresearch/BlueWhale/tree/master/ml/rl/test/gym/maxq_asteroids_v0.json)
 
 ### Modifying the parameters file
 
@@ -195,7 +195,7 @@ You can supply a different JSON parameter file, modifying the fields to your lik
   * **learning_rate**: Learning rate for the neural net
   * **optimizer**: Neural net weight update algorithm. Valid choices are `"SGD"`, `"ADAM"`, `"ADAGRAD"`, and `"FTRL"`
   * **learning\_rate\_decay**: Factor by which the learning rate decreases after each training minibatch
-* **run_details** (reading the code that uses these might be helpful: [run\_gym.py](https://github.com/facebook/BlueWhale/blob/master/ml/rl/test/gym/run_gym.py#L21))
+* **run_details** (reading the code that uses these might be helpful: [run\_gym.py](https://github.com/facebookresearch/BlueWhale/blob/master/ml/rl/test/gym/run_gym.py#L21))
   * **num_episodes**: Number of episodes run the mode and to collect new data over
   * **train_every**: Number of episodes between each training cycle
   * **train_after** Number of episodes after which to enable training
@@ -226,12 +226,12 @@ We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind
 
 Both of these accept discrete and parametric action inputs.
 
-  * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/facebook/BlueWhale/blob/master/ml/rl/training/discrete_action_trainer.py)
-  * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/facebook/BlueWhale/blob/master/ml/rl/training/continuous_action_dqn_trainer.py)
+  * Discrete (but still one-hotted) action implementation: [DiscreteActionTrainer](https://github.com/facebookresearch/BlueWhale/blob/master/ml/rl/training/discrete_action_trainer.py)
+  * Parametric action implementation: [ContinuousActionDQNTrainer](https://github.com/facebookresearch/BlueWhale/blob/master/ml/rl/training/continuous_action_dqn_trainer.py)
 
 # Contact Us
 
-If you identify any issues or have feedback, please [file an issue](https://github.com/facebook/BlueWhale/issues).
+If you identify any issues or have feedback, please [file an issue](https://github.com/facebookresearch/BlueWhale/issues).
 
 Otherwise feel free to contact <jjg@fb.com> or <nishadsingh@fb.com> with questions.
 
