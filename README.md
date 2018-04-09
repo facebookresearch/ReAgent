@@ -242,7 +242,7 @@ If you identify any issues or have feedback, please [file an issue](https://gith
 
 - [Nishad Singh](https://github.com/nishadsingh1)
 - [Yuchen He](https://github.com/hychyc07)
-- Yannick Schröcker
+- [Yannick Schröcker](https://github.com/yschroecker)
 
 # License
 
