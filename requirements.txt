@@ -1,3 +1,0 @@
-gym
-caffe2
-numpy
