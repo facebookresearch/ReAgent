@@ -235,14 +235,14 @@ If you identify any issues or have feedback, please [file an issue](https://gith
 
 ## Current Developers
 
-Jason Gauci <jjg@fb.com>
-Edoardo Conti <edoardoc@fb.com>
+- Jason Gauci <jjg@fb.com>
+- Edoardo Conti <edoardoc@fb.com>
 
 ## Alumni
 
-Nishad Singh
-Yuchen He
-Yannick Schröcker
+- Nishad Singh
+- Yuchen He
+- Yannick Schröcker
 
 # License
 
