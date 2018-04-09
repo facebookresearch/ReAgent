@@ -233,7 +233,16 @@ Both of these accept discrete and parametric action inputs.
 
 If you identify any issues or have feedback, please [file an issue](https://github.com/facebookresearch/BlueWhale/issues).
 
-Otherwise feel free to contact <jjg@fb.com> or <nishadsingh@fb.com> with questions.
+## Current Developers
+
+Jason Gauci <jjg@fb.com>
+Edoardo Conti <edoardoc@fb.com>
+
+## Alumni
+
+Nishad Singh
+Yuchen He
+Yannick Schröcker
 
 # License
 
