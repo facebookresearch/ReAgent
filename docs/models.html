@@ -1,0 +1,33 @@
+<html lang="en"><head><meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Supported Models · BlueWhale</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta property="og:title" content="Supported Models · BlueWhale"/><meta property="og:type" content="website"/><meta property="og:url" content="https://github.com/facebookresearch/BlueWhale/site/index.html"/><meta property="og:description" content="We use Deep Q Network implementations for our models. See [dqn-Atari by Deepmind](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf)."/><link rel="shortcut icon" href="/site/img/logo/icon_light.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/site/css/main.css"/></head><body class="sideNavVisible doc separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/site/"><img class="logo" src="/site/img/logo/icon_light.png" alt="BlueWhale"/><h2 class="headerTitle">BlueWhale</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://github.com/facebookresearch/BlueWhale" target="_self">Fork us on GitHub!</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>BlueWhale</span></h2></div><div class="navGroups"><div class="navGroup navGroupActive"><h3>BlueWhale</h3><ul><li class="navListItem"><a class="navItem" href="/site/docs/begin.html">Introduction</a></li><li class="navListItem"><a class="navItem" href="/site/docs/install.html">Installing</a></li><li class="navListItem"><a class="navItem" href="/site/docs/openai_gym.html">OpenAI Gym</a></li><li class="navListItem navListItemActive"><a class="navItem navItemActive" href="/site/docs/models.html">Models</a></li><li class="navListItem"><a class="navItem" href="/site/docs/contact.html">Contact Us</a></li><li class="navListItem"><a class="navItem" href="/site/docs/license.html">License</a></li></ul></div></div></section></div><script>
+          var toggler = document.getElementById('navToggler');
+          var nav = document.getElementById('docsNav');
+          toggler.onclick = function() {
+            nav.classList.toggle('docsSliderActive');
+          };
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1>Supported Models</h1></header><article><div><span><p>We use Deep Q Network implementations for our models. See <a href="https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf">dqn-Atari by Deepmind</a>.</p>
+<ol>
+<li><a href="https://en.wikipedia.org/wiki/Q-learning">Max-Q-Learning</a> (as demonstrated in paper):
+<ul>
+<li>input: state: <em>s</em>, action <em>a</em></li>
+<li>output: scalar  <em>Q(s, a)</em></li>
+<li>update target on transition {state, action, reward, next_state, next_action}:
+<ul>
+<li>Q_target(state, action) = reward + reward_discount_factor * max_{possible_next_action} Q(next_state, possible_next_action)</li>
+</ul></li>
+</ul></li>
+<li><a href="https://en.wikipedia.org/wiki/State%E2%80%93action%E2%80%93reward%E2%80%93state%E2%80%93action">SARSA</a>:
+<ul>
+<li>input: state <em>s</em>, action <em>a</em></li>
+<li>output: scalar <em>Q(s, a)</em></li>
+<li>update target on transition {state, action, reward, next_state, next_action}:
+<ul>
+<li>Q_target(state, action) = reward + reward_discount_factor * Q(next_state, next_action)</li>
+</ul></li>
+</ul></li>
+</ol>
+<p>Both of these accept discrete and parametric action inputs.</p>
+<ul>
+<li>Discrete (but still one-hotted) action implementation: <a href="https://github.com/facebookresearch/BlueWhale/blob/master/ml/rl/training/discrete_action_trainer.py">DiscreteActionTrainer</a></li>
+<li>Parametric action implementation: <a href="https://github.com/facebookresearch/BlueWhale/blob/master/ml/rl/training/continuous_action_dqn_trainer.py">ContinuousActionDQNTrainer</a></li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="openai_gym.html">← Running OpenAI Gym Environments</a><a class="docs-next button" href="contact.html">Contact Us →</a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/site/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a></footer></div></body></html>
