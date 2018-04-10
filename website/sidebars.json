@@ -1,0 +1,12 @@
+{
+    "docs": {
+        "BlueWhale": [
+            "begin",
+            "install",
+            "openai_gym",
+            "models",
+            "contact",
+            "license"
+        ]
+    }
+}
