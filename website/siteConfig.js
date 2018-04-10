@@ -22,7 +22,6 @@ const siteConfig = {
     tagline: 'Large-Scale Reinforcement Learning Engine',
     url: 'https://facebookresearch.github.io',
     baseUrl: '/BlueWhale/',
-    projectName: 'bluewhale',
     headerLinks: [
         {href: 'https://github.com/facebookresearch/BlueWhale', label:'Fork us on GitHub!'},
     ],
