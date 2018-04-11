@@ -9,7 +9,7 @@ BlueWhale is BSD-licensed. We also provide an additional patent grant.
 ```
 BSD License
 
-For rl_caffe2 software
+For BlueWhale software
 
 Copyright (c) 2017-present, Facebook, Inc. All rights reserved.
 
