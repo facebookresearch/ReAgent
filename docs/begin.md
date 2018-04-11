@@ -21,7 +21,7 @@ Internally, we train these models on large databases of episodes, but externally
 
 ## RL + Recommender Systems
 
-Most machine learning models in industry are *supervised*: they predict a value given a set of features (also called inputs) and labels (also called the "ground-truth").  These models can inform us *what* will be the label given a set of features, but they don't tell us *how* to maximize some utility.  We must define a *policy*, which takes in the outputs of these supervised models and decides which items to recommend.
+Most machine learning models in industry are *supervised*: they predict a value given a set of features (also called inputs) and labels (also called the "ground-truth").  These models can inform us *what* will be the label given a set of features, but they don't tell us *how* to use this information to best achieve other goals.  For example, in recommender systems we must define a *policy* that decides which items to recommend based on these models.
 
 While part of the utility is immediate (e.g. a click or a thumbs-up on a post), there are other facets of the utility that can only be measured over time such as long-term engagement.  RL allows us to maximize these long-term benefits and balance them with the short term benefits effectively.
 
@@ -32,4 +32,4 @@ Many problems in infrastructure involve stateful, dynamical systems.  For exampl
 
 ## RL + You
 
-While historically, RL has been primarily used in the context of robotics and game-playing, it can be employed in a variety of problem spaces. At Facebook, we're working on using RL at scale: suggesting people you may know, notifying you about fiend & page updates, optimizing our streaming video bitrate, and more.  If you use BlueWhale for your project, [let us know](contact.html)!
+While historically, RL has been primarily used in the context of robotics and game-playing, it can be employed in a variety of problem spaces. At Facebook, we're working on using RL at scale: suggesting people you may know, notifying you about fiend & page updates, optimizing our streaming video bitrate, and more.  If you use BlueWhale for your project or have any questions on how to use BlueWhale, [let us know](contact.html)!
