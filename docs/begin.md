@@ -11,13 +11,13 @@ sidebar_label: Introduction
 
 Reinforcement Learning (RL) is an area of machine learning concerned with optimizing a cumulative reward in an environment. Some examples of problems where RL is used include robot control, board games, and supply chain management.  At Facebook we use RL in Growth, Marketing, Network Optimization, and Story Ranking services.  In general, we use RL to optimize our recommender systems and our infrastructure.
 
-BlueWhale is a set of production-ready RL workflows and Deep RL algorithms that are fast, well tested, and becnhmarked. These algorithms are built on [PyTorch](http://pytorch.org/) and [caffe2](http://caffe2.ai/).  The platform currently contains:
+BlueWhale is a set of production-ready RL workflows and Deep RL algorithms that are fast, well tested, and benchmarked. These algorithms are built on [PyTorch](http://pytorch.org/) and [caffe2](http://caffe2.ai/).  The platform currently contains:
 
 1. Discrete and Parametric-Action SARSA models.
 2. Discrete and Parametric-Action Deep Q Learning (DQN) models.
 3. Deep Deterministic Policy Gradients (DDPG).
 
-Internally, we train these models on large databases of episodes, but externally we provide support for running BlueWhale inside [OpenAI Gym](gym.openai.com).  BlueWhale is extremely fast and can train models with thousands of parameters on billions of rows of data.  All of our models export to the caffe2 predictor after training so the trained model can be efficiently served on hundreds of thousands of machines to billions of people.
+Internally, we train these models on large databases of episodes, but externally we provide support for running BlueWhale inside [OpenAI Gym](gym.openai.com).  BlueWhale is extremely fast and can train models with thousands of parameters across billions of states.  All of our models export to the caffe2 predictor after training so the trained model can be efficiently served on hundreds of thousands of machines to billions of people.
 
 ## RL + Recommender Systems
 

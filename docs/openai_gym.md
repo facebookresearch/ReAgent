@@ -4,7 +4,7 @@ title: Running OpenAI Gym Environments
 sidebar_label: OpenAI Gym
 ---
 
-You can run RL models of your specification on OpenAI Gym environments of your choice. Right now, we only support environments that supply `Box(x, )` or `Box(x, y, z)` (image) state representations and require `Discrete(y)` action inputs.
+This guide describes how to run BlueWhale on OpenAI Gym Environments.
 
 ## Quickstart
 
