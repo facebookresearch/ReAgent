@@ -8,10 +8,13 @@ import collections
 import json
 import sys
 
+import numpy as np
+
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
 
-from ml.rl.test.gym.open_ai_gym_environment import ModelType, OpenAIGymEnvironment
+from ml.rl.test.gym.open_ai_gym_environment import EnvType, ModelType,\
+    OpenAIGymEnvironment
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
@@ -30,18 +33,18 @@ EnvDetails = collections.namedtuple(
 
 
 def run(
-    env,
+    gym_env,
     model_type,
     trainer,
     test_run_name,
     score_bar,
     num_episodes=301,
     max_steps=None,
-    train_every=10,
+    train_every=100,
     train_after=10,
     test_every=100,
     test_after=10,
-    num_train_batches=100,
+    num_train_batches=10,
     avg_over_num_episodes=100,
     render=False,
     render_every=10,
@@ -49,37 +52,103 @@ def run(
     avg_reward_history = []
 
     predictor = trainer.predictor()
+    total_timesteps = 0
 
     for i in range(num_episodes):
-        env.run_episode(model_type, predictor, max_steps, False,
-            render and i % render_every == 0)
-        if i % train_every == 0 and i > train_after:
-            for _ in range(num_train_batches):
-                if model_type == ModelType.CONTINUOUS_ACTION.value:
-                    training_samples = env.sample_memories(trainer.minibatch_size)
-                    trainer.train(predictor, training_samples)
+        terminal = False
+        next_state = gym_env.env.reset()
+        next_action = gym_env.policy(predictor, next_state, False)
+        reward_sum = 0
+        ep_timesteps = 0
+
+        if model_type == ModelType.CONTINUOUS_ACTION.value:
+            predictor.noise.clear()
+
+        while not terminal:
+            state = next_state
+            action = next_action
+
+            if render:
+                gym_env.env.render()
+
+            if gym_env.action_type == EnvType.DISCRETE_ACTION:
+                action_index = np.argmax(action)
+                next_state, reward, terminal, _ = gym_env.env.step(action_index)
+            else:
+                next_state, reward, terminal, _ = gym_env.env.step(action)
+
+            ep_timesteps += 1
+            total_timesteps += 1
+            next_action = gym_env.policy(predictor, next_state, False)
+            reward_sum += reward
+
+            if model_type == ModelType.DISCRETE_ACTION.value:
+                possible_next_actions = [
+                    0 if terminal else 1 for __ in range(gym_env.action_dim)
+                ]
+                possible_next_actions_lengths = gym_env.action_dim
+            elif model_type == ModelType.PARAMETRIC_ACTION.value:
+                if terminal:
+                    possible_next_actions = np.array([])
+                    possible_next_actions_lengths = 0
                 else:
-                    env.sample_and_load_training_data_c2(
-                        trainer.minibatch_size, model_type, trainer.maxq_learning)
-                    trainer.train(reward_timelines=None, evaluator=None)
-        if i == num_episodes - 1 or (i % test_every == 0 and i > test_after):
-            reward_sum = 0.0
-            for test_i in range(avg_over_num_episodes):
-                reward_sum += env.run_episode(model_type, predictor, max_steps, True,
-                    render and test_i % render_every == 0)
-            avg_rewards = round(reward_sum / avg_over_num_episodes, 2)
-            print(
-                "Achieved an average reward score of {} over {} iterations"
-                .format(avg_rewards, avg_over_num_episodes)
+                    possible_next_actions = np.eye(gym_env.action_dim)
+                    possible_next_actions_lengths = gym_env.action_dim
+            elif model_type == ModelType.CONTINUOUS_ACTION.value:
+                possible_next_actions = None
+                possible_next_actions_lengths = None
+
+            gym_env.insert_into_memory(
+                np.float32(state), action, np.float32(reward),
+                np.float32(next_state), next_action, terminal,
+                possible_next_actions, possible_next_actions_lengths
             )
-            avg_reward_history.append(avg_rewards)
-            if score_bar is not None and avg_rewards > score_bar:
+
+            # Training loop
+            if (
+                total_timesteps % train_every == 0 and
+                total_timesteps > train_after and
+                len(gym_env.replay_memory) >= trainer.minibatch_size
+            ):
+                for _ in range(num_train_batches):
+                    if model_type == ModelType.CONTINUOUS_ACTION.value:
+                        samples = gym_env.sample_memories(trainer.minibatch_size)
+                        trainer.train(predictor, samples)
+                    else:
+                        gym_env.sample_and_load_training_data_c2(
+                            trainer.minibatch_size, model_type, trainer.maxq_learning)
+                        trainer.train(reward_timelines=None, evaluator=None)
+
+            # Evaluation loop
+            if (total_timesteps % test_every == 0 and total_timesteps > test_after):
+                avg_rewards = gym_env.run_ep_n_times(
+                    avg_over_num_episodes, predictor, test=True)
+                avg_reward_history.append(avg_rewards)
+                print(
+                    "Achieved an average reward score of {} over {} evaluations."
+                    " Total episodes: {}, total timesteps: {}."
+                    .format(avg_rewards, avg_over_num_episodes, i + 1, total_timesteps)
+                )
+                if score_bar is not None and avg_rewards > score_bar:
+                    print('Avg. reward history for {}:'.format(
+                        test_run_name), avg_reward_history)
+                    return avg_reward_history
+
+            if max_steps and ep_timesteps >= max_steps:
                 break
 
-    print(
-        'Averaged reward history for {}:'.format(test_run_name),
-        avg_reward_history
-    )
+        # Always eval on last episode if previous eval loop didn't return.
+        if i == num_episodes - 1:
+            avg_rewards = gym_env.run_ep_n_times(
+                avg_over_num_episodes, predictor, test=True)
+            avg_reward_history.append(avg_rewards)
+            print(
+                "Achieved an average reward score of {} over {} evaluations."
+                " Total episodes: {}, total timesteps: {}."
+                .format(avg_rewards, avg_over_num_episodes, i + 1, total_timesteps)
+            )
+
+    print('Avg. reward history for {}:'.format(test_run_name), avg_reward_history)
     return avg_reward_history
 
 
@@ -168,8 +237,6 @@ def run_gym(params, score_bar, gpu_id):
             )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
             training_settings = params['shared_training']
-            training_settings['gamma'] = training_settings['learning_rate_decay']
-            del training_settings['learning_rate_decay']
             actor_settings = params['actor_training']
             critic_settings = params['critic_training']
             trainer_params = DDPGModelParameters(

@@ -201,7 +201,9 @@ class OpenAIGymEnvironment:
                 action_to_take = list(actions[action_idx].keys())
                 action_idx = normed_action_keys.index(action_to_take[0])
             elif isinstance(predictor, DDPGPredictor):
-                return predictor.predict_action(next_state_dict)
+                if test:
+                    return predictor.predict_action(next_state_dict, noisy=False)
+                return predictor.predict_action(next_state_dict, noisy=True)
         action[action_idx] = 1.0
         return action
 
@@ -227,13 +229,31 @@ class OpenAIGymEnvironment:
             self.replay_memory[rand_index] = item
         self.memory_num += 1
 
-    def run_episode(self, model_type, predictor, max_steps, test=False, render=False):
+    def run_ep_n_times(self, n, predictor, max_steps=None, test=False, render=False):
         """
-        Runs an episode of the environment. Inserts transitions into replay
-        memory and returns the sum of rewards experienced in the episode.
+        Runs an episode of the environment n times and returns the average
+        sum of rewards.
 
-        :param model_type: Model type (discrete, parametric).
+        :param n: Number of episodes to average over.
         :param predictor: RLPredictor object whose policy to follow.
+        :param max_steps: Max number of timesteps before ending episode.
+        :param test: Whether or not to bypass an epsilon-greedy selection policy.
+        :param render: Whether or not to render the episode.
+        """
+        reward_sum = 0.0
+        for _ in range(n):
+            ep_rew_sum = self.run_episode(predictor, max_steps, test, render)
+            reward_sum += ep_rew_sum
+        avg_rewards = round(reward_sum / n, 2)
+        return avg_rewards
+
+    def run_episode(self, predictor, max_steps=None, test=False, render=False):
+        """
+        Runs an episode of the environment and returns the sum of rewards
+        experienced in the episode. For evaluation purposes.
+
+        :param predictor: RLPredictor object whose policy to follow.
+        :param max_steps: Max number of timesteps before ending episode.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         :param render: Whether or not to render the episode.
         """
@@ -244,9 +264,7 @@ class OpenAIGymEnvironment:
         num_steps_taken = 0
 
         while not terminal:
-            state = next_state
             action = next_action
-
             if render:
                 self.env.render()
 
@@ -260,29 +278,8 @@ class OpenAIGymEnvironment:
             next_action = self.policy(predictor, next_state, test)
             reward_sum += reward
 
-            if model_type == ModelType.DISCRETE_ACTION.value:
-                possible_next_actions = [
-                    0 if terminal else 1 for __ in range(self.action_dim)
-                ]
-                possible_next_actions_lengths = self.action_dim
-            elif model_type == ModelType.PARAMETRIC_ACTION.value:
-                if terminal:
-                    possible_next_actions = np.array([])
-                    possible_next_actions_lengths = 0
-                else:
-                    possible_next_actions = np.eye(self.action_dim)
-                    possible_next_actions_lengths = self.action_dim
-            elif model_type == ModelType.CONTINUOUS_ACTION.value:
-                possible_next_actions = None
-                possible_next_actions_lengths = None
-
-            self.insert_into_memory(
-                np.float32(state), action, np.float32(reward),
-                np.float32(next_state), next_action, terminal,
-                possible_next_actions, possible_next_actions_lengths
-            )
-
             if max_steps and num_steps_taken >= max_steps:
                 break
 
+        self.env.reset()
         return reward_sum

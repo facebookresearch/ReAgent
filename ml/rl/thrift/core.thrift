@@ -78,13 +78,15 @@ struct DDPGRLParameters {
 struct DDPGNetworkParameters {
   1: list<i32> layers = [-1, 512, 256, 128, 1],
   2: list<string> activations = ['relu', 'relu', 'relu', 'tanh'],
+  3: double l2_decay = 0.01
+  4: double learning_rate = 0.001,
 }
 
 struct DDPGTrainingParameters {
   1: i32 minibatch_size = 128,
-  2: double learning_rate = 0.01,
-  3: string optimizer = 'ADAM',
-  4: double gamma = 0.999
+  2: string optimizer = 'ADAM',
+  3: double gamma = 0.999,
+  4: double final_layer_init = 0.003
 }
 
 struct DDPGModelParameters {
