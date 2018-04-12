@@ -41,8 +41,10 @@ class DDPGPredictor(object):
                 example[k] = v
             examples.append(example)
 
-        state_examples = Variable(torch.from_numpy(np.array(examples)), volatile=True)
-        actions = self.actor(state_examples)
+        with torch.no_grad():
+            state_examples = Variable(torch.from_numpy(np.array(examples)))
+            actions = self.actor(state_examples)
+
         actions_np = actions.data.numpy()
         if noisy:
             actions = [x + (self.noise.get_noise()) for x in actions_np]

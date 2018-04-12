@@ -273,6 +273,7 @@ class OpenAIGymEnvironment:
                 next_state, reward, terminal, _ = self.env.step(action_index)
             else:
                 next_state, reward, terminal, _ = self.env.step(action)
+                reward = reward[0]
 
             num_steps_taken += 1
             next_action = self.policy(predictor, next_state, test)

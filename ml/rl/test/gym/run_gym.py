@@ -22,8 +22,10 @@ from ml.rl.training.conv.discrete_action_conv_trainer import DiscreteActionConvT
 from ml.rl.thrift.core.ttypes import RLParameters, TrainingParameters,\
     DiscreteActionModelParameters, DiscreteActionConvModelParameters,\
     CNNModelParameters, ContinuousActionModelParameters, KnnParameters,\
-    DDPGRLParameters, DDPGNetworkParameters, DDPGTrainingParameters,\
-    DDPGModelParameters
+    DDPGNetworkParameters, DDPGTrainingParameters, DDPGModelParameters
+
+import logging
+logger = logging.getLogger(__name__)
 
 USE_CPU = -1
 
@@ -40,10 +42,10 @@ def run(
     score_bar,
     num_episodes=301,
     max_steps=None,
-    train_every=100,
-    train_after=10,
-    test_every=100,
-    test_after=10,
+    train_every_ts=100,
+    train_after_ts=10,
+    test_every_ts=100,
+    test_after_ts=10,
     num_train_batches=10,
     avg_over_num_episodes=100,
     render=False,
@@ -106,8 +108,8 @@ def run(
 
             # Training loop
             if (
-                total_timesteps % train_every == 0 and
-                total_timesteps > train_after and
+                total_timesteps % train_every_ts == 0 and
+                total_timesteps > train_after_ts and
                 len(gym_env.replay_memory) >= trainer.minibatch_size
             ):
                 for _ in range(num_train_batches):
@@ -120,18 +122,21 @@ def run(
                         trainer.train(reward_timelines=None, evaluator=None)
 
             # Evaluation loop
-            if (total_timesteps % test_every == 0 and total_timesteps > test_after):
+            if (
+                total_timesteps % test_every_ts == 0 and
+                total_timesteps > test_after_ts
+            ):
                 avg_rewards = gym_env.run_ep_n_times(
                     avg_over_num_episodes, predictor, test=True)
                 avg_reward_history.append(avg_rewards)
-                print(
+                logger.info(
                     "Achieved an average reward score of {} over {} evaluations."
                     " Total episodes: {}, total timesteps: {}."
                     .format(avg_rewards, avg_over_num_episodes, i + 1, total_timesteps)
                 )
                 if score_bar is not None and avg_rewards > score_bar:
-                    print('Avg. reward history for {}:'.format(
-                        test_run_name), avg_reward_history)
+                    logger.info('Avg. reward history for {}: {}'.format(
+                        test_run_name, avg_reward_history))
                     return avg_reward_history
 
             if max_steps and ep_timesteps >= max_steps:
@@ -142,13 +147,14 @@ def run(
             avg_rewards = gym_env.run_ep_n_times(
                 avg_over_num_episodes, predictor, test=True)
             avg_reward_history.append(avg_rewards)
-            print(
+            logger.info(
                 "Achieved an average reward score of {} over {} evaluations."
                 " Total episodes: {}, total timesteps: {}."
                 .format(avg_rewards, avg_over_num_episodes, i + 1, total_timesteps)
             )
 
-    print('Avg. reward history for {}:'.format(test_run_name), avg_reward_history)
+    logger.info('Avg. reward history for {}: {}'.format(
+        test_run_name, avg_reward_history))
     return avg_reward_history
 
 
@@ -183,8 +189,6 @@ def main(args):
 
 def run_gym(params, score_bar, gpu_id):
     rl_settings = params['rl']
-    rl_settings['gamma'] = rl_settings['reward_discount_factor']
-    del rl_settings['reward_discount_factor']
 
     env_type = params['env']
     env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'])
@@ -197,8 +201,6 @@ def run_gym(params, score_bar, gpu_id):
     if model_type == ModelType.DISCRETE_ACTION.value:
         with core.DeviceScope(c2_device):
             training_settings = params['training']
-            training_settings['gamma'] = training_settings['learning_rate_decay']
-            del training_settings['learning_rate_decay']
             trainer_params = DiscreteActionModelParameters(
                 actions=env.actions,
                 rl=RLParameters(**rl_settings),
@@ -223,8 +225,6 @@ def run_gym(params, score_bar, gpu_id):
     elif model_type == ModelType.PARAMETRIC_ACTION.value:
         with core.DeviceScope(c2_device):
             training_settings = params['training']
-            training_settings['gamma'] = training_settings['learning_rate_decay']
-            del training_settings['learning_rate_decay']
             trainer_params = ContinuousActionModelParameters(
                 rl=RLParameters(**rl_settings),
                 training=TrainingParameters(**training_settings),
@@ -240,7 +240,7 @@ def run_gym(params, score_bar, gpu_id):
             actor_settings = params['actor_training']
             critic_settings = params['critic_training']
             trainer_params = DDPGModelParameters(
-                rl=DDPGRLParameters(**rl_settings),
+                rl=RLParameters(**rl_settings),
                 shared_training=DDPGTrainingParameters(**training_settings),
                 actor_training=DDPGNetworkParameters(**actor_settings),
                 critic_training=DDPGNetworkParameters(**critic_settings),
