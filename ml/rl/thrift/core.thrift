@@ -8,6 +8,7 @@ struct RLParameters {
   5: bool maxq_learning = true,
   6: map<string, double> reward_boost,
   7: double temperature = 0.5,
+  8: i32 softmax_policy = 1
 }
 
 struct TrainingParameters {

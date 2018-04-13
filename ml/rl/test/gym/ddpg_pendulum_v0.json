@@ -4,7 +4,8 @@
   "rl": {
       "gamma": 0.99,
       "epsilon": 0.0,
-      "target_update_rate": 0.001
+      "target_update_rate": 0.001,
+      "softmax_policy": 1
   },
   "shared_training": {
       "minibatch_size": 64,

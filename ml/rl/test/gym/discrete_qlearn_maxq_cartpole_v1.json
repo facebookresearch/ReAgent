@@ -1,14 +1,14 @@
 {
-  "env": "CartPole-v0",
+  "env": "CartPole-v1",
   "model_type": "discrete",
   "rl": {
       "gamma": 0.99,
       "target_update_rate": 0.2,
       "reward_burnin": 1,
       "maxq_learning": 1,
-      "epsilon": 0.0,
+      "epsilon": 0.2,
       "temperature": 0.35,
-      "softmax_policy": 1
+      "softmax_policy": 0
   },
   "training": {
       "layers": [
@@ -23,7 +23,7 @@
           "linear"
       ],
       "minibatch_size": 64,
-      "learning_rate": 0.001,
+      "learning_rate": 0.005,
       "optimizer": "ADAM",
       "gamma": 0.999
   },

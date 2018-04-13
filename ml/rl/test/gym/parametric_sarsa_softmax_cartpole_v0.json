@@ -7,7 +7,8 @@
       "reward_burnin": 1,
       "maxq_learning": 0,
       "epsilon": 0.0,
-      "temperature": 0.35
+      "temperature": 0.35,
+      "softmax_policy": 1
   },
   "training": {
       "layers": [

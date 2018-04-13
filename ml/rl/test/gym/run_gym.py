@@ -180,7 +180,20 @@ def main(args):
         help="If set, will use GPU with specified ID. Otherwise will use CPU.",
         default=USE_CPU,
     )
+    parser.add_argument(
+        "-l",
+        "--log_level",
+        help="If set, use logging level specified (debug, info, warning, error, "
+        "critical). Else defaults to info.",
+        default='info',
+    )
     args = parser.parse_args(args)
+
+    if args.log_level not in ('debug', 'info', 'warning', 'error', 'critical'):
+        raise Exception("Logging level {} not valid level.".format(args.log_level))
+    else:
+        logger.setLevel(getattr(logging, args.log_level.upper()))
+
     with open(args.parameters, 'r') as f:
         params = json.load(f)
 
@@ -191,7 +204,8 @@ def run_gym(params, score_bar, gpu_id):
     rl_settings = params['rl']
 
     env_type = params['env']
-    env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'])
+    env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'],
+        rl_settings['softmax_policy'])
     model_type = params['model_type']
     c2_device = core.DeviceOption(
         caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA,
@@ -262,9 +276,9 @@ def run_gym(params, score_bar, gpu_id):
 
 if __name__ == '__main__':
     args = sys.argv
-    if len(args) not in [3, 5, 7]:
+    if len(args) not in [3, 5, 7, 9]:
         raise Exception(
             "Usage: python run_gym.py -p <parameters_file>" +
-            " [-s <score_bar>] [-g <gpu_id>]"
+            " [-s <score_bar>] [-g <gpu_id>] [-l <log_level>]"
         )
     main(args[1:])

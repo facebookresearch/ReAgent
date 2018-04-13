@@ -30,17 +30,22 @@ class EnvType(enum.Enum):
 
 
 class OpenAIGymEnvironment:
-    def __init__(self, gymenv, epsilon=0.2, max_replay_memory_size=10000):
+    def __init__(
+        self, gymenv, epsilon=0.2, softmax_policy=1, max_replay_memory_size=10000
+    ):
         """
         Creates an OpenAIGymEnvironment object.
 
         :param gymenv: String identifier for desired environment.
         :param epsilon: Fraction of the time the agent should select a random
             action during training.
+        :param softmax_policy: 1 to use softmax selection policy or 0 to use
+            max q selection.
         :param max_replay_memory_size: Upper bound on the number of transitions
             to store in replay memory.
         """
         self.epsilon = epsilon
+        self.softmax_policy = softmax_policy
         self.replay_memory = []
         self.max_replay_memory_size = max_replay_memory_size
         self.memory_num = 0
@@ -189,7 +194,10 @@ class OpenAIGymEnvironment:
             for i in range(next_state.shape[1]):
                 next_state_dict[0][i] = next_state[0][i]
             if isinstance(predictor, DiscreteActionPredictor):
-                action_str = predictor.policy(next_state_dict)[1]
+                if self.softmax_policy:
+                    action_str = predictor.policy(next_state_dict)[1]
+                else:
+                    action_str = predictor.policy(next_state_dict)[0]
                 action_idx = self.actions.index(action_str.decode("utf-8"))
             elif isinstance(predictor, ContinuousActionDQNPredictor):
                 normed_action_keys = sorted(self.normalization_action.keys())
@@ -197,7 +205,10 @@ class OpenAIGymEnvironment:
                 for action_key in normed_action_keys:
                     states.append(next_state_dict[0])
                     actions.append({action_key: 1})
-                action_idx = predictor.policy(states, actions)[1]
+                if self.softmax_policy:
+                    action_idx = predictor.policy(states, actions)[1]
+                else:
+                    action_idx = predictor.policy(states, actions)[0]
                 action_to_take = list(actions[action_idx].keys())
                 action_idx = normed_action_keys.index(action_to_take[0])
             elif isinstance(predictor, DDPGPredictor):
