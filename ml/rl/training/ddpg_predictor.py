@@ -41,9 +41,11 @@ class DDPGPredictor(object):
                 example[k] = v
             examples.append(example)
 
+        self.actor.eval()
         with torch.no_grad():
             state_examples = Variable(torch.from_numpy(np.array(examples)))
             actions = self.actor(state_examples)
+        self.actor.train()
 
         actions_np = actions.data.numpy()
         if noisy:
@@ -53,27 +55,6 @@ class DDPGPredictor(object):
             ]
             return np.array(actions[0], dtype=np.float32)
         return actions_np
-
-    def predict_q_value(self, states, actions) -> np.ndarray:
-        """ Returns list of q values from critic network for <state, action> inputs
-        :param states states as list of state dicts
-        :param actions actions as list of action dicts
-        """
-        state_list, action_list = [], []
-        for i in range(len(states)):
-            state = np.zeros([len(states[i])], dtype=np.float32)
-            for k, v in states[i].items():
-                state[k] = v
-            state_list.append(state)
-            action = np.zeros([len(actions[i])], dtype=np.float32)
-            for k, v in actions[i].items():
-                action[k - len(state)] = v
-            action_list.append(action)
-        output = self.critic(
-            Variable(torch.from_numpy(np.array(state_list))),
-            Variable(torch.from_numpy(np.array(action_list)))
-        )
-        return output.data.numpy()
 
     @classmethod
     def export_actor(cls, trainer):
@@ -109,7 +90,7 @@ class ActorNet(nn.Module):
         """
         x = state
         for i, activation in enumerate(self.activations):
-            # x = self.batch_norm_ops[i](x)
+            x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
             x = fc_func(x) if activation == 'linear' else activation_func(fc_func(x))
@@ -128,14 +109,16 @@ class CriticNet(nn.Module):
         ), 'Invalid layer schema {} for actor network'.format(layers)
 
         for i, layer in enumerate(layers[1:]):
-
-            if i == 1:
+            # Batch norm only applied to pre-action layers
+            if i == 0:
+                self.layers.append(nn.Linear(layers[i], layer))
+                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
+            elif i == 1:
                 self.layers.append(nn.Linear(layers[i] + action_dim, layer))
-                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i] + action_dim))
+                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
             # Actions skip input layer
             else:
                 self.layers.append(nn.Linear(layers[i], layer))
-                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
 
             # If last layer use simple uniform init (as outlined in DDPG paper)
             if i + 1 == len(layers[1:]):
@@ -153,10 +136,12 @@ class CriticNet(nn.Module):
         """
         x = state
         for i, activation in enumerate(self.activations):
+            if i == 0:
+                x = self.batch_norm_ops[i](x)
             # Actions skip input layer
-            if i == 1:
+            elif i == 1:
+                x = self.batch_norm_ops[i](x)
                 x = torch.cat((x, action), dim=1)
-            # x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
             x = fc_func(x) if activation == 'linear' else activation_func(fc_func(x))
