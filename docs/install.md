@@ -14,7 +14,13 @@ All of BlueWhale code depends on Python 3's type inference system.  For mac user
 
 ### Caffe2
 
-BlueWhale runs on any platform that supports caffe2. To install caffe2, follow this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
+BlueWhale runs on any platform that supports caffe2. To install caffe2, you can use conda:
+
+```
+conda install -c caffe2 caffe2
+```
+
+Alternatively, you can build from source outlined in this tutorial: [Installing Caffe2](https://caffe2.ai/docs/getting-started.html).
 
 You may need to override caffe2's cmake defaults to use homebrew's protoc instead of Anaconda's protoc and to use Anaconda's Python instead of system Python.  Also add the following switch when running cmake to make sure caffe2 uses python3:
 
@@ -24,6 +30,17 @@ cmake -DPYTHON_EXECUTABLE=`which python3`
 
 Also make sure cmake is using the **homebrew** version of glog, etc..  Sometimes caffe2
 will try to use the anaconda version of these libraries, and that will cause errors.
+
+### PyTorch
+
+Some of our models are implemented in PyTorch which can be installed via conda:
+
+```
+conda install pytorch torchvision -c pytorch
+```
+
+Alternatively, you can build directly from source as outlined here: [Installing Pytorch](https://github.com/pytorch/pytorch#from-source). Sometimes the latest PyTorch changes are not included in the version conda installs which can lead to errors. In this case building PyTorch from source should mitigate the issue.
+
 
 ### FBThrift
 
@@ -35,15 +52,15 @@ we require *FBThrift*, not Apache Thrift.  Here are instructions for getting on 
 brew install openssl zstd folly
 
 # Wangle isn't in homebrew and needs to be installed manually
-git clone https://github.com/facebookresearch/wangle.git
-cd wangle/build
-cmake ../ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+git clone https://github.com/facebook/wangle.git
+cd wangle/wangle
+cmake . -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
 make -j8
 make install
 cd ../..
 
 # Install FBThrift
-git clone https://github.com/facebookresearch/fbthrift
+git clone https://github.com/facebook/fbthrift
 cd fbthrift
 mkdir build
 cd build
