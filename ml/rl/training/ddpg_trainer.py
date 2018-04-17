@@ -19,14 +19,19 @@ class DDPGTrainer(object):
         if parameters.shared_training.optimizer == 'ADAM':
             self.optimizer_func = torch.optim.Adam
         else:
-            raise NotImplementedError("{} optimizer not implemented".format(
-                parameters.shared_training.optimizer))
+            raise NotImplementedError(
+                "{} optimizer not implemented".format(
+                    parameters.shared_training.optimizer
+                )
+            )
 
         # Actor params
         self.actor_params = parameters.actor_training
         self.actor_params.layers[0] = env_details.state_dim
         self.actor_params.layers[-1] = env_details.action_dim
-        self.noise_generator = OrnsteinUhlenbeckProcessNoise(env_details.action_dim)
+        self.noise_generator = OrnsteinUhlenbeckProcessNoise(
+            env_details.action_dim
+        )
 
         # Critic params
         self.critic_params = parameters.critic_training
@@ -39,13 +44,16 @@ class DDPGTrainer(object):
         rewards = Variable(torch.from_numpy(training_samples[2]))
         next_states = Variable(torch.from_numpy(training_samples[3]))
         done = training_samples[5].astype(int)
-        not_done_mask = Variable(torch.from_numpy(1 - done)).type(torch.FloatTensor)
+        not_done_mask = Variable(torch.from_numpy(1 - done)).type(
+            torch.FloatTensor
+        )
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
         q_s1_a1 = predictor.critic(states, actions)
         next_actions = predictor.actor_target(next_states)
-        q_s2_a2 = predictor.critic_target(next_states, next_actions).detach().squeeze()
+        q_s2_a2 = predictor.critic_target(next_states,
+                                          next_actions).detach().squeeze()
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
         target_q_values = rewards + (self.gamma * filtered_q_s2_a2)
         # compute loss and update the critic network
@@ -72,7 +80,9 @@ class DDPGTrainer(object):
         :param target_network target network with params to soft update
         :param tau hyperparameter to control target tracking speed
         """
-        for t_param, param in zip(target_network.parameters(), network.parameters()):
+        for t_param, param in zip(
+            target_network.parameters(), network.parameters()
+        ):
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 
@@ -84,7 +94,8 @@ class DDPGTrainer(object):
 class OrnsteinUhlenbeckProcessNoise():
     """ Exploration noise process with temporally correlated noise. Used to
     explore in physical environments w/momentum. Outlined in DDPG paper."""
-    def __init__(self, action_dim, theta=0.15, sigma=0.20, mu=0) -> None:
+
+    def __init__(self, action_dim, theta=0.15, sigma=0.02, mu=0) -> None:
         self.action_dim = action_dim
         self.theta = theta
         self.sigma = sigma

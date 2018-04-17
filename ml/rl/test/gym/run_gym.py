@@ -300,12 +300,18 @@ def run_gym(params, score_bar, gpu_id):
             actor_training=DDPGNetworkParameters(**actor_settings),
             critic_training=DDPGNetworkParameters(**critic_settings),
         )
+
+        # DDPG can handle continuous and discrete action spaces
+        if env.action_type == EnvType.CONTINUOUS_ACTION:
+            action_range = (env.action_space.low, env.action_space.high)
+        else:
+            action_range = None
         trainer = DDPGTrainer(
             trainer_params,
             EnvDetails(
                 state_dim=env.state_dim,
                 action_dim=env.action_dim,
-                action_range=(env.action_space.low, env.action_space.high),
+                action_range=action_range,
             )
         )
     else:

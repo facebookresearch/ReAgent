@@ -238,8 +238,8 @@ class OpenAIGymEnvironment:
                 if test:
                     return predictor.predict_action(
                         next_state_dict, noisy=False
-                    )
-                return predictor.predict_action(next_state_dict, noisy=True)
+                    )[0]
+                return predictor.predict_action(next_state_dict, noisy=True)[0]
         action[action_idx] = 1.0
         return action
 
@@ -317,9 +317,8 @@ class OpenAIGymEnvironment:
                 next_state, reward, terminal, _ = self.env.step(action_index)
             else:
                 next_state, reward, terminal, _ = self.env.step(action)
-                reward = reward[0]
-            next_state = self.transform_state(next_state)
 
+            next_state = self.transform_state(next_state)
             num_steps_taken += 1
             next_action = self.policy(predictor, next_state, test)
             reward_sum += reward

@@ -14,21 +14,27 @@ class DDPGPredictor(object):
     def __init__(self, trainer) -> None:
         self.action_range = trainer.env_details.action_range
         # Init actor network, actor target network, actor optimizer
-        self.actor = ActorNet(trainer.actor_params.layers,
-            trainer.actor_params.activations, trainer.final_layer_init)
+        self.actor = ActorNet(
+            trainer.actor_params.layers, trainer.actor_params.activations,
+            trainer.final_layer_init
+        )
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = trainer.optimizer_func(
-            self.actor.parameters(), lr=trainer.actor_params.learning_rate)
+            self.actor.parameters(), lr=trainer.actor_params.learning_rate
+        )
         self.noise = trainer.noise_generator
 
         # Init critic network, critic target network, critic optimizer
-        self.critic = CriticNet(trainer.critic_params.layers,
-            trainer.critic_params.activations, trainer.final_layer_init,
-            trainer.env_details.action_dim)
+        self.critic = CriticNet(
+            trainer.critic_params.layers, trainer.critic_params.activations,
+            trainer.final_layer_init, trainer.env_details.action_dim
+        )
         self.critic_target = deepcopy(self.critic)
         self.critic_optimizer = trainer.optimizer_func(
-            self.critic.parameters(), lr=trainer.critic_params.learning_rate,
-            weight_decay=trainer.critic_params.l2_decay)
+            self.critic.parameters(),
+            lr=trainer.critic_params.learning_rate,
+            weight_decay=trainer.critic_params.l2_decay
+        )
 
     def predict_action(self, states, noisy=False) -> np.ndarray:
         """ Returns list of actions output from actor network
@@ -46,15 +52,22 @@ class DDPGPredictor(object):
             state_examples = Variable(torch.from_numpy(np.array(examples)))
             actions = self.actor(state_examples)
         self.actor.train()
+        actions = actions.data.numpy()
 
-        actions_np = actions.data.numpy()
         if noisy:
-            actions = [x + (self.noise.get_noise()) for x in actions_np]
-            actions = [
-                self.action_range[1] * np.clip(action, -1, 1) for action in actions
-            ]
-            return np.array(actions[0], dtype=np.float32)
-        return actions_np
+            actions = [x + (self.noise.get_noise()) for x in actions]
+
+        # Continuous action space
+        if self.action_range:
+            return np.array(
+                [
+                    self.action_range[1] * np.clip(action, -1, 1)
+                    for action in actions
+                ],
+                dtype=np.float32
+            )
+        # Discrete action space
+        return np.array(actions, dtype=np.float32)
 
     @classmethod
     def export_actor(cls, trainer):
@@ -68,9 +81,8 @@ class ActorNet(nn.Module):
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
 
-        assert (
-            len(layers) >= 3
-        ), 'Invalid layer schema {} for actor network'.format(layers)
+        assert (len(layers) >=
+                3), 'Invalid layer schema {} for actor network'.format(layers)
 
         for i, layer in enumerate(layers[1:]):
             self.layers.append(nn.Linear(layers[i], layer))
@@ -93,7 +105,9 @@ class ActorNet(nn.Module):
             x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
-            x = fc_func(x) if activation == 'linear' else activation_func(fc_func(x))
+            x = fc_func(x) if activation == 'linear' else activation_func(
+                fc_func(x)
+            )
         return x
 
 
@@ -104,9 +118,8 @@ class CriticNet(nn.Module):
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
 
-        assert (
-            len(layers) >= 3
-        ), 'Invalid layer schema {} for actor network'.format(layers)
+        assert (len(layers) >=
+                3), 'Invalid layer schema {} for actor network'.format(layers)
 
         for i, layer in enumerate(layers[1:]):
             # Batch norm only applied to pre-action layers
@@ -144,7 +157,9 @@ class CriticNet(nn.Module):
                 x = torch.cat((x, action), dim=1)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
-            x = fc_func(x) if activation == 'linear' else activation_func(fc_func(x))
+            x = fc_func(x) if activation == 'linear' else activation_func(
+                fc_func(x)
+            )
         return x
 
 
