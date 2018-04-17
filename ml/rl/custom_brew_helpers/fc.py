@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 from caffe2.python.modeling import initializers
 from caffe2.python.modeling.parameter_info import ParameterTags
@@ -46,11 +43,15 @@ def fc_explicit_param_names(
         param_name=kwargs['weight_name'],
         shape=[dim_out, dim_in],
         initializer=WeightInitializer,
-        tags=ParameterTags.WEIGHT)
+        tags=ParameterTags.WEIGHT
+    )
     bias = model.create_param(
         param_name=kwargs['bias_name'],
-        shape=[dim_out, ],
+        shape=[
+            dim_out,
+        ],
         initializer=BiasInitializer,
-        tags=[ParameterTags.BIAS])
+        tags=[ParameterTags.BIAS]
+    )
 
     return model.net.FC([blob_in, weight, bias], blob_out)

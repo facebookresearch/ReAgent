@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 from collections import namedtuple
 from scipy import stats
@@ -80,8 +77,9 @@ def identify_parameter(
         )
         k2_boxcox, p_boxcox = stats.normaltest(candidate_values)
         logger.info(
-            "Feature stats.  Original K2: {} P: {} Boxcox K2: {} P: {}".
-            format(k2_original, p_original, k2_boxcox, p_boxcox)
+            "Feature stats.  Original K2: {} P: {} Boxcox K2: {} P: {}".format(
+                k2_original, p_original, k2_boxcox, p_boxcox
+            )
         )
         if lmbda < 0.9 or lmbda > 1.1:
             # Lambda is far enough from 1.0 to be worth doing boxcox
@@ -157,8 +155,8 @@ def deserialize(parameters_json):
             for x in params.possible_values:
                 if x < 0:
                     logger.fatal(
-                        "Invalid enum ID: " + str(x) + " in feature: " + feature
-                        + " with possible_values " +
+                        "Invalid enum ID: " + str(x) + " in feature: " +
+                        feature + " with possible_values " +
                         str(params.possible_values) + " (raw: " +
                         feature_parameters + ")"
                     )

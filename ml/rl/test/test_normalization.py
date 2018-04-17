@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 from scipy import special, stats
 import numpy as np
@@ -147,17 +144,18 @@ class TestNormalization(unittest.TestCase):
     def test_normalize_dense_matrix_enum(self):
         normalization_parameters = {
             'f1':
-            NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [12, 4, 2], None
-            ),
+                NormalizationParameters(
+                    identify_types.ENUM, None, None, None, None, [12, 4, 2],
+                    None
+                ),
             'f2':
-            NormalizationParameters(
-                identify_types.CONTINUOUS, None, 0, 0, 1, None, None
-            ),
+                NormalizationParameters(
+                    identify_types.CONTINUOUS, None, 0, 0, 1, None, None
+                ),
             'f3':
-            NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [15, 3], None
-            )
+                NormalizationParameters(
+                    identify_types.ENUM, None, None, None, None, [15, 3], None
+                )
         }
         norm_net = core.Net("net")
         C2.set_net(norm_net)

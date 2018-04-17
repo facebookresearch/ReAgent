@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 import numpy as np
 from scipy import stats
@@ -40,8 +37,12 @@ class TestCustomBrewHelpers(unittest.TestCase):
             dim_out=dim_out,
             bias_name=bias_name,
             weight_name=weight_name,
-            weight_init=("GivenTensorFill", {'values': weights}),
-            bias_init=("GivenTensorFill", {'values': bias})
+            weight_init=("GivenTensorFill", {
+                'values': weights
+            }),
+            bias_init=("GivenTensorFill", {
+                'values': bias
+            })
         )
 
         workspace.RunNetOnce(model.param_init_net)
