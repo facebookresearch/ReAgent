@@ -9,39 +9,26 @@
 <h3><a class="anchor" aria-hidden="true" id="python3-recommended-for-mac-anaconda"></a><a href="#python3-recommended-for-mac-anaconda" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Python3 (recommended for mac: Anaconda)</h3>
 <p>All of BlueWhale code depends on Python 3's type inference system.  For mac users, we recommend using <a href="https://www.continuum.io/downloads">Anaconda</a> instead of the system implementation of python. Install anaconda and verify you are using Anaconda's version of python before installing other dependencies: <code>which python</code> should yield an Anaconda path.</p>
 <h3><a class="anchor" aria-hidden="true" id="caffe2"></a><a href="#caffe2" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Caffe2</h3>
-<p>BlueWhale runs on any platform that supports caffe2. To install caffe2, follow this tutorial: <a href="https://caffe2.ai/docs/getting-started.html">Installing Caffe2</a>.</p>
+<p>BlueWhale runs on any platform that supports caffe2. To install caffe2, you can use conda:</p>
+<pre><code class="hljs">conda <span class="hljs-keyword">install</span> -c caffe2 caffe2
+</code></pre>
+<p>Alternatively, you can build from source outlined in this tutorial: <a href="https://caffe2.ai/docs/getting-started.html">Installing Caffe2</a>.</p>
 <p>You may need to override caffe2's cmake defaults to use homebrew's protoc instead of Anaconda's protoc and to use Anaconda's Python instead of system Python.  Also add the following switch when running cmake to make sure caffe2 uses python3:</p>
 <pre><code class="hljs">cmake -DPYTHON_EXECUTABLE=`which python3`
 </code></pre>
 <p>Also make sure cmake is using the <strong>homebrew</strong> version of glog, etc..  Sometimes caffe2
 will try to use the anaconda version of these libraries, and that will cause errors.</p>
-<h3><a class="anchor" aria-hidden="true" id="fbthrift"></a><a href="#fbthrift" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>FBThrift</h3>
-<p><a href="https://github.com/facebookresearch/fbthrift">FBThrift</a> is Facebook's RPC framework.  Note that
-we require <em>FBThrift</em>, not Apache Thrift.  Here are instructions for getting on OS/X</p>
-<pre><code class="hljs"><span class="hljs-comment"># Install deps with homebrew</span>
-brew install openssl zstd folly
-
-<span class="hljs-comment"># Wangle isn't in homebrew and needs to be installed manually</span>
-git clone <span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/github.com/facebookresearch</span><span class="hljs-regexp">/wangle.git
-cd wangle/build</span>
-cmake ../ -DOPENSSL_ROOT_DIR=<span class="hljs-regexp">/usr/local</span><span class="hljs-regexp">/opt/openssl</span>
-make -j8
-make install
-cd ../..
-
-<span class="hljs-comment"># Install FBThrift</span>
-git clone <span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/github.com/facebookresearch</span><span class="hljs-regexp">/fbthrift
-cd fbthrift
-mkdir build
-cd build
-cmake ../</span> -DOPENSSL_ROOT_DIR=<span class="hljs-regexp">/usr/local</span><span class="hljs-regexp">/opt/openssl</span>
-make -j8
-make install
-
-<span class="hljs-comment"># Install python bindings for FBThrift (There may be some compile errors, they can</span>
-<span class="hljs-comment">#   be ignored)</span>
-cd ../thrift/<span class="hljs-class"><span class="hljs-keyword">lib</span>/<span class="hljs-title">py</span></span>
-python setup.py install
+<h3><a class="anchor" aria-hidden="true" id="pytorch"></a><a href="#pytorch" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PyTorch</h3>
+<p>Some of our models are implemented in PyTorch which can be installed via conda:</p>
+<pre><code class="hljs">conda <span class="hljs-keyword">install</span> pytorch torchvision -c pytorch
+</code></pre>
+<p>Alternatively, you can build directly from source as outlined here: <a href="https://github.com/pytorch/pytorch#from-source">Installing Pytorch</a>. Sometimes the latest PyTorch changes are not included in the version conda installs which can lead to errors. In this case building PyTorch from source should mitigate the issue.</p>
+<h3><a class="anchor" aria-hidden="true" id="thrift"></a><a href="#thrift" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Thrift</h3>
+<p>Most distributions contain Apache Thrift.  Because we are running python3, we need at least thrift 0.10.  For OS/X:</p>
+<pre><code class="hljs"><span class="hljs-keyword">brew </span><span class="hljs-keyword">install </span>thrift
+</code></pre>
+<p>Then we need the python bindings for thrift, which we can get from anaconda:</p>
+<pre><code class="hljs">conda <span class="hljs-keyword">install</span> thrift
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="openai-gym"></a><a href="#openai-gym" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>OpenAI Gym</h3>
 <p>Running models in OpenAI Gym environments requires platforms with OpenAI Gym support. Windows support for OpenAI Gym is being tracked <a href="https://github.com/openai/gym/issues/11">here</a>.</p>
@@ -71,4 +58,4 @@ cd BlueWhale
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="building-your-own-model"></a><a href="#building-your-own-model" aria-hidden="true" class="hash-link" ><svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Building your own model</h2>
 <p>To build your own models, start by following our OpenAI Gym Tutorial <a href="/BlueWhale/docs/openai_gym.html">here.</a></p>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="begin.html">← BlueWhale: Applied Reinforcement Learning</a><a class="docs-next button" href="openai_gym.html">Running OpenAI Gym Environments →</a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a><ul class="toc-headings"><li><a href="#python3-recommended-for-mac-anaconda">Python3 (recommended for mac: Anaconda)</a></li><li><a href="#caffe2">Caffe2</a></li><li><a href="#fbthrift">FBThrift</a></li><li><a href="#openai-gym">OpenAI Gym</a></li></ul></li><li><a href="#installation-and-setup">Installation and Setup</a></li><li><a href="#running-unit-tests">Running Unit Tests</a></li><li><a href="#building-your-own-model">Building your own model</a></li></ul></nav></div><footer class="nav-footer" id="footer"><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/BlueWhale/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="begin.html">← BlueWhale: Applied Reinforcement Learning</a><a class="docs-next button" href="openai_gym.html">Running OpenAI Gym Environments →</a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a><ul class="toc-headings"><li><a href="#python3-recommended-for-mac-anaconda">Python3 (recommended for mac: Anaconda)</a></li><li><a href="#caffe2">Caffe2</a></li><li><a href="#pytorch">PyTorch</a></li><li><a href="#thrift">Thrift</a></li><li><a href="#openai-gym">OpenAI Gym</a></li></ul></li><li><a href="#installation-and-setup">Installation and Setup</a></li><li><a href="#running-unit-tests">Running Unit Tests</a></li><li><a href="#building-your-own-model">Building your own model</a></li></ul></nav></div><footer class="nav-footer" id="footer"><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/BlueWhale/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a></footer></div></body></html>
