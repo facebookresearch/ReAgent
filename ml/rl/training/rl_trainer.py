@@ -18,31 +18,59 @@ from caffe2.python.model_helper import ModelHelper
 from ml.rl.caffe_utils import C2, StackedArray
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
     ContinuousActionModelParameters
+from ml.rl.training.conv.conv_ml_trainer import ConvMLTrainer
+from ml.rl.training.conv.conv_target_network import ConvTargetNetwork
 from ml.rl.training.ml_trainer import MLTrainer
 from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.training.evaluator import Evaluator
 
-RL_TRAINER_MODEL_ID = "rl_trainer"
 
+class RLTrainer(object):
+    num_trainers = 0
 
-class RLTrainer(MLTrainer):
     def __init__(
         self,
         parameters: Union[DiscreteActionModelParameters,
                           ContinuousActionModelParameters],
     ) -> None:
         logger.info(str(parameters))
+        self.model_id = "rl_trainer_" + str(RLTrainer.num_trainers)
+        RLTrainer.num_trainers += 1
+
+        if parameters.training.cnn_parameters is not None:
+            self.conv_ml_trainer = ConvMLTrainer(
+                "conv_ml_trainer_" + str(RLTrainer.num_trainers),
+                parameters.training.cnn_parameters,
+            )
+
+            # The final layer of the conv net is the input to the fc net.
+            parameters.training.layers[0] = \
+                self.conv_ml_trainer.get_output_size()
+
+            self.conv_target_network = ConvTargetNetwork(
+                "conv_target_network_" + str(RLTrainer.num_trainers),
+                parameters.training.cnn_parameters,
+                parameters.rl.target_update_rate,
+                self.conv_ml_trainer,
+            )
+        else:
+            self.conv_ml_trainer = None
+            self.conv_target_network = None
 
         assert parameters.training.layers[0] >= 0,\
             "Set layers[0] to a the number of features"
 
-        self.num_features = parameters.training.layers[0]
-
-        MLTrainer.__init__(self, RL_TRAINER_MODEL_ID, parameters.training)
+        self.ml_trainer = MLTrainer(
+            "ml_trainer_" + str(RLTrainer.num_trainers),
+            parameters.training,
+        )
 
         self.target_network = TargetNetwork(
-            self, parameters.rl.target_update_rate
+            "target_network_" + str(RLTrainer.num_trainers),
+            parameters.training,
+            parameters.rl.target_update_rate,
+            self.ml_trainer,
         )
 
         self.reward_burnin = parameters.rl.reward_burnin
@@ -192,11 +220,15 @@ class RLTrainer(MLTrainer):
                     "Minibatch number == reward_burnin. Starting RL updates."
                 )
                 self.target_network.enable_slow_updates()
+                if self.conv_target_network:
+                    self.conv_target_network.enable_slow_updates()
             workspace.RunNet(self.rl_train_model.net)
         else:
             workspace.RunNet(self.reward_train_model.net)
 
-        self.target_network.target_update()
+        workspace.RunNet(self.target_network._update_model.net)
+        if self.conv_target_network:
+            workspace.RunNet(self.conv_target_network._update_model.net)
         self.training_iteration += 1
         workspace.RunNet(self.q_score_model.net)
         if evaluator is not None:
@@ -207,3 +239,18 @@ class RLTrainer(MLTrainer):
                 workspace.FetchBlob(self.q_score_output),
                 workspace.FetchBlob(self.loss_blob),
             )
+
+    def build_predictor(self, model, input_blob, output_blob) -> List[str]:
+        retval: List[str] = []
+        if self.conv_ml_trainer is not None:
+            conv_output = model.net.NextBlob("conv_output")
+            retval = self.conv_ml_trainer.build_predictor(
+                model, input_blob, conv_output
+            )
+            conv_output_flat = model.net.NextBlob("conv_output_flat")
+            model.net.Flatten([conv_output], [conv_output_flat])
+            input_blob = conv_output_flat
+        retval += self.ml_trainer.build_predictor(
+            model, input_blob, output_blob
+        )
+        return retval

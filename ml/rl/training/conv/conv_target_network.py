@@ -5,24 +5,16 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from typing import List
-
 import numpy as np
 
-# @build:deps [
-# @/caffe2/caffe2/fb:log_file_db
-# @/caffe2/caffe2/python:caffe2_py
-# ]
+from caffe2.python import model_helper, workspace
 
-from caffe2.python import model_helper, workspace, core
-
-from ml.rl.caffe_utils import C2
-from ml.rl.thrift.core.ttypes import TrainingParameters
-from ml.rl.training.dnn import DNN
-from ml.rl.training.ml_trainer import MLTrainer
+from ml.rl.thrift.core.ttypes import CNNParameters
+from ml.rl.training.conv.cnn import CNN
+from ml.rl.training.conv.conv_ml_trainer import ConvMLTrainer
 
 
-class TargetNetwork(DNN):
+class ConvTargetNetwork(CNN):
     """ The target network is used to compute the labels in deep TD learning.
         This class computes the labels and updates the weights of the target
         network
@@ -31,14 +23,14 @@ class TargetNetwork(DNN):
     def __init__(
         self,
         name: str,
-        parameters: TrainingParameters,
+        cnn_parameters: CNNParameters,
         target_update_rate: float,
-        source_trainer: MLTrainer,
+        source_trainer: ConvMLTrainer,
     ) -> None:
         self._target_update_rate = target_update_rate
         self.enabled_slow_updates = False
 
-        DNN.__init__(self, name, parameters)
+        CNN.__init__(self, name, cnn_parameters)
 
         self._setup_update_net(source_trainer)
 
@@ -55,11 +47,11 @@ class TargetNetwork(DNN):
             self._retain_rate_blob, np.array([0], dtype=np.float32)
         )
 
-        DNN._setup_initial_blobs(self)
+        CNN._setup_initial_blobs(self)
 
     def _setup_update_net(
         self,
-        source_trainer: MLTrainer,
+        source_trainer: ConvMLTrainer,
     ):
         self._update_model = model_helper.ModelHelper(
             name="TargetUpdateModel_" + self.model_id

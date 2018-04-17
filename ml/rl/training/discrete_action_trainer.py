@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import numpy as np
 from typing import Dict, Optional
 
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
@@ -21,9 +20,6 @@ from ml.rl.preprocessing.normalization import (
 )
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
-from ml.rl.training.model_update_helper import AddParameterUpdateOps
-from ml.rl.training.ml_trainer import GenerateLossOps
-from ml.rl.training.ml_trainer import MLTrainer, MakeForwardPassOps
 from ml.rl.training.rl_trainer import RLTrainer
 
 
@@ -43,9 +39,14 @@ class DiscreteActionTrainer(RLTrainer):
             for k in parameters.rl.reward_boost.keys():
                 i = self._actions.index(k)
                 self.reward_shape[i] = parameters.rl.reward_boost[k]
-        self.state_normalization_parameters = normalization_parameters
-        num_features = get_num_output_features(normalization_parameters)
-        parameters.training.layers[0] = num_features
+        if parameters.training.cnn_parameters is None:
+            self.state_normalization_parameters: Optional[
+                Dict[int, NormalizationParameters]
+            ] = normalization_parameters
+            num_features = get_num_output_features(normalization_parameters)
+            parameters.training.layers[0] = num_features
+        else:
+            self.state_normalization_parameters = None
         parameters.training.layers[-1] = self.num_actions
 
         RLTrainer.__init__(self, parameters)
@@ -58,12 +59,6 @@ class DiscreteActionTrainer(RLTrainer):
 
     def get_possible_next_actions(self):
         return 'possible_next_actions'
-
-    def _setup_initial_blobs(self):
-        self.input_dim = self.num_features
-        self.output_dim = self.num_actions
-
-        MLTrainer._setup_initial_blobs(self)
 
     def _create_all_q_score_net(self) -> None:
         self.all_q_score_model = ModelHelper(
@@ -99,22 +94,25 @@ class DiscreteActionTrainer(RLTrainer):
         model = C2.model()
         q_vals_target = C2.StopGradient(q_vals_target)
         output_blob = C2.NextBlob("train_output")
-        MakeForwardPassOps(
+        if self.conv_ml_trainer is not None:
+            conv_output_blob = C2.NextBlob("conv_output")
+            self.conv_ml_trainer.make_conv_pass_ops(
+                model,
+                states,
+                conv_output_blob,
+            )
+            states = conv_output_blob
+
+        self.ml_trainer.make_forward_pass_ops(
             model,
-            self.model_id,
             states,
             output_blob,
-            self.weights,
-            self.biases,
-            self.activations,
-            self.layers,
-            self.dropout_ratio,
             False,
         )
         q_val_select = C2.ReduceBackSum(C2.Mul(output_blob, actions))
         q_values = C2.ExpandDims(q_val_select, dims=[1])
 
-        self.loss_blob = GenerateLossOps(
+        self.loss_blob = self.ml_trainer.generateLossOps(
             model,
             q_values,
             q_vals_target,
@@ -124,13 +122,7 @@ class DiscreteActionTrainer(RLTrainer):
             if param in model.param_to_grad:
                 param_grad = model.param_to_grad[param]
                 param_grad = C2.NanCheck(param_grad)
-        AddParameterUpdateOps(
-            model,
-            optimizer_input=self.optimizer,
-            base_learning_rate=self.learning_rate,
-            gamma=self.gamma,
-            policy=self.lr_policy,
-        )
+        self.ml_trainer.addParameterUpdateOps(model)
 
     def get_q_values(
         self,
@@ -210,23 +202,38 @@ class DiscreteActionTrainer(RLTrainer):
         :use_target_network: Boolean that indicates whether or not to use this
             trainer's TargetNetwork to compute Q values.
         """
+        all_q_values = C2.NextBlob("all_q_values")
         if use_target_network:
-            return self.target_network.target_values(states)
-        else:
-            all_q_values = C2.NextBlob("all_q_values")
-            MakeForwardPassOps(
+            if self.conv_target_network is not None:
+                conv_output_blob = C2.NextBlob("conv_output")
+                self.conv_target_network.make_conv_pass_ops(
+                    C2.model(),
+                    states,
+                    conv_output_blob,
+                )
+                states = conv_output_blob
+            self.target_network.make_forward_pass_ops(
                 C2.model(),
-                self.model_id + "_score",
                 states,
                 all_q_values,
-                self.weights,
-                self.biases,
-                self.activations,
-                self.layers,
-                self.dropout_ratio,
                 True,
             )
-            return all_q_values
+        else:
+            if self.conv_ml_trainer is not None:
+                conv_output_blob = C2.NextBlob("conv_output")
+                self.conv_ml_trainer.make_conv_pass_ops(
+                    C2.model(),
+                    states,
+                    conv_output_blob,
+                )
+                states = conv_output_blob
+            self.ml_trainer.make_forward_pass_ops(
+                C2.model(),
+                states,
+                all_q_values,
+                True,
+            )
+        return all_q_values
 
     def _create_reward_train_net(self) -> None:
         self.reward_train_model = ModelHelper(

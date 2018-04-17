@@ -22,9 +22,6 @@ from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
 from ml.rl.training.continuous_action_dqn_predictor import (
     ContinuousActionDQNPredictor
 )
-from ml.rl.training.model_update_helper import AddParameterUpdateOps
-from ml.rl.training.ml_trainer import GenerateLossOps
-from ml.rl.training.ml_trainer import MLTrainer, MakeForwardPassOps
 from ml.rl.training.rl_trainer import RLTrainer
 
 
@@ -57,12 +54,6 @@ class ContinuousActionDQNTrainer(RLTrainer):
 
         RLTrainer.__init__(self, parameters)
 
-    def _setup_initial_blobs(self):
-        self.input_dim = self.num_features
-        self.output_dim = 1
-
-        MLTrainer._setup_initial_blobs(self)
-
     def get_possible_next_actions(self):
         return StackedArray(
             'possible_next_actions_lengths',
@@ -94,20 +85,14 @@ class ContinuousActionDQNTrainer(RLTrainer):
         q_vals_target = C2.StopGradient(q_vals_target)
         q_values = C2.NextBlob("train_output")
         state_action_pairs, _ = C2.Concat(states, actions, axis=1)
-        MakeForwardPassOps(
+        self.ml_trainer.make_forward_pass_ops(
             model,
-            self.model_id,
             state_action_pairs,
             q_values,
-            self.weights,
-            self.biases,
-            self.activations,
-            self.layers,
-            self.dropout_ratio,
             False,
         )
 
-        self.loss_blob = GenerateLossOps(
+        self.loss_blob = self.ml_trainer.generateLossOps(
             model,
             q_values,
             q_vals_target,
@@ -117,13 +102,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
             if param in model.param_to_grad:
                 param_grad = model.param_to_grad[param]
                 param_grad = C2.NanCheck(param_grad)
-        AddParameterUpdateOps(
-            model,
-            optimizer_input=self.optimizer,
-            base_learning_rate=self.learning_rate,
-            gamma=self.gamma,
-            policy=self.lr_policy,
-        )
+        self.ml_trainer.addParameterUpdateOps(model)
 
     def get_q_values(
         self,
@@ -132,23 +111,22 @@ class ContinuousActionDQNTrainer(RLTrainer):
         use_target_network: bool,
     ) -> str:
         state_action_pairs, _ = C2.Concat(states, actions, axis=1)
+        q_values = C2.NextBlob("q_values")
         if use_target_network:
-            return self.target_network.target_values(state_action_pairs)
-        else:
-            q_values = C2.NextBlob("q_values")
-            MakeForwardPassOps(
+            self.target_network.make_forward_pass_ops(
                 C2.model(),
-                self.model_id,
                 state_action_pairs,
                 q_values,
-                self.weights,
-                self.biases,
-                self.activations,
-                self.layers,
-                self.dropout_ratio,
                 True,
             )
-            return q_values
+        else:
+            self.ml_trainer.make_forward_pass_ops(
+                C2.model(),
+                state_action_pairs,
+                q_values,
+                True,
+            )
+        return q_values
 
     def get_max_q_values(
         self,

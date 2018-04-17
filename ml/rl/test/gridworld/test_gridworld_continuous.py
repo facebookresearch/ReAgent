@@ -154,7 +154,7 @@ class TestGridworldContinuous(unittest.TestCase):
             self.minibatch_size,
         )
         evaluator = GridworldContinuousEvaluator(environment, True)
-        self.assertGreater(evaluator.evaluate(predictor), 0.4)
+        self.assertGreater(evaluator.evaluate(predictor), 0.3)
 
         for _ in range(2):
             for tdp in tdps:

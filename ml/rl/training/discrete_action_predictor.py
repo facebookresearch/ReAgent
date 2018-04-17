@@ -22,11 +22,13 @@ class DiscreteActionPredictor(RLPredictor):
     def __init__(self, net, parameters):
         RLPredictor.__init__(self, net, parameters)
         self.is_discrete = True
-        self._output_blobs.extend([
-            'output/string_single_categorical_features.keys',
-            'output/string_single_categorical_features.lengths',
-            'output/string_single_categorical_features.values',
-        ])
+        self._output_blobs.extend(
+            [
+                'output/string_single_categorical_features.keys',
+                'output/string_single_categorical_features.lengths',
+                'output/string_single_categorical_features.values',
+            ]
+        )
 
     def get_predictor_export_meta(self):
         return PredictorExportMeta(
@@ -47,6 +49,9 @@ class DiscreteActionPredictor(RLPredictor):
         C2.set_model(model)
 
         workspace.FeedBlob(
+            'input/image', np.zeros([1, 1, 1, 1], dtype=np.int32)
+        )
+        workspace.FeedBlob(
             'input/float_features.lengths', np.zeros(1, dtype=np.int32)
         )
         workspace.FeedBlob(
@@ -56,17 +61,23 @@ class DiscreteActionPredictor(RLPredictor):
             'input/float_features.values', np.zeros(1, dtype=np.float32)
         )
 
-        preprocessor = PreprocessorNet(net, True)
         parameters = []
-        parameters.extend(preprocessor.parameters)
-        normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
-            'input/float_features.lengths',
-            'input/float_features.keys',
-            'input/float_features.values',
-            normalization_parameters,
-            'state_norm',
-        )
-        parameters.extend(new_parameters)
+        if normalization_parameters is not None:
+            preprocessor = PreprocessorNet(net, True)
+            parameters.extend(preprocessor.parameters)
+            normalized_dense_matrix, new_parameters = \
+                preprocessor.normalize_sparse_matrix(
+                    'input/float_features.lengths',
+                    'input/float_features.keys',
+                    'input/float_features.values',
+                    normalization_parameters,
+                    'state_norm',
+                )
+            parameters.extend(new_parameters)
+        else:
+            # Image input.  Note: Currently this does the wrong thing if
+            #   more than one image is passed at a time.
+            normalized_dense_matrix = 'input/image'
 
         new_parameters, q_values = RLPredictor._forward_pass(
             model,
@@ -87,7 +98,8 @@ class DiscreteActionPredictor(RLPredictor):
         temperature = C2.NextBlob("temperature")
         parameters.append(temperature)
         workspace.FeedBlob(
-            temperature, np.array([trainer.rl_temperature], dtype=np.float32))
+            temperature, np.array([trainer.rl_temperature], dtype=np.float32)
+        )
         tempered_q_values = C2.Div(q_values, "temperature", broadcast=1)
         softmax_values = C2.Softmax(tempered_q_values)
         softmax_act_idxs_nested = 'softmax_act_idxs_nested'
@@ -97,26 +109,38 @@ class DiscreteActionPredictor(RLPredictor):
 
         # Concat action index tensors to get 2 x n tensor - [[max_q], [softmax]]
         # transpose & flatten to get [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
-        max_q_act_blob = C2.Cast(max_q_act_idxs, to=caffe2_pb2.TensorProto.INT64)
-        softmax_act_blob = C2.Cast(softmax_act_idxs, to=caffe2_pb2.TensorProto.INT64)
+        max_q_act_blob = C2.Cast(
+            max_q_act_idxs, to=caffe2_pb2.TensorProto.INT32
+        )
+        softmax_act_blob = C2.Cast(
+            softmax_act_idxs, to=caffe2_pb2.TensorProto.INT32
+        )
         C2.net().Append([max_q_act_blob, softmax_act_blob], [max_q_act_blob])
         transposed_action_idxs = C2.Transpose(max_q_act_blob)
         flat_transposed_action_idxs = C2.FlattenToVec(transposed_action_idxs)
         output_values = 'output/string_single_categorical_features.values'
         workspace.FeedBlob(output_values, np.zeros(1, dtype=np.int64))
-        C2.net().Gather(["action_names", flat_transposed_action_idxs], [output_values])
+        C2.net().Gather(
+            ["action_names", flat_transposed_action_idxs], [output_values]
+        )
 
         output_lengths = 'output/string_single_categorical_features.lengths'
         workspace.FeedBlob(output_lengths, np.zeros(1, dtype=np.int32))
         C2.net().ConstantFill(
             [shape_of_num_of_states], [output_lengths],
-            value=2, dtype=caffe2_pb2.TensorProto.INT32)
+            value=2,
+            dtype=caffe2_pb2.TensorProto.INT32
+        )
 
         output_keys = 'output/string_single_categorical_features.keys'
         workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int64))
         output_keys_tensor, _ = C2.Concat(
-            C2.ConstantFill(shape=[1, 1], value=0, dtype=caffe2_pb2.TensorProto.INT64),
-            C2.ConstantFill(shape=[1, 1], value=1, dtype=caffe2_pb2.TensorProto.INT64),
+            C2.ConstantFill(
+                shape=[1, 1], value=0, dtype=caffe2_pb2.TensorProto.INT64
+            ),
+            C2.ConstantFill(
+                shape=[1, 1], value=1, dtype=caffe2_pb2.TensorProto.INT64
+            ),
             axis=0,
         )
         output_key_tile = C2.Tile(output_keys_tensor, num_states, axis=0)

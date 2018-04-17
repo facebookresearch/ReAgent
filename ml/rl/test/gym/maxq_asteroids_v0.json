@@ -1,11 +1,14 @@
 {
   "env": "Asteroids-v0",
+  "model_type": "discrete",
   "rl": {
-    "reward_discount_factor": 0.99,
-    "target_update_rate": 0.1,
-    "reward_burnin": 10,
+    "gamma": 0.99,
+    "target_update_rate": 0.2,
+    "reward_burnin": 1,
     "maxq_learning": 1,
-    "epsilon": 0.2
+    "epsilon": 0.2,
+    "temperature": 0.35,
+    "softmax_policy": 0
   },
   "training": {
     "layers": [
@@ -19,48 +22,42 @@
       "relu",
       "linear"
     ],
-    "minibatch_size": 128,
-    "learning_rate": 0.05,
+    "minibatch_size": 64,
+    "learning_rate": 0.001,
     "optimizer": "ADAM",
-    "learning_rate_decay": 0.999
+    "gamma": 0.999,
+    "cnn_parameters": {
+      "conv_dims": [
+        3,
+        32,
+        16
+      ],
+      "conv_height_kernels": [
+        8,
+        4
+      ],
+      "conv_width_kernels": [
+        8,
+        4
+      ],
+      "pool_kernels_strides": [
+        2,
+        2
+      ],
+      "pool_types": [
+        "max",
+        "max"
+      ]
+    }
   },
   "run_details": {
-    "num_episodes": 30,
-    "train_every": 5,
-    "train_after": 1,
-    "test_every": 5,
-    "test_after": 1,
-    "num_train_batches": 5,
-    "avg_over_num_episodes": 5,
-    "render": 0,
-    "render_every": 100
-  },
-  "cnn": {
-    "conv_dims": [
-      -1,
-      2,
-      3,
-      1
-    ],
-    "conv_height_kernels": [
-      3,
-      2,
-      3
-    ],
-    "conv_width_kernels": [
-      3,
-      2,
-      3
-    ],
-    "pool_kernels_strides": [
-      2,
-      4,
-      3
-    ],
-    "pool_types": [
-      "max",
-      "avg",
-      "max"
-    ]
+    "num_episodes": 5001,
+    "max_steps": 200,
+    "train_every_ts": 1,
+    "train_after_ts": 1,
+    "test_every_ts": 2000,
+    "test_after_ts": 1,
+    "num_train_batches": 1,
+    "avg_over_num_episodes": 100
   }
 }

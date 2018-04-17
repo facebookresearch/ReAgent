@@ -31,7 +31,11 @@ class EnvType(enum.Enum):
 
 class OpenAIGymEnvironment:
     def __init__(
-        self, gymenv, epsilon=0.2, softmax_policy=1, max_replay_memory_size=10000
+        self,
+        gymenv,
+        epsilon=0.2,
+        softmax_policy=1,
+        max_replay_memory_size=10000
     ):
         """
         Creates an OpenAIGymEnvironment object.
@@ -136,7 +140,9 @@ class OpenAIGymEnvironment:
             'rewards',
             np.array(rewards, dtype=np.float32).reshape(-1, 1)
         )
-        workspace.FeedBlob('next_states', np.array(next_states, dtype=np.float32))
+        workspace.FeedBlob(
+            'next_states', np.array(next_states, dtype=np.float32)
+        )
         workspace.FeedBlob(
             'not_terminals',
             np.logical_not(terminals, dtype=np.bool).reshape(-1, 1)
@@ -144,7 +150,9 @@ class OpenAIGymEnvironment:
 
         # SARSA algorithm does not need possible next actions so return
         if not maxq_learning:
-            workspace.FeedBlob('next_actions', np.array(next_actions, dtype=np.float32))
+            workspace.FeedBlob(
+                'next_actions', np.array(next_actions, dtype=np.float32)
+            )
             return
 
         if model_type == ModelType.DISCRETE_ACTION.value:
@@ -157,22 +165,27 @@ class OpenAIGymEnvironment:
             for row in pna_matrix:
                 pnas.append(row)
 
-        workspace.FeedBlob('possible_next_actions_lengths',
-            np.array(possible_next_actions_lengths, dtype=np.int32))
-        workspace.FeedBlob('possible_next_actions', np.array(pnas, dtype=np.float32))
+        workspace.FeedBlob(
+            'possible_next_actions_lengths',
+            np.array(possible_next_actions_lengths, dtype=np.int32)
+        )
+        workspace.FeedBlob(
+            'possible_next_actions', np.array(pnas, dtype=np.float32)
+        )
 
     @property
     def normalization(self):
-        return default_normalizer(self.state_features)
+        if self.img:
+            return None
+        else:
+            return default_normalizer(self.state_features)
 
     @property
     def normalization_action(self):
         return default_normalizer(
             [
-                x
-                for x in list(
-                    range(self.state_dim, self.state_dim + self.action_dim)
-                )
+                x for x in
+                list(range(self.state_dim, self.state_dim + self.action_dim))
             ]
         )
 
@@ -184,20 +197,30 @@ class OpenAIGymEnvironment:
         :param next_state: State to evaluate predictor's policy on.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         """
-        next_state = next_state.astype(np.float32).reshape(1, -1)
+
+        # Add a dimension since this expects a batch of examples
+        next_state = np.expand_dims(next_state.astype(np.float32), axis=0)
+
         action = np.zeros([self.action_dim], dtype=np.float32)
         if not test and np.random.rand() < self.epsilon:
             action_idx = np.random.randint(self.action_dim)
         else:
-            # Convert next_state to a list[dict[int,float]]
-            next_state_dict = [{}]
-            for i in range(next_state.shape[1]):
-                next_state_dict[0][i] = next_state[0][i]
+            if not self.img:
+                # Convert next_state to a list[dict[int,float]]
+                next_state_dict = [{}]
+                for i in range(next_state.shape[1]):
+                    next_state_dict[0][i] = next_state[0][i]
             if isinstance(predictor, DiscreteActionPredictor):
-                if self.softmax_policy:
-                    action_str = predictor.policy(next_state_dict)[1]
+                if self.img:
+                    if self.softmax_policy:
+                        action_str = predictor.policy_image(next_state)[1]
+                    else:
+                        action_str = predictor.policy_image(next_state)[0]
                 else:
-                    action_str = predictor.policy(next_state_dict)[0]
+                    if self.softmax_policy:
+                        action_str = predictor.policy(next_state_dict)[1]
+                    else:
+                        action_str = predictor.policy(next_state_dict)[0]
                 action_idx = self.actions.index(action_str.decode("utf-8"))
             elif isinstance(predictor, ContinuousActionDQNPredictor):
                 normed_action_keys = sorted(self.normalization_action.keys())
@@ -213,7 +236,9 @@ class OpenAIGymEnvironment:
                 action_idx = normed_action_keys.index(action_to_take[0])
             elif isinstance(predictor, DDPGPredictor):
                 if test:
-                    return predictor.predict_action(next_state_dict, noisy=False)
+                    return predictor.predict_action(
+                        next_state_dict, noisy=False
+                    )
                 return predictor.predict_action(next_state_dict, noisy=True)
         action[action_idx] = 1.0
         return action
@@ -240,7 +265,9 @@ class OpenAIGymEnvironment:
             self.replay_memory[rand_index] = item
         self.memory_num += 1
 
-    def run_ep_n_times(self, n, predictor, max_steps=None, test=False, render=False):
+    def run_ep_n_times(
+        self, n, predictor, max_steps=None, test=False, render=False
+    ):
         """
         Runs an episode of the environment n times and returns the average
         sum of rewards.
@@ -258,6 +285,12 @@ class OpenAIGymEnvironment:
         avg_rewards = round(reward_sum / n, 2)
         return avg_rewards
 
+    def transform_state(self, state):
+        if self.img:
+            # Convert from Height-Width-Channel into Channel-Height-Width
+            state = np.transpose(state, axes=[2, 0, 1])
+        return state
+
     def run_episode(self, predictor, max_steps=None, test=False, render=False):
         """
         Runs an episode of the environment and returns the sum of rewards
@@ -269,7 +302,7 @@ class OpenAIGymEnvironment:
         :param render: Whether or not to render the episode.
         """
         terminal = False
-        next_state = self.env.reset()
+        next_state = self.transform_state(self.env.reset())
         next_action = self.policy(predictor, next_state, test)
         reward_sum = 0
         num_steps_taken = 0
@@ -285,6 +318,7 @@ class OpenAIGymEnvironment:
             else:
                 next_state, reward, terminal, _ = self.env.step(action)
                 reward = reward[0]
+            next_state = self.transform_state(next_state)
 
             num_steps_taken += 1
             next_action = self.policy(predictor, next_state, test)

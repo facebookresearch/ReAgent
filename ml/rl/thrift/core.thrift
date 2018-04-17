@@ -11,6 +11,17 @@ struct RLParameters {
   8: i32 softmax_policy = 1
 }
 
+struct CNNParameters {
+  1: list<i32> conv_dims,
+  2: list<i32> conv_height_kernels,
+  3: list<i32> conv_width_kernels,
+  4: list<i32> pool_kernels_strides,
+  5: list<string> pool_types,
+  6: i32 num_input_channels,
+  7: i32 input_height,
+  8: i32 input_width,
+}
+
 struct TrainingParameters {
   1: i32 minibatch_size = 16384,
   2: double learning_rate = 0.01,
@@ -21,6 +32,7 @@ struct TrainingParameters {
   7: double gamma = 0.999,
   8: double dropout_ratio = 0.0,
   9: optional string warm_start_model_path,
+  10: optional CNNParameters cnn_parameters,
 }
 
 struct ActionBudget {
@@ -51,22 +63,6 @@ struct ContinuousActionModelParameters {
   1: RLParameters rl = {},
   2: TrainingParameters training = {},
   3: KnnParameters knn,
-}
-
-struct CNNModelParameters {
-  1: list<i32> conv_dims,
-  2: list<i32> conv_height_kernels,
-  3: list<i32> conv_width_kernels,
-  4: list<i32> pool_kernels_strides,
-  5: list<string> pool_types,
-}
-
-struct DiscreteActionConvModelParameters {
-  1: DiscreteActionModelParameters fc_parameters,
-  2: CNNModelParameters cnn_parameters,
-  3: i32 num_input_channels,
-  4: i32 img_height,
-  5: i32 img_width
 }
 
 struct DDPGNetworkParameters {

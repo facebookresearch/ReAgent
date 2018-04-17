@@ -18,11 +18,17 @@ from ml.rl.test.gym.open_ai_gym_environment import EnvType, ModelType,\
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
-from ml.rl.training.conv.discrete_action_conv_trainer import DiscreteActionConvTrainer
-from ml.rl.thrift.core.ttypes import RLParameters, TrainingParameters,\
-    DiscreteActionModelParameters, DiscreteActionConvModelParameters,\
-    CNNModelParameters, ContinuousActionModelParameters, KnnParameters,\
-    DDPGNetworkParameters, DDPGTrainingParameters, DDPGModelParameters
+from ml.rl.thrift.core.ttypes import (
+    RLParameters,
+    TrainingParameters,
+    DiscreteActionModelParameters,
+    CNNParameters,
+    ContinuousActionModelParameters,
+    KnnParameters,
+    DDPGNetworkParameters,
+    DDPGTrainingParameters,
+    DDPGModelParameters,
+)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -30,8 +36,8 @@ logger = logging.getLogger(__name__)
 USE_CPU = -1
 
 EnvDetails = collections.namedtuple(
-    'EnvDetails',
-    ['state_dim', 'action_dim', 'action_range'])
+    'EnvDetails', ['state_dim', 'action_dim', 'action_range']
+)
 
 
 def run(
@@ -58,7 +64,7 @@ def run(
 
     for i in range(num_episodes):
         terminal = False
-        next_state = gym_env.env.reset()
+        next_state = gym_env.transform_state(gym_env.env.reset())
         next_action = gym_env.policy(predictor, next_state, False)
         reward_sum = 0
         ep_timesteps = 0
@@ -78,6 +84,7 @@ def run(
                 next_state, reward, terminal, _ = gym_env.env.step(action_index)
             else:
                 next_state, reward, terminal, _ = gym_env.env.step(action)
+            next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
             total_timesteps += 1
@@ -114,11 +121,15 @@ def run(
             ):
                 for _ in range(num_train_batches):
                     if model_type == ModelType.CONTINUOUS_ACTION.value:
-                        samples = gym_env.sample_memories(trainer.minibatch_size)
+                        samples = gym_env.sample_memories(
+                            trainer.minibatch_size
+                        )
                         trainer.train(predictor, samples)
                     else:
                         gym_env.sample_and_load_training_data_c2(
-                            trainer.minibatch_size, model_type, trainer.maxq_learning)
+                            trainer.minibatch_size, model_type,
+                            trainer.maxq_learning
+                        )
                         trainer.train(reward_timelines=None, evaluator=None)
 
             # Evaluation loop
@@ -127,16 +138,22 @@ def run(
                 total_timesteps > test_after_ts
             ):
                 avg_rewards = gym_env.run_ep_n_times(
-                    avg_over_num_episodes, predictor, test=True)
+                    avg_over_num_episodes, predictor, test=True
+                )
                 avg_reward_history.append(avg_rewards)
                 logger.info(
                     "Achieved an average reward score of {} over {} evaluations."
-                    " Total episodes: {}, total timesteps: {}."
-                    .format(avg_rewards, avg_over_num_episodes, i + 1, total_timesteps)
+                    " Total episodes: {}, total timesteps: {}.".format(
+                        avg_rewards, avg_over_num_episodes, i + 1,
+                        total_timesteps
+                    )
                 )
                 if score_bar is not None and avg_rewards > score_bar:
-                    logger.info('Avg. reward history for {}: {}'.format(
-                        test_run_name, avg_reward_history))
+                    logger.info(
+                        'Avg. reward history for {}: {}'.format(
+                            test_run_name, avg_reward_history
+                        )
+                    )
                     return avg_reward_history
 
             if max_steps and ep_timesteps >= max_steps:
@@ -145,16 +162,21 @@ def run(
         # Always eval on last episode if previous eval loop didn't return.
         if i == num_episodes - 1:
             avg_rewards = gym_env.run_ep_n_times(
-                avg_over_num_episodes, predictor, test=True)
+                avg_over_num_episodes, predictor, test=True
+            )
             avg_reward_history.append(avg_rewards)
             logger.info(
                 "Achieved an average reward score of {} over {} evaluations."
-                " Total episodes: {}, total timesteps: {}."
-                .format(avg_rewards, avg_over_num_episodes, i + 1, total_timesteps)
+                " Total episodes: {}, total timesteps: {}.".format(
+                    avg_rewards, avg_over_num_episodes, i + 1, total_timesteps
+                )
             )
 
-    logger.info('Avg. reward history for {}: {}'.format(
-        test_run_name, avg_reward_history))
+    logger.info(
+        'Avg. reward history for {}: {}'.format(
+            test_run_name, avg_reward_history
+        )
+    )
     return avg_reward_history
 
 
@@ -190,7 +212,9 @@ def main(args):
     args = parser.parse_args(args)
 
     if args.log_level not in ('debug', 'info', 'warning', 'error', 'critical'):
-        raise Exception("Logging level {} not valid level.".format(args.log_level))
+        raise Exception(
+            "Logging level {} not valid level.".format(args.log_level)
+        )
     else:
         logger.setLevel(getattr(logging, args.log_level.upper()))
 
@@ -201,11 +225,14 @@ def main(args):
 
 
 def run_gym(params, score_bar, gpu_id):
+    logger.info("Running gym with params")
+    logger.info(params)
     rl_settings = params['rl']
 
     env_type = params['env']
-    env = OpenAIGymEnvironment(env_type, rl_settings['epsilon'],
-        rl_settings['softmax_policy'])
+    env = OpenAIGymEnvironment(
+        env_type, rl_settings['epsilon'], rl_settings['softmax_policy']
+    )
     model_type = params['model_type']
     c2_device = core.DeviceOption(
         caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA,
@@ -215,58 +242,76 @@ def run_gym(params, score_bar, gpu_id):
     if model_type == ModelType.DISCRETE_ACTION.value:
         with core.DeviceScope(c2_device):
             training_settings = params['training']
+            training_parameters = TrainingParameters(**training_settings)
+            if env.img:
+                assert training_parameters.cnn_parameters is not None,\
+                    'Missing CNN parameters for image input'
+                training_parameters.cnn_parameters = CNNParameters(
+                    **training_settings['cnn_parameters']
+                )
+                training_parameters.cnn_parameters.conv_dims[0] = \
+                    env.num_input_channels
+                training_parameters.cnn_parameters.input_height = env.height
+                training_parameters.cnn_parameters.input_width = env.width
+                training_parameters.cnn_parameters.num_input_channels = \
+                    env.num_input_channels
+            else:
+                assert training_parameters.cnn_parameters is None,\
+                    'Extra CNN parameters for non-image input'
             trainer_params = DiscreteActionModelParameters(
                 actions=env.actions,
                 rl=RLParameters(**rl_settings),
-                training=TrainingParameters(**training_settings)
+                training=training_parameters
             )
-            if env.img:
-                trainer = DiscreteActionConvTrainer(
-                    DiscreteActionConvModelParameters(
-                        fc_parameters=trainer_params,
-                        cnn_parameters=CNNModelParameters(**params['cnn']),
-                        num_input_channels=env.num_input_channels,
-                        img_height=env.height,
-                        img_width=env.width
-                    ),
-                    env.normalization,
-                )
-            else:
-                trainer = DiscreteActionTrainer(
-                    trainer_params,
-                    env.normalization,
-                )
+            trainer = DiscreteActionTrainer(
+                trainer_params,
+                env.normalization,
+            )
     elif model_type == ModelType.PARAMETRIC_ACTION.value:
         with core.DeviceScope(c2_device):
             training_settings = params['training']
+            training_parameters = TrainingParameters(**training_settings)
+            if env.img:
+                assert training_parameters.cnn_parameters is not None,\
+                    'Missing CNN parameters for image input'
+                training_parameters.cnn_parameters = CNNParameters(
+                    **training_settings['cnn_parameters']
+                )
+                training_parameters.cnn_parameters.conv_dims[0] = \
+                    env.num_input_channels
+            else:
+                assert training_parameters.cnn_parameters is None,\
+                    'Extra CNN parameters for non-image input'
             trainer_params = ContinuousActionModelParameters(
                 rl=RLParameters(**rl_settings),
-                training=TrainingParameters(**training_settings),
+                training=training_parameters,
                 knn=KnnParameters(model_type='DQN', ),
             )
             trainer = ContinuousActionDQNTrainer(
-                trainer_params,
-                env.normalization,
-                env.normalization_action
+                trainer_params, env.normalization, env.normalization_action
             )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
-            training_settings = params['shared_training']
-            actor_settings = params['actor_training']
-            critic_settings = params['critic_training']
-            trainer_params = DDPGModelParameters(
-                rl=RLParameters(**rl_settings),
-                shared_training=DDPGTrainingParameters(**training_settings),
-                actor_training=DDPGNetworkParameters(**actor_settings),
-                critic_training=DDPGNetworkParameters(**critic_settings),
-            )
-            trainer = DDPGTrainer(trainer_params, EnvDetails(
+        training_settings = params['shared_training']
+        actor_settings = params['actor_training']
+        critic_settings = params['critic_training']
+        trainer_params = DDPGModelParameters(
+            rl=RLParameters(**rl_settings),
+            shared_training=DDPGTrainingParameters(**training_settings),
+            actor_training=DDPGNetworkParameters(**actor_settings),
+            critic_training=DDPGNetworkParameters(**critic_settings),
+        )
+        trainer = DDPGTrainer(
+            trainer_params,
+            EnvDetails(
                 state_dim=env.state_dim,
                 action_dim=env.action_dim,
                 action_range=(env.action_space.low, env.action_space.high),
-            ))
+            )
+        )
     else:
         raise NotImplementedError(
-            "Model of type {} not supported".format(model_type))
+            "Model of type {} not supported".format(model_type)
+        )
 
     return run(
         env, model_type, trainer, "{} test run".format(env_type), score_bar,
