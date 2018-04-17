@@ -45,8 +45,8 @@ struct ActionBudget {
 
 struct DiscreteActionModelParameters {
   1: list<string> actions,
-  2: RLParameters rl = {},
-  3: TrainingParameters training = {},
+  2: RLParameters rl,
+  3: TrainingParameters training,
   4: ActionBudget action_budget,
 }
 
@@ -60,8 +60,8 @@ struct KnnParameters {
 }
 
 struct ContinuousActionModelParameters {
-  1: RLParameters rl = {},
-  2: TrainingParameters training = {},
+  1: RLParameters rl,
+  2: TrainingParameters training,
   3: KnnParameters knn,
 }
 
@@ -79,10 +79,10 @@ struct DDPGTrainingParameters {
 }
 
 struct DDPGModelParameters {
-  1: RLParameters rl = {},
-  2: DDPGTrainingParameters shared_training = {},
-  3: DDPGNetworkParameters actor_training = {},
-  4: DDPGNetworkParameters critic_training = {}
+  1: RLParameters rl,
+  2: DDPGTrainingParameters shared_training,
+  3: DDPGNetworkParameters actor_training,
+  4: DDPGNetworkParameters critic_training,
 }
 
 struct OpenAIGymParameters {
