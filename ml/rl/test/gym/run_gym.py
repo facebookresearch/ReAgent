@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import collections
 import json
 import sys
 
@@ -31,10 +30,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 USE_CPU = -1
-
-EnvDetails = collections.namedtuple(
-    'EnvDetails', ['state_dim', 'action_dim', 'action_range']
-)
 
 
 def run(
@@ -300,17 +295,20 @@ def run_gym(params, score_bar, gpu_id):
 
         # DDPG can handle continuous and discrete action spaces
         if env.action_type == EnvType.CONTINUOUS_ACTION:
-            action_range = (env.action_space.low, env.action_space.high)
+            action_range = env.action_space.high
         else:
             action_range = None
+
+        env_details = {
+            'state_dim': env.state_dim,
+            'action_dim': env.action_dim,
+            'action_range': action_range,
+        }
         trainer = DDPGTrainer(
-            trainer_params,
-            EnvDetails(
-                state_dim=env.state_dim,
-                action_dim=env.action_dim,
-                action_range=action_range,
-            )
+            trainer_params, env_details, env.normalization,
+            env.normalization_action
         )
+
     else:
         raise NotImplementedError(
             "Model of type {} not supported".format(model_type)

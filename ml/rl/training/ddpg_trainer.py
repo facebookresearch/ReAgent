@@ -9,7 +9,14 @@ from ml.rl.training.ddpg_predictor import DDPGPredictor
 
 
 class DDPGTrainer(object):
-    def __init__(self, parameters, env_details) -> None:
+    def __init__(
+        self, parameters, env_details, state_normalization_parameters,
+        action_normalization_parameters
+    ) -> None:
+
+        self.state_normalization_parameters = state_normalization_parameters
+        self.action_normalization_parameters = action_normalization_parameters
+
         # Shared params
         self.env_details = env_details
         self.minibatch_size = parameters.shared_training.minibatch_size
@@ -27,18 +34,25 @@ class DDPGTrainer(object):
 
         # Actor params
         self.actor_params = parameters.actor_training
-        self.actor_params.layers[0] = env_details.state_dim
-        self.actor_params.layers[-1] = env_details.action_dim
+        self.actor_params.layers[0] = env_details['state_dim']
+        self.actor_params.layers[-1] = env_details['action_dim']
         self.noise_generator = OrnsteinUhlenbeckProcessNoise(
-            env_details.action_dim
+            env_details['action_dim']
         )
 
         # Critic params
         self.critic_params = parameters.critic_training
-        self.critic_params.layers[0] = env_details.state_dim
+        self.critic_params.layers[0] = env_details['state_dim']
         self.critic_params.layers[-1] = 1
 
-    def train(self, predictor, training_samples) -> None:
+    def train(
+        self,
+        predictor,
+        training_samples,
+        evaluator=None,
+        reward_timelines=None
+    ) -> None:
+
         states = Variable(torch.from_numpy(training_samples[0]))
         actions = Variable(torch.from_numpy(training_samples[1]))
         rewards = Variable(torch.from_numpy(training_samples[2]))
@@ -57,7 +71,8 @@ class DDPGTrainer(object):
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
         target_q_values = rewards + (self.gamma * filtered_q_s2_a2)
         # compute loss and update the critic network
-        loss_critic = F.mse_loss(q_s1_a1.squeeze(), target_q_values)
+        critic_predictions = q_s1_a1.squeeze()
+        loss_critic = F.mse_loss(critic_predictions, target_q_values)
         predictor.critic_optimizer.zero_grad()
         loss_critic.backward()
         predictor.critic_optimizer.step()
@@ -72,6 +87,14 @@ class DDPGTrainer(object):
         # Use the soft update rule to update both target networks
         self._soft_update(predictor.actor, predictor.actor_target, self.tau)
         self._soft_update(predictor.critic, predictor.critic_target, self.tau)
+
+        if evaluator is not None:
+            assert reward_timelines is not None
+            evaluator.report(
+                reward_timelines,
+                critic_predictions.data.numpy(),
+                loss_critic.data.numpy(),
+            )
 
     def _soft_update(self, network, target_network, tau) -> None:
         """ Target network update logic as defined in DDPG paper

@@ -12,7 +12,7 @@ from torch.autograd import Variable
 
 class DDPGPredictor(object):
     def __init__(self, trainer) -> None:
-        self.action_range = trainer.env_details.action_range
+        self.action_range = trainer.env_details['action_range']
         # Init actor network, actor target network, actor optimizer
         self.actor = ActorNet(
             trainer.actor_params.layers, trainer.actor_params.activations,
@@ -27,7 +27,7 @@ class DDPGPredictor(object):
         # Init critic network, critic target network, critic optimizer
         self.critic = CriticNet(
             trainer.critic_params.layers, trainer.critic_params.activations,
-            trainer.final_layer_init, trainer.env_details.action_dim
+            trainer.final_layer_init, trainer.env_details['action_dim']
         )
         self.critic_target = deepcopy(self.critic)
         self.critic_optimizer = trainer.optimizer_func(
@@ -61,7 +61,7 @@ class DDPGPredictor(object):
         if self.action_range:
             return np.array(
                 [
-                    self.action_range[1] * np.clip(action, -1, 1)
+                    self.action_range * np.clip(action, -1, 1)
                     for action in actions
                 ],
                 dtype=np.float32

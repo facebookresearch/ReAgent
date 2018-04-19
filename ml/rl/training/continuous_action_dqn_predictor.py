@@ -20,11 +20,13 @@ class ContinuousActionDQNPredictor(RLPredictor):
     def __init__(self, net, parameters):
         RLPredictor.__init__(self, net, parameters)
         self.is_discrete = False
-        self._output_blobs.extend([
-            'output/int_single_categorical_features.keys',
-            'output/int_single_categorical_features.lengths',
-            'output/int_single_categorical_features.values',
-        ])
+        self._output_blobs.extend(
+            [
+                'output/int_single_categorical_features.keys',
+                'output/int_single_categorical_features.lengths',
+                'output/int_single_categorical_features.values',
+            ]
+        )
 
     def predict(self, states, actions):
         """ Returns values for each state/action pair
@@ -133,19 +135,24 @@ class ContinuousActionDQNPredictor(RLPredictor):
         temperature = C2.NextBlob("temperature")
         parameters.append(temperature)
         workspace.FeedBlob(
-            temperature, np.array([trainer.rl_temperature], dtype=np.float32))
+            temperature, np.array([trainer.rl_temperature], dtype=np.float32)
+        )
         tempered_q_values = C2.Div(q_value_blob, "temperature", broadcast=1)
         softmax_values = C2.Softmax(tempered_q_values)
         softmax_act_idxs_nested = 'softmax_act_idxs_nested'
         C2.net().WeightedSample([softmax_values], [softmax_act_idxs_nested])
         softmax_act_blob = C2.Tile(
-            C2.FlattenToVec(softmax_act_idxs_nested),
-            num_examples, axis=0)
+            C2.FlattenToVec(softmax_act_idxs_nested), num_examples, axis=0
+        )
 
         # Concat action idx vecs to get 2 x n tensor [[a_maxq, ..], [a_softmax, ..]]
         # transpose & flatten to get [a_maxq, a_softmax, a_maxq, a_softmax, ...]
-        max_q_act_blob = C2.Cast(max_q_act_blob, to=caffe2_pb2.TensorProto.INT64)
-        softmax_act_blob = C2.Cast(softmax_act_blob, to=caffe2_pb2.TensorProto.INT64)
+        max_q_act_blob = C2.Cast(
+            max_q_act_blob, to=caffe2_pb2.TensorProto.INT64
+        )
+        softmax_act_blob = C2.Cast(
+            softmax_act_blob, to=caffe2_pb2.TensorProto.INT64
+        )
         max_q_act_blob_nested, _ = C2.Reshape(max_q_act_blob, shape=[1, -1])
         softmax_act_blob_nested, _ = C2.Reshape(softmax_act_blob, shape=[1, -1])
         C2.net().Append(
@@ -162,13 +169,19 @@ class ContinuousActionDQNPredictor(RLPredictor):
         workspace.FeedBlob(output_lengths, np.zeros(1, dtype=np.int32))
         C2.net().ConstantFill(
             [flat_q_values_key], [output_lengths],
-            value=2, dtype=caffe2_pb2.TensorProto.INT32)
+            value=2,
+            dtype=caffe2_pb2.TensorProto.INT32
+        )
 
         output_keys = 'output/int_single_categorical_features.keys'
         workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int64))
         output_keys_tensor, _ = C2.Concat(
-            C2.ConstantFill(shape=[1, 1], value=0, dtype=caffe2_pb2.TensorProto.INT64),
-            C2.ConstantFill(shape=[1, 1], value=1, dtype=caffe2_pb2.TensorProto.INT64),
+            C2.ConstantFill(
+                shape=[1, 1], value=0, dtype=caffe2_pb2.TensorProto.INT64
+            ),
+            C2.ConstantFill(
+                shape=[1, 1], value=1, dtype=caffe2_pb2.TensorProto.INT64
+            ),
             axis=0,
         )
         output_key_tile = C2.Tile(output_keys_tensor, num_examples, axis=0)
