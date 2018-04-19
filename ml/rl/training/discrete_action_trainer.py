@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 from typing import Dict, Optional
 
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
@@ -48,6 +47,7 @@ class DiscreteActionTrainer(RLTrainer):
         RLTrainer.__init__(self, parameters)
 
         self._create_all_q_score_net()
+        self._create_internal_policy_net()
 
     @property
     def num_actions(self) -> int:
@@ -64,6 +64,18 @@ class DiscreteActionTrainer(RLTrainer):
         self.all_q_score_output = self.get_q_values_all_actions('states', True)
         workspace.RunNetOnce(self.all_q_score_model.param_init_net)
         workspace.CreateNet(self.all_q_score_model.net)
+        C2.set_model(None)
+
+    def _create_internal_policy_net(self) -> None:
+        self.internal_policy_model = ModelHelper(
+            name="internal_policy_" + self.model_id
+        )
+        C2.set_model(self.internal_policy_model)
+        self.internal_policy_output = self.get_q_values_all_actions(
+            'states', False
+        )
+        workspace.RunNetOnce(self.internal_policy_model.param_init_net)
+        workspace.CreateNet(self.internal_policy_model.net)
         C2.set_model(None)
 
     def update_model(

@@ -1,5 +1,7 @@
 {
   "env": "LunarLander-v2",
+  "model_type": "discrete",
+  "max_replay_memory_size": 10000,
   "rl": {
     "reward_discount_factor": 0.99,
     "target_update_rate": 0.01,

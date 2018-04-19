@@ -11,6 +11,7 @@ from caffe2.python import core
 
 from ml.rl.test.gym.open_ai_gym_environment import EnvType, ModelType,\
     OpenAIGymEnvironment
+from ml.rl.test.gym.gym_predictor import GymPredictor
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
@@ -33,6 +34,7 @@ USE_CPU = -1
 
 
 def run(
+    c2_device,
     gym_env,
     model_type,
     trainer,
@@ -51,7 +53,11 @@ def run(
 ):
     avg_reward_history = []
 
-    predictor = trainer.predictor()
+    if model_type == ModelType.CONTINUOUS_ACTION.value:
+        predictor = trainer.predictor()
+    else:
+        with core.DeviceScope(c2_device):
+            predictor = GymPredictor(c2_device, trainer)
     total_timesteps = 0
 
     for i in range(num_episodes):
@@ -118,11 +124,12 @@ def run(
                         )
                         trainer.train(predictor, samples)
                     else:
-                        gym_env.sample_and_load_training_data_c2(
-                            trainer.minibatch_size, model_type,
-                            trainer.maxq_learning
-                        )
-                        trainer.train(reward_timelines=None, evaluator=None)
+                        with core.DeviceScope(c2_device):
+                            gym_env.sample_and_load_training_data_c2(
+                                trainer.minibatch_size, model_type,
+                                trainer.maxq_learning
+                            )
+                            trainer.train(reward_timelines=None, evaluator=None)
 
             # Evaluation loop
             if (
@@ -219,11 +226,14 @@ def main(args):
 def run_gym(params, score_bar, gpu_id):
     logger.info("Running gym with params")
     logger.info(params)
-    rl_settings = params['rl']
+    rl_parameters = RLParameters(**params['rl'])
 
     env_type = params['env']
     env = OpenAIGymEnvironment(
-        env_type, rl_settings['epsilon'], rl_settings['softmax_policy']
+        env_type,
+        rl_parameters.epsilon,
+        rl_parameters.softmax_policy,
+        params['max_replay_memory_size'],
     )
     model_type = params['model_type']
     c2_device = core.DeviceOption(
@@ -252,7 +262,7 @@ def run_gym(params, score_bar, gpu_id):
                     'Extra CNN parameters for non-image input'
             trainer_params = DiscreteActionModelParameters(
                 actions=env.actions,
-                rl=RLParameters(**rl_settings),
+                rl=rl_parameters,
                 training=training_parameters
             )
             trainer = DiscreteActionTrainer(
@@ -275,7 +285,7 @@ def run_gym(params, score_bar, gpu_id):
                 assert training_parameters.cnn_parameters is None,\
                     'Extra CNN parameters for non-image input'
             trainer_params = ContinuousActionModelParameters(
-                rl=RLParameters(**rl_settings),
+                rl=rl_parameters,
                 training=training_parameters,
                 knn=KnnParameters(model_type='DQN', ),
             )
@@ -287,7 +297,7 @@ def run_gym(params, score_bar, gpu_id):
         actor_settings = params['actor_training']
         critic_settings = params['critic_training']
         trainer_params = DDPGModelParameters(
-            rl=RLParameters(**rl_settings),
+            rl=rl_parameters,
             shared_training=DDPGTrainingParameters(**training_settings),
             actor_training=DDPGNetworkParameters(**actor_settings),
             critic_training=DDPGNetworkParameters(**critic_settings),
@@ -315,8 +325,13 @@ def run_gym(params, score_bar, gpu_id):
         )
 
     return run(
-        env, model_type, trainer, "{} test run".format(env_type), score_bar,
-        **params["run_details"]
+        c2_device,
+        env,
+        model_type,
+        trainer,
+        "{} test run".format(env_type),
+        score_bar,
+        **params["run_details"],
     )
 
 

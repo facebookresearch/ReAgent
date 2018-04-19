@@ -1,6 +1,7 @@
 {
   "env": "Pendulum-v0",
   "model_type": "continuous",
+  "max_replay_memory_size": 10000,
   "rl": {
     "gamma": 0.99,
     "epsilon": 0,

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 from typing import Dict
 
 import logging
@@ -49,6 +48,20 @@ class ContinuousActionDQNTrainer(RLTrainer):
         parameters.training.layers[-1] = 1
 
         RLTrainer.__init__(self, parameters)
+
+        self._create_internal_policy_net()
+
+    def _create_internal_policy_net(self) -> None:
+        self.internal_policy_model = ModelHelper(
+            name="q_score_" + self.model_id
+        )
+        C2.set_model(self.internal_policy_model)
+        self.internal_policy_output = C2.FlattenToVec(
+            self.get_q_values('states', 'actions', False)
+        )
+        workspace.RunNetOnce(self.internal_policy_model.param_init_net)
+        workspace.CreateNet(self.internal_policy_model.net)
+        C2.set_model(None)
 
     def get_possible_next_actions(self):
         return StackedArray(

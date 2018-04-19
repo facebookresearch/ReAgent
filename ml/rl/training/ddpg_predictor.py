@@ -40,16 +40,9 @@ class DDPGPredictor(object):
         """ Returns list of actions output from actor network
         :param states states as list of states to produce actions for
         """
-        examples = []
-        for state in states:
-            example = np.zeros([len(state)], dtype=np.float32)
-            for k, v in state.items():
-                example[k] = v
-            examples.append(example)
-
         self.actor.eval()
         with torch.no_grad():
-            state_examples = Variable(torch.from_numpy(np.array(examples)))
+            state_examples = Variable(torch.from_numpy(np.array(states)))
             actions = self.actor(state_examples)
         self.actor.train()
         actions = actions.data.numpy()

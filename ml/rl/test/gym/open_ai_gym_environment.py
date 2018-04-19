@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 import enum
 
 import gym
@@ -10,8 +9,7 @@ from caffe2.python import workspace
 
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.ddpg_predictor import DDPGPredictor
-from ml.rl.training.continuous_action_dqn_predictor import ContinuousActionDQNPredictor
-from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
+from ml.rl.test.gym.gym_predictor import GymPredictor
 
 
 class ModelType(enum.Enum):
@@ -29,9 +27,9 @@ class OpenAIGymEnvironment:
     def __init__(
         self,
         gymenv,
-        epsilon=0.2,
-        softmax_policy=1,
-        max_replay_memory_size=10000
+        epsilon,
+        softmax_policy,
+        max_replay_memory_size,
     ):
         """
         Creates an OpenAIGymEnvironment object.
@@ -201,41 +199,17 @@ class OpenAIGymEnvironment:
         if not test and np.random.rand() < self.epsilon:
             action_idx = np.random.randint(self.action_dim)
         else:
-            if not self.img:
-                # Convert next_state to a list[dict[int,float]]
-                next_state_dict = [{}]
-                for i in range(next_state.shape[1]):
-                    next_state_dict[0][i] = next_state[0][i]
-            if isinstance(predictor, DiscreteActionPredictor):
-                if self.img:
-                    if self.softmax_policy:
-                        action_str = predictor.policy_image(next_state)[1]
-                    else:
-                        action_str = predictor.policy_image(next_state)[0]
-                else:
-                    if self.softmax_policy:
-                        action_str = predictor.policy(next_state_dict)[1]
-                    else:
-                        action_str = predictor.policy(next_state_dict)[0]
-                action_idx = self.actions.index(action_str.decode("utf-8"))
-            elif isinstance(predictor, ContinuousActionDQNPredictor):
-                normed_action_keys = sorted(self.normalization_action.keys())
-                states, actions = [], []
-                for action_key in normed_action_keys:
-                    states.append(next_state_dict[0])
-                    actions.append({action_key: 1})
+            if isinstance(predictor, GymPredictor):
                 if self.softmax_policy:
-                    action_idx = predictor.policy(states, actions)[1]
+                    action_idx = predictor.policy(next_state)[1]
                 else:
-                    action_idx = predictor.policy(states, actions)[0]
-                action_to_take = list(actions[action_idx].keys())
-                action_idx = normed_action_keys.index(action_to_take[0])
+                    action_idx = predictor.policy(next_state)[0]
             elif isinstance(predictor, DDPGPredictor):
                 if test:
-                    return predictor.predict_action(
-                        next_state_dict, noisy=False
-                    )[0]
-                return predictor.predict_action(next_state_dict, noisy=True)[0]
+                    return predictor.predict_action(next_state, noisy=False)[0]
+                return predictor.predict_action(next_state, noisy=True)[0]
+            else:
+                raise NotImplementedError("Unknown predictor type")
         action[action_idx] = 1.0
         return action
 
