@@ -12,9 +12,25 @@ logger = logging.getLogger(__name__)
 
 
 class GymPredictor(object):
-    def __init__(self, c2_device, trainer):
+    def __init__(self, trainer, c2_device=None):
         self.c2_device = c2_device
         self.trainer = trainer
+
+    def policy(self):
+        raise NotImplementedError()
+
+    @staticmethod
+    def _softmax(x, temperature):
+        """Compute softmax values for each sets of scores in x."""
+        x = x / temperature
+        x -= np.max(x)
+        e_x = np.exp(x)
+        return e_x / e_x.sum(axis=0)
+
+
+class GymDQNPredictor(GymPredictor):
+    def __init__(self, trainer, c2_device):
+        GymPredictor.__init__(self, trainer, c2_device)
 
     def policy(self, states):
         with core.DeviceScope(self.c2_device):
@@ -48,10 +64,10 @@ class GymPredictor(object):
             ]
             return policies
 
-    @staticmethod
-    def _softmax(x, temperature):
-        """Compute softmax values for each sets of scores in x."""
-        x = x / temperature
-        x -= np.max(x)
-        e_x = np.exp(x)
-        return e_x / e_x.sum(axis=0)
+
+class GymDDPGPredictor(GymPredictor):
+    def __init__(self, trainer):
+        GymPredictor.__init__(self, trainer)
+
+    def policy(self, states, add_action_noise=False):
+        return self.trainer.internal_prediction(states, add_action_noise)

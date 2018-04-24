@@ -1,162 +1,86 @@
 #!/usr/bin/env python3
 
-from copy import deepcopy
-
 import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.init as init
-import torch.nn.functional as F
-from torch.autograd import Variable
+
+from caffe2.proto import caffe2_pb2
+from caffe2.python import core, model_helper, workspace
+
+from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 
 
 class DDPGPredictor(object):
-    def __init__(self, trainer) -> None:
-        self.action_range = trainer.env_details['action_range']
-        # Init actor network, actor target network, actor optimizer
-        self.actor = ActorNet(
-            trainer.actor_params.layers, trainer.actor_params.activations,
-            trainer.final_layer_init
-        )
-        self.actor_target = deepcopy(self.actor)
-        self.actor_optimizer = trainer.optimizer_func(
-            self.actor.parameters(), lr=trainer.actor_params.learning_rate
-        )
-        self.noise = trainer.noise_generator
-
-        # Init critic network, critic target network, critic optimizer
-        self.critic = CriticNet(
-            trainer.critic_params.layers, trainer.critic_params.activations,
-            trainer.final_layer_init, trainer.env_details['action_dim']
-        )
-        self.critic_target = deepcopy(self.critic)
-        self.critic_optimizer = trainer.optimizer_func(
-            self.critic.parameters(),
-            lr=trainer.critic_params.learning_rate,
-            weight_decay=trainer.critic_params.l2_decay
-        )
-
-    def predict_action(self, states, noisy=False) -> np.ndarray:
-        """ Returns list of actions output from actor network
-        :param states states as list of states to produce actions for
-        """
-        self.actor.eval()
-        with torch.no_grad():
-            state_examples = Variable(torch.from_numpy(np.array(states)))
-            actions = self.actor(state_examples)
-        self.actor.train()
-        actions = actions.data.numpy()
-
-        if noisy:
-            actions = [x + (self.noise.get_noise()) for x in actions]
-
-        # Continuous action space
-        if self.action_range:
-            return np.array(
-                [
-                    self.action_range * np.clip(action, -1, 1)
-                    for action in actions
-                ],
-                dtype=np.float32
-            )
-        # Discrete action space
-        return np.array(actions, dtype=np.float32)
+    def __init__(self, net, trainer) -> None:
+        self._net = net
+        self.trainer = trainer
 
     @classmethod
-    def export_actor(cls, trainer):
-        return DDPGPredictor(trainer)
-
-
-class ActorNet(nn.Module):
-    def __init__(self, layers, activations, fl_init) -> None:
-        super(ActorNet, self).__init__()
-        self.layers: nn.ModuleList = nn.ModuleList()
-        self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
-        self.activations = activations
-
-        assert (len(layers) >=
-                3), 'Invalid layer schema {} for actor network'.format(layers)
-
-        for i, layer in enumerate(layers[1:]):
-            self.layers.append(nn.Linear(layers[i], layer))
-            self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
-            # If last layer use simple uniform init (as outlined in DDPG paper)
-            if i + 1 == len(layers[1:]):
-                init.uniform_(self.layers[i].weight, -fl_init, fl_init)
-                init.uniform_(self.layers[i].bias, -fl_init, fl_init)
-            # Else use fan in uniform init (as outlined in DDPG paper)
-            else:
-                fan_in_init(self.layers[i].weight)
-
-    def forward(self, state) -> torch.FloatTensor:
-        """ Forward pass for actor network. Assumes activation names are
-        valid pytorch activation names.
-        :param state state as list of state features
+    def export(cls, trainer, state_normalization_parameters):
+        """Export caffe2 preprocessor net and pytorch actor forward pass as one
+        caffe2 net.
         """
-        x = state
-        for i, activation in enumerate(self.activations):
-            x = self.batch_norm_ops[i](x)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == 'linear' else activation_func(
-                fc_func(x)
+        buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(trainer.actor)
+        actor_input_blob, actor_output_blob, caffe2_netdef =\
+            PytorchCaffe2Converter.buffer_to_caffe2_netdef(buffer)
+        torch_workspace = caffe2_netdef.workspace
+
+        for blob in torch_workspace.Blobs():
+            workspace.FeedBlob(blob, torch_workspace.FetchBlob(blob))
+
+        torch_init_net = core.Net(caffe2_netdef.init_net)
+        torch_predict_net = core.Net(caffe2_netdef.predict_net)
+
+        model = model_helper.ModelHelper(name="predictor")
+        net = model.net
+        C2.set_model(model)
+
+        workspace.FeedBlob(
+            'input/float_features.lengths', np.zeros(1, dtype=np.int32)
+        )
+        workspace.FeedBlob(
+            'input/float_features.keys', np.zeros(1, dtype=np.int32)
+        )
+        workspace.FeedBlob(
+            'input/float_features.values', np.zeros(1, dtype=np.float32)
+        )
+
+        preprocessor = PreprocessorNet(net, True)
+        parameters = []
+        parameters.extend(preprocessor.parameters)
+        state_normalized_dense_matrix, new_parameters = \
+            preprocessor.normalize_sparse_matrix(
+                'input/float_features.lengths',
+                'input/float_features.keys',
+                'input/float_features.values',
+                state_normalization_parameters,
+                'state_norm',
             )
-        return x
+        net.Copy([state_normalized_dense_matrix], ['states'])
+        parameters.extend(new_parameters)
+        workspace.RunNetOnce(model.param_init_net)
 
+        net.Copy([state_normalized_dense_matrix], [actor_input_blob])
+        workspace.RunNetOnce(torch_init_net)
 
-class CriticNet(nn.Module):
-    def __init__(self, layers, activations, fl_init, action_dim) -> None:
-        super(CriticNet, self).__init__()
-        self.layers: nn.ModuleList = nn.ModuleList()
-        self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
-        self.activations = activations
+        net.AppendNet(torch_init_net)
+        net.AppendNet(torch_predict_net)
 
-        assert (len(layers) >=
-                3), 'Invalid layer schema {} for actor network'.format(layers)
+        C2.FlattenToVec(C2.ArgMax(actor_output_blob))
+        output_lengths = 'output/float_features.lengths'
+        workspace.FeedBlob(output_lengths, np.zeros(1, dtype=np.int32))
+        C2.net().ConstantFill(
+            [C2.FlattenToVec(C2.ArgMax(actor_output_blob))], [output_lengths],
+            value=trainer.actor.layers[-1].out_features,
+            dtype=caffe2_pb2.TensorProto.INT32
+        )
 
-        for i, layer in enumerate(layers[1:]):
-            # Batch norm only applied to pre-action layers
-            if i == 0:
-                self.layers.append(nn.Linear(layers[i], layer))
-                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
-            elif i == 1:
-                self.layers.append(nn.Linear(layers[i] + action_dim, layer))
-                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
-            # Actions skip input layer
-            else:
-                self.layers.append(nn.Linear(layers[i], layer))
+        output_keys = 'output/float_features.keys'
+        workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int32))
+        C2.net().LengthsRangeFill([output_lengths], [output_keys])
 
-            # If last layer use simple uniform init (as outlined in DDPG paper)
-            if i + 1 == len(layers[1:]):
-                init.uniform_(self.layers[i].weight, -fl_init, fl_init)
-                init.uniform_(self.layers[i].bias, -fl_init, fl_init)
-            # Else use fan in uniform init (as outlined in DDPG paper)
-            else:
-                fan_in_init(self.layers[i].weight)
+        output_values = 'output/float_features.values'
+        workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.float32))
+        C2.net().FlattenToVec([actor_output_blob], [output_values])
 
-    def forward(self, state, action) -> torch.FloatTensor:
-        """ Forward pass for critic network. Assumes activation names are
-        valid pytorch activation names.
-        :param state state as list of state features
-        :param state action as list of action features
-        """
-        x = state
-        for i, activation in enumerate(self.activations):
-            if i == 0:
-                x = self.batch_norm_ops[i](x)
-            # Actions skip input layer
-            elif i == 1:
-                x = self.batch_norm_ops[i](x)
-                x = torch.cat((x, action), dim=1)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == 'linear' else activation_func(
-                fc_func(x)
-            )
-        return x
-
-
-def fan_in_init(tensor) -> None:
-    """ Fan in initialization as described in DDPG paper."""
-    val_range = 1. / np.sqrt(tensor.size(1))
-    init.uniform_(tensor, -val_range, val_range)
+        workspace.CreateNet(net)
+        return DDPGPredictor(net, trainer)

@@ -8,8 +8,7 @@ import numpy as np
 from caffe2.python import workspace
 
 from ml.rl.test.utils import default_normalizer
-from ml.rl.training.ddpg_predictor import DDPGPredictor
-from ml.rl.test.gym.gym_predictor import GymPredictor
+from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
 
 
 class ModelType(enum.Enum):
@@ -191,27 +190,26 @@ class OpenAIGymEnvironment:
         :param next_state: State to evaluate predictor's policy on.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         """
-
         # Add a dimension since this expects a batch of examples
         next_state = np.expand_dims(next_state.astype(np.float32), axis=0)
-
         action = np.zeros([self.action_dim], dtype=np.float32)
-        if not test and np.random.rand() < self.epsilon:
-            action_idx = np.random.randint(self.action_dim)
-        else:
-            if isinstance(predictor, GymPredictor):
+
+        if isinstance(predictor, GymDQNPredictor):
+            if not test and np.random.rand() < self.epsilon:
+                action_idx = np.random.randint(self.action_dim)
+            else:
                 if self.softmax_policy:
                     action_idx = predictor.policy(next_state)[1]
                 else:
                     action_idx = predictor.policy(next_state)[0]
-            elif isinstance(predictor, DDPGPredictor):
-                if test:
-                    return predictor.predict_action(next_state, noisy=False)[0]
-                return predictor.predict_action(next_state, noisy=True)[0]
-            else:
-                raise NotImplementedError("Unknown predictor type")
-        action[action_idx] = 1.0
-        return action
+            action[action_idx] = 1.0
+            return action
+        elif isinstance(predictor, GymDDPGPredictor):
+            if test:
+                return predictor.policy(next_state)[0]
+            return predictor.policy(next_state, add_action_noise=True)[0]
+        else:
+            raise NotImplementedError("Unknown predictor type")
 
     def insert_into_memory(
         self, state, action, reward, next_state, next_action, terminal,

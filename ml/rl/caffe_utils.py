@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
-
+from io import BytesIO
 import os
-import numpy as np
 import itertools
 from typing import Any, List, Dict, Optional
 import traceback
 
+import numpy as np
+
+import caffe2.python.onnx.backend
 from caffe2.python import workspace
 from caffe2.python.core import BlobReference
+import onnx
+import torch
 
 
 class C2Meta(type):
@@ -194,3 +198,26 @@ class StackedTwoLevelAssociativeArray(object):
                 outer_dict[outer_key] = inner_dict
             retval.append(outer_dict)
         return retval
+
+
+class PytorchCaffe2Converter(object):
+    @staticmethod
+    def pytorch_net_to_buffer(pytorch_net):
+        """Traces a pytorch net and outputs a python buffer object
+        holding net."""
+        write_buffer = BytesIO()
+        in_features = pytorch_net.layers[0].in_features
+        dummy_input = torch.autograd.Variable(torch.randn(1, in_features))
+        torch.onnx._export(pytorch_net, dummy_input, write_buffer)
+        return write_buffer
+
+    @staticmethod
+    def buffer_to_caffe2_netdef(buffer):
+        """Creates caffe2 NetDef from buffer object and returns pointer to
+        input and output blobs and the NetDef."""
+        protobuf_model = onnx.load(BytesIO(buffer.getvalue()))
+        input_blob_name = protobuf_model.graph.input[0].name
+        outout_blob_name = protobuf_model.graph.output[0].name
+        return input_blob_name, outout_blob_name, caffe2.python.onnx.backend.prepare(
+            protobuf_model
+        )

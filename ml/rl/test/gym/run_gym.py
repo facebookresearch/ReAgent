@@ -11,7 +11,7 @@ from caffe2.python import core
 
 from ml.rl.test.gym.open_ai_gym_environment import EnvType, ModelType,\
     OpenAIGymEnvironment
-from ml.rl.test.gym.gym_predictor import GymPredictor
+from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
@@ -54,10 +54,10 @@ def run(
     avg_reward_history = []
 
     if model_type == ModelType.CONTINUOUS_ACTION.value:
-        predictor = trainer.predictor()
+        predictor = GymDDPGPredictor(trainer)
     else:
-        with core.DeviceScope(c2_device):
-            predictor = GymPredictor(c2_device, trainer)
+        predictor = GymDQNPredictor(trainer, c2_device)
+
     total_timesteps = 0
 
     for i in range(num_episodes):
@@ -68,7 +68,7 @@ def run(
         ep_timesteps = 0
 
         if model_type == ModelType.CONTINUOUS_ACTION.value:
-            predictor.noise.clear()
+            trainer.noise.clear()
 
         while not terminal:
             state = next_state
@@ -122,7 +122,7 @@ def run(
                         samples = gym_env.sample_memories(
                             trainer.minibatch_size
                         )
-                        trainer.train(predictor, samples)
+                        trainer.train(samples)
                     else:
                         with core.DeviceScope(c2_device):
                             gym_env.sample_and_load_training_data_c2(
