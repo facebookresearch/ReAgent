@@ -202,12 +202,11 @@ class StackedTwoLevelAssociativeArray(object):
 
 class PytorchCaffe2Converter(object):
     @staticmethod
-    def pytorch_net_to_buffer(pytorch_net):
+    def pytorch_net_to_buffer(pytorch_net, input_dim):
         """Traces a pytorch net and outputs a python buffer object
         holding net."""
         write_buffer = BytesIO()
-        in_features = pytorch_net.layers[0].in_features
-        dummy_input = torch.autograd.Variable(torch.randn(1, in_features))
+        dummy_input = torch.autograd.Variable(torch.randn(1, input_dim))
         torch.onnx._export(pytorch_net, dummy_input, write_buffer)
         return write_buffer
 

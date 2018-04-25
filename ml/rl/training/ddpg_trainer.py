@@ -84,10 +84,11 @@ class DDPGTrainer(object):
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
-        q_s1_a1 = self.critic(states, actions)
+        q_s1_a1 = self.critic(torch.cat((states, actions), dim=1))
         next_actions = self.actor_target(next_states)
-        q_s2_a2 = self.critic_target(next_states,
-                                     next_actions).detach().squeeze()
+
+        next_state_actions = torch.cat((next_states, next_actions), dim=1)
+        q_s2_a2 = self.critic_target(next_state_actions).detach().squeeze()
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
         target_q_values = rewards + (self.gamma * filtered_q_s2_a2)
         # compute loss and update the critic network
@@ -99,7 +100,9 @@ class DDPGTrainer(object):
 
         # Optimize the actor network subject to the following:
         # max sum(Q(s1, a1)) or min -sum(Q(s1, a1))
-        loss_actor = -self.critic(states, self.actor(states)).sum()
+        loss_actor = -self.critic(
+            torch.cat((states, self.actor(states)), dim=1)
+        ).sum()
         self.actor_optimizer.zero_grad()
         loss_actor.backward()
         self.actor_optimizer.step()
@@ -155,9 +158,18 @@ class DDPGTrainer(object):
         # Discrete action space
         return np.array(actions, dtype=np.float32)
 
-    def predictor(self, append_pytorch_net) -> DDPGPredictor:
-        """Builds a DDPGPredictor."""
-        return DDPGPredictor.export(self, self.state_normalization_parameters)
+    def predictor(self, actor=True) -> DDPGPredictor:
+        """Builds a DDPGPredictor.
+        :param actor export the actor or the critic. If actor == True export
+        the actor network, else export the critic network."""
+        if actor:
+            return DDPGPredictor.export_actor(
+                self, self.state_normalization_parameters
+            )
+        return DDPGPredictor.export_critic(
+            self, self.state_normalization_parameters,
+            self.action_normalization_parameters
+        )
 
 
 class ActorNet(nn.Module):
@@ -191,7 +203,7 @@ class ActorNet(nn.Module):
 
         x = state
         for i, activation in enumerate(self.activations):
-            # TODO: Renable batchnorm when onnx issue is figured out (T28533013)
+            # TODO: Fix batchnorm when using onnx + caffe2 (T28533013)
             x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
@@ -231,18 +243,23 @@ class CriticNet(nn.Module):
             else:
                 fan_in_init(self.layers[i].weight)
 
-    def forward(self, state, action) -> torch.FloatTensor:
+    def forward(self, state_action) -> torch.FloatTensor:
         """ Forward pass for critic network. Assumes activation names are
         valid pytorch activation names.
-        :param state state as list of state features
-        :param state action as list of action features
+        :param state_action tensor of state & actions concatted
         """
+        state_dim = self.layers[0].in_features
+        state = state_action[:, :state_dim]
+        action = state_action[:, state_dim:]
+
         x = state
         for i, activation in enumerate(self.activations):
             if i == 0:
+                # TODO: Fix batchnorm when using onnx + caffe2 (T28533013)
                 x = self.batch_norm_ops[i](x)
             # Actions skip input layer
             elif i == 1:
+                # TODO: Fix batchnorm when using onnx + caffe2 (T28533013)
                 x = self.batch_norm_ops[i](x)
                 x = torch.cat((x, action), dim=1)
             activation_func = getattr(F, activation)
