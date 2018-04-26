@@ -203,7 +203,6 @@ class ActorNet(nn.Module):
 
         x = state
         for i, activation in enumerate(self.activations):
-            # TODO: Fix batchnorm when using onnx + caffe2 (T28533013)
             x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
@@ -255,11 +254,9 @@ class CriticNet(nn.Module):
         x = state
         for i, activation in enumerate(self.activations):
             if i == 0:
-                # TODO: Fix batchnorm when using onnx + caffe2 (T28533013)
                 x = self.batch_norm_ops[i](x)
             # Actions skip input layer
             elif i == 1:
-                # TODO: Fix batchnorm when using onnx + caffe2 (T28533013)
                 x = self.batch_norm_ops[i](x)
                 x = torch.cat((x, action), dim=1)
             activation_func = getattr(F, activation)

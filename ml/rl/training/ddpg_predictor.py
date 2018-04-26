@@ -31,6 +31,33 @@ class DDPGPredictor(object):
         ]
         self._parameters = parameters
 
+    def actor_prediction(self, states):
+        """ Actor Prediction - Returns action for each state
+        :param states states as list of feature -> value dict
+        """
+        examples = []
+        for i in range(len(states)):
+            examples.append({**states[i]})
+
+        workspace.FeedBlob(
+            'input/float_features.lengths',
+            np.array([len(e) for e in examples], dtype=np.int32)
+        )
+        workspace.FeedBlob(
+            'input/float_features.keys',
+            np.array([list(e.keys()) for e in examples],
+                     dtype=np.int32).flatten()
+        )
+        workspace.FeedBlob(
+            'input/float_features.values',
+            np.array([list(e.values()) for e in examples],
+                     dtype=np.float32).flatten()
+        )
+        workspace.RunNet(self._net)
+
+        results = workspace.FetchBlob('output/float_features.values')
+        return results
+
     def critic_prediction(self, states, actions):
         """ Critic Prediction - Returns values for each state/action pair
         :param states states as list of feature -> value dict
@@ -141,11 +168,10 @@ class DDPGPredictor(object):
                 state_normalization_parameters,
                 'state_norm',
             )
-        net.Copy([state_normalized_dense_matrix], ['states'])
         parameters.extend(new_parameters)
-        workspace.RunNetOnce(model.param_init_net)
-
         net.Copy([state_normalized_dense_matrix], [actor_input_blob])
+
+        workspace.RunNetOnce(model.param_init_net)
         workspace.RunNetOnce(torch_init_net)
 
         net.AppendNet(torch_init_net)

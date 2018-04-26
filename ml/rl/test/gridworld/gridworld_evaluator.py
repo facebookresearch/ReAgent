@@ -39,14 +39,21 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
 
 
 class GridworldDDPGEvaluator(GridworldEvaluator):
-    def evaluate(self, predictor):
-        prediction = predictor.critic_prediction(
+    def evaluate_actor(self, actor):
+        actor_prediction = actor.actor_prediction(self._test_states)
+        print(
+            'Actor predictions executed successfully. Sample: {}'.
+            format(actor_prediction)
+        )
+
+    def evaluate_critic(self, critic):
+        critic_prediction = critic.critic_prediction(
             self._test_states, self._test_actions
         )
         error_sum = 0.0
         for x in range(len(self._test_states)):
             ground_truth = self._test_values[x]
-            predicted_value = prediction[x]
+            predicted_value = critic_prediction[x]
             error_sum += abs(ground_truth - predicted_value)
         print('EVAL ERROR', error_sum / float(len(self._test_states)))
         return error_sum / float(len(self._test_states))
