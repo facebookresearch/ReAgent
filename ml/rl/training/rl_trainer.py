@@ -22,6 +22,13 @@ from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.training.evaluator import Evaluator
 
 
+RL_TRAINER_PREFIX = 'rl_trainer_'
+ML_TRAINER_PREFIX = 'ml_trainer_'
+CONV_ML_TRAINER_PREFIX = 'conv_ml_trainer_'
+TARGET_NETWORK_PREFIX = 'target_network_'
+CONV_TARGET_NETWORK_PREFIX = 'conv_target_network_'
+
+
 class RLTrainer(object):
     num_trainers = 0
 
@@ -31,12 +38,12 @@ class RLTrainer(object):
                           ContinuousActionModelParameters],
     ) -> None:
         logger.info(str(parameters))
-        self.model_id = "rl_trainer_" + str(RLTrainer.num_trainers)
         RLTrainer.num_trainers += 1
+        self.model_id = RL_TRAINER_PREFIX + str(RLTrainer.num_trainers)
 
         if parameters.training.cnn_parameters is not None:
             self.conv_ml_trainer = ConvMLTrainer(
-                "conv_ml_trainer_" + str(RLTrainer.num_trainers),
+                CONV_ML_TRAINER_PREFIX + str(RLTrainer.num_trainers),
                 parameters.training.cnn_parameters,
             )
 
@@ -45,7 +52,7 @@ class RLTrainer(object):
                 self.conv_ml_trainer.get_output_size()
 
             self.conv_target_network = ConvTargetNetwork(
-                "conv_target_network_" + str(RLTrainer.num_trainers),
+                CONV_TARGET_NETWORK_PREFIX + str(RLTrainer.num_trainers),
                 parameters.training.cnn_parameters,
                 parameters.rl.target_update_rate,
                 self.conv_ml_trainer,
@@ -58,12 +65,12 @@ class RLTrainer(object):
             "Set layers[0] to a the number of features"
 
         self.ml_trainer = MLTrainer(
-            "ml_trainer_" + str(RLTrainer.num_trainers),
+            ML_TRAINER_PREFIX + str(RLTrainer.num_trainers),
             parameters.training,
         )
 
         self.target_network = TargetNetwork(
-            "target_network_" + str(RLTrainer.num_trainers),
+            TARGET_NETWORK_PREFIX + str(RLTrainer.num_trainers),
             parameters.training,
             parameters.rl.target_update_rate,
             self.ml_trainer,

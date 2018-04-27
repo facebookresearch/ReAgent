@@ -34,6 +34,18 @@ MINIMUM_SAMPLES_TO_IDENTIFY = 20
 DEFAULT_MAX_QUANTILE_SIZE = 20
 
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NumpyEncoder, self).default(obj)
+
+
 def identify_parameter(
     values,
     max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
@@ -166,7 +178,7 @@ def deserialize(parameters_json):
 
 
 def serialize_one(feature_parameters):
-    return json.dumps(feature_parameters._asdict())
+    return json.dumps(feature_parameters._asdict(), cls=NumpyEncoder)
 
 
 def serialize(parameters):
