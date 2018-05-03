@@ -17,13 +17,21 @@ logger = logging.getLogger(__name__)
 
 
 class DDPGPredictor(object):
-    def __init__(self, net, parameters) -> None:
+    def __init__(self, net, parameters, int_features) -> None:
         self._net = net
         self._input_blobs = [
             'input/float_features.lengths',
             'input/float_features.keys',
             'input/float_features.values',
         ]
+        if int_features:
+            self._input_blobs.extend(
+                [
+                    'input/int_features.lengths',
+                    'input/int_features.keys',
+                    'input/int_features.values',
+                ]
+            )
         self._output_blobs = [
             'output/float_features.lengths',
             'output/float_features.keys',
@@ -31,56 +39,111 @@ class DDPGPredictor(object):
         ]
         self._parameters = parameters
 
-    def actor_prediction(self, states):
-        """ Actor Prediction - Returns action for each state
-        :param states states as list of feature -> value dict
-        """
-        examples = []
-        for i in range(len(states)):
-            examples.append({**states[i]})
+    def policy(self):
+        """TODO: Return actions when exporting final net and fill in this
+        function."""
+        pass
 
+    def actor_prediction(self, float_state_features, int_state_features=None):
+        """ Actor Prediction - Returns action for each float_feature state. Also,
+        accepts int_feature states.
+
+        :param float_state_features A list of feature -> float value dict examples
+        :param int_features A list of feature -> int value dict examples
+        """
         workspace.FeedBlob(
             'input/float_features.lengths',
-            np.array([len(e) for e in examples], dtype=np.int32)
+            np.array([len(e) for e in float_state_features], dtype=np.int32)
         )
         workspace.FeedBlob(
             'input/float_features.keys',
-            np.array([list(e.keys()) for e in examples],
-                     dtype=np.int32).flatten()
+            np.array(
+                [list(e.keys()) for e in float_state_features], dtype=np.int64
+            ).flatten()
         )
         workspace.FeedBlob(
             'input/float_features.values',
-            np.array([list(e.values()) for e in examples],
-                     dtype=np.float32).flatten()
+            np.array(
+                [list(e.values()) for e in float_state_features],
+                dtype=np.float32
+            ).flatten()
         )
+
+        if int_state_features:
+            workspace.FeedBlob(
+                'input/int_features.lengths',
+                np.array([len(e) for e in int_state_features], dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys',
+                np.array(
+                    [list(e.keys()) for e in int_state_features],
+                    dtype=np.int64
+                ).flatten()
+            )
+            workspace.FeedBlob(
+                'input/int_features.values',
+                np.array(
+                    [list(e.values()) for e in int_state_features],
+                    dtype=np.int32
+                ).flatten()
+            )
+
         workspace.RunNet(self._net)
 
         results = workspace.FetchBlob('output/float_features.values')
         return results
 
-    def critic_prediction(self, states, actions):
-        """ Critic Prediction - Returns values for each state/action pair
-        :param states states as list of feature -> value dict
+    def critic_prediction(
+        self, float_state_features, int_state_features, actions
+    ):
+        """ Critic Prediction - Returns values for each state/action pair. Accepts
+        int_features as 3rd optional parameter.
+
+        :param float_state_features states as list of feature -> float value dict
+        :param int_state_features states as list of feature -> int value dict
         :param actions actions as list of feature -> value dict
         """
-        examples = []
-        for i in range(len(states)):
-            examples.append({**states[i], **actions[i]})
+        float_examples = []
+        for i in range(len(float_state_features)):
+            float_examples.append({**float_state_features[i], **actions[i]})
 
         workspace.FeedBlob(
             'input/float_features.lengths',
-            np.array([len(e) for e in examples], dtype=np.int32)
+            np.array([len(e) for e in float_examples], dtype=np.int32)
         )
         workspace.FeedBlob(
             'input/float_features.keys',
-            np.array([list(e.keys()) for e in examples],
-                     dtype=np.int32).flatten()
+            np.array([list(e.keys()) for e in float_examples],
+                     dtype=np.int64).flatten()
         )
         workspace.FeedBlob(
             'input/float_features.values',
-            np.array([list(e.values()) for e in examples],
-                     dtype=np.float32).flatten()
+            np.array(
+                [list(e.values()) for e in float_examples], dtype=np.float32
+            ).flatten()
         )
+
+        if int_state_features is not None:
+            workspace.FeedBlob(
+                'input/int_features.lengths',
+                np.array([len(e) for e in int_state_features], dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys',
+                np.array(
+                    [list(e.keys()) for e in int_state_features],
+                    dtype=np.int64
+                ).flatten()
+            )
+            workspace.FeedBlob(
+                'input/int_features.values',
+                np.array(
+                    [list(e.values()) for e in int_state_features],
+                    dtype=np.int32
+                ).flatten()
+            )
+
         workspace.RunNet(self._net)
 
         results = workspace.FetchBlob('output/float_features.values')
@@ -124,9 +187,15 @@ class DDPGPredictor(object):
         return cls(net, parameters)
 
     @classmethod
-    def export_actor(cls, trainer, state_normalization_parameters):
+    def export_actor(
+        cls, trainer, state_normalization_parameters, int_features=False
+    ):
         """Export caffe2 preprocessor net and pytorch actor forward pass as one
         caffe2 net.
+
+        :param trainer DDPGTrainer
+        :param state_normalization_parameters state NormalizationParameters
+        :param int_features boolean indicating if int features blob will be present
         """
         input_dim = len(state_normalization_parameters)
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
@@ -152,19 +221,57 @@ class DDPGPredictor(object):
             'input/float_features.lengths', np.zeros(1, dtype=np.int32)
         )
         workspace.FeedBlob(
-            'input/float_features.keys', np.zeros(1, dtype=np.int32)
+            'input/float_features.keys', np.zeros(1, dtype=np.int64)
         )
         workspace.FeedBlob(
             'input/float_features.values', np.zeros(1, dtype=np.float32)
         )
 
+        input_feature_lengths = 'input_feature_lengths'
+        input_feature_keys = 'input_feature_keys'
+        input_feature_values = 'input_feature_values'
+
+        if int_features:
+            workspace.FeedBlob(
+                'input/int_features.lengths', np.zeros(1, dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys', np.zeros(1, dtype=np.int64)
+            )
+            workspace.FeedBlob(
+                'input/int_features.values', np.zeros(1, dtype=np.int32)
+            )
+            C2.net().Cast(
+                ['input/int_features.values'],
+                ['input/int_features.values_float'],
+                dtype=caffe2_pb2.TensorProto.FLOAT
+            )
+            C2.net().MergeMultiScalarFeatureTensors(
+                [
+                    'input/float_features.lengths', 'input/float_features.keys',
+                    'input/float_features.values', 'input/int_features.lengths',
+                    'input/int_features.keys', 'input/int_features.values_float'
+                ], [
+                    input_feature_lengths, input_feature_keys,
+                    input_feature_values
+                ]
+            )
+        else:
+            C2.net().Copy(
+                ['input/float_features.lengths'], [input_feature_lengths]
+            )
+            C2.net().Copy(['input/float_features.keys'], [input_feature_keys])
+            C2.net().Copy(
+                ['input/float_features.values'], [input_feature_values]
+            )
+
         preprocessor = PreprocessorNet(net, True)
         parameters.extend(preprocessor.parameters)
         state_normalized_dense_matrix, new_parameters = \
             preprocessor.normalize_sparse_matrix(
-                'input/float_features.lengths',
-                'input/float_features.keys',
-                'input/float_features.values',
+                input_feature_lengths,
+                input_feature_keys,
+                input_feature_values,
                 state_normalization_parameters,
                 'state_norm',
             )
@@ -195,15 +302,23 @@ class DDPGPredictor(object):
         C2.net().FlattenToVec([actor_output_blob], [output_values])
 
         workspace.CreateNet(net)
-        return DDPGPredictor(net, parameters)
+        return DDPGPredictor(net, parameters, int_features)
 
     @classmethod
     def export_critic(
-        cls, trainer, state_normalization_parameters,
-        action_normalization_parameters
+        cls,
+        trainer,
+        state_normalization_parameters,
+        action_normalization_parameters,
+        int_features=False
     ):
         """Export caffe2 preprocessor net and pytorch critic forward pass as one
         caffe2 net.
+
+        :param trainer DDPGTrainer
+        :param state_normalization_parameters state NormalizationParameters
+        :param action_normalization_parameters action NormalizationParameters
+        :param int_features boolean indicating if int features blob will be present
         """
         input_dim =\
             len(state_normalization_parameters) + len(action_normalization_parameters)
@@ -230,28 +345,66 @@ class DDPGPredictor(object):
             'input/float_features.lengths', np.zeros(1, dtype=np.int32)
         )
         workspace.FeedBlob(
-            'input/float_features.keys', np.zeros(1, dtype=np.int32)
+            'input/float_features.keys', np.zeros(1, dtype=np.int64)
         )
         workspace.FeedBlob(
             'input/float_features.values', np.zeros(1, dtype=np.float32)
         )
 
+        input_feature_lengths = 'input_feature_lengths'
+        input_feature_keys = 'input_feature_keys'
+        input_feature_values = 'input_feature_values'
+
+        if int_features:
+            workspace.FeedBlob(
+                'input/int_features.lengths', np.zeros(1, dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys', np.zeros(1, dtype=np.int64)
+            )
+            workspace.FeedBlob(
+                'input/int_features.values', np.zeros(1, dtype=np.int32)
+            )
+            C2.net().Cast(
+                ['input/int_features.values'],
+                ['input/int_features.values_float'],
+                dtype=caffe2_pb2.TensorProto.FLOAT
+            )
+            C2.net().MergeMultiScalarFeatureTensors(
+                [
+                    'input/float_features.lengths', 'input/float_features.keys',
+                    'input/float_features.values', 'input/int_features.lengths',
+                    'input/int_features.keys', 'input/int_features.values_float'
+                ], [
+                    input_feature_lengths, input_feature_keys,
+                    input_feature_values
+                ]
+            )
+        else:
+            C2.net().Copy(
+                ['input/float_features.lengths'], [input_feature_lengths]
+            )
+            C2.net().Copy(['input/float_features.keys'], [input_feature_keys])
+            C2.net().Copy(
+                ['input/float_features.values'], [input_feature_values]
+            )
+
         preprocessor = PreprocessorNet(net, True)
         parameters.extend(preprocessor.parameters)
         state_normalized_dense_matrix, new_parameters = \
             preprocessor.normalize_sparse_matrix(
-                'input/float_features.lengths',
-                'input/float_features.keys',
-                'input/float_features.values',
+                input_feature_lengths,
+                input_feature_keys,
+                input_feature_values,
                 state_normalization_parameters,
                 'state_norm',
             )
         parameters.extend(new_parameters)
         action_normalized_dense_matrix, new_parameters = \
             preprocessor.normalize_sparse_matrix(
-                'input/float_features.lengths',
-                'input/float_features.keys',
-                'input/float_features.values',
+                input_feature_lengths,
+                input_feature_keys,
+                input_feature_values,
                 action_normalization_parameters,
                 'action_norm',
             )
@@ -289,4 +442,4 @@ class DDPGPredictor(object):
         C2.net().FlattenToVec([critic_output_blob], [output_values])
 
         workspace.CreateNet(net)
-        return DDPGPredictor(net, parameters)
+        return DDPGPredictor(net, parameters, int_features)

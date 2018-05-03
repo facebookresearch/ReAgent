@@ -10,14 +10,19 @@ import torch.nn.init as init
 from torch.autograd import Variable
 
 from ml.rl.training.ddpg_predictor import DDPGPredictor
+from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES
 
 
 class DDPGTrainer(object):
     def __init__(
-        self, parameters, env_details, state_normalization_parameters,
-        action_normalization_parameters
+        self,
+        parameters,
+        env_details,
+        state_normalization_parameters,
+        action_normalization_parameters,
+        additional_feature_types=DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
-
+        self._additional_feature_types = additional_feature_types
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
         self.action_range = env_details['action_range']
@@ -164,11 +169,15 @@ class DDPGTrainer(object):
         the actor network, else export the critic network."""
         if actor:
             return DDPGPredictor.export_actor(
-                self, self.state_normalization_parameters
+                self,
+                self.state_normalization_parameters,
+                self._additional_feature_types.int_features,
             )
         return DDPGPredictor.export_critic(
-            self, self.state_normalization_parameters,
-            self.action_normalization_parameters
+            self,
+            self.state_normalization_parameters,
+            self.action_normalization_parameters,
+            self._additional_feature_types.int_features,
         )
 
 

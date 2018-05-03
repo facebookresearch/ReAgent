@@ -13,11 +13,13 @@ from ml.rl.caffe_utils import C2, StackedArray
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters, get_num_output_features
 )
-from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
+from ml.rl.thrift.core.ttypes import (
+    ContinuousActionModelParameters, AdditionalFeatureTypes
+)
 from ml.rl.training.continuous_action_dqn_predictor import (
     ContinuousActionDQNPredictor
 )
-from ml.rl.training.rl_trainer import RLTrainer
+from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
 
 
 class ContinuousActionDQNTrainer(RLTrainer):
@@ -26,7 +28,10 @@ class ContinuousActionDQNTrainer(RLTrainer):
         parameters: ContinuousActionModelParameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
+        additional_feature_types:
+        AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES
     ) -> None:
+        self._additional_feature_types = additional_feature_types
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
         num_features = get_num_output_features(
@@ -222,4 +227,5 @@ class ContinuousActionDQNTrainer(RLTrainer):
             self,
             self.state_normalization_parameters,
             self.action_normalization_parameters,
+            self._additional_feature_types.int_features,
         )

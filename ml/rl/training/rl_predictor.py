@@ -17,13 +17,14 @@ logger = logging.getLogger(__name__)
 
 
 class RLPredictor(object):
-    def __init__(self, net, parameters):
+    def __init__(self, net, parameters, int_features=False):
         """
 
         :param net caffe2 net used for prediction
         :param input_blobs caffe2 blobs used as input
         :param output_blobs caffe2 blobs used as output
         :param parameters caffe2 blobs used as network paramers
+        :param int_features boolean indicating if int_features blob will be present
         """
         self._net = net
         self._input_blobs = [
@@ -31,6 +32,14 @@ class RLPredictor(object):
             'input/float_features.keys',
             'input/float_features.values',
         ]
+        if int_features:
+            self._input_blobs.extend(
+                [
+                    'input/int_features.lengths',
+                    'input/int_features.keys',
+                    'input/int_features.values',
+                ]
+            )
         self._output_blobs = [
             'output/string_weighted_multi_categorical_features.keys',
             'output/string_weighted_multi_categorical_features.lengths',
@@ -41,24 +50,51 @@ class RLPredictor(object):
         self._parameters = parameters
         self.is_discrete = None
 
-    def policy(self, examples) -> np.ndarray:
+    def policy(
+        self, float_state_features, int_state_features=None
+    ) -> np.ndarray:
         """ Returns np array of action names to take for each state
-        :param examples A list of feature -> value dict examples
+        :param float_state_features A list of feature -> float value dict examples
+        :param int_state_features A list of feature -> int value dict examples
         """
         workspace.FeedBlob(
             'input/float_features.lengths',
-            np.array([len(e) for e in examples], dtype=np.int32)
+            np.array([len(e) for e in float_state_features], dtype=np.int32)
         )
         workspace.FeedBlob(
             'input/float_features.keys',
-            np.array([list(e.keys()) for e in examples],
-                     dtype=np.int32).flatten()
+            np.array(
+                [list(e.keys()) for e in float_state_features], dtype=np.int32
+            ).flatten()
         )
         workspace.FeedBlob(
             'input/float_features.values',
-            np.array([list(e.values()) for e in examples],
-                     dtype=np.float32).flatten()
+            np.array(
+                [list(e.values()) for e in float_state_features],
+                dtype=np.float32
+            ).flatten()
         )
+
+        if int_state_features is not None:
+            workspace.FeedBlob(
+                'input/int_features.lengths',
+                np.array([len(e) for e in int_state_features], dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys',
+                np.array(
+                    [list(e.keys()) for e in int_state_features],
+                    dtype=np.int64
+                ).flatten()
+            )
+            workspace.FeedBlob(
+                'input/int_features.values',
+                np.array(
+                    [list(e.values()) for e in int_state_features],
+                    dtype=np.int32
+                ).flatten()
+            )
+
         workspace.RunNet(self._net)
 
         if self.is_discrete:
@@ -77,24 +113,49 @@ class RLPredictor(object):
                 'is_discrete property {} not valid'.format(self.is_discrete)
             )
 
-    def predict(self, examples):
+    def predict(self, float_state_features, int_state_features=None):
         """ Returns values for each state
-        :param examples A list of feature -> value dict examples
+        :param float_state_features A list of feature -> float value dict examples
+        :param int_state_features A list of feature -> int value dict examples
         """
         workspace.FeedBlob(
             'input/float_features.lengths',
-            np.array([len(e) for e in examples], dtype=np.int32)
+            np.array([len(e) for e in float_state_features], dtype=np.int32)
         )
         workspace.FeedBlob(
             'input/float_features.keys',
-            np.array([list(e.keys()) for e in examples],
-                     dtype=np.int32).flatten()
+            np.array(
+                [list(e.keys()) for e in float_state_features], dtype=np.int64
+            ).flatten()
         )
         workspace.FeedBlob(
             'input/float_features.values',
-            np.array([list(e.values()) for e in examples],
-                     dtype=np.float32).flatten()
+            np.array(
+                [list(e.values()) for e in float_state_features],
+                dtype=np.float32
+            ).flatten()
         )
+
+        if int_state_features is not None:
+            workspace.FeedBlob(
+                'input/int_features.lengths',
+                np.array([len(e) for e in int_state_features], dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys',
+                np.array(
+                    [list(e.keys()) for e in int_state_features],
+                    dtype=np.int64
+                ).flatten()
+            )
+            workspace.FeedBlob(
+                'input/int_features.values',
+                np.array(
+                    [list(e.values()) for e in int_state_features],
+                    dtype=np.int32
+                ).flatten()
+            )
+
         workspace.RunNet(self._net)
 
         output_lengths = workspace.FetchBlob(
@@ -146,16 +207,17 @@ class RLPredictor(object):
         save_to_db(db_type, db_path, meta)
 
     @classmethod
-    def load(cls, db_path, db_type):
+    def load(cls, db_path, db_type, int_features=False):
         """ Creates Predictor by loading from a database
 
         :param db_path see load_from_db
         :param db_type see load_from_db
+        :param int_features bool indicating if int_features are present
         """
         net = prepare_prediction_net(db_path, db_type)
         meta = load_from_db(db_path, db_type)
         parameters = GetBlobs(meta, predictor_constants.PARAMETERS_BLOB_TYPE)
-        return cls(net, parameters)
+        return cls(net, parameters, int_features)
 
     def analyze(self, named_features):
         print("==================== Model parameters =========================")

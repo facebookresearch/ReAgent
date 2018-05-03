@@ -5,7 +5,6 @@ import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from caffe2.python import model_helper, workspace
-
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.rl_predictor import RLPredictor
@@ -15,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class ContinuousActionDQNPredictor(RLPredictor):
-    def __init__(self, net, parameters):
-        RLPredictor.__init__(self, net, parameters)
+    def __init__(self, net, parameters, int_features=False):
+        RLPredictor.__init__(self, net, parameters, int_features)
         self.is_discrete = False
         self._output_blobs.extend(
             [
@@ -26,22 +25,27 @@ class ContinuousActionDQNPredictor(RLPredictor):
             ]
         )
 
-    def predict(self, states, actions):
-        """ Returns values for each state/action pair
-        :param states states as list of feature -> value dict
+    def predict(self, float_state_features, int_state_features, actions):
+        """ Returns values for each state/action pair.
+
+        :param float_state_features states as list of feature -> float value dict
+        :param int_state_features states as list of feature -> int value dict
         :param actions actions as list of feature -> value dict
         """
+        float_examples = []
+        for i in range(len(float_state_features)):
+            float_examples.append({**float_state_features[i], **actions[i]})
+        if int_state_features is None:
+            return RLPredictor.predict(self, float_examples)
+        return RLPredictor.predict(self, float_examples, int_state_features)
 
-        examples = []
-        for i in range(len(states)):
-            examples.append({**states[i], **actions[i]})
-        return RLPredictor.predict(self, examples)
-
-    def policy(self, states, actions):
-        examples = []
-        for i in range(len(states)):
-            examples.append({**states[i], **actions[i]})
-        return RLPredictor.policy(self, examples)
+    def policy(self, float_state_features, int_state_features, actions):
+        float_examples = []
+        for i in range(len(float_state_features)):
+            float_examples.append({**float_state_features[i], **actions[i]})
+        if int_state_features is None:
+            return RLPredictor.policy(self, float_examples)
+        return RLPredictor.policy(self, float_examples, int_state_features)
 
     def get_predictor_export_meta(self):
         return PredictorExportMeta(
@@ -54,12 +58,14 @@ class ContinuousActionDQNPredictor(RLPredictor):
         trainer,
         state_normalization_parameters,
         action_normalization_parameters,
+        int_features=False,
     ):
-        """ Creates ContinuousActionDQNPredictor from a list of action trainers
+        """ Creates a ContinuousActionDQNPredictor from a ContinuousActionDQNTrainer.
 
-        :param trainer ContinuousActionDQNPredictor
-        :param state_features list of state feature names
-        :param action_features list of action feature names
+        :param trainer ContinuousActionDQNTrainer
+        :param state_normalization_parameters state NormalizationParameters
+        :param action_normalization_parameters action NormalizationParameters
+        :param int_features boolean indicating if int features blob will be present
         """
         # ensure state and action IDs have no intersection
         assert (
@@ -77,29 +83,67 @@ class ContinuousActionDQNPredictor(RLPredictor):
             'input/float_features.lengths', np.zeros(1, dtype=np.int32)
         )
         workspace.FeedBlob(
-            'input/float_features.keys', np.zeros(1, dtype=np.int32)
+            'input/float_features.keys', np.zeros(1, dtype=np.int64)
         )
         workspace.FeedBlob(
             'input/float_features.values', np.zeros(1, dtype=np.float32)
         )
+
+        input_feature_lengths = 'input_feature_lengths'
+        input_feature_keys = 'input_feature_keys'
+        input_feature_values = 'input_feature_values'
+
+        if int_features:
+            workspace.FeedBlob(
+                'input/int_features.lengths', np.zeros(1, dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys', np.zeros(1, dtype=np.int64)
+            )
+            workspace.FeedBlob(
+                'input/int_features.values', np.zeros(1, dtype=np.int32)
+            )
+            C2.net().Cast(
+                ['input/int_features.values'],
+                ['input/int_features.values_float'],
+                dtype=caffe2_pb2.TensorProto.FLOAT
+            )
+            C2.net().MergeMultiScalarFeatureTensors(
+                [
+                    'input/float_features.lengths', 'input/float_features.keys',
+                    'input/float_features.values', 'input/int_features.lengths',
+                    'input/int_features.keys', 'input/int_features.values_float'
+                ], [
+                    input_feature_lengths, input_feature_keys,
+                    input_feature_values
+                ]
+            )
+        else:
+            C2.net().Copy(
+                ['input/float_features.lengths'], [input_feature_lengths]
+            )
+            C2.net().Copy(['input/float_features.keys'], [input_feature_keys])
+            C2.net().Copy(
+                ['input/float_features.values'], [input_feature_values]
+            )
 
         preprocessor = PreprocessorNet(net, True)
         parameters = []
         parameters.extend(preprocessor.parameters)
         state_normalized_dense_matrix, new_parameters = \
             preprocessor.normalize_sparse_matrix(
-                'input/float_features.lengths',
-                'input/float_features.keys',
-                'input/float_features.values',
+                input_feature_lengths,
+                input_feature_keys,
+                input_feature_values,
                 state_normalization_parameters,
                 'state_norm',
             )
         parameters.extend(new_parameters)
         action_normalized_dense_matrix, new_parameters = \
             preprocessor.normalize_sparse_matrix(
-                'input/float_features.lengths',
-                'input/float_features.keys',
-                'input/float_features.values',
+                input_feature_lengths,
+                input_feature_keys,
+                input_feature_values,
                 action_normalization_parameters,
                 'action_norm',
             )
@@ -187,4 +231,4 @@ class ContinuousActionDQNPredictor(RLPredictor):
 
         workspace.RunNetOnce(model.param_init_net)
         workspace.CreateNet(net)
-        return ContinuousActionDQNPredictor(net, parameters)
+        return ContinuousActionDQNPredictor(net, parameters, int_features)

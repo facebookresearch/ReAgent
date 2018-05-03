@@ -13,9 +13,11 @@ from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters, get_num_output_features
 )
-from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
+from ml.rl.thrift.core.ttypes import (
+    DiscreteActionModelParameters, AdditionalFeatureTypes
+)
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
-from ml.rl.training.rl_trainer import RLTrainer
+from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
 
 
 class DiscreteActionTrainer(RLTrainer):
@@ -27,7 +29,10 @@ class DiscreteActionTrainer(RLTrainer):
         self,
         parameters: DiscreteActionModelParameters,
         normalization_parameters: Dict[int, NormalizationParameters],
+        additional_feature_types:
+        AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
+        self._additional_feature_types = additional_feature_types
         self._actions = parameters.actions if parameters.actions is not None else []
         self.reward_shape = {}  # type: Dict[int, float]
         if parameters.rl.reward_boost is not None and self._actions is not None:
@@ -320,4 +325,5 @@ class DiscreteActionTrainer(RLTrainer):
             self,
             self._actions,
             self.state_normalization_parameters,
+            self._additional_feature_types.int_features,
         )

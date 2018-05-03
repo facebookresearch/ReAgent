@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 from typing import Dict, List, Optional, Union
 
 import logging
@@ -13,7 +12,7 @@ from caffe2.python.model_helper import ModelHelper
 
 from ml.rl.caffe_utils import C2, StackedArray
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
-    ContinuousActionModelParameters
+    ContinuousActionModelParameters, AdditionalFeatureTypes
 from ml.rl.training.conv.conv_ml_trainer import ConvMLTrainer
 from ml.rl.training.conv.conv_target_network import ConvTargetNetwork
 from ml.rl.training.ml_trainer import MLTrainer
@@ -21,12 +20,13 @@ from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.training.evaluator import Evaluator
 
-
 RL_TRAINER_PREFIX = 'rl_trainer_'
 ML_TRAINER_PREFIX = 'ml_trainer_'
 CONV_ML_TRAINER_PREFIX = 'conv_ml_trainer_'
 TARGET_NETWORK_PREFIX = 'target_network_'
 CONV_TARGET_NETWORK_PREFIX = 'conv_target_network_'
+
+DEFAULT_ADDITIONAL_FEATURE_TYPES = AdditionalFeatureTypes(int_features=False)
 
 
 class RLTrainer(object):

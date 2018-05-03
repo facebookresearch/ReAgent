@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class DiscreteActionPredictor(RLPredictor):
-    def __init__(self, net, parameters):
-        RLPredictor.__init__(self, net, parameters)
+    def __init__(self, net, parameters, int_features=False):
+        RLPredictor.__init__(self, net, parameters, int_features)
         self.is_discrete = True
         self._output_blobs.extend(
             [
@@ -33,12 +33,19 @@ class DiscreteActionPredictor(RLPredictor):
         )
 
     @classmethod
-    def export(cls, trainer, actions, normalization_parameters):
-        """ Creates DiscreteActionPredictor from a list of action trainers
+    def export(
+        cls,
+        trainer,
+        actions,
+        state_normalization_parameters,
+        int_features=False
+    ):
+        """ Creates a DiscreteActionPredictor from a DiscreteActionTrainer.
 
         :param trainer DiscreteActionTrainer
-        :param features list of state feature names
         :param actions list of action names
+        :param state_normalization_parameters state NormalizationParameters
+        :param int_features boolean indicating if int features blob will be present
         """
 
         model = model_helper.ModelHelper(name="predictor")
@@ -52,22 +59,60 @@ class DiscreteActionPredictor(RLPredictor):
             'input/float_features.lengths', np.zeros(1, dtype=np.int32)
         )
         workspace.FeedBlob(
-            'input/float_features.keys', np.zeros(1, dtype=np.int32)
+            'input/float_features.keys', np.zeros(1, dtype=np.int64)
         )
         workspace.FeedBlob(
             'input/float_features.values', np.zeros(1, dtype=np.float32)
         )
 
+        input_feature_lengths = 'input_feature_lengths'
+        input_feature_keys = 'input_feature_keys'
+        input_feature_values = 'input_feature_values'
+
+        if int_features:
+            workspace.FeedBlob(
+                'input/int_features.lengths', np.zeros(1, dtype=np.int32)
+            )
+            workspace.FeedBlob(
+                'input/int_features.keys', np.zeros(1, dtype=np.int64)
+            )
+            workspace.FeedBlob(
+                'input/int_features.values', np.zeros(1, dtype=np.int32)
+            )
+            C2.net().Cast(
+                ['input/int_features.values'],
+                ['input/int_features.values_float'],
+                dtype=caffe2_pb2.TensorProto.FLOAT
+            )
+            C2.net().MergeMultiScalarFeatureTensors(
+                [
+                    'input/float_features.lengths', 'input/float_features.keys',
+                    'input/float_features.values', 'input/int_features.lengths',
+                    'input/int_features.keys', 'input/int_features.values_float'
+                ], [
+                    input_feature_lengths, input_feature_keys,
+                    input_feature_values
+                ]
+            )
+        else:
+            C2.net().Copy(
+                ['input/float_features.lengths'], [input_feature_lengths]
+            )
+            C2.net().Copy(['input/float_features.keys'], [input_feature_keys])
+            C2.net().Copy(
+                ['input/float_features.values'], [input_feature_values]
+            )
+
         parameters = []
-        if normalization_parameters is not None:
+        if state_normalization_parameters is not None:
             preprocessor = PreprocessorNet(net, True)
             parameters.extend(preprocessor.parameters)
             normalized_dense_matrix, new_parameters = \
                 preprocessor.normalize_sparse_matrix(
-                    'input/float_features.lengths',
-                    'input/float_features.keys',
-                    'input/float_features.values',
-                    normalization_parameters,
+                    input_feature_lengths,
+                    input_feature_keys,
+                    input_feature_values,
+                    state_normalization_parameters,
                     'state_norm',
                 )
             parameters.extend(new_parameters)
@@ -145,4 +190,4 @@ class DiscreteActionPredictor(RLPredictor):
 
         workspace.RunNetOnce(model.param_init_net)
         workspace.CreateNet(net)
-        return DiscreteActionPredictor(net, parameters)
+        return DiscreteActionPredictor(net, parameters, int_features)

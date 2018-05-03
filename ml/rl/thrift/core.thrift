@@ -1,5 +1,9 @@
 namespace py ml.rl.thrift.core
 
+struct AdditionalFeatureTypes {
+  1: bool int_features = false
+}
+
 struct RLParameters {
   1: double gamma = 0.9,
   2: double epsilon = 0.1,

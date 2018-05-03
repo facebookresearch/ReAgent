@@ -290,7 +290,7 @@ def run_gym(params, score_bar, gpu_id):
                 knn=KnnParameters(model_type='DQN', ),
             )
             trainer = ContinuousActionDQNTrainer(
-                trainer_params, env.normalization, env.normalization_action
+                trainer_params, env.normalization, env.normalization_action,
             )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
         training_settings = params['shared_training']
@@ -316,7 +316,7 @@ def run_gym(params, score_bar, gpu_id):
         }
         trainer = DDPGTrainer(
             trainer_params, env_details, env.normalization,
-            env.normalization_action
+            env.normalization_action,
         )
 
     else:
