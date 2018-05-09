@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-
 import logging
 logger = logging.getLogger(__name__)
 
 from caffe2.python.predictor.predictor_exporter import (
     load_from_db, prepare_prediction_net
 )
-from caffe2.python import core
+from caffe2.python import core, workspace
 from caffe2.python.predictor_constants import predictor_constants
 from caffe2.python.predictor.predictor_py_utils import GetBlobs
 
@@ -24,8 +23,11 @@ class PolicySimulator(object):
         simulator_parameters: PolicyEvaluatorParameters,
         db_type: str,
     ) -> str:
-        for model in simulator_parameters.value_models:
-            if model.path is not None:
+        for name, value in simulator_parameters.global_value_inputs:
+            workspace.FeedBlob(name, value)
+
+        for model in simulator_parameters.value_input_models:
+            if model.path is not None and len(model.path) > 0:
                 model_net = prepare_prediction_net(model.path, db_type)
 
                 # By default, inputs are not remapped, so let's force a remapping

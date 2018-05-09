@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from typing import Dict, List, Any
+
 import numpy as np
 import tempfile
 import unittest
@@ -12,43 +14,93 @@ from caffe2.python.predictor.predictor_exporter import (
 )
 
 from ml.rl.thrift.eval.ttypes import (
-    PolicyEvaluatorParameters, ValueModelParameters
+    PolicyEvaluatorParameters, ValueInputModelParameters
 )
 
 from ml.rl.caffe_utils import C2
-from ml.rl.evaluation.policy_evaluator import PolicyEvaluator
+from ml.rl.evaluation.policy_evaluator import (
+    PolicyEvaluator, save_sum_deterministic_policy, Slate
+)
 
 
 class TestPolicyEvaluator(unittest.TestCase):
     def test_no_model_nets_matching_policy(self):
         with tempfile.TemporaryDirectory() as temp_directory_name:
             policy_file = os.path.join(temp_directory_name, 'policy.db')
-            self._sum_deterministic_policy(['Model1', 'Model2'], policy_file)
             pep = PolicyEvaluatorParameters()
             pep.propensity_net_path = policy_file
-            pep.value_models = []
-            pep.value_models.append(ValueModelParameters(name='Model1'))
-            pep.value_models.append(ValueModelParameters(name='Model2'))
-            pe = PolicyEvaluator(pep, 'minidb')
+            pep.db_type = 'minidb'
+            pep.global_value_inputs = {}
+            pep.value_input_models = []
+            pep.value_input_models.append(
+                ValueInputModelParameters(name='Model1')
+            )
+            pep.value_input_models.append(
+                ValueInputModelParameters(name='Model2')
+            )
+            save_sum_deterministic_policy(
+                ['Model1', 'Model2'],
+                policy_file,
+                pep.db_type,
+            )
+            pe = PolicyEvaluator(pep)
             slates = []
 
             # First slate: new model picks action 0
-            slates.append(self._generate_numpy_slate([  #
-                [1.0, 0.0],  # First example scores
-                [0.0, 0.0]  # Second example scores
-            ]))
+            slates.append(
+                self.flatten_slate(
+                    {},
+                    [
+                        {
+                            'Model1': {
+                                'Output': 1.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        },  # First example scores
+                        {
+                            'Model1': {
+                                'Output': 0.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        }  # Second example scores
+                    ]
+                )
+            )
 
             # Second slate: new model picks action 1
-            slates.append(self._generate_numpy_slate([  #
-                [0.0, 0.0],  # First example scores
-                [1.0, 0.0]  # Second example scores
-            ]))
+            slates.append(
+                self.flatten_slate(
+                    {},
+                    [
+                        {
+                            'Model1': {
+                                'Output': 0.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        },  # First example scores
+                        {
+                            'Model1': {
+                                'Output': 1.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        }  # Second example scores
+                    ]
+                )
+            )
 
-            rewards = np.array([1.0, 0.5])
+            rewards = np.array([[1.0], [0.5]])
 
             # Old model picks actions 0 and 1 with 100% probability
-            action_selection = np.array([0, 1])
-            baseline_probabilities = np.array([1.0, 1.0])
+            action_selection = np.array([[0], [1]])
+            baseline_probabilities = np.array([[1.0], [1.0]])
             value = pe.evaluate_slates(
                 slates, action_selection, rewards, baseline_probabilities
             )
@@ -58,46 +110,93 @@ class TestPolicyEvaluator(unittest.TestCase):
     def test_one_model_net_matching_policy(self):
         with tempfile.TemporaryDirectory() as temp_directory_name:
             policy_file = os.path.join(temp_directory_name, 'policy.db')
-            self._sum_deterministic_policy(['Model1', 'Model2'], policy_file)
             model1_file = os.path.join(temp_directory_name, 'model1.db')
             self._dummy_model_copy('Model1', model1_file)
             pep = PolicyEvaluatorParameters()
             pep.propensity_net_path = policy_file
-            pep.value_models = []
-            pep.value_models.append(
-                ValueModelParameters(name='Model1', path=model1_file)
+            pep.db_type = 'minidb'
+            pep.global_value_inputs = {}
+            pep.value_input_models = []
+            pep.value_input_models.append(
+                ValueInputModelParameters(name='Model1', path=model1_file)
             )
-            pep.value_models.append(ValueModelParameters(name="Model2"))
-            pe = PolicyEvaluator(pep, 'minidb')
+            pep.value_input_models.append(
+                ValueInputModelParameters(name="Model2")
+            )
+            save_sum_deterministic_policy(
+                ['Model1', 'Model2'],
+                policy_file,
+                pep.db_type,
+            )
+            pe = PolicyEvaluator(pep)
             slates = []
 
             # First slate: new model picks action 0
-            slates.append(self._generate_numpy_slate([  #
-                [{'Input': 1.0}, 0.0],  # First example scores
-                [{'Input': 0.0}, 0.0]  # Second example scores
-            ]))
+            slates.append(
+                self.flatten_slate(
+                    {},
+                    [
+                        {
+                            'Model1': {
+                                'Input': 1.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        },  # First example scores
+                        {
+                            'Model1': {
+                                'Input': 0.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        }  # Second example scores
+                    ]
+                )
+            )
 
             # Second slate: new model picks action 1
-            slates.append(self._generate_numpy_slate([  #
-                [{'Input': 0.0}, 0.0],  # First example scores
-                [{'Input': 1.0}, 0.0]  # Second example scores
-            ]))
+            slates.append(
+                self.flatten_slate(
+                    {},
+                    [
+                        {
+                            'Model1': {
+                                'Input': 0.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        },  # First example scores
+                        {
+                            'Model1': {
+                                'Input': 1.0
+                            },
+                            'Model2': {
+                                'Output': 0.0
+                            }
+                        }  # Second example scores
+                    ]
+                )
+            )
 
-            rewards = np.array([1.0, 0.5])
+            rewards = np.array([[1.0], [0.5]])
 
             # Old model picks actions 0 and 1 with 100% probability
-            action_selection = np.array([0, 1])
-            baseline_probabilities = np.array([1.0, 1.0])
+            action_selection = np.array([[0], [1]])
+            baseline_probabilities = np.array([[1.0], [1.0]])
             value = pe.evaluate_slates(
                 slates, action_selection, rewards, baseline_probabilities
             )
             print(value)
             self.assertAlmostEqual(value, 0.75)
 
-    def _generate_numpy_slate(
+    def flatten_slate(
         self,
-        slate,
-    ):
+        policy_features: Dict[str, Any],
+        model_features_per_example: List[Dict[str, Dict[str, Any]]],
+    ) -> Slate:
         """
         This function takes in a slate of choices, where each choice is a list
             of either (1) features or (2) model outputs.  The function then
@@ -106,35 +205,28 @@ class TestPolicyEvaluator(unittest.TestCase):
             of feature lists with one element per example, or a set of ouptut
             scores.
         """
-        numpy_slate = []
-        for model_index in range(len(slate[0])):
-            print(slate[0][model_index])
-            if isinstance(slate[0][model_index], dict):
-                # Model is a net
-                model_blobs = {}
-                for k in slate[0][model_index].keys():
-                    model_blobs[k] = []
-                for x in range(len(slate)):
-                    for k, v in model_blobs.items():
-                        v.append(slate[x][model_index][k])
-                for k in model_blobs.keys():
-                    model_blobs[k] = np.array(
-                        model_blobs[k], dtype=np.float32
-                    ).reshape(-1, 1)
-                numpy_slate.append(model_blobs)
-            else:
-                model_scores = []
-                for x in range(len(slate)):
-                    model_scores.append(slate[x][model_index])
-                print(model_scores)
-                numpy_slate.append(
-                    {
-                        'Output':
-                            np.array(model_scores, dtype=np.float32)
-                            .reshape(-1, 1)
-                    }
-                )
-        return numpy_slate
+        all_model_features: Dict[str, Dict[str, List[Any]]] = {}
+        for example in model_features_per_example:
+            for model_name, new_model_features in example.items():
+                if model_name not in all_model_features:
+                    all_model_features[model_name] = {}
+                model_features = all_model_features[model_name]
+                for feature_id, feature_value in new_model_features.items():
+                    if feature_id not in model_features:
+                        model_features[feature_id] = [feature_value]
+                    else:
+                        model_features[feature_id].append(feature_value)
+
+        all_model_features_numpy: Dict[str, Dict[str, Any]] = {}
+        for model_name, model in all_model_features.items():
+            all_model_features_numpy[model_name] = {}
+            for feature_id in model.keys():
+                all_model_features_numpy[model_name][feature_id] = np.array( # type: ignore
+                    model[feature_id], dtype=np.float32 # type: ignore
+                ).reshape(-1, 1)
+
+        print(all_model_features_numpy)
+        return Slate(policy_features, all_model_features_numpy)
 
     def _dummy_model_copy(self, model_name, path):
         net = core.Net(model_name)
@@ -148,37 +240,6 @@ class TestPolicyEvaluator(unittest.TestCase):
             net,
             [],
             [inp],
-            [output],
-        )
-        save_to_db('minidb', path, meta)
-
-    def _sum_deterministic_policy(self, model_names, path):
-        net = core.Net('DeterministicPolicy')
-        C2.set_net(net)
-        output = 'ActionProbabilities'
-        workspace.FeedBlob(output, np.array([1.0]))
-        model_outputs = []
-        for model in model_names:
-            model_output = '{}_Output'.format(model)
-            workspace.FeedBlob(model_output, np.array([1.0], dtype=np.float32))
-            model_outputs.append(model_output)
-        max_action = C2.FlattenToVec(
-            C2.ArgMax(C2.Transpose(C2.Sum(*model_outputs)))
-        )
-        one_blob = C2.NextBlob('one')
-        workspace.FeedBlob(one_blob, np.array([1.0], dtype=np.float32))
-        C2.net().SparseToDense(
-            [
-                max_action,
-                one_blob,
-                model_outputs[0],
-            ],
-            [output],
-        )
-        meta = PredictorExportMeta(
-            net,
-            [one_blob],
-            model_outputs,
             [output],
         )
         save_to_db('minidb', path, meta)
