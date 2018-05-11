@@ -82,6 +82,10 @@ class DDPGTrainer(object):
         actions = Variable(torch.from_numpy(training_samples[1]))
         rewards = Variable(torch.from_numpy(training_samples[2]))
         next_states = Variable(torch.from_numpy(training_samples[3]))
+        time_diffs = torch.tensor(training_samples[8], dtype=torch.float32)
+        discount_tensor = torch.tensor(
+            np.array([self.gamma for x in range(len(rewards))], dtype=np.float32),
+        )
         done = training_samples[5].astype(int)
         not_done_mask = Variable(torch.from_numpy(1 - done)).type(
             torch.FloatTensor
@@ -95,7 +99,7 @@ class DDPGTrainer(object):
         next_state_actions = torch.cat((next_states, next_actions), dim=1)
         q_s2_a2 = self.critic_target(next_state_actions).detach().squeeze()
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
-        target_q_values = rewards + (self.gamma * filtered_q_s2_a2)
+        target_q_values = rewards + (discount_tensor.pow(time_diffs) * filtered_q_s2_a2)
         # compute loss and update the critic network
         critic_predictions = q_s1_a1.squeeze()
         loss_critic = F.mse_loss(critic_predictions, target_q_values)

@@ -108,7 +108,7 @@ def run(
             gym_env.insert_into_memory(
                 np.float32(state), action, np.float32(reward),
                 np.float32(next_state), next_action, terminal,
-                possible_next_actions, possible_next_actions_lengths
+                possible_next_actions, possible_next_actions_lengths, 1,
             )
 
             # Training loop

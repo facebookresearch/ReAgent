@@ -101,7 +101,7 @@ class OpenAIGymEnvironment:
 
         :param batch_size: Number of sampled transitions to return.
         """
-        cols = [[], [], [], [], [], [], [], []]
+        cols = [[], [], [], [], [], [], [], [], []]
         indices = np.random.permutation(len(self.replay_memory))[:batch_size]
         for idx in indices:
             memory = self.replay_memory[idx]
@@ -124,8 +124,8 @@ class OpenAIGymEnvironment:
         :param maxq_learning: Boolean indicating to use q-learning or sarsa.
         """
         states, actions, rewards, next_states, next_actions,\
-            terminals, possible_next_actions,\
-            possible_next_actions_lengths = self.sample_memories(num_samples)
+            terminals, possible_next_actions, possible_next_actions_lengths,\
+            time_diffs = self.sample_memories(num_samples)
 
         workspace.FeedBlob('states', np.array(states, dtype=np.float32))
         workspace.FeedBlob('actions', np.array(actions, dtype=np.float32))
@@ -139,6 +139,9 @@ class OpenAIGymEnvironment:
         workspace.FeedBlob(
             'not_terminals',
             np.logical_not(terminals, dtype=np.bool).reshape(-1, 1)
+        )
+        workspace.FeedBlob(
+            'time_diff', np.array(time_diffs, dtype=np.float32).reshape(-1, 1)
         )
 
         # SARSA algorithm does not need possible next actions so return
@@ -213,7 +216,7 @@ class OpenAIGymEnvironment:
 
     def insert_into_memory(
         self, state, action, reward, next_state, next_action, terminal,
-        possible_next_actions, possible_next_actions_lengths
+        possible_next_actions, possible_next_actions_lengths, time_diff,
     ):
         """
         Inserts transition into replay memory in such a way that retrieving
@@ -221,7 +224,7 @@ class OpenAIGymEnvironment:
         """
         item = (
             state, action, reward, next_state, next_action, terminal,
-            possible_next_actions, possible_next_actions_lengths
+            possible_next_actions, possible_next_actions_lengths, time_diff,
         )
 
         if self.memory_num < self.max_replay_memory_size:

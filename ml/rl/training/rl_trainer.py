@@ -97,6 +97,8 @@ class RLTrainer(object):
         workspace.FeedBlob(
             'possible_next_actions_lengths', np.array([0], dtype=np.float32)
         )
+        # Setting to 1 serves as a 1 unit time_diff if not set by user
+        workspace.FeedBlob('time_diff', np.array([1], dtype=np.float32))
 
         self.rl_train_model: Optional[ModelHelper] = None
         self.reward_train_model: Optional[ModelHelper] = None
@@ -191,6 +193,7 @@ class RLTrainer(object):
         workspace.FeedBlob('rewards', tdp.rewards)
         workspace.FeedBlob('next_states', tdp.next_states)
         workspace.FeedBlob('not_terminals', tdp.not_terminals)
+        workspace.FeedBlob('time_diff', np.array([1], dtype=np.float32))
         if self.maxq_learning:
             if isinstance(tdp.possible_next_actions, StackedArray):
                 workspace.FeedBlob(
