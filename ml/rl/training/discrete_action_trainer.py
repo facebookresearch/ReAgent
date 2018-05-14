@@ -3,18 +3,21 @@
 from typing import Dict, Optional
 
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
-from caffe2.python import workspace
+from caffe2.python import workspace, core
 from caffe2.python.model_helper import ModelHelper
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing.normalization import (
-    NormalizationParameters, get_num_output_features
+    NormalizationParameters,
+    get_num_output_features,
 )
 from ml.rl.thrift.core.ttypes import (
-    DiscreteActionModelParameters, AdditionalFeatureTypes
+    DiscreteActionModelParameters,
+    AdditionalFeatureTypes,
 )
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
 from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
@@ -29,8 +32,7 @@ class DiscreteActionTrainer(RLTrainer):
         self,
         parameters: DiscreteActionModelParameters,
         normalization_parameters: Dict[int, NormalizationParameters],
-        additional_feature_types:
-        AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
+        additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
         self._additional_feature_types = additional_feature_types
         self._actions = parameters.actions if parameters.actions is not None else []
@@ -59,14 +61,12 @@ class DiscreteActionTrainer(RLTrainer):
         return len(self._actions)
 
     def get_possible_next_actions(self):
-        return 'possible_next_actions'
+        return "possible_next_actions"
 
     def _create_all_q_score_net(self) -> None:
-        self.all_q_score_model = ModelHelper(
-            name="all_q_score_" + self.model_id
-        )
+        self.all_q_score_model = ModelHelper(name="all_q_score_" + self.model_id)
         C2.set_model(self.all_q_score_model)
-        self.all_q_score_output = self.get_q_values_all_actions('states', True)
+        self.all_q_score_output = self.get_q_values_all_actions("states", True)
         workspace.RunNetOnce(self.all_q_score_model.param_init_net)
         workspace.CreateNet(self.all_q_score_model.net)
         C2.set_model(None)
@@ -76,19 +76,12 @@ class DiscreteActionTrainer(RLTrainer):
             name="internal_policy_" + self.model_id
         )
         C2.set_model(self.internal_policy_model)
-        self.internal_policy_output = self.get_q_values_all_actions(
-            'states', False
-        )
+        self.internal_policy_output = self.get_q_values_all_actions("states", False)
         workspace.RunNetOnce(self.internal_policy_model.param_init_net)
         workspace.CreateNet(self.internal_policy_model.net)
         C2.set_model(None)
 
-    def update_model(
-        self,
-        states: str,
-        actions: str,
-        q_vals_target: str,
-    ) -> None:
+    def update_model(self, states: str, actions: str, q_vals_target: str) -> None:
         """
         Takes in states, actions, and target q values. Updates the model:
 
@@ -109,27 +102,14 @@ class DiscreteActionTrainer(RLTrainer):
         output_blob = C2.NextBlob("train_output")
         if self.conv_ml_trainer is not None:
             conv_output_blob = C2.NextBlob("conv_output")
-            self.conv_ml_trainer.make_conv_pass_ops(
-                model,
-                states,
-                conv_output_blob,
-            )
+            self.conv_ml_trainer.make_conv_pass_ops(model, states, conv_output_blob)
             states = conv_output_blob
 
-        self.ml_trainer.make_forward_pass_ops(
-            model,
-            states,
-            output_blob,
-            False,
-        )
+        self.ml_trainer.make_forward_pass_ops(model, states, output_blob, False)
         q_val_select = C2.ReduceBackSum(C2.Mul(output_blob, actions))
         q_values = C2.ExpandDims(q_val_select, dims=[1])
 
-        self.loss_blob = self.ml_trainer.generateLossOps(
-            model,
-            q_values,
-            q_vals_target,
-        )
+        self.loss_blob = self.ml_trainer.generateLossOps(model, q_values, q_vals_target)
         model.AddGradientOperators([self.loss_blob])
         for param in model.params:
             if param in model.param_to_grad:
@@ -137,25 +117,13 @@ class DiscreteActionTrainer(RLTrainer):
                 param_grad = C2.NanCheck(param_grad)
         self.ml_trainer.addParameterUpdateOps(model)
 
-    def get_q_values(
-        self,
-        states: str,
-        actions: str,
-        use_target_network: bool,
-    ) -> str:
+    def get_q_values(self, states: str, actions: str, use_target_network: bool) -> str:
         # actions and possible_next_actions are the same matrix, only that
         # actions is one-hot.  Because of this, we can call get_max_q_values.
-        return self.get_max_q_values(
-            states,
-            actions,
-            use_target_network,
-        )
+        return self.get_max_q_values(states, actions, use_target_network)
 
     def get_max_q_values(
-        self,
-        states: str,
-        possible_actions: str,
-        use_target_network: bool,
+        self, states: str, possible_actions: str, use_target_network: bool
     ) -> str:
         """
         Takes in an array of states and outputs an array of the same shape
@@ -173,32 +141,16 @@ class DiscreteActionTrainer(RLTrainer):
 
         # Set the q values of impossible actions to a very large negative
         #    number.
-        inverse_pna = C2.ConstantFill(
-            possible_actions,
-            value=1.0,
-        )
-        inverse_pna = C2.Sub(
-            inverse_pna,
-            possible_actions,
-        )
-        inverse_pna = C2.Mul(
-            inverse_pna,
-            self.ACTION_NOT_POSSIBLE_VAL,
-            broadcast=1,
-        )
+        inverse_pna = C2.ConstantFill(possible_actions, value=1.0)
+        possible_actions_float = C2.Cast(possible_actions, to=core.DataType.FLOAT)
+        inverse_pna = C2.Sub(inverse_pna, possible_actions_float)
+        inverse_pna = C2.Mul(inverse_pna, self.ACTION_NOT_POSSIBLE_VAL, broadcast=1)
         q_values = C2.Add(q_values, inverse_pna)
 
-        q_values_max = C2.ReduceBackMax(
-            q_values,
-            num_reduce_dims=1,
-        )
+        q_values_max = C2.ReduceBackMax(q_values, num_reduce_dims=1)
         return C2.ExpandDims(q_values_max, dims=[1])
 
-    def get_q_values_all_actions(
-        self,
-        states: str,
-        use_target_network: bool,
-    ) -> str:
+    def get_q_values_all_actions(self, states: str, use_target_network: bool) -> str:
         """
         Takes in a set of states and runs the test Q Network on them.
 
@@ -220,52 +172,38 @@ class DiscreteActionTrainer(RLTrainer):
             if self.conv_target_network is not None:
                 conv_output_blob = C2.NextBlob("conv_output")
                 self.conv_target_network.make_conv_pass_ops(
-                    C2.model(),
-                    states,
-                    conv_output_blob,
+                    C2.model(), states, conv_output_blob
                 )
                 states = conv_output_blob
             self.target_network.make_forward_pass_ops(
-                C2.model(),
-                states,
-                all_q_values,
-                True,
+                C2.model(), states, all_q_values, True
             )
         else:
             if self.conv_ml_trainer is not None:
                 conv_output_blob = C2.NextBlob("conv_output")
                 self.conv_ml_trainer.make_conv_pass_ops(
-                    C2.model(),
-                    states,
-                    conv_output_blob,
+                    C2.model(), states, conv_output_blob
                 )
                 states = conv_output_blob
             self.ml_trainer.make_forward_pass_ops(
-                C2.model(),
-                states,
-                all_q_values,
-                True,
+                C2.model(), states, all_q_values, True
             )
         return all_q_values
 
     def _create_reward_train_net(self) -> None:
-        self.reward_train_model = ModelHelper(
-            name="reward_train_" + self.model_id
-        )
+        self.reward_train_model = ModelHelper(name="reward_train_" + self.model_id)
         C2.set_model(self.reward_train_model)
         if self.reward_shape is not None:
             for action_index, boost in self.reward_shape.items():
                 action_boost = C2.Mul(
                     C2.Slice(
-                        'actions',
-                        starts=[0, action_index],
-                        ends=[-1, action_index + 1],
+                        "actions", starts=[0, action_index], ends=[-1, action_index + 1]
                     ),
                     boost,
                     broadcast=1,
                 )
-                C2.net().Sum(['rewards', action_boost], ['rewards'])
-        self.update_model('states', 'actions', 'rewards')
+                C2.net().Sum(["rewards", action_boost], ["rewards"])
+        self.update_model("states", "actions", "rewards")
         workspace.RunNetOnce(self.reward_train_model.param_init_net)
         workspace.CreateNet(self.reward_train_model.net)
         C2.set_model(None)
@@ -278,30 +216,23 @@ class DiscreteActionTrainer(RLTrainer):
             for action_index, boost in self.reward_shape.items():
                 action_boost = C2.Mul(
                     C2.Slice(
-                        'actions',
-                        starts=[0, action_index],
-                        ends=[-1, action_index + 1],
+                        "actions", starts=[0, action_index], ends=[-1, action_index + 1]
                     ),
                     boost,
                     broadcast=1,
                 )
-                C2.net().Sum(['rewards', action_boost], ['rewards'])
+                C2.net().Sum(["rewards", action_boost], ["rewards"])
 
         if self.maxq_learning:
             next_q_values = self.get_max_q_values(
-                'next_states',
-                self.get_possible_next_actions(),
-                True,
+                "next_states", self.get_possible_next_actions(), True
             )
         else:
-            next_q_values = self.get_q_values(
-                'next_states', 'next_actions', True
-            )
+            next_q_values = self.get_q_values("next_states", "next_actions", True)
 
         discount_blob = C2.ConstantFill("time_diff", value=self.rl_discount_rate)
         time_diff_adjusted_discount_blob = C2.Pow(
-            discount_blob,
-            C2.Cast("time_diff", to=caffe2_pb2.TensorProto.FLOAT)
+            discount_blob, C2.Cast("time_diff", to=caffe2_pb2.TensorProto.FLOAT)
         )
 
         q_vals_target = C2.Add(
@@ -318,7 +249,7 @@ class DiscreteActionTrainer(RLTrainer):
             ),
         )
 
-        self.update_model('states', 'actions', q_vals_target)
+        self.update_model("states", "actions", q_vals_target)
         workspace.RunNetOnce(self.rl_train_model.param_init_net)
         workspace.CreateNet(self.rl_train_model.net)
         C2.set_model(None)

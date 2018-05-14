@@ -3,6 +3,7 @@
 from typing import Dict, List, Optional, Union
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import numpy as np
@@ -11,8 +12,11 @@ from caffe2.python import workspace
 from caffe2.python.model_helper import ModelHelper
 
 from ml.rl.caffe_utils import C2, StackedArray
-from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters,\
-    ContinuousActionModelParameters, AdditionalFeatureTypes
+from ml.rl.thrift.core.ttypes import (
+    DiscreteActionModelParameters,
+    ContinuousActionModelParameters,
+    AdditionalFeatureTypes,
+)
 from ml.rl.training.conv.conv_ml_trainer import ConvMLTrainer
 from ml.rl.training.conv.conv_target_network import ConvTargetNetwork
 from ml.rl.training.ml_trainer import MLTrainer
@@ -20,13 +24,20 @@ from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.training.evaluator import Evaluator
 
-RL_TRAINER_PREFIX = 'rl_trainer_'
-ML_TRAINER_PREFIX = 'ml_trainer_'
-CONV_ML_TRAINER_PREFIX = 'conv_ml_trainer_'
-TARGET_NETWORK_PREFIX = 'target_network_'
-CONV_TARGET_NETWORK_PREFIX = 'conv_target_network_'
+RL_TRAINER_PREFIX = "rl_trainer_"
+ML_TRAINER_PREFIX = "ml_trainer_"
+CONV_ML_TRAINER_PREFIX = "conv_ml_trainer_"
+TARGET_NETWORK_PREFIX = "target_network_"
+CONV_TARGET_NETWORK_PREFIX = "conv_target_network_"
 
 DEFAULT_ADDITIONAL_FEATURE_TYPES = AdditionalFeatureTypes(int_features=False)
+
+
+def test_values_from_timeline(discount_factor, reward_timeline):
+    result = 0
+    for time, reward in reward_timeline.items():
+        result += (discount_factor ** time) * reward
+    return result
 
 
 class RLTrainer(object):
@@ -34,8 +45,9 @@ class RLTrainer(object):
 
     def __init__(
         self,
-        parameters: Union[DiscreteActionModelParameters,
-                          ContinuousActionModelParameters],
+        parameters: Union[
+            DiscreteActionModelParameters, ContinuousActionModelParameters
+        ],
     ) -> None:
         logger.info(str(parameters))
         RLTrainer.num_trainers += 1
@@ -48,8 +60,7 @@ class RLTrainer(object):
             )
 
             # The final layer of the conv net is the input to the fc net.
-            parameters.training.layers[0] = \
-                self.conv_ml_trainer.get_output_size()
+            parameters.training.layers[0] = self.conv_ml_trainer.get_output_size()
 
             self.conv_target_network = ConvTargetNetwork(
                 CONV_TARGET_NETWORK_PREFIX + str(RLTrainer.num_trainers),
@@ -61,12 +72,12 @@ class RLTrainer(object):
             self.conv_ml_trainer = None
             self.conv_target_network = None
 
-        assert parameters.training.layers[0] >= 0,\
-            "Set layers[0] to a the number of features"
+        assert (
+            parameters.training.layers[0] >= 0
+        ), "Set layers[0] to a the number of features"
 
         self.ml_trainer = MLTrainer(
-            ML_TRAINER_PREFIX + str(RLTrainer.num_trainers),
-            parameters.training,
+            ML_TRAINER_PREFIX + str(RLTrainer.num_trainers), parameters.training
         )
 
         self.target_network = TargetNetwork(
@@ -85,20 +96,18 @@ class RLTrainer(object):
         self.parameters = parameters
         self.loss_blob: Optional[str] = None
 
-        workspace.FeedBlob('states', np.array([0], dtype=np.float32))
-        workspace.FeedBlob('actions', np.array([0], dtype=np.float32))
-        workspace.FeedBlob('rewards', np.array([0], dtype=np.float32))
-        workspace.FeedBlob('next_states', np.array([0], dtype=np.float32))
-        workspace.FeedBlob('not_terminals', np.array([0], dtype=np.float32))
-        workspace.FeedBlob('next_actions', np.array([0], dtype=np.float32))
+        workspace.FeedBlob("states", np.array([0], dtype=np.float32))
+        workspace.FeedBlob("actions", np.array([0], dtype=np.float32))
+        workspace.FeedBlob("rewards", np.array([0], dtype=np.float32))
+        workspace.FeedBlob("next_states", np.array([0], dtype=np.float32))
+        workspace.FeedBlob("not_terminals", np.array([0], dtype=np.float32))
+        workspace.FeedBlob("next_actions", np.array([0], dtype=np.float32))
+        workspace.FeedBlob("possible_next_actions", np.array([0], dtype=np.float32))
         workspace.FeedBlob(
-            'possible_next_actions', np.array([0], dtype=np.float32)
-        )
-        workspace.FeedBlob(
-            'possible_next_actions_lengths', np.array([0], dtype=np.float32)
+            "possible_next_actions_lengths", np.array([0], dtype=np.float32)
         )
         # Setting to 1 serves as a 1 unit time_diff if not set by user
-        workspace.FeedBlob('time_diff', np.array([1], dtype=np.float32))
+        workspace.FeedBlob("time_diff", np.array([1], dtype=np.float32))
 
         self.rl_train_model: Optional[ModelHelper] = None
         self.reward_train_model: Optional[ModelHelper] = None
@@ -114,10 +123,7 @@ class RLTrainer(object):
         raise NotImplementedError()
 
     def get_max_q_values(
-        self,
-        next_states: str,
-        possible_next_actions,
-        use_target_network: bool,
+        self, next_states: str, possible_next_actions, use_target_network: bool
     ) -> str:
         """
         Takes in an array of next_states and outputs an array of the same shape
@@ -130,12 +136,7 @@ class RLTrainer(object):
         """
         raise NotImplementedError()
 
-    def get_q_values(
-        self,
-        states: str,
-        actions: str,
-        use_target_network: bool,
-    ) -> str:
+    def get_q_values(self, states: str, actions: str, use_target_network: bool) -> str:
         """
         Takes in a set of next_states and corresponding next_actions. For each
         (next_state_i, next_action_i) pair, calculates Q(next_state, next_action).
@@ -147,12 +148,7 @@ class RLTrainer(object):
         """
         raise NotImplementedError()
 
-    def update_model(
-        self,
-        states: str,
-        actions: str,
-        q_vals_target: str,
-    ) -> None:
+    def update_model(self, states: str, actions: str, q_vals_target: str) -> None:
         """
         Takes in states, actions, and target q values. Updates the model:
             Runs the forward pass, computing Q(states, actions).
@@ -178,53 +174,48 @@ class RLTrainer(object):
     def _create_q_score_net(self) -> None:
         self.q_score_model = ModelHelper(name="q_score_" + self.model_id)
         C2.set_model(self.q_score_model)
-        self.q_score_output = self.get_q_values('states', 'actions', True)
+        self.q_score_output = self.get_q_values("states", "actions", True)
         workspace.RunNetOnce(self.q_score_model.param_init_net)
         workspace.CreateNet(self.q_score_model.net)
         C2.set_model(None)
 
-    def train_numpy(
-        self,
-        tdp: TrainingDataPage,
-        evaluator: Optional[Evaluator],
-    ):
-        workspace.FeedBlob('states', tdp.states)
-        workspace.FeedBlob('actions', tdp.actions)
-        workspace.FeedBlob('rewards', tdp.rewards)
-        workspace.FeedBlob('next_states', tdp.next_states)
-        workspace.FeedBlob('not_terminals', tdp.not_terminals)
-        workspace.FeedBlob('time_diff', np.array([1], dtype=np.float32))
+    def train_numpy(self, tdp: TrainingDataPage, evaluator: Optional[Evaluator]):
+        workspace.FeedBlob("states", tdp.states)
+        workspace.FeedBlob("actions", tdp.actions)
+        workspace.FeedBlob("rewards", tdp.rewards)
+        workspace.FeedBlob("next_states", tdp.next_states)
+        workspace.FeedBlob("not_terminals", tdp.not_terminals)
+        workspace.FeedBlob("time_diff", np.array([1], dtype=np.float32))
         if self.maxq_learning:
             if isinstance(tdp.possible_next_actions, StackedArray):
                 workspace.FeedBlob(
-                    'possible_next_actions', tdp.possible_next_actions.values
+                    "possible_next_actions", tdp.possible_next_actions.values
                 )
                 workspace.FeedBlob(
-                    'possible_next_actions_lengths',
-                    tdp.possible_next_actions.lengths
+                    "possible_next_actions_lengths", tdp.possible_next_actions.lengths
                 )
             else:
-                workspace.FeedBlob(
-                    'possible_next_actions', tdp.possible_next_actions
-                )
+                workspace.FeedBlob("possible_next_actions", tdp.possible_next_actions)
         else:
-            workspace.FeedBlob('next_actions', tdp.next_actions)
-        self.train(tdp.reward_timelines, evaluator)
+            workspace.FeedBlob("next_actions", tdp.next_actions)
+        ground_truth = np.array(
+            [
+                test_values_from_timeline(self.rl_discount_rate, rt)
+                for rt in tdp.reward_timelines
+            ]
+        ).reshape(
+            -1, 1
+        )
+        self.train(ground_truth, evaluator)
 
-    def train(
-        self,
-        reward_timelines: Optional[List[Dict[int, float]]],
-        evaluator: Optional[Evaluator],
-    ) -> None:
+    def train(self, episode_values, evaluator: Optional[Evaluator]) -> None:
         assert self.rl_train_model is not None
         assert self.reward_train_model is not None
         assert self.q_score_model is not None
 
         if self.training_iteration >= self.reward_burnin:
             if self.training_iteration == self.reward_burnin:
-                logger.info(
-                    "Minibatch number == reward_burnin. Starting RL updates."
-                )
+                logger.info("Minibatch number == reward_burnin. Starting RL updates.")
                 self.target_network.enable_slow_updates()
                 if self.conv_target_network:
                     self.conv_target_network.enable_slow_updates()
@@ -238,10 +229,9 @@ class RLTrainer(object):
         self.training_iteration += 1
         workspace.RunNet(self.q_score_model.net)
         if evaluator is not None:
-            assert reward_timelines is not None
             assert self.loss_blob is not None
             evaluator.report(
-                reward_timelines,
+                episode_values,
                 workspace.FetchBlob(self.q_score_output),
                 workspace.FetchBlob(self.loss_blob),
             )
@@ -256,7 +246,5 @@ class RLTrainer(object):
             conv_output_flat = model.net.NextBlob("conv_output_flat")
             model.net.Flatten([conv_output], [conv_output_flat])
             input_blob = conv_output_flat
-        retval += self.ml_trainer.build_predictor(
-            model, input_blob, output_blob
-        )
+        retval += self.ml_trainer.build_predictor(model, input_blob, output_blob)
         return retval

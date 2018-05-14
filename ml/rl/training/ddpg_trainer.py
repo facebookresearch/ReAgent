@@ -14,6 +14,7 @@ from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES
 
 
 class DDPGTrainer(object):
+
     def __init__(
         self,
         parameters,
@@ -25,7 +26,7 @@ class DDPGTrainer(object):
         self._additional_feature_types = additional_feature_types
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
-        self.action_range = env_details['action_range']
+        self.action_range = env_details["action_range"]
 
         # Shared params
         self.env_details = env_details
@@ -33,7 +34,7 @@ class DDPGTrainer(object):
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
         self.final_layer_init = parameters.shared_training.final_layer_init
-        if parameters.shared_training.optimizer == 'ADAM':
+        if parameters.shared_training.optimizer == "ADAM":
             self.optimizer_func = torch.optim.Adam
         else:
             raise NotImplementedError(
@@ -44,14 +45,13 @@ class DDPGTrainer(object):
 
         # Actor params
         self.actor_params = parameters.actor_training
-        self.actor_params.layers[0] = env_details['state_dim']
-        self.actor_params.layers[-1] = env_details['action_dim']
-        self.noise_generator = OrnsteinUhlenbeckProcessNoise(
-            env_details['action_dim']
-        )
+        self.actor_params.layers[0] = env_details["state_dim"]
+        self.actor_params.layers[-1] = env_details["action_dim"]
+        self.noise_generator = OrnsteinUhlenbeckProcessNoise(env_details["action_dim"])
         self.actor = ActorNet(
-            self.actor_params.layers, self.actor_params.activations,
-            self.final_layer_init
+            self.actor_params.layers,
+            self.actor_params.activations,
+            self.final_layer_init,
         )
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = self.optimizer_func(
@@ -61,22 +61,22 @@ class DDPGTrainer(object):
 
         # Critic params
         self.critic_params = parameters.critic_training
-        self.critic_params.layers[0] = env_details['state_dim']
+        self.critic_params.layers[0] = env_details["state_dim"]
         self.critic_params.layers[-1] = 1
         self.critic = CriticNet(
-            self.critic_params.layers, self.critic_params.activations,
-            self.final_layer_init, self.env_details['action_dim']
+            self.critic_params.layers,
+            self.critic_params.activations,
+            self.final_layer_init,
+            self.env_details["action_dim"],
         )
         self.critic_target = deepcopy(self.critic)
         self.critic_optimizer = self.optimizer_func(
             self.critic.parameters(),
             lr=self.critic_params.learning_rate,
-            weight_decay=self.critic_params.l2_decay
+            weight_decay=self.critic_params.l2_decay,
         )
 
-    def train(
-        self, training_samples, evaluator=None, reward_timelines=None
-    ) -> None:
+    def train(self, training_samples, evaluator=None, episode_values=None) -> None:
 
         states = Variable(torch.from_numpy(training_samples[0]))
         actions = Variable(torch.from_numpy(training_samples[1]))
@@ -84,12 +84,10 @@ class DDPGTrainer(object):
         next_states = Variable(torch.from_numpy(training_samples[3]))
         time_diffs = torch.tensor(training_samples[8], dtype=torch.float32)
         discount_tensor = torch.tensor(
-            np.array([self.gamma for x in range(len(rewards))], dtype=np.float32),
+            np.array([self.gamma for x in range(len(rewards))], dtype=np.float32)
         )
         done = training_samples[5].astype(int)
-        not_done_mask = Variable(torch.from_numpy(1 - done)).type(
-            torch.FloatTensor
-        )
+        not_done_mask = Variable(torch.from_numpy(1 - done)).type(torch.FloatTensor)
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
@@ -109,9 +107,7 @@ class DDPGTrainer(object):
 
         # Optimize the actor network subject to the following:
         # max sum(Q(s1, a1)) or min -sum(Q(s1, a1))
-        loss_actor = -self.critic(
-            torch.cat((states, self.actor(states)), dim=1)
-        ).sum()
+        loss_actor = -self.critic(torch.cat((states, self.actor(states)), dim=1)).sum()
         self.actor_optimizer.zero_grad()
         loss_actor.backward()
         self.actor_optimizer.step()
@@ -121,9 +117,9 @@ class DDPGTrainer(object):
         self._soft_update(self.critic, self.critic_target, self.tau)
 
         if evaluator is not None:
-            assert reward_timelines is not None
+            assert episode_values is not None
             evaluator.report(
-                reward_timelines,
+                episode_values,
                 critic_predictions.data.numpy(),
                 loss_critic.data.numpy(),
             )
@@ -135,9 +131,7 @@ class DDPGTrainer(object):
         :param target_network target network with params to soft update
         :param tau hyperparameter to control target tracking speed
         """
-        for t_param, param in zip(
-            target_network.parameters(), network.parameters()
-        ):
+        for t_param, param in zip(target_network.parameters(), network.parameters()):
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 
@@ -158,11 +152,8 @@ class DDPGTrainer(object):
         # Continuous action space
         if self.action_range:
             return np.array(
-                [
-                    self.action_range * np.clip(action, -1, 1)
-                    for action in actions
-                ],
-                dtype=np.float32
+                [self.action_range * np.clip(action, -1, 1) for action in actions],
+                dtype=np.float32,
             )
         # Discrete action space
         return np.array(actions, dtype=np.float32)
@@ -186,14 +177,16 @@ class DDPGTrainer(object):
 
 
 class ActorNet(nn.Module):
+
     def __init__(self, layers, activations, fl_init) -> None:
         super(ActorNet, self).__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
 
-        assert (len(layers) >=
-                3), 'Invalid layer schema {} for actor network'.format(layers)
+        assert len(layers) >= 3, "Invalid layer schema {} for actor network".format(
+            layers
+        )
 
         for i, layer in enumerate(layers[1:]):
             self.layers.append(nn.Linear(layers[i], layer))
@@ -219,21 +212,21 @@ class ActorNet(nn.Module):
             x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
-            x = fc_func(x) if activation == 'linear' else activation_func(
-                fc_func(x)
-            )
+            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
         return x
 
 
 class CriticNet(nn.Module):
+
     def __init__(self, layers, activations, fl_init, action_dim) -> None:
         super(CriticNet, self).__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
 
-        assert (len(layers) >=
-                3), 'Invalid layer schema {} for actor network'.format(layers)
+        assert len(layers) >= 3, "Invalid layer schema {} for actor network".format(
+            layers
+        )
 
         for i, layer in enumerate(layers[1:]):
             # Batch norm only applied to pre-action layers
@@ -274,9 +267,7 @@ class CriticNet(nn.Module):
                 x = torch.cat((x, action), dim=1)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
-            x = fc_func(x) if activation == 'linear' else activation_func(
-                fc_func(x)
-            )
+            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
         return x
 
 
@@ -286,7 +277,7 @@ def fan_in_init(tensor) -> None:
     init.uniform_(tensor, -val_range, val_range)
 
 
-class OrnsteinUhlenbeckProcessNoise():
+class OrnsteinUhlenbeckProcessNoise:
     """ Exploration noise process with temporally correlated noise. Used to
     explore in physical environments w/momentum. Outlined in DDPG paper."""
 
