@@ -19,7 +19,10 @@ from ml.rl.thrift.core.ttypes import (
 from ml.rl.training.continuous_action_dqn_predictor import (
     ContinuousActionDQNPredictor
 )
-from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
+from ml.rl.training.rl_trainer import (
+    RLTrainer,
+    DEFAULT_ADDITIONAL_FEATURE_TYPES,
+)
 
 
 class ContinuousActionDQNTrainer(RLTrainer):
@@ -65,6 +68,8 @@ class ContinuousActionDQNTrainer(RLTrainer):
             self.get_q_values('states', 'actions', False)
         )
         workspace.RunNetOnce(self.internal_policy_model.param_init_net)
+        self.internal_policy_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.internal_policy_model.net)
         C2.set_model(None)
 
@@ -182,6 +187,8 @@ class ContinuousActionDQNTrainer(RLTrainer):
         C2.set_model(self.reward_train_model)
         self.update_model('states', 'actions', 'rewards')
         workspace.RunNetOnce(self.reward_train_model.param_init_net)
+        self.reward_train_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.reward_train_model.net)
         C2.set_model(None)
 
@@ -222,6 +229,8 @@ class ContinuousActionDQNTrainer(RLTrainer):
 
         self.update_model('states', 'actions', q_vals_target)
         workspace.RunNetOnce(self.rl_train_model.param_init_net)
+        self.rl_train_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.rl_train_model.net)
         C2.set_model(None)
 

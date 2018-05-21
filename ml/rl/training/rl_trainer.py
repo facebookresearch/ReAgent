@@ -31,6 +31,7 @@ TARGET_NETWORK_PREFIX = "target_network_"
 CONV_TARGET_NETWORK_PREFIX = "conv_target_network_"
 
 DEFAULT_ADDITIONAL_FEATURE_TYPES = AdditionalFeatureTypes(int_features=False)
+DEFAULT_PREPROCESSING_NUM_WORKERS = 32
 
 
 def test_values_from_timeline(discount_factor, reward_timeline):
@@ -42,6 +43,7 @@ def test_values_from_timeline(discount_factor, reward_timeline):
 
 class RLTrainer(object):
     num_trainers = 0
+    DEFAULT_TRAINING_NUM_WORKERS = 4
 
     def __init__(
         self,
@@ -176,6 +178,8 @@ class RLTrainer(object):
         C2.set_model(self.q_score_model)
         self.q_score_output = self.get_q_values("states", "actions", True)
         workspace.RunNetOnce(self.q_score_model.param_init_net)
+        self.q_score_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.q_score_model.net)
         C2.set_model(None)
 

@@ -338,6 +338,7 @@ class PreprocessorNet:
         values_blob: str,
         normalization_parameters: Dict[str, NormalizationParameters],
         blobname_prefix: str,
+        split_expensive_feature_groups: bool = False,
     ) -> Tuple[str, List[str]]:
         sorted_features, _ = sort_features_by_normalization(
             normalization_parameters
@@ -356,6 +357,7 @@ class PreprocessorNet:
             sorted_features,
             normalization_parameters,
             blobname_prefix,
+            split_expensive_feature_groups,
         )
 
     def normalize_dense_matrix(
@@ -364,6 +366,7 @@ class PreprocessorNet:
         features: List[str],
         normalization_parameters: Dict[str, NormalizationParameters],
         blobname_prefix: str,
+        split_expensive_feature_groups: bool = False,
     ) -> Tuple[str, List[str]]:
         """
         Normalizes inputs according to parameters. Expects a dense matrix whose ith
@@ -395,30 +398,65 @@ class PreprocessorNet:
                     end_index = feature_starts[i + 1]
                 if start_index == end_index:
                     continue  # No features of this type
-                sliced_input_features = self._get_input_blob(
-                    blobname_prefix, feature_type
-                )
-                C2.net().Slice(
-                    [input_matrix],
-                    [sliced_input_features],
-                    starts=[0, start_index],
-                    ends=[-1, end_index],
-                )
-                normalized_input_blob, blob_parameters = self.preprocess_blob(
-                    sliced_input_features,
-                    [
-                        normalization_parameters[x]
-                        for x in features[start_index:end_index]
-                    ],
-                )
-                parameters.extend(blob_parameters)
-                normalized_input_blobs.append(normalized_input_blob)
+                slices = []
+
+                split_feature_group, split_intervals = \
+                    self._should_split_feature_group(
+                        split_expensive_feature_groups,
+                        start_index,
+                        end_index,
+                        feature_type,
+                    )
+
+                if split_feature_group:
+                    for j in range(len(split_intervals) - 1):
+                        slice_blob = self._get_input_blob_indexed(
+                            blobname_prefix,
+                            feature_type,
+                            j,
+                        )
+                        C2.net().Slice(
+                            [input_matrix],
+                            [slice_blob],
+                            starts=[0, split_intervals[j]],
+                            ends=[-1, split_intervals[j + 1]],
+                        )
+                        slices.append(
+                            (slice_blob, split_intervals[j], split_intervals[j + 1])
+                        )
+                else:
+                    sliced_input_features = self._get_input_blob(
+                        blobname_prefix,
+                        feature_type,
+                    )
+
+                    C2.net().Slice(
+                        [input_matrix],
+                        [sliced_input_features],
+                        starts=[0, start_index],
+                        ends=[-1, end_index],
+                    )
+
+                    slices.append((sliced_input_features, start_index, end_index))
+
+                for (slice_blob, start, end) in slices:
+                    normalized_input_blob, blob_parameters = self.preprocess_blob(
+                        slice_blob,
+                        [
+                            normalization_parameters[x]
+                            for x in features[start:end]
+                        ],
+                    )
+                    logger.info("Processed split ({}, {}) for feature type {}".format(
+                        start, end, feature_type,
+                    ))
+                    parameters.extend(blob_parameters)
+                    normalized_input_blobs.append(normalized_input_blob)
             for i, inp in enumerate(normalized_input_blobs):
                 logger.info("input# {}: {}".format(i, inp))
             concatenated_input_blob, concatenated_input_blob_dim = C2.Concat(
                 *normalized_input_blobs, axis=1
             )
-            concatenated_input_blob = C2.NanCheck(concatenated_input_blob)
             return concatenated_input_blob, parameters
 
     def _get_type_boundaries(
@@ -443,3 +481,31 @@ class PreprocessorNet:
 
     def _get_input_blob(self, prefix: str, feature_type: str) -> str:
         return "{}_{}".format(prefix, feature_type)
+
+    def _get_input_blob_indexed(
+        self,
+        prefix: str,
+        feature_type: str,
+        idx: int,
+    ) -> str:
+        return "{}_{}_{}".format(prefix, feature_type, idx)
+
+    def _should_split_feature_group(
+        self,
+        split_expensive_feature_groups: bool,
+        start_index: int,
+        end_index: int,
+        feature_type: str,
+    ) -> Tuple[bool, List[int]]:
+        """
+        Since this net is CPU bound, split into independent groups, so that
+        the preprocessing can be parallelized while training.
+        """
+        if (not split_expensive_feature_groups):
+            return False, []
+        if feature_type in [identify_types.ENUM, identify_types.QUANTILE]:
+            if (end_index - start_index) > 32:
+                step = (end_index - start_index) // 7
+                intervals = list(range(start_index, end_index, step)) + [end_index]
+                return True, intervals
+        return False, []

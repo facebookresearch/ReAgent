@@ -68,6 +68,8 @@ class DiscreteActionTrainer(RLTrainer):
         C2.set_model(self.all_q_score_model)
         self.all_q_score_output = self.get_q_values_all_actions("states", True)
         workspace.RunNetOnce(self.all_q_score_model.param_init_net)
+        self.all_q_score_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.all_q_score_model.net)
         C2.set_model(None)
 
@@ -78,6 +80,8 @@ class DiscreteActionTrainer(RLTrainer):
         C2.set_model(self.internal_policy_model)
         self.internal_policy_output = self.get_q_values_all_actions("states", False)
         workspace.RunNetOnce(self.internal_policy_model.param_init_net)
+        self.internal_policy_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.internal_policy_model.net)
         C2.set_model(None)
 
@@ -205,6 +209,8 @@ class DiscreteActionTrainer(RLTrainer):
                 C2.net().Sum(["rewards", action_boost], ["rewards"])
         self.update_model("states", "actions", "rewards")
         workspace.RunNetOnce(self.reward_train_model.param_init_net)
+        self.reward_train_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.reward_train_model.net)
         C2.set_model(None)
 
@@ -251,6 +257,8 @@ class DiscreteActionTrainer(RLTrainer):
 
         self.update_model("states", "actions", q_vals_target)
         workspace.RunNetOnce(self.rl_train_model.param_init_net)
+        self.rl_train_model.net.Proto().num_workers = \
+            RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
         workspace.CreateNet(self.rl_train_model.net)
         C2.set_model(None)
 
