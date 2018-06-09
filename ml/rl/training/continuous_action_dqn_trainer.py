@@ -3,6 +3,7 @@
 from typing import Dict
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
@@ -11,18 +12,15 @@ from caffe2.python.model_helper import ModelHelper
 
 from ml.rl.caffe_utils import C2, StackedArray
 from ml.rl.preprocessing.normalization import (
-    NormalizationParameters, get_num_output_features
+    NormalizationParameters,
+    get_num_output_features,
 )
 from ml.rl.thrift.core.ttypes import (
-    ContinuousActionModelParameters, AdditionalFeatureTypes
+    ContinuousActionModelParameters,
+    AdditionalFeatureTypes,
 )
-from ml.rl.training.continuous_action_dqn_predictor import (
-    ContinuousActionDQNPredictor
-)
-from ml.rl.training.rl_trainer import (
-    RLTrainer,
-    DEFAULT_ADDITIONAL_FEATURE_TYPES,
-)
+from ml.rl.training.continuous_action_dqn_predictor import ContinuousActionDQNPredictor
+from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
 
 
 class ContinuousActionDQNTrainer(RLTrainer):
@@ -31,8 +29,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
         parameters: ContinuousActionModelParameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
-        additional_feature_types:
-        AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES
+        additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
         self._additional_feature_types = additional_feature_types
         self.state_normalization_parameters = state_normalization_parameters
@@ -42,14 +39,12 @@ class ContinuousActionDQNTrainer(RLTrainer):
         ) + get_num_output_features(action_normalization_parameters)
 
         # ensure state and action IDs have no intersection
-        overlapping_features = (
-            set(state_normalization_parameters.keys()) &
-            set(action_normalization_parameters.keys())
+        overlapping_features = set(state_normalization_parameters.keys()) & set(
+            action_normalization_parameters.keys()
         )
-        assert (
-            len(overlapping_features) == 0
-        ), "There are some overlapping state and action features: " + str(
-            overlapping_features
+        assert len(overlapping_features) == 0, (
+            "There are some overlapping state and action features: "
+            + str(overlapping_features)
         )
 
         parameters.training.layers[0] = num_features
@@ -60,31 +55,23 @@ class ContinuousActionDQNTrainer(RLTrainer):
         self._create_internal_policy_net()
 
     def _create_internal_policy_net(self) -> None:
-        self.internal_policy_model = ModelHelper(
-            name="q_score_" + self.model_id
-        )
+        self.internal_policy_model = ModelHelper(name="q_score_" + self.model_id)
         C2.set_model(self.internal_policy_model)
         self.internal_policy_output = C2.FlattenToVec(
-            self.get_q_values('states', 'actions', False)
+            self.get_q_values("states", "actions", False)
         )
         workspace.RunNetOnce(self.internal_policy_model.param_init_net)
-        self.internal_policy_model.net.Proto().num_workers = \
+        self.internal_policy_model.net.Proto().num_workers = (
             RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
+        )
+        self.internal_policy_model.net.Proto().type = "async_scheduling"
         workspace.CreateNet(self.internal_policy_model.net)
         C2.set_model(None)
 
     def get_possible_next_actions(self):
-        return StackedArray(
-            'possible_next_actions_lengths',
-            'possible_next_actions',
-        )
+        return StackedArray("possible_next_actions_lengths", "possible_next_actions")
 
-    def update_model(
-        self,
-        states: str,
-        actions: str,
-        q_vals_target: str,
-    ) -> None:
+    def update_model(self, states: str, actions: str, q_vals_target: str) -> None:
         """
         Takes in states, actions, and target q values. Updates the model:
 
@@ -105,17 +92,10 @@ class ContinuousActionDQNTrainer(RLTrainer):
         q_values = C2.NextBlob("train_output")
         state_action_pairs, _ = C2.Concat(states, actions, axis=1)
         self.ml_trainer.make_forward_pass_ops(
-            model,
-            state_action_pairs,
-            q_values,
-            False,
+            model, state_action_pairs, q_values, False
         )
 
-        self.loss_blob = self.ml_trainer.generateLossOps(
-            model,
-            q_values,
-            q_vals_target,
-        )
+        self.loss_blob = self.ml_trainer.generateLossOps(model, q_values, q_vals_target)
         model.AddGradientOperators([self.loss_blob])
         for param in model.params:
             if param in model.param_to_grad:
@@ -123,27 +103,16 @@ class ContinuousActionDQNTrainer(RLTrainer):
                 param_grad = C2.NanCheck(param_grad)
         self.ml_trainer.addParameterUpdateOps(model)
 
-    def get_q_values(
-        self,
-        states: str,
-        actions: str,
-        use_target_network: bool,
-    ) -> str:
+    def get_q_values(self, states: str, actions: str, use_target_network: bool) -> str:
         state_action_pairs, _ = C2.Concat(states, actions, axis=1)
         q_values = C2.NextBlob("q_values")
         if use_target_network:
             self.target_network.make_forward_pass_ops(
-                C2.model(),
-                state_action_pairs,
-                q_values,
-                True,
+                C2.model(), state_action_pairs, q_values, True
             )
         else:
             self.ml_trainer.make_forward_pass_ops(
-                C2.model(),
-                state_action_pairs,
-                q_values,
-                True,
+                C2.model(), state_action_pairs, q_values, True
             )
         return q_values
 
@@ -166,29 +135,22 @@ class ContinuousActionDQNTrainer(RLTrainer):
             next_state. These have not been normalized.
         """
 
-        stacked_states = C2.LengthsTile(
-            next_states, possible_next_actions.lengths
-        )
+        stacked_states = C2.LengthsTile(next_states, possible_next_actions.lengths)
         all_q_values = self.get_q_values(
-            stacked_states,
-            possible_next_actions.values,
-            use_target_network,
+            stacked_states, possible_next_actions.values, use_target_network
         )
-        max_q_values = C2.LengthsMax(
-            all_q_values,
-            possible_next_actions.lengths,
-        )
+        max_q_values = C2.LengthsMax(all_q_values, possible_next_actions.lengths)
         return max_q_values
 
     def _create_reward_train_net(self) -> None:
-        self.reward_train_model = ModelHelper(
-            name="reward_train_" + self.model_id
-        )
+        self.reward_train_model = ModelHelper(name="reward_train_" + self.model_id)
         C2.set_model(self.reward_train_model)
-        self.update_model('states', 'actions', 'rewards')
+        self.update_model("states", "actions", "rewards")
         workspace.RunNetOnce(self.reward_train_model.param_init_net)
-        self.reward_train_model.net.Proto().num_workers = \
+        self.reward_train_model.net.Proto().num_workers = (
             RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
+        )
+        self.reward_train_model.net.Proto().type = "async_scheduling"
         workspace.CreateNet(self.reward_train_model.net)
         C2.set_model(None)
 
@@ -198,19 +160,14 @@ class ContinuousActionDQNTrainer(RLTrainer):
 
         if self.maxq_learning:
             next_q_values = self.get_max_q_values(
-                'next_states',
-                self.get_possible_next_actions(),
-                True,
+                "next_states", self.get_possible_next_actions(), True
             )
         else:
-            next_q_values = self.get_q_values(
-                'next_states', 'next_actions', True
-            )
+            next_q_values = self.get_q_values("next_states", "next_actions", True)
 
         discount_blob = C2.ConstantFill("time_diff", value=self.rl_discount_rate)
         time_diff_adjusted_discount_blob = C2.Pow(
-            discount_blob,
-            C2.Cast("time_diff", to=caffe2_pb2.TensorProto.FLOAT)
+            discount_blob, C2.Cast("time_diff", to=caffe2_pb2.TensorProto.FLOAT)
         )
 
         q_vals_target = C2.Add(
@@ -227,10 +184,12 @@ class ContinuousActionDQNTrainer(RLTrainer):
             ),
         )
 
-        self.update_model('states', 'actions', q_vals_target)
+        self.update_model("states", "actions", q_vals_target)
         workspace.RunNetOnce(self.rl_train_model.param_init_net)
-        self.rl_train_model.net.Proto().num_workers = \
+        self.rl_train_model.net.Proto().num_workers = (
             RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
+        )
+        self.rl_train_model.net.Proto().type = "async_scheduling"
         workspace.CreateNet(self.rl_train_model.net)
         C2.set_model(None)
 

@@ -29,7 +29,7 @@ class GridworldBase(object):
     """
 
     # Must be overridden by derived class
-    ACTIONS: List[str] = ['L', 'R', 'U', 'D']
+    ACTIONS: List[str] = ["L", "R", "U", "D"]
 
     grid = np.array(
         [
@@ -58,10 +58,7 @@ class GridworldBase(object):
         return default_normalizer(self.STATES)
 
     def _compute_optimal(self):
-        not_visited = {
-            (y, x)
-            for x in range(self.width) for y in range(self.height)
-        }
+        not_visited = {(y, x) for x in range(self.width) for y in range(self.height)}
         queue = collections.deque()
         queue.append(tuple(j[0] for j in np.where(self.grid == G)))
         policy = np.empty(self.grid.shape, dtype=np.object)
@@ -72,9 +69,7 @@ class GridworldBase(object):
             if current in not_visited:
                 not_visited.remove(current)
 
-            possible_actions = self.possible_next_actions(
-                self._index(current), True
-            )
+            possible_actions = self.possible_next_actions(self._index(current), True)
             for action in possible_actions:
                 self._state = self._index(current)
                 next_state, _, _, _ = self.step(action)
@@ -82,8 +77,7 @@ class GridworldBase(object):
                 if next_state_pos not in not_visited:
                     continue
                 not_visited.remove(next_state_pos)
-                if not self.is_terminal(next_state) and \
-                        self.grid[next_state_pos] != W:
+                if not self.is_terminal(next_state) and self.grid[next_state_pos] != W:
                     policy[next_state_pos] = self.invert_action(action)
                     queue.appendleft(self._pos(next_state))
         print("FINAL POLICY")
@@ -91,14 +85,14 @@ class GridworldBase(object):
         return policy
 
     def invert_action(self, action: str) -> str:
-        if action == 'U':
-            return 'D'
-        if action == 'R':
-            return 'L'
-        if action == 'D':
-            return 'U'
-        if action == 'L':
-            return 'R'
+        if action == "U":
+            return "D"
+        if action == "R":
+            return "L"
+        if action == "D":
+            return "U"
+        if action == "L":
+            return "R"
         raise Exception("Invalid action", action)
 
     def _index(self, pos):
@@ -120,27 +114,28 @@ class GridworldBase(object):
 
     def transition_probabilities(self, state, action):
         y, x = self._pos(state)
-        probabilities = np.zeros((self.width * self.height, ))
+        probabilities = np.zeros((self.width * self.height,))
         left_state = self._index((y, max(0, x - 1)))
         right_state = self._index((y, min(self.width - 1, x + 1)))
         down_state = self._index((min(self.height - 1, y + 1), x))
         up_state = self._index((max(0, y - 1), x))
-        left_state, right_state, down_state, up_state = \
-            [state if self.grid[self._pos(s)] == W else s
-             for s in [left_state, right_state, down_state, up_state]]
-        if action == 'L':
+        left_state, right_state, down_state, up_state = [
+            state if self.grid[self._pos(s)] == W else s
+            for s in [left_state, right_state, down_state, up_state]
+        ]
+        if action == "L":
             probabilities[left_state] += 1 - 2 * self.transition_noise
             probabilities[up_state] += self.transition_noise
             probabilities[down_state] += self.transition_noise
-        elif action == 'R':
+        elif action == "R":
             probabilities[right_state] += 1 - 2 * self.transition_noise
             probabilities[up_state] += self.transition_noise
             probabilities[down_state] += self.transition_noise
-        elif action == 'U':
+        elif action == "U":
             probabilities[up_state] += 1 - 2 * self.transition_noise
             probabilities[left_state] += self.transition_noise
             probabilities[right_state] += self.transition_noise
-        elif action == 'D':
+        elif action == "D":
             probabilities[down_state] += 1 - 2 * self.transition_noise
             probabilities[left_state] += self.transition_noise
             probabilities[right_state] += self.transition_noise
@@ -152,16 +147,16 @@ class GridworldBase(object):
         p = self.transition_probabilities(state, action)
         return np.random.choice(self.size, p=p)
 
-    def step(self, action: str,
-             with_possible=True) -> Tuple[int, float, bool, List[str]]:
+    def step(
+        self, action: str, with_possible=True
+    ) -> Tuple[int, float, bool, List[str]]:
         self._state = self._no_cheat_step(self._state, action)
         reward = self.reward(self._state)
         if with_possible:
             possible_next_action = self.possible_next_actions(self._state)
         else:
             possible_next_action = None
-        return self._state, reward, self.is_terminal(self._state),\
-            possible_next_action
+        return self._state, reward, self.is_terminal(self._state), possible_next_action
 
     def optimal_policy(self, state):
         y, x = self._pos(state)
@@ -195,13 +190,13 @@ class GridworldBase(object):
         return x >= 0 and x <= self.width - 1 and y >= 0 and y <= self.height - 1
 
     def move_on_pos(self, y, x, act):
-        if act == 'L':
+        if act == "L":
             return y, x - 1
-        elif act == 'R':
+        elif act == "R":
             return y, x + 1
-        elif act == 'U':
+        elif act == "U":
             return y - 1, x
-        elif act == 'D':
+        elif act == "D":
             return y + 1, x
         else:
             raise Exception("Invalid action", act)
@@ -225,13 +220,13 @@ class GridworldBase(object):
         #    return range(len(self.ACTIONS))
         y, x = self._pos(state)
         if x - 1 >= 0:
-            possible_actions.append('L')
+            possible_actions.append("L")
         if x + 1 <= self.width - 1:
-            possible_actions.append('R')
+            possible_actions.append("R")
         if y - 1 >= 0:
-            possible_actions.append('U')
+            possible_actions.append("U")
         if y + 1 <= self.height - 1:
-            possible_actions.append('D')
+            possible_actions.append("D")
         return possible_actions
 
     def q_transition_matrix(self, assume_optimal_policy):
@@ -253,10 +248,7 @@ class GridworldBase(object):
                         action_probability = 1.0
                     else:
                         action_probability = fraction
-                    T[state,
-                      :] += \
-                        action_probability * \
-                        transition_probabilities
+                    T[state, :] += action_probability * transition_probabilities
         return T
 
     def reward_vector(self):
@@ -267,12 +259,10 @@ class GridworldBase(object):
         print("REWARD VECTOR")
         print(R)
         T = self.q_transition_matrix(assume_optimal_policy)
-        print('T:', T)
+        print("T:", T)
         return np.linalg.solve(np.eye(self.size, self.size) - (discount * T), R)
 
-    def true_values_for_sample(
-        self, states, actions, assume_optimal_policy: bool
-    ):
+    def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):
         true_q_values = self.true_q_values(DISCOUNT, assume_optimal_policy)
         print("TRUE Q")
         print(true_q_values.reshape([5, 5]))
@@ -284,16 +274,22 @@ class GridworldBase(object):
                 results.append(self.reward(int_state))
             else:
                 results.append(
-                    self.reward(int_state) +
-                    (DISCOUNT * true_q_values[next_state])
+                    self.reward(int_state) + (DISCOUNT * true_q_values[next_state])
                 )
         return results
 
     def generate_samples_discrete(
         self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[List[Dict[int, float]], List[str], List[float], List[
-        Dict[int, float]
-    ], List[str], List[bool], List[List[str]], List[Dict[int, float]]]:
+    ) -> Tuple[
+        List[Dict[int, float]],
+        List[str],
+        List[float],
+        List[Dict[int, float]],
+        List[str],
+        List[bool],
+        List[List[str]],
+        List[Dict[int, float]],
+    ]:
         states = []
         actions: List[str] = []
         rewards = []
@@ -322,7 +318,7 @@ class GridworldBase(object):
             )
             next_action = self.sample_policy(next_state, epsilon)
             if next_action is None:
-                next_action = ''
+                next_action = ""
 
             states.append({state: 1.0})
             actions.append(action)
@@ -346,8 +342,14 @@ class GridworldBase(object):
             transition += 1
 
         return (
-            states, actions, rewards, next_states, next_actions, is_terminals,
-            possible_next_actions, reward_timelines
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminals,
+            possible_next_actions,
+            reward_timelines,
         )
 
     def preprocess_samples_discrete(
@@ -366,47 +368,62 @@ class GridworldBase(object):
         if reward_timelines is None:
             merged = list(
                 zip(
-                    states, actions, rewards, next_states, next_actions,
-                    is_terminals, possible_next_actions
+                    states,
+                    actions,
+                    rewards,
+                    next_states,
+                    next_actions,
+                    is_terminals,
+                    possible_next_actions,
                 )
             )
             random.shuffle(merged)
-            states, actions, rewards, next_states, next_actions, \
-                is_terminals, possible_next_actions = zip(*merged)
+            states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions = zip(
+                *merged
+            )
         else:
             merged = list(
                 zip(
-                    states, actions, rewards, next_states, next_actions,
-                    is_terminals, possible_next_actions, reward_timelines
+                    states,
+                    actions,
+                    rewards,
+                    next_states,
+                    next_actions,
+                    is_terminals,
+                    possible_next_actions,
+                    reward_timelines,
                 )
             )
             random.shuffle(merged)
-            states, actions, rewards, next_states, next_actions, \
-                is_terminals, possible_next_actions, reward_timelines = zip(*merged)
+            states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = zip(
+                *merged
+            )
 
-        net = core.Net('gridworld_preprocessing')
+        net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
         preprocessor = PreprocessorNet(net, True)
-        saa = StackedAssociativeArray.from_dict_list(states, 'states')
+        saa = StackedAssociativeArray.from_dict_list(states, "states")
         state_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
             saa.values,
             self.normalization,
-            'state_norm',
+            "state_norm",
+            False,
+            False,
         )
-        saa = StackedAssociativeArray.from_dict_list(next_states, 'next_states')
+        saa = StackedAssociativeArray.from_dict_list(next_states, "next_states")
         next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
             saa.values,
             self.normalization,
-            'next_state_norm',
+            "next_state_norm",
+            False,
+            False,
         )
         workspace.RunNetOnce(net)
-        actions_one_hot = np.zeros(
-            [len(actions), len(self.ACTIONS)], dtype=np.float32
-        )
+        actions_one_hot = np.zeros([len(actions), len(self.ACTIONS)], dtype=np.float32)
         for i, action in enumerate(actions):
             actions_one_hot[i, self.ACTIONS.index(action)] = 1
         rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
@@ -414,7 +431,7 @@ class GridworldBase(object):
             [len(next_actions), len(self.ACTIONS)], dtype=np.float32
         )
         for i, action in enumerate(next_actions):
-            if action == '':
+            if action == "":
                 continue
             next_actions_one_hot[i, self.ACTIONS.index(action)] = 1
         possible_next_actions_mask = []
@@ -448,17 +465,13 @@ class GridworldBase(object):
                     next_actions=next_actions_one_hot[start:end],
                     possible_next_actions=possible_next_actions_mask[start:end],
                     reward_timelines=reward_timelines[start:end]
-                    if reward_timelines is not None else None,
+                    if reward_timelines is not None
+                    else None,
                 )
             )
         return tdps
 
-    def generate_samples(
-        self,
-        num_transitions,
-        epsilon,
-        with_possible=True,
-    ):
+    def generate_samples(self, num_transitions, epsilon, with_possible=True):
         raise NotImplementedError()
 
     def preprocess_samples(

@@ -178,8 +178,10 @@ class RLTrainer(object):
         C2.set_model(self.q_score_model)
         self.q_score_output = self.get_q_values("states", "actions", True)
         workspace.RunNetOnce(self.q_score_model.param_init_net)
-        self.q_score_model.net.Proto().num_workers = \
+        self.q_score_model.net.Proto().num_workers = (
             RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
+        )
+        self.q_score_model.net.Proto().type = "async_scheduling"
         workspace.CreateNet(self.q_score_model.net)
         C2.set_model(None)
 
@@ -207,9 +209,7 @@ class RLTrainer(object):
                 test_values_from_timeline(self.rl_discount_rate, rt)
                 for rt in tdp.reward_timelines
             ]
-        ).reshape(
-            -1, 1
-        )
+        ).reshape(-1, 1)
         self.train(ground_truth, evaluator)
 
     def train(self, episode_values, evaluator: Optional[Evaluator]) -> None:
