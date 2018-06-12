@@ -174,16 +174,17 @@ class DDPGPredictor(object):
         save_to_db(db_type, db_path, meta)
 
     @classmethod
-    def load(cls, db_path, db_type):
+    def load(cls, db_path, db_type, int_features=False):
         """ Creates Predictor by loading from a database
 
         :param db_path see load_from_db
         :param db_type see load_from_db
+        :param int_features bool indicating if int_features are present
         """
         net = prepare_prediction_net(db_path, db_type)
         meta = load_from_db(db_path, db_type)
         parameters = GetBlobs(meta, predictor_constants.PARAMETERS_BLOB_TYPE)
-        return cls(net, parameters)
+        return cls(net, parameters, int_features)
 
     @classmethod
     def export_actor(cls, trainer, state_normalization_parameters, int_features=False):

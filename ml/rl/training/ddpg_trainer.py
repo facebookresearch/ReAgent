@@ -14,7 +14,6 @@ from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES
 
 
 class DDPGTrainer(object):
-
     def __init__(
         self,
         parameters,
@@ -77,7 +76,6 @@ class DDPGTrainer(object):
         )
 
     def train(self, training_samples, evaluator=None, episode_values=None) -> None:
-
         states = Variable(torch.from_numpy(training_samples[0]))
         actions = Variable(torch.from_numpy(training_samples[1]))
         rewards = Variable(torch.from_numpy(training_samples[2]))
@@ -177,7 +175,6 @@ class DDPGTrainer(object):
 
 
 class ActorNet(nn.Module):
-
     def __init__(self, layers, activations, fl_init) -> None:
         super(ActorNet, self).__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
@@ -217,7 +214,6 @@ class ActorNet(nn.Module):
 
 
 class CriticNet(nn.Module):
-
     def __init__(self, layers, activations, fl_init, action_dim) -> None:
         super(CriticNet, self).__init__()
         self.layers: nn.ModuleList = nn.ModuleList()

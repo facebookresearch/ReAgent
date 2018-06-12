@@ -6,19 +6,16 @@ import unittest
 
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.thrift.core.ttypes import (
-    RLParameters, TrainingParameters, ContinuousActionModelParameters,
-    KnnParameters
+    RLParameters,
+    TrainingParameters,
+    ContinuousActionModelParameters,
+    KnnParameters,
 )
-from ml.rl.training.continuous_action_dqn_trainer import \
-    ContinuousActionDQNTrainer
-from ml.rl.test.gridworld.gridworld_base import \
-    DISCOUNT
-from ml.rl.test.gridworld.gridworld_continuous import \
-    GridworldContinuous
-from ml.rl.test.gridworld.gridworld_continuous_enum import \
-    GridworldContinuousEnum
-from ml.rl.test.gridworld.gridworld_evaluator import \
-    GridworldContinuousEvaluator
+from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
+from ml.rl.test.gridworld.gridworld_base import DISCOUNT
+from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
+from ml.rl.test.gridworld.gridworld_continuous_enum import GridworldContinuousEnum
+from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 
 
 class TestGridworldContinuous(unittest.TestCase):
@@ -38,12 +35,12 @@ class TestGridworldContinuous(unittest.TestCase):
             ),
             training=TrainingParameters(
                 layers=[-1, 200, -1],
-                activations=['linear', 'linear'],
+                activations=["linear", "linear"],
                 minibatch_size=self.minibatch_size,
                 learning_rate=0.01,
-                optimizer='ADAM',
+                optimizer="ADAM",
             ),
-            knn=KnnParameters(model_type='DQN', )
+            knn=KnnParameters(model_type="DQN"),
         )
 
     def get_sarsa_trainer(self, environment):
@@ -55,9 +52,9 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = GridworldContinuous()
-        states, actions, rewards, next_states, next_actions, is_terminal,\
-            possible_next_actions, reward_timelines = \
-            environment.generate_samples(100000, 1.0)
+        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+            100000, 1.0
+        )
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False)
@@ -83,9 +80,9 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
-        states, actions, rewards, next_states, next_actions, is_terminal,\
-            possible_next_actions, reward_timelines = \
-            environment.generate_samples(100000, 1.0)
+        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+            100000, 1.0
+        )
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False)
@@ -120,7 +117,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 maxq_learning=True,
             ),
             training=rl_parameters.training,
-            knn=rl_parameters.knn
+            knn=rl_parameters.knn,
         )
         maxq_trainer = ContinuousActionDQNTrainer(
             new_rl_parameters,
@@ -128,9 +125,9 @@ class TestGridworldContinuous(unittest.TestCase):
             environment.normalization_action,
         )
 
-        states, actions, rewards, next_states, next_actions, is_terminal,\
-            possible_next_actions, reward_timelines = \
-            environment.generate_samples(100000, 1.0)
+        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+            100000, 1.0
+        )
         predictor = maxq_trainer.predictor()
         tdps = environment.preprocess_samples(
             states,
@@ -155,8 +152,9 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_ground_truth(self):
         environment = GridworldContinuous()
-        states, actions, rewards, next_states, next_actions, is_terminal,\
-            possible_next_actions, _ = environment.generate_samples(100000, 1.0)
+        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, _ = environment.generate_samples(
+            100000, 1.0
+        )
         true_values = environment.true_values_for_sample(states, actions, False)
         # Hijack the reward timeline to insert the ground truth
         reward_timelines = []
@@ -184,9 +182,9 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_timeline(self):
         environment = GridworldContinuous()
-        states, actions, rewards, next_states, next_actions, is_terminal,\
-            possible_next_actions, reward_timelines = \
-            environment.generate_samples(100000, 1.0)
+        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+            100000, 1.0
+        )
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(trainer, DISCOUNT)
 

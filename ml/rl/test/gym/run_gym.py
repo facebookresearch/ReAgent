@@ -251,7 +251,9 @@ def run_gym(params, score_bar, gpu_id):
                 training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
                 training_parameters.cnn_parameters.input_height = env.height
                 training_parameters.cnn_parameters.input_width = env.width
-                training_parameters.cnn_parameters.num_input_channels = env.num_input_channels
+                training_parameters.cnn_parameters.num_input_channels = (
+                    env.num_input_channels
+                )
             else:
                 assert (
                     training_parameters.cnn_parameters is None
