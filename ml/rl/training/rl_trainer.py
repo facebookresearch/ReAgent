@@ -103,11 +103,13 @@ class RLTrainer(object):
         workspace.FeedBlob("rewards", np.array([0], dtype=np.float32))
         workspace.FeedBlob("next_states", np.array([0], dtype=np.float32))
         workspace.FeedBlob("not_terminals", np.array([0], dtype=np.float32))
-        workspace.FeedBlob("next_actions", np.array([0], dtype=np.float32))
-        workspace.FeedBlob("possible_next_actions", np.array([0], dtype=np.float32))
-        workspace.FeedBlob(
-            "possible_next_actions_lengths", np.array([0], dtype=np.float32)
-        )
+        if self.maxq_learning:
+            workspace.FeedBlob("possible_next_actions", np.array([0], dtype=np.float32))
+            workspace.FeedBlob(
+                "possible_next_actions_lengths", np.array([0], dtype=np.float32)
+            )
+        else:
+            workspace.FeedBlob("next_actions", np.array([0], dtype=np.float32))
         # Setting to 1 serves as a 1 unit time_diff if not set by user
         workspace.FeedBlob("time_diff", np.array([1], dtype=np.float32))
 
