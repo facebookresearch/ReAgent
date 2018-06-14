@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.nn.init as init
 from torch.autograd import Variable
 
+from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES
 
@@ -17,18 +18,19 @@ class DDPGTrainer(object):
     def __init__(
         self,
         parameters,
-        env_details,
         state_normalization_parameters,
         action_normalization_parameters,
         additional_feature_types=DEFAULT_ADDITIONAL_FEATURE_TYPES,
+        action_range=None,
     ) -> None:
         self._additional_feature_types = additional_feature_types
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
-        self.action_range = env_details["action_range"]
+        self.action_range = action_range
+        self.state_dim = get_num_output_features(state_normalization_parameters)
+        self.action_dim = get_num_output_features(action_normalization_parameters)
 
         # Shared params
-        self.env_details = env_details
         self.minibatch_size = parameters.shared_training.minibatch_size
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
@@ -44,9 +46,9 @@ class DDPGTrainer(object):
 
         # Actor params
         self.actor_params = parameters.actor_training
-        self.actor_params.layers[0] = env_details["state_dim"]
-        self.actor_params.layers[-1] = env_details["action_dim"]
-        self.noise_generator = OrnsteinUhlenbeckProcessNoise(env_details["action_dim"])
+        self.actor_params.layers[0] = self.state_dim
+        self.actor_params.layers[-1] = self.action_dim
+        self.noise_generator = OrnsteinUhlenbeckProcessNoise(self.action_dim)
         self.actor = ActorNet(
             self.actor_params.layers,
             self.actor_params.activations,
@@ -60,13 +62,13 @@ class DDPGTrainer(object):
 
         # Critic params
         self.critic_params = parameters.critic_training
-        self.critic_params.layers[0] = env_details["state_dim"]
+        self.critic_params.layers[0] = self.state_dim
         self.critic_params.layers[-1] = 1
         self.critic = CriticNet(
             self.critic_params.layers,
             self.critic_params.activations,
             self.final_layer_init,
-            self.env_details["action_dim"],
+            self.action_dim,
         )
         self.critic_target = deepcopy(self.critic)
         self.critic_optimizer = self.optimizer_func(

@@ -195,7 +195,8 @@ class DDPGPredictor(object):
         :param state_normalization_parameters state NormalizationParameters
         :param int_features boolean indicating if int features blob will be present
         """
-        input_dim = len(state_normalization_parameters)
+        input_dim = trainer.state_dim
+
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(trainer.actor, input_dim)
         actor_input_blob, actor_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
@@ -306,9 +307,7 @@ class DDPGPredictor(object):
         :param action_normalization_parameters action NormalizationParameters
         :param int_features boolean indicating if int features blob will be present
         """
-        input_dim = len(state_normalization_parameters) + len(
-            action_normalization_parameters
-        )
+        input_dim = trainer.state_dim + trainer.action_dim
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(trainer.critic, input_dim)
         critic_input_blob, critic_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
