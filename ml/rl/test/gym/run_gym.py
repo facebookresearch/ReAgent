@@ -304,7 +304,11 @@ def run_gym(params, score_bar, gpu_id):
             action_range = None
 
         trainer = DDPGTrainer(
-            trainer_params, env.normalization, env.normalization_action, action_range
+            trainer_params,
+            env.normalization,
+            env.normalization_action,
+            use_gpu=False,
+            action_range=action_range,
         )
 
     else:

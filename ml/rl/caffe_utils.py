@@ -39,15 +39,11 @@ class C2Meta(type):
                     if type(i) == np.ndarray:
                         workspace.FeedBlob(input_name, i)
                     else:
-                        workspace.FeedBlob(
-                            input_name, np.array([i], dtype=np.float32)
-                        )
+                        workspace.FeedBlob(input_name, np.array([i], dtype=np.float32))
                     promoted_inputs.append(input_name)
                 else:
                     promoted_inputs.append(i)
-            return C2._net.__getattr__(method_name)(
-                promoted_inputs, outputs, **kwargs
-            )
+            return C2._net.__getattr__(method_name)(promoted_inputs, outputs, **kwargs)
 
         return method
 
@@ -89,17 +85,11 @@ class StackedArray(object):
         self.values = values
 
     @classmethod
-    def from_list_list(
-        cls,
-        d: List[List[float]],
-        blob_prefix: str,
-    ):
+    def from_list_list(cls, d: List[List[float]], blob_prefix: str):
         lengths_blob = blob_prefix + "_lengths"
         values_blob = blob_prefix + "_values"
 
-        workspace.FeedBlob(
-            lengths_blob, np.array([len(x) for x in d], dtype=np.int32)
-        )
+        workspace.FeedBlob(lengths_blob, np.array([len(x) for x in d], dtype=np.int32))
 
         workspace.FeedBlob(
             values_blob, np.array(list(itertools.chain(*d)), dtype=np.float32)
@@ -131,29 +121,22 @@ class StackedAssociativeArray(object):
         return retval
 
     @classmethod
-    def from_dict_list(
-        cls,
-        d: List[Dict[int, float]],
-        blob_prefix: str,
-    ):
+    def from_dict_list(cls, d: List[Dict[int, float]], blob_prefix: str):
         lengths_blob = blob_prefix + "_lengths"
         keys_blob = blob_prefix + "_keys"
         values_blob = blob_prefix + "_values"
 
-        workspace.FeedBlob(
-            lengths_blob, np.array([len(x) for x in d], dtype=np.int32)
-        )
+        workspace.FeedBlob(lengths_blob, np.array([len(x) for x in d], dtype=np.int32))
 
         key_list_2d = [list(x.keys()) for x in d]
         workspace.FeedBlob(
-            keys_blob,
-            np.array(list(itertools.chain(*key_list_2d)), dtype=np.int32)
+            keys_blob, np.array(list(itertools.chain(*key_list_2d)), dtype=np.int32)
         )
 
         value_list_2d = [list(x.values()) for x in d]
         workspace.FeedBlob(
             values_blob,
-            np.array(list(itertools.chain(*value_list_2d)), dtype=np.float32)
+            np.array(list(itertools.chain(*value_list_2d)), dtype=np.float32),
         )
 
         return cls(lengths_blob, keys_blob, values_blob)
@@ -202,11 +185,17 @@ class StackedTwoLevelAssociativeArray(object):
 
 class PytorchCaffe2Converter(object):
     @staticmethod
-    def pytorch_net_to_buffer(pytorch_net, input_dim):
+    def pytorch_net_to_buffer(pytorch_net, input_dim, model_on_gpu):
         """Traces a pytorch net and outputs a python buffer object
         holding net."""
+
+        if model_on_gpu:
+            dtype = torch.cuda.FloatTensor
+        else:
+            dtype = torch.FloatTensor
+
         write_buffer = BytesIO()
-        dummy_input = torch.autograd.Variable(torch.randn(1, input_dim))
+        dummy_input = torch.autograd.Variable(torch.randn(1, input_dim).type(dtype))
         torch.onnx._export(pytorch_net, dummy_input, write_buffer)
         return write_buffer
 
@@ -217,6 +206,8 @@ class PytorchCaffe2Converter(object):
         protobuf_model = onnx.load(BytesIO(buffer.getvalue()))
         input_blob_name = protobuf_model.graph.input[0].name
         outout_blob_name = protobuf_model.graph.output[0].name
-        return input_blob_name, outout_blob_name, caffe2.python.onnx.backend.prepare(
-            protobuf_model
+        return (
+            input_blob_name,
+            outout_blob_name,
+            caffe2.python.onnx.backend.prepare(protobuf_model),
         )

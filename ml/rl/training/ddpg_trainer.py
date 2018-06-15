@@ -20,9 +20,18 @@ class DDPGTrainer(object):
         parameters,
         state_normalization_parameters,
         action_normalization_parameters,
+        use_gpu=False,
         additional_feature_types=DEFAULT_ADDITIONAL_FEATURE_TYPES,
         action_range=None,
     ) -> None:
+
+        if use_gpu and torch.cuda.is_available():
+            self.use_gpu = True
+            self.dtype = torch.cuda.FloatTensor
+        else:
+            self.use_gpu = False
+            self.dtype = torch.FloatTensor
+
         self._additional_feature_types = additional_feature_types
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
@@ -77,17 +86,23 @@ class DDPGTrainer(object):
             weight_decay=self.critic_params.l2_decay,
         )
 
+        if self.use_gpu:
+            self.actor.cuda()
+            self.actor_target.cuda()
+            self.critic.cuda()
+            self.critic_target.cuda()
+
     def train(self, training_samples, evaluator=None, episode_values=None) -> None:
-        states = Variable(torch.from_numpy(training_samples[0]))
-        actions = Variable(torch.from_numpy(training_samples[1]))
-        rewards = Variable(torch.from_numpy(training_samples[2]))
-        next_states = Variable(torch.from_numpy(training_samples[3]))
-        time_diffs = torch.tensor(training_samples[8], dtype=torch.float32)
+        states = Variable(torch.from_numpy(training_samples[0]).type(self.dtype))
+        actions = Variable(torch.from_numpy(training_samples[1]).type(self.dtype))
+        rewards = Variable(torch.from_numpy(training_samples[2]).type(self.dtype))
+        next_states = Variable(torch.from_numpy(training_samples[3]).type(self.dtype))
+        time_diffs = torch.tensor(training_samples[8]).type(self.dtype)
         discount_tensor = torch.tensor(
-            np.array([self.gamma for x in range(len(rewards))], dtype=np.float32)
-        )
+            np.array([self.gamma for x in range(len(rewards))])
+        ).type(self.dtype)
         done = training_samples[5].astype(int)
-        not_done_mask = Variable(torch.from_numpy(1 - done)).type(torch.FloatTensor)
+        not_done_mask = Variable(torch.from_numpy(1 - done)).type(self.dtype)
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
@@ -120,8 +135,8 @@ class DDPGTrainer(object):
             assert episode_values is not None
             evaluator.report(
                 episode_values,
-                critic_predictions.data.numpy(),
-                loss_critic.data.numpy(),
+                critic_predictions.cpu().data.numpy(),
+                loss_critic.cpu().data.numpy(),
             )
 
     def _soft_update(self, network, target_network, tau) -> None:
@@ -141,10 +156,12 @@ class DDPGTrainer(object):
         """
         self.actor.eval()
         with torch.no_grad():
-            state_examples = Variable(torch.from_numpy(np.array(states)))
+            state_examples = Variable(
+                torch.from_numpy(np.array(states)).type(self.dtype)
+            )
             actions = self.actor(state_examples)
         self.actor.train()
-        actions = actions.data.numpy()
+        actions = actions.cpu().data.numpy()
 
         if noisy:
             actions = [x + (self.noise.get_noise()) for x in actions]
@@ -167,12 +184,14 @@ class DDPGTrainer(object):
                 self,
                 self.state_normalization_parameters,
                 self._additional_feature_types.int_features,
+                self.use_gpu,
             )
         return DDPGPredictor.export_critic(
             self,
             self.state_normalization_parameters,
             self.action_normalization_parameters,
             self._additional_feature_types.int_features,
+            self.use_gpu,
         )
 
 
@@ -208,7 +227,8 @@ class ActorNet(nn.Module):
 
         x = state
         for i, activation in enumerate(self.activations):
-            x = self.batch_norm_ops[i](x)
+            # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
+            # x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
             x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
@@ -258,10 +278,13 @@ class CriticNet(nn.Module):
         x = state
         for i, activation in enumerate(self.activations):
             if i == 0:
-                x = self.batch_norm_ops[i](x)
+                # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
+                # x = self.batch_norm_ops[i](x)
+                pass
             # Actions skip input layer
             elif i == 1:
-                x = self.batch_norm_ops[i](x)
+                # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
+                # x = self.batch_norm_ops[i](x)
                 x = torch.cat((x, action), dim=1)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]

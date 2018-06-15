@@ -187,7 +187,13 @@ class DDPGPredictor(object):
         return cls(net, parameters, int_features)
 
     @classmethod
-    def export_actor(cls, trainer, state_normalization_parameters, int_features=False):
+    def export_actor(
+        cls,
+        trainer,
+        state_normalization_parameters,
+        int_features=False,
+        model_on_gpu=False,
+    ):
         """Export caffe2 preprocessor net and pytorch actor forward pass as one
         caffe2 net.
 
@@ -196,8 +202,9 @@ class DDPGPredictor(object):
         :param int_features boolean indicating if int features blob will be present
         """
         input_dim = trainer.state_dim
-
-        buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(trainer.actor, input_dim)
+        buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
+            trainer.actor, input_dim, model_on_gpu
+        )
         actor_input_blob, actor_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
         )
@@ -298,6 +305,7 @@ class DDPGPredictor(object):
         state_normalization_parameters,
         action_normalization_parameters,
         int_features=False,
+        model_on_gpu=False,
     ):
         """Export caffe2 preprocessor net and pytorch critic forward pass as one
         caffe2 net.
@@ -308,7 +316,9 @@ class DDPGPredictor(object):
         :param int_features boolean indicating if int features blob will be present
         """
         input_dim = trainer.state_dim + trainer.action_dim
-        buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(trainer.critic, input_dim)
+        buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
+            trainer.critic, input_dim, model_on_gpu
+        )
         critic_input_blob, critic_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
         )
