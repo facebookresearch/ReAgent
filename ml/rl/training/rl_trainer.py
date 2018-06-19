@@ -206,12 +206,15 @@ class RLTrainer(object):
                 workspace.FeedBlob("possible_next_actions", tdp.possible_next_actions)
         else:
             workspace.FeedBlob("next_actions", tdp.next_actions)
-        ground_truth = np.array(
-            [
-                test_values_from_timeline(self.rl_discount_rate, rt)
-                for rt in tdp.reward_timelines
-            ]
-        ).reshape(-1, 1)
+        if tdp.reward_timelines is not None:
+            ground_truth = np.array(
+                [
+                    test_values_from_timeline(self.rl_discount_rate, rt)
+                    for rt in tdp.reward_timelines
+                ]
+            ).reshape(-1, 1)
+        else:
+            ground_truth = None
         self.train(ground_truth, evaluator)
 
     def train(self, episode_values, evaluator: Optional[Evaluator]) -> None:

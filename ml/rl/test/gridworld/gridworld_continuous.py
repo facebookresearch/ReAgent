@@ -26,11 +26,24 @@ class GridworldContinuous(GridworldBase):
             ]
         )
 
+    def action_to_index(self, action):
+        return int(list(action.keys())[0]) - self.num_states
+
+    def index_to_action(self, index):
+        return {(index + self.num_states): 1.0}
+
+    def action_to_features(self, action):
+        return self.index_to_action(self.ACTIONS.index(action))
+
+    def features_to_action(self, action):
+        return self.ACTIONS[self.action_to_index(action)]
+
     def generate_samples(
         self, num_transitions, epsilon, with_possible=True
     ) -> Tuple[
         List[Dict[int, float]],
         List[Dict[int, float]],
+        List[float],
         List[float],
         List[Dict[int, float]],
         List[Dict[int, float]],
@@ -38,23 +51,18 @@ class GridworldContinuous(GridworldBase):
         List[List[Dict[int, float]]],
         List[Dict[int, float]],
     ]:
-        states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = self.generate_samples_discrete(
+        states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = self.generate_samples_discrete(
             num_transitions, epsilon, with_possible
         )
-        continuous_actions = [
-            {(self.ACTIONS.index(a) + self.num_states): 1.0} for a in actions
-        ]
+        continuous_actions = [self.action_to_features(a) for a in actions]
         continuous_next_actions = [
-            {(self.ACTIONS.index(a) + self.num_states): 1.0} if a is not "" else {}
-            for a in next_actions
+            self.action_to_features(a) if a is not "" else {} for a in next_actions
         ]
         continuous_possible_next_actions = []
         for possible_next_action in possible_next_actions:
             continuous_possible_next_actions.append(
                 [
-                    {(self.ACTIONS.index(a) + self.num_states): 1.0}
-                    if a is not None
-                    else {}
+                    self.action_to_features(a) if a is not None else {}
                     for a in possible_next_action
                 ]
             )
@@ -62,6 +70,7 @@ class GridworldContinuous(GridworldBase):
         return (
             states,
             continuous_actions,
+            propensities,
             rewards,
             next_states,
             continuous_next_actions,
@@ -74,6 +83,7 @@ class GridworldContinuous(GridworldBase):
         self,
         states: List[Dict[int, float]],
         actions: List[Dict[int, float]],
+        propensities: List[float],
         rewards: List[float],
         next_states: List[Dict[int, float]],
         next_actions: List[Dict[int, float]],
@@ -87,6 +97,7 @@ class GridworldContinuous(GridworldBase):
             zip(
                 states,
                 actions,
+                propensities,
                 rewards,
                 next_states,
                 next_actions,
@@ -96,7 +107,7 @@ class GridworldContinuous(GridworldBase):
             )
         )
         random.shuffle(merged)
-        states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = zip(
+        states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = zip(
             *merged
         )
 
@@ -143,6 +154,7 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
+        propensities = np.array(propensities, dtype=np.float32).reshape(-1, 1)
         rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
 
         pnas_lengths_list = []
@@ -183,6 +195,7 @@ class GridworldContinuous(GridworldBase):
                 TrainingDataPage(
                     states=states_ndarray[start:end],
                     actions=actions_ndarray[start:end],
+                    propensities=propensities[start:end],
                     rewards=rewards[start:end],
                     next_states=next_states_ndarray[start:end],
                     next_actions=next_actions_ndarray[start:end],
@@ -198,9 +211,13 @@ class GridworldContinuous(GridworldBase):
     def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):
         string_actions = []
         for action in actions:
-            string_actions.append(
-                self.ACTIONS[int(list(action.keys())[0]) - self.num_states]
-            )
+            string_actions.append(self.features_to_action(action))
         return GridworldBase.true_values_for_sample(
             self, states, string_actions, assume_optimal_policy
         )
+
+    def true_rewards_for_sample(self, states, actions):
+        string_actions = []
+        for action in actions:
+            string_actions.append(self.features_to_action(action))
+        return GridworldBase.true_rewards_for_sample(self, states, string_actions)

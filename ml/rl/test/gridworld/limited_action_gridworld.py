@@ -10,7 +10,7 @@ from ml.rl.training.training_data_page import TrainingDataPage
 
 class LimitedActionGridworld(GridworldBase):
     # Left, RIGHT, UP, DOWN, CHEAT
-    ACTIONS: List[str] = ['L', 'R', 'U', 'D', 'C']
+    ACTIONS: List[str] = ["L", "R", "U", "D", "C"]
 
     grid = np.array(
         [
@@ -39,17 +39,24 @@ class LimitedActionGridworld(GridworldBase):
 
     def generate_samples(
         self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[List[Dict[int, float]], List[str], List[float], List[
-        Dict[int, float]
-    ], List[str], List[bool], List[List[str]], List[Dict[int, float]]]:
-        return self.generate_samples_discrete(
-            num_transitions, epsilon, with_possible
-        )
+    ) -> Tuple[
+        List[Dict[int, float]],
+        List[str],
+        List[float],
+        List[float],
+        List[Dict[int, float]],
+        List[str],
+        List[bool],
+        List[List[str]],
+        List[Dict[int, float]],
+    ]:
+        return self.generate_samples_discrete(num_transitions, epsilon, with_possible)
 
     def preprocess_samples(
         self,
         states: List[Dict[int, float]],
         actions: List[str],
+        propensities: List[float],
         rewards: List[float],
         next_states: List[Dict[int, float]],
         next_actions: List[str],
@@ -61,6 +68,7 @@ class LimitedActionGridworld(GridworldBase):
         return self.preprocess_samples_discrete(
             states,
             actions,
+            propensities,
             rewards,
             next_states,
             next_actions,
@@ -78,25 +86,29 @@ class LimitedActionGridworld(GridworldBase):
         )
         if ignore_terminal is False:
             # Also ignore cheat actions when ignoring terminal
-            possible_actions.append('C')
+            possible_actions.append("C")
         return possible_actions
 
-    def step(self, action: str,
-             with_possible=True) -> Tuple[int, float, bool, List[str]]:
-        if action == 'C':
+    def step(
+        self, action: str, with_possible=True
+    ) -> Tuple[int, float, bool, List[str]]:
+        if action == "C":
             self._state: int = self._cheat_step(self._state)
             reward = self.reward(self._state)
             possible_next_action = self.possible_next_actions(self._state)
-            return self._state, reward, self.is_terminal(
-                self._state
-            ), possible_next_action
+            return (
+                self._state,
+                reward,
+                self.is_terminal(self._state),
+                possible_next_action,
+            )
         else:
             return GridworldBase.step(self, action)
 
     def transition_probabilities(self, state, action) -> np.ndarray:
-        if action == 'C':
+        if action == "C":
             next_state = self._cheat_step(state)
-            probabilities = np.zeros((self.width * self.height, ))
+            probabilities = np.zeros((self.width * self.height,))
             probabilities[next_state] = 1
             return probabilities
         else:

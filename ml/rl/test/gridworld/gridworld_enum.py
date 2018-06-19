@@ -16,8 +16,7 @@ class GridworldEnum(Gridworld):
     @property
     def normalization(self):
         return {
-            0:
-            NormalizationParameters(
+            0: NormalizationParameters(
                 feature_type="ENUM",
                 boxcox_lambda=None,
                 boxcox_shift=None,
@@ -30,12 +29,20 @@ class GridworldEnum(Gridworld):
 
     def generate_samples(
         self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[List[Dict[int, float]], List[str], List[float], List[
-        Dict[int, float]
-    ], List[str], List[bool], List[List[str]], List[Dict[int, float]]]:
-        states, actions, rewards, next_states, next_actions, is_terminals, \
-            possible_next_actions, reward_timelines = Gridworld.generate_samples(
-                self, num_transitions, epsilon, with_possible)
+    ) -> Tuple[
+        List[Dict[int, float]],
+        List[str],
+        List[float],
+        List[float],
+        List[Dict[int, float]],
+        List[str],
+        List[bool],
+        List[List[str]],
+        List[Dict[int, float]],
+    ]:
+        states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = Gridworld.generate_samples(
+            self, num_transitions, epsilon, with_possible
+        )
         enum_states = []
         for state in states:
             enum_states.append({0: float(list(state.keys())[0])})
@@ -43,16 +50,27 @@ class GridworldEnum(Gridworld):
         for state in next_states:
             enum_next_states.append({0: float(list(state.keys())[0])})
         return (
-            enum_states, actions, rewards, enum_next_states, next_actions,
-            is_terminals, possible_next_actions, reward_timelines
+            enum_states,
+            actions,
+            propensities,
+            rewards,
+            enum_next_states,
+            next_actions,
+            is_terminals,
+            possible_next_actions,
+            reward_timelines,
         )
 
-    def true_values_for_sample(
-        self, enum_states, actions, assume_optimal_policy: bool
-    ):
+    def true_values_for_sample(self, enum_states, actions, assume_optimal_policy: bool):
         states = []
         for state in enum_states:
             states.append({int(list(state.values())[0]): 1})
         return Gridworld.true_values_for_sample(
             self, states, actions, assume_optimal_policy
         )
+
+    def true_rewards_for_sample(self, enum_states, actions):
+        states = []
+        for state in enum_states:
+            states.append({int(list(state.values())[0]): 1})
+        return Gridworld.true_rewards_for_sample(self, states, actions)

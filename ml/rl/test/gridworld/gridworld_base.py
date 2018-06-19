@@ -57,6 +57,12 @@ class GridworldBase(object):
     def normalization(self):
         return default_normalizer(self.STATES)
 
+    def action_to_index(self, action):
+        return self.ACTIONS.index(action)
+
+    def index_to_action(self, index):
+        return self.ACTIONS[index]
+
     def _compute_optimal(self):
         not_visited = {(y, x) for x in range(self.width) for y in range(self.height)}
         queue = collections.deque()
@@ -162,14 +168,20 @@ class GridworldBase(object):
         y, x = self._pos(state)
         return self._optimal_policy[y, x]
 
-    def sample_policy(self, state, epsilon):
+    def sample_policy(self, state, epsilon) -> Tuple[str, float]:
+        possible_actions = self.possible_next_actions(state)
+        if len(possible_actions) == 0:
+            return "", 1.0
         if np.random.rand() < epsilon:
-            possible_actions = self.possible_next_actions(state)
-            if len(possible_actions) == 0:
-                return None
-            return np.random.choice(possible_actions)
+            if len(possible_actions) == 1:
+                return possible_actions[0], 1.0
+            else:
+                return (
+                    np.random.choice(possible_actions),
+                    epsilon / (len(possible_actions) - 1),
+                )
         else:
-            return self.optimal_policy(state)
+            return self.optimal_policy(state), (1.0 - epsilon)
 
     @property
     def num_actions(self):
@@ -256,16 +268,11 @@ class GridworldBase(object):
 
     def true_q_values(self, discount, assume_optimal_policy):
         R = self.reward_vector()
-        print("REWARD VECTOR")
-        print(R)
         T = self.q_transition_matrix(assume_optimal_policy)
-        print("T:", T)
         return np.linalg.solve(np.eye(self.size, self.size) - (discount * T), R)
 
     def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):
         true_q_values = self.true_q_values(DISCOUNT, assume_optimal_policy)
-        print("TRUE Q")
-        print(true_q_values.reshape([5, 5]))
         results = []
         for x in range(len(states)):
             int_state = int(list(states[x].keys())[0])
@@ -278,11 +285,20 @@ class GridworldBase(object):
                 )
         return results
 
+    def true_rewards_for_sample(self, states, actions):
+        results = []
+        for x in range(len(states)):
+            int_state = int(list(states[x].keys())[0])
+            next_state = self.move_on_index_limit(int_state, actions[x])
+            results.append(self.reward(next_state))
+        return results
+
     def generate_samples_discrete(
         self, num_transitions, epsilon, with_possible=True
     ) -> Tuple[
         List[Dict[int, float]],
         List[str],
+        List[float],
         List[float],
         List[Dict[int, float]],
         List[str],
@@ -292,13 +308,15 @@ class GridworldBase(object):
     ]:
         states = []
         actions: List[str] = []
+        propensities = []
         rewards = []
         next_states = []
         next_actions: List[str] = []
         is_terminals = []
         state: int = -1
         is_terminal = True
-        next_action = None
+        next_action = ""
+        next_propensity = 1.0
         possible_next_actions: List[List[str]] = []
         transition = 0
         last_terminal = -1
@@ -309,19 +327,19 @@ class GridworldBase(object):
                     break
                 state = self.reset()
                 is_terminal = False
-                action = self.sample_policy(state, epsilon)
+                action, propensity = self.sample_policy(state, epsilon)
             else:
                 action = next_action
+                propensity = next_propensity
 
             next_state, reward, is_terminal, possible_next_action = self.step(
                 action, with_possible
             )
-            next_action = self.sample_policy(next_state, epsilon)
-            if next_action is None:
-                next_action = ""
+            next_action, next_propensity = self.sample_policy(next_state, epsilon)
 
             states.append({state: 1.0})
             actions.append(action)
+            propensities.append(propensity)
             rewards.append(reward)
             next_states.append({next_state: 1.0})
             next_actions.append(next_action)
@@ -344,6 +362,7 @@ class GridworldBase(object):
         return (
             states,
             actions,
+            propensities,
             rewards,
             next_states,
             next_actions,
@@ -356,6 +375,7 @@ class GridworldBase(object):
         self,
         states: List[Dict[int, float]],
         actions: List[str],
+        propensities: List[float],
         rewards: List[float],
         next_states: List[Dict[int, float]],
         next_actions: List[str],
@@ -370,6 +390,7 @@ class GridworldBase(object):
                 zip(
                     states,
                     actions,
+                    propensities,
                     rewards,
                     next_states,
                     next_actions,
@@ -378,7 +399,7 @@ class GridworldBase(object):
                 )
             )
             random.shuffle(merged)
-            states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions = zip(
+            states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions = zip(
                 *merged
             )
         else:
@@ -386,6 +407,7 @@ class GridworldBase(object):
                 zip(
                     states,
                     actions,
+                    propensities,
                     rewards,
                     next_states,
                     next_actions,
@@ -395,7 +417,7 @@ class GridworldBase(object):
                 )
             )
             random.shuffle(merged)
-            states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = zip(
+            states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = zip(
                 *merged
             )
 
@@ -425,20 +447,21 @@ class GridworldBase(object):
         workspace.RunNetOnce(net)
         actions_one_hot = np.zeros([len(actions), len(self.ACTIONS)], dtype=np.float32)
         for i, action in enumerate(actions):
-            actions_one_hot[i, self.ACTIONS.index(action)] = 1
+            actions_one_hot[i, self.action_to_index(action)] = 1
         rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
+        propensities = np.array(propensities, dtype=np.float32).reshape(-1, 1)
         next_actions_one_hot = np.zeros(
             [len(next_actions), len(self.ACTIONS)], dtype=np.float32
         )
         for i, action in enumerate(next_actions):
             if action == "":
                 continue
-            next_actions_one_hot[i, self.ACTIONS.index(action)] = 1
+            next_actions_one_hot[i, self.action_to_index(action)] = 1
         possible_next_actions_mask = []
         for pna in possible_next_actions:
             pna_mask = [0] * self.num_actions
             for action in pna:
-                pna_mask[self.ACTIONS.index(action)] = 1
+                pna_mask[self.action_to_index(action)] = 1
             possible_next_actions_mask.append(pna_mask)
         possible_next_actions_mask = np.array(
             possible_next_actions_mask, dtype=np.float32
@@ -459,6 +482,7 @@ class GridworldBase(object):
                 TrainingDataPage(
                     states=states_ndarray[start:end],
                     actions=actions_one_hot[start:end],
+                    propensities=propensities[start:end],
                     rewards=rewards[start:end],
                     next_states=next_states_ndarray[start:end],
                     not_terminals=not_terminals[start:end],
@@ -478,6 +502,7 @@ class GridworldBase(object):
         self,
         states,
         actions,
+        propensities,
         rewards,
         next_states,
         next_actions,

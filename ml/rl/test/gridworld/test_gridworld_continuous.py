@@ -52,7 +52,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = GridworldContinuous()
-        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+        states, actions, propensities, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
             100000, 1.0
         )
         trainer = self.get_sarsa_trainer(environment)
@@ -61,6 +61,7 @@ class TestGridworldContinuous(unittest.TestCase):
         tdps = environment.preprocess_samples(
             states,
             actions,
+            propensities,
             rewards,
             next_states,
             next_actions,
@@ -80,7 +81,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
-        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+        states, actions, propensities, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
             100000, 1.0
         )
         trainer = self.get_sarsa_trainer(environment)
@@ -89,6 +90,7 @@ class TestGridworldContinuous(unittest.TestCase):
         tdps = environment.preprocess_samples(
             states,
             actions,
+            propensities,
             rewards,
             next_states,
             next_actions,
@@ -125,13 +127,14 @@ class TestGridworldContinuous(unittest.TestCase):
             environment.normalization_action,
         )
 
-        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+        states, actions, propensities, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
             100000, 1.0
         )
         predictor = maxq_trainer.predictor()
         tdps = environment.preprocess_samples(
             states,
             actions,
+            propensities,
             rewards,
             next_states,
             next_actions,
@@ -141,18 +144,18 @@ class TestGridworldContinuous(unittest.TestCase):
             self.minibatch_size,
         )
         evaluator = GridworldContinuousEvaluator(environment, True)
-        self.assertGreater(evaluator.evaluate(predictor), 0.3)
+        self.assertGreater(evaluator.evaluate(predictor), 0.2)
 
         for _ in range(2):
             for tdp in tdps:
                 maxq_trainer.train_numpy(tdp, None)
             evaluator.evaluate(predictor)
 
-        self.assertLess(evaluator.evaluate(predictor), 0.1)
+        self.assertLess(evaluator.evaluate(predictor), 0.15)
 
     def test_evaluator_ground_truth(self):
         environment = GridworldContinuous()
-        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, _ = environment.generate_samples(
+        states, actions, propensities, rewards, next_states, next_actions, is_terminal, possible_next_actions, _ = environment.generate_samples(
             100000, 1.0
         )
         true_values = environment.true_values_for_sample(states, actions, False)
@@ -161,10 +164,11 @@ class TestGridworldContinuous(unittest.TestCase):
         for tv in true_values:
             reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(trainer, DISCOUNT)
+        evaluator = Evaluator()
         tdps = environment.preprocess_samples(
             states,
             actions,
+            propensities,
             rewards,
             next_states,
             next_actions,
@@ -182,15 +186,16 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_timeline(self):
         environment = GridworldContinuous()
-        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
+        states, actions, propensities, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = environment.generate_samples(
             100000, 1.0
         )
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(trainer, DISCOUNT)
+        evaluator = Evaluator()
 
         tdps = environment.preprocess_samples(
             states,
             actions,
+            propensities,
             rewards,
             next_states,
             next_actions,

@@ -16,8 +16,7 @@ class GridworldContinuousEnum(GridworldContinuous):
     @property
     def normalization(self):
         return {
-            0:
-            NormalizationParameters(
+            0: NormalizationParameters(
                 feature_type="ENUM",
                 boxcox_lambda=None,
                 boxcox_shift=None,
@@ -25,18 +24,25 @@ class GridworldContinuousEnum(GridworldContinuous):
                 stddev=None,
                 possible_values=list(range(len(self.STATES))),
                 quantiles=None,
-            ),
+            )
         }
 
     def generate_samples(
         self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[List[Dict[int, float]], List[Dict[int, float]], List[float],
-               List[Dict[int, float]], List[Dict[int, float]], List[bool],
-               List[List[Dict[int, float]]], List[Dict[int, float]]]:
-        states, actions, rewards, next_states, next_actions, is_terminals, \
-            possible_next_actions, reward_timelines = \
-            GridworldContinuous.generate_samples(
-                self, num_transitions, epsilon, with_possible)
+    ) -> Tuple[
+        List[Dict[int, float]],
+        List[Dict[int, float]],
+        List[float],
+        List[float],
+        List[Dict[int, float]],
+        List[Dict[int, float]],
+        List[bool],
+        List[List[Dict[int, float]]],
+        List[Dict[int, float]],
+    ]:
+        states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = GridworldContinuous.generate_samples(
+            self, num_transitions, epsilon, with_possible
+        )
         enum_states = []
         for state in states:
             enum_states.append({0: float(list(state.keys())[0])})
@@ -44,13 +50,18 @@ class GridworldContinuousEnum(GridworldContinuous):
         for state in next_states:
             enum_next_states.append({0: float(list(state.keys())[0])})
         return (
-            enum_states, actions, rewards, enum_next_states, next_actions,
-            is_terminals, possible_next_actions, reward_timelines
+            enum_states,
+            actions,
+            propensities,
+            rewards,
+            enum_next_states,
+            next_actions,
+            is_terminals,
+            possible_next_actions,
+            reward_timelines,
         )
 
-    def true_values_for_sample(
-        self, enum_states, actions, assume_optimal_policy: bool
-    ):
+    def true_values_for_sample(self, enum_states, actions, assume_optimal_policy: bool):
         states = []
         for state in enum_states:
             states.append({int(list(state.values())[0]): 1})
