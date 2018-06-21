@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 from ml.rl.preprocessing.normalization import NormalizationParameters
 
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
+from ml.rl.test.gridworld.gridworld_base import Samples
 
 
 class GridworldContinuousEnum(GridworldContinuous):
@@ -27,38 +28,26 @@ class GridworldContinuousEnum(GridworldContinuous):
             )
         }
 
-    def generate_samples(
-        self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[
-        List[Dict[int, float]],
-        List[Dict[int, float]],
-        List[float],
-        List[float],
-        List[Dict[int, float]],
-        List[Dict[int, float]],
-        List[bool],
-        List[List[Dict[int, float]]],
-        List[Dict[int, float]],
-    ]:
-        states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = GridworldContinuous.generate_samples(
+    def generate_samples(self, num_transitions, epsilon, with_possible=True) -> Samples:
+        samples = GridworldContinuous.generate_samples(
             self, num_transitions, epsilon, with_possible
         )
         enum_states = []
-        for state in states:
+        for state in samples.states:
             enum_states.append({0: float(list(state.keys())[0])})
         enum_next_states = []
-        for state in next_states:
+        for state in samples.next_states:
             enum_next_states.append({0: float(list(state.keys())[0])})
-        return (
-            enum_states,
-            actions,
-            propensities,
-            rewards,
-            enum_next_states,
-            next_actions,
-            is_terminals,
-            possible_next_actions,
-            reward_timelines,
+        return Samples(
+            states=enum_states,
+            actions=samples.actions,
+            propensities=samples.propensities,
+            rewards=samples.rewards,
+            next_states=enum_next_states,
+            next_actions=samples.next_actions,
+            is_terminal=samples.is_terminal,
+            possible_next_actions=samples.possible_next_actions,
+            reward_timelines=samples.reward_timelines,
         )
 
     def true_values_for_sample(self, enum_states, actions, assume_optimal_policy: bool):

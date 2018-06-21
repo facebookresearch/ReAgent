@@ -4,7 +4,7 @@
 import collections
 import numpy as np
 import random
-from typing import Tuple, List, Dict, Optional
+from typing import Tuple, List, Dict, Optional, NamedTuple
 from caffe2.python import core, workspace
 
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
@@ -20,6 +20,80 @@ EPSILON = 0.1
 W = 1  # Walls
 S = 2  # Starting position
 G = 3  # Goal position
+
+
+class Samples(object):
+    __slots__ = [
+        "states",
+        "actions",
+        "propensities",
+        "rewards",
+        "next_states",
+        "next_actions",
+        "is_terminal",
+        "possible_next_actions",
+        "reward_timelines",
+    ]
+
+    def __init__(
+        self,
+        states: List[Dict[int, float]],
+        actions: List[str],
+        propensities: List[float],
+        rewards: List[float],
+        next_states: List[Dict[int, float]],
+        next_actions: List[str],
+        is_terminal: List[bool],
+        possible_next_actions: List[List[str]],
+        reward_timelines: List[Dict[int, float]],
+    ) -> None:
+        self.states = states
+        self.actions = actions
+        self.propensities = propensities
+        self.rewards = rewards
+        self.next_states = next_states
+        self.next_actions = next_actions
+        self.is_terminal = is_terminal
+        self.possible_next_actions = possible_next_actions
+        self.reward_timelines = reward_timelines
+
+    def shuffle(self):
+        # Shuffle
+        if self.reward_timelines is None:
+            merged = list(
+                zip(
+                    self.states,
+                    self.actions,
+                    self.propensities,
+                    self.rewards,
+                    self.next_states,
+                    self.next_actions,
+                    self.is_terminal,
+                    self.possible_next_actions,
+                )
+            )
+            random.shuffle(merged)
+            self.states, self.actions, self.propensities, self.rewards, self.next_states, self.next_actions, self.is_terminal, self.possible_next_actions = zip(
+                *merged
+            )
+        else:
+            merged = list(
+                zip(
+                    self.states,
+                    self.actions,
+                    self.propensities,
+                    self.rewards,
+                    self.next_states,
+                    self.next_actions,
+                    self.is_terminal,
+                    self.possible_next_actions,
+                    self.reward_timelines,
+                )
+            )
+            random.shuffle(merged)
+            self.states, self.actions, self.propensities, self.rewards, self.next_states, self.next_actions, self.is_terminal, self.possible_next_actions, self.reward_timelines = zip(
+                *merged
+            )
 
 
 class GridworldBase(object):
@@ -295,17 +369,7 @@ class GridworldBase(object):
 
     def generate_samples_discrete(
         self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[
-        List[Dict[int, float]],
-        List[str],
-        List[float],
-        List[float],
-        List[Dict[int, float]],
-        List[str],
-        List[bool],
-        List[List[str]],
-        List[Dict[int, float]],
-    ]:
+    ) -> Samples:
         states = []
         actions: List[str] = []
         propensities = []
@@ -359,72 +423,27 @@ class GridworldBase(object):
             state = next_state
             transition += 1
 
-        return (
-            states,
-            actions,
-            propensities,
-            rewards,
-            next_states,
-            next_actions,
-            is_terminals,
-            possible_next_actions,
-            reward_timelines,
+        return Samples(
+            states=states,
+            actions=actions,
+            propensities=propensities,
+            rewards=rewards,
+            next_states=next_states,
+            next_actions=next_actions,
+            is_terminal=is_terminals,
+            possible_next_actions=possible_next_actions,
+            reward_timelines=reward_timelines,
         )
 
     def preprocess_samples_discrete(
-        self,
-        states: List[Dict[int, float]],
-        actions: List[str],
-        propensities: List[float],
-        rewards: List[float],
-        next_states: List[Dict[int, float]],
-        next_actions: List[str],
-        is_terminals: List[bool],
-        possible_next_actions: List[List[str]],
-        reward_timelines: Optional[List[Dict[int, float]]],
-        minibatch_size: int,
+        self, samples: Samples, minibatch_size: int
     ) -> List[TrainingDataPage]:
-        # Shuffle
-        if reward_timelines is None:
-            merged = list(
-                zip(
-                    states,
-                    actions,
-                    propensities,
-                    rewards,
-                    next_states,
-                    next_actions,
-                    is_terminals,
-                    possible_next_actions,
-                )
-            )
-            random.shuffle(merged)
-            states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions = zip(
-                *merged
-            )
-        else:
-            merged = list(
-                zip(
-                    states,
-                    actions,
-                    propensities,
-                    rewards,
-                    next_states,
-                    next_actions,
-                    is_terminals,
-                    possible_next_actions,
-                    reward_timelines,
-                )
-            )
-            random.shuffle(merged)
-            states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = zip(
-                *merged
-            )
+        samples.shuffle()
 
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
         preprocessor = PreprocessorNet(net, True)
-        saa = StackedAssociativeArray.from_dict_list(states, "states")
+        saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
         state_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
@@ -434,7 +453,7 @@ class GridworldBase(object):
             False,
             False,
         )
-        saa = StackedAssociativeArray.from_dict_list(next_states, "next_states")
+        saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
         next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
@@ -445,20 +464,22 @@ class GridworldBase(object):
             False,
         )
         workspace.RunNetOnce(net)
-        actions_one_hot = np.zeros([len(actions), len(self.ACTIONS)], dtype=np.float32)
-        for i, action in enumerate(actions):
-            actions_one_hot[i, self.action_to_index(action)] = 1
-        rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
-        propensities = np.array(propensities, dtype=np.float32).reshape(-1, 1)
-        next_actions_one_hot = np.zeros(
-            [len(next_actions), len(self.ACTIONS)], dtype=np.float32
+        actions_one_hot = np.zeros(
+            [len(samples.actions), len(self.ACTIONS)], dtype=np.float32
         )
-        for i, action in enumerate(next_actions):
+        for i, action in enumerate(samples.actions):
+            actions_one_hot[i, self.action_to_index(action)] = 1
+        rewards = np.array(samples.rewards, dtype=np.float32).reshape(-1, 1)
+        propensities = np.array(samples.propensities, dtype=np.float32).reshape(-1, 1)
+        next_actions_one_hot = np.zeros(
+            [len(samples.next_actions), len(self.ACTIONS)], dtype=np.float32
+        )
+        for i, action in enumerate(samples.next_actions):
             if action == "":
                 continue
             next_actions_one_hot[i, self.action_to_index(action)] = 1
         possible_next_actions_mask = []
-        for pna in possible_next_actions:
+        for pna in samples.possible_next_actions:
             pna_mask = [0] * self.num_actions
             for action in pna:
                 pna_mask[self.action_to_index(action)] = 1
@@ -466,10 +487,10 @@ class GridworldBase(object):
         possible_next_actions_mask = np.array(
             possible_next_actions_mask, dtype=np.float32
         )
-        is_terminals = np.array(is_terminals, dtype=np.bool).reshape(-1, 1)
+        is_terminals = np.array(samples.is_terminal, dtype=np.bool).reshape(-1, 1)
         not_terminals = np.logical_not(is_terminals)
-        if reward_timelines is not None:
-            reward_timelines = np.array(reward_timelines, dtype=np.object)
+        if samples.reward_timelines is not None:
+            reward_timelines = np.array(samples.reward_timelines, dtype=np.object)
 
         states_ndarray = workspace.FetchBlob(state_matrix)
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
@@ -498,17 +519,5 @@ class GridworldBase(object):
     def generate_samples(self, num_transitions, epsilon, with_possible=True):
         raise NotImplementedError()
 
-    def preprocess_samples(
-        self,
-        states,
-        actions,
-        propensities,
-        rewards,
-        next_states,
-        next_actions,
-        is_terminals,
-        possible_next_actions,
-        reward_timelines,
-        minibatch_size,
-    ):
+    def preprocess_samples(self, samples, minibatch_size):
         raise NotImplementedError()

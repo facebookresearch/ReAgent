@@ -17,9 +17,10 @@ class GridworldEvaluator(Evaluator):
 
         self._env = env
 
-        self.logged_states, self.logged_actions, self.logged_propensities, _, _, _, _, _, _ = env.generate_samples(
-            100000, 1.0
-        )
+        samples = env.generate_samples(100000, 1.0)
+        self.logged_states = samples.states
+        self.logged_actions = samples.actions
+        self.logged_propensities = samples.propensities
         # Create integer logged actions
         self.logged_actions_int: List[int] = []
         for action in self.logged_actions:

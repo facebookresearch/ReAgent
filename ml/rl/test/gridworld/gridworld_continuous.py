@@ -2,7 +2,6 @@
 
 
 import numpy as np
-import random
 from typing import Tuple, Dict, List
 
 from caffe2.python import core, workspace
@@ -10,7 +9,7 @@ from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray, StackedArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.utils import default_normalizer
-from ml.rl.test.gridworld.gridworld_base import GridworldBase
+from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -38,28 +37,17 @@ class GridworldContinuous(GridworldBase):
     def features_to_action(self, action):
         return self.ACTIONS[self.action_to_index(action)]
 
-    def generate_samples(
-        self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[
-        List[Dict[int, float]],
-        List[Dict[int, float]],
-        List[float],
-        List[float],
-        List[Dict[int, float]],
-        List[Dict[int, float]],
-        List[bool],
-        List[List[Dict[int, float]]],
-        List[Dict[int, float]],
-    ]:
-        states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = self.generate_samples_discrete(
+    def generate_samples(self, num_transitions, epsilon, with_possible=True) -> Samples:
+        samples = self.generate_samples_discrete(
             num_transitions, epsilon, with_possible
         )
-        continuous_actions = [self.action_to_features(a) for a in actions]
+        continuous_actions = [self.action_to_features(a) for a in samples.actions]
         continuous_next_actions = [
-            self.action_to_features(a) if a is not "" else {} for a in next_actions
+            self.action_to_features(a) if a is not "" else {}
+            for a in samples.next_actions
         ]
         continuous_possible_next_actions = []
-        for possible_next_action in possible_next_actions:
+        for possible_next_action in samples.possible_next_actions:
             continuous_possible_next_actions.append(
                 [
                     self.action_to_features(a) if a is not None else {}
@@ -67,54 +55,27 @@ class GridworldContinuous(GridworldBase):
                 ]
             )
 
-        return (
-            states,
-            continuous_actions,
-            propensities,
-            rewards,
-            next_states,
-            continuous_next_actions,
-            is_terminals,
-            continuous_possible_next_actions,
-            reward_timelines,
+        return Samples(
+            states=samples.states,
+            actions=continuous_actions,
+            propensities=samples.propensities,
+            rewards=samples.rewards,
+            next_states=samples.next_states,
+            next_actions=continuous_next_actions,
+            is_terminal=samples.is_terminal,
+            possible_next_actions=continuous_possible_next_actions,
+            reward_timelines=samples.reward_timelines,
         )
 
     def preprocess_samples(
-        self,
-        states: List[Dict[int, float]],
-        actions: List[Dict[int, float]],
-        propensities: List[float],
-        rewards: List[float],
-        next_states: List[Dict[int, float]],
-        next_actions: List[Dict[int, float]],
-        is_terminals: List[bool],
-        possible_next_actions: List[List[Dict[int, float]]],
-        reward_timelines: List[Dict[int, float]],
-        minibatch_size: int,
+        self, samples: Samples, minibatch_size: int
     ) -> List[TrainingDataPage]:
-        # Shuffle
-        merged = list(
-            zip(
-                states,
-                actions,
-                propensities,
-                rewards,
-                next_states,
-                next_actions,
-                is_terminals,
-                possible_next_actions,
-                reward_timelines,
-            )
-        )
-        random.shuffle(merged)
-        states, actions, propensities, rewards, next_states, next_actions, is_terminals, possible_next_actions, reward_timelines = zip(
-            *merged
-        )
+        samples.shuffle()
 
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
         preprocessor = PreprocessorNet(net, True)
-        saa = StackedAssociativeArray.from_dict_list(states, "states")
+        saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
         state_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
@@ -124,7 +85,7 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
-        saa = StackedAssociativeArray.from_dict_list(next_states, "next_states")
+        saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
         next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
@@ -134,7 +95,7 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
-        saa = StackedAssociativeArray.from_dict_list(actions, "action")
+        saa = StackedAssociativeArray.from_dict_list(samples.actions, "action")
         action_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
@@ -144,7 +105,9 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
-        saa = StackedAssociativeArray.from_dict_list(next_actions, "next_action")
+        saa = StackedAssociativeArray.from_dict_list(
+            samples.next_actions, "next_action"
+        )
         next_action_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
@@ -154,12 +117,12 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
-        propensities = np.array(propensities, dtype=np.float32).reshape(-1, 1)
-        rewards = np.array(rewards, dtype=np.float32).reshape(-1, 1)
+        propensities = np.array(samples.propensities, dtype=np.float32).reshape(-1, 1)
+        rewards = np.array(samples.rewards, dtype=np.float32).reshape(-1, 1)
 
         pnas_lengths_list = []
-        pnas_flat = []
-        for pnas in possible_next_actions:
+        pnas_flat: List[List[str]] = []
+        for pnas in samples.possible_next_actions:
             pnas_lengths_list.append(len(pnas))
             pnas_flat.extend(pnas)
         saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
@@ -201,8 +164,8 @@ class GridworldContinuous(GridworldBase):
                     next_actions=next_actions_ndarray[start:end],
                     possible_next_actions=StackedArray(pnas_lengths[start:end], pnas),
                     not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
-                    reward_timelines=reward_timelines[start:end]
-                    if reward_timelines
+                    reward_timelines=samples.reward_timelines[start:end]
+                    if samples.reward_timelines
                     else None,
                 )
             )
