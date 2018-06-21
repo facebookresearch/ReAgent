@@ -106,6 +106,7 @@ class Env(object):
                 TrainingDataPage(
                     states=np.array(states[start:end], dtype=np.float32),
                     actions=np.array(actions[start:end], dtype=np.float32),
+                    propensities=np.ones([end - start, 1]),
                     rewards=np.array(
                         rewards[start:end], dtype=np.float32).reshape(-1, 1),
                     next_states=np.array(next_states[start:end], dtype=np.float32),
