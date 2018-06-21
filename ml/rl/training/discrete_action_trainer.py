@@ -243,9 +243,12 @@ class DiscreteActionTrainer(RLTrainer):
             next_q_values = self.get_q_values("next_states", "next_actions", True)
 
         discount_blob = C2.ConstantFill("time_diff", value=self.rl_discount_rate)
-        time_diff_adjusted_discount_blob = C2.Pow(
-            discount_blob, C2.Cast("time_diff", to=caffe2_pb2.TensorProto.FLOAT)
-        )
+        if self.use_seq_num_diff_as_time_diff:
+            time_diff_adjusted_discount_blob = C2.Pow(
+                discount_blob, C2.Cast("time_diff", to=caffe2_pb2.TensorProto.FLOAT)
+            )
+        else:
+            time_diff_adjusted_discount_blob = discount_blob
 
         q_vals_target = C2.Add(
             "rewards",

@@ -93,6 +93,7 @@ class RLTrainer(object):
         self.maxq_learning = parameters.rl.maxq_learning
         self.rl_discount_rate = parameters.rl.gamma
         self.rl_temperature = parameters.rl.temperature
+        self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
         self.training_iteration = 0
         self.minibatch_size = parameters.training.minibatch_size
         self.parameters = parameters

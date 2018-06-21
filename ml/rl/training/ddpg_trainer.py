@@ -43,6 +43,7 @@ class DDPGTrainer(object):
         self.minibatch_size = parameters.shared_training.minibatch_size
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
+        self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
         self.final_layer_init = parameters.shared_training.final_layer_init
         if parameters.shared_training.optimizer == "ADAM":
             self.optimizer_func = torch.optim.Adam
@@ -112,7 +113,11 @@ class DDPGTrainer(object):
         next_state_actions = torch.cat((next_states, next_actions), dim=1)
         q_s2_a2 = self.critic_target(next_state_actions).detach().squeeze()
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
-        target_q_values = rewards + (discount_tensor.pow(time_diffs) * filtered_q_s2_a2)
+
+        if self.use_seq_num_diff_as_time_diff:
+            discount_tensor = discount_tensor.pow(time_diffs)
+
+        target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
         # compute loss and update the critic network
         critic_predictions = q_s1_a1.squeeze()
         loss_critic = F.mse_loss(critic_predictions, target_q_values)
