@@ -9,6 +9,7 @@ import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
 
+from ml.rl.test.rl_dataset import RLDataset
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
@@ -37,6 +38,25 @@ logger = logging.getLogger(__name__)
 USE_CPU = -1
 
 
+def get_possible_next_actions(gym_env, model_type, terminal):
+    if model_type == ModelType.DISCRETE_ACTION.value:
+        possible_next_actions = [
+            0 if terminal else 1 for __ in range(gym_env.action_dim)
+        ]
+        possible_next_actions_lengths = gym_env.action_dim
+    elif model_type == ModelType.PARAMETRIC_ACTION.value:
+        if terminal:
+            possible_next_actions = np.array([])
+            possible_next_actions_lengths = 0
+        else:
+            possible_next_actions = np.eye(gym_env.action_dim)
+            possible_next_actions_lengths = gym_env.action_dim
+    elif model_type == ModelType.CONTINUOUS_ACTION.value:
+        possible_next_actions = None
+        possible_next_actions_lengths = None
+    return possible_next_actions, possible_next_actions_lengths
+
+
 def run(
     c2_device,
     gym_env,
@@ -54,6 +74,7 @@ def run(
     avg_over_num_episodes=100,
     render=False,
     render_every=10,
+    save_timesteps_to_dataset=None,
 ):
     avg_reward_history = []
 
@@ -93,21 +114,9 @@ def run(
             next_action = gym_env.policy(predictor, next_state, False)
             reward_sum += reward
 
-            if model_type == ModelType.DISCRETE_ACTION.value:
-                possible_next_actions = [
-                    0 if terminal else 1 for __ in range(gym_env.action_dim)
-                ]
-                possible_next_actions_lengths = gym_env.action_dim
-            elif model_type == ModelType.PARAMETRIC_ACTION.value:
-                if terminal:
-                    possible_next_actions = np.array([])
-                    possible_next_actions_lengths = 0
-                else:
-                    possible_next_actions = np.eye(gym_env.action_dim)
-                    possible_next_actions_lengths = gym_env.action_dim
-            elif model_type == ModelType.CONTINUOUS_ACTION.value:
-                possible_next_actions = None
-                possible_next_actions_lengths = None
+            (possible_next_actions,
+             possible_next_actions_lengths) = get_possible_next_actions(
+                gym_env, model_type, terminal)
 
             gym_env.insert_into_memory(
                 np.float32(state),
@@ -120,6 +129,31 @@ def run(
                 possible_next_actions_lengths,
                 1,
             )
+
+            if save_timesteps_to_dataset:
+                # TODO: handle continuous/parametric actions.
+                assert (
+                    gym_env.action_type == EnvType.DISCRETE_ACTION
+                ), "Save to file supports discrete actions only."
+                action_str = str(np.argmax(action).item())
+                possible_actions = [str(a) for a in range(gym_env.action_dim)]
+                save_timesteps_to_dataset.insert(
+                    i,
+                    ep_timesteps - 1,
+                    np.float32(state).tolist(),
+                    action_str,
+                    np.float32(reward).item(),
+                    possible_actions,
+                )
+                if terminal:
+                    save_timesteps_to_dataset.insert(
+                        i,
+                        ep_timesteps,
+                        np.float32(next_state).tolist(),
+                        None,
+                        0.0,
+                        [],
+                    )
 
             # Training loop
             if (
@@ -207,6 +241,12 @@ def main(args):
         "critical). Else defaults to info.",
         default="info",
     )
+    parser.add_argument(
+        "-f",
+        "--file_path",
+        help="If set, save all collected samples as an RLDataset to this file.",
+        default=None,
+    )
     args = parser.parse_args(args)
 
     if args.log_level not in ("debug", "info", "warning", "error", "critical"):
@@ -217,10 +257,14 @@ def main(args):
     with open(args.parameters, "r") as f:
         params = json.load(f)
 
-    return run_gym(params, args.score_bar, args.gpu_id)
+    dataset = RLDataset(args.file_path) if args.file_path else None
+    result = run_gym(params, args.score_bar, args.gpu_id, dataset)
+    if dataset:
+        dataset.save()
+    return result
 
 
-def run_gym(params, score_bar, gpu_id):
+def run_gym(params, score_bar, gpu_id, save_timesteps_to_dataset=None):
     logger.info("Running gym with params")
     logger.info(params)
     rl_parameters = RLParameters(**params["rl"])
@@ -321,15 +365,16 @@ def run_gym(params, score_bar, gpu_id):
         trainer,
         "{} test run".format(env_type),
         score_bar,
-        **params["run_details"]
+        **params["run_details"],
+        save_timesteps_to_dataset=save_timesteps_to_dataset,
     )
 
 
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) not in [3, 5, 7, 9]:
+    if len(args) not in [3, 5, 7, 9, 11]:
         raise Exception(
             "Usage: python run_gym.py -p <parameters_file>"
-            + " [-s <score_bar>] [-g <gpu_id>] [-l <log_level>]"
+            + " [-s <score_bar>] [-g <gpu_id>] [-l <log_level>] [-f <filename>]"
         )
     main(args[1:])
