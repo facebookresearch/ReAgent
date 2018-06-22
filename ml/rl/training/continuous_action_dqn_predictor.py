@@ -116,9 +116,8 @@ class ContinuousActionDQNPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
-        preprocessor = PreprocessorNet(net, True)
+        preprocessor = PreprocessorNet(True)
         parameters = []
-        parameters.extend(preprocessor.parameters)
         state_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
             input_feature_lengths,
             input_feature_keys,
@@ -168,7 +167,7 @@ class ContinuousActionDQNPredictor(RLPredictor):
         workspace.FeedBlob(
             temperature, np.array([trainer.rl_temperature], dtype=np.float32)
         )
-        tempered_q_values = C2.Div(q_value_blob, "temperature", broadcast=1)
+        tempered_q_values = C2.Div(q_value_blob, temperature, broadcast=1)
         softmax_values = C2.Softmax(tempered_q_values)
         softmax_act_idxs_nested = "softmax_act_idxs_nested"
         C2.net().WeightedSample([softmax_values], [softmax_act_idxs_nested])

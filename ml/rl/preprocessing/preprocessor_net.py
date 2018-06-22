@@ -34,37 +34,8 @@ def sort_features_by_normalization(normalization_parameters):
 
 
 class PreprocessorNet:
-    def __init__(self, net: core.Net, clip_anomalies: bool) -> None:
+    def __init__(self, clip_anomalies: bool) -> None:
         self.clip_anomalies = clip_anomalies
-
-        self._net = net
-        self.ONE = self._net.NextBlob("ONE")
-        self.ZERO = self._net.NextBlob("ZERO")
-        self.MISSING = self._net.NextBlob("MISSING_VALUE")
-        self.MISSING_U = self._net.NextBlob("MISSING_VALUE_U")
-        self.MISSING_L = self._net.NextBlob("MISSING_VALUE_L")
-        workspace.FeedBlob(self.ONE, np.array([1], dtype=np.float32))
-        workspace.FeedBlob(self.ZERO, np.array([0], dtype=np.float32))
-        workspace.FeedBlob(self.MISSING, np.array([MISSING_VALUE], dtype=np.float32))
-        workspace.FeedBlob(
-            self.MISSING_U, np.array([MISSING_VALUE + 1e-4], dtype=np.float32)
-        )
-        workspace.FeedBlob(
-            self.MISSING_L, np.array([MISSING_VALUE - 1e-4], dtype=np.float32)
-        )
-        self.MISSING_SCALAR = net.NextBlob("MISSING_SCALAR")
-        workspace.FeedBlob(
-            self.MISSING_SCALAR, np.array([MISSING_VALUE], dtype=np.float32)
-        )
-        net.GivenTensorFill([], [self.MISSING_SCALAR], shape=[], values=[MISSING_VALUE])
-        self.parameters = [
-            self.ZERO,
-            self.ONE,
-            self.MISSING,
-            self.MISSING_L,
-            self.MISSING_U,
-            self.MISSING_SCALAR,
-        ]
 
     def preprocess_blob(self, blob, normalization_parameters):
         """
@@ -75,21 +46,24 @@ class PreprocessorNet:
 
         Call this from a CPU context and ensure the input blob exists in it.
         """
-        is_empty_u = self._net.NextBlob(blob + "__isempty_u")
-        is_empty_l = self._net.NextBlob(blob + "__isempty_l")
-        is_empty = self._net.NextBlob(blob + "__isempty")
-        is_not_empty_bool = self._net.NextBlob(blob + "__isnotemptybool")
-        is_not_empty = self._net.NextBlob(blob + "__isnotempty")
-        output_blob = self._net.NextBlob(blob + "_preprocessed")
-        zeros = self._net.NextBlob(blob + "_zeros")
 
-        self._net.GT([blob, self.MISSING_L], [is_empty_l], broadcast=1)
-        self._net.LT([blob, self.MISSING_U], [is_empty_u], broadcast=1)
-        self._net.And([is_empty_l, is_empty_u], [is_empty])
-        self._net.Not([is_empty], [is_not_empty_bool])
-        self._net.Cast(
-            [is_not_empty_bool], [is_not_empty], to=caffe2_pb2.TensorProto.FLOAT
+        parameters: List[str] = []
+
+        ZERO = self._store_parameter(
+            parameters, "ZERO", np.array([0], dtype=np.float32)
         )
+
+        MISSING_U = self._store_parameter(
+            parameters, "MISSING_U", np.array([MISSING_VALUE + 1e-4], dtype=np.float32)
+        )
+        MISSING_L = self._store_parameter(
+            parameters, "MISSING_L", np.array([MISSING_VALUE - 1e-4], dtype=np.float32)
+        )
+
+        is_empty_l = C2.GT(blob, MISSING_L, broadcast=1)
+        is_empty_u = C2.LT(blob, MISSING_U, broadcast=1)
+        is_empty = C2.And(is_empty_l, is_empty_u)
+
         for i in range(len(normalization_parameters) - 1):
             if (
                 normalization_parameters[i].feature_type
@@ -99,18 +73,13 @@ class PreprocessorNet:
                     "Only one feature type is allowed per call to preprocess_blob!"
                 )
         feature_type = normalization_parameters[0].feature_type
-        parameters: List[str] = []
         if feature_type == identify_types.BINARY:
-            is_gt_zero = self._net.NextBlob(blob + "__is_gt_zero")
-            is_lt_zero = self._net.NextBlob(blob + "__is_lt_zero")
-            self._net.GT([blob, self.ZERO], [is_gt_zero], broadcast=1)
-            self._net.LT([blob, self.ZERO], [is_lt_zero], broadcast=1)
-            bool_blob = self._net.NextBlob(blob + "__bool")
-            self._net.Or([is_gt_zero, is_lt_zero], [bool_blob])
-            self._net.Cast([bool_blob], [blob], to=caffe2_pb2.TensorProto.FLOAT)
+            is_gt_zero = C2.GT(blob, C2.Add(ZERO, 1e-3, broadcast=1), broadcast=1)
+            is_lt_zero = C2.LT(blob, C2.Sub(ZERO, 1e-3, broadcast=1), broadcast=1)
+            bool_blob = C2.Or(is_gt_zero, is_lt_zero)
+            blob = C2.Cast(bool_blob, to=caffe2_pb2.TensorProto.FLOAT)
         elif feature_type == identify_types.PROBABILITY:
-            self._net.Clip([blob], [blob], min=0.01, max=0.99)
-            self._net.Logit([blob], [blob])
+            blob = C2.Logit(C2.Clip(blob, min=0.01, max=0.99))
         elif feature_type == identify_types.ENUM:
             for parameter in normalization_parameters:
                 possible_values = parameter.possible_values
@@ -131,20 +100,16 @@ class PreprocessorNet:
                             + str(parameter.possible_values)
                         )
 
-            int_blob = self._net.NextBlob("int_blob")
-            self._net.Cast([blob], [int_blob], to=core.DataType.INT32)
-
-            output_int_blob = self._net.NextBlob("output_int_blob")
-            feature_lengths_blob = self._net.NextBlob("feature_lengths_blob")
-            feature_values_blob = self._net.NextBlob("feature_values_blob")
-            one_hot_output = self._net.NextBlob("one_hot_output")
+            int_blob = C2.Cast(blob, to=core.DataType.INT32)
 
             # Batch one hot transform with MISSING_VALUE as a possible value
             feature_lengths = [
                 len(p.possible_values) + 1 for p in normalization_parameters
             ]
-            workspace.FeedBlob(
-                feature_lengths_blob, np.array(feature_lengths, dtype=np.int32)
+            feature_lengths_blob = self._store_parameter(
+                parameters,
+                "feature_lengths_blob",
+                np.array(feature_lengths, dtype=np.int32),
             )
 
             feature_values = [
@@ -152,84 +117,75 @@ class PreprocessorNet:
                 for p in normalization_parameters
                 for x in p.possible_values + [int(MISSING_VALUE)]
             ]
-
-            workspace.FeedBlob(
-                feature_values_blob, np.array(feature_values, dtype=np.int32)
+            feature_values_blob = self._store_parameter(
+                parameters,
+                "feature_values_blob",
+                np.array(feature_values, dtype=np.int32),
             )
 
-            parameters.extend([feature_values_blob, feature_lengths_blob])
-
-            self._net.BatchOneHot(
-                [int_blob, feature_lengths_blob, feature_values_blob], [one_hot_output]
+            one_hot_output = C2.BatchOneHot(
+                int_blob, feature_lengths_blob, feature_values_blob
             )
+            flattened_one_hot = C2.FlattenToVec(one_hot_output)
 
             # Remove missing values with a mask
-            flattened_one_hot = self._net.NextBlob("flattened_one_hot")
-            self._net.FlattenToVec([one_hot_output], [flattened_one_hot])
             cols_to_include = [
                 [1] * len(p.possible_values) + [0] for p in normalization_parameters
             ]
             cols_to_include = [x for col in cols_to_include for x in col]
-            mask = self._net.NextBlob("mask")
-            workspace.FeedBlob(mask, np.array(cols_to_include, dtype=np.int32))
-            parameters.append(mask)
-
-            zero_vec = self._net.NextBlob("zero_vec")
-            self._net.ConstantFill(
-                [one_hot_output],
-                [zero_vec],
-                value=0,
-                dtype=caffe2_pb2.TensorProto.INT32,
+            mask = self._store_parameter(
+                parameters, "mask", np.array(cols_to_include, dtype=np.int32)
             )
 
-            repeated_mask_int = self._net.NextBlob("repeated_mask_int")
-            repeated_mask_bool = self._net.NextBlob("repeated_mask_bool")
-
-            self._net.Add([zero_vec, mask], [repeated_mask_int], broadcast=1)
-            self._net.Cast(
-                [repeated_mask_int], [repeated_mask_bool], to=core.DataType.BOOL
+            zero_vec = C2.ConstantFill(
+                one_hot_output, value=0, dtype=caffe2_pb2.TensorProto.INT32
             )
 
-            flattened_repeated_mask = self._net.NextBlob("flattened_repeated_mask")
-            self._net.FlattenToVec([repeated_mask_bool], [flattened_repeated_mask])
+            repeated_mask_bool = C2.Cast(
+                C2.Add(zero_vec, mask, broadcast=1), to=core.DataType.BOOL
+            )
 
-            flattened_one_hot_proc = self._net.NextBlob("flattened_one_hot_proc")
-            self._net.BooleanMask(
+            flattened_repeated_mask = C2.FlattenToVec(repeated_mask_bool)
+
+            flattened_one_hot_proc = C2.NextBlob("flattened_one_hot_proc")
+            flattened_one_hot_proc_indices = C2.NextBlob(
+                "flattened_one_hot_proc_indices"
+            )
+            C2.net().BooleanMask(
                 [flattened_one_hot, flattened_repeated_mask],
-                [flattened_one_hot_proc, flattened_one_hot_proc + "indices"],
+                [flattened_one_hot_proc, flattened_one_hot_proc_indices],
             )
 
-            one_hot_shape = self._net.NextBlob("one_hot_shape")
-            self._net.Shape([one_hot_output], [one_hot_shape])
-            target_shape = self._net.NextBlob("target_shape")
-            shape_delta = self._net.NextBlob("shape_delta")
-            workspace.FeedBlob(
-                shape_delta,
+            one_hot_shape = C2.Shape(one_hot_output)
+
+            shape_delta = self._store_parameter(
+                parameters,
+                "shape_delta",
                 np.array([0, len(normalization_parameters)], dtype=np.int64),
             )
-            parameters.append(shape_delta)
-            self._net.Sub([one_hot_shape, shape_delta], [target_shape], broadcast=1)
-            self._net.Reshape(
+
+            target_shape = C2.Sub(one_hot_shape, shape_delta, broadcast=1)
+            output_int_blob = C2.NextBlob("output_int_blob")
+            output_int_blob_old_shape = C2.NextBlob("output_int_blob_old_shape")
+            C2.net().Reshape(
                 [flattened_one_hot_proc, target_shape],
-                [output_int_blob, output_int_blob + "_old_shape"],
+                [output_int_blob, output_int_blob_old_shape],
             )
 
-            self._net.Cast([output_int_blob], [output_blob], to=core.DataType.FLOAT)
+            output_blob = C2.Cast(output_int_blob, to=core.DataType.FLOAT)
 
             return output_blob, parameters
         elif feature_type == identify_types.QUANTILE:
             # This transformation replaces a set of values with their quantile.
             # The quantile boundaries are provided in the normalization params.
 
-            quantile_blob = self._net.NextBlob("quantile_blob")
-            num_boundaries_blob = self._net.NextBlob("num_boundaries_blob")
             quantile_sizes = [len(norm.quantiles) for norm in normalization_parameters]
-            workspace.FeedBlob(
-                num_boundaries_blob, np.array(quantile_sizes, dtype=np.int32)
+            num_boundaries_blob = self._store_parameter(
+                parameters,
+                "num_boundaries_blob",
+                np.array(quantile_sizes, dtype=np.int32),
             )
-            parameters.append(num_boundaries_blob)
 
-            quantiles_blob = self._net.NextBlob("quantiles_blob")
             quantile_values = np.array([], dtype=np.float32)
             quantile_labels = np.array([], dtype=np.float32)
             for norm in normalization_parameters:
@@ -243,12 +199,11 @@ class PreprocessorNet:
                     / float(len(norm.quantiles)),
                 )
             quantiles = np.vstack([quantile_values, quantile_labels]).T
-            workspace.FeedBlob(quantiles_blob, quantiles)
-            parameters.append(quantiles_blob)
-
-            self._net.Percentile(
-                [blob, quantiles_blob, num_boundaries_blob], [quantile_blob]
+            quantiles_blob = self._store_parameter(
+                parameters, "quantiles_blob", quantiles
             )
+
+            quantile_blob = C2.Percentile(blob, quantiles_blob, num_boundaries_blob)
             blob = quantile_blob
         elif (
             feature_type == identify_types.CONTINUOUS
@@ -270,36 +225,43 @@ class PreprocessorNet:
                 stddevs.append(norm.stddev)
 
             if feature_type == identify_types.BOXCOX:
-                boxcox_shift = self._net.NextBlob("{}__boxcox_shift".format(blob))
-                workspace.FeedBlob(
-                    boxcox_shift, np.array(boxcox_shifts, dtype=np.float32)
+                boxcox_shift_blob = self._store_parameter(
+                    parameters,
+                    "boxcox_shift",
+                    np.array(boxcox_shifts, dtype=np.float32),
                 )
-                parameters.append(boxcox_shift)
-                boxcox_lambda = self._net.NextBlob("{}__boxcox_lambda".format(blob))
-                workspace.FeedBlob(
-                    boxcox_lambda, np.array(boxcox_lambdas, dtype=np.float32)
+                boxcox_lambda_blob = self._store_parameter(
+                    parameters,
+                    "boxcox_shift",
+                    np.array(boxcox_lambdas, dtype=np.float32),
                 )
-                parameters.append(boxcox_lambda)
 
-                self._net.BatchBoxCox([blob, boxcox_lambda, boxcox_shift], [blob])
+                blob = C2.BatchBoxCox(blob, boxcox_lambda_blob, boxcox_shift_blob)
 
-            means_blob = self._net.NextBlob("{}__preprocess_mean".format(blob))
-            workspace.FeedBlob(means_blob, np.array([means], dtype=np.float32))
-            parameters.append(means_blob)
-            stddevs_blob = self._net.NextBlob("{}__preprocess_stddev".format(blob))
-            workspace.FeedBlob(stddevs_blob, np.array([stddevs], dtype=np.float32))
-            parameters.append(stddevs_blob)
-            self._net.Sub([blob, means_blob], [blob], broadcast=1, axis=0)
-            self._net.Div([blob, stddevs_blob], [blob], broadcast=1, axis=0)
+            means_blob = self._store_parameter(
+                parameters, "means_blob", np.array([means], dtype=np.float32)
+            )
+            stddevs_blob = self._store_parameter(
+                parameters, "stddevs_blob", np.array([stddevs], dtype=np.float32)
+            )
+
+            blob = C2.Sub(blob, means_blob, broadcast=1, axis=0)
+            blob = C2.Div(blob, stddevs_blob, broadcast=1, axis=0)
             if self.clip_anomalies:
-                self._net.Clip([blob], [blob], min=-3.0, max=3.0)
+                blob = C2.Clip(blob, min=-3.0, max=3.0)
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 
-        self._net.ConstantFill([blob], [zeros], value=0.)
-        self._net.Mul([blob, is_not_empty], [output_blob])
+        zeros = C2.ConstantFill(blob, value=0.)
+        output_blob = C2.Where(is_empty, zeros, blob)
 
         return output_blob, parameters
+
+    def _store_parameter(self, parameters, name, value):
+        c2_name = C2.NextBlob(name)
+        workspace.FeedBlob(c2_name, value)
+        parameters.append(c2_name)
+        return c2_name
 
     def normalize_sparse_matrix(
         self,
@@ -337,13 +299,18 @@ class PreprocessorNet:
         C2.net().Split([values_blob, total_lengths_batch_concat], values_batch, axis=0)
 
         dense_input_fragments = []
-        parameters = []
+        parameters: List[str] = []
+
+        MISSING_SCALAR = self._store_parameter(
+            parameters, "MISSING_SCALAR", np.array([MISSING_VALUE], dtype=np.float32)
+        )
+        C2.net().GivenTensorFill([], [MISSING_SCALAR], shape=[], values=[MISSING_VALUE])
 
         for preprocess_batch in range(preprocess_num_batches):
             dense_input_fragment = C2.SparseToDenseMask(
                 keys_batch[preprocess_batch],
                 values_batch[preprocess_batch],
-                self.MISSING_SCALAR,
+                MISSING_SCALAR,
                 lengths_batch[preprocess_batch],
                 mask=int_features,
             )[0]

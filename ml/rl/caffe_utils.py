@@ -29,13 +29,13 @@ class C2Meta(type):
             if num_outputs < 0:
                 num_outputs = schema.max_output
             for x in range(num_outputs):
-                outputs.append(C2.NextBlob(blob_prefix + "_output" + str(x)))
+                outputs.append(C2._net.NextBlob(blob_prefix + "_output" + str(x)))
 
             promoted_inputs = []
             for i in inputs:
                 if type(i) != str and type(i) != BlobReference:
                     # Promote input by stuffing into a blob
-                    input_name = C2.NextBlob(blob_prefix + "_input" + str(x))
+                    input_name = C2._net.NextBlob(blob_prefix + "_input" + str(x))
                     if type(i) == np.ndarray:
                         workspace.FeedBlob(input_name, i)
                     else:
@@ -76,6 +76,10 @@ class C2(metaclass=C2Meta):
     @staticmethod
     def NextBlob(prefix: str) -> str:
         assert C2._net is not None
+        tb = traceback.extract_stack(limit=2)
+        prefix = "{}:{}:{}:{}".format(
+            C2._net.Name(), os.path.basename(tb[0].filename), tb[0].lineno, prefix
+        )
         return C2._net.NextBlob(prefix)
 
 

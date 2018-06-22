@@ -257,8 +257,7 @@ class DDPGPredictor(object):
             C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
-        preprocessor = PreprocessorNet(net, True)
-        parameters.extend(preprocessor.parameters)
+        preprocessor = PreprocessorNet(True)
         state_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
             input_feature_lengths,
             input_feature_keys,
@@ -371,8 +370,7 @@ class DDPGPredictor(object):
             C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
-        preprocessor = PreprocessorNet(net, True)
-        parameters.extend(preprocessor.parameters)
+        preprocessor = PreprocessorNet(True)
         state_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
             input_feature_lengths,
             input_feature_keys,

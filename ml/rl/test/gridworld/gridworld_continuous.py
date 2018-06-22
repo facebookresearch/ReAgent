@@ -74,7 +74,7 @@ class GridworldContinuous(GridworldBase):
 
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
-        preprocessor = PreprocessorNet(net, True)
+        preprocessor = PreprocessorNet(True)
         saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
         state_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,

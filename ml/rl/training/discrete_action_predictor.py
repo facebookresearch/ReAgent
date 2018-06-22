@@ -87,8 +87,7 @@ class DiscreteActionPredictor(RLPredictor):
 
         parameters = []
         if state_normalization_parameters is not None:
-            preprocessor = PreprocessorNet(net, True)
-            parameters.extend(preprocessor.parameters)
+            preprocessor = PreprocessorNet(True)
             normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
                 input_feature_lengths,
                 input_feature_keys,
@@ -122,12 +121,16 @@ class DiscreteActionPredictor(RLPredictor):
         workspace.FeedBlob(
             temperature, np.array([trainer.rl_temperature], dtype=np.float32)
         )
-        tempered_q_values = C2.Div(q_values, "temperature", broadcast=1)
+        tempered_q_values = C2.Div(q_values, temperature, broadcast=1)
         softmax_values = C2.Softmax(tempered_q_values)
         softmax_act_idxs_nested = "softmax_act_idxs_nested"
         C2.net().WeightedSample([softmax_values], [softmax_act_idxs_nested])
         softmax_act_idxs = "softmax_policy_actions"
         C2.net().Flatten([softmax_act_idxs_nested], [softmax_act_idxs], axis=0)
+
+        action_names = C2.NextBlob("action_names")
+        parameters.append(action_names)
+        workspace.FeedBlob(action_names, np.array(actions))
 
         # Concat action index tensors to get 2 x n tensor - [[max_q], [softmax]]
         # transpose & flatten to get [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
@@ -138,7 +141,7 @@ class DiscreteActionPredictor(RLPredictor):
         flat_transposed_action_idxs = C2.FlattenToVec(transposed_action_idxs)
         output_values = "output/string_single_categorical_features.values"
         workspace.FeedBlob(output_values, np.zeros(1, dtype=np.int64))
-        C2.net().Gather(["action_names", flat_transposed_action_idxs], [output_values])
+        C2.net().Gather([action_names, flat_transposed_action_idxs], [output_values])
 
         output_lengths = "output/string_single_categorical_features.lengths"
         workspace.FeedBlob(output_lengths, np.zeros(1, dtype=np.int32))
