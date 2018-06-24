@@ -357,7 +357,7 @@ class GridworldBase(object):
                 results.append(
                     self.reward(int_state) + (DISCOUNT * true_q_values[next_state])
                 )
-        return results
+        return np.array(results).reshape(-1, 1)
 
     def true_rewards_for_sample(self, states, actions):
         results = []
@@ -365,7 +365,7 @@ class GridworldBase(object):
             int_state = int(list(states[x].keys())[0])
             next_state = self.move_on_index_limit(int_state, actions[x])
             results.append(self.reward(next_state))
-        return results
+        return np.array(results).reshape(-1, 1)
 
     def generate_samples_discrete(
         self, num_transitions, epsilon, with_possible=True

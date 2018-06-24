@@ -87,6 +87,9 @@ class DDPGTrainer(object):
             weight_decay=self.critic_params.l2_decay,
         )
 
+        self.minibatch = 0
+        self.reward_burnin = parameters.rl.reward_burnin
+
         if self.use_gpu:
             self.actor.cuda()
             self.actor_target.cuda()
@@ -117,7 +120,12 @@ class DDPGTrainer(object):
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)
 
-        target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
+        self.minibatch += 1
+
+        if self.minibatch >= self.reward_burnin:
+            target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
+        else:
+            target_q_values = rewards
         # compute loss and update the critic network
         critic_predictions = q_s1_a1.squeeze()
         loss_critic = F.mse_loss(critic_predictions, target_q_values)
@@ -132,16 +140,25 @@ class DDPGTrainer(object):
         loss_actor.backward()
         self.actor_optimizer.step()
 
-        # Use the soft update rule to update both target networks
-        self._soft_update(self.actor, self.actor_target, self.tau)
-        self._soft_update(self.critic, self.critic_target, self.tau)
+        if self.minibatch >= self.reward_burnin:
+            # Use the soft update rule to update both target networks
+            self._soft_update(self.actor, self.actor_target, self.tau)
+            self._soft_update(self.critic, self.critic_target, self.tau)
+        else:
+            # Reward burnin: force target network
+            self._soft_update(self.actor, self.actor_target, 1.0)
+            self._soft_update(self.critic, self.critic_target, 1.0)
 
         if evaluator is not None:
-            assert episode_values is not None
             evaluator.report(
-                episode_values,
-                critic_predictions.cpu().data.numpy(),
                 loss_critic.cpu().data.numpy(),
+                None,
+                None,
+                None,
+                episode_values,
+                None,
+                None,
+                critic_predictions.cpu().data.numpy(),
             )
 
     def _soft_update(self, network, target_network, tau) -> None:
@@ -207,7 +224,7 @@ class ActorNet(nn.Module):
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
 
-        assert len(layers) >= 3, "Invalid layer schema {} for actor network".format(
+        assert len(layers) >= 2, "Invalid layer schema {} for actor network".format(
             layers
         )
 
@@ -247,7 +264,7 @@ class CriticNet(nn.Module):
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
 
-        assert len(layers) >= 3, "Invalid layer schema {} for actor network".format(
+        assert len(layers) >= 3, "Invalid layer schema {} for critic network".format(
             layers
         )
 

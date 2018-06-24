@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from typing import Dict
+from typing import Dict, Optional
 
+import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.continuous_action_dqn_predictor import ContinuousActionDQNPredictor
 from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
+from ml.rl.training.evaluator import Evaluator
 
 
 class ContinuousActionDQNTrainer(RLTrainer):
@@ -195,6 +197,27 @@ class ContinuousActionDQNTrainer(RLTrainer):
         self.rl_train_model.net.Proto().type = "async_scheduling"
         workspace.CreateNet(self.rl_train_model.net)
         C2.set_model(None)
+
+    def evaluate(
+        self,
+        evaluator: Evaluator,
+        logged_actions: Optional[np.ndarray],
+        logged_propensities: Optional[np.ndarray],
+        logged_values: Optional[np.ndarray],
+    ):
+        workspace.RunNet(self.q_score_model.net)
+        model_values_on_logged_actions = workspace.FetchBlob(self.q_score_output)
+
+        evaluator.report(
+            workspace.FetchBlob(self.loss_blob),
+            None,
+            None,
+            None,
+            logged_values,
+            None,
+            None,
+            model_values_on_logged_actions,
+        )
 
     def predictor(self) -> ContinuousActionDQNPredictor:
         """

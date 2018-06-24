@@ -176,20 +176,23 @@ class TestGridworld(unittest.TestCase):
         for tv in true_values:
             samples.reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator()
+        evaluator = Evaluator(1)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
-        for tdp in tdps:
-            trainer.train_numpy(tdp, evaluator)
+        for _ in range(10):
+            first = True
+            for tdp in tdps:
+                trainer.train_numpy(tdp, evaluator if first else None)
+                first = False
 
-        self.assertLess(evaluator.td_loss[-1], 0.05)
-        self.assertLess(evaluator.mc_loss[-1], 0.05)
+        self.assertLess(evaluator.td_loss[-1], 0.01)
+        self.assertLess(evaluator.mc_loss[-1], 0.1)
 
     def test_evaluator_timeline(self):
         environment = Gridworld()
         samples = environment.generate_samples(100000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator()
+        evaluator = Evaluator(1)
 
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
         for tdp in tdps:

@@ -125,7 +125,7 @@ class TestGridworldContinuous(unittest.TestCase):
         for tv in true_values:
             samples.reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator()
+        evaluator = Evaluator(1)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
@@ -138,7 +138,7 @@ class TestGridworldContinuous(unittest.TestCase):
         environment = GridworldContinuous()
         samples = environment.generate_samples(100000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator()
+        evaluator = Evaluator(1)
 
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
         for tdp in tdps:

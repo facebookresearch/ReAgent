@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import Dict, Optional
+import numpy as np
 
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
 from caffe2.python import workspace, core
@@ -21,6 +22,7 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
 from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
+from ml.rl.training.evaluator import Evaluator
 
 
 class DiscreteActionTrainer(RLTrainer):
@@ -66,7 +68,7 @@ class DiscreteActionTrainer(RLTrainer):
     def _create_all_q_score_net(self) -> None:
         self.all_q_score_model = ModelHelper(name="all_q_score_" + self.model_id)
         C2.set_model(self.all_q_score_model)
-        self.all_q_score_output = self.get_q_values_all_actions("states", True)
+        self.all_q_score_output = self.get_q_values_all_actions("states", False)
         workspace.RunNetOnce(self.all_q_score_model.param_init_net)
         self.all_q_score_model.net.Proto().num_workers = (
             RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
@@ -272,6 +274,32 @@ class DiscreteActionTrainer(RLTrainer):
         self.rl_train_model.net.Proto().type = "async_scheduling"
         workspace.CreateNet(self.rl_train_model.net)
         C2.set_model(None)
+
+    def evaluate(
+        self,
+        evaluator: Evaluator,
+        logged_actions: Optional[np.ndarray],
+        logged_propensities: Optional[np.ndarray],
+        logged_values: Optional[np.ndarray],
+    ):
+        workspace.RunNet(self.all_q_score_model.net)
+        all_action_scores = workspace.FetchBlob(self.all_q_score_output)
+        model_values_on_logged_actions = np.sum(
+            (logged_actions * all_action_scores), axis=1, keepdims=True
+        )
+        model_propensities = Evaluator.softmax(all_action_scores, self.rl_temperature)
+        logged_rewards = workspace.FetchBlob("rewards")
+
+        evaluator.report(
+            workspace.FetchBlob(self.loss_blob),
+            logged_actions,
+            logged_propensities,
+            logged_rewards,
+            logged_values,
+            model_propensities,
+            all_action_scores,
+            model_values_on_logged_actions,
+        )
 
     def predictor(self) -> DiscreteActionPredictor:
         """

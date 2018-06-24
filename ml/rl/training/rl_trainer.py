@@ -99,10 +99,6 @@ class RLTrainer(object):
         self.parameters = parameters
         self.loss_blob: Optional[str] = None
 
-        self.episode_values_batches: List[np.ndarray] = []
-        self.q_score_output_batches: List[np.ndarray] = []
-        self.loss_batches: List[np.ndarray] = []
-
         workspace.FeedBlob("states", np.array([0], dtype=np.float32))
         workspace.FeedBlob("actions", np.array([0], dtype=np.float32))
         workspace.FeedBlob("rewards", np.array([0], dtype=np.float32))
@@ -220,9 +216,11 @@ class RLTrainer(object):
             ).reshape(-1, 1)
         else:
             ground_truth = None
-        self.train(ground_truth, evaluator)
+        self.train()
+        if evaluator is not None:
+            self.evaluate(evaluator, tdp.actions, tdp.propensities, ground_truth)
 
-    def train(self, episode_values, evaluator: Optional[Evaluator]) -> None:
+    def train(self) -> None:
         assert self.rl_train_model is not None
         assert self.reward_train_model is not None
         assert self.q_score_model is not None
@@ -242,20 +240,15 @@ class RLTrainer(object):
             workspace.RunNet(self.conv_target_network._update_model.net)
         self.training_iteration += 1
         workspace.RunNet(self.q_score_model.net)
-        self.episode_values_batches.append(episode_values)
-        # self.q_score_output is a 2d array, need to flatten it
-        self.q_score_output_batches.append(workspace.FetchBlob(self.q_score_output))
-        self.loss_batches.append(workspace.FetchBlob(self.loss_blob))
-        if evaluator is not None:
-            assert self.loss_blob is not None
-            logger.info("Evaluating on {} batches".format(
-                len(self.episode_values_batches)))
-            evaluator.report(
-                np.vstack(self.episode_values_batches),
-                np.vstack(self.q_score_output_batches),
-                np.hstack(self.loss_batches),
-            )
-            self.clear_evaluation_containers()
+
+    def evaluate(
+        self,
+        evaluator: Optional[Evaluator],
+        logged_actions: Optional[np.ndarray],
+        logged_propensities: Optional[np.ndarray],
+        logged_values: Optional[np.ndarray],
+    ):
+        raise NotImplementedError()
 
     def build_predictor(self, model, input_blob, output_blob) -> List[str]:
         retval: List[str] = []
@@ -269,8 +262,3 @@ class RLTrainer(object):
             input_blob = conv_output_flat
         retval += self.ml_trainer.build_predictor(model, input_blob, output_blob)
         return retval
-
-    def clear_evaluation_containers(self) -> None:
-        self.episode_values_batches = []
-        self.q_score_output_batches = []
-        self.loss_batches = []

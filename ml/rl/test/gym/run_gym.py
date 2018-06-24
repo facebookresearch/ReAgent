@@ -172,7 +172,7 @@ def run(
                                 model_type,
                                 trainer.maxq_learning,
                             )
-                            trainer.train(episode_values=None, evaluator=None)
+                            trainer.train()
 
             # Evaluation loop
             if total_timesteps % test_every_ts == 0 and total_timesteps > test_after_ts:
