@@ -187,7 +187,9 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
             ground_truth = self.logged_values[x][0]
             target_value = prediction[x]["Q"]
             error_sum += abs(ground_truth - target_value)
-        logger.info("EVAL ERROR", error_sum / float(len(self.logged_states)))
+        logger.info(
+            "EVAL ERROR {0:.3f}".format(error_sum / float(len(self.logged_states)))
+        )
         return error_sum / float(len(self.logged_states))
 
 
@@ -208,8 +210,10 @@ class GridworldDDPGEvaluator(GridworldEvaluator):
         )
         error_sum = 0.0
         for x in range(len(self.logged_states)):
-            ground_truth = self.logged_values[x]
+            ground_truth = self.logged_values[x][0]
             target_value = critic_prediction[x]
             error_sum += abs(ground_truth - target_value)
-        logger.info("EVAL ERROR", error_sum / float(len(self.logged_states)))
+        logger.info(
+            "EVAL ERROR: {0:.3f}".format(error_sum / float(len(self.logged_states)))
+        )
         return error_sum / float(len(self.logged_states))
