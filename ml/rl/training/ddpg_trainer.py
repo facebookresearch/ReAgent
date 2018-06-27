@@ -335,7 +335,8 @@ class OrnsteinUhlenbeckProcessNoise:
         """dx = theta * (mu − prev_noise) + sigma * new_gaussian_noise"""
         term_1 = self.theta * (self.mu - self.noise)
         dx = term_1 + (self.sigma * np.random.randn(self.action_dim))
-        return self.noise + dx
+        self.noise = self.noise + dx
+        return self.noise
 
     def clear(self) -> None:
         self.noise = np.zeros(self.action_dim)
