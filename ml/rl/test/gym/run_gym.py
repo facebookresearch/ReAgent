@@ -75,6 +75,7 @@ def run(
     render=False,
     render_every=10,
     save_timesteps_to_dataset=None,
+    start_saving_from_episode=0,
 ):
     avg_reward_history = []
 
@@ -130,7 +131,7 @@ def run(
                 1,
             )
 
-            if save_timesteps_to_dataset:
+            if save_timesteps_to_dataset and i >= start_saving_from_episode:
                 # TODO: handle continuous/parametric actions.
                 assert (
                     gym_env.action_type == EnvType.DISCRETE_ACTION
@@ -247,6 +248,13 @@ def main(args):
         help="If set, save all collected samples as an RLDataset to this file.",
         default=None,
     )
+    parser.add_argument(
+        "-e",
+        "--start_saving_from_episode",
+        type=int,
+        help="If file_path is set, start saving episodes from this episode num.",
+        default=0,
+    )
     args = parser.parse_args(args)
 
     if args.log_level not in ("debug", "info", "warning", "error", "critical"):
@@ -258,13 +266,25 @@ def main(args):
         params = json.load(f)
 
     dataset = RLDataset(args.file_path) if args.file_path else None
-    result = run_gym(params, args.score_bar, args.gpu_id, dataset)
+    result = run_gym(
+        params,
+        args.score_bar,
+        args.gpu_id,
+        dataset,
+        args.start_saving_from_episode,
+    )
     if dataset:
         dataset.save()
     return result
 
 
-def run_gym(params, score_bar, gpu_id, save_timesteps_to_dataset=None):
+def run_gym(
+    params,
+    score_bar,
+    gpu_id,
+    save_timesteps_to_dataset=None,
+    start_saving_from_episode=0,
+):
     logger.info("Running gym with params")
     logger.info(params)
     rl_parameters = RLParameters(**params["rl"])
@@ -367,6 +387,7 @@ def run_gym(params, score_bar, gpu_id, save_timesteps_to_dataset=None):
         score_bar,
         **params["run_details"],
         save_timesteps_to_dataset=save_timesteps_to_dataset,
+        start_saving_from_episode=start_saving_from_episode,
     )
 
 
