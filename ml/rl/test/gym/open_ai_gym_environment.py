@@ -8,28 +8,28 @@ import numpy as np
 from caffe2.python import workspace
 
 from ml.rl.test.utils import default_normalizer
-from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
+from ml.rl.test.gym.gym_predictor import (
+    GymDDPGPredictor,
+    GymDQNPredictor,
+    GymDQNPredictorPytorch,
+)
+from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class ModelType(enum.Enum):
-    DISCRETE_ACTION = 'discrete'
-    PARAMETRIC_ACTION = 'parametric'
-    CONTINUOUS_ACTION = 'continuous'
+    DISCRETE_ACTION = "discrete"
+    PARAMETRIC_ACTION = "parametric"
+    CONTINUOUS_ACTION = "continuous"
+    PYTORCH_DISCRETE_DQN = "pytorch_discrete_dqn"
 
 
 class EnvType(enum.Enum):
-    DISCRETE_ACTION = 'discrete'
-    CONTINUOUS_ACTION = 'continuous'
+    DISCRETE_ACTION = "discrete"
+    CONTINUOUS_ACTION = "continuous"
 
 
 class OpenAIGymEnvironment:
-    def __init__(
-        self,
-        gymenv,
-        epsilon,
-        softmax_policy,
-        max_replay_memory_size,
-    ):
+    def __init__(self, gymenv, epsilon, softmax_policy, max_replay_memory_size):
         """
         Creates an OpenAIGymEnvironment object.
 
@@ -66,11 +66,13 @@ class OpenAIGymEnvironment:
             raise Exception("Env {} not found in OpenAI Gym.".format(gymenv))
         self.env = gym.make(gymenv)
 
-        supports_state = isinstance(
-            self.env.observation_space, gym.spaces.Box
-        ) and len(self.env.observation_space.shape) in [1, 3]
-        supports_action =\
-            type(self.env.action_space) in (gym.spaces.Discrete, gym.spaces.Box)
+        supports_state = isinstance(self.env.observation_space, gym.spaces.Box) and len(
+            self.env.observation_space.shape
+        ) in [1, 3]
+        supports_action = type(self.env.action_space) in (
+            gym.spaces.Discrete,
+            gym.spaces.Box,
+        )
 
         if not supports_state and supports_action:
             raise Exception(
@@ -87,12 +89,13 @@ class OpenAIGymEnvironment:
             self.action_type = EnvType.CONTINUOUS_ACTION
             self.action_dim = self.env.action_space.shape[0]
 
-        if (len(self.env.observation_space.shape) == 1):
+        if len(self.env.observation_space.shape) == 1:
             self.state_dim = self.env.observation_space.shape[0]
             self.img = False
         elif len(self.env.observation_space.shape) == 3:
-            self.height, self.width, self.num_input_channels = \
+            self.height, self.width, self.num_input_channels = (
                 self.env.observation_space.shape
+            )
             self.img = True
 
     def sample_memories(self, batch_size):
@@ -109,12 +112,7 @@ class OpenAIGymEnvironment:
                 col.append(value)
         return [np.array(x) for x in cols]
 
-    def sample_and_load_training_data_c2(
-        self,
-        num_samples,
-        model_type,
-        maxq_learning,
-    ):
+    def sample_and_load_training_data_c2(self, num_samples, model_type, maxq_learning):
         """
         Loads and preprocesses shuffled, transformed transitions from
         replay memory into the training net.
@@ -123,37 +121,31 @@ class OpenAIGymEnvironment:
         :param model_type: Model type (discrete, parametric).
         :param maxq_learning: Boolean indicating to use q-learning or sarsa.
         """
-        states, actions, rewards, next_states, next_actions,\
-            terminals, possible_next_actions, possible_next_actions_lengths,\
-            time_diffs = self.sample_memories(num_samples)
+        states, actions, rewards, next_states, next_actions, terminals, possible_next_actions, possible_next_actions_lengths, time_diffs = self.sample_memories(
+            num_samples
+        )
 
-        workspace.FeedBlob('states', np.array(states, dtype=np.float32))
-        workspace.FeedBlob('actions', np.array(actions, dtype=np.float32))
+        workspace.FeedBlob("states", np.array(states, dtype=np.float32))
+        workspace.FeedBlob("actions", np.array(actions, dtype=np.float32))
         workspace.FeedBlob(
-            'rewards',
-            np.array(rewards, dtype=np.float32).reshape(-1, 1)
+            "rewards", np.array(rewards, dtype=np.float32).reshape(-1, 1)
+        )
+        workspace.FeedBlob("next_states", np.array(next_states, dtype=np.float32))
+        workspace.FeedBlob(
+            "not_terminals", np.logical_not(terminals, dtype=np.bool).reshape(-1, 1)
         )
         workspace.FeedBlob(
-            'next_states', np.array(next_states, dtype=np.float32)
-        )
-        workspace.FeedBlob(
-            'not_terminals',
-            np.logical_not(terminals, dtype=np.bool).reshape(-1, 1)
-        )
-        workspace.FeedBlob(
-            'time_diff', np.array(time_diffs, dtype=np.float32).reshape(-1, 1)
+            "time_diff", np.array(time_diffs, dtype=np.float32).reshape(-1, 1)
         )
 
         # SARSA algorithm does not need possible next actions so return
         if not maxq_learning:
-            workspace.FeedBlob(
-                'next_actions', np.array(next_actions, dtype=np.float32)
-            )
+            workspace.FeedBlob("next_actions", np.array(next_actions, dtype=np.float32))
             return
 
         if model_type == ModelType.DISCRETE_ACTION.value:
             possible_next_actions = np.array(possible_next_actions, np.float32)
-            workspace.FeedBlob('possible_next_actions', possible_next_actions)
+            workspace.FeedBlob("possible_next_actions", possible_next_actions)
             return
 
         pnas = []
@@ -162,12 +154,10 @@ class OpenAIGymEnvironment:
                 pnas.append(row)
 
         workspace.FeedBlob(
-            'possible_next_actions_lengths',
-            np.array(possible_next_actions_lengths, dtype=np.int32)
+            "possible_next_actions_lengths",
+            np.array(possible_next_actions_lengths, dtype=np.int32),
         )
-        workspace.FeedBlob(
-            'possible_next_actions', np.array(pnas, dtype=np.float32)
-        )
+        workspace.FeedBlob("possible_next_actions", np.array(pnas, dtype=np.float32))
 
     @property
     def normalization(self):
@@ -179,10 +169,7 @@ class OpenAIGymEnvironment:
     @property
     def normalization_action(self):
         return default_normalizer(
-            [
-                x for x in
-                list(range(self.state_dim, self.state_dim + self.action_dim))
-            ]
+            [x for x in list(range(self.state_dim, self.state_dim + self.action_dim))]
         )
 
     def policy(self, predictor, next_state, test):
@@ -197,7 +184,7 @@ class OpenAIGymEnvironment:
         next_state = np.expand_dims(next_state.astype(np.float32), axis=0)
         action = np.zeros([self.action_dim], dtype=np.float32)
 
-        if isinstance(predictor, GymDQNPredictor):
+        if isinstance(predictor, (GymDQNPredictor, GymDQNPredictorPytorch)):
             if not test and np.random.rand() < self.epsilon:
                 action_idx = np.random.randint(self.action_dim)
             else:
@@ -205,6 +192,7 @@ class OpenAIGymEnvironment:
                     action_idx = predictor.policy(next_state)[1]
                 else:
                     action_idx = predictor.policy(next_state)[0]
+
             action[action_idx] = 1.0
             return action
         elif isinstance(predictor, GymDDPGPredictor):
@@ -215,16 +203,31 @@ class OpenAIGymEnvironment:
             raise NotImplementedError("Unknown predictor type")
 
     def insert_into_memory(
-        self, state, action, reward, next_state, next_action, terminal,
-        possible_next_actions, possible_next_actions_lengths, time_diff,
+        self,
+        state,
+        action,
+        reward,
+        next_state,
+        next_action,
+        terminal,
+        possible_next_actions,
+        possible_next_actions_lengths,
+        time_diff,
     ):
         """
         Inserts transition into replay memory in such a way that retrieving
         transitions uniformly at random will be equivalent to reservoir sampling.
         """
         item = (
-            state, action, reward, next_state, next_action, terminal,
-            possible_next_actions, possible_next_actions_lengths, time_diff,
+            state,
+            action,
+            reward,
+            next_state,
+            next_action,
+            terminal,
+            possible_next_actions,
+            possible_next_actions_lengths,
+            time_diff,
         )
 
         if self.memory_num < self.max_replay_memory_size:
@@ -236,9 +239,7 @@ class OpenAIGymEnvironment:
             self.replay_memory[rand_index] = item
         self.memory_num += 1
 
-    def run_ep_n_times(
-        self, n, predictor, max_steps=None, test=False, render=False
-    ):
+    def run_ep_n_times(self, n, predictor, max_steps=None, test=False, render=False):
         """
         Runs an episode of the environment n times and returns the average
         sum of rewards.

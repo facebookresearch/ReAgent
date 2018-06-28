@@ -4,8 +4,11 @@ import numpy as np
 import six
 
 from caffe2.proto import caffe2_pb2
-from caffe2.python.predictor.predictor_exporter import \
-    save_to_db, load_from_db, prepare_prediction_net
+from caffe2.python.predictor.predictor_exporter import (
+    save_to_db,
+    load_from_db,
+    prepare_prediction_net,
+)
 from caffe2.python import workspace
 from caffe2.python.predictor_constants import predictor_constants
 from caffe2.python.predictor.predictor_py_utils import GetBlobs
@@ -13,6 +16,7 @@ from caffe2.python.predictor.predictor_py_utils import GetBlobs
 from ml.rl.caffe_utils import C2
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,71 +32,66 @@ class RLPredictor(object):
         """
         self._net = net
         self._input_blobs = [
-            'input/float_features.lengths',
-            'input/float_features.keys',
-            'input/float_features.values',
+            "input/float_features.lengths",
+            "input/float_features.keys",
+            "input/float_features.values",
         ]
         if int_features:
             self._input_blobs.extend(
                 [
-                    'input/int_features.lengths',
-                    'input/int_features.keys',
-                    'input/int_features.values',
+                    "input/int_features.lengths",
+                    "input/int_features.keys",
+                    "input/int_features.values",
                 ]
             )
         self._output_blobs = [
-            'output/string_weighted_multi_categorical_features.keys',
-            'output/string_weighted_multi_categorical_features.lengths',
-            'output/string_weighted_multi_categorical_features.values.keys',
-            'output/string_weighted_multi_categorical_features.values.lengths',
-            'output/string_weighted_multi_categorical_features.values.values',
+            "output/string_weighted_multi_categorical_features.keys",
+            "output/string_weighted_multi_categorical_features.lengths",
+            "output/string_weighted_multi_categorical_features.values.keys",
+            "output/string_weighted_multi_categorical_features.values.lengths",
+            "output/string_weighted_multi_categorical_features.values.values",
         ]
         self._parameters = parameters
         self.is_discrete = None
 
-    def policy(
-        self, float_state_features, int_state_features=None
-    ) -> np.ndarray:
+    def policy(self, float_state_features, int_state_features=None) -> np.ndarray:
         """ Returns np array of action names to take for each state
         :param float_state_features A list of feature -> float value dict examples
         :param int_state_features A list of feature -> int value dict examples
         """
         workspace.FeedBlob(
-            'input/float_features.lengths',
-            np.array([len(e) for e in float_state_features], dtype=np.int32)
+            "input/float_features.lengths",
+            np.array([len(e) for e in float_state_features], dtype=np.int32),
         )
         workspace.FeedBlob(
-            'input/float_features.keys',
+            "input/float_features.keys",
             np.array(
                 [list(e.keys()) for e in float_state_features], dtype=np.int32
-            ).flatten()
+            ).flatten(),
         )
         workspace.FeedBlob(
-            'input/float_features.values',
+            "input/float_features.values",
             np.array(
-                [list(e.values()) for e in float_state_features],
-                dtype=np.float32
-            ).flatten()
+                [list(e.values()) for e in float_state_features], dtype=np.float32
+            ).flatten(),
         )
 
         if int_state_features is not None:
             workspace.FeedBlob(
-                'input/int_features.lengths',
-                np.array([len(e) for e in int_state_features], dtype=np.int32)
+                "input/int_features.lengths",
+                np.array([len(e) for e in int_state_features], dtype=np.int32),
             )
             workspace.FeedBlob(
-                'input/int_features.keys',
+                "input/int_features.keys",
                 np.array(
-                    [list(e.keys()) for e in int_state_features],
-                    dtype=np.int64
-                ).flatten()
+                    [list(e.keys()) for e in int_state_features], dtype=np.int64
+                ).flatten(),
             )
             workspace.FeedBlob(
-                'input/int_features.values',
+                "input/int_features.values",
                 np.array(
-                    [list(e.values()) for e in int_state_features],
-                    dtype=np.int32
-                ).flatten()
+                    [list(e.values()) for e in int_state_features], dtype=np.int32
+                ).flatten(),
             )
 
         workspace.RunNet(self._net)
@@ -100,17 +99,15 @@ class RLPredictor(object):
         if self.is_discrete:
             # discrete action policy has string values (action names)
             return workspace.FetchBlob(
-                'output/string_single_categorical_features.values'
+                "output/string_single_categorical_features.values"
             )
         elif not self.is_discrete:
             # [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
             # parametric action policy has int values (action indexes)
-            return workspace.FetchBlob(
-                'output/int_single_categorical_features.values'
-            )
+            return workspace.FetchBlob("output/int_single_categorical_features.values")
         else:
             raise Exception(
-                'is_discrete property {} not valid'.format(self.is_discrete)
+                "is_discrete property {} not valid".format(self.is_discrete)
             )
 
     def predict(self, float_state_features, int_state_features=None):
@@ -119,53 +116,50 @@ class RLPredictor(object):
         :param int_state_features A list of feature -> int value dict examples
         """
         workspace.FeedBlob(
-            'input/float_features.lengths',
-            np.array([len(e) for e in float_state_features], dtype=np.int32)
+            "input/float_features.lengths",
+            np.array([len(e) for e in float_state_features], dtype=np.int32),
         )
         workspace.FeedBlob(
-            'input/float_features.keys',
+            "input/float_features.keys",
             np.array(
                 [list(e.keys()) for e in float_state_features], dtype=np.int64
-            ).flatten()
+            ).flatten(),
         )
         workspace.FeedBlob(
-            'input/float_features.values',
+            "input/float_features.values",
             np.array(
-                [list(e.values()) for e in float_state_features],
-                dtype=np.float32
-            ).flatten()
+                [list(e.values()) for e in float_state_features], dtype=np.float32
+            ).flatten(),
         )
 
         if int_state_features is not None:
             workspace.FeedBlob(
-                'input/int_features.lengths',
-                np.array([len(e) for e in int_state_features], dtype=np.int32)
+                "input/int_features.lengths",
+                np.array([len(e) for e in int_state_features], dtype=np.int32),
             )
             workspace.FeedBlob(
-                'input/int_features.keys',
+                "input/int_features.keys",
                 np.array(
-                    [list(e.keys()) for e in int_state_features],
-                    dtype=np.int64
-                ).flatten()
+                    [list(e.keys()) for e in int_state_features], dtype=np.int64
+                ).flatten(),
             )
             workspace.FeedBlob(
-                'input/int_features.values',
+                "input/int_features.values",
                 np.array(
-                    [list(e.values()) for e in int_state_features],
-                    dtype=np.int32
-                ).flatten()
+                    [list(e.values()) for e in int_state_features], dtype=np.int32
+                ).flatten(),
             )
 
         workspace.RunNet(self._net)
 
         output_lengths = workspace.FetchBlob(
-            'output/string_weighted_multi_categorical_features.values.lengths'
+            "output/string_weighted_multi_categorical_features.values.lengths"
         )
         output_names = workspace.FetchBlob(
-            'output/string_weighted_multi_categorical_features.values.keys'
+            "output/string_weighted_multi_categorical_features.values.keys"
         )
         output_values = workspace.FetchBlob(
-            'output/string_weighted_multi_categorical_features.values.values'
+            "output/string_weighted_multi_categorical_features.values.values"
         )
 
         results = []
@@ -199,7 +193,7 @@ class RLPredictor(object):
         for parameter in self._parameters:
             parameter_data = workspace.FetchBlob(parameter)
             logger.info("DATA TYPE " + parameter_data.dtype.kind)
-            if parameter_data.dtype.kind in {'U', 'S', 'O'}:
+            if parameter_data.dtype.kind in {"U", "S", "O"}:
                 continue  # Don't bother checking string blobs for nan
             logger.info("Checking parameter {} for nan".format(parameter))
             if np.any(np.isnan(parameter_data)):
@@ -273,50 +267,40 @@ class RLPredictor(object):
 
         output_row_shape = C2.Slice(q_values, starts=[0, 0], ends=[-1, 1])
 
-        output_feature_keys = 'output/string_weighted_multi_categorical_features.keys'
+        output_feature_keys = "output/string_weighted_multi_categorical_features.keys"
         workspace.FeedBlob(output_feature_keys, np.zeros(1, dtype=np.int64))
         output_feature_keys_matrix = C2.ConstantFill(
             output_row_shape, value=0, dtype=caffe2_pb2.TensorProto.INT64
         )
         # Note: sometimes we need to use an explicit output name, so we call
         #  C2.net().Fn(...)
-        C2.net().FlattenToVec(
-            [output_feature_keys_matrix],
-            [output_feature_keys],
-        )
+        C2.net().FlattenToVec([output_feature_keys_matrix], [output_feature_keys])
 
-        output_feature_lengths = \
-            'output/string_weighted_multi_categorical_features.lengths'
+        output_feature_lengths = (
+            "output/string_weighted_multi_categorical_features.lengths"
+        )
         workspace.FeedBlob(output_feature_lengths, np.zeros(1, dtype=np.int32))
         output_feature_lengths_matrix = C2.ConstantFill(
             output_row_shape, value=1, dtype=caffe2_pb2.TensorProto.INT32
         )
-        C2.net().FlattenToVec(
-            [output_feature_lengths_matrix],
-            [output_feature_lengths],
-        )
+        C2.net().FlattenToVec([output_feature_lengths_matrix], [output_feature_lengths])
 
-        output_keys = 'output/string_weighted_multi_categorical_features.values.keys'
-        workspace.FeedBlob(output_keys, np.array(['a']))
-        C2.net().Tile(
-            [action_names, output_shape_row_count], [output_keys], axis=1
-        )
+        output_keys = "output/string_weighted_multi_categorical_features.values.keys"
+        workspace.FeedBlob(output_keys, np.array(["a"]))
+        C2.net().Tile([action_names, output_shape_row_count], [output_keys], axis=1)
 
         output_lengths_matrix = C2.ConstantFill(
-            output_row_shape,
-            value=len(actions),
-            dtype=caffe2_pb2.TensorProto.INT32
+            output_row_shape, value=len(actions), dtype=caffe2_pb2.TensorProto.INT32
         )
-        output_lengths = \
-            'output/string_weighted_multi_categorical_features.values.lengths'
+        output_lengths = (
+            "output/string_weighted_multi_categorical_features.values.lengths"
+        )
         workspace.FeedBlob(output_lengths, np.zeros(1, dtype=np.int32))
-        C2.net().FlattenToVec(
-            [output_lengths_matrix],
-            [output_lengths],
-        )
+        C2.net().FlattenToVec([output_lengths_matrix], [output_lengths])
 
-        output_values = \
-            'output/string_weighted_multi_categorical_features.values.values'
+        output_values = (
+            "output/string_weighted_multi_categorical_features.values.values"
+        )
         workspace.FeedBlob(output_values, np.array([1.0]))
         C2.net().FlattenToVec([q_values], [output_values])
         return parameters, q_values

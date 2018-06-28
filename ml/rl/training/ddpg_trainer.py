@@ -11,10 +11,13 @@ from torch.autograd import Variable
 
 from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.training.ddpg_predictor import DDPGPredictor
-from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES
+from ml.rl.training.rl_trainer_pytorch import (
+    RLTrainer,
+    DEFAULT_ADDITIONAL_FEATURE_TYPES,
+)
 
 
-class DDPGTrainer(object):
+class DDPGTrainer(RLTrainer):
     def __init__(
         self,
         parameters,
@@ -25,14 +28,6 @@ class DDPGTrainer(object):
         action_range=None,
     ) -> None:
 
-        if use_gpu and torch.cuda.is_available():
-            self.use_gpu = True
-            self.dtype = torch.cuda.FloatTensor
-        else:
-            self.use_gpu = False
-            self.dtype = torch.FloatTensor
-
-        self._additional_feature_types = additional_feature_types
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
         self.action_range = action_range
@@ -41,18 +36,8 @@ class DDPGTrainer(object):
 
         # Shared params
         self.minibatch_size = parameters.shared_training.minibatch_size
-        self.gamma = parameters.rl.gamma
-        self.tau = parameters.rl.target_update_rate
-        self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
         self.final_layer_init = parameters.shared_training.final_layer_init
-        if parameters.shared_training.optimizer == "ADAM":
-            self.optimizer_func = torch.optim.Adam
-        else:
-            raise NotImplementedError(
-                "{} optimizer not implemented".format(
-                    parameters.shared_training.optimizer
-                )
-            )
+        self._set_optimizer(parameters.shared_training.optimizer)
 
         # Actor params
         self.actor_params = parameters.actor_training
@@ -87,8 +72,7 @@ class DDPGTrainer(object):
             weight_decay=self.critic_params.l2_decay,
         )
 
-        self.minibatch = 0
-        self.reward_burnin = parameters.rl.reward_burnin
+        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types)
 
         if self.use_gpu:
             self.actor.cuda()
@@ -97,6 +81,7 @@ class DDPGTrainer(object):
             self.critic_target.cuda()
 
     def train(self, training_samples, evaluator=None, episode_values=None) -> None:
+        self.minibatch += 1
         states = Variable(torch.from_numpy(training_samples[0]).type(self.dtype))
         actions = Variable(torch.from_numpy(training_samples[1]).type(self.dtype))
         rewards = Variable(torch.from_numpy(training_samples[2]).type(self.dtype))
@@ -119,8 +104,6 @@ class DDPGTrainer(object):
 
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)
-
-        self.minibatch += 1
 
         if self.minibatch >= self.reward_burnin:
             target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
@@ -160,17 +143,6 @@ class DDPGTrainer(object):
                 None,
                 critic_predictions.cpu().data.numpy(),
             )
-
-    def _soft_update(self, network, target_network, tau) -> None:
-        """ Target network update logic as defined in DDPG paper
-        updated_params = tau * network_params + (1 - tau) * target_network_params
-        :param network network with parameters to include in soft update
-        :param target_network target network with params to soft update
-        :param tau hyperparameter to control target tracking speed
-        """
-        for t_param, param in zip(target_network.parameters(), network.parameters()):
-            new_param = tau * param.data + (1.0 - tau) * t_param.data
-            t_param.data.copy_(new_param)
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:
         """ Returns list of actions output from actor network

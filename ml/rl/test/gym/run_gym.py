@@ -15,8 +15,13 @@ from ml.rl.test.gym.open_ai_gym_environment import (
     ModelType,
     OpenAIGymEnvironment,
 )
-from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
+from ml.rl.test.gym.gym_predictor import (
+    GymDDPGPredictor,
+    GymDQNPredictor,
+    GymDQNPredictorPytorch,
+)
 from ml.rl.training.ddpg_trainer import DDPGTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.thrift.core.ttypes import (
@@ -39,7 +44,10 @@ USE_CPU = -1
 
 
 def get_possible_next_actions(gym_env, model_type, terminal):
-    if model_type == ModelType.DISCRETE_ACTION.value:
+    if model_type in (
+        ModelType.DISCRETE_ACTION.value,
+        ModelType.PYTORCH_DISCRETE_DQN.value,
+    ):
         possible_next_actions = [
             0 if terminal else 1 for __ in range(gym_env.action_dim)
         ]
@@ -81,6 +89,8 @@ def run(
 
     if model_type == ModelType.CONTINUOUS_ACTION.value:
         predictor = GymDDPGPredictor(trainer)
+    elif model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
+        predictor = GymDQNPredictorPytorch(trainer)
     else:
         predictor = GymDQNPredictor(trainer, c2_device)
 
@@ -115,9 +125,10 @@ def run(
             next_action = gym_env.policy(predictor, next_state, False)
             reward_sum += reward
 
-            (possible_next_actions,
-             possible_next_actions_lengths) = get_possible_next_actions(
-                gym_env, model_type, terminal)
+            (
+                possible_next_actions,
+                possible_next_actions_lengths,
+            ) = get_possible_next_actions(gym_env, model_type, terminal)
 
             gym_env.insert_into_memory(
                 np.float32(state),
@@ -148,12 +159,7 @@ def run(
                 )
                 if terminal:
                     save_timesteps_to_dataset.insert(
-                        i,
-                        ep_timesteps,
-                        np.float32(next_state).tolist(),
-                        None,
-                        0.0,
-                        [],
+                        i, ep_timesteps, np.float32(next_state).tolist(), None, 0.0, []
                     )
 
             # Training loop
@@ -163,7 +169,10 @@ def run(
                 and len(gym_env.replay_memory) >= trainer.minibatch_size
             ):
                 for _ in range(num_train_batches):
-                    if model_type == ModelType.CONTINUOUS_ACTION.value:
+                    if model_type in (
+                        ModelType.CONTINUOUS_ACTION.value,
+                        ModelType.PYTORCH_DISCRETE_DQN.value,
+                    ):
                         samples = gym_env.sample_memories(trainer.minibatch_size)
                         trainer.train(samples)
                     else:
@@ -301,7 +310,32 @@ def run_gym(
         caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA, gpu_id
     )
 
-    if model_type == ModelType.DISCRETE_ACTION.value:
+    if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
+        training_settings = params["training"]
+        training_parameters = TrainingParameters(**training_settings)
+        if env.img:
+            assert (
+                training_parameters.cnn_parameters is not None
+            ), "Missing CNN parameters for image input"
+            training_parameters.cnn_parameters = CNNParameters(
+                **training_settings["cnn_parameters"]
+            )
+            training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
+            training_parameters.cnn_parameters.input_height = env.height
+            training_parameters.cnn_parameters.input_width = env.width
+            training_parameters.cnn_parameters.num_input_channels = (
+                env.num_input_channels
+            )
+        else:
+            assert (
+                training_parameters.cnn_parameters is None
+            ), "Extra CNN parameters for non-image input"
+        trainer_params = DiscreteActionModelParameters(
+            actions=env.actions, rl=rl_parameters, training=training_parameters
+        )
+        trainer = DQNTrainer(trainer_params, env.normalization)
+
+    elif model_type == ModelType.DISCRETE_ACTION.value:
         with core.DeviceScope(c2_device):
             training_settings = params["training"]
             training_parameters = TrainingParameters(**training_settings)
