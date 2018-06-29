@@ -61,7 +61,7 @@ def get_possible_next_actions(gym_env, model_type, terminal):
             possible_next_actions_lengths = gym_env.action_dim
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
         possible_next_actions = None
-        possible_next_actions_lengths = None
+        possible_next_actions_lengths = 0
     return possible_next_actions, possible_next_actions_lengths
 
 
@@ -173,14 +173,14 @@ def run(
                         ModelType.CONTINUOUS_ACTION.value,
                         ModelType.PYTORCH_DISCRETE_DQN.value,
                     ):
-                        samples = gym_env.sample_memories(trainer.minibatch_size)
+                        samples = gym_env.sample_memories(
+                            trainer.minibatch_size, model_type
+                        )
                         trainer.train(samples)
                     else:
                         with core.DeviceScope(c2_device):
                             gym_env.sample_and_load_training_data_c2(
-                                trainer.minibatch_size,
-                                model_type,
-                                trainer.maxq_learning,
+                                trainer.minibatch_size, model_type
                             )
                             trainer.train()
 
@@ -276,11 +276,7 @@ def main(args):
 
     dataset = RLDataset(args.file_path) if args.file_path else None
     result = run_gym(
-        params,
-        args.score_bar,
-        args.gpu_id,
-        dataset,
-        args.start_saving_from_episode,
+        params, args.score_bar, args.gpu_id, dataset, args.start_saving_from_episode
     )
     if dataset:
         dataset.save()

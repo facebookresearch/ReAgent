@@ -15,6 +15,7 @@ from ml.rl.training.rl_trainer_pytorch import (
     RLTrainer,
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
 )
+from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class DDPGTrainer(RLTrainer):
@@ -80,18 +81,23 @@ class DDPGTrainer(RLTrainer):
             self.critic.cuda()
             self.critic_target.cuda()
 
-    def train(self, training_samples, evaluator=None, episode_values=None) -> None:
+    def train(
+        self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
+    ) -> None:
         self.minibatch += 1
-        states = Variable(torch.from_numpy(training_samples[0]).type(self.dtype))
-        actions = Variable(torch.from_numpy(training_samples[1]).type(self.dtype))
-        rewards = Variable(torch.from_numpy(training_samples[2]).type(self.dtype))
-        next_states = Variable(torch.from_numpy(training_samples[3]).type(self.dtype))
-        time_diffs = torch.tensor(training_samples[8]).type(self.dtype)
+        states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
+        actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
+        rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
+        next_states = Variable(
+            torch.from_numpy(training_samples.next_states).type(self.dtype)
+        )
+        time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
         discount_tensor = torch.tensor(
             np.array([self.gamma for x in range(len(rewards))])
         ).type(self.dtype)
-        done = training_samples[5].astype(int)
-        not_done_mask = Variable(torch.from_numpy(1 - done)).type(self.dtype)
+        not_done_mask = Variable(
+            torch.from_numpy(training_samples.not_terminals.astype(int))
+        ).type(self.dtype)
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2

@@ -13,19 +13,22 @@ class TrainingDataPage(object):
         "possible_next_actions_lengths",
         "reward_timelines",
         "not_terminals",
+        "time_diffs",
     ]
 
     def __init__(
         self,
-        states,
-        actions,
-        propensities,
-        rewards,
-        next_states,
-        next_actions,
-        possible_next_actions,
-        reward_timelines,
+        states=None,
+        actions=None,
+        propensities=None,
+        rewards=None,
+        next_states=None,
+        next_actions=None,
+        possible_next_actions=None,
+        reward_timelines=None,
         not_terminals=None,
+        time_diffs=None,
+        possible_next_actions_lengths=None,
     ) -> None:
         """
         Creates a TrainingDataPage object.
@@ -42,9 +45,13 @@ class TrainingDataPage(object):
         self.possible_next_actions = possible_next_actions
         self.reward_timelines = reward_timelines
         self.not_terminals = not_terminals
+        self.time_diffs = time_diffs
+        self.possible_next_actions_lengths = possible_next_actions_lengths
 
     def size(self) -> int:
-        return len(self.states)
+        if self.states:
+            return len(self.states)
+        raise Exception("Cannot get size of TrainingDataPage missing states.")
 
     def get_sub_page(self, start, end):
         if isinstance(self.possible_next_actions, (list, tuple)):
@@ -62,8 +69,12 @@ class TrainingDataPage(object):
             self.propensities[start:end],
             self.rewards[start:end],
             self.next_states[start:end],
-            self.next_actions[start:end],
-            sub_pna,
-            self.reward_timelines[start:end],
+            None if self.next_actions is None else self.next_actions[start:end],
+            None if self.possible_next_actions is None else sub_pna,
+            None if self.reward_timelines is None else self.reward_timelines[start:end],
             None if self.not_terminals is None else self.not_terminals[start:end],
+            None if self.time_diffs is None else self.time_diffs[start:end],
+            None
+            if self.possible_next_actions_lengths is None
+            else self.possible_next_actions_lengths[start:end],
         )

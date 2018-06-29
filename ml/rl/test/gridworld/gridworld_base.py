@@ -494,6 +494,7 @@ class GridworldBase(object):
 
         states_ndarray = workspace.FetchBlob(state_matrix)
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
+        time_diffs = np.ones(len(states_ndarray))
         tdps = []
         for start in range(0, states_ndarray.shape[0], minibatch_size):
             end = start + minibatch_size
@@ -512,6 +513,7 @@ class GridworldBase(object):
                     reward_timelines=reward_timelines[start:end]
                     if reward_timelines is not None
                     else None,
+                    time_diffs=time_diffs[start:end],
                 )
             )
         return tdps

@@ -145,6 +145,7 @@ class GridworldContinuous(GridworldBase):
         possible_next_actions_ndarray = workspace.FetchBlob(
             possible_next_actions_matrix
         )
+        time_diffs = np.ones(len(states_ndarray))
         tdps = []
         pnas_start = 0
         for start in range(0, states_ndarray.shape[0], minibatch_size):
@@ -167,6 +168,7 @@ class GridworldContinuous(GridworldBase):
                     reward_timelines=samples.reward_timelines[start:end]
                     if samples.reward_timelines
                     else None,
+                    time_diffs=time_diffs[start:end],
                 )
             )
         return tdps

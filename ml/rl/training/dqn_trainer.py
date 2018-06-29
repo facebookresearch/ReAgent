@@ -22,6 +22,7 @@ from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
 )
 from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class DQNTrainer(RLTrainer):
@@ -94,21 +95,28 @@ class DQNTrainer(RLTrainer):
         q_values += impossible_action_penalty
         return Variable(torch.max(q_values, 1)[0])
 
-    def train(self, training_samples, evaluator=None, episode_values=None) -> None:
+    def train(
+        self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
+    ) -> None:
         self.minibatch += 1
-        states = Variable(torch.from_numpy(training_samples[0]).type(self.dtype))
-        actions = Variable(torch.from_numpy(training_samples[1]).type(self.dtypelong))
-        rewards = Variable(torch.from_numpy(training_samples[2]).type(self.dtype))
-        next_states = Variable(torch.from_numpy(training_samples[3]).type(self.dtype))
-        possible_next_actions = Variable(
-            torch.from_numpy(training_samples[6]).type(self.dtype)
+        states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
+        actions = Variable(
+            torch.from_numpy(training_samples.actions).type(self.dtypelong)
         )
-        time_diffs = torch.tensor(training_samples[8]).type(self.dtype)
+        rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
+        next_states = Variable(
+            torch.from_numpy(training_samples.next_states).type(self.dtype)
+        )
+        possible_next_actions = Variable(
+            torch.from_numpy(training_samples.possible_next_actions).type(self.dtype)
+        )
+        time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
         discount_tensor = torch.tensor(
             np.array([self.gamma for x in range(len(rewards))])
         ).type(self.dtype)
-        done = training_samples[5].astype(int)
-        not_done_mask = Variable(torch.from_numpy(1 - done)).type(self.dtype)
+        not_done_mask = Variable(
+            torch.from_numpy(training_samples.not_terminals.astype(int))
+        ).type(self.dtype)
 
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)

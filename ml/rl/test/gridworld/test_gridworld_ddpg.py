@@ -66,18 +66,9 @@ class TestGridworldContinuous(unittest.TestCase):
             critic_predictor = trainer.predictor()
             evaluator.evaluate_critic(critic_predictor)
             for tdp in tdps:
-                training_samples = [
-                    tdp.states,
-                    tdp.actions,
-                    tdp.rewards.flatten(),
-                    tdp.next_states,
-                    None,
-                    1 - tdp.not_terminals.flatten(),  # done
-                    None,
-                    None,
-                    [1 for i in range(len(tdp.states))],  # time diff
-                ]
-                trainer.train(training_samples)
+                tdp.rewards = tdp.rewards.flatten()
+                tdp.not_terminals = tdp.not_terminals.flatten()
+                trainer.train(tdp)
 
         critic_predictor = trainer.predictor()
         error = evaluator.evaluate_critic(critic_predictor)
