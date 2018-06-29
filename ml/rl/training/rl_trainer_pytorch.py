@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+import numpy as np
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
 
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 
@@ -50,3 +54,34 @@ class RLTrainer:
 
     def train(self, training_samples, evaluator=None, episode_values=None) -> None:
         raise NotImplementedError()
+
+
+class GenericFeedForwardNetwork(nn.Module):
+    def __init__(self, layers, activations) -> None:
+        super(GenericFeedForwardNetwork, self).__init__()
+        self.layers: nn.ModuleList = nn.ModuleList()
+        self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
+        self.activations = activations
+
+        assert len(layers) >= 2, "Invalid layer schema {} for network".format(layers)
+
+        for i, layer in enumerate(layers[1:]):
+            self.layers.append(nn.Linear(layers[i], layer))
+            self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
+
+    def forward(self, input) -> torch.FloatTensor:
+        """ Forward pass for generic feed-forward DNNs. Assumes activation names
+        are valid pytorch activation names.
+        :param input tensor
+        """
+        if isinstance(input, np.ndarray):
+            input = Variable(torch.from_numpy(input))
+
+        x = input
+        for i, activation in enumerate(self.activations):
+            # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
+            # x = self.batch_norm_ops[i](x)
+            activation_func = getattr(F, activation)
+            fc_func = self.layers[i]
+            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
+        return x

@@ -5,7 +5,6 @@ from typing import Dict, Optional
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
@@ -18,8 +17,9 @@ from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
 )
 from ml.rl.training.rl_trainer_pytorch import (
-    RLTrainer,
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
+    GenericFeedForwardNetwork,
+    RLTrainer,
 )
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -40,7 +40,6 @@ class DQNTrainer(RLTrainer):
 
         self.minibatch_size = parameters.training.minibatch_size
         self.maxq_learning = parameters.rl.maxq_learning
-        self._additional_feature_types = additional_feature_types
         self._actions = parameters.actions if parameters.actions is not None else []
         self.reward_shape = {}  # type: Dict[int, float]
 
@@ -61,7 +60,7 @@ class DQNTrainer(RLTrainer):
 
         RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types)
 
-        self.q_network = QNet(
+        self.q_network = GenericFeedForwardNetwork(
             parameters.training.layers, parameters.training.activations
         )
         self.q_network_target = deepcopy(self.q_network)
@@ -189,34 +188,3 @@ class DQNTrainer(RLTrainer):
             q_values = self.q_network(states)
         self.q_network.train()
         return q_values.cpu().data.numpy()
-
-
-class QNet(nn.Module):
-    def __init__(self, layers, activations) -> None:
-        super(QNet, self).__init__()
-        self.layers: nn.ModuleList = nn.ModuleList()
-        self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
-        self.activations = activations
-
-        assert len(layers) >= 2, "Invalid layer schema {} for Q-network".format(layers)
-
-        for i, layer in enumerate(layers[1:]):
-            self.layers.append(nn.Linear(layers[i], layer))
-            self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
-
-    def forward(self, state) -> torch.FloatTensor:
-        """ Forward pass for Q-network. Assumes activation names are
-        valid pytorch activation names.
-        :param state tensor
-        """
-        if isinstance(state, np.ndarray):
-            state = Variable(torch.from_numpy(state))
-
-        x = state
-        for i, activation in enumerate(self.activations):
-            # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
-            # x = self.batch_norm_ops[i](x)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
-        return x

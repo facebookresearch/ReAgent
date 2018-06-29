@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import logging
 
@@ -41,7 +41,7 @@ def test_values_from_timeline(discount_factor, reward_timeline):
     return result
 
 
-class RLTrainer(object):
+class RLTrainer:
     num_trainers = 0
     DEFAULT_TRAINING_NUM_WORKERS = 4
 
