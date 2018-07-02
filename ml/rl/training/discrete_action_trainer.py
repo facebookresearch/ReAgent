@@ -69,6 +69,7 @@ class DiscreteActionTrainer(RLTrainer):
         self.all_q_score_model = ModelHelper(name="all_q_score_" + self.model_id)
         C2.set_model(self.all_q_score_model)
         self.all_q_score_output = self.get_q_values_all_actions("states", False)
+        self.maxq_action_idxs = C2.ArgMax(self.all_q_score_output)
         workspace.RunNetOnce(self.all_q_score_model.param_init_net)
         self.all_q_score_model.net.Proto().num_workers = (
             RLTrainer.DEFAULT_TRAINING_NUM_WORKERS
@@ -284,6 +285,7 @@ class DiscreteActionTrainer(RLTrainer):
     ):
         workspace.RunNet(self.all_q_score_model.net)
         all_action_scores = workspace.FetchBlob(self.all_q_score_output)
+        maxq_action_idxs = workspace.FetchBlob(self.maxq_action_idxs)
         model_values_on_logged_actions = np.sum(
             (logged_actions * all_action_scores), axis=1, keepdims=True
         )
@@ -299,6 +301,7 @@ class DiscreteActionTrainer(RLTrainer):
             model_propensities,
             all_action_scores,
             model_values_on_logged_actions,
+            maxq_action_idxs
         )
 
     def predictor(self) -> DiscreteActionPredictor:

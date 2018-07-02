@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import Counter
 from typing import List
 import numpy as np
 
@@ -9,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class Evaluator(object):
-    def __init__(self, evaluator_batch_size) -> None:
+    def __init__(self, action_names, evaluator_batch_size) -> None:
+        self.action_names = action_names
         self.mc_loss: List[float] = []
         self.td_loss: List[float] = []
         self.value_inverse_propensity_score: List[float] = []
@@ -29,6 +31,7 @@ class Evaluator(object):
         self.model_propensities_batches: List[np.ndarray] = []
         self.model_values_batches: List[np.ndarray] = []
         self.model_values_on_logged_actions_batches: List[np.ndarray] = []
+        self.model_action_idxs_batches: List[np.ndarray] = []
 
         self.all_batches = [
             self.td_loss_batches,
@@ -39,6 +42,7 @@ class Evaluator(object):
             self.model_propensities_batches,
             self.model_values_batches,
             self.model_values_on_logged_actions_batches,
+            self.model_action_idxs_batches
         ]
 
     def report(
@@ -51,6 +55,7 @@ class Evaluator(object):
         model_propensities,
         model_values,
         model_values_on_logged_actions,
+        model_action_idxs
     ):
         input_list = [
             td_loss,
@@ -61,6 +66,7 @@ class Evaluator(object):
             model_propensities,
             model_values,
             model_values_on_logged_actions,
+            model_action_idxs
         ]
         for i, input in enumerate(input_list):
             if input is None:
@@ -85,7 +91,7 @@ class Evaluator(object):
                 merged_inputs.append(np.vstack(batch))
             else:
                 merged_inputs.append(None)
-        td_loss, logged_actions, logged_propensities, logged_rewards, logged_values, model_propensities, model_values, model_values_on_logged_actions = (
+        td_loss, logged_actions, logged_propensities, logged_rewards, logged_values, model_propensities, model_values, model_values_on_logged_actions, model_action_idxs = (
             merged_inputs
         )
 
@@ -140,6 +146,19 @@ class Evaluator(object):
             print_details += "Reward Inverse Propensity Score : {0:.3f}\n".format(r_ips)
             print_details += "Reward Direct Method            : {0:.3f}\n".format(r_dm)
             print_details += "Reward Doubly Robust P.E.       : {0:.3f}\n".format(r_dr)
+
+        if (
+            logged_actions is not None
+            and model_action_idxs is not None
+        ):
+            logged_action_counter = Counter(np.argmax(logged_actions, axis=1))
+            model_action_counter = Counter(model_action_idxs.reshape(-1,))
+            print_details += "The distribution of logged actions : {}\n".format(
+                {action_name: logged_action_counter[i]
+                    for i, action_name in enumerate(self.action_names)})
+            print_details += "The distribution of model actions : {}\n".format(
+                {action_name: model_action_counter[i]
+                    for i, action_name in enumerate(self.action_names)})
 
         print_details += "Evaluator Finished"
         for print_detail in print_details.split("\n"):

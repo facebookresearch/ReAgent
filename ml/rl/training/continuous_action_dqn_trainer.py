@@ -217,6 +217,7 @@ class ContinuousActionDQNTrainer(RLTrainer):
             None,
             None,
             model_values_on_logged_actions,
+            None
         )
 
     def predictor(self) -> ContinuousActionDQNPredictor:

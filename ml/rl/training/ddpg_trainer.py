@@ -148,6 +148,7 @@ class DDPGTrainer(RLTrainer):
                 None,
                 None,
                 critic_predictions.cpu().data.numpy(),
+                None
             )
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:
