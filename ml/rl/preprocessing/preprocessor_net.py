@@ -74,8 +74,11 @@ class PreprocessorNet:
                 )
         feature_type = normalization_parameters[0].feature_type
         if feature_type == identify_types.BINARY:
-            is_gt_zero = C2.GT(blob, C2.Add(ZERO, 1e-3, broadcast=1), broadcast=1)
-            is_lt_zero = C2.LT(blob, C2.Sub(ZERO, 1e-3, broadcast=1), broadcast=1)
+            TOLERANCE = self._store_parameter(
+                parameters, "TOLERANCE", np.array(1e-3, dtype=np.float32)
+            )
+            is_gt_zero = C2.GT(blob, C2.Add(ZERO, TOLERANCE, broadcast=1), broadcast=1)
+            is_lt_zero = C2.LT(blob, C2.Sub(ZERO, TOLERANCE, broadcast=1), broadcast=1)
             bool_blob = C2.Or(is_gt_zero, is_lt_zero)
             blob = C2.Cast(bool_blob, to=caffe2_pb2.TensorProto.FLOAT)
         elif feature_type == identify_types.PROBABILITY:
