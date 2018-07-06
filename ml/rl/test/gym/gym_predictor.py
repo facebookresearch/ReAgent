@@ -6,6 +6,8 @@ from caffe2.python import core, workspace
 
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.evaluator import Evaluator
 
 import logging
@@ -61,9 +63,19 @@ class GymDQNPredictorPytorch(GymPredictor):
         GymPredictor.__init__(self, trainer)
 
     def policy(self, states):
-        q_scores = self.trainer.internal_prediction(states)
-        assert q_scores.shape[0] == 1
-        q_scores = q_scores[0]
+        if isinstance(self.trainer, DQNTrainer):
+            input = states
+        elif isinstance(self.trainer, ParametricDQNTrainer):
+            num_actions = len(self.trainer.action_normalization_parameters)
+            states = np.tile(states, (num_actions, 1))
+            actions = np.eye(num_actions, dtype=np.float32)
+            input = np.hstack((states, actions))
+        else:
+            raise NotImplementedError("Invalid trainer passed to GymPredictor")
+        q_scores = self.trainer.internal_prediction(input)
+        if isinstance(self.trainer, DQNTrainer):
+            assert q_scores.shape[0] == 1
+            q_scores = q_scores[0]
         q_scores_softmax = Evaluator.softmax(
             q_scores.reshape(1, -1), self.trainer.rl_temperature
         )[0]

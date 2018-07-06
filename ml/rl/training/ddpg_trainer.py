@@ -92,9 +92,9 @@ class DDPGTrainer(RLTrainer):
             torch.from_numpy(training_samples.next_states).type(self.dtype)
         )
         time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
-        discount_tensor = torch.tensor(
-            np.array([self.gamma for x in range(len(rewards))])
-        ).type(self.dtype)
+        discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
+            self.dtype
+        )
         not_done_mask = Variable(
             torch.from_numpy(training_samples.not_terminals.astype(int))
         ).type(self.dtype)
@@ -148,7 +148,7 @@ class DDPGTrainer(RLTrainer):
                 None,
                 None,
                 critic_predictions.cpu().data.numpy(),
-                None
+                None,
             )
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:

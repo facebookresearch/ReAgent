@@ -8,12 +8,19 @@ from torch.autograd import Variable
 
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 DEFAULT_ADDITIONAL_FEATURE_TYPES = AdditionalFeatureTypes(int_features=False)
 
 
 class RLTrainer:
-    def __init__(self, parameters, use_gpu, additional_feature_types):
+    # Q-value for action that is not possible. Guaranteed to be worse than any
+    # legitimate action
+    ACTION_NOT_POSSIBLE_VAL = -1e9
 
+    def __init__(self, parameters, use_gpu, additional_feature_types):
         self.minibatch = 0
         self.reward_burnin = parameters.rl.reward_burnin
         self._additional_feature_types = additional_feature_types
@@ -23,10 +30,12 @@ class RLTrainer:
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
 
         if use_gpu and torch.cuda.is_available():
+            logger.info("Using GPU: GPU requested and available.")
             self.use_gpu = True
             self.dtype = torch.cuda.FloatTensor
             self.dtypelong = torch.cuda.LongTensor
         else:
+            logger.info("NOT Using GPU: GPU not requested or not available.")
             self.use_gpu = False
             self.dtype = torch.FloatTensor
             self.dtypelong = torch.LongTensor
@@ -54,6 +63,17 @@ class RLTrainer:
 
     def train(self, training_samples, evaluator=None, episode_values=None) -> None:
         raise NotImplementedError()
+
+    def internal_prediction(self, input):
+        """ Q-network forward pass method for internal domains.
+        :param input input to network
+        """
+        self.q_network.eval()
+        with torch.no_grad():
+            input = Variable(torch.from_numpy(np.array(input)).type(self.dtype))
+            q_values = self.q_network(input)
+        self.q_network.train()
+        return q_values.cpu().data.numpy()
 
 
 class GenericFeedForwardNetwork(nn.Module):

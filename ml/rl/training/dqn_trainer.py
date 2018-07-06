@@ -26,10 +26,6 @@ from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class DQNTrainer(RLTrainer):
-    # Set to a very large negative number.  Guaranteed to be worse than any
-    #     legitimate action
-    ACTION_NOT_POSSIBLE_VAL = -1e9
-
     def __init__(
         self,
         parameters: DiscreteActionModelParameters,
@@ -52,8 +48,8 @@ class DQNTrainer(RLTrainer):
             self.state_normalization_parameters: Optional[
                 Dict[int, NormalizationParameters]
             ] = state_normalization_parameters
-            num_features = get_num_output_features(state_normalization_parameters)
-            parameters.training.layers[0] = num_features
+            self.num_features = get_num_output_features(state_normalization_parameters)
+            parameters.training.layers[0] = self.num_features
         else:
             self.state_normalization_parameters = None
         parameters.training.layers[-1] = self.num_actions
@@ -110,9 +106,9 @@ class DQNTrainer(RLTrainer):
             torch.from_numpy(training_samples.possible_next_actions).type(self.dtype)
         )
         time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
-        discount_tensor = torch.tensor(
-            np.array([self.gamma for x in range(len(rewards))])
-        ).type(self.dtype)
+        discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
+            self.dtype
+        )
         not_done_mask = Variable(
             torch.from_numpy(training_samples.not_terminals.astype(int))
         ).type(self.dtype)
@@ -177,14 +173,3 @@ class DQNTrainer(RLTrainer):
             all_action_scores,
             model_values_on_logged_actions,
         )
-
-    def internal_prediction(self, states):
-        """ Returns list of Q-values output from Q-network
-        :param states states as list of states to produce actions for
-        """
-        self.q_network.eval()
-        with torch.no_grad():
-            states = Variable(torch.from_numpy(np.array(states)).type(self.dtype))
-            q_values = self.q_network(states)
-        self.q_network.train()
-        return q_values.cpu().data.numpy()

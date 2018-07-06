@@ -21,6 +21,7 @@ class ModelType(enum.Enum):
     PARAMETRIC_ACTION = "parametric"
     CONTINUOUS_ACTION = "continuous"
     PYTORCH_DISCRETE_DQN = "pytorch_discrete_dqn"
+    PYTORCH_PARAMETRIC_DQN = "pytorch_parametric_dqn"
 
 
 class EnvType(enum.Enum):
@@ -112,7 +113,10 @@ class OpenAIGymEnvironment:
             for col, value in zip(cols, memory):
                 col.append(value)
 
-        if model_type == ModelType.PARAMETRIC_ACTION.value:
+        if model_type in (
+            ModelType.PARAMETRIC_ACTION.value,
+            ModelType.PYTORCH_PARAMETRIC_DQN.value,
+        ):
             possible_next_actions = []
             for pna_matrix in cols[6]:
                 for row in pna_matrix:

@@ -24,6 +24,7 @@ from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
@@ -52,7 +53,10 @@ def get_possible_next_actions(gym_env, model_type, terminal):
             0 if terminal else 1 for __ in range(gym_env.action_dim)
         ]
         possible_next_actions_lengths = gym_env.action_dim
-    elif model_type == ModelType.PARAMETRIC_ACTION.value:
+    elif model_type in (
+        ModelType.PARAMETRIC_ACTION.value,
+        ModelType.PYTORCH_PARAMETRIC_DQN.value,
+    ):
         if terminal:
             possible_next_actions = np.array([])
             possible_next_actions_lengths = 0
@@ -89,7 +93,10 @@ def run(
 
     if model_type == ModelType.CONTINUOUS_ACTION.value:
         predictor = GymDDPGPredictor(trainer)
-    elif model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
+    elif model_type in (
+        ModelType.PYTORCH_DISCRETE_DQN.value,
+        ModelType.PYTORCH_PARAMETRIC_DQN.value,
+    ):
         predictor = GymDQNPredictorPytorch(trainer)
     else:
         predictor = GymDQNPredictor(trainer, c2_device)
@@ -172,6 +179,7 @@ def run(
                     if model_type in (
                         ModelType.CONTINUOUS_ACTION.value,
                         ModelType.PYTORCH_DISCRETE_DQN.value,
+                        ModelType.PYTORCH_PARAMETRIC_DQN.value,
                     ):
                         samples = gym_env.sample_memories(
                             trainer.minibatch_size, model_type
@@ -364,6 +372,29 @@ def run_gym(
                 actions=env.actions, rl=rl_parameters, training=training_parameters
             )
             trainer = DiscreteActionTrainer(trainer_params, env.normalization)
+    elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
+        training_settings = params["training"]
+        training_parameters = TrainingParameters(**training_settings)
+        if env.img:
+            assert (
+                training_parameters.cnn_parameters is not None
+            ), "Missing CNN parameters for image input"
+            training_parameters.cnn_parameters = CNNParameters(
+                **training_settings["cnn_parameters"]
+            )
+            training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
+        else:
+            assert (
+                training_parameters.cnn_parameters is None
+            ), "Extra CNN parameters for non-image input"
+        trainer_params = ContinuousActionModelParameters(
+            rl=rl_parameters,
+            training=training_parameters,
+            knn=KnnParameters(model_type="DQN"),
+        )
+        trainer = ParametricDQNTrainer(
+            trainer_params, env.normalization, env.normalization_action, use_gpu=True
+        )
     elif model_type == ModelType.PARAMETRIC_ACTION.value:
         with core.DeviceScope(c2_device):
             training_settings = params["training"]
