@@ -7,6 +7,7 @@ from caffe2.proto import caffe2_pb2
 from caffe2.python.predictor.predictor_exporter import (
     save_to_db,
     load_from_db,
+    PredictorExportMeta,
     prepare_prediction_net,
 )
 from caffe2.python import workspace
@@ -23,10 +24,7 @@ logger = logging.getLogger(__name__)
 class RLPredictor:
     def __init__(self, net, parameters, int_features=False):
         """
-
         :param net caffe2 net used for prediction
-        :param input_blobs caffe2 blobs used as input
-        :param output_blobs caffe2 blobs used as output
         :param parameters caffe2 blobs used as network paramers
         :param int_features boolean indicating if int_features blob will be present
         """
@@ -53,62 +51,6 @@ class RLPredictor:
         ]
         self._parameters = parameters
         self.is_discrete = None
-
-    def policy(self, float_state_features, int_state_features=None) -> np.ndarray:
-        """ Returns np array of action names to take for each state
-        :param float_state_features A list of feature -> float value dict examples
-        :param int_state_features A list of feature -> int value dict examples
-        """
-        workspace.FeedBlob(
-            "input/float_features.lengths",
-            np.array([len(e) for e in float_state_features], dtype=np.int32),
-        )
-        workspace.FeedBlob(
-            "input/float_features.keys",
-            np.array(
-                [list(e.keys()) for e in float_state_features], dtype=np.int32
-            ).flatten(),
-        )
-        workspace.FeedBlob(
-            "input/float_features.values",
-            np.array(
-                [list(e.values()) for e in float_state_features], dtype=np.float32
-            ).flatten(),
-        )
-
-        if int_state_features is not None:
-            workspace.FeedBlob(
-                "input/int_features.lengths",
-                np.array([len(e) for e in int_state_features], dtype=np.int32),
-            )
-            workspace.FeedBlob(
-                "input/int_features.keys",
-                np.array(
-                    [list(e.keys()) for e in int_state_features], dtype=np.int64
-                ).flatten(),
-            )
-            workspace.FeedBlob(
-                "input/int_features.values",
-                np.array(
-                    [list(e.values()) for e in int_state_features], dtype=np.int32
-                ).flatten(),
-            )
-
-        workspace.RunNet(self._net)
-
-        if self.is_discrete:
-            # discrete action policy has string values (action names)
-            return workspace.FetchBlob(
-                "output/string_single_categorical_features.values"
-            )
-        elif not self.is_discrete:
-            # [a1_maxq, a1_softmax, a2_maxq, a2_softmax, ...]
-            # parametric action policy has int values (action indexes)
-            return workspace.FetchBlob("output/int_single_categorical_features.values")
-        else:
-            raise Exception(
-                "is_discrete property {} not valid".format(self.is_discrete)
-            )
 
     def predict(self, float_state_features, int_state_features=None):
         """ Returns values for each state
@@ -181,7 +123,9 @@ class RLPredictor:
         """
         Returns a PredictorExportMeta object
         """
-        pass
+        return PredictorExportMeta(
+            self._net, self._parameters, self._input_blobs, self._output_blobs
+        )
 
     def save(self, db_path, db_type):
         """ Saves network to db
@@ -246,14 +190,14 @@ class RLPredictor:
         workspace.SwitchWorkspace(previous_workspace)
 
     @classmethod
-    def _forward_pass(cls, model, trainer, normalized_dense_matrix, actions):
+    def _forward_pass(
+        cls, model, trainer, normalized_dense_matrix, actions, qnet_output_blob
+    ):
         C2.set_model(model)
 
         parameters = []
         q_values = "q_values"
-        workspace.FeedBlob(q_values, np.zeros(1, dtype=np.float32))
-        trainer.build_predictor(model, normalized_dense_matrix, q_values)
-        parameters.extend(model.GetAllParams())
+        C2.net().Copy([qnet_output_blob], [q_values])
 
         action_names = C2.NextBlob("action_names")
         parameters.append(action_names)

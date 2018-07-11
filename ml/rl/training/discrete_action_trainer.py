@@ -301,7 +301,7 @@ class DiscreteActionTrainer(RLTrainer):
             model_propensities,
             all_action_scores,
             model_values_on_logged_actions,
-            maxq_action_idxs
+            maxq_action_idxs,
         )
 
     def predictor(self) -> DiscreteActionPredictor:

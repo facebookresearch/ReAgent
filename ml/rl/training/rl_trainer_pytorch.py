@@ -75,6 +75,12 @@ class RLTrainer:
         self.q_network.train()
         return q_values.cpu().data.numpy()
 
+    def get_value_from_timeline(self, discount_factor, reward_timeline):
+        result = 0
+        for time, reward in reward_timeline.items():
+            result += (discount_factor ** time) * reward
+        return result
+
 
 class GenericFeedForwardNetwork(nn.Module):
     def __init__(self, layers, activations) -> None:

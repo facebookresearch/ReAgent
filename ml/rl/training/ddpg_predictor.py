@@ -3,17 +3,10 @@
 import numpy as np
 
 from caffe2.proto import caffe2_pb2
-from caffe2.python.predictor.predictor_exporter import (
-    load_from_db,
-    PredictorExportMeta,
-    prepare_prediction_net,
-    save_to_db,
-)
 from caffe2.python import core, model_helper, workspace
-from caffe2.python.predictor_constants import predictor_constants
-from caffe2.python.predictor.predictor_py_utils import GetBlobs
 
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 
 import logging
@@ -21,28 +14,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DDPGPredictor(object):
-    def __init__(self, net, parameters, int_features) -> None:
-        self._net = net
-        self._input_blobs = [
-            "input/float_features.lengths",
-            "input/float_features.keys",
-            "input/float_features.values",
-        ]
-        if int_features:
-            self._input_blobs.extend(
-                [
-                    "input/int_features.lengths",
-                    "input/int_features.keys",
-                    "input/int_features.values",
-                ]
-            )
+class DDPGPredictor(RLPredictor):
+    def __init__(self, net, parameters, int_features=False) -> None:
+        RLPredictor.__init__(self, net, parameters, int_features)
         self._output_blobs = [
             "output/float_features.lengths",
             "output/float_features.keys",
             "output/float_features.values",
         ]
-        self._parameters = parameters
 
     def policy(self):
         """TODO: Return actions when exporting final net and fill in this
@@ -148,44 +127,6 @@ class DDPGPredictor(object):
         results = workspace.FetchBlob("output/float_features.values")
         return results
 
-    def get_predictor_export_meta(self):
-        """
-        Returns a PredictorExportMeta object
-        """
-        return PredictorExportMeta(
-            self._net, self._parameters, self._input_blobs, self._output_blobs
-        )
-
-    def save(self, db_path, db_type):
-        """ Saves network to db
-
-        :param db_path see save_to_db
-        :param db_type see save_to_db
-        """
-        meta = self.get_predictor_export_meta()
-        for parameter in self._parameters:
-            parameter_data = workspace.FetchBlob(parameter)
-            logger.info("DATA TYPE " + parameter_data.dtype.kind)
-            if parameter_data.dtype.kind in {"U", "S", "O"}:
-                continue  # Don't bother checking string blobs for nan
-            logger.info("Checking parameter {} for nan".format(parameter))
-            if np.any(np.isnan(parameter_data)):
-                logger.info("WARNING: parameter {} is nan".format(parameter))
-        save_to_db(db_type, db_path, meta)
-
-    @classmethod
-    def load(cls, db_path, db_type, int_features=False):
-        """ Creates Predictor by loading from a database
-
-        :param db_path see load_from_db
-        :param db_type see load_from_db
-        :param int_features bool indicating if int_features are present
-        """
-        net = prepare_prediction_net(db_path, db_type)
-        meta = load_from_db(db_path, db_type)
-        parameters = GetBlobs(meta, predictor_constants.PARAMETERS_BLOB_TYPE)
-        return cls(net, parameters, int_features)
-
     @classmethod
     def export_actor(
         cls,
@@ -200,6 +141,7 @@ class DDPGPredictor(object):
         :param trainer DDPGTrainer
         :param state_normalization_parameters state NormalizationParameters
         :param int_features boolean indicating if int features blob will be present
+        :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
         """
         input_dim = trainer.state_dim
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
@@ -210,10 +152,9 @@ class DDPGPredictor(object):
         )
         torch_workspace = caffe2_netdef.workspace
 
-        parameters = []
-        for blob_str in torch_workspace.Blobs():
+        parameters = torch_workspace.Blobs()
+        for blob_str in parameters:
             workspace.FeedBlob(blob_str, torch_workspace.FetchBlob(blob_str))
-            parameters.append(blob_str)
 
         torch_init_net = core.Net(caffe2_netdef.init_net)
         torch_predict_net = core.Net(caffe2_netdef.predict_net)
@@ -273,7 +214,6 @@ class DDPGPredictor(object):
         workspace.RunNetOnce(model.param_init_net)
         workspace.RunNetOnce(torch_init_net)
 
-        net.AppendNet(torch_init_net)
         net.AppendNet(torch_predict_net)
 
         C2.FlattenToVec(C2.ArgMax(actor_output_blob))
