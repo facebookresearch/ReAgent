@@ -84,7 +84,7 @@ class DQNTrainer(RLTrainer):
             state i.
         """
         q_values = self.q_network_target(states)
-        self.all_action_scores = deepcopy(q_values.detach().numpy())
+        self.all_action_scores = deepcopy(q_values.detach())
 
         # Set q-values of impossible actions to a very large negative number.
         inverse_pna = 1 - possible_actions
@@ -100,7 +100,7 @@ class DQNTrainer(RLTrainer):
         :param next_actions: Numpy array with shape (batch_size, action_dim).
         """
         q_values = self.q_network_target(states)
-        self.all_action_scores = deepcopy(q_values.detach().numpy())
+        self.all_action_scores = deepcopy(q_values.detach())
         return Variable(torch.sum(q_values * next_actions, 1))
 
     def train(
@@ -161,7 +161,7 @@ class DQNTrainer(RLTrainer):
         )
 
         loss = F.mse_loss(q_values, target_q_values)
-        self.loss = loss.detach().numpy()
+        self.loss = loss.detach()
 
         self.q_network_optimizer.zero_grad()
         loss.backward()
@@ -190,7 +190,7 @@ class DQNTrainer(RLTrainer):
                 evaluator,
                 training_samples.actions,
                 training_samples.propensities,
-                training_samples.rewards,
+                np.expand_dims(training_samples.rewards, axis=1),
                 ground_truth,
             )
 
@@ -208,6 +208,7 @@ class DQNTrainer(RLTrainer):
             None,
         )
         if self.all_action_scores is not None:
+            self.all_action_scores = self.all_action_scores.cpu().numpy()
             model_propensities = Evaluator.softmax(
                 self.all_action_scores, self.rl_temperature
             )
@@ -218,7 +219,7 @@ class DQNTrainer(RLTrainer):
                 )
 
         evaluator.report(
-            self.loss,
+            self.loss.cpu().numpy(),
             logged_actions,
             logged_propensities,
             logged_rewards,
