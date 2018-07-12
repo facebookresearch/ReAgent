@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import math
+
 import numpy as np
 import torch
+from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
+import torch.nn.init as init
 
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 
@@ -82,6 +85,12 @@ class RLTrainer:
         return result
 
 
+def guassian_fill_w_gain(tensor, activation, dim_in) -> None:
+    """ Gaussian initialization with gain."""
+    gain = math.sqrt(2) if activation == "relu" else 1
+    init.normal_(tensor, mean=0, std=gain * math.sqrt(1 / dim_in))
+
+
 class GenericFeedForwardNetwork(nn.Module):
     def __init__(self, layers, activations) -> None:
         super(GenericFeedForwardNetwork, self).__init__()
@@ -94,6 +103,8 @@ class GenericFeedForwardNetwork(nn.Module):
         for i, layer in enumerate(layers[1:]):
             self.layers.append(nn.Linear(layers[i], layer))
             self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
+            guassian_fill_w_gain(self.layers[i].weight, self.activations[i], layers[i])
+            init.constant_(self.layers[i].bias, 0)
 
     def forward(self, input) -> torch.FloatTensor:
         """ Forward pass for generic feed-forward DNNs. Assumes activation names

@@ -83,8 +83,8 @@ class DQNTrainer(RLTrainer):
             possible_next_actions[i][j] = 1 iff the agent can take action j from
             state i.
         """
-        q_values = self.q_network_target(states)
-        self.all_action_scores = deepcopy(q_values.detach())
+        q_values = self.q_network_target(states).detach()
+        self.all_action_scores = deepcopy(q_values)
 
         # Set q-values of impossible actions to a very large negative number.
         inverse_pna = 1 - possible_actions
@@ -99,8 +99,8 @@ class DQNTrainer(RLTrainer):
             contains a representation of a state.
         :param next_actions: Numpy array with shape (batch_size, action_dim).
         """
-        q_values = self.q_network_target(states)
-        self.all_action_scores = deepcopy(q_values.detach())
+        q_values = self.q_network_target(states).detach()
+        self.all_action_scores = deepcopy(q_values)
         return Variable(torch.sum(q_values * next_actions, 1))
 
     def train(
@@ -115,9 +115,7 @@ class DQNTrainer(RLTrainer):
 
         self.minibatch += 1
         states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
-        actions = Variable(
-            torch.from_numpy(training_samples.actions).type(self.dtypelong)
-        )
+        actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
         rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
         next_states = Variable(
             torch.from_numpy(training_samples.next_states).type(self.dtype)
@@ -156,10 +154,7 @@ class DQNTrainer(RLTrainer):
             target_q_values = rewards
 
         # Get Q-value of action taken
-        q_values = (
-            self.q_network(states).gather(1, actions.argmax(1).unsqueeze(1)).squeeze()
-        )
-
+        q_values = torch.sum(self.q_network(states) * actions, 1)
         loss = F.mse_loss(q_values, target_q_values)
         self.loss = loss.detach()
 
