@@ -23,6 +23,9 @@ class GymPredictor(object):
     def policy(self):
         raise NotImplementedError()
 
+    def predict(self):
+        raise NotImplementedError()
+
 
 class GymDQNPredictor(GymPredictor):
     def __init__(self, trainer, c2_device):
@@ -34,9 +37,10 @@ class GymDQNPredictor(GymPredictor):
                 workspace.FeedBlob("states", states)
             elif isinstance(self.trainer, ContinuousActionDQNTrainer):
                 num_actions = len(self.trainer.action_normalization_parameters)
-                states = np.tile(states, (num_actions, 1))
-                workspace.FeedBlob("states", states)
                 actions = np.eye(num_actions, dtype=np.float32)
+                actions = np.tile(actions, reps=(len(states), 1))
+                states = np.repeat(states, repeats=num_actions, axis=0)
+                workspace.FeedBlob("states", states)
                 workspace.FeedBlob("actions", actions)
             else:
                 raise NotImplementedError("Invalid trainer passed to GymPredictor")
@@ -57,6 +61,25 @@ class GymDQNPredictor(GymPredictor):
             ]
             return policies
 
+    def predict(self, states):
+        with core.DeviceScope(self.c2_device):
+            if isinstance(self.trainer, DiscreteActionTrainer):
+                workspace.FeedBlob("states", states)
+            elif isinstance(self.trainer, ContinuousActionDQNTrainer):
+                num_actions = len(self.trainer.action_normalization_parameters)
+                actions = np.eye(num_actions, dtype=np.float32)
+                actions = np.tile(actions, reps=(len(states), 1))
+                states = np.repeat(states, repeats=num_actions, axis=0)
+                workspace.FeedBlob("states", states)
+                workspace.FeedBlob("actions", actions)
+            else:
+                raise NotImplementedError("Invalid trainer passed to GymPredictor")
+            workspace.RunNetOnce(self.trainer.internal_policy_model.net)
+            policy_output_blob = self.trainer.internal_policy_output
+            print(self.trainer.internal_policy_output)
+            q_scores = workspace.FetchBlob(policy_output_blob)
+            return q_scores
+
 
 class GymDQNPredictorPytorch(GymPredictor):
     def __init__(self, trainer):
@@ -67,8 +90,9 @@ class GymDQNPredictorPytorch(GymPredictor):
             input = states
         elif isinstance(self.trainer, ParametricDQNTrainer):
             num_actions = len(self.trainer.action_normalization_parameters)
-            states = np.tile(states, (num_actions, 1))
             actions = np.eye(num_actions, dtype=np.float32)
+            actions = np.tile(actions, reps=(len(states), 1))
+            states = np.repeat(states, repeats=num_actions, axis=0)
             input = np.hstack((states, actions))
         else:
             raise NotImplementedError("Invalid trainer passed to GymPredictor")
@@ -86,6 +110,20 @@ class GymDQNPredictorPytorch(GymPredictor):
             np.random.choice(q_scores.shape[0], p=q_scores_softmax),
         ]
         return policies
+
+    def predict(self, states):
+        if isinstance(self.trainer, DQNTrainer):
+            input = states
+        elif isinstance(self.trainer, ParametricDQNTrainer):
+            num_actions = len(self.trainer.action_normalization_parameters)
+            actions = np.eye(num_actions, dtype=np.float32)
+            actions = np.tile(actions, reps=(len(states), 1))
+            states = np.repeat(states, repeats=num_actions, axis=0)
+            input = np.hstack((states, actions))
+        else:
+            raise NotImplementedError("Invalid trainer passed to GymPredictor")
+        q_scores = self.trainer.internal_prediction(input)
+        return q_scores
 
 
 class GymDDPGPredictor(GymPredictor):

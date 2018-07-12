@@ -210,7 +210,7 @@ def run(
                             test_run_name, avg_reward_history
                         )
                     )
-                    return avg_reward_history
+                    return avg_reward_history, trainer, predictor
 
             if max_steps and ep_timesteps >= max_steps:
                 break
@@ -231,7 +231,7 @@ def run(
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
-    return avg_reward_history
+    return avg_reward_history, trainer, predictor
 
 
 def main(args):
@@ -283,7 +283,7 @@ def main(args):
         params = json.load(f)
 
     dataset = RLDataset(args.file_path) if args.file_path else None
-    result = run_gym(
+    result, trainer, predictor = run_gym(
         params, args.score_bar, args.gpu_id, dataset, args.start_saving_from_episode
     )
     if dataset:
