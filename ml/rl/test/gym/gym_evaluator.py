@@ -109,24 +109,31 @@ class GymEvaluator(Evaluator):
     def evaluate(self, predictor):
         # test only float features
         predictions = predictor.predict(self.logged_states)
+        estimated_reward_values = predictor.estimate_reward(self.logged_states)
         if isinstance(predictor.trainer,
         (ParametricDQNTrainer, ContinuousActionDQNTrainer)):
-            predictions = predictions.reshape([-1, self._env.action_dim])
+            predictions = predictions.reshape(
+                [-1, self._env.action_dim])
+            estimated_reward_values = estimated_reward_values.reshape(
+                [-1, self._env.action_dim])
 
-        estimated_reward_values = np.ones(
-            shape=[len(self.logged_states), self._env.action_dim],
-            dtype=np.float32
-        )
-
-        error_sum = 0.0
+        value_error_sum = 0.0
+        reward_error_sum = 0.0
         for i in range(len(self.logged_states)):
+            logged_action = self.logged_actions[i]
             logged_value = self.logged_values[i][0]
-            target_value = predictions[i][self.logged_actions[i]]
-            error_sum += abs(logged_value - target_value)
-        error_mean = error_sum / float(len(self.logged_states))
+            target_value = predictions[i][logged_action]
+            value_error_sum += abs(logged_value - target_value)
+            logged_reward = self.logged_rewards[i][0]
+            estimated_reward = estimated_reward_values[i][logged_action]
+            reward_error_sum += abs(logged_reward - estimated_reward)
+        value_error_mean = value_error_sum / float(len(self.logged_states))
+        reward_error_mean = reward_error_sum / float(len(self.logged_states))
 
-        logger.info("EVAL Q-Value MAE ERROR: {0:.3f}".format(error_mean))
-        self.mc_loss.append(error_mean)
+        logger.info("EVAL Q-Value MAE ERROR: {0:.3f}".format(value_error_mean))
+        self.mc_loss.append(value_error_mean)
+        logger.info("EVAL REWARD MAE ERROR: {0:.3f}".format(reward_error_mean))
+        self.reward_loss.append(reward_error_mean)
 
         target_propensities = Evaluator.softmax(
             predictions, GymEvaluator.SOFTMAX_TEMPERATURE

@@ -14,6 +14,7 @@ class Evaluator(object):
         self.action_names = action_names
         self.mc_loss: List[float] = []
         self.td_loss: List[float] = []
+        self.reward_loss: List[float] = []
         self.value_inverse_propensity_score: List[float] = []
         self.value_direct_method: List[float] = []
         self.value_doubly_robust: List[float] = []

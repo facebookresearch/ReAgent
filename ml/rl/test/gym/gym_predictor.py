@@ -26,6 +26,9 @@ class GymPredictor(object):
     def predict(self):
         raise NotImplementedError()
 
+    def estimate_reward(self):
+        raise NotImplementedError()
+
 
 class GymDQNPredictor(GymPredictor):
     def __init__(self, trainer, c2_device):
@@ -124,6 +127,20 @@ class GymDQNPredictorPytorch(GymPredictor):
             raise NotImplementedError("Invalid trainer passed to GymPredictor")
         q_scores = self.trainer.internal_prediction(input)
         return q_scores
+
+    def estimate_reward(self, states):
+        if isinstance(self.trainer, DQNTrainer):
+            input = states
+        elif isinstance(self.trainer, ParametricDQNTrainer):
+            num_actions = len(self.trainer.action_normalization_parameters)
+            actions = np.eye(num_actions, dtype=np.float32)
+            actions = np.tile(actions, reps=(len(states), 1))
+            states = np.repeat(states, repeats=num_actions, axis=0)
+            input = np.hstack((states, actions))
+        else:
+            raise NotImplementedError("Invalid trainer passed to GymPredictor")
+        reward_estimates = self.trainer.internal_reward_estimation(input)
+        return reward_estimates
 
 
 class GymDDPGPredictor(GymPredictor):

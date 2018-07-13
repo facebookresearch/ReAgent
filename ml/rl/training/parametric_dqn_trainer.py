@@ -64,9 +64,17 @@ class ParametricDQNTrainer(RLTrainer):
             self.q_network.parameters(), lr=parameters.training.learning_rate
         )
 
+        self.reward_network = GenericFeedForwardNetwork(
+            parameters.training.layers, parameters.training.activations
+        )
+        self.reward_network_optimizer = self.optimizer_func(
+            self.reward_network.parameters(), lr=parameters.training.learning_rate
+        )
+
         if self.use_gpu:
             self.q_network.cuda()
             self.q_network_target.cuda()
+            self.reward_network.cuda()
 
     def get_max_q_values(self, states, possible_actions, possible_actions_lengths):
         """
@@ -142,9 +150,9 @@ class ParametricDQNTrainer(RLTrainer):
         # Get Q-value of action taken
         q_values = self.q_network(torch.cat((states, actions), dim=1)).squeeze()
 
-        loss = F.mse_loss(q_values, target_q_values)
+        value_loss = F.mse_loss(q_values, target_q_values)
         self.q_network_optimizer.zero_grad()
-        loss.backward()
+        value_loss.backward()
         self.q_network_optimizer.step()
 
         if self.minibatch >= self.reward_burnin:
@@ -153,6 +161,15 @@ class ParametricDQNTrainer(RLTrainer):
         else:
             # Reward burnin: force target network
             self._soft_update(self.q_network, self.q_network_target, 1.0)
+
+        # get reward estimates
+        reward_estimates = self.reward_network(
+            torch.cat((states, actions), dim=1)
+        ).squeeze()
+        reward_loss = F.mse_loss(reward_estimates, rewards)
+        self.reward_network_optimizer.zero_grad()
+        reward_loss.backward()
+        self.reward_network_optimizer.step()
 
     def evaluate(
         self,

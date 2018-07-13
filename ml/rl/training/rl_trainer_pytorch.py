@@ -84,6 +84,15 @@ class RLTrainer:
             result += (discount_factor ** time) * reward
         return result
 
+    def internal_reward_estimation(self, input):
+        """ Reward-network forward pass for internal domains. """
+        self.reward_network.eval()
+        with torch.no_grad():
+            input = Variable(torch.from_numpy(np.array(input)).type(self.dtype))
+            reward_estimates = self.reward_network(input)
+        self.reward_network.train()
+        return reward_estimates.cpu().data.numpy()
+
 
 def guassian_fill_w_gain(tensor, activation, dim_in) -> None:
     """ Gaussian initialization with gain."""

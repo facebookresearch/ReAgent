@@ -66,9 +66,17 @@ class DQNTrainer(RLTrainer):
             self.q_network.parameters(), lr=parameters.training.learning_rate
         )
 
+        self.reward_network = GenericFeedForwardNetwork(
+            parameters.training.layers, parameters.training.activations
+        )
+        self.reward_network_optimizer = self.optimizer_func(
+            self.reward_network.parameters(), lr=parameters.training.learning_rate
+        )
+
         if self.use_gpu:
             self.q_network.cuda()
             self.q_network_target.cuda()
+            self.reward_network.cuda()
 
     @property
     def num_actions(self) -> int:
@@ -169,6 +177,17 @@ class DQNTrainer(RLTrainer):
             # Reward burnin: force target network
             self._soft_update(self.q_network, self.q_network_target, 1.0)
 
+        # get reward estimates
+        reward_estimates = (
+            self.reward_network(states).gather(
+                1, actions.argmax(1).unsqueeze(1)
+            ).squeeze()
+        )
+        reward_loss = F.mse_loss(reward_estimates, rewards)
+        self.reward_network_optimizer.zero_grad()
+        reward_loss.backward()
+        self.reward_network_optimizer.step()
+
         # Policy evaluation logic
         if training_samples.reward_timelines is not None:
             ground_truth = np.array(
@@ -188,6 +207,7 @@ class DQNTrainer(RLTrainer):
                 np.expand_dims(training_samples.rewards, axis=1),
                 ground_truth,
             )
+
 
     def evaluate(
         self,
