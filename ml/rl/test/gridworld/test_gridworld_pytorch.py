@@ -81,7 +81,7 @@ class TestGridworld(unittest.TestCase):
         print(
             "Pre-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertGreater(evaluator.mc_loss[-1], 0.3)
 
@@ -96,12 +96,12 @@ class TestGridworld(unittest.TestCase):
         print(
             "Post-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertLess(evaluator.mc_loss[-1], 0.1)
 
         self.assertGreater(
-            evaluator.reward_doubly_robust[-1], evaluator.reward_doubly_robust[-2]
+            evaluator.value_doubly_robust[-1], evaluator.value_doubly_robust[0]
         )
 
     def test_trainer_sarsa_enum(self):
@@ -116,7 +116,7 @@ class TestGridworld(unittest.TestCase):
         print(
             "Pre-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertGreater(evaluator.mc_loss[-1], 0.12)
 
@@ -130,12 +130,12 @@ class TestGridworld(unittest.TestCase):
         print(
             "Post-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertLess(evaluator.mc_loss[-1], 0.05)
 
         self.assertGreater(
-            evaluator.reward_doubly_robust[-1], evaluator.reward_doubly_robust[-2]
+            evaluator.value_doubly_robust[-1], evaluator.value_doubly_robust[0]
         )
 
     def test_evaluator_ground_truth(self):
@@ -196,7 +196,7 @@ class TestGridworld(unittest.TestCase):
         print(
             "Pre-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertGreater(evaluator.mc_loss[-1], 0.12)
 
@@ -210,10 +210,10 @@ class TestGridworld(unittest.TestCase):
         print(
             "Post-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertLess(evaluator.mc_loss[-1], 0.05)
 
         self.assertGreater(
-            evaluator.reward_doubly_robust[-1], evaluator.reward_doubly_robust[-2]
+            evaluator.value_doubly_robust[-1], evaluator.value_doubly_robust[0]
         )

@@ -59,39 +59,43 @@ class RLPredictor:
         :param float_state_features A list of feature -> float value dict examples
         :param int_state_features A list of feature -> int value dict examples
         """
+        float_state_keys = []
+        float_state_values = []
+        for example in float_state_features:
+            for k, v in example.items():
+                float_state_keys.append(k)
+                float_state_values.append(v)
         workspace.FeedBlob(
             "input/float_features.lengths",
             np.array([len(e) for e in float_state_features], dtype=np.int32),
         )
         workspace.FeedBlob(
             "input/float_features.keys",
-            np.array(
-                [list(e.keys()) for e in float_state_features], dtype=np.int32
-            ).flatten(),
+            np.array(float_state_keys, dtype=np.int32).flatten(),
         )
         workspace.FeedBlob(
             "input/float_features.values",
-            np.array(
-                [list(e.values()) for e in float_state_features], dtype=np.float32
-            ).flatten(),
+            np.array(float_state_values, dtype=np.float32).flatten(),
         )
 
         if int_state_features is not None:
+            int_state_keys = []
+            int_state_values = []
+            for example in int_state_features:
+                for k, v in example.items():
+                    int_state_keys.append(k)
+                    int_state_values.append(v)
             workspace.FeedBlob(
                 "input/int_features.lengths",
                 np.array([len(e) for e in int_state_features], dtype=np.int32),
             )
             workspace.FeedBlob(
                 "input/int_features.keys",
-                np.array(
-                    [list(e.keys()) for e in int_state_features], dtype=np.int64
-                ).flatten(),
+                np.array(int_state_keys, dtype=np.int64).flatten(),
             )
             workspace.FeedBlob(
                 "input/int_features.values",
-                np.array(
-                    [list(e.values()) for e in int_state_features], dtype=np.int32
-                ).flatten(),
+                np.array(int_state_values, dtype=np.int32).flatten(),
             )
 
         workspace.RunNet(self._net)
@@ -115,21 +119,22 @@ class RLPredictor:
         :param float_state_features A list of feature -> float value dict examples
         :param int_state_features A list of feature -> int value dict examples
         """
+        float_state_keys = []
+        float_state_values = []
+        for example in float_state_features:
+            for k, v in example.items():
+                float_state_keys.append(k)
+                float_state_values.append(v)
         workspace.FeedBlob(
             "input/float_features.lengths",
             np.array([len(e) for e in float_state_features], dtype=np.int32),
         )
         workspace.FeedBlob(
-            "input/float_features.keys",
-            np.array(
-                [list(e.keys()) for e in float_state_features], dtype=np.int64
-            ).flatten(),
+            "input/float_features.keys", np.array(float_state_keys, dtype=np.int64)
         )
         workspace.FeedBlob(
             "input/float_features.values",
-            np.array(
-                [list(e.values()) for e in float_state_features], dtype=np.float32
-            ).flatten(),
+            np.array(float_state_values, dtype=np.float32),
         )
 
         if int_state_features is not None:
@@ -137,17 +142,19 @@ class RLPredictor:
                 "input/int_features.lengths",
                 np.array([len(e) for e in int_state_features], dtype=np.int32),
             )
+            int_state_keys = []
+            int_state_values = []
+            for example in int_state_features:
+                for k, v in example.items():
+                    int_state_keys.append(k)
+                    int_state_values.append(v)
             workspace.FeedBlob(
                 "input/int_features.keys",
-                np.array(
-                    [list(e.keys()) for e in int_state_features], dtype=np.int64
-                ).flatten(),
+                np.array(int_state_keys, dtype=np.int64).flatten(),
             )
             workspace.FeedBlob(
                 "input/int_features.values",
-                np.array(
-                    [list(e.values()) for e in int_state_features], dtype=np.int32
-                ).flatten(),
+                np.array(int_state_values, dtype=np.int32).flatten(),
             )
 
         workspace.RunNet(self._net)

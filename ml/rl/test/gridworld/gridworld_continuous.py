@@ -37,6 +37,12 @@ class GridworldContinuous(GridworldBase):
     def features_to_action(self, action):
         return self.ACTIONS[self.action_to_index(action)]
 
+    def state_to_features(self, state):
+        return {state: 1.0}
+
+    def features_to_state(self, state):
+        return list(state.keys())[0]
+
     def generate_samples(self, num_transitions, epsilon, with_possible=True) -> Samples:
         samples = self.generate_samples_discrete(
             num_transitions, epsilon, with_possible

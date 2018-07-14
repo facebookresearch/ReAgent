@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class GridworldEvaluator(Evaluator):
-    SOFTMAX_TEMPERATURE = 0.25
+    SOFTMAX_TEMPERATURE = 1e-6
 
     def __init__(
         self, env, assume_optimal_policy: bool, use_int_features: bool = False
@@ -99,11 +99,52 @@ class GridworldEvaluator(Evaluator):
             for action_index, action in enumerate(self._env.ACTIONS):
                 prediction[x][action_index] = prediction_string[x][action]
 
+        # Print out scores using all states
+        all_states = []
+        for x in self._env.STATES:
+            all_states.append({x: 1.0})
+        if self.use_int_features:
+            all_states_float, all_states_int = self._split_int_and_float_features(
+                all_states
+            )
+            all_states_prediction_string = predictor.predict(
+                all_states_float, all_states_int
+            )
+        else:
+            all_states_prediction_string = predictor.predict(all_states)
+        all_states_prediction = np.zeros(
+            [len(all_states_prediction_string), len(self._env.ACTIONS)],
+            dtype=np.float32,
+        )
+        for x in range(len(all_states)):
+            for action_index, action in enumerate(self._env.ACTIONS):
+                all_states_prediction[x][action_index] = all_states_prediction_string[
+                    x
+                ][action]
+        print(all_states_prediction[:, 0].reshape(5, 5), "\n")
+        print(all_states_prediction[:, 1].reshape(5, 5), "\n")
+        print(all_states_prediction[:, 2].reshape(5, 5), "\n")
+        print(all_states_prediction[:, 3].reshape(5, 5), "\n")
+
         error_sum = 0.0
+        num_error_prints = 0
         for x in range(len(self.logged_states)):
             logged_value = self.logged_values[x][0]
             target_value = prediction_string[x][self.logged_actions[x]]
-            error_sum += abs(logged_value - target_value)
+            error = abs(logged_value - target_value)
+            if num_error_prints < 10 and error > 0.2:
+                print(
+                    "GOT THIS STATE WRONG: ",
+                    x,
+                    self._env._pos(list(self.logged_states[x].keys())[0]),
+                    self.logged_actions[x],
+                    logged_value,
+                    target_value,
+                )
+                num_error_prints += 1
+                if num_error_prints == 10:
+                    print("MAX ERRORS PRINTED")
+            error_sum += error
         error_mean = error_sum / float(len(self.logged_states))
 
         logger.info("EVAL ERROR: {0:.3f}".format(error_mean))
@@ -182,11 +223,57 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
                 int_state_features=None,
                 actions=self.logged_actions,
             )
+
+        # Print out scores using all states
+        all_states = []
+        all_actions = []
+        for x in self._env.STATES:
+            for y in self._env.ACTIONS:
+                all_states.append(self._env.state_to_features(x))
+                all_actions.append(self._env.action_to_features(y))
+        if self.use_int_features:
+            all_states_float, all_states_int = self._split_int_and_float_features(
+                all_states
+            )
+            all_states_prediction_string = predictor.predict(
+                all_states_float, all_states_int, all_actions
+            )
+        else:
+            all_states_prediction_string = predictor.predict(
+                all_states, None, all_actions
+            )
+        all_states_prediction = np.zeros(
+            [len(self._env.STATES), len(self._env.ACTIONS)], dtype=np.float32
+        )
+        c = 0
+        for x in self._env.STATES:
+            for y in range(len(self._env.ACTIONS)):
+                all_states_prediction[x][y] = all_states_prediction_string[c]["Q"]
+                c += 1
+        print(all_states_prediction[:, 0].reshape(5, 5), "\n")
+        print(all_states_prediction[:, 1].reshape(5, 5), "\n")
+        print(all_states_prediction[:, 2].reshape(5, 5), "\n")
+        print(all_states_prediction[:, 3].reshape(5, 5), "\n")
+
         error_sum = 0.0
+        num_error_prints = 0
         for x in range(len(self.logged_states)):
-            ground_truth = self.logged_values[x][0]
+            logged_value = self.logged_values[x][0]
             target_value = prediction[x]["Q"]
-            error_sum += abs(ground_truth - target_value)
+            error = abs(logged_value - target_value)
+            error_sum += error
+            if num_error_prints < 10 and error > 0.2:
+                print(
+                    "GOT THIS STATE WRONG: ",
+                    x,
+                    self._env._pos(list(self.logged_states[x].keys())[0]),
+                    self.logged_actions[x],
+                    logged_value,
+                    target_value,
+                )
+                num_error_prints += 1
+                if num_error_prints == 10:
+                    print("MAX ERRORS PRINTED")
         logger.info(
             "EVAL ERROR {0:.3f}".format(error_sum / float(len(self.logged_states)))
         )

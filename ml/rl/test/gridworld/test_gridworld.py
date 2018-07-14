@@ -30,7 +30,7 @@ class TestGridworld(unittest.TestCase):
     def get_sarsa_trainer_reward_boost(self, environment, reward_shape):
         rl_parameters = RLParameters(
             gamma=DISCOUNT,
-            target_update_rate=0.5,
+            target_update_rate=0.05,
             reward_burnin=10,
             maxq_learning=False,
             reward_boost=reward_shape,
@@ -39,7 +39,7 @@ class TestGridworld(unittest.TestCase):
             layers=[-1, -1],
             activations=["linear"],
             minibatch_size=self.minibatch_size,
-            learning_rate=0.01,
+            learning_rate=0.05,
             optimizer="ADAM",
         )
         return DiscreteActionTrainer(
@@ -57,15 +57,15 @@ class TestGridworld(unittest.TestCase):
             actions=environment.ACTIONS,
             rl=RLParameters(
                 gamma=DISCOUNT,
-                target_update_rate=0.5,
-                reward_burnin=10,
+                target_update_rate=0.05,
+                reward_burnin=100,
                 maxq_learning=True,
             ),
             training=TrainingParameters(
                 layers=[-1, 1],
                 activations=["linear"],
                 minibatch_size=self.minibatch_size,
-                learning_rate=0.01,
+                learning_rate=0.05,
                 optimizer="ADAM",
             ),
         )
@@ -74,7 +74,7 @@ class TestGridworld(unittest.TestCase):
             maxq_sarsa_parameters, environment.normalization
         )
 
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         predictor = maxq_trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
         evaluator = GridworldEvaluator(environment, True)
@@ -83,29 +83,28 @@ class TestGridworld(unittest.TestCase):
         print(
             "Pre-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
-        self.assertGreater(evaluator.mc_loss[-1], 0.3)
 
         for _ in range(5):
             for tdp in tdps:
                 maxq_trainer.train_numpy(tdp, None)
+            evaluator.evaluate(predictor)
 
-        evaluator.evaluate(predictor)
         print(
             "Post-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertLess(evaluator.mc_loss[-1], 0.1)
 
         self.assertGreater(
-            evaluator.reward_doubly_robust[-1], evaluator.reward_doubly_robust[-2]
+            evaluator.value_doubly_robust[-1], evaluator.value_doubly_robust[0]
         )
 
     def test_trainer_sarsa(self):
         environment = Gridworld()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         evaluator = GridworldEvaluator(environment, False)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
@@ -115,28 +114,28 @@ class TestGridworld(unittest.TestCase):
         print(
             "Pre-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
-        self.assertGreater(evaluator.mc_loss[-1], 0.15)
 
-        for tdp in tdps:
-            trainer.train_numpy(tdp, None)
+        for _ in range(2):
+            for tdp in tdps:
+                trainer.train_numpy(tdp, None)
+            evaluator.evaluate(predictor)
 
-        evaluator.evaluate(predictor)
         print(
             "Post-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertLess(evaluator.mc_loss[-1], 0.05)
 
         self.assertGreater(
-            evaluator.reward_doubly_robust[-1], evaluator.reward_doubly_robust[-2]
+            evaluator.value_doubly_robust[-1], evaluator.value_doubly_robust[0]
         )
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldEnum()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         evaluator = GridworldEvaluator(environment, False)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
@@ -146,28 +145,28 @@ class TestGridworld(unittest.TestCase):
         print(
             "Pre-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
-        self.assertGreater(evaluator.mc_loss[-1], 0.15)
 
-        for tdp in tdps:
-            trainer.train_numpy(tdp, None)
+        for _ in range(2):
+            for tdp in tdps:
+                trainer.train_numpy(tdp, None)
+            evaluator.evaluate(predictor)
 
-        evaluator.evaluate(predictor)
         print(
             "Post-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertLess(evaluator.mc_loss[-1], 0.05)
 
         self.assertGreater(
-            evaluator.reward_doubly_robust[-1], evaluator.reward_doubly_robust[-2]
+            evaluator.value_doubly_robust[-1], evaluator.value_doubly_robust[0]
         )
 
     def test_evaluator_ground_truth(self):
         environment = Gridworld()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
@@ -179,18 +178,16 @@ class TestGridworld(unittest.TestCase):
         evaluator = Evaluator(environment.ACTIONS, 1)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
-        for _ in range(10):
-            first = True
+        for _ in range(2):
             for tdp in tdps:
-                trainer.train_numpy(tdp, evaluator if first else None)
-                first = False
+                trainer.train_numpy(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.01)
         self.assertLess(evaluator.mc_loss[-1], 0.1)
 
     def test_evaluator_timeline(self):
         environment = Gridworld()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(environment.ACTIONS, 1)
 
@@ -206,7 +203,7 @@ class TestGridworld(unittest.TestCase):
         reward_boost = {"L": 100, "R": 200, "U": 300, "D": 400}
         trainer = self.get_sarsa_trainer_reward_boost(environment, reward_boost)
         predictor = trainer.predictor()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         rewards_update = []
         for action, reward in zip(samples.actions, samples.rewards):
             rewards_update.append(reward - reward_boost[action])
@@ -219,9 +216,8 @@ class TestGridworld(unittest.TestCase):
         print(
             "Pre-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
-        self.assertGreater(evaluator.mc_loss[-1], 0.15)
 
         for tdp in tdps:
             trainer.train_numpy(tdp, None)
@@ -230,10 +226,10 @@ class TestGridworld(unittest.TestCase):
         print(
             "Post-Training eval: ",
             evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1],
+            evaluator.value_doubly_robust[-1],
         )
         self.assertLess(evaluator.mc_loss[-1], 0.05)
 
         self.assertGreater(
-            evaluator.reward_doubly_robust[-1], evaluator.reward_doubly_robust[-2]
+            evaluator.value_doubly_robust[-1], evaluator.value_doubly_robust[0]
         )

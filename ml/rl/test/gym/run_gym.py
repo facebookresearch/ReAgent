@@ -298,12 +298,12 @@ def run_gym(
     save_timesteps_to_dataset=None,
     start_saving_from_episode=0,
 ):
-    '''
+    """
     Caffe2 core logging configuration.
     Caffe2 core uses the min of caffe2_log_level and minloglevel
     to determine loglevel.
     For more info see UpdateLoggingLevelsFromFlags() in caffe2/caffe2/core/logging.cc
-    '''
+    """
     core.GlobalInit(["caffe2", "--caffe2_log_level=2", "--minloglevel=2"])
 
     logger.info("Running gym with params")
@@ -312,10 +312,7 @@ def run_gym(
 
     env_type = params["env"]
     env = OpenAIGymEnvironment(
-        env_type,
-        rl_parameters.epsilon,
-        rl_parameters.softmax_policy,
-        params["max_replay_memory_size"],
+        env_type, 0.0, rl_parameters.softmax_policy, params["max_replay_memory_size"]
     )
     model_type = params["model_type"]
     c2_device = core.DeviceOption(

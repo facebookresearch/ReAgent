@@ -29,15 +29,15 @@ class TestGridworldContinuous(unittest.TestCase):
         return ContinuousActionModelParameters(
             rl=RLParameters(
                 gamma=DISCOUNT,
-                target_update_rate=0.5,
-                reward_burnin=10,
+                target_update_rate=0.05,
+                reward_burnin=100,
                 maxq_learning=False,
             ),
             training=TrainingParameters(
-                layers=[-1, 200, -1],
-                activations=["linear", "linear"],
+                layers=[-1, 256, 128, -1],
+                activations=["relu", "relu", "linear"],
                 minibatch_size=self.minibatch_size,
-                learning_rate=0.01,
+                learning_rate=0.05,
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
@@ -52,33 +52,31 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
-        self.assertGreater(evaluator.evaluate(predictor), 0.15)
-
-        for tdp in tdps:
-            trainer.train_numpy(tdp, None)
-        evaluator.evaluate(predictor)
+        for _ in range(2):
+            for tdp in tdps:
+                trainer.train_numpy(tdp, None)
+            evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
-        self.assertGreater(evaluator.evaluate(predictor), 0.15)
-
-        for tdp in tdps:
-            trainer.train_numpy(tdp, None)
-        evaluator.evaluate(predictor)
+        for _ in range(2):
+            for tdp in tdps:
+                trainer.train_numpy(tdp, None)
+            evaluator.evaluate(predictor)
 
         self.assertLess(evaluator.evaluate(predictor), 0.05)
 
@@ -88,8 +86,8 @@ class TestGridworldContinuous(unittest.TestCase):
         new_rl_parameters = ContinuousActionModelParameters(
             rl=RLParameters(
                 gamma=DISCOUNT,
-                target_update_rate=0.5,
-                reward_burnin=10,
+                target_update_rate=0.05,
+                reward_burnin=100,
                 maxq_learning=True,
             ),
             training=rl_parameters.training,
@@ -101,13 +99,12 @@ class TestGridworldContinuous(unittest.TestCase):
             environment.normalization_action,
         )
 
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         predictor = maxq_trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
         evaluator = GridworldContinuousEvaluator(environment, True)
-        self.assertGreater(evaluator.evaluate(predictor), 0.2)
 
-        for _ in range(2):
+        for _ in range(5):
             for tdp in tdps:
                 maxq_trainer.train_numpy(tdp, None)
             evaluator.evaluate(predictor)
@@ -116,7 +113,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_ground_truth(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
@@ -128,21 +125,24 @@ class TestGridworldContinuous(unittest.TestCase):
         evaluator = Evaluator(None, 1)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
-        for tdp in tdps:
-            trainer.train_numpy(tdp, evaluator)
+        for _ in range(2):
+            for tdp in tdps:
+                trainer.train_numpy(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.05)
         self.assertLess(evaluator.mc_loss[-1], 0.12)
 
     def test_evaluator_timeline(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(None, 1)
 
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
-        for tdp in tdps:
-            trainer.train_numpy(tdp, evaluator)
+
+        for _ in range(2):
+            for tdp in tdps:
+                trainer.train_numpy(tdp, evaluator)
 
         self.assertLess(evaluator.td_loss[-1], 0.2)
         self.assertLess(evaluator.mc_loss[-1], 0.2)

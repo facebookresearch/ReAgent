@@ -34,7 +34,7 @@ struct TrainingParameters {
   4: list<i32> layers = [-1, 512, 256, 128, 1],
   5: list<string> activations = ['relu', 'relu', 'relu', 'linear'],
   6: string lr_policy = 'fixed',
-  7: double gamma = 0.999,
+  7: double lr_decay = 0.999,
   8: double dropout_ratio = 0.0,
   9: optional string warm_start_model_path,
   10: optional CNNParameters cnn_parameters,

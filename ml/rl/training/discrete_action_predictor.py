@@ -54,9 +54,9 @@ class DiscreteActionPredictor(RLPredictor):
         workspace.FeedBlob("input/float_features.keys", np.zeros(1, dtype=np.int64))
         workspace.FeedBlob("input/float_features.values", np.zeros(1, dtype=np.float32))
 
-        input_feature_lengths = "input_feature_lengths"
-        input_feature_keys = "input_feature_keys"
-        input_feature_values = "input_feature_values"
+        input_feature_lengths = C2.NextBlob("input_feature_lengths")
+        input_feature_keys = C2.NextBlob("input_feature_keys")
+        input_feature_values = C2.NextBlob("input_feature_values")
 
         if int_features:
             workspace.FeedBlob(

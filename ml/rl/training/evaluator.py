@@ -235,3 +235,10 @@ class Evaluator(object):
         x -= np.max(x, axis=1, keepdims=True)
         e_x = np.exp(x)
         return e_x / e_x.sum(axis=1, keepdims=True)
+
+    @staticmethod
+    def huberLoss(label, output):
+        if abs(label - output) > 1:
+            return abs(label - output) - 0.5
+        else:
+            return 0.5 * (label - output) * (label - output)

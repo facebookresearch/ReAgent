@@ -14,6 +14,12 @@ class GridworldContinuousEnum(GridworldContinuous):
     def num_states(self):
         return 1
 
+    def state_to_features(self, state):
+        return {0: state}
+
+    def features_to_state(self, state):
+        return list(state.values())[0]
+
     @property
     def normalization(self):
         return {

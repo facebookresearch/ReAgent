@@ -13,8 +13,7 @@ from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.test.utils import default_normalizer
 
 # Environment parameters
-DISCOUNT = 0.9
-EPSILON = 0.1
+DISCOUNT = 0.95
 
 # Used for legible specification of grids
 W = 1  # Walls
@@ -107,11 +106,11 @@ class GridworldBase(object):
 
     grid = np.array(
         [
-            [S, 0, 0, 0, 0],  #
-            [0, 0, 0, 0, 0],  #
-            [0, 0, 0, 0, 0],  #
-            [0, 0, 0, 0, 0],  #
-            [0, 0, 0, 0, G],  #
+            [S, W, 0, 0, 0],  #
+            [0, W, 0, 0, 0],  #
+            [0, W, 0, W, 0],  #
+            [0, 0, 0, W, 0],  #
+            [0, 0, 0, W, G],  #
         ]
     )
 
@@ -142,8 +141,6 @@ class GridworldBase(object):
         queue = collections.deque()
         queue.append(tuple(j[0] for j in np.where(self.grid == G)))
         policy = np.empty(self.grid.shape, dtype=np.object)
-        print("INITIAL POLICY")
-        print(policy)
         while len(queue) > 0:
             current = queue.pop()
             if current in not_visited:
@@ -151,16 +148,15 @@ class GridworldBase(object):
 
             possible_actions = self.possible_next_actions(self._index(current), True)
             for action in possible_actions:
-                self._state = self._index(current)
-                next_state, _, _, _ = self.step(action)
-                next_state_pos = self._pos(next_state)
+                next_state_pos = self.move_on_pos(current[0], current[1], action)
+                next_state = self._index(next_state_pos)
                 if next_state_pos not in not_visited:
                     continue
                 not_visited.remove(next_state_pos)
                 if not self.is_terminal(next_state) and self.grid[next_state_pos] != W:
                     policy[next_state_pos] = self.invert_action(action)
                     queue.appendleft(self._pos(next_state))
-        print("FINAL POLICY")
+        print("OPTIMAL POLICY")
         print(policy)
         return policy
 
@@ -177,13 +173,14 @@ class GridworldBase(object):
 
     def _index(self, pos):
         y, x = pos
-        return x * self.height + y
-        # 0 5 10 15 20
-        # 1 6 11 16 ...
+        return x + y * self.width
+        # 0 1 2 3 4
+        # 5 6 7 8 9
+        # ...
         # y is row index, x is col index
 
     def _pos(self, state):
-        return state % self.height, state // self.height
+        return state // self.width, state % self.width
 
     def reset(self):
         self._state = self._index(np.argwhere(self.grid == S)[0])
@@ -288,9 +285,12 @@ class GridworldBase(object):
             raise Exception("Invalid action", act)
 
     def move_on_pos_limit(self, y, x, act):
+        original_y, original_x = y, x
         y, x = self.move_on_pos(y, x, act)
         x = min(max(0, x), self.width - 1)
         y = min(max(0, y), self.height - 1)
+        if self.grid[y, x] == W:
+            return original_y, original_x  # Bumped into wall
         return y, x
 
     def move_on_index_limit(self, state, act):
@@ -347,15 +347,17 @@ class GridworldBase(object):
 
     def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):
         true_q_values = self.true_q_values(DISCOUNT, assume_optimal_policy)
+        print("TRUE VALUES ASSUMING OPTIMAL: ", assume_optimal_policy)
+        print(true_q_values.reshape(5, 5))
         results = []
         for x in range(len(states)):
             int_state = int(list(states[x].keys())[0])
             next_state = self.move_on_index_limit(int_state, actions[x])
-            if self.is_terminal(int_state):
-                results.append(self.reward(int_state))
+            if self.is_terminal(next_state):
+                results.append(self.reward(next_state))
             else:
                 results.append(
-                    self.reward(int_state) + (DISCOUNT * true_q_values[next_state])
+                    self.reward(next_state) + (DISCOUNT * true_q_values[next_state])
                 )
         return np.array(results).reshape(-1, 1)
 

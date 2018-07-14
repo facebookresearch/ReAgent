@@ -6,9 +6,7 @@ from typing import List
 from enum import Enum
 
 from caffe2.python.model_helper import ModelHelper
-from caffe2.python.optimizer import (
-    build_sgd, build_ftrl, build_adagrad, build_adam
-)
+from caffe2.python.optimizer import build_sgd, build_ftrl, build_adagrad, build_adam
 
 from ml.rl.thrift.core.ttypes import TrainingParameters
 from ml.rl.training.dnn import DNN
@@ -29,11 +27,7 @@ class MLTrainer(DNN):
     ADAM for momentum/smoothing.
     """
 
-    def __init__(
-        self,
-        name: str,
-        parameters: TrainingParameters,
-    ) -> None:
+    def __init__(self, name: str, parameters: TrainingParameters) -> None:
         """
 
         :param name: A unique name for this trainer used to create the data on the
@@ -43,16 +37,13 @@ class MLTrainer(DNN):
         self.optimizer = parameters.optimizer
         self.learning_rate = parameters.learning_rate
 
-        self.gamma = parameters.gamma
+        self.lr_decay = parameters.lr_decay
         self.lr_policy = parameters.lr_policy
 
         DNN.__init__(self, name, parameters)
 
     def generateLossOps(
-        self,
-        model: ModelHelper,
-        output_blob: str,
-        label_blob: str,
+        self, model: ModelHelper, output_blob: str, label_blob: str
     ) -> str:
         """
         Adds loss operators to net. The loss function is computed by a squared L2
@@ -67,18 +58,16 @@ class MLTrainer(DNN):
         dist = model.SquaredL2Distance(
             [label_blob, output_blob], model.net.NextBlob("dist")
         )
-        loss = model.net.NextBlob('loss')
+        loss = model.net.NextBlob("loss")
         model.AveragedLoss(dist, loss)
         return loss
 
-    def addParameterUpdateOps(
-        self,
-        model,
-    ):
+    def addParameterUpdateOps(self, model):
         if self.optimizer not in OPTIMIZER_DICT:
             raise Exception(
-                "Optimizer {} unknown. Valid choices are {}"
-                .format(self.optimizer, ', '.join(OPTIMIZER_DICT.keys()))
+                "Optimizer {} unknown. Valid choices are {}".format(
+                    self.optimizer, ", ".join(OPTIMIZER_DICT.keys())
+                )
             )
         optimizer_rule = OPTIMIZER_DICT[self.optimizer]
 
@@ -86,9 +75,9 @@ class MLTrainer(DNN):
             build_sgd(
                 model,
                 self.learning_rate,
-                gamma=self.gamma,
+                gamma=self.lr_decay,
                 policy=self.lr_policy,
-                stepsize=1
+                stepsize=1,
             )
         elif optimizer_rule == GRAD_OPTIMIZER.ADAGRAD:
             build_adagrad(model, self.learning_rate)
@@ -97,10 +86,7 @@ class MLTrainer(DNN):
         elif optimizer_rule == GRAD_OPTIMIZER.FTRL:
             build_ftrl(model, self.learning_rate)
         else:
-            print(
-                "Unrecognized in caffe2 setting, using default SGD",
-                optimizer_rule
-            )
+            print("Unrecognized in caffe2 setting, using default SGD", optimizer_rule)
             build_sgd(model, self.learning_rate)
 
     def build_predictor(self, model, input_blob, output_blob) -> List[str]:
