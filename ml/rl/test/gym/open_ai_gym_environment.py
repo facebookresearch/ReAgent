@@ -113,6 +113,9 @@ class OpenAIGymEnvironment:
             for col, value in zip(cols, memory):
                 col.append(value)
 
+        possible_next_actions_lengths = np.array(cols[7], dtype=np.int32)
+        next_states = np.array(cols[3], dtype=np.float32)
+
         if model_type in (
             ModelType.PARAMETRIC_ACTION.value,
             ModelType.PYTORCH_PARAMETRIC_DQN.value,
@@ -121,8 +124,15 @@ class OpenAIGymEnvironment:
             for pna_matrix in cols[6]:
                 for row in pna_matrix:
                     possible_next_actions.append(row)
+
+            tiled_states = np.repeat(next_states, possible_next_actions_lengths, axis=0)
+            possible_next_actions = np.array(possible_next_actions, dtype=np.float32)
+            next_state_pnas_concat = np.concatenate(
+                (tiled_states, possible_next_actions), axis=1
+            )
         else:
-            possible_next_actions = cols[6]
+            possible_next_actions = np.array(cols[6], dtype=np.float32)
+            next_state_pnas_concat = None
 
         return TrainingDataPage(
             states=np.array(cols[0], dtype=np.float32),
@@ -131,11 +141,12 @@ class OpenAIGymEnvironment:
             rewards=np.array(cols[2], dtype=np.float32),
             next_states=np.array(cols[3], dtype=np.float32),
             next_actions=np.array(cols[4], dtype=np.float32),
-            possible_next_actions=np.array(possible_next_actions, dtype=np.float32),
+            possible_next_actions=possible_next_actions,
             reward_timelines=None,
             not_terminals=np.logical_not(np.array(cols[5]), dtype=np.bool),
             time_diffs=np.array(cols[8], dtype=np.int32),
-            possible_next_actions_lengths=np.array(cols[7], dtype=np.int32),
+            possible_next_actions_lengths=possible_next_actions_lengths,
+            next_state_pnas_concat=next_state_pnas_concat,
         )
 
     def sample_and_load_training_data_c2(self, num_samples, model_type):

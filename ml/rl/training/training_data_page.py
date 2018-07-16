@@ -14,6 +14,7 @@ class TrainingDataPage(object):
         "reward_timelines",
         "not_terminals",
         "time_diffs",
+        "next_state_pnas_concat",
     ]
 
     def __init__(
@@ -29,6 +30,7 @@ class TrainingDataPage(object):
         not_terminals=None,
         time_diffs=None,
         possible_next_actions_lengths=None,
+        next_state_pnas_concat=None,
     ) -> None:
         """
         Creates a TrainingDataPage object.
@@ -47,6 +49,7 @@ class TrainingDataPage(object):
         self.not_terminals = not_terminals
         self.time_diffs = time_diffs
         self.possible_next_actions_lengths = possible_next_actions_lengths
+        self.next_state_pnas_concat = next_state_pnas_concat
 
     def size(self) -> int:
         if self.states:
@@ -77,4 +80,5 @@ class TrainingDataPage(object):
             None
             if self.possible_next_actions_lengths is None
             else self.possible_next_actions_lengths[start:end],
+            self.next_state_pnas_concat[start:end],
         )

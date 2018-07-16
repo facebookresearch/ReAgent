@@ -425,6 +425,20 @@ class PreprocessorNet:
             )
             return concatenated_input_blob, parameters
 
+    def concat_states_and_possible_next_actions(
+        self,
+        next_state_preprocessed_matrix_blob: str,
+        possible_next_actions_blob: str,
+        possible_next_actions_lengths_blob: str,
+    ) -> str:
+        stacked_states = C2.LengthsTile(
+            next_state_preprocessed_matrix_blob, possible_next_actions_lengths_blob
+        )
+        state_action_pairs, _ = C2.Concat(
+            stacked_states, possible_next_actions_blob, axis=1
+        )
+        return state_action_pairs
+
     def _get_type_boundaries(
         self,
         features: List[str],

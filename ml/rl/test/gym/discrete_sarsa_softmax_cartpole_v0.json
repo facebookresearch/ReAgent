@@ -26,7 +26,7 @@
     "minibatch_size": 128,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
-    "gamma": 0.999
+    "lr_decay": 0.999
   },
   "run_details": {
     "num_episodes": 5001,

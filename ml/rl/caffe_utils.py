@@ -13,6 +13,7 @@ from caffe2.python import workspace
 from caffe2.python.core import BlobReference
 import onnx
 import torch
+import torch.nn as nn
 
 
 class C2Meta(type):
@@ -215,3 +216,30 @@ class PytorchCaffe2Converter(object):
             outout_blob_name,
             caffe2.python.onnx.backend.prepare(protobuf_model),
         )
+
+
+class WeightedEmbeddingBag(nn.EmbeddingBag):
+    """A subclass of nn.EmbeddingBag that adds a constructor that supplies
+    pre-existing embedding weights.
+    """
+
+    def __init__(
+        self,
+        weight,
+        padding_idx=None,
+        max_norm=None,
+        norm_type=2,
+        scale_grad_by_freq=False,
+        mode="max",
+        sparse=False,
+    ):
+        nn.Module.__init__(self)
+        self.num_embeddings = weight.size(0)
+        self.embedding_dim = weight.size(1)
+        self.padding_idx = padding_idx
+        self.max_norm = max_norm
+        self.norm_type = norm_type
+        self.scale_grad_by_freq = scale_grad_by_freq
+        self.weight = weight
+        self.mode = mode
+        self.sparse = sparse

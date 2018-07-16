@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-from ml.rl.caffe_utils import StackedArray
+from ml.rl.caffe_utils import StackedArray, WeightedEmbeddingBag
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
@@ -78,48 +78,30 @@ class ParametricDQNTrainer(RLTrainer):
             self.q_network_target.cuda()
             self.reward_network.cuda()
 
-    def get_max_q_values(self, states, possible_actions, possible_actions_lengths):
+    def get_max_q_values(self, next_state_pnas_concat, possible_actions_lengths):
         """
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
-        :param possible_actions: Numpy array with shape (batch_size, action_dim).
-            possible_next_actions[i][j] = 1 iff the agent can take action j from
-            state i.
+        :param next_state_pnas_concat: Numpy array with shape
+            (sum(possible_actions_lengths), state_dim + action_dim). Each row
+            contains a representation of a state + possible next action pair.
         :param possible_actions_lengths: Numpy array that describes number of
             possible_actions per item in minibatch
         """
-        # TODO (edoardoc): Refactor to use EmbeddingBag as outlined in:
-        # https://fb.facebook.com/groups/1405155842844877/permalink/2268098803217239/
+        q_network_input = torch.from_numpy(next_state_pnas_concat).type(self.dtype)
+        q_values = self.q_network_target(q_network_input).detach()
 
-        if isinstance(possible_actions, StackedArray):
-            possible_actions = possible_actions.values
+        pnas_lens = torch.from_numpy(possible_actions_lengths).type(self.dtype)
+        pna_len_cumsum = pnas_lens.cumsum(0)
+        zero_first_cumsum = torch.cat(
+            (torch.zeros(1).type(self.dtype), pna_len_cumsum)
+        ).type(self.dtypelong)
+        idxs = torch.arange(0, q_values.size(0)).type(self.dtypelong)
 
-        q_network_input = []
-        pna_len_cumsum = possible_actions_lengths.cumsum()
+        # Hacky way to do Caffe2's LengthsMax in PyTorch.
+        bag = WeightedEmbeddingBag(q_values.unsqueeze(1), mode="max")
+        max_q_values = bag(idxs, zero_first_cumsum).squeeze().detach()
 
-        state_idx, pa_idx_lo = 0, 0
-        for pa_idx_hi in pna_len_cumsum:
-            for idx in range(pa_idx_lo, pa_idx_hi):
-                q_network_input.append(
-                    np.concatenate([states[state_idx], possible_actions[idx]])
-                )
-            state_idx += 1
-            pa_idx_lo = pa_idx_hi
-
-        q_network_input = torch.from_numpy(np.array(q_network_input)).type(self.dtype)
-        q_values = self.q_network_target(q_network_input).detach().cpu().data.numpy()
-
-        max_q_values = []
-        q_val_idx_lo = 0
-        for q_val_idx_hi in pna_len_cumsum:
-            max_q = self.ACTION_NOT_POSSIBLE_VAL
-            for idx in range(q_val_idx_lo, q_val_idx_hi):
-                if q_values[idx] > max_q:
-                    max_q = q_values[idx][0]
-            max_q_values.append(max_q)
-            q_val_idx_lo = q_val_idx_hi
-
-        return Variable(torch.from_numpy(np.array(max_q_values)).type(self.dtype))
+        # EmbeddingBag adds a 0 entry to the end of the tensor so slice it
+        return Variable(max_q_values[:-1])
 
     def get_next_action_q_values(self, states, next_actions):
         """
@@ -135,6 +117,7 @@ class ParametricDQNTrainer(RLTrainer):
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
+
         self.minibatch += 1
         states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
         actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
@@ -153,8 +136,7 @@ class ParametricDQNTrainer(RLTrainer):
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
             next_q_values = self.get_max_q_values(
-                training_samples.next_states,
-                training_samples.possible_next_actions,
+                training_samples.next_state_pnas_concat,
                 training_samples.possible_next_actions_lengths,
             )
         else:
@@ -171,10 +153,10 @@ class ParametricDQNTrainer(RLTrainer):
             target_q_values = rewards
 
         # Get Q-value of action taken
-        q_values = self.q_network(torch.cat((states, actions), dim=1)).squeeze()
+        q_values = self.q_network(torch.cat((states, actions), dim=1))
         self.all_action_scores = deepcopy(q_values.detach())
 
-        value_loss = F.mse_loss(q_values, target_q_values)
+        value_loss = F.mse_loss(q_values.squeeze(), target_q_values)
         self.loss = value_loss.detach()
 
         self.q_network_optimizer.zero_grad()

@@ -132,7 +132,11 @@ class GridworldContinuous(GridworldBase):
             pnas_lengths_list.append(len(pnas))
             pnas_flat.extend(pnas)
         saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
+
         pnas_lengths = np.array(pnas_lengths_list, dtype=np.int32)
+        pna_lens_blob = "pna_lens_blob"
+        workspace.FeedBlob(pna_lens_blob, pnas_lengths)
+
         possible_next_actions_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
             saa.keys,
@@ -142,6 +146,11 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
+
+        state_pnas_blob = preprocessor.concat_states_and_possible_next_actions(
+            next_state_matrix, possible_next_actions_matrix, pna_lens_blob
+        )
+
         workspace.RunNetOnce(net)
 
         states_ndarray = workspace.FetchBlob(state_matrix)
@@ -151,6 +160,7 @@ class GridworldContinuous(GridworldBase):
         possible_next_actions_ndarray = workspace.FetchBlob(
             possible_next_actions_matrix
         )
+        next_state_pnas_concat = workspace.FetchBlob(state_pnas_blob)
         time_diffs = np.ones(len(states_ndarray))
         tdps = []
         pnas_start = 0
@@ -176,6 +186,7 @@ class GridworldContinuous(GridworldBase):
                     else None,
                     time_diffs=time_diffs[start:end],
                     possible_next_actions_lengths=pnas_lengths[start:end],
+                    next_state_pnas_concat=next_state_pnas_concat,
                 )
             )
         return tdps
