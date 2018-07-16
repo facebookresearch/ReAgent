@@ -58,7 +58,7 @@ class TestGridworldContinuous(unittest.TestCase):
             environment.normalization,
             environment.normalization_action,
         )
-        evaluator = GridworldDDPGEvaluator(environment, True)
+        evaluator = GridworldDDPGEvaluator(environment, True, DISCOUNT)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for epoch in range(epochs):

@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class Evaluator(object):
-    def __init__(self, action_names, evaluator_batch_size) -> None:
+
+    def __init__(self, action_names, evaluator_batch_size, gamma) -> None:
         self.action_names = action_names
         self.mc_loss: List[float] = []
         self.td_loss: List[float] = []
@@ -18,6 +19,9 @@ class Evaluator(object):
         self.value_inverse_propensity_score: List[float] = []
         self.value_direct_method: List[float] = []
         self.value_doubly_robust: List[float] = []
+        self.sequential_value_doubly_robust: List[float] = []
+        self.true_value_PE: List[float] = []
+        self.true_discounted_value_PE: List[float] = []
         self.reward_inverse_propensity_score: List[float] = []
         self.reward_direct_method: List[float] = []
         self.reward_doubly_robust: List[float] = []
@@ -45,6 +49,8 @@ class Evaluator(object):
             self.model_values_on_logged_actions_batches,
             self.model_action_idxs_batches,
         ]
+
+        self.gamma = gamma
 
     def report(
         self,
@@ -118,7 +124,7 @@ class Evaluator(object):
                 # Assume a deterministic model
                 logged_propensities = np.ones(logged_values.shape)
 
-            v_ips, v_dm, v_dr = self.doubly_robust_policy_estimation(
+            v_ips, v_dm, v_dr = self.doubly_robust_one_step_policy_estimation(
                 logged_actions,
                 logged_values,
                 logged_propensities,
@@ -133,7 +139,7 @@ class Evaluator(object):
             print_details += "Value Direct Method            : {0:.3f}\n".format(v_dm)
             print_details += "Value Doubly Robust P.E.       : {0:.3f}\n".format(v_dr)
 
-            r_ips, r_dm, r_dr = self.doubly_robust_policy_estimation(
+            r_ips, r_dm, r_dr = self.doubly_robust_one_step_policy_estimation(
                 logged_actions,
                 logged_rewards,
                 logged_propensities,
@@ -188,7 +194,7 @@ class Evaluator(object):
         begin = max(0, len(self.reward_doubly_robust) - 100)
         return np.mean(np.array(self.reward_doubly_robust[begin:]))
 
-    def doubly_robust_policy_estimation(
+    def doubly_robust_one_step_policy_estimation(
         self,
         logged_actions,
         logged_rewards,
@@ -227,6 +233,56 @@ class Evaluator(object):
             float(np.sum(direct_method_values) / total_reward),
             float(np.sum(doubly_robust) / total_reward),
         )
+
+    def doubly_robust_sequential_policy_estimation(
+        self,
+        logged_actions,
+        logged_rewards,
+        logged_is_terminals,
+        logged_propensities,
+        target_propensities,
+        estimated_Q_values,
+    ):
+        # For details, visit https://arxiv.org/pdf/1511.03722.pdf
+        num_examples = len(logged_actions)
+
+        direct_method_Q_values = np.sum(
+            target_propensities * estimated_Q_values, axis=1, keepdims=True
+        )
+
+        target_propensity_for_action = np.sum(
+            target_propensities * logged_actions, axis=1, keepdims=True
+        )
+        importance_weight = target_propensity_for_action / logged_propensities
+
+        estimated_values_for_action = np.sum(
+            estimated_Q_values * logged_actions, axis=1, keepdims=True
+        )
+
+        doubly_robusts = []
+
+        i = 0
+        last_episode_end = -1
+        while i < num_examples:
+            # calculate the doubly-robust Q-value for one episode
+            if logged_is_terminals[i][0]:
+                episode_end = i
+                episode_value = 0.0
+                doubly_robust = 0.0
+                for j in range(episode_end, last_episode_end - 1, -1):
+                    doubly_robust = (
+                        direct_method_Q_values[j][0] + importance_weight[j][0] * (
+                            logged_rewards[j][0] +
+                            self.gamma * doubly_robust -
+                            estimated_values_for_action[j][0]
+                        )
+                    )
+                    episode_value *= self.gamma
+                    episode_value += logged_rewards[j][0]
+                doubly_robusts.append(doubly_robust / episode_value)
+                last_episode_end = episode_end
+            i += 1
+        return np.mean(doubly_robusts)
 
     @staticmethod
     def softmax(x, temperature):

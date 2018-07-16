@@ -55,7 +55,7 @@ class TestGridworldContinuous(unittest.TestCase):
         samples = environment.generate_samples(100000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
-        evaluator = GridworldContinuousEvaluator(environment, False)
+        evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
@@ -75,7 +75,7 @@ class TestGridworldContinuous(unittest.TestCase):
         samples = environment.generate_samples(100000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
-        evaluator = GridworldContinuousEvaluator(environment, False)
+        evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
@@ -112,7 +112,7 @@ class TestGridworldContinuous(unittest.TestCase):
         samples = environment.generate_samples(100000, 1.0)
         predictor = maxq_trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
-        evaluator = GridworldContinuousEvaluator(environment, True)
+        evaluator = GridworldContinuousEvaluator(environment, True, DISCOUNT)
         self.assertGreater(evaluator.evaluate(predictor), 0.2)
 
         for _ in range(2):
@@ -136,7 +136,7 @@ class TestGridworldContinuous(unittest.TestCase):
         for tv in true_values:
             samples.reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(None, 1)
+        evaluator = Evaluator(None, 1, DISCOUNT)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
@@ -151,7 +151,7 @@ class TestGridworldContinuous(unittest.TestCase):
         environment = GridworldContinuous()
         samples = environment.generate_samples(100000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(None, 1)
+        evaluator = Evaluator(None, 1, DISCOUNT)
 
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
         for tdp in tdps:

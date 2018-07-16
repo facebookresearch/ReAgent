@@ -77,7 +77,9 @@ class TestGridworld(unittest.TestCase):
         samples = environment.generate_samples(200000, 1.0)
         predictor = maxq_trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
-        evaluator = GridworldEvaluator(environment, True)
+        evaluator = GridworldEvaluator(
+            environment, True, maxq_sarsa_parameters.rl.gamma
+        )
 
         evaluator.evaluate(predictor)
         print(
@@ -104,8 +106,8 @@ class TestGridworld(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = Gridworld()
-        samples = environment.generate_samples(200000, 1.0)
-        evaluator = GridworldEvaluator(environment, False)
+        samples = environment.generate_samples(2000, 1.0)
+        evaluator = GridworldEvaluator(environment, False, DISCOUNT)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
@@ -136,7 +138,7 @@ class TestGridworld(unittest.TestCase):
     def test_trainer_sarsa_enum(self):
         environment = GridworldEnum()
         samples = environment.generate_samples(200000, 1.0)
-        evaluator = GridworldEvaluator(environment, False)
+        evaluator = GridworldEvaluator(environment, False, DISCOUNT)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
@@ -175,7 +177,7 @@ class TestGridworld(unittest.TestCase):
         for tv in true_values:
             samples.reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(environment.ACTIONS, 1)
+        evaluator = Evaluator(environment.ACTIONS, 1, DISCOUNT)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for _ in range(2):
@@ -189,7 +191,7 @@ class TestGridworld(unittest.TestCase):
         environment = Gridworld()
         samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(environment.ACTIONS, 1)
+        evaluator = Evaluator(environment.ACTIONS, 1, DISCOUNT)
 
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
         for tdp in tdps:
@@ -208,7 +210,7 @@ class TestGridworld(unittest.TestCase):
         for action, reward in zip(samples.actions, samples.rewards):
             rewards_update.append(reward - reward_boost[action])
         samples.rewards = rewards_update
-        evaluator = GridworldEvaluator(environment, False)
+        evaluator = GridworldEvaluator(environment, False, DISCOUNT)
 
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 

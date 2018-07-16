@@ -15,9 +15,9 @@ class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
 
     def __init__(
-        self, env, assume_optimal_policy: bool, use_int_features: bool = False
+        self, env, assume_optimal_policy: bool, gamma, use_int_features: bool = False
     ) -> None:
-        Evaluator.__init__(self, None, 1)
+        super(GridworldEvaluator, self).__init__(None, 1, gamma)
 
         self._env = env
 
@@ -25,6 +25,7 @@ class GridworldEvaluator(Evaluator):
         self.logged_states = samples.states
         self.logged_actions = samples.actions
         self.logged_propensities = np.array(samples.propensities).reshape(-1, 1)
+        self.logged_is_terminals = np.array(samples.is_terminal).reshape(-1, 1)
         # Create integer logged actions
         self.logged_actions_int: List[int] = []
         for action in self.logged_actions:
@@ -154,30 +155,7 @@ class GridworldEvaluator(Evaluator):
             prediction, GridworldEvaluator.SOFTMAX_TEMPERATURE
         )
 
-        value_inverse_propensity_score, value_direct_method, value_doubly_robust = self.doubly_robust_policy_estimation(
-            self.logged_actions_one_hot,
-            self.logged_values,
-            self.logged_propensities,
-            target_propensities,
-            self.estimated_ltv_values,
-        )
-        self.value_inverse_propensity_score.append(value_inverse_propensity_score)
-        self.value_direct_method.append(value_direct_method)
-        self.value_doubly_robust.append(value_doubly_robust)
-
-        logger.info(
-            "Value Inverse Propensity Score : {0:.3f}".format(
-                value_inverse_propensity_score
-            )
-        )
-        logger.info(
-            "Value Direct Method            : {0:.3f}".format(value_direct_method)
-        )
-        logger.info(
-            "Value Doubly Robust P.E.       : {0:.3f}".format(value_doubly_robust)
-        )
-
-        reward_inverse_propensity_score, reward_direct_method, reward_doubly_robust = self.doubly_robust_policy_estimation(
+        reward_inverse_propensity_score, reward_direct_method, reward_doubly_robust = self.doubly_robust_one_step_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
             self.logged_propensities,
@@ -198,6 +176,43 @@ class GridworldEvaluator(Evaluator):
         )
         logger.info(
             "Reward Doubly Robust P.E.      : {0:.3f}".format(reward_doubly_robust)
+        )
+
+        value_inverse_propensity_score, value_direct_method, value_doubly_robust = self.doubly_robust_one_step_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_values,
+            self.logged_propensities,
+            target_propensities,
+            self.estimated_ltv_values,
+        )
+        self.value_inverse_propensity_score.append(value_inverse_propensity_score)
+        self.value_direct_method.append(value_direct_method)
+        self.value_doubly_robust.append(value_doubly_robust)
+
+        logger.info(
+            "Value Inverse Propensity Score : {0:.3f}".format(
+                value_inverse_propensity_score
+            )
+        )
+        logger.info(
+            "Value Direct Method            : {0:.3f}".format(value_direct_method)
+        )
+        logger.info(
+            "Value One-Step Doubly Robust P.E.       : {0:.3f}".format(value_doubly_robust)
+        )
+
+        sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_rewards,
+            self.logged_is_terminals,
+            self.logged_propensities,
+            target_propensities,
+            self.estimated_ltv_values
+        )
+        self.sequential_value_doubly_robust.append(sequential_doubly_robust)
+
+        logger.info(
+            "Value Sequential Doubly Robust P.E. : {0:.3f}".format(sequential_doubly_robust)
         )
 
 

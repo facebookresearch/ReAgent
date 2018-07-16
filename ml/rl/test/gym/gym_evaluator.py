@@ -14,19 +14,19 @@ logger = logging.getLogger(__name__)
 
 class GymEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 0.25
-    DISCOUNT = 0.99
 
     __slots__ = [
         "logged_states",
         "logged_actions",
         "logged_propensites",
         "logged_rewards",
+        "logged_is_terminals"
         "_env"
     ]
 
-    def __init__(self, env, use_int_features: bool = False) -> None:
+    def __init__(self, env, gamma, use_int_features: bool = False) -> None:
         #TODO: incorporate int features
-        super(GymEvaluator, self).__init__(None, 1)
+        super(GymEvaluator, self).__init__(None, 1, gamma)
 
         self._env = env
         if self._env.action_type == EnvType.CONTINUOUS_ACTION:
@@ -36,13 +36,15 @@ class GymEvaluator(Evaluator):
          self.logged_actions,
          self.logged_propensities,
          self.logged_rewards,
-         self.logged_values
-         ) = GymEvaluator.generate_samples(self._env, 50, 0.05)
+         self.logged_values,
+         self.logged_is_terminals
+         ) = self._generate_samples(50, 0.05)
 
         self.logged_states = np.array(self.logged_states).astype(np.float32)
         self.logged_propensities = np.array(self.logged_propensities).reshape(-1, 1)
         self.logged_rewards = np.array(self.logged_rewards).reshape(-1, 1)
         self.logged_values = np.array(self.logged_values).reshape(-1, 1)
+        self.logged_is_terminals = np.array(self.logged_is_terminals).reshape(-1, 1)
 
         self.logged_actions_one_hot = np.zeros(
             shape=[len(self.logged_actions), self._env.action_dim],
@@ -51,10 +53,9 @@ class GymEvaluator(Evaluator):
         for i, action in enumerate(self.logged_actions):
             self.logged_actions_one_hot[i, action] = 1.0
 
-    @staticmethod
-    def generate_samples(
-        env, num_episodes, epsilon
-    ) -> Tuple[List[object], List[int], List[float], List[float], List[float]]:
+    def _generate_samples(
+        self, num_episodes, epsilon
+    ) -> Tuple[List[object], List[int], List[float], List[float], List[float], List[bool]]:
         """
         Generate and log samples according to a random policy.
         """
@@ -64,24 +65,27 @@ class GymEvaluator(Evaluator):
         propensities: List[float] = []
         rewards: List[float] = []
         values: List[float] = []
+        is_terminals: List[bool] = []
 
         for _ in range(num_episodes):
             last_end = len(states) - 1
 
-            terminal = False
-            state = env.transform_state(env.env.reset())
+            state = self._env.transform_state(self._env.env.reset())
             states.append(state)
             values.append(0.0)
+            is_terminals.append(False)
+            terminal = False
 
             while not terminal:
-                action = env.action_space.sample()
-                propensity = 1.0 / env.action_dim
+                action = self._env.action_space.sample()
+                propensity = 1.0 / self._env.action_dim
                 actions.append(action)
                 propensities.append(propensity)
 
-                state, reward, terminal, _ = env.env.step(action)
-                state = env.transform_state(state)
+                state, reward, terminal, _ = self._env.env.step(action)
+                state = self._env.transform_state(state)
                 rewards.append(reward)
+                is_terminals.append(terminal)
 
                 states.append(state)
                 values.append(0.0)
@@ -89,13 +93,13 @@ class GymEvaluator(Evaluator):
             # reward, action, propensity for terminal state
             rewards.append(0.0)
             values[-1] = rewards[-1]
-            actions.append(env.action_space.sample())
-            propensities.append(1.0 / env.action_dim)
+            actions.append(self._env.action_space.sample())
+            propensities.append(1.0 / self._env.action_dim)
 
             # calculate true values
             i = len(states) - 2
             while i > last_end:
-                values[i] += rewards[i] + GymEvaluator.DISCOUNT * values[i + 1]
+                values[i] += rewards[i] + self.gamma * values[i + 1]
                 i -= 1
 
         return (
@@ -103,7 +107,8 @@ class GymEvaluator(Evaluator):
             actions,
             propensities,
             rewards,
-            values
+            values,
+            is_terminals
         )
 
     def evaluate(self, predictor):
@@ -127,8 +132,8 @@ class GymEvaluator(Evaluator):
             logged_reward = self.logged_rewards[i][0]
             estimated_reward = estimated_reward_values[i][logged_action]
             reward_error_sum += abs(logged_reward - estimated_reward)
-        value_error_mean = value_error_sum / float(len(self.logged_states))
-        reward_error_mean = reward_error_sum / float(len(self.logged_states))
+        value_error_mean = value_error_sum / np.sum(np.abs(self.logged_values))
+        reward_error_mean = reward_error_sum / np.sum(np.abs(self.logged_rewards))
 
         logger.info("EVAL Q-Value MAE ERROR: {0:.3f}".format(value_error_mean))
         self.mc_loss.append(value_error_mean)
@@ -139,30 +144,7 @@ class GymEvaluator(Evaluator):
             predictions, GymEvaluator.SOFTMAX_TEMPERATURE
         )
 
-        value_inverse_propensity_score, value_direct_method, value_doubly_robust = self.doubly_robust_policy_estimation(
-            self.logged_actions_one_hot,
-            self.logged_values,
-            self.logged_propensities,
-            target_propensities,
-            predictions,
-        )
-        self.value_inverse_propensity_score.append(value_inverse_propensity_score)
-        self.value_direct_method.append(value_direct_method)
-        self.value_doubly_robust.append(value_doubly_robust)
-
-        logger.info(
-            "Value Inverse Propensity Score : {0:.3f}".format(
-                value_inverse_propensity_score
-            )
-        )
-        logger.info(
-            "Value Direct Method            : {0:.3f}".format(value_direct_method)
-        )
-        logger.info(
-            "Value Doubly Robust P.E.       : {0:.3f}".format(value_doubly_robust)
-        )
-
-        reward_inverse_propensity_score, reward_direct_method, reward_doubly_robust = self.doubly_robust_policy_estimation(
+        reward_inverse_propensity_score, reward_direct_method, reward_doubly_robust = self.doubly_robust_one_step_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
             self.logged_propensities,
@@ -183,4 +165,67 @@ class GymEvaluator(Evaluator):
         )
         logger.info(
             "Reward Doubly Robust P.E.      : {0:.3f}".format(reward_doubly_robust)
+        )
+
+        value_inverse_propensity_score, value_direct_method, value_doubly_robust = self.doubly_robust_one_step_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_values,
+            self.logged_propensities,
+            target_propensities,
+            predictions,
+        )
+        self.value_inverse_propensity_score.append(value_inverse_propensity_score)
+        self.value_direct_method.append(value_direct_method)
+        self.value_doubly_robust.append(value_doubly_robust)
+
+        logger.info(
+            "Value Inverse Propensity Score    : {0:.3f}".format(
+                value_inverse_propensity_score
+            )
+        )
+        logger.info(
+            "Value Direct Method               : {0:.3f}".format(value_direct_method)
+        )
+        logger.info(
+            "Value One-Step Doubly Robust P.E. : {0:.3f}".format(value_doubly_robust)
+        )
+
+        sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_rewards,
+            self.logged_is_terminals,
+            self.logged_propensities,
+            target_propensities,
+            predictions
+        )
+        self.sequential_value_doubly_robust.append(sequential_doubly_robust)
+
+        logger.info(
+            "Value Sequential Doubly Robust P.E. : {0:.3f}".format(sequential_doubly_robust)
+        )
+
+        avg_rewards, avg_discounted_rewards = self._env.run_ep_n_times(
+            100, predictor, test=True
+        )
+
+        episode_starts = np.nonzero(self.logged_is_terminals.squeeze())[0] + 1
+        logged_discounted_performance = (
+            self.logged_values[0][0] +
+            np.sum(self.logged_values[episode_starts[:-1]])
+        ) / np.sum(self.logged_is_terminals)
+
+        true_discounted_value_PE = avg_discounted_rewards / logged_discounted_performance
+        self.true_discounted_value_PE.append(true_discounted_value_PE)
+
+        logger.info(
+            "True Discounted Value P.E : {0:.3f}".format(true_discounted_value_PE)
+        )
+
+        logged_performance = np.sum(self.logged_rewards) / np.sum(self.logged_is_terminals)
+
+        true_value_PE = avg_rewards / logged_performance
+        self.true_value_PE.append(true_value_PE)
+
+        logger.info(
+            "True Value P.E : {0:.3f}".format(true_value_PE)
         )

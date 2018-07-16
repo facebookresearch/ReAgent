@@ -194,7 +194,7 @@ def run(
 
             # Evaluation loop
             if total_timesteps % test_every_ts == 0 and total_timesteps > test_after_ts:
-                avg_rewards = gym_env.run_ep_n_times(
+                avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
                     avg_over_num_episodes, predictor, test=True
                 )
                 avg_reward_history.append(avg_rewards)
@@ -217,7 +217,7 @@ def run(
 
         # Always eval on last episode if previous eval loop didn't return.
         if i == num_episodes - 1:
-            avg_rewards = gym_env.run_ep_n_times(
+            avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
                 avg_over_num_episodes, predictor, test=True
             )
             avg_reward_history.append(avg_rewards)
@@ -312,7 +312,11 @@ def run_gym(
 
     env_type = params["env"]
     env = OpenAIGymEnvironment(
-        env_type, 0.0, rl_parameters.softmax_policy, params["max_replay_memory_size"]
+        env_type,
+        rl_parameters.epsilon,
+        rl_parameters.softmax_policy,
+        params["max_replay_memory_size"],
+        rl_parameters.gamma
     )
     model_type = params["model_type"]
     c2_device = core.DeviceOption(

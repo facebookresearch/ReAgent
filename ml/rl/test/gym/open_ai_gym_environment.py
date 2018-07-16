@@ -30,7 +30,9 @@ class EnvType(enum.Enum):
 
 
 class OpenAIGymEnvironment:
-    def __init__(self, gymenv, epsilon, softmax_policy, max_replay_memory_size):
+    def __init__(
+        self, gymenv, epsilon, softmax_policy, max_replay_memory_size, gamma
+    ):
         """
         Creates an OpenAIGymEnvironment object.
 
@@ -48,6 +50,7 @@ class OpenAIGymEnvironment:
         self.max_replay_memory_size = max_replay_memory_size
         self.memory_num = 0
         self.skip_insert_until = self.max_replay_memory_size
+        self.gamma = gamma
 
         self._create_env(gymenv)
         if not self.img:
@@ -262,11 +265,15 @@ class OpenAIGymEnvironment:
         :param render: Whether or not to render the episode.
         """
         reward_sum = 0.0
+        discounted_reward_sum = 0.0
         for _ in range(n):
-            ep_rew_sum = self.run_episode(predictor, max_steps, test, render)
+            ep_rew_sum, ep_raw_discounted_sum = self.run_episode(
+                predictor, max_steps, test, render)
             reward_sum += ep_rew_sum
+            discounted_reward_sum += ep_raw_discounted_sum
         avg_rewards = round(reward_sum / n, 2)
-        return avg_rewards
+        avg_discounted_rewards = round(discounted_reward_sum / n, 2)
+        return avg_rewards, avg_discounted_rewards
 
     def transform_state(self, state):
         if self.img:
@@ -288,6 +295,7 @@ class OpenAIGymEnvironment:
         next_state = self.transform_state(self.env.reset())
         next_action = self.policy(predictor, next_state, test)
         reward_sum = 0
+        discounted_reward_sum = 0
         num_steps_taken = 0
 
         while not terminal:
@@ -305,9 +313,10 @@ class OpenAIGymEnvironment:
             num_steps_taken += 1
             next_action = self.policy(predictor, next_state, test)
             reward_sum += reward
+            discounted_reward_sum += reward * self.gamma ** (num_steps_taken - 1)
 
             if max_steps and num_steps_taken >= max_steps:
                 break
 
         self.env.reset()
-        return reward_sum
+        return reward_sum, discounted_reward_sum
