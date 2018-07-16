@@ -175,6 +175,7 @@ class GridworldContinuous(GridworldBase):
                     if samples.reward_timelines
                     else None,
                     time_diffs=time_diffs[start:end],
+                    possible_next_actions_lengths=pnas_lengths[start:end],
                 )
             )
         return tdps

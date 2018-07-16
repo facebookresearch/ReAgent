@@ -342,11 +342,7 @@ def run_gym(
         trainer_params = DiscreteActionModelParameters(
             actions=env.actions, rl=rl_parameters, training=training_parameters
         )
-        trainer = DQNTrainer(
-            trainer_params,
-            env.normalization,
-            gpu_id != USE_CPU
-        )
+        trainer = DQNTrainer(trainer_params, env.normalization, gpu_id != USE_CPU)
 
     elif model_type == ModelType.DISCRETE_ACTION.value:
         with core.DeviceScope(c2_device):
@@ -397,7 +393,7 @@ def run_gym(
             trainer_params,
             env.normalization,
             env.normalization_action,
-            gpu_id != USE_CPU
+            gpu_id != USE_CPU,
         )
     elif model_type == ModelType.PARAMETRIC_ACTION.value:
         with core.DeviceScope(c2_device):

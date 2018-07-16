@@ -36,7 +36,6 @@ class DQNTrainer(RLTrainer):
     ) -> None:
 
         self.minibatch_size = parameters.training.minibatch_size
-        self.maxq_learning = parameters.rl.maxq_learning
         self._actions = parameters.actions if parameters.actions is not None else []
 
         self.reward_shape = {}  # type: Dict[int, float]
@@ -92,7 +91,6 @@ class DQNTrainer(RLTrainer):
             state i.
         """
         q_values = self.q_network_target(states).detach()
-        self.all_action_scores = deepcopy(q_values)
 
         # Set q-values of impossible actions to a very large negative number.
         inverse_pna = 1 - possible_actions
@@ -108,7 +106,6 @@ class DQNTrainer(RLTrainer):
         :param next_actions: Numpy array with shape (batch_size, action_dim).
         """
         q_values = self.q_network_target(states).detach()
-        self.all_action_scores = deepcopy(q_values)
         return Variable(torch.sum(q_values * next_actions, 1))
 
     def train(
@@ -139,16 +136,16 @@ class DQNTrainer(RLTrainer):
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)
 
-        # Compute max a' Q(s', a') over all possible actions using target network
         if self.maxq_learning:
+            # Compute max a' Q(s', a') over all possible actions using target network
             possible_next_actions = Variable(
                 torch.from_numpy(training_samples.possible_next_actions).type(
                     self.dtype
                 )
             )
             next_q_values = self.get_max_q_values(next_states, possible_next_actions)
-        # SARSA
         else:
+            # SARSA
             next_actions = Variable(
                 torch.from_numpy(training_samples.next_actions).type(self.dtype)
             )
@@ -162,7 +159,10 @@ class DQNTrainer(RLTrainer):
             target_q_values = rewards
 
         # Get Q-value of action taken
-        q_values = torch.sum(self.q_network(states) * actions, 1)
+        all_q_values = self.q_network(states)
+        self.all_action_scores = deepcopy(all_q_values.detach())
+        q_values = torch.sum(all_q_values * actions, 1)
+
         loss = F.mse_loss(q_values, target_q_values)
         self.loss = loss.detach()
 

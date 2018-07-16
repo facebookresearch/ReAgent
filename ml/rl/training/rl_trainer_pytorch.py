@@ -28,6 +28,7 @@ class RLTrainer:
         self.reward_burnin = parameters.rl.reward_burnin
         self._additional_feature_types = additional_feature_types
         self.rl_temperature = parameters.rl.temperature
+        self.maxq_learning = parameters.rl.maxq_learning
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff

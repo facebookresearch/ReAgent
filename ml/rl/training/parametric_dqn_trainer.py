@@ -8,13 +8,14 @@ import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+from ml.rl.caffe_utils import StackedArray
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
 from ml.rl.thrift.core.ttypes import (
     AdditionalFeatureTypes,
-    DiscreteActionModelParameters,
+    ContinuousActionModelParameters,
 )
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
@@ -22,13 +23,14 @@ from ml.rl.training.rl_trainer_pytorch import (
     RLTrainer,
 )
 from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class ParametricDQNTrainer(RLTrainer):
     def __init__(
         self,
-        parameters: DiscreteActionModelParameters,
+        parameters: ContinuousActionModelParameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
         use_gpu=False,
@@ -89,6 +91,9 @@ class ParametricDQNTrainer(RLTrainer):
         # TODO (edoardoc): Refactor to use EmbeddingBag as outlined in:
         # https://fb.facebook.com/groups/1405155842844877/permalink/2268098803217239/
 
+        if isinstance(possible_actions, StackedArray):
+            possible_actions = possible_actions.values
+
         q_network_input = []
         pna_len_cumsum = possible_actions_lengths.cumsum()
 
@@ -102,7 +107,7 @@ class ParametricDQNTrainer(RLTrainer):
             pa_idx_lo = pa_idx_hi
 
         q_network_input = torch.from_numpy(np.array(q_network_input)).type(self.dtype)
-        q_values = self.q_network_target(q_network_input).cpu().data.numpy()
+        q_values = self.q_network_target(q_network_input).detach().cpu().data.numpy()
 
         max_q_values = []
         q_val_idx_lo = 0
@@ -115,6 +120,17 @@ class ParametricDQNTrainer(RLTrainer):
             q_val_idx_lo = q_val_idx_hi
 
         return Variable(torch.from_numpy(np.array(max_q_values)).type(self.dtype))
+
+    def get_next_action_q_values(self, states, next_actions):
+        """
+        :param states: Numpy array with shape (batch_size, state_dim). Each row
+            contains a representation of a state.
+        :param next_actions: Numpy array with shape (batch_size, state_dim). Each row
+            contains a representation of an action.
+        """
+        q_network_input = np.concatenate([states, next_actions], 1)
+        q_network_input = torch.from_numpy(q_network_input).type(self.dtype)
+        return Variable(self.q_network_target(q_network_input).detach().squeeze())
 
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
@@ -134,13 +150,20 @@ class ParametricDQNTrainer(RLTrainer):
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)
 
-        # Compute max a' Q(s', a') over all possible actions using target network
-        max_q_values = self.get_max_q_values(
-            training_samples.next_states,
-            training_samples.possible_next_actions,
-            training_samples.possible_next_actions_lengths,
-        )
-        filtered_max_q_vals = max_q_values * not_done_mask
+        if self.maxq_learning:
+            # Compute max a' Q(s', a') over all possible actions using target network
+            next_q_values = self.get_max_q_values(
+                training_samples.next_states,
+                training_samples.possible_next_actions,
+                training_samples.possible_next_actions_lengths,
+            )
+        else:
+            # SARSA
+            next_q_values = self.get_next_action_q_values(
+                training_samples.next_states, training_samples.next_actions
+            )
+
+        filtered_max_q_vals = next_q_values * not_done_mask
 
         if self.minibatch >= self.reward_burnin:
             target_q_values = rewards + (discount_tensor * filtered_max_q_vals)
@@ -149,8 +172,11 @@ class ParametricDQNTrainer(RLTrainer):
 
         # Get Q-value of action taken
         q_values = self.q_network(torch.cat((states, actions), dim=1)).squeeze()
+        self.all_action_scores = deepcopy(q_values.detach())
 
         value_loss = F.mse_loss(q_values, target_q_values)
+        self.loss = value_loss.detach()
+
         self.q_network_optimizer.zero_grad()
         value_loss.backward()
         self.q_network_optimizer.step()
@@ -171,25 +197,50 @@ class ParametricDQNTrainer(RLTrainer):
         reward_loss.backward()
         self.reward_network_optimizer.step()
 
+        # Policy evaluation logic
+        if training_samples.reward_timelines is not None:
+            ground_truth = np.array(
+                [
+                    self.get_value_from_timeline(self.gamma, rt)
+                    for rt in training_samples.reward_timelines
+                ]
+            ).reshape(-1, 1)
+        else:
+            ground_truth = None
+
+        if evaluator is not None:
+            self.evaluate(
+                evaluator,
+                training_samples.actions,
+                training_samples.propensities,
+                ground_truth,
+            )
+
     def evaluate(
         self,
         evaluator: Evaluator,
-        td_loss: Optional[np.ndarray],
         logged_actions: Optional[np.ndarray],
         logged_propensities: Optional[np.ndarray],
-        logged_rewards: Optional[np.ndarray],
         logged_values: Optional[np.ndarray],
-        all_action_scores: Optional[np.ndarray],
     ):
-        model_values_on_logged_actions = all_action_scores
-
         evaluator.report(
-            td_loss,
+            self.loss.cpu().numpy(),
             None,
             None,
             None,
             logged_values,
             None,
             None,
-            model_values_on_logged_actions,
+            self.all_action_scores.cpu().numpy(),
+            None,
+        )
+
+    def predictor(self) -> ParametricDQNPredictor:
+        """Builds a ParametricDQNPredictor."""
+        return ParametricDQNPredictor.export(
+            self,
+            self.state_normalization_parameters,
+            self.action_normalization_parameters,
+            self._additional_feature_types.int_features,
+            self.use_gpu,
         )
