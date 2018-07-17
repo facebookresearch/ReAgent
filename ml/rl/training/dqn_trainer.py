@@ -113,15 +113,16 @@ class DQNTrainer(RLTrainer):
     ) -> None:
 
         # Apply reward boost if specified
+        boosted_rewards = np.copy(training_samples.rewards)
         if len(self.reward_shape) > 0:
             boost_idxs = np.argmax(training_samples.actions, 1)
             boosts = np.array([self.reward_shape[x] for x in boost_idxs])
-            training_samples.rewards += boosts
+            boosted_rewards += boosts
 
         self.minibatch += 1
         states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
         actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
-        rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
+        rewards = Variable(torch.from_numpy(boosted_rewards).type(self.dtype))
         next_states = Variable(
             torch.from_numpy(training_samples.next_states).type(self.dtype)
         )
@@ -179,9 +180,9 @@ class DQNTrainer(RLTrainer):
 
         # get reward estimates
         reward_estimates = (
-            self.reward_network(states).gather(
-                1, actions.argmax(1).unsqueeze(1)
-            ).squeeze()
+            self.reward_network(states)
+            .gather(1, actions.argmax(1).unsqueeze(1))
+            .squeeze()
         )
         reward_loss = F.mse_loss(reward_estimates, rewards)
         self.reward_network_optimizer.zero_grad()
@@ -204,10 +205,9 @@ class DQNTrainer(RLTrainer):
                 evaluator,
                 training_samples.actions,
                 training_samples.propensities,
-                np.expand_dims(training_samples.rewards, axis=1),
+                np.expand_dims(boosted_rewards, axis=1),
                 ground_truth,
             )
-
 
     def evaluate(
         self,

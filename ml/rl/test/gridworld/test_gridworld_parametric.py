@@ -52,7 +52,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT)
@@ -60,19 +60,20 @@ class TestGridworldContinuous(unittest.TestCase):
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
-        for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
-            trainer.train(tdp)
+        for _ in range(5):
+            for tdp in tdps:
+                tdp.rewards = tdp.rewards.flatten()
+                tdp.not_terminals = tdp.not_terminals.flatten()
+                trainer.train(tdp)
 
         predictor = trainer.predictor()
         evaluator.evaluate(predictor)
 
-        self.assertLess(evaluator.evaluate(predictor), 0.05)
+        self.assertLess(evaluator.evaluate(predictor), 0.1)
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT)
@@ -80,15 +81,16 @@ class TestGridworldContinuous(unittest.TestCase):
 
         self.assertGreater(evaluator.evaluate(predictor), 0.15)
 
-        for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
-            trainer.train(tdp)
+        for _ in range(5):
+            for tdp in tdps:
+                tdp.rewards = tdp.rewards.flatten()
+                tdp.not_terminals = tdp.not_terminals.flatten()
+                trainer.train(tdp)
 
         predictor = trainer.predictor()
         evaluator.evaluate(predictor)
 
-        self.assertLess(evaluator.evaluate(predictor), 0.05)
+        self.assertLess(evaluator.evaluate(predictor), 0.1)
 
     def test_trainer_maxq(self):
         environment = GridworldContinuous()
@@ -109,13 +111,13 @@ class TestGridworldContinuous(unittest.TestCase):
             environment.normalization_action,
         )
 
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 0.5)
         predictor = maxq_trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
         evaluator = GridworldContinuousEvaluator(environment, True, DISCOUNT)
         self.assertGreater(evaluator.evaluate(predictor), 0.2)
 
-        for _ in range(2):
+        for _ in range(5):
             for tdp in tdps:
                 tdp.rewards = tdp.rewards.flatten()
                 tdp.not_terminals = tdp.not_terminals.flatten()
@@ -127,7 +129,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_ground_truth(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
@@ -139,25 +141,25 @@ class TestGridworldContinuous(unittest.TestCase):
         evaluator = Evaluator(None, 1, DISCOUNT)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
-        for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
-            trainer.train(tdp, evaluator)
+        for _ in range(5):
+            for tdp in tdps:
+                tdp.rewards = tdp.rewards.flatten()
+                tdp.not_terminals = tdp.not_terminals.flatten()
+                trainer.train(tdp, evaluator)
 
-        self.assertLess(evaluator.td_loss[-1], 0.05)
-        self.assertLess(evaluator.mc_loss[-1], 0.12)
+        self.assertLess(evaluator.mc_loss[-1], 0.1)
 
     def test_evaluator_timeline(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(100000, 1.0)
+        samples = environment.generate_samples(200000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(None, 1, DISCOUNT)
 
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
-        for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
-            trainer.train(tdp, evaluator)
+        for _ in range(5):
+            for tdp in tdps:
+                tdp.rewards = tdp.rewards.flatten()
+                tdp.not_terminals = tdp.not_terminals.flatten()
+                trainer.train(tdp, evaluator)
 
-        self.assertLess(evaluator.td_loss[-1], 0.2)
-        self.assertLess(evaluator.mc_loss[-1], 0.2)
+        self.assertLess(evaluator.mc_loss[-1], 0.1)

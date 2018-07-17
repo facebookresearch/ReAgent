@@ -51,8 +51,8 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_ddpg_trainer(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(200000, 1.0)
-        epochs = 3
+        samples = environment.generate_samples(200000, 0.5)
+        epochs = 5
         trainer = DDPGTrainer(
             self.get_ddpg_parameters(),
             environment.normalization,
