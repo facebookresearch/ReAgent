@@ -3,6 +3,8 @@
 from collections import Counter
 from typing import List
 import numpy as np
+import itertools
+import copy
 
 import logging
 
@@ -10,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class Evaluator(object):
-
     def __init__(self, action_names, evaluator_batch_size, gamma) -> None:
         self.action_names = action_names
         self.mc_loss: List[float] = []
@@ -20,6 +21,7 @@ class Evaluator(object):
         self.value_direct_method: List[float] = []
         self.value_doubly_robust: List[float] = []
         self.sequential_value_doubly_robust: List[float] = []
+        self.weighted_sequential_value_doubly_robust: List[float] = []
         self.true_value_PE: List[float] = []
         self.true_discounted_value_PE: List[float] = []
         self.reward_inverse_propensity_score: List[float] = []
@@ -270,12 +272,12 @@ class Evaluator(object):
                 episode_value = 0.0
                 doubly_robust = 0.0
                 for j in range(episode_end, last_episode_end - 1, -1):
-                    doubly_robust = (
-                        direct_method_Q_values[j][0] + importance_weight[j][0] * (
-                            logged_rewards[j][0] +
-                            self.gamma * doubly_robust -
-                            estimated_values_for_action[j][0]
-                        )
+                    doubly_robust = direct_method_Q_values[j][0] + importance_weight[j][
+                        0
+                    ] * (
+                        logged_rewards[j][0]
+                        + self.gamma * doubly_robust
+                        - estimated_values_for_action[j][0]
                     )
                     episode_value *= self.gamma
                     episode_value += logged_rewards[j][0]
@@ -283,6 +285,141 @@ class Evaluator(object):
                 last_episode_end = episode_end
             i += 1
         return np.mean(doubly_robusts)
+
+    def weighted_doubly_robust_sequential_policy_estimation(
+        self,
+        logged_actions,
+        logged_rewards,
+        logged_is_terminals,
+        logged_propensities,
+        target_propensities,
+        estimated_Q_values
+    ):
+        # For details, visit https://arxiv.org/pdf/1604.00923.pdf Section 5
+        (
+            actions,
+            rewards,
+            logged_propensities,
+            target_propensities,
+            estimated_Q_values,
+        ) = Evaluator.transform_to_equal_length_trajectories(
+            logged_is_terminals.squeeze(),
+            logged_actions,
+            logged_rewards.squeeze(),
+            logged_propensities.squeeze(),
+            target_propensities,
+            estimated_Q_values,
+        )
+
+        num_trajectories = len(actions)
+        trajectory_length = len(actions[0])
+
+        target_propensity_for_logged_action = np.sum(
+            np.multiply(target_propensities, actions), axis=2
+        )
+        estimated_Q_values_for_logged_action = np.sum(
+            np.multiply(estimated_Q_values, actions), axis=2
+        )
+        estimated_state_values = np.sum(
+            np.multiply(target_propensities, estimated_Q_values), axis=2
+        )
+
+        importance_weights = target_propensity_for_logged_action / logged_propensities
+        sum_importance_weights = np.sum(importance_weights, axis=0)
+        where_zeros = np.where(sum_importance_weights == 0.0)[0]
+        sum_importance_weights[where_zeros] = len(importance_weights)
+        importance_weights[:, where_zeros] = 1.0
+        importance_weights /= sum_importance_weights
+
+        importance_weights_one_earlier = (
+            np.ones([len(actions), 1]) * 1.0 / num_trajectories
+        )
+        importance_weights_one_earlier = np.hstack(
+            [importance_weights_one_earlier, importance_weights[:, 1:]]
+        )
+
+        discounts = np.logspace(
+            start=0, stop=trajectory_length - 1, num=trajectory_length, base=self.gamma
+        )
+        weighted_discounts = np.multiply(discounts, importance_weights)
+
+        weighted_doubly_robust = np.sum(
+            np.multiply(weighted_discounts, rewards)
+            - np.multiply(weighted_discounts, estimated_Q_values_for_logged_action)
+            + np.multiply(
+                np.multiply(discounts, importance_weights_one_earlier),
+                estimated_state_values,
+            )
+        )
+
+        episode_values = np.sum(np.multiply(rewards, discounts), axis=1)
+
+        return weighted_doubly_robust / np.mean(episode_values)
+
+    @staticmethod
+    def transform_to_equal_length_trajectories(
+        is_terminals,
+        actions,
+        rewards,
+        logged_propensities,
+        target_propensities,
+        estimated_Q_values,
+    ):
+        """
+        Take into samples (action, rewards, propensities, etc.) and output lists
+        of equal-length trajectories (episodes) accoriding to is_terminalsself.
+        As the raw trajectories are of various lengths, the shorter ones are
+        filled with zeros(ones) at the end.
+        """
+        num_actions = len(target_propensities[0])
+
+        trajectories = []
+        episode_start = 0
+        episode_ends = np.nonzero(is_terminals)[0]
+        for episode_end in episode_ends:
+            trajectories.append(np.arange(episode_start, episode_end + 1))
+            episode_start = episode_end + 1
+
+        action_trajectories = []
+        reward_trajectories = []
+        logged_propensity_trajectories = []
+        target_propensity_trajectories = []
+        Q_value_trajectories = []
+
+        for trajectory in trajectories:
+            action_trajectories.append(actions[trajectory])
+            reward_trajectories.append(rewards[trajectory])
+            logged_propensity_trajectories.append(logged_propensities[trajectory])
+            target_propensity_trajectories.append(target_propensities[trajectory])
+            Q_value_trajectories.append(estimated_Q_values[trajectory])
+
+        def to_equal_length(x, fill_value):
+            x_equal_length = np.array(
+                list(itertools.zip_longest(*x, fillvalue=fill_value))
+            ).swapaxes(0, 1)
+            return x_equal_length
+
+        action_trajectories = to_equal_length(
+            action_trajectories, np.zeros([num_actions])
+        )
+        reward_trajectories = to_equal_length(reward_trajectories, 0)
+        logged_propensity_trajectories = to_equal_length(
+            logged_propensity_trajectories, 1
+        )
+        target_propensity_trajectories = to_equal_length(
+            target_propensity_trajectories, np.zeros([num_actions])
+        )
+        Q_value_trajectories = to_equal_length(
+            Q_value_trajectories, np.zeros([num_actions])
+        )
+
+        return (
+            action_trajectories,
+            reward_trajectories,
+            logged_propensity_trajectories,
+            target_propensity_trajectories,
+            Q_value_trajectories,
+        )
 
     @staticmethod
     def softmax(x, temperature):

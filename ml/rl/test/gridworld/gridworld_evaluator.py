@@ -218,6 +218,20 @@ class GridworldEvaluator(Evaluator):
             "Value Sequential Doubly Robust P.E. : {0:.3f}".format(sequential_doubly_robust)
         )
 
+        weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_rewards,
+            self.logged_is_terminals,
+            self.logged_propensities,
+            target_propensities,
+            self.estimated_ltv_values
+        )
+        self.weighted_sequential_value_doubly_robust.append(weighted_doubly_robust)
+
+        logger.info(
+            "Value Weighted Sequential Doubly Robust P.E. : {0:.3f}".format(weighted_doubly_robust)
+        )
+
 
 class GridworldContinuousEvaluator(GridworldEvaluator):
     def evaluate(self, predictor):

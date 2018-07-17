@@ -38,7 +38,7 @@ class GymEvaluator(Evaluator):
          self.logged_rewards,
          self.logged_values,
          self.logged_is_terminals
-         ) = self._generate_samples(50, 0.05)
+         ) = self._generate_samples(500, 0.05)
 
         self.logged_states = np.array(self.logged_states).astype(np.float32)
         self.logged_propensities = np.array(self.logged_propensities).reshape(-1, 1)
@@ -202,6 +202,20 @@ class GymEvaluator(Evaluator):
 
         logger.info(
             "Value Sequential Doubly Robust P.E. : {0:.3f}".format(sequential_doubly_robust)
+        )
+
+        weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_rewards,
+            self.logged_is_terminals,
+            self.logged_propensities,
+            target_propensities,
+            predictions
+        )
+        self.weighted_sequential_value_doubly_robust.append(weighted_doubly_robust)
+
+        logger.info(
+            "Value Weighted Sequential Doubly Robust P.E. : {0:.3f}".format(weighted_doubly_robust)
         )
 
         avg_rewards, avg_discounted_rewards = self._env.run_ep_n_times(
