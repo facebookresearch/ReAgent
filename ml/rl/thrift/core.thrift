@@ -81,6 +81,7 @@ struct DDPGTrainingParameters {
   1: i32 minibatch_size = 128,
   2: double final_layer_init = 0.003,
   3: string optimizer = 'ADAM'
+  4: optional string warm_start_model_path,
 }
 
 struct DDPGModelParameters {

@@ -36,6 +36,8 @@ class ParametricDQNTrainer(RLTrainer):
         use_gpu=False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
+
+        self.warm_start_model_path = parameters.training.warm_start_model_path
         self.minibatch_size = parameters.training.minibatch_size
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters

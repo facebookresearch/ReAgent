@@ -35,6 +35,7 @@ class DQNTrainer(RLTrainer):
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
 
+        self.warm_start_model_path = parameters.training.warm_start_model_path
         self.minibatch_size = parameters.training.minibatch_size
         self._actions = parameters.actions if parameters.actions is not None else []
 

@@ -36,6 +36,7 @@ class DDPGTrainer(RLTrainer):
         self.action_dim = get_num_output_features(action_normalization_parameters)
 
         # Shared params
+        self.warm_start_model_path = parameters.shared_training.warm_start_model_path
         self.minibatch_size = parameters.shared_training.minibatch_size
         self.final_layer_init = parameters.shared_training.final_layer_init
         self._set_optimizer(parameters.shared_training.optimizer)
