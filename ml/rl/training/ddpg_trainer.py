@@ -228,8 +228,7 @@ class ActorNet(nn.Module):
 
         x = state
         for i, activation in enumerate(self.activations):
-            # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
-            # x = self.batch_norm_ops[i](x)
+            x = self.batch_norm_ops[i](x)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]
             x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
@@ -279,13 +278,10 @@ class CriticNet(nn.Module):
         x = state
         for i, activation in enumerate(self.activations):
             if i == 0:
-                # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
-                # x = self.batch_norm_ops[i](x)
-                pass
+                x = self.batch_norm_ops[i](x)
             # Actions skip input layer
             elif i == 1:
-                # TODO: (edoardoc) T30535967 Renable batchnorm when T30535876 is fixed
-                # x = self.batch_norm_ops[i](x)
+                x = self.batch_norm_ops[i](x)
                 x = torch.cat((x, action), dim=1)
             activation_func = getattr(F, activation)
             fc_func = self.layers[i]

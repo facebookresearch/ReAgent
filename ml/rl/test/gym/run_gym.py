@@ -322,6 +322,7 @@ def run_gym(
     c2_device = core.DeviceOption(
         caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA, gpu_id
     )
+    use_gpu = gpu_id != USE_CPU
 
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
         training_settings = params["training"]
@@ -346,7 +347,7 @@ def run_gym(
         trainer_params = DiscreteActionModelParameters(
             actions=env.actions, rl=rl_parameters, training=training_parameters
         )
-        trainer = DQNTrainer(trainer_params, env.normalization, gpu_id != USE_CPU)
+        trainer = DQNTrainer(trainer_params, env.normalization, use_gpu)
 
     elif model_type == ModelType.DISCRETE_ACTION.value:
         with core.DeviceScope(c2_device):
@@ -394,10 +395,7 @@ def run_gym(
             knn=KnnParameters(model_type="DQN"),
         )
         trainer = ParametricDQNTrainer(
-            trainer_params,
-            env.normalization,
-            env.normalization_action,
-            gpu_id != USE_CPU,
+            trainer_params, env.normalization, env.normalization_action, use_gpu
         )
     elif model_type == ModelType.PARAMETRIC_ACTION.value:
         with core.DeviceScope(c2_device):
@@ -444,7 +442,7 @@ def run_gym(
             trainer_params,
             env.normalization,
             env.normalization_action,
-            use_gpu=False,
+            use_gpu=use_gpu,
             action_range=action_range,
         )
 
