@@ -13,7 +13,7 @@ from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.test.utils import default_normalizer
 
 # Environment parameters
-DISCOUNT = 0.95
+DISCOUNT = 0.9
 
 # Used for legible specification of grids
 W = 1  # Walls
@@ -106,11 +106,11 @@ class GridworldBase(object):
 
     grid = np.array(
         [
-            [S, W, 0, 0, 0],  #
-            [0, W, 0, 0, 0],  #
-            [0, W, 0, W, 0],  #
-            [0, 0, 0, W, 0],  #
-            [0, 0, 0, W, G],  #
+            [S, 0, 0, 0, 0],  #
+            [0, 0, W, 0, 0],  #
+            [0, 0, W, 0, 0],  #
+            [0, 0, W, 0, 0],  #
+            [0, 0, 0, 0, G],  #
         ]
     )
 
@@ -491,8 +491,12 @@ class GridworldBase(object):
         )
         is_terminals = np.array(samples.is_terminal, dtype=np.bool).reshape(-1, 1)
         not_terminals = np.logical_not(is_terminals)
+        episode_values = None
         if samples.reward_timelines is not None:
-            reward_timelines = np.array(samples.reward_timelines, dtype=np.object)
+            episode_values = np.zeros(rewards.shape, dtype=np.float32)
+            for i, reward_timeline in enumerate(samples.reward_timelines):
+                for time_diff, reward in reward_timeline.items():
+                    episode_values[i, 0] += reward * (DISCOUNT ** time_diff)
 
         states_ndarray = workspace.FetchBlob(state_matrix)
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
@@ -512,8 +516,8 @@ class GridworldBase(object):
                     not_terminals=not_terminals[start:end],
                     next_actions=next_actions_one_hot[start:end],
                     possible_next_actions=possible_next_actions_mask[start:end],
-                    reward_timelines=reward_timelines[start:end]
-                    if reward_timelines is not None
+                    episode_values=episode_values[start:end]
+                    if episode_values is not None
                     else None,
                     time_diffs=time_diffs[start:end],
                 )

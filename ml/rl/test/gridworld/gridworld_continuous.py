@@ -9,7 +9,7 @@ from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray, StackedArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.utils import default_normalizer
-from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
+from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples, DISCOUNT
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -162,6 +162,13 @@ class GridworldContinuous(GridworldBase):
         )
         next_state_pnas_concat = workspace.FetchBlob(state_pnas_blob)
         time_diffs = np.ones(len(states_ndarray))
+        episode_values = None
+        if samples.reward_timelines is not None:
+            episode_values = np.zeros(rewards.shape, dtype=np.float32)
+            for i, reward_timeline in enumerate(samples.reward_timelines):
+                for time_diff, reward in reward_timeline.items():
+                    episode_values[i, 0] += reward * (DISCOUNT ** time_diff)
+
         tdps = []
         pnas_start = 0
         for start in range(0, states_ndarray.shape[0], minibatch_size):
@@ -181,8 +188,8 @@ class GridworldContinuous(GridworldBase):
                     next_actions=next_actions_ndarray[start:end],
                     possible_next_actions=StackedArray(pnas_lengths[start:end], pnas),
                     not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
-                    reward_timelines=samples.reward_timelines[start:end]
-                    if samples.reward_timelines
+                    episode_values=episode_values[start:end]
+                    if episode_values is not None
                     else None,
                     time_diffs=time_diffs[start:end],
                     possible_next_actions_lengths=pnas_lengths[start:end],

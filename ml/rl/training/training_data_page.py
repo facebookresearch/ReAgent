@@ -11,7 +11,7 @@ class TrainingDataPage(object):
         "next_actions",
         "possible_next_actions",
         "possible_next_actions_lengths",
-        "reward_timelines",
+        "episode_values",
         "not_terminals",
         "time_diffs",
         "next_state_pnas_concat",
@@ -26,7 +26,7 @@ class TrainingDataPage(object):
         next_states=None,
         next_actions=None,
         possible_next_actions=None,
-        reward_timelines=None,
+        episode_values=None,
         not_terminals=None,
         time_diffs=None,
         possible_next_actions_lengths=None,
@@ -45,7 +45,7 @@ class TrainingDataPage(object):
         self.next_states = next_states
         self.next_actions = next_actions
         self.possible_next_actions = possible_next_actions
-        self.reward_timelines = reward_timelines
+        self.episode_values = episode_values
         self.not_terminals = not_terminals
         self.time_diffs = time_diffs
         self.possible_next_actions_lengths = possible_next_actions_lengths
@@ -74,7 +74,7 @@ class TrainingDataPage(object):
             self.next_states[start:end],
             None if self.next_actions is None else self.next_actions[start:end],
             None if self.possible_next_actions is None else sub_pna,
-            None if self.reward_timelines is None else self.reward_timelines[start:end],
+            None if self.episode_values is None else self.episode_values[start:end],
             None if self.not_terminals is None else self.not_terminals[start:end],
             None if self.time_diffs is None else self.time_diffs[start:end],
             None

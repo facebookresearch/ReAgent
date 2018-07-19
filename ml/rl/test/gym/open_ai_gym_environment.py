@@ -30,9 +30,7 @@ class EnvType(enum.Enum):
 
 
 class OpenAIGymEnvironment:
-    def __init__(
-        self, gymenv, epsilon, softmax_policy, max_replay_memory_size, gamma
-    ):
+    def __init__(self, gymenv, epsilon, softmax_policy, max_replay_memory_size, gamma):
         """
         Creates an OpenAIGymEnvironment object.
 
@@ -145,7 +143,7 @@ class OpenAIGymEnvironment:
             next_states=np.array(cols[3], dtype=np.float32),
             next_actions=np.array(cols[4], dtype=np.float32),
             possible_next_actions=possible_next_actions,
-            reward_timelines=None,
+            episode_values=None,
             not_terminals=np.logical_not(np.array(cols[5]), dtype=np.bool),
             time_diffs=np.array(cols[8], dtype=np.int32),
             possible_next_actions_lengths=possible_next_actions_lengths,
@@ -268,7 +266,8 @@ class OpenAIGymEnvironment:
         discounted_reward_sum = 0.0
         for _ in range(n):
             ep_rew_sum, ep_raw_discounted_sum = self.run_episode(
-                predictor, max_steps, test, render)
+                predictor, max_steps, test, render
+            )
             reward_sum += ep_rew_sum
             discounted_reward_sum += ep_raw_discounted_sum
         avg_rewards = round(reward_sum / n, 2)

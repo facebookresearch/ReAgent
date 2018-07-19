@@ -24,7 +24,7 @@ class TestConstantReward(unittest.TestCase):
         self.state_dims = 5
         self.action_dims = 2
         self.num_samples = 10000
-        self.minibatch_size = 256
+        self.minibatch_size = 128
         self.epochs = 50
         super(self.__class__, self).setUp()
 

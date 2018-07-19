@@ -15,16 +15,17 @@ class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
 
     def __init__(
-        self, env, assume_optimal_policy: bool, gamma, use_int_features: bool = False
+        self, env, assume_optimal_policy: bool, gamma, use_int_features: bool, samples
     ) -> None:
         super(GridworldEvaluator, self).__init__(None, 1, gamma)
 
         self._env = env
 
-        if assume_optimal_policy:
-            samples = env.generate_samples(200000, 0.5)
-        else:
-            samples = env.generate_samples(200000, 1.0)
+        if samples is None:
+            if assume_optimal_policy:
+                samples = env.generate_samples(200000, 0.25)
+            else:
+                samples = env.generate_samples(200000, 1.0)
         self.logged_states = samples.states
         self.logged_actions = samples.actions
         self.logged_propensities = np.array(samples.propensities).reshape(-1, 1)
@@ -201,7 +202,9 @@ class GridworldEvaluator(Evaluator):
             "Value Direct Method            : {0:.3f}".format(value_direct_method)
         )
         logger.info(
-            "Value One-Step Doubly Robust P.E.       : {0:.3f}".format(value_doubly_robust)
+            "Value One-Step Doubly Robust P.E.       : {0:.3f}".format(
+                value_doubly_robust
+            )
         )
 
         sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
@@ -210,12 +213,14 @@ class GridworldEvaluator(Evaluator):
             self.logged_is_terminals,
             self.logged_propensities,
             target_propensities,
-            self.estimated_ltv_values
+            self.estimated_ltv_values,
         )
         self.sequential_value_doubly_robust.append(sequential_doubly_robust)
 
         logger.info(
-            "Value Sequential Doubly Robust P.E. : {0:.3f}".format(sequential_doubly_robust)
+            "Value Sequential Doubly Robust P.E. : {0:.3f}".format(
+                sequential_doubly_robust
+            )
         )
 
         weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(

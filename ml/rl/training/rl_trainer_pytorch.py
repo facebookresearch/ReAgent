@@ -79,12 +79,6 @@ class RLTrainer:
         self.q_network.train()
         return q_values.cpu().data.numpy()
 
-    def get_value_from_timeline(self, discount_factor, reward_timeline):
-        result = 0
-        for time, reward in reward_timeline.items():
-            result += (discount_factor ** time) * reward
-        return result
-
     def internal_reward_estimation(self, input):
         """ Reward-network forward pass for internal domains. """
         self.reward_network.eval()

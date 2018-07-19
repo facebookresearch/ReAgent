@@ -34,13 +34,6 @@ DEFAULT_ADDITIONAL_FEATURE_TYPES = AdditionalFeatureTypes(int_features=False)
 DEFAULT_PREPROCESSING_NUM_WORKERS = 32
 
 
-def test_values_from_timeline(discount_factor, reward_timeline):
-    result = 0
-    for time, reward in reward_timeline.items():
-        result += (discount_factor ** time) * reward
-    return result
-
-
 class RLTrainer:
     num_trainers = 0
     DEFAULT_TRAINING_NUM_WORKERS = 4
@@ -207,18 +200,9 @@ class RLTrainer:
                 workspace.FeedBlob("possible_next_actions", tdp.possible_next_actions)
         else:
             workspace.FeedBlob("next_actions", tdp.next_actions)
-        if tdp.reward_timelines is not None:
-            ground_truth = np.array(
-                [
-                    test_values_from_timeline(self.rl_discount_rate, rt)
-                    for rt in tdp.reward_timelines
-                ]
-            ).reshape(-1, 1)
-        else:
-            ground_truth = None
         self.train()
         if evaluator is not None:
-            self.evaluate(evaluator, tdp.actions, tdp.propensities, ground_truth)
+            self.evaluate(evaluator, tdp.actions, tdp.propensities, tdp.episode_values)
 
     def train(self) -> None:
         assert self.rl_train_model is not None

@@ -123,6 +123,7 @@ class ParametricDQNTrainer(RLTrainer):
         self.minibatch += 1
         states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
         actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
+        state_action_pairs = torch.cat((states, actions), dim=1)
         rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
         time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
         discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
@@ -155,7 +156,7 @@ class ParametricDQNTrainer(RLTrainer):
             target_q_values = rewards
 
         # Get Q-value of action taken
-        q_values = self.q_network(torch.cat((states, actions), dim=1))
+        q_values = self.q_network(state_action_pairs)
         self.all_action_scores = deepcopy(q_values.detach())
 
         value_loss = F.mse_loss(q_values.squeeze(), target_q_values)
@@ -173,31 +174,18 @@ class ParametricDQNTrainer(RLTrainer):
             self._soft_update(self.q_network, self.q_network_target, 1.0)
 
         # get reward estimates
-        reward_estimates = self.reward_network(
-            torch.cat((states, actions), dim=1)
-        ).squeeze()
+        reward_estimates = self.reward_network(state_action_pairs).squeeze()
         reward_loss = F.mse_loss(reward_estimates, rewards)
         self.reward_network_optimizer.zero_grad()
         reward_loss.backward()
         self.reward_network_optimizer.step()
-
-        # Policy evaluation logic
-        if training_samples.reward_timelines is not None:
-            ground_truth = np.array(
-                [
-                    self.get_value_from_timeline(self.gamma, rt)
-                    for rt in training_samples.reward_timelines
-                ]
-            ).reshape(-1, 1)
-        else:
-            ground_truth = None
 
         if evaluator is not None:
             self.evaluate(
                 evaluator,
                 training_samples.actions,
                 training_samples.propensities,
-                ground_truth,
+                training_samples.episode_values,
             )
 
     def evaluate(

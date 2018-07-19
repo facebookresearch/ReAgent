@@ -28,10 +28,17 @@ class Env(object):
         return default_normalizer(list(range(self.state_dims)))
 
     def generate_samples_discrete(
-        self, num_transitions, random_each_step=True, terminal=False,
-    ) -> Tuple[List[np.ndarray], List[np.ndarray], List[int],
-               List[np.ndarray], List[np.ndarray], List[bool],
-               List[np.ndarray], List[Dict[int, float]]]:
+        self, num_transitions, random_each_step=True, terminal=False
+    ) -> Tuple[
+        List[np.ndarray],
+        List[np.ndarray],
+        List[int],
+        List[np.ndarray],
+        List[np.ndarray],
+        List[bool],
+        List[np.ndarray],
+        List[float],
+    ]:
 
         states: List[np.ndarray] = []
         actions: List[np.ndarray] = []
@@ -40,7 +47,7 @@ class Env(object):
         next_actions: List[np.ndarray] = []
         is_terminals: List[bool] = []
         possible_next_actions: List[np.ndarray] = []
-        reward_timelines: List[Dict[int, float]] = []
+        episode_values: List[float] = []
 
         state = self.np_random.uniform(low=-1, high=-1, size=(self.state_dims))
         action = np.zeros(self.action_dims)
@@ -49,7 +56,8 @@ class Env(object):
         for _ in range(num_transitions):
             if random_each_step:
                 next_state = self.np_random.uniform(
-                    low=-1, high=-1, size=(self.state_dims))
+                    low=-1, high=-1, size=(self.state_dims)
+                )
                 next_action = np.zeros(self.action_dims)
                 next_action[self.np_random.randint(self.action_dims)] = 1
             else:
@@ -63,14 +71,21 @@ class Env(object):
             next_actions.append(next_action)
             is_terminals.append(False)
             possible_next_actions.append(np.ones(self.action_dims))
-            reward_timelines.append({0: 1 / (1 - self.gamma)})
+            episode_values.append(1 / (1 - self.gamma))
 
             state = next_state
             action = next_action
 
-        return states, actions, rewards, next_states, \
-               next_actions, is_terminals, \
-               possible_next_actions, reward_timelines
+        return (
+            states,
+            actions,
+            rewards,
+            next_states,
+            next_actions,
+            is_terminals,
+            possible_next_actions,
+            episode_values,
+        )
 
     def preprocess_samples_discrete(
         self,
@@ -81,19 +96,26 @@ class Env(object):
         next_actions: List[np.ndarray],
         is_terminals: List[bool],
         possible_next_actions: List[np.ndarray],
-        reward_timelines: List[Dict[int, float]],
+        episode_values: List[float],
         minibatch_size: int,
     ) -> List[TrainingDataPage]:
         # Shuffle
         merged = list(
             zip(
-                states, actions, rewards, next_states, next_actions,
-                is_terminals, possible_next_actions, reward_timelines
+                states,
+                actions,
+                rewards,
+                next_states,
+                next_actions,
+                is_terminals,
+                possible_next_actions,
+                episode_values,
             )
         )
         self.np_random.shuffle(merged)
-        states, actions, rewards, next_states, next_actions, \
-            is_terminals, possible_next_actions, reward_timelines = zip(*merged)
+        states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions, episode_values = zip(
+            *merged
+        )
 
         not_terminals = np.logical_not(is_terminals).reshape(-1, 1)
 
@@ -107,14 +129,18 @@ class Env(object):
                     states=np.array(states[start:end], dtype=np.float32),
                     actions=np.array(actions[start:end], dtype=np.float32),
                     propensities=np.ones([end - start, 1]),
-                    rewards=np.array(
-                        rewards[start:end], dtype=np.float32).reshape(-1, 1),
+                    rewards=np.array(rewards[start:end], dtype=np.float32).reshape(
+                        -1, 1
+                    ),
                     next_states=np.array(next_states[start:end], dtype=np.float32),
                     next_actions=np.array(next_actions[start:end], dtype=np.float32),
                     possible_next_actions=np.array(
-                        possible_next_actions[start:end], dtype=np.float32),
-                    reward_timelines=np.array(
-                        reward_timelines[start:end], dtype=np.object),
-                    not_terminals=not_terminals[start:end])
+                        possible_next_actions[start:end], dtype=np.float32
+                    ),
+                    episode_values=np.array(
+                        episode_values[start:end], dtype=np.float32
+                    ).reshape(-1, 1),
+                    not_terminals=not_terminals[start:end],
+                )
             )
         return tdps

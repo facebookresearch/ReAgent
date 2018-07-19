@@ -190,24 +190,13 @@ class DQNTrainer(RLTrainer):
         reward_loss.backward()
         self.reward_network_optimizer.step()
 
-        # Policy evaluation logic
-        if training_samples.reward_timelines is not None:
-            ground_truth = np.array(
-                [
-                    self.get_value_from_timeline(self.gamma, rt)
-                    for rt in training_samples.reward_timelines
-                ]
-            ).reshape(-1, 1)
-        else:
-            ground_truth = None
-
         if evaluator is not None:
             self.evaluate(
                 evaluator,
                 training_samples.actions,
                 training_samples.propensities,
                 np.expand_dims(boosted_rewards, axis=1),
-                ground_truth,
+                training_samples.episode_values,
             )
 
     def evaluate(
