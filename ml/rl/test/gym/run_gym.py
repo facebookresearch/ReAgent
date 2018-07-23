@@ -2,42 +2,40 @@
 
 import argparse
 import json
+import logging
 import sys
 
 import numpy as np
-
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
-
-from ml.rl.test.rl_dataset import RLDataset
-from ml.rl.test.gym.open_ai_gym_environment import (
-    EnvType,
-    ModelType,
-    OpenAIGymEnvironment,
-)
 from ml.rl.test.gym.gym_predictor import (
     GymDDPGPredictor,
     GymDQNPredictor,
     GymDQNPredictorPytorch,
 )
-from ml.rl.training.ddpg_trainer import DDPGTrainer
-from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
-from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.test.gym.open_ai_gym_environment import (
+    EnvType,
+    ModelType,
+    OpenAIGymEnvironment,
+)
+from ml.rl.test.rl_dataset import RLDataset
 from ml.rl.thrift.core.ttypes import (
-    RLParameters,
-    TrainingParameters,
-    DiscreteActionModelParameters,
     CNNParameters,
     ContinuousActionModelParameters,
-    KnnParameters,
+    DDPGModelParameters,
     DDPGNetworkParameters,
     DDPGTrainingParameters,
-    DDPGModelParameters,
+    DiscreteActionModelParameters,
+    KnnParameters,
+    RLParameters,
+    TrainingParameters,
 )
+from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
+from ml.rl.training.ddpg_trainer import DDPGTrainer
+from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -316,7 +314,7 @@ def run_gym(
         rl_parameters.epsilon,
         rl_parameters.softmax_policy,
         params["max_replay_memory_size"],
-        rl_parameters.gamma
+        rl_parameters.gamma,
     )
     model_type = params["model_type"]
     c2_device = core.DeviceOption(
