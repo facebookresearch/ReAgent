@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
+    num_j_steps_for_magic_estimator = 25
 
     def __init__(
         self, env, assume_optimal_policy: bool, gamma, use_int_features: bool, samples
@@ -229,12 +230,28 @@ class GridworldEvaluator(Evaluator):
             self.logged_is_terminals,
             self.logged_propensities,
             target_propensities,
-            self.estimated_ltv_values
+            self.estimated_ltv_values,
+            num_j_steps=1
         )
         self.weighted_sequential_value_doubly_robust.append(weighted_doubly_robust)
 
         logger.info(
             "Value Weighted Sequential Doubly Robust P.E. : {0:.3f}".format(weighted_doubly_robust)
+        )
+
+        magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_rewards,
+            self.logged_is_terminals,
+            self.logged_propensities,
+            target_propensities,
+            self.estimated_ltv_values,
+            num_j_steps=GridworldEvaluator.num_j_steps_for_magic_estimator
+        )
+        self.magic_value_doubly_robust.append(magic_doubly_robust)
+
+        logger.info(
+            "Value Model and Guided Sequential Doubly Robust P.E. : {0:.3f}".format(magic_doubly_robust)
         )
 
 

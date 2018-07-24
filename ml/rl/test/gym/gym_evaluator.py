@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class GymEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 0.25
+    num_j_steps_for_magic_estimator = 25
 
     __slots__ = [
         "logged_states",
@@ -210,12 +211,28 @@ class GymEvaluator(Evaluator):
             self.logged_is_terminals,
             self.logged_propensities,
             target_propensities,
-            predictions
+            predictions,
+            num_j_steps=1
         )
         self.weighted_sequential_value_doubly_robust.append(weighted_doubly_robust)
 
         logger.info(
             "Value Weighted Sequential Doubly Robust P.E. : {0:.3f}".format(weighted_doubly_robust)
+        )
+
+        magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
+            self.logged_actions_one_hot,
+            self.logged_rewards,
+            self.logged_is_terminals,
+            self.logged_propensities,
+            target_propensities,
+            predictions,
+            num_j_steps=GymEvaluator.num_j_steps_for_magic_estimator
+        )
+        self.magic_value_doubly_robust.append(magic_doubly_robust)
+
+        logger.info(
+            "Value Model and Guided Sequential Doubly Robust P.E. : {0:.3f}".format(magic_doubly_robust)
         )
 
         avg_rewards, avg_discounted_rewards = self._env.run_ep_n_times(
