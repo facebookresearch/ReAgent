@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 
-from scipy import special, stats
-import numpy as np
-import six
 import unittest
 
+import numpy as np
+import six
 from caffe2.python import core, workspace
-
 from ml.rl.caffe_utils import C2
-from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing import normalization
+from ml.rl.preprocessing import identify_types, normalization
+from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
+from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test import preprocessing_util
-from ml.rl.preprocessing.normalization import NormalizationParameters
-from ml.rl.preprocessing.identify_types import CONTINUOUS, BOXCOX, ENUM
+from scipy import special, stats
 
 
 class TestNormalization(unittest.TestCase):
@@ -141,13 +139,21 @@ class TestNormalization(unittest.TestCase):
     def test_normalize_dense_matrix_enum(self):
         normalization_parameters = {
             "f1": NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [12, 4, 2], None
+                identify_types.ENUM,
+                None,
+                None,
+                None,
+                None,
+                [12, 4, 2],
+                None,
+                None,
+                None,
             ),
             "f2": NormalizationParameters(
-                identify_types.CONTINUOUS, None, 0, 0, 1, None, None
+                identify_types.CONTINUOUS, None, 0, 0, 1, None, None, None, None
             ),
             "f3": NormalizationParameters(
-                identify_types.ENUM, None, None, None, None, [15, 3], None
+                identify_types.ENUM, None, None, None, None, [15, 3], None, None, None
             ),
         }
         norm_net = core.Net("net")

@@ -1,39 +1,52 @@
 #!/usr/bin/env python3
 
 from copy import deepcopy
+from typing import Dict
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
-from torch.autograd import Variable
-
-from ml.rl.preprocessing.normalization import get_num_output_features
+from ml.rl.preprocessing.normalization import (
+    NormalizationParameters,
+    get_num_output_features,
+)
+from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.rl_trainer_pytorch import (
-    RLTrainer,
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
+    RLTrainer,
+    rescale_torch_tensor,
 )
 from ml.rl.training.training_data_page import TrainingDataPage
+from torch.autograd import Variable
 
 
 class DDPGTrainer(RLTrainer):
     def __init__(
         self,
         parameters,
-        state_normalization_parameters,
-        action_normalization_parameters,
-        use_gpu=False,
-        additional_feature_types=DEFAULT_ADDITIONAL_FEATURE_TYPES,
-        action_range=None,
+        state_normalization_parameters: Dict[int, NormalizationParameters],
+        action_normalization_parameters: Dict[int, NormalizationParameters],
+        min_action_range_tensor_serving: torch.tensor,
+        max_action_range_tensor_serving: torch.tensor,
+        use_gpu: bool = False,
+        additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
 
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
-        self.action_range = action_range
+
         self.state_dim = get_num_output_features(state_normalization_parameters)
-        self.action_dim = get_num_output_features(action_normalization_parameters)
+        self.action_dim = min_action_range_tensor_serving.shape[1]
+
+        # Actor generates actions between -1 and 1 due to tanh output layer so
+        # convert actions to range [-1, 1] before training.
+        self.min_action_range_tensor_training = torch.ones(1, self.action_dim) * -1
+        self.max_action_range_tensor_training = torch.ones(1, self.action_dim)
+        self.min_action_range_tensor_serving = min_action_range_tensor_serving
+        self.max_action_range_tensor_serving = max_action_range_tensor_serving
 
         # Shared params
         self.warm_start_model_path = parameters.shared_training.warm_start_model_path
@@ -43,6 +56,9 @@ class DDPGTrainer(RLTrainer):
 
         # Actor params
         self.actor_params = parameters.actor_training
+        assert (
+            self.actor_params.activations[-1] == "tanh"
+        ), "Actor final layer activation must be tanh"
         self.actor_params.layers[0] = self.state_dim
         self.actor_params.layers[-1] = self.action_dim
         self.noise_generator = OrnsteinUhlenbeckProcessNoise(self.action_dim)
@@ -76,6 +92,19 @@ class DDPGTrainer(RLTrainer):
 
         RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types)
 
+        self.min_action_range_tensor_training = self.min_action_range_tensor_training.type(
+            self.dtype
+        )
+        self.max_action_range_tensor_training = self.max_action_range_tensor_training.type(
+            self.dtype
+        )
+        self.min_action_range_tensor_serving = self.min_action_range_tensor_serving.type(
+            self.dtype
+        )
+        self.max_action_range_tensor_serving = self.max_action_range_tensor_serving.type(
+            self.dtype
+        )
+
         if self.use_gpu:
             self.actor.cuda()
             self.actor_target.cuda()
@@ -85,9 +114,19 @@ class DDPGTrainer(RLTrainer):
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
+
         self.minibatch += 1
         states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
         actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
+        # As far as ddpg is concerned all actions are [-1, 1] due to actor tanh
+
+        actions = rescale_torch_tensor(
+            actions,
+            new_min=self.min_action_range_tensor_training,
+            new_max=self.max_action_range_tensor_training,
+            prev_min=self.min_action_range_tensor_serving,
+            prev_max=self.max_action_range_tensor_serving,
+        )
         rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
         next_states = Variable(
             torch.from_numpy(training_samples.next_states).type(self.dtype)
@@ -162,19 +201,21 @@ class DDPGTrainer(RLTrainer):
                 torch.from_numpy(np.array(states)).type(self.dtype)
             )
             actions = self.actor(state_examples)
-        self.actor.train()
-        actions = actions.cpu().data.numpy()
 
+        self.actor.train()
+
+        actions = rescale_torch_tensor(
+            actions,
+            new_min=self.min_action_range_tensor_serving,
+            new_max=self.max_action_range_tensor_serving,
+            prev_min=self.min_action_range_tensor_training,
+            prev_max=self.max_action_range_tensor_training,
+        )
+
+        actions = actions.cpu().data.numpy()
         if noisy:
             actions = [x + (self.noise.get_noise()) for x in actions]
 
-        # Continuous action space
-        if self.action_range:
-            return np.array(
-                [self.action_range * np.clip(action, -1, 1) for action in actions],
-                dtype=np.float32,
-            )
-        # Discrete action space
         return np.array(actions, dtype=np.float32)
 
     def predictor(self, actor=True) -> DDPGPredictor:
@@ -185,6 +226,8 @@ class DDPGTrainer(RLTrainer):
             return DDPGPredictor.export_actor(
                 self,
                 self.state_normalization_parameters,
+                self.min_action_range_tensor_serving,
+                self.max_action_range_tensor_serving,
                 self._additional_feature_types.int_features,
                 self.use_gpu,
             )
@@ -300,7 +343,7 @@ class OrnsteinUhlenbeckProcessNoise:
     """ Exploration noise process with temporally correlated noise. Used to
     explore in physical environments w/momentum. Outlined in DDPG paper."""
 
-    def __init__(self, action_dim, theta=0.15, sigma=0.02, mu=0) -> None:
+    def __init__(self, action_dim, theta=0.15, sigma=0.2, mu=0) -> None:
         self.action_dim = action_dim
         self.theta = theta
         self.sigma = sigma

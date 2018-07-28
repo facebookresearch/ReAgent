@@ -4,15 +4,13 @@ import enum
 
 import gym
 import numpy as np
-
 from caffe2.python import workspace
-
-from ml.rl.test.utils import default_normalizer
 from ml.rl.test.gym.gym_predictor import (
     GymDDPGPredictor,
     GymDQNPredictor,
     GymDQNPredictorPytorch,
 )
+from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 

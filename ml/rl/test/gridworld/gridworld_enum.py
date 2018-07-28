@@ -4,7 +4,6 @@
 from typing import Dict, List, Tuple
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
-
 from ml.rl.test.gridworld.gridworld import Gridworld, Samples
 
 
@@ -24,6 +23,8 @@ class GridworldEnum(Gridworld):
                 stddev=None,
                 possible_values=list(range(len(self.STATES))),
                 quantiles=None,
+                min_value=None,
+                max_value=None,
             )
         }
 

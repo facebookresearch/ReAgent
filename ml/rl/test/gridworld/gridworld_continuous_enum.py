@@ -4,9 +4,8 @@
 from typing import Dict, List, Tuple
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
-
-from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_base import Samples
+from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 
 
 class GridworldContinuousEnum(GridworldContinuous):
@@ -31,6 +30,8 @@ class GridworldContinuousEnum(GridworldContinuous):
                 stddev=None,
                 possible_values=list(range(len(self.STATES))),
                 quantiles=None,
+                min_value=None,
+                max_value=None,
             )
         }
 

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
-import numpy as np
+import logging
 
+import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
-
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
-from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.training.rl_predictor_pytorch import RLPredictor
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +131,8 @@ class DDPGPredictor(RLPredictor):
         cls,
         trainer,
         state_normalization_parameters,
+        min_action_range_tensor_serving,
+        max_action_range_tensor_serving,
         int_features=False,
         model_on_gpu=False,
     ):
@@ -139,6 +140,11 @@ class DDPGPredictor(RLPredictor):
         caffe2 net.
 
         :param trainer DDPGTrainer
+        :param state_normalization_parameters state NormalizationParameters
+        :param min_action_range_tensor_serving pytorch tensor that specifies
+            min action value for each dimension
+        :param max_action_range_tensor_serving pytorch tensor that specifies
+            min action value for each dimension
         :param state_normalization_parameters state NormalizationParameters
         :param int_features boolean indicating if int features blob will be present
         :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
@@ -162,6 +168,30 @@ class DDPGPredictor(RLPredictor):
         model = model_helper.ModelHelper(name="predictor")
         net = model.net
         C2.set_model(model)
+
+        # Feed action scaling tensors for serving
+        min_action_serving_blob = C2.NextBlob("min_action_range_tensor_serving")
+        workspace.FeedBlob(
+            min_action_serving_blob, min_action_range_tensor_serving.cpu().data.numpy()
+        )
+        parameters.append(str(min_action_serving_blob))
+
+        max_action_serving_blob = C2.NextBlob("max_action_range_tensor_serving")
+        workspace.FeedBlob(
+            max_action_serving_blob, max_action_range_tensor_serving.cpu().data.numpy()
+        )
+        parameters.append(str(max_action_serving_blob))
+
+        # Feed action scaling tensors for training [-1, 1] due to tanh actor
+        min_vals_training = trainer.min_action_range_tensor_training.cpu().data.numpy()
+        min_action_training_blob = C2.NextBlob("min_action_range_tensor_training")
+        workspace.FeedBlob(min_action_training_blob, min_vals_training)
+        parameters.append(str(min_action_training_blob))
+
+        max_vals_training = trainer.max_action_range_tensor_training.cpu().data.numpy()
+        max_action_training_blob = C2.NextBlob("max_action_range_tensor_training")
+        workspace.FeedBlob(max_action_training_blob, max_vals_training)
+        parameters.append(str(max_action_training_blob))
 
         workspace.FeedBlob("input/float_features.lengths", np.zeros(1, dtype=np.int32))
         workspace.FeedBlob("input/float_features.keys", np.zeros(1, dtype=np.int64))
@@ -232,7 +262,15 @@ class DDPGPredictor(RLPredictor):
 
         output_values = "output/float_features.values"
         workspace.FeedBlob(output_values, np.zeros(1, dtype=np.float32))
-        C2.net().FlattenToVec([actor_output_blob], [output_values])
+        # Scale actors actions from [-1, 1] to serving range
+        prev_range = C2.Sub(max_action_training_blob, min_action_training_blob)
+        new_range = C2.Sub(max_action_serving_blob, min_action_serving_blob)
+        subtract_prev_min = C2.Sub(actor_output_blob, min_action_training_blob)
+        div_by_prev_range = C2.Div(subtract_prev_min, prev_range)
+        scaled_for_serving_actions = C2.Add(
+            C2.Mul(div_by_prev_range, new_range), min_action_serving_blob
+        )
+        C2.net().FlattenToVec([scaled_for_serving_actions], [output_values])
 
         workspace.CreateNet(net)
         return DDPGPredictor(net, parameters, int_features)
@@ -321,7 +359,9 @@ class DDPGPredictor(RLPredictor):
             False,
         )
         parameters.extend(new_parameters)
-        action_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
+
+        # Don't normalize actions, just go from sparse -> dense
+        action_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
             input_feature_lengths,
             input_feature_keys,
             input_feature_values,
@@ -329,12 +369,13 @@ class DDPGPredictor(RLPredictor):
             "action_norm",
             False,
             False,
+            normalize=False,
         )
         parameters.extend(new_parameters)
         state_action_normalized = "state_action_normalized"
         state_action_normalized_dim = "state_action_normalized_dim"
         net.Concat(
-            [state_normalized_dense_matrix, action_normalized_dense_matrix],
+            [state_normalized_dense_matrix, action_dense_matrix],
             [state_action_normalized, state_action_normalized_dim],
             axis=1,
         )

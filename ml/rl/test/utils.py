@@ -5,7 +5,7 @@ import collections
 from ml.rl.preprocessing.normalization import NormalizationParameters
 
 
-def default_normalizer(feats):
+def default_normalizer(feats, min_value=None, max_value=None):
     normalization = collections.OrderedDict(
         [
             (
@@ -18,8 +18,11 @@ def default_normalizer(feats):
                     stddev=1,
                     possible_values=None,
                     quantiles=None,
-                )
-            ) for i in range(len(feats))
+                    min_value=min_value,
+                    max_value=max_value,
+                ),
+            )
+            for i in range(len(feats))
         ]
     )
     return normalization

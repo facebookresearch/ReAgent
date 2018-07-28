@@ -89,6 +89,7 @@ struct DDPGModelParameters {
   2: DDPGTrainingParameters shared_training,
   3: DDPGNetworkParameters actor_training,
   4: DDPGNetworkParameters critic_training,
+  5: optional map<i64, list<double>> action_rescale_map = {}
 }
 
 struct OpenAIGymParameters {

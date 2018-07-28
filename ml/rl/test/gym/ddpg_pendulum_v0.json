@@ -2,6 +2,7 @@
   "env": "Pendulum-v0",
   "model_type": "continuous",
   "max_replay_memory_size": 10000,
+  "use_gpu": true,
   "rl": {
     "gamma": 0.99,
     "epsilon": 0,
@@ -16,8 +17,8 @@
   "actor_training": {
     "layers": [
       -1,
-      400,
-      300,
+      128,
+      64,
       -1
     ],
     "activations": [
@@ -30,8 +31,8 @@
   "critic_training": {
     "layers": [
       -1,
-      400,
-      300,
+      128,
+      64,
       -1
     ],
     "activations": [

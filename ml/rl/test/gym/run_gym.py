@@ -6,6 +6,7 @@ import logging
 import sys
 
 import numpy as np
+import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
 from ml.rl.test.gym.gym_predictor import (
@@ -430,18 +431,16 @@ def run_gym(
             critic_training=DDPGNetworkParameters(**critic_settings),
         )
 
-        # DDPG can handle continuous and discrete action spaces
-        if env.action_type == EnvType.CONTINUOUS_ACTION:
-            action_range = env.action_space.high
-        else:
-            action_range = None
+        action_range_low = env.action_space.low.astype(np.float32)
+        action_range_high = env.action_space.high.astype(np.float32)
 
         trainer = DDPGTrainer(
             trainer_params,
             env.normalization,
             env.normalization_action,
-            use_gpu=use_gpu,
-            action_range=action_range,
+            torch.from_numpy(action_range_low).unsqueeze(dim=0),
+            torch.from_numpy(action_range_high).unsqueeze(dim=0),
+            use_gpu,
         )
 
     else:

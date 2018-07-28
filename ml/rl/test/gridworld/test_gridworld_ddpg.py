@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
 import random
-import numpy as np
 import unittest
 
-from ml.rl.thrift.core.ttypes import (
-    RLParameters,
-    DDPGModelParameters,
-    DDPGTrainingParameters,
-    DDPGNetworkParameters,
-)
-from ml.rl.training.ddpg_trainer import DDPGTrainer
+import numpy as np
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldDDPGEvaluator
+from ml.rl.thrift.core.ttypes import (
+    DDPGModelParameters,
+    DDPGNetworkParameters,
+    DDPGTrainingParameters,
+    RLParameters,
+)
+from ml.rl.training.ddpg_trainer import DDPGTrainer
 
 
 class TestGridworldContinuous(unittest.TestCase):
@@ -56,18 +56,25 @@ class TestGridworldContinuous(unittest.TestCase):
             self.get_ddpg_parameters(),
             environment.normalization,
             environment.normalization_action,
+            environment.min_action_range,
+            environment.max_action_range,
         )
         evaluator = GridworldDDPGEvaluator(environment, True, DISCOUNT, False, samples)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
-        critic_predictor = trainer.predictor()
+        critic_predictor = trainer.predictor(actor=False)
         evaluator.evaluate_critic(critic_predictor)
         for tdp in tdps:
             tdp.rewards = tdp.rewards.flatten()
             tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp)
 
-        critic_predictor = trainer.predictor()
+        # Make sure actor predictor works
+        actor = trainer.predictor(actor=True)
+        evaluator.evaluate_actor(actor)
+
+        # Evaluate critic predicor for correctness
+        critic_predictor = trainer.predictor(actor=False)
         error = evaluator.evaluate_critic(critic_predictor)
         print("gridworld MAE: {0:.3f}".format(error))
         # For now we are disabling this test until we can get DDPG to be healthy

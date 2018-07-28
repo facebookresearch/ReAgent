@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 
+import logging
 import math
 
 import numpy as np
 import torch
-from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
-
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
+from torch.autograd import Variable
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +92,25 @@ def guassian_fill_w_gain(tensor, activation, dim_in) -> None:
     """ Gaussian initialization with gain."""
     gain = math.sqrt(2) if activation == "relu" else 1
     init.normal_(tensor, mean=0, std=gain * math.sqrt(1 / dim_in))
+
+
+def rescale_torch_tensor(
+    tensor: torch.tensor,
+    new_min: torch.tensor,
+    new_max: torch.tensor,
+    prev_min: torch.tensor,
+    prev_max: torch.tensor,
+):
+    """
+    Rescale column values in N X M torch tensor to be in new range.
+    Each column m in input tensor will be rescaled from range
+    [prev_min[m], prev_max[m]] to [new_min[m], new_max[m]]
+    """
+    assert tensor.shape[1] == new_min.shape[1] == new_max.shape[1]
+    assert tensor.shape[1] == prev_min.shape[1] == prev_max.shape[1]
+    prev_range = prev_max - prev_min
+    new_range = new_max - new_min
+    return ((tensor - prev_min) / prev_range) * new_range + new_min
 
 
 class GenericFeedForwardNetwork(nn.Module):

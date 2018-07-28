@@ -2,15 +2,16 @@
 
 
 import collections
-import numpy as np
 import random
-from typing import Tuple, List, Dict, Optional, NamedTuple
-from caffe2.python import core, workspace
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
+import numpy as np
+from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
-from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.test.utils import default_normalizer
+from ml.rl.training.training_data_page import TrainingDataPage
+
 
 # Environment parameters
 DISCOUNT = 0.9

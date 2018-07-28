@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 
 
-import numpy as np
-from typing import List, Dict, Tuple
+import logging
+from typing import Dict, List, Tuple
 
-from caffe2.python import workspace, core
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
-
+import numpy as np
+from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing.normalization import NormalizationParameters, MISSING_VALUE
 from ml.rl.preprocessing.identify_types import FEATURE_TYPES
+from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -275,6 +274,7 @@ class PreprocessorNet:
         blobname_prefix: str,
         split_sparse_to_dense: bool,
         split_expensive_feature_groups: bool,
+        normalize: bool = True,
     ) -> Tuple[str, List[str]]:
         sorted_features, _ = sort_features_by_normalization(normalization_parameters)
         int_features = [int(feature) for feature in sorted_features]
@@ -318,15 +318,18 @@ class PreprocessorNet:
                 mask=int_features,
             )[0]
 
-            normalized_fragment, p = self.normalize_dense_matrix(
-                dense_input_fragment,
-                sorted_features,
-                normalization_parameters,
-                blobname_prefix,
-                split_expensive_feature_groups,
-            )
-            dense_input_fragments.append(normalized_fragment)
-            parameters.extend(p)
+            if normalize:
+                normalized_fragment, p = self.normalize_dense_matrix(
+                    dense_input_fragment,
+                    sorted_features,
+                    normalization_parameters,
+                    blobname_prefix,
+                    split_expensive_feature_groups,
+                )
+                dense_input_fragments.append(normalized_fragment)
+                parameters.extend(p)
+            else:
+                dense_input_fragments.append(dense_input_fragment)
 
         dense_input = C2.NextBlob(blobname_prefix + "_dense_input")
         dense_input_dims = C2.NextBlob(blobname_prefix + "_dense_input_dims")

@@ -1,29 +1,33 @@
 #!/usr/bin/env python3
 
-from collections import namedtuple
-from scipy import stats
-from scipy.stats.mstats import mquantiles
 import json
+import logging
+from collections import namedtuple
+
 import numpy as np
 import six
-
-import logging
-logger = logging.getLogger(__name__)
-
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM
+from scipy import stats
+from scipy.stats.mstats import mquantiles
+
+
+logger = logging.getLogger(__name__)
+
 
 NormalizationParameters = namedtuple(
-    'NormalizationParameters',
+    "NormalizationParameters",
     [
-        'feature_type',
-        'boxcox_lambda',
-        'boxcox_shift',
-        'mean',
-        'stddev',
-        'possible_values',  # Assume present for ENUM type
-        'quantiles',  # Assume present for QUANTILE type and sorted
-    ]
+        "feature_type",
+        "boxcox_lambda",
+        "boxcox_shift",
+        "mean",
+        "stddev",
+        "possible_values",  # Assume present for ENUM type
+        "quantiles",  # Assume present for QUANTILE type and sorted
+        "min_value",
+        "max_value",
+    ],
 )
 
 BOX_COX_MAX_STDDEV = 1e8
@@ -53,12 +57,10 @@ def identify_parameter(
     quantile_k2_threshold=DEFAULT_QUANTILE_K2_THRESHOLD,
     skip_box_cox=False,
     skip_quantiles=False,
-    feature_type=None
+    feature_type=None,
 ):
     if feature_type is None:
-        feature_type = identify_types.identify_type(
-            values, max_unique_enum_values
-        )
+        feature_type = identify_types.identify_type(values, max_unique_enum_values)
 
     boxcox_lambda = None
     boxcox_shift = 0
@@ -72,9 +74,9 @@ def identify_parameter(
         identify_types.BINARY,
         identify_types.ENUM,
     ], "unknown type {}".format(feature_type)
-    assert len(
-        values
-    ) >= MINIMUM_SAMPLES_TO_IDENTIFY, "insufficient information to identify parameter"
+    assert (
+        len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
+    ), "insufficient information to identify parameter"
 
     min_value = np.min(values)
     max_value = np.max(values)
@@ -102,8 +104,11 @@ def identify_parameter(
 
                 stddev = np.std(candidate_values, ddof=1)
                 # Unclear whether this happens in practice or not
-                if np.isfinite(stddev) and stddev < BOX_COX_MAX_STDDEV and \
-                   not np.isclose(stddev, 0):
+                if (
+                    np.isfinite(stddev)
+                    and stddev < BOX_COX_MAX_STDDEV
+                    and not np.isclose(stddev, 0)
+                ):
                     values = candidate_values
                     boxcox_lambda = float(lmbda)
         if boxcox_lambda is None or skip_box_cox:
@@ -111,25 +116,31 @@ def identify_parameter(
             boxcox_lambda = None
         if boxcox_lambda is not None:
             feature_type = identify_types.BOXCOX
-        if boxcox_lambda is None and k2_original > quantile_k2_threshold and (
-            not skip_quantiles
+        if (
+            boxcox_lambda is None
+            and k2_original > quantile_k2_threshold
+            and (not skip_quantiles)
         ):
             feature_type = identify_types.QUANTILE
-            quantiles = np.unique(
-                mquantiles(
-                    values,
-                    np.arange(quantile_size + 1, dtype=np.float64) /
-                    float(quantile_size),
-                    alphap=0.0,
-                    betap=1.0,
+            quantiles = (
+                np.unique(
+                    mquantiles(
+                        values,
+                        np.arange(quantile_size + 1, dtype=np.float64)
+                        / float(quantile_size),
+                        alphap=0.0,
+                        betap=1.0,
+                    )
                 )
-            ).astype(float).tolist()
-            logger.info(
-                "Feature is non-normal, using quantiles: {}".format(quantiles)
+                .astype(float)
+                .tolist()
             )
+            logger.info("Feature is non-normal, using quantiles: {}".format(quantiles))
 
-    if feature_type == identify_types.CONTINUOUS or \
-            feature_type == identify_types.BOXCOX:
+    if (
+        feature_type == identify_types.CONTINUOUS
+        or feature_type == identify_types.BOXCOX
+    ):
         mean = float(np.mean(values))
         values = values - mean
         stddev = float(np.std(values, ddof=1))
@@ -141,8 +152,15 @@ def identify_parameter(
         possible_values = np.unique(values.astype(int)).tolist()
 
     return NormalizationParameters(
-        feature_type, boxcox_lambda, boxcox_shift, mean, stddev,
-        possible_values, quantiles
+        feature_type,
+        boxcox_lambda,
+        boxcox_shift,
+        mean,
+        stddev,
+        possible_values,
+        quantiles,
+        min_value,
+        max_value,
     )
 
 
@@ -150,10 +168,9 @@ def get_num_output_features(normalization_parmeters):
     return sum(
         map(
             lambda np: (
-                len(np.possible_values) if np.feature_type == identify_types.ENUM
-                else 1
+                len(np.possible_values) if np.feature_type == identify_types.ENUM else 1
             ),
-            normalization_parmeters.values()
+            normalization_parmeters.values(),
         )
     )
 
@@ -167,10 +184,15 @@ def deserialize(parameters_json):
             for x in params.possible_values:
                 if x < 0:
                     logger.fatal(
-                        "Invalid enum ID: " + str(x) + " in feature: " +
-                        feature + " with possible_values " +
-                        str(params.possible_values) + " (raw: " +
-                        feature_parameters + ")"
+                        "Invalid enum ID: "
+                        + str(x)
+                        + " in feature: "
+                        + feature
+                        + " with possible_values "
+                        + str(params.possible_values)
+                        + " (raw: "
+                        + feature_parameters
+                        + ")"
                     )
                     raise Exception("Invalid enum ID")
         parameters[feature] = params

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 
+from typing import List
+
 import numpy as np
-from typing import Tuple, Dict, List
-
+import torch
 from caffe2.python import core, workspace
-
-from ml.rl.caffe_utils import C2, StackedAssociativeArray, StackedArray
+from ml.rl.caffe_utils import C2, StackedArray, StackedAssociativeArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase, Samples
 from ml.rl.test.utils import default_normalizer
-from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples, DISCOUNT
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -22,8 +22,18 @@ class GridworldContinuous(GridworldBase):
                 for x in list(
                     range(self.num_states, self.num_states + self.num_actions)
                 )
-            ]
+            ],
+            min_value=0,
+            max_value=1,
         )
+
+    @property
+    def min_action_range(self):
+        return torch.zeros(1, self.num_actions)
+
+    @property
+    def max_action_range(self):
+        return torch.ones(1, self.num_actions)
 
     def action_to_index(self, action):
         return int(list(action.keys())[0]) - self.num_states
