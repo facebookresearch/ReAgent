@@ -24,36 +24,42 @@ G = 3  # Goal position
 
 class Samples(object):
     __slots__ = [
+        "mdp_ids",
+        "sequence_numbers",
         "states",
         "actions",
         "propensities",
         "rewards",
         "next_states",
         "next_actions",
-        "is_terminal",
+        "terminals",
         "possible_next_actions",
-        "reward_timelines",
+        "reward_timelines"
     ]
 
     def __init__(
         self,
+        mdp_ids: List[int],
+        sequence_numbers: List[int],
         states: List[Dict[int, float]],
         actions: List[str],
         propensities: List[float],
         rewards: List[float],
         next_states: List[Dict[int, float]],
         next_actions: List[str],
-        is_terminal: List[bool],
+        terminals: List[bool],
         possible_next_actions: List[List[str]],
         reward_timelines: List[Dict[int, float]],
     ) -> None:
+        self.mdp_ids = mdp_ids
+        self.sequence_numbers = sequence_numbers
         self.states = states
         self.actions = actions
         self.propensities = propensities
         self.rewards = rewards
         self.next_states = next_states
         self.next_actions = next_actions
-        self.is_terminal = is_terminal
+        self.terminals = terminals
         self.possible_next_actions = possible_next_actions
         self.reward_timelines = reward_timelines
 
@@ -62,36 +68,63 @@ class Samples(object):
         if self.reward_timelines is None:
             merged = list(
                 zip(
+                    self.mdp_ids,
+                    self.sequence_numbers,
                     self.states,
                     self.actions,
                     self.propensities,
                     self.rewards,
                     self.next_states,
                     self.next_actions,
-                    self.is_terminal,
+                    self.terminals,
                     self.possible_next_actions,
                 )
             )
             random.shuffle(merged)
-            self.states, self.actions, self.propensities, self.rewards, self.next_states, self.next_actions, self.is_terminal, self.possible_next_actions = zip(
+            (
+                self.mdp_ids,
+                self.sequence_numbers,
+                self.states,
+                self.actions,
+                self.propensities,
+                self.rewards,
+                self.next_states,
+                self.next_actions,
+                self.terminals,
+                self.possible_next_actions
+            ) = zip(
                 *merged
             )
         else:
             merged = list(
                 zip(
+                    self.mdp_ids,
+                    self.sequence_numbers,
                     self.states,
                     self.actions,
                     self.propensities,
                     self.rewards,
                     self.next_states,
                     self.next_actions,
-                    self.is_terminal,
+                    self.terminals,
                     self.possible_next_actions,
                     self.reward_timelines,
                 )
             )
             random.shuffle(merged)
-            self.states, self.actions, self.propensities, self.rewards, self.next_states, self.next_actions, self.is_terminal, self.possible_next_actions, self.reward_timelines = zip(
+            (
+                self.mdp_ids,
+                self.sequence_numbers,
+                self.states,
+                self.actions,
+                self.propensities,
+                self.rewards,
+                self.next_states,
+                self.next_actions,
+                self.terminals,
+                self.possible_next_actions,
+                self.reward_timelines
+            ) = zip(
                 *merged
             )
 
@@ -379,40 +412,49 @@ class GridworldBase(object):
         rewards = []
         next_states = []
         next_actions: List[str] = []
-        is_terminals = []
+        terminals = []
+        mdp_ids = []
+        sequence_numbers = []
         state: int = -1
-        is_terminal = True
+        terminal = True
         next_action = ""
         next_propensity = 1.0
         possible_next_actions: List[List[str]] = []
         transition = 0
         last_terminal = -1
         reward_timelines = []
+        mdp_id = -1
+        sequence_number = 0
         while True:
-            if is_terminal:
+            if terminal:
                 if transition >= num_transitions:
                     break
                 state = self.reset()
-                is_terminal = False
+                terminal = False
+                mdp_id += 1
+                sequence_number = 0
                 action, propensity = self.sample_policy(state, epsilon)
             else:
                 action = next_action
                 propensity = next_propensity
+                sequence_number += 1
 
-            next_state, reward, is_terminal, possible_next_action = self.step(
+            next_state, reward, terminal, possible_next_action = self.step(
                 action, with_possible
             )
             next_action, next_propensity = self.sample_policy(next_state, epsilon)
 
+            mdp_ids.append(mdp_id)
+            sequence_numbers.append(sequence_number)
             states.append({state: 1.0})
             actions.append(action)
             propensities.append(propensity)
             rewards.append(reward)
             next_states.append({next_state: 1.0})
             next_actions.append(next_action)
-            is_terminals.append(is_terminal)
+            terminals.append(terminal)
             possible_next_actions.append(possible_next_action)
-            if not is_terminal:
+            if not terminal:
                 reward_timelines.append({0: 0.0})
             else:
                 reward_timelines.append({0: 1.0})
@@ -427,13 +469,15 @@ class GridworldBase(object):
             transition += 1
 
         return Samples(
+            mdp_ids=mdp_ids,
+            sequence_numbers=sequence_numbers,
             states=states,
             actions=actions,
             propensities=propensities,
             rewards=rewards,
             next_states=next_states,
             next_actions=next_actions,
-            is_terminal=is_terminals,
+            terminals=terminals,
             possible_next_actions=possible_next_actions,
             reward_timelines=reward_timelines,
         )
@@ -490,8 +534,8 @@ class GridworldBase(object):
         possible_next_actions_mask = np.array(
             possible_next_actions_mask, dtype=np.float32
         )
-        is_terminals = np.array(samples.is_terminal, dtype=np.bool).reshape(-1, 1)
-        not_terminals = np.logical_not(is_terminals)
+        terminals = np.array(samples.terminals, dtype=np.bool).reshape(-1, 1)
+        not_terminals = np.logical_not(terminals)
         episode_values = None
         if samples.reward_timelines is not None:
             episode_values = np.zeros(rewards.shape, dtype=np.float32)

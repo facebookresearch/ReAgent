@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 
+import logging
 from typing import List
 
 import numpy as np
-
 from ml.rl.training.evaluator import Evaluator
 
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
-    num_j_steps_for_magic_estimator = 25
 
     def __init__(
         self, env, assume_optimal_policy: bool, gamma, use_int_features: bool, samples
@@ -30,7 +28,7 @@ class GridworldEvaluator(Evaluator):
         self.logged_states = samples.states
         self.logged_actions = samples.actions
         self.logged_propensities = np.array(samples.propensities).reshape(-1, 1)
-        self.logged_is_terminals = np.array(samples.is_terminal).reshape(-1, 1)
+        self.logged_terminals = np.array(samples.terminals).reshape(-1, 1)
         # Create integer logged actions
         self.logged_actions_int: List[int] = []
         for action in self.logged_actions:
@@ -172,15 +170,20 @@ class GridworldEvaluator(Evaluator):
         self.reward_doubly_robust.append(reward_doubly_robust)
 
         logger.info(
-            "Reward Inverse Propensity Score: {0:.3f}".format(
-                reward_inverse_propensity_score
+            "Reward Inverse Propensity Score              : normalized {0:.3f} raw {1:.3f}".format(
+                reward_inverse_propensity_score.normalized,
+                reward_inverse_propensity_score.raw,
             )
         )
         logger.info(
-            "Reward Direct Method           : {0:.3f}".format(reward_direct_method)
+            "Reward Direct Method                         : normalized {0:.3f} raw {1:.3f}".format(
+                reward_direct_method.normalized, reward_direct_method.raw
+            )
         )
         logger.info(
-            "Reward Doubly Robust P.E.      : {0:.3f}".format(reward_doubly_robust)
+            "Reward Doubly Robust P.E.                    : normalized {0:.3f} raw {1:.3f}".format(
+                reward_doubly_robust.normalized, reward_doubly_robust.raw
+            )
         )
 
         value_inverse_propensity_score, value_direct_method, value_doubly_robust = self.doubly_robust_one_step_policy_estimation(
@@ -195,63 +198,72 @@ class GridworldEvaluator(Evaluator):
         self.value_doubly_robust.append(value_doubly_robust)
 
         logger.info(
-            "Value Inverse Propensity Score : {0:.3f}".format(
-                value_inverse_propensity_score
+            "Value Inverse Propensity Score               : normalized {0:.3f} raw {1:.3f}".format(
+                value_inverse_propensity_score.normalized,
+                value_inverse_propensity_score.raw,
             )
         )
         logger.info(
-            "Value Direct Method            : {0:.3f}".format(value_direct_method)
+            "Value Direct Method                          : normalized {0:.3f} raw {1:.3f}".format(
+                value_direct_method.normalized, value_direct_method.raw
+            )
         )
         logger.info(
-            "Value One-Step Doubly Robust P.E.       : {0:.3f}".format(
-                value_doubly_robust
+            "Value One-Step Doubly Robust P.E.            : normalized {0:.3f} raw {1:.3f}".format(
+                value_doubly_robust.normalized, value_doubly_robust.raw
             )
         )
 
         sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
-            self.logged_is_terminals,
+            self.logged_terminals,
             self.logged_propensities,
             target_propensities,
             self.estimated_ltv_values,
         )
-        self.sequential_value_doubly_robust.append(sequential_doubly_robust)
+        self.value_sequential_doubly_robust.append(sequential_doubly_robust)
 
         logger.info(
-            "Value Sequential Doubly Robust P.E. : {0:.3f}".format(
-                sequential_doubly_robust
+            "Value Sequential Doubly Robust P.E.          : normalized {0:.3f} raw {1:.3f}".format(
+                sequential_doubly_robust.normalized, sequential_doubly_robust.raw
             )
         )
 
         weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
-            self.logged_is_terminals,
+            self.logged_terminals,
             self.logged_propensities,
             target_propensities,
             self.estimated_ltv_values,
-            num_j_steps=1
+            num_j_steps=1,
+            whether_self_normalize_importance_weights=True
         )
-        self.weighted_sequential_value_doubly_robust.append(weighted_doubly_robust)
+        self.value_weighted_doubly_robust.append(weighted_doubly_robust)
 
         logger.info(
-            "Value Weighted Sequential Doubly Robust P.E. : {0:.3f}".format(weighted_doubly_robust)
+            "Value Weighted Sequential Doubly Robust P.E. : noramlized {0:.3f} raw {1:.3f}".format(
+                weighted_doubly_robust.normalized, weighted_doubly_robust.raw
+            )
         )
 
         magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
-            self.logged_is_terminals,
+            self.logged_terminals,
             self.logged_propensities,
             target_propensities,
             self.estimated_ltv_values,
-            num_j_steps=GridworldEvaluator.num_j_steps_for_magic_estimator
+            num_j_steps=GridworldEvaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
+            whether_self_normalize_importance_weights=True
         )
-        self.magic_value_doubly_robust.append(magic_doubly_robust)
+        self.value_magic_doubly_robust.append(magic_doubly_robust)
 
         logger.info(
-            "Value Model and Guided Sequential Doubly Robust P.E. : {0:.3f}".format(magic_doubly_robust)
+            "Value Magic Doubly Robust P.E.               : normalized {0:.3f} raw {1:.3f}".format(
+                magic_doubly_robust.normalized, magic_doubly_robust.raw
+            )
         )
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from typing import Tuple, List, Dict
+from typing import Tuple, List
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -45,7 +45,7 @@ class Env(object):
         rewards: List[int] = []
         next_states: List[np.ndarray] = []
         next_actions: List[np.ndarray] = []
-        is_terminals: List[bool] = []
+        terminals: List[bool] = []
         possible_next_actions: List[np.ndarray] = []
         episode_values: List[float] = []
 
@@ -69,7 +69,7 @@ class Env(object):
             rewards.append(self.const_reward)  # constant reward
             next_states.append(next_state)
             next_actions.append(next_action)
-            is_terminals.append(False)
+            terminals.append(False)
             possible_next_actions.append(np.ones(self.action_dims))
             episode_values.append(1 / (1 - self.gamma))
 
@@ -82,7 +82,7 @@ class Env(object):
             rewards,
             next_states,
             next_actions,
-            is_terminals,
+            terminals,
             possible_next_actions,
             episode_values,
         )
@@ -94,7 +94,7 @@ class Env(object):
         rewards: List[int],
         next_states: List[np.ndarray],
         next_actions: List[np.ndarray],
-        is_terminals: List[bool],
+        terminals: List[bool],
         possible_next_actions: List[np.ndarray],
         episode_values: List[float],
         minibatch_size: int,
@@ -107,17 +107,17 @@ class Env(object):
                 rewards,
                 next_states,
                 next_actions,
-                is_terminals,
+                terminals,
                 possible_next_actions,
                 episode_values,
             )
         )
         self.np_random.shuffle(merged)
-        states, actions, rewards, next_states, next_actions, is_terminals, possible_next_actions, episode_values = zip(
+        states, actions, rewards, next_states, next_actions, terminals, possible_next_actions, episode_values = zip(
             *merged
         )
 
-        not_terminals = np.logical_not(is_terminals).reshape(-1, 1)
+        not_terminals = np.logical_not(terminals).reshape(-1, 1)
 
         tdps = []
         for start in range(0, len(states), minibatch_size):

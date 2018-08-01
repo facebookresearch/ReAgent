@@ -46,13 +46,15 @@ class GridworldContinuousEnum(GridworldContinuous):
         for state in samples.next_states:
             enum_next_states.append({0: float(list(state.keys())[0])})
         return Samples(
+            mdp_ids=samples.mdp_ids,
+            sequence_numbers=samples.sequence_numbers,
             states=enum_states,
             actions=samples.actions,
             propensities=samples.propensities,
             rewards=samples.rewards,
             next_states=enum_next_states,
             next_actions=samples.next_actions,
-            is_terminal=samples.is_terminal,
+            terminals=samples.terminals,
             possible_next_actions=samples.possible_next_actions,
             reward_timelines=samples.reward_timelines,
         )

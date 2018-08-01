@@ -1,62 +1,63 @@
 #!/usr/bin/env python3
 
-import numpy as np
 import logging
 from typing import List, Tuple
 
+import numpy as np
+from ml.rl.test.gym.open_ai_gym_environment import EnvType
+from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
-from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
-from ml.rl.test.gym.open_ai_gym_environment import EnvType
+
 
 logger = logging.getLogger(__name__)
 
 
 class GymEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 0.25
-    num_j_steps_for_magic_estimator = 25
 
     __slots__ = [
         "logged_states",
         "logged_actions",
         "logged_propensites",
         "logged_rewards",
-        "logged_is_terminals"
-        "_env"
+        "logged_terminals" "_env",
     ]
 
     def __init__(self, env, gamma, use_int_features: bool = False) -> None:
-        #TODO: incorporate int features
+        # TODO: incorporate int features
         super(GymEvaluator, self).__init__(None, 1, gamma)
 
         self._env = env
         if self._env.action_type == EnvType.CONTINUOUS_ACTION:
             raise NotImplementedError()
 
-        (self.logged_states,
-         self.logged_actions,
-         self.logged_propensities,
-         self.logged_rewards,
-         self.logged_values,
-         self.logged_is_terminals
-         ) = self._generate_samples(500, 0.05)
+        (
+            self.logged_states,
+            self.logged_actions,
+            self.logged_propensities,
+            self.logged_rewards,
+            self.logged_values,
+            self.logged_terminals,
+        ) = self._generate_samples(500, 0.05)
 
         self.logged_states = np.array(self.logged_states).astype(np.float32)
         self.logged_propensities = np.array(self.logged_propensities).reshape(-1, 1)
         self.logged_rewards = np.array(self.logged_rewards).reshape(-1, 1)
         self.logged_values = np.array(self.logged_values).reshape(-1, 1)
-        self.logged_is_terminals = np.array(self.logged_is_terminals).reshape(-1, 1)
+        self.logged_terminals = np.array(self.logged_terminals).reshape(-1, 1)
 
         self.logged_actions_one_hot = np.zeros(
-            shape=[len(self.logged_actions), self._env.action_dim],
-            dtype=np.float32
+            shape=[len(self.logged_actions), self._env.action_dim], dtype=np.float32
         )
         for i, action in enumerate(self.logged_actions):
             self.logged_actions_one_hot[i, action] = 1.0
 
     def _generate_samples(
         self, num_episodes, epsilon
-    ) -> Tuple[List[object], List[int], List[float], List[float], List[float], List[bool]]:
+    ) -> Tuple[
+        List[object], List[int], List[float], List[float], List[float], List[bool]
+    ]:
         """
         Generate and log samples according to a random policy.
         """
@@ -66,7 +67,7 @@ class GymEvaluator(Evaluator):
         propensities: List[float] = []
         rewards: List[float] = []
         values: List[float] = []
-        is_terminals: List[bool] = []
+        terminals: List[bool] = []
 
         for _ in range(num_episodes):
             last_end = len(states) - 1
@@ -74,7 +75,7 @@ class GymEvaluator(Evaluator):
             state = self._env.transform_state(self._env.env.reset())
             states.append(state)
             values.append(0.0)
-            is_terminals.append(False)
+            terminals.append(False)
             terminal = False
 
             while not terminal:
@@ -86,7 +87,7 @@ class GymEvaluator(Evaluator):
                 state, reward, terminal, _ = self._env.env.step(action)
                 state = self._env.transform_state(state)
                 rewards.append(reward)
-                is_terminals.append(terminal)
+                terminals.append(terminal)
 
                 states.append(state)
                 values.append(0.0)
@@ -103,25 +104,19 @@ class GymEvaluator(Evaluator):
                 values[i] += rewards[i] + self.gamma * values[i + 1]
                 i -= 1
 
-        return (
-            states,
-            actions,
-            propensities,
-            rewards,
-            values,
-            is_terminals
-        )
+        return (states, actions, propensities, rewards, values, terminals)
 
     def evaluate(self, predictor):
         # test only float features
         predictions = predictor.predict(self.logged_states)
         estimated_reward_values = predictor.estimate_reward(self.logged_states)
-        if isinstance(predictor.trainer,
-        (ParametricDQNTrainer, ContinuousActionDQNTrainer)):
-            predictions = predictions.reshape(
-                [-1, self._env.action_dim])
+        if isinstance(
+            predictor.trainer, (ParametricDQNTrainer, ContinuousActionDQNTrainer)
+        ):
+            predictions = predictions.reshape([-1, self._env.action_dim])
             estimated_reward_values = estimated_reward_values.reshape(
-                [-1, self._env.action_dim])
+                [-1, self._env.action_dim]
+            )
 
         value_error_sum = 0.0
         reward_error_sum = 0.0
@@ -157,15 +152,20 @@ class GymEvaluator(Evaluator):
         self.reward_doubly_robust.append(reward_doubly_robust)
 
         logger.info(
-            "Reward Inverse Propensity Score: {0:.3f}".format(
-                reward_inverse_propensity_score
+            "Reward Inverse Propensity Score              : normalized {0:.3f} raw {1:.3f}".format(
+                reward_inverse_propensity_score.normalized,
+                reward_inverse_propensity_score.raw,
             )
         )
         logger.info(
-            "Reward Direct Method           : {0:.3f}".format(reward_direct_method)
+            "Reward Direct Method                         : normalized {0:.3f} raw {1:.3f}".format(
+                reward_direct_method.normalized, reward_direct_method.raw
+            )
         )
         logger.info(
-            "Reward Doubly Robust P.E.      : {0:.3f}".format(reward_doubly_robust)
+            "Reward Doubly Robust P.E.                    : normalized {0:.3f} raw {1:.3f}".format(
+                reward_doubly_robust.normalized, reward_doubly_robust.raw
+            )
         )
 
         value_inverse_propensity_score, value_direct_method, value_doubly_robust = self.doubly_robust_one_step_policy_estimation(
@@ -180,83 +180,100 @@ class GymEvaluator(Evaluator):
         self.value_doubly_robust.append(value_doubly_robust)
 
         logger.info(
-            "Value Inverse Propensity Score    : {0:.3f}".format(
-                value_inverse_propensity_score
+            "Value Inverse Propensity Score               : normalized {0:.3f} raw {1:.3f}".format(
+                value_inverse_propensity_score.normalized,
+                value_inverse_propensity_score.raw,
             )
         )
         logger.info(
-            "Value Direct Method               : {0:.3f}".format(value_direct_method)
+            "Value Direct Method                          : normalized {0:.3f} raw {1:.3f}".format(
+                value_direct_method.normalized, value_direct_method.raw
+            )
         )
         logger.info(
-            "Value One-Step Doubly Robust P.E. : {0:.3f}".format(value_doubly_robust)
+            "Value One-Step Doubly Robust P.E.            : normalized {0:.3f} raw {1:.3f}".format(
+                value_doubly_robust.normalized, value_doubly_robust.raw
+            )
         )
 
         sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
-            self.logged_is_terminals,
+            self.logged_terminals,
             self.logged_propensities,
             target_propensities,
-            predictions
+            predictions,
         )
-        self.sequential_value_doubly_robust.append(sequential_doubly_robust)
-
+        self.value_sequential_doubly_robust.append(sequential_doubly_robust)
         logger.info(
-            "Value Sequential Doubly Robust P.E. : {0:.3f}".format(sequential_doubly_robust)
+            "Value Sequential Doubly Robust P.E.          : normalized {0:.3f} raw {1:.3f}".format(
+                sequential_doubly_robust.normalized, sequential_doubly_robust.raw
+            )
         )
 
         weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
-            self.logged_is_terminals,
+            self.logged_terminals,
             self.logged_propensities,
             target_propensities,
             predictions,
-            num_j_steps=1
+            num_j_steps=1,
+            whether_self_normalize_importance_weights=True
         )
-        self.weighted_sequential_value_doubly_robust.append(weighted_doubly_robust)
+        self.value_weighted_doubly_robust.append(weighted_doubly_robust)
 
         logger.info(
-            "Value Weighted Sequential Doubly Robust P.E. : {0:.3f}".format(weighted_doubly_robust)
+            "Value Weighted Sequential Doubly Robust P.E. : noramlized {0:.3f} raw {1:.3f}".format(
+                weighted_doubly_robust.normalized, weighted_doubly_robust.raw
+            )
         )
 
         magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
             self.logged_actions_one_hot,
             self.logged_rewards,
-            self.logged_is_terminals,
+            self.logged_terminals,
             self.logged_propensities,
             target_propensities,
             predictions,
-            num_j_steps=GymEvaluator.num_j_steps_for_magic_estimator
+            num_j_steps=GymEvaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
+            whether_self_normalize_importance_weights=True
         )
-        self.magic_value_doubly_robust.append(magic_doubly_robust)
+        self.value_magic_doubly_robust.append(magic_doubly_robust)
 
         logger.info(
-            "Value Model and Guided Sequential Doubly Robust P.E. : {0:.3f}".format(magic_doubly_robust)
+            "Value Magic Doubly Robust P.E.               : normalized {0:.3f} raw {1:.3f}".format(
+                magic_doubly_robust.normalized, magic_doubly_robust.raw
+            )
         )
 
         avg_rewards, avg_discounted_rewards = self._env.run_ep_n_times(
             100, predictor, test=True
         )
 
-        episode_starts = np.nonzero(self.logged_is_terminals.squeeze())[0] + 1
+        episode_starts = np.nonzero(self.logged_terminals.squeeze())[0] + 1
         logged_discounted_performance = (
-            self.logged_values[0][0] +
-            np.sum(self.logged_values[episode_starts[:-1]])
-        ) / np.sum(self.logged_is_terminals)
+            self.logged_values[0][0] + np.sum(self.logged_values[episode_starts[:-1]])
+        ) / np.sum(self.logged_terminals)
 
-        true_discounted_value_PE = avg_discounted_rewards / logged_discounted_performance
+        true_discounted_value_PE = (
+            avg_discounted_rewards / logged_discounted_performance
+        )
         self.true_discounted_value_PE.append(true_discounted_value_PE)
 
         logger.info(
-            "True Discounted Value P.E : {0:.3f}".format(true_discounted_value_PE)
+            "True Discounted Value P.E                    : normalized {0:.3f} raw {1:.3f}".format(
+                true_discounted_value_PE, avg_discounted_rewards
+            )
         )
 
-        logged_performance = np.sum(self.logged_rewards) / np.sum(self.logged_is_terminals)
+        logged_performance = np.sum(self.logged_rewards) / np.sum(self.logged_terminals)
 
         true_value_PE = avg_rewards / logged_performance
         self.true_value_PE.append(true_value_PE)
 
         logger.info(
-            "True Value P.E : {0:.3f}".format(true_value_PE)
+            "True Value P.E                               : normalized {0:.3f} raw {1:.3f}".format(
+                true_value_PE, avg_rewards
+            )
         )

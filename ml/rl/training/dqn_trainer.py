@@ -6,8 +6,6 @@ from typing import Dict, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
-
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
@@ -24,6 +22,7 @@ from ml.rl.training.rl_trainer_pytorch import (
     RLTrainer,
 )
 from ml.rl.training.training_data_page import TrainingDataPage
+from torch.autograd import Variable
 
 
 class DQNTrainer(RLTrainer):
@@ -81,6 +80,14 @@ class DQNTrainer(RLTrainer):
     @property
     def num_actions(self) -> int:
         return len(self._actions)
+
+    @property
+    def estimated_Q_values(self):
+        return self.all_action_scores
+
+    @property
+    def target_propensities(self):
+        return self.model_propensities
 
     def get_max_q_values(self, states, possible_actions):
         """
@@ -207,14 +214,14 @@ class DQNTrainer(RLTrainer):
         logged_rewards: Optional[np.ndarray],
         logged_values: Optional[np.ndarray],
     ):
-        model_propensities, model_values_on_logged_actions, maxq_action_idxs = (
+        self.model_propensities, model_values_on_logged_actions, maxq_action_idxs = (
             None,
             None,
             None,
         )
         if self.all_action_scores is not None:
             self.all_action_scores = self.all_action_scores.cpu().numpy()
-            model_propensities = Evaluator.softmax(
+            self.model_propensities = Evaluator.softmax(
                 self.all_action_scores, self.rl_temperature
             )
             maxq_action_idxs = self.all_action_scores.argmax(axis=1)
@@ -229,7 +236,7 @@ class DQNTrainer(RLTrainer):
             logged_propensities,
             logged_rewards,
             logged_values,
-            model_propensities,
+            self.model_propensities,
             self.all_action_scores,
             model_values_on_logged_actions,
             maxq_action_idxs,

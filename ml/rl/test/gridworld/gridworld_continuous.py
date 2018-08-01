@@ -6,6 +6,7 @@ from typing import List
 import numpy as np
 import torch
 from caffe2.python import core, workspace
+
 from ml.rl.caffe_utils import C2, StackedArray, StackedAssociativeArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase, Samples
@@ -72,13 +73,15 @@ class GridworldContinuous(GridworldBase):
             )
 
         return Samples(
+            mdp_ids=samples.mdp_ids,
+            sequence_numbers=samples.sequence_numbers,
             states=samples.states,
             actions=continuous_actions,
             propensities=samples.propensities,
             rewards=samples.rewards,
             next_states=samples.next_states,
             next_actions=continuous_next_actions,
-            is_terminal=samples.is_terminal,
+            terminals=samples.terminals,
             possible_next_actions=continuous_possible_next_actions,
             reward_timelines=samples.reward_timelines,
         )

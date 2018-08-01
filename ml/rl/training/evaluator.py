@@ -3,7 +3,7 @@
 import itertools
 import logging
 from collections import Counter
-from typing import List
+from typing import List, NamedTuple, Set
 
 import numpy as np
 import scipy as sp
@@ -12,25 +12,67 @@ import scipy as sp
 logger = logging.getLogger(__name__)
 
 
+class CPE_Estimate(NamedTuple):
+    normalized: float
+    raw: float
+
+
+class Sample:
+    __slots__ = [
+        "mdp_id",
+        "sequence_number",
+        "action",
+        "reward",
+        "logged_propensity",
+        "terminal",
+        "target_propensities",
+        "estimated_Q_values",
+    ]
+
+    def __init__(
+        self,
+        mdp_id,
+        sequence_number,
+        action,
+        reward,
+        logged_propensity,
+        terminal,
+        target_propensities,
+        estimated_Q_values,
+    ):
+        self.mdp_id = mdp_id
+        self.sequence_number = sequence_number
+        self.action = action
+        self.reward = reward
+        self.logged_propensity = logged_propensity
+        self.terminal = terminal
+        self.target_propensities = target_propensities
+        self.estimated_Q_values = estimated_Q_values
+
+
 class Evaluator(object):
-    num_subsets_for_cb_estimate = 25
+    MDP_SAMPLED_RATE = 0.1
+    NUM_J_STEPS_FOR_MAGIC_ESTIMATOR = 25
+    NUM_SUBSETS_FOR_CB_ESTIMATES = 25
+    CONFIDENCE_INTERVAL = 0.9
+    RECENT_WINDOW_SIZE = 100
 
     def __init__(self, action_names, evaluator_batch_size, gamma) -> None:
         self.action_names = action_names
         self.mc_loss: List[float] = []
         self.td_loss: List[float] = []
         self.reward_loss: List[float] = []
-        self.value_inverse_propensity_score: List[float] = []
-        self.value_direct_method: List[float] = []
-        self.value_doubly_robust: List[float] = []
-        self.sequential_value_doubly_robust: List[float] = []
-        self.weighted_sequential_value_doubly_robust: List[float] = []
-        self.magic_value_doubly_robust: List[float] = []
+        self.value_inverse_propensity_score: List[CPE_Estimate] = []
+        self.value_direct_method: List[CPE_Estimate] = []
+        self.value_doubly_robust: List[CPE_Estimate] = []
+        self.value_sequential_doubly_robust: List[CPE_Estimate] = []
+        self.value_weighted_doubly_robust: List[CPE_Estimate] = []
+        self.value_magic_doubly_robust: List[CPE_Estimate] = []
         self.true_value_PE: List[float] = []
         self.true_discounted_value_PE: List[float] = []
-        self.reward_inverse_propensity_score: List[float] = []
-        self.reward_direct_method: List[float] = []
-        self.reward_doubly_robust: List[float] = []
+        self.reward_inverse_propensity_score: List[CPE_Estimate] = []
+        self.reward_direct_method: List[CPE_Estimate] = []
+        self.reward_doubly_robust: List[CPE_Estimate] = []
 
         self.evaluator_batch_size = evaluator_batch_size
 
@@ -57,6 +99,16 @@ class Evaluator(object):
         ]
 
         self.gamma = gamma
+
+        self.unshuffled_samples: List[Sample] = []
+        self.mdp_id_visited: Set[int] = set()
+        self.sampled_mdp_ids: Set[int] = set()
+        self.unshuffled_actions = np.array([])
+        self.unshuffled_rewards = np.array([])
+        self.unshuffled_logged_propensities = np.array([])
+        self.unshuffled_terminals = np.array([])
+        self.unshuffled_target_propensities = np.array([])
+        self.unshuffled_estimated_Q_values = np.array([])
 
     def report(
         self,
@@ -130,21 +182,6 @@ class Evaluator(object):
                 # Assume a deterministic model
                 logged_propensities = np.ones(logged_values.shape)
 
-            v_ips, v_dm, v_dr = self.doubly_robust_one_step_policy_estimation(
-                logged_actions,
-                logged_values,
-                logged_propensities,
-                model_propensities,
-                model_values,
-            )
-            self.value_inverse_propensity_score.append(v_ips)
-            self.value_direct_method.append(v_dm)
-            self.value_doubly_robust.append(v_dr)
-
-            print_details += "Value Inverse Propensity Score : {0:.3f}\n".format(v_ips)
-            print_details += "Value Direct Method            : {0:.3f}\n".format(v_dm)
-            print_details += "Value Doubly Robust P.E.       : {0:.3f}\n".format(v_dr)
-
             r_ips, r_dm, r_dr = self.doubly_robust_one_step_policy_estimation(
                 logged_actions,
                 logged_rewards,
@@ -156,9 +193,36 @@ class Evaluator(object):
             self.reward_direct_method.append(r_dm)
             self.reward_doubly_robust.append(r_dr)
 
-            print_details += "Reward Inverse Propensity Score : {0:.3f}\n".format(r_ips)
-            print_details += "Reward Direct Method            : {0:.3f}\n".format(r_dm)
-            print_details += "Reward Doubly Robust P.E.       : {0:.3f}\n".format(r_dr)
+            print_details += "Reward Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}\n".format(
+                r_ips.normalized, r_ips.raw
+            )
+            print_details += "Reward Direct Method            : normalized {0:.3f} raw {1:.3f}\n".format(
+                r_dm.normalized, r_dm.raw
+            )
+            print_details += "Reward Doubly Robust P.E.       : normalized {0:.3f} raw {1:.3f}\n".format(
+                r_dr.normalized, r_dr.raw
+            )
+
+            v_ips, v_dm, v_dr = self.doubly_robust_one_step_policy_estimation(
+                logged_actions,
+                logged_values,
+                logged_propensities,
+                model_propensities,
+                model_values,
+            )
+            self.value_inverse_propensity_score.append(v_ips)
+            self.value_direct_method.append(v_dm)
+            self.value_doubly_robust.append(v_dr)
+
+            print_details += "Value Inverse Propensity Score    : normalized {0:.3f} raw {1:.3f}\n".format(
+                v_ips.normalized, v_ips.raw
+            )
+            print_details += "Value Direct Method               : normalized {0:.3f} raw {1:.3f}\n".format(
+                v_dm.normalized, v_dm.raw
+            )
+            print_details += "Value One-Step Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}\n".format(
+                v_dr.normalized, v_dr.raw
+            )
 
         if logged_actions is not None and model_action_idxs is not None:
             logged_action_counter = Counter(np.argmax(logged_actions, axis=1))
@@ -176,29 +240,208 @@ class Evaluator(object):
                 }
             )
 
-        print_details += "Evaluator Finished"
+        print_details += "Batch Evaluator Finished"
         for print_detail in print_details.split("\n"):
             logger.info(print_detail)
 
+    def collect_samples(
+        self,
+        mdp_ids,
+        sequence_numbers,
+        logged_actions,
+        logged_rewards,
+        logged_propensities,
+        logged_terminals,
+        target_propensities,
+        estimated_Q_values,
+    ):
+        for i in range(len(mdp_ids)):
+            mdp_id = mdp_ids[i]
+            if mdp_id not in self.mdp_id_visited:
+                self.mdp_id_visited.add(mdp_id)
+                if np.random.random() < Evaluator.MDP_SAMPLED_RATE:
+                    self.sampled_mdp_ids.add(mdp_id)
+            if mdp_id in self.sampled_mdp_ids:
+                self.unshuffled_samples.append(
+                    Sample(
+                        mdp_id=mdp_id,
+                        sequence_number=sequence_numbers[i],
+                        action=logged_actions[i],
+                        reward=logged_rewards[i],
+                        logged_propensity=logged_propensities[i],
+                        terminal=logged_terminals[i],
+                        target_propensities=target_propensities[i],
+                        estimated_Q_values=estimated_Q_values[i],
+                    )
+                )
+
+    def recover_samples_to_be_unshuffled(self):
+        # sort to recover unshuffled samples
+        self.unshuffled_samples.sort(key=lambda x: (x.mdp_id, x.sequence_number))
+
+        # add terminal at the end of every mdp sequence
+        for i in range(len(self.unshuffled_samples) - 1):
+            if (
+                self.unshuffled_samples[i].mdp_id
+                != self.unshuffled_samples[i + 1].mdp_id
+            ):
+                self.unshuffled_samples[i].terminal = True
+
+        self.unshuffled_actions = np.array([x.action for x in self.unshuffled_samples])
+        self.unshuffled_rewards = np.array(
+            [x.reward for x in self.unshuffled_samples]
+        ).reshape(-1, 1)
+        self.unshuffled_logged_propensities = np.array(
+            [x.logged_propensity for x in self.unshuffled_samples]
+        ).reshape(-1, 1)
+        self.unshuffled_terminals = np.array(
+            [x.terminal for x in self.unshuffled_samples]
+        ).reshape(-1, 1)
+        self.unshuffled_target_propensities = np.array(
+            [x.target_propensities for x in self.unshuffled_samples]
+        )
+        self.unshuffled_estimated_Q_values = np.array(
+            [x.estimated_Q_values for x in self.unshuffled_samples]
+        )
+
+    def clear_collected_samples(self):
+        self.unshuffled_samples.clear()
+        self.sampled_mdp_ids = set()
+        self.mdp_id_visited = set()
+        self.unshuffled_actions = np.array([])
+        self.unshuffled_rewards = np.array([])
+        self.unshuffled_logged_propensities = np.array([])
+        self.unshuffled_terminals = np.array([])
+        self.unshuffled_target_propensities = np.array([])
+        self.unshuffled_estimated_Q_values = np.array([])
+
+    def score_cpe(self):
+        if len(self.unshuffled_samples) == 0 or len(self.unshuffled_actions) == 0:
+            return
+
+        logger.info(
+            "CPE Evaluator after {} epoches".format(
+                len(self.value_sequential_doubly_robust) + 1
+            )
+        )
+        sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
+            self.unshuffled_actions,
+            self.unshuffled_rewards,
+            self.unshuffled_terminals,
+            self.unshuffled_logged_propensities,
+            self.unshuffled_target_propensities,
+            self.unshuffled_estimated_Q_values,
+        )
+        self.value_sequential_doubly_robust.append(sequential_doubly_robust)
+
+        logger.info(
+            "Value Sequential Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
+                sequential_doubly_robust.normalized, sequential_doubly_robust.raw
+            )
+        )
+
+        weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
+            self.unshuffled_actions,
+            self.unshuffled_rewards,
+            self.unshuffled_terminals,
+            self.unshuffled_logged_propensities,
+            self.unshuffled_target_propensities,
+            self.unshuffled_estimated_Q_values,
+            num_j_steps=1,
+            whether_self_normalize_importance_weights=True,
+        )
+        self.value_weighted_doubly_robust.append(weighted_doubly_robust)
+
+        logger.info(
+            "Value Weighted Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
+                weighted_doubly_robust.normalized, weighted_doubly_robust.raw
+            )
+        )
+
+        magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
+            self.unshuffled_actions,
+            self.unshuffled_rewards,
+            self.unshuffled_terminals,
+            self.unshuffled_logged_propensities,
+            self.unshuffled_target_propensities,
+            self.unshuffled_estimated_Q_values,
+            num_j_steps=Evaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
+            whether_self_normalize_importance_weights=True,
+        )
+        self.value_magic_doubly_robust.append(magic_doubly_robust)
+
+        logger.info(
+            "Value Magic Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
+                magic_doubly_robust.normalized, magic_doubly_robust.raw
+            )
+        )
+
+        logger.info("CPE Evaluator Finished")
+
     def get_recent_td_loss(self):
-        begin = max(0, len(self.td_loss) - 100)
-        return np.mean(np.array(self.td_loss[begin:]))
+        return Evaluator.calculate_recent_window_average(
+            self.td_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
+        )
 
     def get_recent_mc_loss(self):
-        begin = max(0, len(self.mc_loss) - 100)
-        return np.mean(np.array(self.mc_loss[begin:]))
+        return Evaluator.calculate_recent_window_average(
+            self.mc_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
+        )
 
-    def get_recent_inverse_propensity_score(self):
-        begin = max(0, len(self.reward_inverse_propensity_score) - 100)
-        return np.mean(np.array(self.reward_inverse_propensity_score[begin:]))
+    def get_recent_reward_inverse_propensity_score(self):
+        ips = Evaluator.calculate_recent_window_average(
+            self.reward_inverse_propensity_score,
+            Evaluator.RECENT_WINDOW_SIZE,
+            num_entries=2,
+        )
+        return CPE_Estimate(normalized=ips[0], raw=ips[1])
 
-    def get_recent_direct_method(self):
-        begin = max(0, len(self.reward_direct_method) - 100)
-        return np.mean(np.array(self.reward_direct_method[begin:]))
+    def get_recent_reward_direct_method(self):
+        dm = Evaluator.calculate_recent_window_average(
+            self.reward_direct_method, Evaluator.RECENT_WINDOW_SIZE, num_entries=2
+        )
+        return CPE_Estimate(normalized=dm[0], raw=dm[1])
 
-    def get_recent_doubly_robust(self):
-        begin = max(0, len(self.reward_doubly_robust) - 100)
-        return np.mean(np.array(self.reward_doubly_robust[begin:]))
+    def get_recent_reward_doubly_robust(self):
+        dr = Evaluator.calculate_recent_window_average(
+            self.reward_doubly_robust, Evaluator.RECENT_WINDOW_SIZE, num_entries=2
+        )
+        return CPE_Estimate(normalized=dr[0], raw=dr[1])
+
+    def get_recent_value_one_step_doubly_robust(self):
+        dr = Evaluator.calculate_recent_window_average(
+            self.value_doubly_robust, Evaluator.RECENT_WINDOW_SIZE, num_entries=2
+        )
+        return CPE_Estimate(normalized=dr[0], raw=dr[1])
+
+    def get_recent_value_sequential_doubly_robust(self):
+        dr = Evaluator.calculate_recent_window_average(
+            self.value_sequential_doubly_robust, window_size=1, num_entries=2
+        )
+        return CPE_Estimate(normalized=dr[0], raw=dr[1])
+
+    def get_recent_value_weighted_doubly_robust(self):
+        dr = Evaluator.calculate_recent_window_average(
+            self.value_weighted_doubly_robust, window_size=1, num_entries=2
+        )
+        return CPE_Estimate(normalized=dr[0], raw=dr[1])
+
+    def get_recent_value_magic_doubly_robust(self):
+        dr = Evaluator.calculate_recent_window_average(
+            self.value_magic_doubly_robust, window_size=1, num_entries=2
+        )
+        return CPE_Estimate(normalized=dr[0], raw=dr[1])
+
+    @staticmethod
+    def calculate_recent_window_average(arr, window_size, num_entries):
+        if len(arr) > 0:
+            begin = max(0, len(arr) - window_size)
+            return np.mean(np.array(arr[begin:]), axis=0)
+        else:
+            if num_entries == 0:
+                return float("nan")
+            else:
+                return [float("nan")] * num_entries
 
     def doubly_robust_one_step_policy_estimation(
         self,
@@ -235,21 +478,30 @@ class Evaluator(object):
         ) + direct_method_values
 
         return (
-            float(np.sum(ips) / total_reward),
-            float(np.sum(direct_method_values) / total_reward),
-            float(np.sum(doubly_robust) / total_reward),
+            CPE_Estimate(
+                normalized=float(np.sum(ips) / total_reward), raw=float(np.mean(ips))
+            ),
+            CPE_Estimate(
+                normalized=float(np.sum(direct_method_values) / total_reward),
+                raw=float(np.mean(direct_method_values)),
+            ),
+            CPE_Estimate(
+                normalized=float(np.sum(doubly_robust) / total_reward),
+                raw=float(np.mean(doubly_robust)),
+            ),
         )
 
     def doubly_robust_sequential_policy_estimation(
         self,
         logged_actions,
         logged_rewards,
-        logged_is_terminals,
+        logged_terminals,
         logged_propensities,
         target_propensities,
         estimated_Q_values,
     ):
         # For details, visit https://arxiv.org/pdf/1511.03722.pdf
+        logged_terminals = logged_terminals.squeeze()
         num_examples = logged_actions.shape[0]
 
         direct_method_Q_values = np.sum(
@@ -266,12 +518,13 @@ class Evaluator(object):
         )
 
         doubly_robusts = []
+        episode_values = []
 
         i = 0
         last_episode_end = -1
         while i < num_examples:
             # calculate the doubly-robust Q-value for one episode
-            if logged_is_terminals[i][0]:
+            if logged_terminals[i] or i == num_examples - 1:
                 episode_end = i
                 episode_value = 0.0
                 doubly_robust = 0.0
@@ -285,20 +538,29 @@ class Evaluator(object):
                     )
                     episode_value *= self.gamma
                     episode_value += logged_rewards[j][0]
-                doubly_robusts.append(doubly_robust / episode_value)
+                doubly_robusts.append(doubly_robust)
+                episode_values.append(episode_value)
                 last_episode_end = episode_end
             i += 1
-        return np.mean(doubly_robusts)
+
+        doubly_robusts = np.array(doubly_robusts)
+        episode_values = np.array(episode_values)
+
+        return CPE_Estimate(
+            normalized=float(np.nanmean(doubly_robusts / episode_values)),
+            raw=float(np.mean(doubly_robusts)),
+        )
 
     def weighted_doubly_robust_sequential_policy_estimation(
         self,
         logged_actions,
         logged_rewards,
-        logged_is_terminals,
+        logged_terminals,
         logged_propensities,
         target_propensities,
         estimated_Q_values,
         num_j_steps,
+        whether_self_normalize_importance_weights,
     ):
         # For details, visit https://arxiv.org/pdf/1604.00923.pdf Section 5, 7, 8
         (
@@ -308,7 +570,7 @@ class Evaluator(object):
             target_propensities,
             estimated_Q_values,
         ) = Evaluator.transform_to_equal_length_trajectories(
-            logged_is_terminals.squeeze(),
+            logged_terminals.squeeze(),
             logged_actions,
             logged_rewards.squeeze(),
             logged_propensities.squeeze(),
@@ -338,7 +600,9 @@ class Evaluator(object):
         )
 
         importance_weights = target_propensity_for_logged_action / logged_propensities
-        importance_weights = Evaluator.normalize_importance_weights(importance_weights)
+        importance_weights = Evaluator.normalize_importance_weights(
+            importance_weights, whether_self_normalize_importance_weights
+        )
 
         importance_weights_one_earlier = (
             np.ones([num_trajectories, 1]) * 1.0 / num_trajectories
@@ -378,8 +642,8 @@ class Evaluator(object):
         else:
             # break trajectories into 25 subsets to estimate confidence bounds
             infinite_step_returns = []
-            interval = num_trajectories / Evaluator.num_subsets_for_cb_estimate
-            for i in range(Evaluator.num_subsets_for_cb_estimate):
+            interval = num_trajectories / Evaluator.NUM_SUBSETS_FOR_CB_ESTIMATES
+            for i in range(Evaluator.NUM_SUBSETS_FOR_CB_ESTIMATES):
                 trajectory_subset = np.arange(
                     int(i * interval), int((i + 1) * interval)
                 )
@@ -388,7 +652,7 @@ class Evaluator(object):
                     / logged_propensities[trajectory_subset]
                 )
                 importance_weights = Evaluator.normalize_importance_weights(
-                    importance_weights
+                    importance_weights, whether_self_normalize_importance_weights
                 )
                 importance_weights_one_earlier = (
                     np.ones([len(trajectory_subset), 1]) * 1.0 / len(trajectory_subset)
@@ -408,8 +672,8 @@ class Evaluator(object):
                 )
                 infinite_step_returns.append(infinite_step_return)
 
-            low_bound, high_bound = Evaluator.confidence_interval(
-                infinite_step_returns, 0.9
+            low_bound, high_bound = Evaluator.confidence_bounds(
+                infinite_step_returns, Evaluator.CONFIDENCE_INTERVAL
             )
 
             # decompose error into bias + variance
@@ -443,16 +707,25 @@ class Evaluator(object):
 
         episode_values = np.sum(np.multiply(rewards, discounts), axis=1)
 
-        return weighted_doubly_robust / np.mean(episode_values)
+        return CPE_Estimate(
+            normalized=float(weighted_doubly_robust / np.nanmean(episode_values)),
+            raw=float(weighted_doubly_robust),
+        )
 
     @staticmethod
-    def normalize_importance_weights(importance_weights):
-        sum_importance_weights = np.sum(importance_weights, axis=0)
-        where_zeros = np.where(sum_importance_weights == 0.0)[0]
-        sum_importance_weights[where_zeros] = len(importance_weights)
-        importance_weights[:, where_zeros] = 1.0
-        importance_weights /= sum_importance_weights
-        return importance_weights
+    def normalize_importance_weights(
+        importance_weights, whether_self_normalize_importance_weights
+    ):
+        if whether_self_normalize_importance_weights:
+            sum_importance_weights = np.sum(importance_weights, axis=0)
+            where_zeros = np.where(sum_importance_weights == 0.0)[0]
+            sum_importance_weights[where_zeros] = len(importance_weights)
+            importance_weights[:, where_zeros] = 1.0
+            importance_weights /= sum_importance_weights
+            return importance_weights
+        else:
+            importance_weights /= importance_weights.shape[0]
+            return importance_weights
 
     @staticmethod
     def calculate_step_return(
@@ -497,7 +770,7 @@ class Evaluator(object):
         return j_step_return
 
     @staticmethod
-    def confidence_interval(x, confidence):
+    def confidence_bounds(x, confidence):
         n = len(x)
         m, se = np.mean(x), sp.stats.sem(x)
         h = se * sp.stats.t._ppf((1 + confidence) / 2.0, n - 1)
@@ -505,7 +778,7 @@ class Evaluator(object):
 
     @staticmethod
     def transform_to_equal_length_trajectories(
-        is_terminals,
+        terminals,
         actions,
         rewards,
         logged_propensities,
@@ -514,7 +787,7 @@ class Evaluator(object):
     ):
         """
         Take into samples (action, rewards, propensities, etc.) and output lists
-        of equal-length trajectories (episodes) accoriding to is_terminalsself.
+        of equal-length trajectories (episodes) accoriding to terminals.
         As the raw trajectories are of various lengths, the shorter ones are
         filled with zeros(ones) at the end.
         """
@@ -522,7 +795,10 @@ class Evaluator(object):
 
         trajectories = []
         episode_start = 0
-        episode_ends = np.nonzero(is_terminals)[0]
+        episode_ends = np.nonzero(terminals)[0]
+        if len(terminals) - 1 not in episode_ends:
+            episode_ends = np.append(episode_ends, len(terminals) - 1)
+
         for episode_end in episode_ends:
             trajectories.append(np.arange(episode_start, episode_end + 1))
             episode_start = episode_end + 1
