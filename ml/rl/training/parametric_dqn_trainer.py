@@ -24,6 +24,7 @@ from ml.rl.training.rl_trainer_pytorch import (
 )
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
+from ml.rl.training.parametric_inner_product import ParametricInnerProduct
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -41,9 +42,11 @@ class ParametricDQNTrainer(RLTrainer):
         self.minibatch_size = parameters.training.minibatch_size
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
-        self.num_features = get_num_output_features(
-            state_normalization_parameters
-        ) + get_num_output_features(action_normalization_parameters)
+        self.num_state_features = get_num_output_features(
+            state_normalization_parameters)
+        self.num_action_features = get_num_output_features(
+            action_normalization_parameters)
+        self.num_features = self.num_state_features + self.num_action_features
 
         # ensure state and action IDs have no intersection
         overlapping_features = set(state_normalization_parameters.keys()) & set(
@@ -54,23 +57,26 @@ class ParametricDQNTrainer(RLTrainer):
             + str(overlapping_features)
         )
 
-        parameters.training.layers[0] = self.num_features
-        parameters.training.layers[-1] = 1
+        if parameters.training.factorization_parameters is None:
+            parameters.training.layers[0] = self.num_features
+            parameters.training.layers[-1] = 1
+        else:
+            parameters.training.factorization_parameters.state.layers[0] = \
+                self.num_state_features
+            parameters.training.factorization_parameters.action.layers[0] = \
+                self.num_action_features
 
         RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types)
 
-        self.q_network = GenericFeedForwardNetwork(
-            parameters.training.layers, parameters.training.activations
-        )
+        self.q_network = self._get_model(parameters.training)
+
         self.q_network_target = deepcopy(self.q_network)
         self._set_optimizer(parameters.training.optimizer)
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(), lr=parameters.training.learning_rate
         )
 
-        self.reward_network = GenericFeedForwardNetwork(
-            parameters.training.layers, parameters.training.activations
-        )
+        self.reward_network = self._get_model(parameters.training)
         self.reward_network_optimizer = self.optimizer_func(
             self.reward_network.parameters(), lr=parameters.training.learning_rate
         )
@@ -79,6 +85,25 @@ class ParametricDQNTrainer(RLTrainer):
             self.q_network.cuda()
             self.q_network_target.cuda()
             self.reward_network.cuda()
+
+    def _get_model(self, training_parameters):
+        if training_parameters.factorization_parameters is None:
+            return GenericFeedForwardNetwork(
+                training_parameters.layers, training_parameters.activations
+            )
+        else:
+            return ParametricInnerProduct(
+                GenericFeedForwardNetwork(
+                    training_parameters.factorization_parameters.state.layers,
+                    training_parameters.factorization_parameters.state.activations,
+                ),
+                GenericFeedForwardNetwork(
+                    training_parameters.factorization_parameters.action.layers,
+                    training_parameters.factorization_parameters.action.activations,
+                ),
+                self.num_state_features,
+                self.num_action_features,
+            )
 
     def get_max_q_values(self, next_state_pnas_concat, possible_actions_lengths):
         """

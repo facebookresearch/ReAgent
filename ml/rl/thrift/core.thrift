@@ -27,6 +27,16 @@ struct CNNParameters {
   8: i32 input_width,
 }
 
+struct FeedForwardParameters {
+  1: list<i32> layers = [-1, 512, 256, 128, 1],
+  2: list<string> activations = ['relu', 'relu', 'relu', 'linear'],
+}
+
+struct FactorizationParameters {
+  1: FeedForwardParameters state,
+  2: FeedForwardParameters action,
+}
+
 struct TrainingParameters {
   1: i32 minibatch_size = 16384,
   2: double learning_rate = 0.01,
@@ -38,6 +48,7 @@ struct TrainingParameters {
   8: double dropout_ratio = 0.0,
   9: optional string warm_start_model_path,
   10: optional CNNParameters cnn_parameters,
+  11: optional FactorizationParameters factorization_parameters,
 }
 
 struct ActionBudget {
