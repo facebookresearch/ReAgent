@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
 
+import logging
 from typing import Dict, List
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 import numpy as np
-
 from caffe2.python import core, workspace
-from caffe2.python.predictor.predictor_exporter import save_to_db, PredictorExportMeta
-
+from caffe2.python.predictor.predictor_exporter import PredictorExportMeta, save_to_db
+from ml.rl.caffe_utils import C2
+from ml.rl.evaluation.policy_simulator import PolicySimulator
 from ml.rl.thrift.eval.ttypes import (
     PolicyEvaluatorParameters,
     ValueInputModelParameters,
 )
 
-from ml.rl.caffe_utils import C2
-from ml.rl.evaluation.policy_simulator import PolicySimulator
+
+logger = logging.getLogger(__name__)
 
 
 def save_sum_deterministic_policy(model_names, path, db_type):
@@ -51,7 +48,6 @@ class Slate(object):
 
 
 class PolicyEvaluator(object):
-
     def __init__(self, params: PolicyEvaluatorParameters) -> None:
         self.params = params
         self.process_slate_net = core.Net("policy_evaluator")
@@ -88,9 +84,10 @@ class PolicyEvaluator(object):
                 self.created_net = True
             workspace.RunNet(self.process_slate_net)
             action_probabilities = workspace.FetchBlob(self.action_probabilities)
-            ips_numerator = rewards[slate_index] * action_probabilities[
-                action_selection[slate_index]
-            ]
+            ips_numerator = (
+                rewards[slate_index]
+                * action_probabilities[action_selection[slate_index]]
+            )
             ips_denominator = baseline_probabilities[slate_index]
             value_sum += ips_numerator / ips_denominator
         return value_sum / num_slates

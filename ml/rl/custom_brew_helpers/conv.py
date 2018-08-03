@@ -27,12 +27,21 @@ def conv_explicit_param_names(
     :bias_name: Name of blob corresponding to an initialized bias parameter
     """
     required_kwargs = [
-        'dim_in', 'dim_out', 'weight_name', 'bias_name', 'kernel_h', 'kernel_w'
+        "dim_in",
+        "dim_out",
+        "weight_name",
+        "bias_name",
+        "kernel_h",
+        "kernel_w",
     ]
     for arg in required_kwargs:
         assert arg in kwargs, "Please supply kwarg {}".format(arg)
-    dim_in, dim_out, kernel_h, kernel_w = kwargs['dim_in'], kwargs['dim_out'], \
-                                          kwargs['kernel_h'], kwargs['kernel_w']
+    dim_in, dim_out, kernel_h, kernel_w = (
+        kwargs["dim_in"],
+        kwargs["dim_out"],
+        kwargs["kernel_h"],
+        kwargs["kernel_w"],
+    )
 
     WeightInitializer = initializers.update_initializer(
         None, weight_init, ("XavierFill", {})
@@ -44,22 +53,19 @@ def conv_explicit_param_names(
     weight_shape = [dim_out, dim_in, kernel_h, kernel_w]
 
     weight = model.create_param(
-        param_name=kwargs['weight_name'],
+        param_name=kwargs["weight_name"],
         shape=weight_shape,
         initializer=WeightInitializer,
-        tags=ParameterTags.WEIGHT
+        tags=ParameterTags.WEIGHT,
     )
 
     bias = model.create_param(
-        param_name=kwargs['bias_name'],
-        shape=[dim_out, ],
+        param_name=kwargs["bias_name"],
+        shape=[dim_out],
         initializer=BiasInitializer,
-        tags=ParameterTags.BIAS
+        tags=ParameterTags.BIAS,
     )
 
     return model.net.Conv(
-        [blob_in, weight, bias],
-        blob_out,
-        kernel_h=kernel_h,
-        kernel_w=kernel_w,
+        [blob_in, weight, bias], blob_out, kernel_h=kernel_h, kernel_w=kernel_w
     )

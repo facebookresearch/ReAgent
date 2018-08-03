@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
+import logging
+
 import numpy as np
-
 from caffe2.python import core, workspace
-
 from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
-import logging
 
 logger = logging.getLogger(__name__)
 

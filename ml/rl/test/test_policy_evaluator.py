@@ -1,47 +1,38 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Any
-
-import numpy as np
+import os
 import tempfile
 import unittest
-import os
+from typing import Any, Dict, List
 
+import numpy as np
 from caffe2.python import core, workspace
-from caffe2.python.predictor.predictor_exporter import (
-    save_to_db,
-    PredictorExportMeta,
-)
-
-from ml.rl.thrift.eval.ttypes import (
-    PolicyEvaluatorParameters, ValueInputModelParameters
-)
-
+from caffe2.python.predictor.predictor_exporter import PredictorExportMeta, save_to_db
 from ml.rl.caffe_utils import C2
 from ml.rl.evaluation.policy_evaluator import (
-    PolicyEvaluator, save_sum_deterministic_policy, Slate
+    PolicyEvaluator,
+    Slate,
+    save_sum_deterministic_policy,
+)
+from ml.rl.thrift.eval.ttypes import (
+    PolicyEvaluatorParameters,
+    ValueInputModelParameters,
 )
 
 
 class TestPolicyEvaluator(unittest.TestCase):
     def test_no_model_nets_matching_policy(self):
         with tempfile.TemporaryDirectory() as temp_directory_name:
-            policy_file = os.path.join(temp_directory_name, 'policy.db')
+            policy_file = os.path.join(temp_directory_name, "policy.db")
             pep = PolicyEvaluatorParameters()
             pep.propensity_net_path = policy_file
-            pep.db_type = 'minidb'
+            pep.db_type = "minidb"
             pep.global_value_inputs = {}
             pep.value_input_models = []
-            pep.value_input_models.append(
-                ValueInputModelParameters(name='Model1')
-            )
-            pep.value_input_models.append(
-                ValueInputModelParameters(name='Model2')
-            )
+            pep.value_input_models.append(ValueInputModelParameters(name="Model1"))
+            pep.value_input_models.append(ValueInputModelParameters(name="Model2"))
             save_sum_deterministic_policy(
-                ['Model1', 'Model2'],
-                policy_file,
-                pep.db_type,
+                ["Model1", "Model2"], policy_file, pep.db_type
             )
             pe = PolicyEvaluator(pep)
             slates = []
@@ -52,22 +43,14 @@ class TestPolicyEvaluator(unittest.TestCase):
                     {},
                     [
                         {
-                            'Model1': {
-                                'Output': 1.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
+                            "Model1": {"Output": 1.0},
+                            "Model2": {"Output": 0.0},
                         },  # First example scores
                         {
-                            'Model1': {
-                                'Output': 0.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
-                        }  # Second example scores
-                    ]
+                            "Model1": {"Output": 0.0},
+                            "Model2": {"Output": 0.0},
+                        },  # Second example scores
+                    ],
                 )
             )
 
@@ -77,22 +60,14 @@ class TestPolicyEvaluator(unittest.TestCase):
                     {},
                     [
                         {
-                            'Model1': {
-                                'Output': 0.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
+                            "Model1": {"Output": 0.0},
+                            "Model2": {"Output": 0.0},
                         },  # First example scores
                         {
-                            'Model1': {
-                                'Output': 1.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
-                        }  # Second example scores
-                    ]
+                            "Model1": {"Output": 1.0},
+                            "Model2": {"Output": 0.0},
+                        },  # Second example scores
+                    ],
                 )
             )
 
@@ -109,24 +84,20 @@ class TestPolicyEvaluator(unittest.TestCase):
 
     def test_one_model_net_matching_policy(self):
         with tempfile.TemporaryDirectory() as temp_directory_name:
-            policy_file = os.path.join(temp_directory_name, 'policy.db')
-            model1_file = os.path.join(temp_directory_name, 'model1.db')
-            self._dummy_model_copy('Model1', model1_file)
+            policy_file = os.path.join(temp_directory_name, "policy.db")
+            model1_file = os.path.join(temp_directory_name, "model1.db")
+            self._dummy_model_copy("Model1", model1_file)
             pep = PolicyEvaluatorParameters()
             pep.propensity_net_path = policy_file
-            pep.db_type = 'minidb'
+            pep.db_type = "minidb"
             pep.global_value_inputs = {}
             pep.value_input_models = []
             pep.value_input_models.append(
-                ValueInputModelParameters(name='Model1', path=model1_file)
+                ValueInputModelParameters(name="Model1", path=model1_file)
             )
-            pep.value_input_models.append(
-                ValueInputModelParameters(name="Model2")
-            )
+            pep.value_input_models.append(ValueInputModelParameters(name="Model2"))
             save_sum_deterministic_policy(
-                ['Model1', 'Model2'],
-                policy_file,
-                pep.db_type,
+                ["Model1", "Model2"], policy_file, pep.db_type
             )
             pe = PolicyEvaluator(pep)
             slates = []
@@ -137,22 +108,14 @@ class TestPolicyEvaluator(unittest.TestCase):
                     {},
                     [
                         {
-                            'Model1': {
-                                'Input': 1.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
+                            "Model1": {"Input": 1.0},
+                            "Model2": {"Output": 0.0},
                         },  # First example scores
                         {
-                            'Model1': {
-                                'Input': 0.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
-                        }  # Second example scores
-                    ]
+                            "Model1": {"Input": 0.0},
+                            "Model2": {"Output": 0.0},
+                        },  # Second example scores
+                    ],
                 )
             )
 
@@ -162,22 +125,14 @@ class TestPolicyEvaluator(unittest.TestCase):
                     {},
                     [
                         {
-                            'Model1': {
-                                'Input': 0.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
+                            "Model1": {"Input": 0.0},
+                            "Model2": {"Output": 0.0},
                         },  # First example scores
                         {
-                            'Model1': {
-                                'Input': 1.0
-                            },
-                            'Model2': {
-                                'Output': 0.0
-                            }
-                        }  # Second example scores
-                    ]
+                            "Model1": {"Input": 1.0},
+                            "Model2": {"Output": 0.0},
+                        },  # Second example scores
+                    ],
                 )
             )
 
@@ -221,9 +176,13 @@ class TestPolicyEvaluator(unittest.TestCase):
         for model_name, model in all_model_features.items():
             all_model_features_numpy[model_name] = {}
             for feature_id in model.keys():
-                all_model_features_numpy[model_name][feature_id] = np.array( # type: ignore
-                    model[feature_id], dtype=np.float32 # type: ignore
-                ).reshape(-1, 1)
+                all_model_features_numpy[model_name][
+                    feature_id
+                ] = np.array(  # type: ignore
+                    model[feature_id], dtype=np.float32  # type: ignore
+                ).reshape(
+                    -1, 1
+                )
 
         print(all_model_features_numpy)
         return Slate(policy_features, all_model_features_numpy)
@@ -231,15 +190,10 @@ class TestPolicyEvaluator(unittest.TestCase):
     def _dummy_model_copy(self, model_name, path):
         net = core.Net(model_name)
         C2.set_net(net)
-        inp = 'Input'
-        output = 'Output'
+        inp = "Input"
+        output = "Output"
         workspace.FeedBlob(inp, np.array([1.0]))
         workspace.FeedBlob(output, np.array([1.0]))
         net.Copy([inp], [output])
-        meta = PredictorExportMeta(
-            net,
-            [],
-            [inp],
-            [output],
-        )
-        save_to_db('minidb', path, meta)
+        meta = PredictorExportMeta(net, [], [inp], [output])
+        save_to_db("minidb", path, meta)

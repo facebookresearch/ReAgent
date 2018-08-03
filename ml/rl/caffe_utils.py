@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 
-from io import BytesIO
-import os
 import itertools
-from typing import Any, List, Dict, Optional
+import os
 import traceback
-
-import numpy as np
+from io import BytesIO
+from typing import Any, Dict, List, Optional
 
 import caffe2.python.onnx.backend
-from caffe2.python import workspace
-from caffe2.python.core import BlobReference
+import numpy as np
 import onnx
 import torch
 import torch.nn as nn
+from caffe2.python import workspace
+from caffe2.python.core import BlobReference
 
 
 class C2Meta(type):

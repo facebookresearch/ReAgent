@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import numpy as np
-from scipy import stats
 import unittest
 
-from caffe2.python import workspace, model_helper, brew
-
+import numpy as np
+from caffe2.python import brew, model_helper, workspace
 from ml.rl.custom_brew_helpers.fc import fc_explicit_param_names
+from scipy import stats
 
 
 class TestCustomBrewHelpers(unittest.TestCase):

@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
 import random
-import numpy as np
 import unittest
 
-from ml.rl.training.evaluator import Evaluator
-from ml.rl.thrift.core.ttypes import (
-    RLParameters,
-    TrainingParameters,
-    ContinuousActionModelParameters,
-    KnnParameters,
-)
-from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
+import numpy as np
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_continuous_enum import GridworldContinuousEnum
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
+from ml.rl.thrift.core.ttypes import (
+    ContinuousActionModelParameters,
+    KnnParameters,
+    RLParameters,
+    TrainingParameters,
+)
+from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
+from ml.rl.training.evaluator import Evaluator
 
 
 class TestGridworldContinuous(unittest.TestCase):

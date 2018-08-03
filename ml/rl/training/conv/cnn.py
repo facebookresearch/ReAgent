@@ -2,12 +2,11 @@
 
 
 import math
-import numpy as np
 from typing import List, Optional
 
-from caffe2.python import core, workspace, brew
+import numpy as np
+from caffe2.python import brew, core, workspace
 from caffe2.python.model_helper import ModelHelper
-
 from ml.rl.custom_brew_helpers.conv import conv_explicit_param_names
 from ml.rl.thrift.core.ttypes import CNNParameters
 
@@ -17,13 +16,10 @@ class CNN(object):
         It supports the ml_trainer (for inference) and the target_network
         classes
     """
+
     registered = False
 
-    def __init__(
-        self,
-        name: str,
-        cnn_parameters: CNNParameters,
-    ) -> None:
+    def __init__(self, name: str, cnn_parameters: CNNParameters) -> None:
         """
 
         :param name: A unique name for this trainer used to create the data on the
@@ -55,14 +51,14 @@ class CNN(object):
         for i in range(len(self.conv_height_kernels)):
             heights.append(
                 int(
-                    (heights[i] - self.conv_height_kernels[i] + 1) /
-                    self.pool_kernels_strides[i]
+                    (heights[i] - self.conv_height_kernels[i] + 1)
+                    / self.pool_kernels_strides[i]
                 )
             )
             widths.append(
                 int(
-                    (widths[i] - self.conv_width_kernels[i] + 1) /
-                    self.pool_kernels_strides[i]
+                    (widths[i] - self.conv_width_kernels[i] + 1)
+                    / self.pool_kernels_strides[i]
                 )
             )
 
@@ -71,10 +67,10 @@ class CNN(object):
     def _validate_inputs(self):
         conv_dim_len = len(self.dims) - 1
         if (
-            conv_dim_len != len(self.conv_height_kernels) or
-            conv_dim_len != len(self.conv_width_kernels) or
-            conv_dim_len != len(self.pool_kernels_strides) or
-            conv_dim_len != len(self.pool_types)
+            conv_dim_len != len(self.conv_height_kernels)
+            or conv_dim_len != len(self.conv_width_kernels)
+            or conv_dim_len != len(self.pool_kernels_strides)
+            or conv_dim_len != len(self.pool_types)
         ):
             raise Exception(
                 "Ensure that `conv_dims`, `conv_height_kernels`, `conv_width_kernels`"
@@ -82,7 +78,7 @@ class CNN(object):
             )
 
         for pool_type in self.pool_types:
-            if pool_type not in ['max', 'avg']:
+            if pool_type not in ["max", "avg"]:
                 raise Exception("Unsupported pool type: {}".format(pool_type))
 
     def _setup_initial_blobs(self):
@@ -99,9 +95,7 @@ class CNN(object):
             kernel_w = self.conv_width_kernels[x]
 
             weight_shape = [dim_out, kernel_h, kernel_w, dim_in]
-            bias_shape = [
-                dim_out,
-            ]
+            bias_shape = [dim_out]
 
             conv_weight_name = "ConvWeights_" + str(x) + "_" + self.model_id
             bias_name = "ConvBiases_" + str(x) + "_" + self.model_id
@@ -113,23 +107,18 @@ class CNN(object):
 
             workspace.RunOperatorOnce(
                 core.CreateOperator(
-                    "GaussianFill", [], [conv_weight_name],
+                    "GaussianFill",
+                    [],
+                    [conv_weight_name],
                     shape=weight_shape,
-                    std=math.sqrt(1 / dim_in)
+                    std=math.sqrt(1 / dim_in),
                 )
             )
 
-    def make_conv_pass_ops(
-        self,
-        model: ModelHelper,
-        input_blob: str,
-        output_blob: str,
-    ):
+    def make_conv_pass_ops(self, model: ModelHelper, input_blob: str, output_blob: str):
         conv_input_template = "{}_pool_{}"
         conv_output_template = "{}_conv_{}"
-        model.net.NanCheck(
-            [input_blob], [conv_input_template.format(self.model_id, 0)]
-        )
+        model.net.NanCheck([input_blob], [conv_input_template.format(self.model_id, 0)])
 
         for x in range(len(self.dims) - 1):
             conv_input = conv_input_template.format(self.model_id, x)
@@ -165,25 +154,23 @@ class CNN(object):
                 bias_name=conv_bias_name,
                 weight_name=conv_weight_name,
                 weight_init=(
-                    "GivenTensorFill", {
-                        'values': workspace.FetchBlob(conv_weight_name)
-                    }
+                    "GivenTensorFill",
+                    {"values": workspace.FetchBlob(conv_weight_name)},
                 ),
                 bias_init=(
-                    "GivenTensorFill", {
-                        'values': workspace.FetchBlob(conv_bias_name)
-                    }
-                )
+                    "GivenTensorFill",
+                    {"values": workspace.FetchBlob(conv_bias_name)},
+                ),
             )
 
             if pool_kernel_stride > 1:
-                pool_fn = brew.max_pool if pool_type == 'max' else brew.average_pool
+                pool_fn = brew.max_pool if pool_type == "max" else brew.average_pool
                 pool_fn(
                     model,
                     conv_output,
                     pool_output,
                     kernel=pool_kernel_stride,
-                    stride=pool_kernel_stride
+                    stride=pool_kernel_stride,
                 )
 
         if pool_output:

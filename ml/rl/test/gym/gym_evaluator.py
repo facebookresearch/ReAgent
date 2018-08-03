@@ -219,7 +219,7 @@ class GymEvaluator(Evaluator):
             target_propensities,
             predictions,
             num_j_steps=1,
-            whether_self_normalize_importance_weights=True
+            whether_self_normalize_importance_weights=True,
         )
         self.value_weighted_doubly_robust.append(weighted_doubly_robust)
 
@@ -237,7 +237,7 @@ class GymEvaluator(Evaluator):
             target_propensities,
             predictions,
             num_j_steps=GymEvaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
-            whether_self_normalize_importance_weights=True
+            whether_self_normalize_importance_weights=True,
         )
         self.value_magic_doubly_robust.append(magic_doubly_robust)
 

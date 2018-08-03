@@ -238,7 +238,7 @@ class GridworldEvaluator(Evaluator):
             target_propensities,
             self.estimated_ltv_values,
             num_j_steps=1,
-            whether_self_normalize_importance_weights=True
+            whether_self_normalize_importance_weights=True,
         )
         self.value_weighted_doubly_robust.append(weighted_doubly_robust)
 
@@ -256,7 +256,7 @@ class GridworldEvaluator(Evaluator):
             target_propensities,
             self.estimated_ltv_values,
             num_j_steps=GridworldEvaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
-            whether_self_normalize_importance_weights=True
+            whether_self_normalize_importance_weights=True,
         )
         self.value_magic_doubly_robust.append(magic_doubly_robust)
 

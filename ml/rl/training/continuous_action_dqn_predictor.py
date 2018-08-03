@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
-import numpy as np
+import logging
 
+import numpy as np
 from caffe2.proto import caffe2_pb2
-from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from caffe2.python import model_helper, workspace
+from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.rl_predictor import RLPredictor
 
-import logging
 
 logger = logging.getLogger(__name__)
 

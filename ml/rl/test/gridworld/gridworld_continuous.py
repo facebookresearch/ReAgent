@@ -6,7 +6,6 @@ from typing import List
 import numpy as np
 import torch
 from caffe2.python import core, workspace
-
 from ml.rl.caffe_utils import C2, StackedArray, StackedAssociativeArray
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase, Samples

@@ -13,8 +13,8 @@ class ParametricInnerProduct(nn.Module):
         self.action_dim = action_dim
 
     def forward(self, input):
-        states = input[:, :self.state_dim]
-        actions = input[:, self.state_dim:]
+        states = input[:, : self.state_dim]
+        actions = input[:, self.state_dim :]
         state_embeddings = self.state_model(states)
         action_embeddings = self.action_model(actions)
         return torch.bmm(

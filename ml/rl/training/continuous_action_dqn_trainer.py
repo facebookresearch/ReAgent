@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
 
+import logging
 from typing import Dict, Optional
 
-import numpy as np
-import logging
-
-logger = logging.getLogger(__name__)
-
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
+import numpy as np
 from caffe2.python import workspace
 from caffe2.python.model_helper import ModelHelper
-
 from ml.rl.caffe_utils import C2, StackedArray
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
 from ml.rl.thrift.core.ttypes import (
-    ContinuousActionModelParameters,
     AdditionalFeatureTypes,
+    ContinuousActionModelParameters,
 )
 from ml.rl.training.continuous_action_dqn_predictor import ContinuousActionDQNPredictor
-from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
 from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES, RLTrainer
+
+
+logger = logging.getLogger(__name__)
 
 
 class ContinuousActionDQNTrainer(RLTrainer):

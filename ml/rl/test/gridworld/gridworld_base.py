@@ -34,7 +34,7 @@ class Samples(object):
         "next_actions",
         "terminals",
         "possible_next_actions",
-        "reward_timelines"
+        "reward_timelines",
     ]
 
     def __init__(
@@ -91,10 +91,8 @@ class Samples(object):
                 self.next_states,
                 self.next_actions,
                 self.terminals,
-                self.possible_next_actions
-            ) = zip(
-                *merged
-            )
+                self.possible_next_actions,
+            ) = zip(*merged)
         else:
             merged = list(
                 zip(
@@ -123,10 +121,8 @@ class Samples(object):
                 self.next_actions,
                 self.terminals,
                 self.possible_next_actions,
-                self.reward_timelines
-            ) = zip(
-                *merged
-            )
+                self.reward_timelines,
+            ) = zip(*merged)
 
 
 class GridworldBase(object):

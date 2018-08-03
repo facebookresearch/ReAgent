@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 
 
-from typing import Dict, Any
 import collections
+from typing import Any, Dict
+
 import numpy as np
 import six
-
 from caffe2.python import workspace
-
 from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.rl_trainer import RLTrainer
 
 
 class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
-
     def __init__(
         self, parameters, normalization_parameters: Dict[int, NormalizationParameters]
     ) -> None:
@@ -28,7 +26,9 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         )
         self._discount_factor = parameters.rl.gamma
         self._quantile_update_rate = parameters.action_budget.quantile_update_rate
-        self._quantile_update_frequency = parameters.action_budget.quantile_update_frequency
+        self._quantile_update_frequency = (
+            parameters.action_budget.quantile_update_frequency
+        )
         self._update_counter = 0
         DiscreteActionTrainer.__init__(self, parameters, normalization_parameters)
         self._max_q = parameters.rl.maxq_learning
@@ -96,14 +96,14 @@ class LimitedActionDiscreteActionTrainer(DiscreteActionTrainer):
         print(next_actions.shape)
         return (
             (
-                (actions[:, self._limited_action] > 0.999)
-                - self._discount_factor
-                * (not_terminals[:, 0])
-                * (next_actions[:, self._limited_action] > 0.999)
+                (
+                    (actions[:, self._limited_action] > 0.999)
+                    - self._discount_factor
+                    * (not_terminals[:, 0])
+                    * (next_actions[:, self._limited_action] > 0.999)
+                )
+                * self.quantile_value
             )
-            * self.quantile_value
-        ).astype(
-            np.float32
-        ).reshape(
-            -1, 1
+            .astype(np.float32)
+            .reshape(-1, 1)
         )

@@ -27,10 +27,10 @@ def fc_explicit_param_names(
     :weight_name: Name of blob corresponding to an initialized weight parameter
     :bias_name: Name of blob corresponding to an initialized bias parameter
     """
-    required_kwargs = ['dim_in', 'dim_out', 'weight_name', 'bias_name']
+    required_kwargs = ["dim_in", "dim_out", "weight_name", "bias_name"]
     for arg in required_kwargs:
         assert arg in kwargs, "Please supply kwarg {}".format(arg)
-    dim_in, dim_out = kwargs['dim_in'], kwargs['dim_out']
+    dim_in, dim_out = kwargs["dim_in"], kwargs["dim_out"]
 
     WeightInitializer = initializers.update_initializer(
         None, weight_init, ("XavierFill", {})
@@ -40,18 +40,16 @@ def fc_explicit_param_names(
     )
 
     weight = model.create_param(
-        param_name=kwargs['weight_name'],
+        param_name=kwargs["weight_name"],
         shape=[dim_out, dim_in],
         initializer=WeightInitializer,
-        tags=ParameterTags.WEIGHT
+        tags=ParameterTags.WEIGHT,
     )
     bias = model.create_param(
-        param_name=kwargs['bias_name'],
-        shape=[
-            dim_out,
-        ],
+        param_name=kwargs["bias_name"],
+        shape=[dim_out],
         initializer=BiasInitializer,
-        tags=[ParameterTags.BIAS]
+        tags=[ParameterTags.BIAS],
     )
 
     return model.net.FC([blob_in, weight, bias], blob_out)

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
-import numpy as np
+import logging
 import unittest
 
+import numpy as np
 from caffe2.python import workspace
-from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.test.constant_reward.env import Env
 from ml.rl.thrift.core.ttypes import (
+    DiscreteActionModelParameters,
     RLParameters,
     TrainingParameters,
-    DiscreteActionModelParameters,
 )
-from ml.rl.test.constant_reward.env import Env
+from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 
-import logging
 
 logger = logging.getLogger(__name__)
 

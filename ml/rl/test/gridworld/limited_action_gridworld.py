@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 
-import numpy as np
-from typing import Tuple, List, Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
-from ml.rl.test.gridworld.gridworld_base import GridworldBase, W, S, G
+import numpy as np
+from ml.rl.test.gridworld.gridworld_base import G, GridworldBase, S, W
 from ml.rl.training.training_data_page import TrainingDataPage
 
 

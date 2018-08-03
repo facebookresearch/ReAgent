@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
 import random
-import numpy as np
 import unittest
 
-from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
-from ml.rl.training.evaluator import Evaluator
-from ml.rl.thrift.core.ttypes import (
-    RLParameters,
-    TrainingParameters,
-    DiscreteActionModelParameters,
-)
+import numpy as np
 from ml.rl.test.gridworld.gridworld import Gridworld
+from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_enum import GridworldEnum
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT
+from ml.rl.thrift.core.ttypes import (
+    DiscreteActionModelParameters,
+    RLParameters,
+    TrainingParameters,
+)
+from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.training.evaluator import Evaluator
 
 
 class TestGridworld(unittest.TestCase):

@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 
+import logging
+
 import numpy as np
 import six
-
 from caffe2.proto import caffe2_pb2
+from caffe2.python import workspace
 from caffe2.python.predictor.predictor_exporter import (
-    save_to_db,
     load_from_db,
     prepare_prediction_net,
+    save_to_db,
 )
-from caffe2.python import workspace
-from caffe2.python.predictor_constants import predictor_constants
 from caffe2.python.predictor.predictor_py_utils import GetBlobs
-
+from caffe2.python.predictor_constants import predictor_constants
 from ml.rl.caffe_utils import C2
 
-import logging
 
 logger = logging.getLogger(__name__)
 

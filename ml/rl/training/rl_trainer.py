@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
 
+import logging
 from typing import List, Optional, Union
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 import numpy as np
-
 from caffe2.python import workspace
 from caffe2.python.model_helper import ModelHelper
-
 from ml.rl.caffe_utils import C2, StackedArray
 from ml.rl.thrift.core.ttypes import (
-    DiscreteActionModelParameters,
-    ContinuousActionModelParameters,
     AdditionalFeatureTypes,
+    ContinuousActionModelParameters,
+    DiscreteActionModelParameters,
 )
 from ml.rl.training.conv.conv_ml_trainer import ConvMLTrainer
 from ml.rl.training.conv.conv_target_network import ConvTargetNetwork
+from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.ml_trainer import MLTrainer
 from ml.rl.training.target_network import TargetNetwork
 from ml.rl.training.training_data_page import TrainingDataPage
-from ml.rl.training.evaluator import Evaluator
+
+
+logger = logging.getLogger(__name__)
+
 
 RL_TRAINER_PREFIX = "rl_trainer_"
 ML_TRAINER_PREFIX = "ml_trainer_"

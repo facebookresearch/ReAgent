@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
 
+import logging
 from typing import Dict, Optional
-import numpy as np
 
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
-from caffe2.python import workspace, core
+import numpy as np
+from caffe2.python import core, workspace
 from caffe2.python.model_helper import ModelHelper
-
-import logging
-
-logger = logging.getLogger(__name__)
-
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
 from ml.rl.thrift.core.ttypes import (
-    DiscreteActionModelParameters,
     AdditionalFeatureTypes,
+    DiscreteActionModelParameters,
 )
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
-from ml.rl.training.rl_trainer import RLTrainer, DEFAULT_ADDITIONAL_FEATURE_TYPES
 from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES, RLTrainer
+
+
+logger = logging.getLogger(__name__)
 
 
 class DiscreteActionTrainer(RLTrainer):

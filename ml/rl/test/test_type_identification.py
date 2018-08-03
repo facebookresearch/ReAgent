@@ -16,20 +16,12 @@ class TestTypeIdentification(unittest.TestCase):
 
         # Examples through manual inspection
         self.assertEqual(types[identify_types.BINARY], identify_types.BINARY)
-        self.assertEqual(
-            types[identify_types.CONTINUOUS], identify_types.CONTINUOUS
-        )
+        self.assertEqual(types[identify_types.CONTINUOUS], identify_types.CONTINUOUS)
 
         # We don't yet know the boxcox type
-        self.assertEqual(
-            types[identify_types.BOXCOX], identify_types.CONTINUOUS
-        )
+        self.assertEqual(types[identify_types.BOXCOX], identify_types.CONTINUOUS)
 
         # We don't yet know the quantile type
-        self.assertEqual(
-            types[identify_types.QUANTILE], identify_types.CONTINUOUS
-        )
+        self.assertEqual(types[identify_types.QUANTILE], identify_types.CONTINUOUS)
         self.assertEqual(types[identify_types.ENUM], identify_types.ENUM)
-        self.assertEqual(
-            types[identify_types.PROBABILITY], identify_types.PROBABILITY
-        )
+        self.assertEqual(types[identify_types.PROBABILITY], identify_types.PROBABILITY)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
+from typing import List, Tuple
+
 import numpy as np
-from typing import Tuple, List
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 

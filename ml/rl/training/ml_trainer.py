@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 
+from enum import Enum
 from typing import List
 
-from enum import Enum
-
 from caffe2.python.model_helper import ModelHelper
-from caffe2.python.optimizer import build_sgd, build_ftrl, build_adagrad, build_adam
-
+from caffe2.python.optimizer import build_adagrad, build_adam, build_ftrl, build_sgd
 from ml.rl.thrift.core.ttypes import TrainingParameters
 from ml.rl.training.dnn import DNN
 

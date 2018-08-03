@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 
 import random
-import numpy as np
 import unittest
 
-from ml.rl.training.evaluator import Evaluator
-from ml.rl.thrift.core.ttypes import (
-    FactorizationParameters,
-    FeedForwardParameters,
-    RLParameters,
-    TrainingParameters,
-    ContinuousActionModelParameters,
-    KnnParameters,
-)
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+import numpy as np
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_continuous_enum import GridworldContinuousEnum
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
+from ml.rl.thrift.core.ttypes import (
+    ContinuousActionModelParameters,
+    FactorizationParameters,
+    FeedForwardParameters,
+    KnnParameters,
+    RLParameters,
+    TrainingParameters,
+)
+from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 class TestGridworldContinuous(unittest.TestCase):
@@ -58,12 +58,10 @@ class TestGridworldContinuous(unittest.TestCase):
                 activations=[],
                 factorization_parameters=FactorizationParameters(
                     state=FeedForwardParameters(
-                        layers=[-1, 128, 64, 32],
-                        activations=["relu", "relu", "linear"],
+                        layers=[-1, 128, 64, 32], activations=["relu", "relu", "linear"]
                     ),
                     action=FeedForwardParameters(
-                        layers=[-1, 128, 64, 32],
-                        activations=["relu", "relu", "linear"],
+                        layers=[-1, 128, 64, 32], activations=["relu", "relu", "linear"]
                     ),
                 ),
                 minibatch_size=self.minibatch_size,
@@ -76,9 +74,7 @@ class TestGridworldContinuous(unittest.TestCase):
     def get_sarsa_trainer(self, environment, parameters=None):
         parameters = parameters or self.get_sarsa_parameters()
         return ParametricDQNTrainer(
-            parameters,
-            environment.normalization,
-            environment.normalization_action,
+            parameters, environment.normalization, environment.normalization_action
         )
 
     def test_trainer_sarsa(self):
@@ -105,7 +101,8 @@ class TestGridworldContinuous(unittest.TestCase):
         environment = GridworldContinuous()
         samples = environment.generate_samples(150000, 1.0)
         trainer = self.get_sarsa_trainer(
-            environment, self.get_sarsa_parameters_factorized())
+            environment, self.get_sarsa_parameters_factorized()
+        )
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(
             environment, False, DISCOUNT, False, samples

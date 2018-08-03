@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 
+import logging
+
 import numpy as np
 import six
-
 from caffe2.proto import caffe2_pb2
-from caffe2.python.predictor.predictor_exporter import (
-    save_to_db,
-    load_from_db,
-    PredictorExportMeta,
-    prepare_prediction_net,
-)
 from caffe2.python import workspace
-from caffe2.python.predictor_constants import predictor_constants
+from caffe2.python.predictor.predictor_exporter import (
+    PredictorExportMeta,
+    load_from_db,
+    prepare_prediction_net,
+    save_to_db,
+)
 from caffe2.python.predictor.predictor_py_utils import GetBlobs
-
+from caffe2.python.predictor_constants import predictor_constants
 from ml.rl.caffe_utils import C2
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -68,16 +67,11 @@ class RLPredictor:
             np.array([len(e) for e in float_state_features], dtype=np.int32),
         )
         workspace.FeedBlob(
-            "input/float_features.keys",
-            np.array(
-                float_state_keys, dtype=np.int64
-            ),
+            "input/float_features.keys", np.array(float_state_keys, dtype=np.int64)
         )
         workspace.FeedBlob(
             "input/float_features.values",
-            np.array(
-                float_state_values, dtype=np.float32
-            ).flatten(),
+            np.array(float_state_values, dtype=np.float32).flatten(),
         )
 
         if int_state_features is not None:
@@ -93,15 +87,11 @@ class RLPredictor:
                     int_state_values.append(v)
             workspace.FeedBlob(
                 "input/int_features.keys",
-                np.array(
-                    int_state_keys, dtype=np.int64
-                ).flatten(),
+                np.array(int_state_keys, dtype=np.int64).flatten(),
             )
             workspace.FeedBlob(
                 "input/int_features.values",
-                np.array(
-                    int_state_values, dtype=np.int32
-                ).flatten(),
+                np.array(int_state_values, dtype=np.int32).flatten(),
             )
 
         workspace.RunNet(self._net)

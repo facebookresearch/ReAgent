@@ -2,12 +2,11 @@
 
 
 import math
-import numpy as np
 from typing import List
 
-from caffe2.python import core, workspace, brew
+import numpy as np
+from caffe2.python import brew, core, workspace
 from caffe2.python.model_helper import ModelHelper
-
 from ml.rl.custom_brew_helpers.fc import fc_explicit_param_names
 from ml.rl.thrift.core.ttypes import TrainingParameters
 
@@ -16,13 +15,10 @@ class DNN(object):
     """ This class handles evaluating a DNN.  It supports the ml_trainer
         (for inference) and the target_network classes
     """
+
     registered = False
 
-    def __init__(
-        self,
-        name: str,
-        parameters: TrainingParameters,
-    ) -> None:
+    def __init__(self, name: str, parameters: TrainingParameters) -> None:
         """
 
         :param name: A unique name for this trainer used to create the data on the
@@ -37,8 +33,7 @@ class DNN(object):
         self.layers = parameters.layers
         self.activations = parameters.activations
         self.dropout_ratio = parameters.dropout_ratio
-        self.skip_random_weight_init = \
-            (parameters.warm_start_model_path is not None)
+        self.skip_random_weight_init = parameters.warm_start_model_path is not None
 
         self._validate_inputs()
         self._setup_initial_blobs()
@@ -48,14 +43,10 @@ class DNN(object):
         num_activations = len(self.activations)
 
         if num_activations != num_layers - 1:
-            raise Exception(
-                "Incompatible input `layers` and `activations` sizes."
-            )
+            raise Exception("Incompatible input `layers` and `activations` sizes.")
 
         if not all(x > 0 and int(x) == x for x in self.layers):
-            raise Exception(
-                "All values in `layers` should be positive integers."
-            )
+            raise Exception("All values in `layers` should be positive integers.")
 
     def _setup_initial_blobs(self):
         # Create blobs for model parameters
@@ -72,19 +63,17 @@ class DNN(object):
             self.biases.append(bias_name)
 
             if not self.skip_random_weight_init:
-                bias = np.zeros(
-                    shape=[
-                        dim_out,
-                    ], dtype=np.float32
-                )
+                bias = np.zeros(shape=[dim_out], dtype=np.float32)
                 workspace.FeedBlob(bias_name, bias)
 
-                gain = math.sqrt(2) if self.activations[x] == 'relu' else 1
+                gain = math.sqrt(2) if self.activations[x] == "relu" else 1
                 workspace.RunOperatorOnce(
                     core.CreateOperator(
-                        "GaussianFill", [], [weight_name],
+                        "GaussianFill",
+                        [],
+                        [weight_name],
                         shape=[dim_out, dim_in],
-                        std=gain * math.sqrt(1 / dim_in)
+                        std=gain * math.sqrt(1 / dim_in),
                     )
                 )
 
@@ -114,8 +103,7 @@ class DNN(object):
                 model_states.append(output_blob)
             else:
                 model_states.append(
-                    model.net.
-                    NextBlob("ModelState_" + str(x) + "_" + self.model_id)
+                    model.net.NextBlob("ModelState_" + str(x) + "_" + self.model_id)
                 )
         for x in range(num_layer_connections):
             inputs = model_states[x]
@@ -136,31 +124,25 @@ class DNN(object):
                 bias_name=bias_name,
                 weight_name=weight_name,
                 weight_init=(
-                    "GivenTensorFill", {
-                        'values': workspace.FetchBlob(weight_name)
-                    }
+                    "GivenTensorFill",
+                    {"values": workspace.FetchBlob(weight_name)},
                 ),
                 bias_init=(
-                    "GivenTensorFill", {
-                        'values': workspace.FetchBlob(bias_name)
-                    }
-                )
+                    "GivenTensorFill",
+                    {"values": workspace.FetchBlob(bias_name)},
+                ),
             )
 
-            if activation == 'relu':
+            if activation == "relu":
                 brew.relu(model, outputs, outputs)
-            elif activation == 'linear':
+            elif activation == "linear":
                 pass
             else:
                 raise Exception("Unknown activation function")
 
             if self.dropout_ratio > 0.01:
                 brew.dropout(
-                    model,
-                    outputs,
-                    outputs,
-                    ratio=self.dropout_ratio,
-                    is_test=is_test
+                    model, outputs, outputs, ratio=self.dropout_ratio, is_test=is_test
                 )
 
         model.net.NanCheck([output_blob], [output_blob])
