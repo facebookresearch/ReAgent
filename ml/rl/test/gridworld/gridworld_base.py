@@ -2,7 +2,9 @@
 
 
 import collections
+import multiprocessing
 import random
+from functools import partial
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import numpy as np
@@ -399,7 +401,47 @@ class GridworldBase(object):
             results.append(self.reward(next_state))
         return np.array(results).reshape(-1, 1)
 
-    def generate_samples_discrete(
+    def generate_samples_discrete(  # multiprocessing
+        self, num_transitions, epsilon, with_possible=True
+    ) -> Samples:
+        sub_transitions = int(num_transitions / 8)
+        args = [sub_transitions] * 8
+        func = partial(
+            self.generate_samples_discrete_internal,
+            epsilon=epsilon,
+            with_possible=with_possible
+        )
+        pool = multiprocessing.Pool(processes=8)
+        res = pool.map(func, args)
+
+        merge = Samples(
+            mdp_ids=[],
+            sequence_numbers=[],
+            states=[],
+            actions=[],
+            propensities=[],
+            rewards=[],
+            next_states=[],
+            next_actions=[],
+            terminals=[],
+            possible_next_actions=[],
+            reward_timelines=[],
+        )
+        for s in res:
+            merge.mdp_ids += s.mdp_ids
+            merge.sequence_numbers += s.sequence_numbers
+            merge.states += s.states
+            merge.actions += s.actions
+            merge.propensities += s.propensities
+            merge.rewards += s.rewards
+            merge.next_states += s.next_states
+            merge.next_actions += s.next_actions
+            merge.terminals += s.terminals
+            merge.possible_next_actions += s.possible_next_actions
+            merge.reward_timelines += s.reward_timelines
+        return merge
+
+    def generate_samples_discrete_internal(
         self, num_transitions, epsilon, with_possible=True
     ) -> Samples:
         states = []
