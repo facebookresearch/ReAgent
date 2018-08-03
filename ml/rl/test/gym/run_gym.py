@@ -19,7 +19,6 @@ from ml.rl.test.gym.open_ai_gym_environment import (
     ModelType,
     OpenAIGymEnvironment,
 )
-from ml.rl.test.rl_dataset import RLDataset
 from ml.rl.thrift.core.ttypes import (
     CNNParameters,
     ContinuousActionModelParameters,
@@ -36,6 +35,7 @@ from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.training.rl_dataset import RLDataset
 
 
 logger = logging.getLogger(__name__)
@@ -81,14 +81,13 @@ def run(
     train_after_ts=10,
     test_every_ts=100,
     test_after_ts=10,
-    num_train_batches=10,
+    num_train_batches=1,
     avg_over_num_episodes=100,
     render=False,
-    render_every=10,
     save_timesteps_to_dataset=None,
     start_saving_from_episode=0,
+    batch_rl_file_path=None,
 ):
-    avg_reward_history = []
 
     if model_type == ModelType.CONTINUOUS_ACTION.value:
         predictor = GymDDPGPredictor(trainer)
@@ -100,7 +99,139 @@ def run(
     else:
         predictor = GymDQNPredictor(trainer, c2_device)
 
+    if batch_rl_file_path is not None:
+        return train_gym_batch_rl(
+            model_type,
+            trainer,
+            predictor,
+            batch_rl_file_path,
+            gym_env,
+            num_train_batches,
+            test_every_ts,
+            test_after_ts,
+            avg_over_num_episodes,
+            score_bar,
+            test_run_name,
+        )
+
+    else:
+        return train_gym_online_rl(
+            c2_device,
+            gym_env,
+            model_type,
+            trainer,
+            predictor,
+            test_run_name,
+            score_bar,
+            num_episodes,
+            max_steps,
+            train_every_ts,
+            train_after_ts,
+            test_every_ts,
+            test_after_ts,
+            num_train_batches,
+            avg_over_num_episodes,
+            render,
+            save_timesteps_to_dataset,
+            start_saving_from_episode,
+        )
+
+
+def train_gym_batch_rl(
+    model_type,
+    trainer,
+    predictor,
+    batch_rl_file_path,
+    gym_env,
+    num_train_batches,
+    test_every_ts,
+    test_after_ts,
+    avg_over_num_episodes,
+    score_bar,
+    test_run_name,
+):
+    """Train off of fixed set of stored transitions generated off-policy."""
+
     total_timesteps = 0
+    avg_reward_history = []
+
+    batch_dataset = RLDataset(batch_rl_file_path)
+    batch_dataset.load()
+    gym_env.replay_memory = batch_dataset.replay_memory
+    test_every_ts_n = 1
+
+    for _ in range(num_train_batches):
+        samples = gym_env.sample_memories(trainer.minibatch_size, model_type)
+        trainer.train(samples)
+        total_timesteps += trainer.minibatch_size
+
+        # Evaluation loop
+        if (
+            total_timesteps > (test_every_ts * test_every_ts_n)
+            and total_timesteps > test_after_ts
+        ):
+            avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
+                avg_over_num_episodes, predictor, test=True
+            )
+            avg_reward_history.append(avg_rewards)
+            logger.info(
+                "Achieved an average reward score of {} over {} evaluations."
+                " Total timesteps: {}.".format(
+                    avg_rewards, avg_over_num_episodes, total_timesteps
+                )
+            )
+            test_every_ts_n += 1
+
+            if score_bar is not None and avg_rewards > score_bar:
+                logger.info(
+                    "Avg. reward history for {}: {}".format(
+                        test_run_name, avg_reward_history
+                    )
+                )
+                return avg_reward_history, trainer, predictor
+
+    # Always eval after last training batch
+    avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
+        avg_over_num_episodes, predictor, test=True
+    )
+    avg_reward_history.append(avg_rewards)
+    logger.info(
+        "Achieved an average reward score of {} over {} evaluations."
+        " Total timesteps: {}.".format(
+            avg_rewards, avg_over_num_episodes, total_timesteps
+        )
+    )
+
+    logger.info(
+        "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
+    )
+    return avg_reward_history, trainer, predictor
+
+
+def train_gym_online_rl(
+    c2_device,
+    gym_env,
+    model_type,
+    trainer,
+    predictor,
+    test_run_name,
+    score_bar,
+    num_episodes,
+    max_steps,
+    train_every_ts,
+    train_after_ts,
+    test_every_ts,
+    test_after_ts,
+    num_train_batches,
+    avg_over_num_episodes,
+    render,
+    save_timesteps_to_dataset,
+    start_saving_from_episode,
+):
+    """Train off of dynamic set of transitions generated on-policy."""
+
+    total_timesteps = 0
+    avg_reward_history = []
 
     for i in range(num_episodes):
         terminal = False
@@ -149,24 +280,17 @@ def run(
             )
 
             if save_timesteps_to_dataset and i >= start_saving_from_episode:
-                # TODO: handle continuous/parametric actions.
-                assert (
-                    gym_env.action_type == EnvType.DISCRETE_ACTION
-                ), "Save to file supports discrete actions only."
-                action_str = str(np.argmax(action).item())
-                possible_actions = [str(a) for a in range(gym_env.action_dim)]
                 save_timesteps_to_dataset.insert(
-                    i,
-                    ep_timesteps - 1,
-                    np.float32(state).tolist(),
-                    action_str,
-                    np.float32(reward).item(),
-                    possible_actions,
+                    state.tolist(),
+                    action.tolist(),
+                    reward,
+                    next_state.tolist(),
+                    next_action.tolist(),
+                    terminal,
+                    possible_next_actions,
+                    possible_next_actions_lengths,
+                    1,
                 )
-                if terminal:
-                    save_timesteps_to_dataset.insert(
-                        i, ep_timesteps, np.float32(next_state).tolist(), None, 0.0, []
-                    )
 
             # Training loop
             if (
@@ -271,6 +395,13 @@ def main(args):
         help="If file_path is set, start saving episodes from this episode num.",
         default=0,
     )
+    parser.add_argument(
+        "-b",
+        "--batch_rl_file_path",
+        help="If set, train in batch RL mode (policy is trained on off-policy transitions at file path).",
+        type=str,
+        default=None,
+    )
     args = parser.parse_args(args)
 
     if args.log_level not in ("debug", "info", "warning", "error", "critical"):
@@ -283,7 +414,12 @@ def main(args):
 
     dataset = RLDataset(args.file_path) if args.file_path else None
     result, trainer, predictor = run_gym(
-        params, args.score_bar, args.gpu_id, dataset, args.start_saving_from_episode
+        params,
+        args.score_bar,
+        args.gpu_id,
+        dataset,
+        args.start_saving_from_episode,
+        args.batch_rl_file_path,
     )
     if dataset:
         dataset.save()
@@ -296,13 +432,11 @@ def run_gym(
     gpu_id,
     save_timesteps_to_dataset=None,
     start_saving_from_episode=0,
+    batch_rl_file_path=None,
 ):
-    """
-    Caffe2 core logging configuration.
-    Caffe2 core uses the min of caffe2_log_level and minloglevel
-    to determine loglevel.
-    For more info see UpdateLoggingLevelsFromFlags() in caffe2/caffe2/core/logging.cc
-    """
+
+    # Caffe2 core uses the min of caffe2_log_level and minloglevel
+    # to determine loglevel. See caffe2/caffe2/core/logging.cc for more info.
     core.GlobalInit(["caffe2", "--caffe2_log_level=2", "--minloglevel=2"])
 
     logger.info("Running gym with params")
@@ -456,6 +590,7 @@ def run_gym(
         **params["run_details"],
         save_timesteps_to_dataset=save_timesteps_to_dataset,
         start_saving_from_episode=start_saving_from_episode,
+        batch_rl_file_path=batch_rl_file_path,
     )
 
 

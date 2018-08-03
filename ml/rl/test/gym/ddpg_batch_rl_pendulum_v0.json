@@ -1,0 +1,56 @@
+{
+  "env": "Pendulum-v0",
+  "model_type": "continuous",
+  "max_replay_memory_size": 10000,
+  "use_gpu": true,
+  "rl": {
+    "gamma": 0.99,
+    "epsilon": 0,
+    "target_update_rate": 0.001,
+    "softmax_policy": 0
+  },
+  "shared_training": {
+    "minibatch_size": 64,
+    "final_layer_init": 0.003,
+    "optimizer": "ADAM"
+  },
+  "actor_training": {
+    "layers": [
+      -1,
+      400,
+      300,
+      -1
+    ],
+    "activations": [
+      "relu",
+      "relu",
+      "tanh"
+    ],
+    "learning_rate": 0.0001
+  },
+  "critic_training": {
+    "layers": [
+      -1,
+      400,
+      300,
+      -1
+    ],
+    "activations": [
+      "relu",
+      "relu",
+      "linear"
+    ],
+    "learning_rate": 0.001,
+    "l2_decay": 0.01
+  },
+  "run_details": {
+    "num_episodes": 20,
+    "max_steps": 1000,
+    "train_every_ts": 1,
+    "train_after_ts": 1,
+    "test_every_ts": 40000,
+    "test_after_ts": 1,
+    "num_train_batches": 100000,
+    "avg_over_num_episodes": 100
+  }
+}
