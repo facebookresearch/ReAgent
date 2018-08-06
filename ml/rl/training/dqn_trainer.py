@@ -32,6 +32,7 @@ class DQNTrainer(RLTrainer):
         state_normalization_parameters: Dict[int, NormalizationParameters],
         use_gpu=False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
+        gradient_handler=None,
     ) -> None:
 
         self.warm_start_model_path = parameters.training.warm_start_model_path
@@ -54,7 +55,9 @@ class DQNTrainer(RLTrainer):
             self.state_normalization_parameters = None
         parameters.training.layers[-1] = self.num_actions
 
-        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types)
+        RLTrainer.__init__(
+            self, parameters, use_gpu, additional_feature_types, gradient_handler
+        )
 
         self.q_network = GenericFeedForwardNetwork(
             parameters.training.layers, parameters.training.activations

@@ -69,7 +69,7 @@ class ParametricDQNTrainer(RLTrainer):
                 0
             ] = self.num_action_features
 
-        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types)
+        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
 
         self.q_network = self._get_model(parameters.training)
 

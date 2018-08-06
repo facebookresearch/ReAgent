@@ -22,7 +22,7 @@ class RLTrainer:
     # legitimate action
     ACTION_NOT_POSSIBLE_VAL = -1e9
 
-    def __init__(self, parameters, use_gpu, additional_feature_types):
+    def __init__(self, parameters, use_gpu, additional_feature_types, gradient_handler):
         self.minibatch = 0
         self.reward_burnin = parameters.rl.reward_burnin
         self._additional_feature_types = additional_feature_types
@@ -31,6 +31,7 @@ class RLTrainer:
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
+        self.gradient_handler = gradient_handler
 
         if use_gpu and torch.cuda.is_available():
             logger.info("Using GPU: GPU requested and available.")

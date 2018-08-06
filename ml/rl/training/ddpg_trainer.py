@@ -90,7 +90,7 @@ class DDPGTrainer(RLTrainer):
             weight_decay=self.critic_params.l2_decay,
         )
 
-        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types)
+        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
 
         self.min_action_range_tensor_training = self.min_action_range_tensor_training.type(
             self.dtype
