@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import csv
 
 from ml.rl.preprocessing.normalization import NormalizationParameters
 
@@ -26,3 +27,11 @@ def default_normalizer(feats, min_value=None, max_value=None):
         ]
     )
     return normalization
+
+
+def write_lists_to_csv(path, *args):
+    rows = zip(*args)
+    with open(path, "w") as f:
+        writer = csv.writer(f)
+        for row in rows:
+            writer.writerow(row)

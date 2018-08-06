@@ -19,6 +19,7 @@ from ml.rl.test.gym.open_ai_gym_environment import (
     ModelType,
     OpenAIGymEnvironment,
 )
+from ml.rl.test.utils import write_lists_to_csv
 from ml.rl.thrift.core.ttypes import (
     CNNParameters,
     ContinuousActionModelParameters,
@@ -153,7 +154,7 @@ def train_gym_batch_rl(
     """Train off of fixed set of stored transitions generated off-policy."""
 
     total_timesteps = 0
-    avg_reward_history = []
+    avg_reward_history, timestep_history = [], []
 
     batch_dataset = RLDataset(batch_rl_file_path)
     batch_dataset.load()
@@ -174,6 +175,7 @@ def train_gym_batch_rl(
                 avg_over_num_episodes, predictor, test=True
             )
             avg_reward_history.append(avg_rewards)
+            timestep_history.append(total_timesteps)
             logger.info(
                 "Achieved an average reward score of {} over {} evaluations."
                 " Total timesteps: {}.".format(
@@ -195,6 +197,7 @@ def train_gym_batch_rl(
         avg_over_num_episodes, predictor, test=True
     )
     avg_reward_history.append(avg_rewards)
+    timestep_history.append(total_timesteps)
     logger.info(
         "Achieved an average reward score of {} over {} evaluations."
         " Total timesteps: {}.".format(
@@ -205,7 +208,7 @@ def train_gym_batch_rl(
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
-    return avg_reward_history, trainer, predictor
+    return avg_reward_history, timestep_history, trainer, predictor
 
 
 def train_gym_online_rl(
@@ -231,7 +234,7 @@ def train_gym_online_rl(
     """Train off of dynamic set of transitions generated on-policy."""
 
     total_timesteps = 0
-    avg_reward_history = []
+    avg_reward_history, timestep_history = [], []
 
     for i in range(num_episodes):
         terminal = False
@@ -321,6 +324,7 @@ def train_gym_online_rl(
                     avg_over_num_episodes, predictor, test=True
                 )
                 avg_reward_history.append(avg_rewards)
+                timestep_history.append(total_timesteps)
                 logger.info(
                     "Achieved an average reward score of {} over {} evaluations."
                     " Total episodes: {}, total timesteps: {}.".format(
@@ -344,6 +348,7 @@ def train_gym_online_rl(
                 avg_over_num_episodes, predictor, test=True
             )
             avg_reward_history.append(avg_rewards)
+            timestep_history.append(total_timesteps)
             logger.info(
                 "Achieved an average reward score of {} over {} evaluations."
                 " Total episodes: {}, total timesteps: {}.".format(
@@ -354,7 +359,7 @@ def train_gym_online_rl(
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
-    return avg_reward_history, trainer, predictor
+    return avg_reward_history, timestep_history, trainer, predictor
 
 
 def main(args):
@@ -402,6 +407,13 @@ def main(args):
         type=str,
         default=None,
     )
+    parser.add_argument(
+        "-r",
+        "--results_file_path",
+        help="If set, save evaluation results to file.",
+        type=str,
+        default=None,
+    )
     args = parser.parse_args(args)
 
     if args.log_level not in ("debug", "info", "warning", "error", "critical"):
@@ -413,7 +425,7 @@ def main(args):
         params = json.load(f)
 
     dataset = RLDataset(args.file_path) if args.file_path else None
-    result, trainer, predictor = run_gym(
+    reward_history, timestep_history, trainer, predictor = run_gym(
         params,
         args.score_bar,
         args.gpu_id,
@@ -423,7 +435,9 @@ def main(args):
     )
     if dataset:
         dataset.save()
-    return result
+    if args.results_file_path:
+        write_lists_to_csv(args.results_file_path, reward_history, timestep_history)
+    return reward_history
 
 
 def run_gym(
