@@ -502,20 +502,22 @@ class Evaluator(object):
     ):
         # For details, visit https://arxiv.org/pdf/1511.03722.pdf
         logged_terminals = logged_terminals.squeeze()
+        logged_rewards = logged_rewards.squeeze()
+        logged_propensities = logged_propensities.squeeze()
+
         num_examples = logged_actions.shape[0]
 
-        direct_method_Q_values = np.sum(
-            target_propensities * estimated_Q_values, axis=1, keepdims=True
+        estimated_state_values = np.sum(
+            target_propensities * estimated_Q_values, axis=1
+        )
+        estimated_Q_values_for_logged_action = np.sum(
+            estimated_Q_values * logged_actions, axis=1
         )
 
         target_propensity_for_action = np.sum(
-            target_propensities * logged_actions, axis=1, keepdims=True
+            target_propensities * logged_actions, axis=1
         )
         importance_weight = target_propensity_for_action / logged_propensities
-
-        estimated_values_for_action = np.sum(
-            estimated_Q_values * logged_actions, axis=1, keepdims=True
-        )
 
         doubly_robusts = []
         episode_values = []
@@ -528,16 +530,14 @@ class Evaluator(object):
                 episode_end = i
                 episode_value = 0.0
                 doubly_robust = 0.0
-                for j in range(episode_end, last_episode_end - 1, -1):
-                    doubly_robust = direct_method_Q_values[j][0] + importance_weight[j][
-                        0
-                    ] * (
-                        logged_rewards[j][0]
+                for j in range(episode_end, last_episode_end, -1):
+                    doubly_robust = estimated_state_values[j] + importance_weight[j] * (
+                        logged_rewards[j]
                         + self.gamma * doubly_robust
-                        - estimated_values_for_action[j][0]
+                        - estimated_Q_values_for_logged_action[j]
                     )
                     episode_value *= self.gamma
-                    episode_value += logged_rewards[j][0]
+                    episode_value += logged_rewards[j]
                 doubly_robusts.append(doubly_robust)
                 episode_values.append(episode_value)
                 last_episode_end = episode_end
@@ -600,6 +600,7 @@ class Evaluator(object):
         )
 
         importance_weights = target_propensity_for_logged_action / logged_propensities
+        importance_weights = np.cumprod(importance_weights, axis=1)
         importance_weights = Evaluator.normalize_importance_weights(
             importance_weights, whether_self_normalize_importance_weights
         )
@@ -608,25 +609,21 @@ class Evaluator(object):
             np.ones([num_trajectories, 1]) * 1.0 / num_trajectories
         )
         importance_weights_one_earlier = np.hstack(
-            [importance_weights_one_earlier, importance_weights[:, 1:]]
+            [importance_weights_one_earlier, importance_weights[:, :-1]]
         )
 
         discounts = np.logspace(
             start=0, stop=trajectory_length - 1, num=trajectory_length, base=self.gamma
         )
 
-        weighted_discounts = np.multiply(discounts, importance_weights)
-        weighted_discounts_one_earlier = np.multiply(
-            discounts, importance_weights_one_earlier
-        )
-
         j_step_return_trajectories = []
         for j_step in j_steps:
             j_step_return_trajectories.append(
                 Evaluator.calculate_step_return(
-                    weighted_discounts,
-                    weighted_discounts_one_earlier,
                     rewards,
+                    discounts,
+                    importance_weights,
+                    importance_weights_one_earlier,
                     estimated_state_values,
                     estimated_Q_values_for_logged_action,
                     j_step,
@@ -651,6 +648,7 @@ class Evaluator(object):
                     target_propensity_for_logged_action[trajectory_subset]
                     / logged_propensities[trajectory_subset]
                 )
+                importance_weights = np.cumprod(importance_weights, axis=1)
                 importance_weights = Evaluator.normalize_importance_weights(
                     importance_weights, whether_self_normalize_importance_weights
                 )
@@ -658,13 +656,14 @@ class Evaluator(object):
                     np.ones([len(trajectory_subset), 1]) * 1.0 / len(trajectory_subset)
                 )
                 importance_weights_one_earlier = np.hstack(
-                    [importance_weights_one_earlier, importance_weights[:, 1:]]
+                    [importance_weights_one_earlier, importance_weights[:, :-1]]
                 )
                 infinite_step_return = np.sum(
                     Evaluator.calculate_step_return(
-                        np.multiply(discounts, importance_weights),
-                        np.multiply(discounts, importance_weights_one_earlier),
                         rewards[trajectory_subset],
+                        discounts,
+                        importance_weights,
+                        importance_weights_one_earlier,
                         estimated_state_values[trajectory_subset],
                         estimated_Q_values_for_logged_action[trajectory_subset],
                         float("inf"),
@@ -729,9 +728,10 @@ class Evaluator(object):
 
     @staticmethod
     def calculate_step_return(
-        weighted_discounts,
-        weighted_discounts_one_earlier,
         rewards,
+        discounts,
+        importance_weights,
+        importance_weights_one_earlier,
         estimated_state_values,
         estimated_Q_values,
         j_step,
@@ -739,6 +739,11 @@ class Evaluator(object):
         trajectory_length = len(rewards[0])
         num_trajectories = len(rewards)
         j_step = int(min(j_step, trajectory_length - 1))
+
+        weighted_discounts = np.multiply(discounts, importance_weights)
+        weighted_discounts_one_earlier = np.multiply(
+            discounts, importance_weights_one_earlier
+        )
 
         importance_sampled_cumulative_reward = np.sum(
             np.multiply(weighted_discounts[:, : j_step + 1], rewards[:, : j_step + 1]),
@@ -767,6 +772,7 @@ class Evaluator(object):
         j_step_return = (
             importance_sampled_cumulative_reward + direct_method_value - control_variate
         )
+
         return j_step_return
 
     @staticmethod
