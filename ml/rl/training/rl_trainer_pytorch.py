@@ -21,6 +21,8 @@ class RLTrainer:
     # Q-value for action that is not possible. Guaranteed to be worse than any
     # legitimate action
     ACTION_NOT_POSSIBLE_VAL = -1e9
+    # Hack to mark legitimate 0 value q-values before pytorch sparse -> dense
+    FINGERPRINT = 12345
 
     def __init__(self, parameters, use_gpu, additional_feature_types, gradient_handler):
         self.minibatch = 0

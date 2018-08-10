@@ -11,6 +11,7 @@ from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluato
 from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
     KnnParameters,
+    RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
@@ -41,6 +42,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
+            rainbow=RainbowDQNParameters(),
         )
 
     def get_sarsa_trainer(self, environment):

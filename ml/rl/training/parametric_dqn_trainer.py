@@ -6,7 +6,7 @@ from typing import Dict, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.caffe_utils import StackedArray, WeightedEmbeddingBag
+from ml.rl.caffe_utils import arange_expand
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
@@ -37,6 +37,7 @@ class ParametricDQNTrainer(RLTrainer):
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
     ) -> None:
 
+        self.double_q_learning = parameters.rainbow.double_q_learning
         self.warm_start_model_path = parameters.training.warm_start_model_path
         self.minibatch_size = parameters.training.minibatch_size
         self.state_normalization_parameters = state_normalization_parameters
@@ -108,30 +109,48 @@ class ParametricDQNTrainer(RLTrainer):
                 self.num_action_features,
             )
 
-    def get_max_q_values(self, next_state_pnas_concat, possible_actions_lengths):
+    def get_max_q_values(self, next_state_pnas_concat, pnas_lens, double_q_learning):
         """
         :param next_state_pnas_concat: Numpy array with shape
-            (sum(possible_actions_lengths), state_dim + action_dim). Each row
+            (sum(pnas_lens), state_dim + action_dim). Each row
             contains a representation of a state + possible next action pair.
-        :param possible_actions_lengths: Numpy array that describes number of
+        :param pnas_lens: Numpy array that describes number of
             possible_actions per item in minibatch
+        :param double_q_learning: bool to use double q-learning
         """
+        row_nums = np.arange(len(pnas_lens))
+        row_idxs = np.repeat(row_nums, pnas_lens)
+        col_idxs = arange_expand(pnas_lens)
+
+        dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
         q_network_input = torch.from_numpy(next_state_pnas_concat).type(self.dtype)
-        q_values = self.q_network_target(q_network_input).detach()
 
-        pnas_lens = torch.from_numpy(possible_actions_lengths).type(self.dtype)
-        pna_len_cumsum = pnas_lens.cumsum(0)
-        zero_first_cumsum = torch.cat(
-            (torch.zeros(1).type(self.dtype), pna_len_cumsum)
-        ).type(self.dtypelong)
-        idxs = torch.arange(0, q_values.size(0)).type(self.dtypelong)
+        if double_q_learning:
+            q_values = self.q_network(q_network_input).detach().squeeze()
+            q_values_target = self.q_network_target(q_network_input).detach().squeeze()
+        else:
+            q_values = self.q_network_target(q_network_input).detach()
 
-        # Hacky way to do Caffe2's LengthsMax in PyTorch.
-        bag = WeightedEmbeddingBag(q_values.unsqueeze(1), mode="max")
-        max_q_values = bag(idxs, zero_first_cumsum).squeeze().detach()
+        dense_dim = [len(pnas_lens), max(pnas_lens)]
+        # Add specific fingerprint to q-values so that after sparse -> dense we can
+        # subtract the fingerprint to identify the 0's added in sparse -> dense
+        q_values.add_(self.FINGERPRINT)
+        sparse_q = torch.sparse_coo_tensor(dense_idxs, q_values, dense_dim)
+        dense_q = sparse_q.to_dense()
+        dense_q.add_(self.FINGERPRINT * -1)
+        dense_q[dense_q == self.FINGERPRINT * -1] = self.ACTION_NOT_POSSIBLE_VAL
+        max_q_values, max_indexes = torch.max(dense_q, dim=1)
 
-        # EmbeddingBag adds a 0 entry to the end of the tensor so slice it
-        return Variable(max_q_values[:-1])
+        if double_q_learning:
+            sparse_q_target = torch.sparse_coo_tensor(
+                dense_idxs, q_values_target, dense_dim
+            )
+            dense_q_values_target = sparse_q_target.to_dense()
+            max_q_values = torch.gather(
+                dense_q_values_target, 1, max_indexes.unsqueeze(1)
+            )
+
+        return Variable(max_q_values.squeeze())
 
     def get_next_action_q_values(self, states, next_actions):
         """
@@ -169,6 +188,7 @@ class ParametricDQNTrainer(RLTrainer):
             next_q_values = self.get_max_q_values(
                 training_samples.next_state_pnas_concat,
                 training_samples.possible_next_actions_lengths,
+                self.double_q_learning,
             )
         else:
             # SARSA

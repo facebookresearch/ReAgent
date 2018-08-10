@@ -217,28 +217,26 @@ class PytorchCaffe2Converter(object):
         )
 
 
-class WeightedEmbeddingBag(nn.EmbeddingBag):
-    """A subclass of nn.EmbeddingBag that adds a constructor that supplies
-    pre-existing embedding weights.
+def arange_expand(lens_array):
     """
+    Converts lens array to flattened array with each lens value expanded
+    using only vectorized operations.
 
-    def __init__(
-        self,
-        weight,
-        padding_idx=None,
-        max_norm=None,
-        norm_type=2,
-        scale_grad_by_freq=False,
-        mode="max",
-        sparse=False,
-    ):
-        nn.Module.__init__(self)
-        self.num_embeddings = weight.size(0)
-        self.embedding_dim = weight.size(1)
-        self.padding_idx = padding_idx
-        self.max_norm = max_norm
-        self.norm_type = norm_type
-        self.scale_grad_by_freq = scale_grad_by_freq
-        self.weight = weight
-        self.mode = mode
-        self.sparse = sparse
+    Example:
+        lens_array: [0, 2, 1, 0, 2]
+        returns: [0, 1, 0, 0, 1]
+    """
+    # Return empty np array if all 0s
+    if lens_array.sum() == 0:
+        return np.array([])
+    # Keep values that need to be expaned
+    counts = lens_array[lens_array != 0]
+    # Record indexes in final array where ranges start over
+    counts_tmp = counts[:-1]
+    reset_index = np.cumsum(counts_tmp)
+    # Init final array with 1s
+    incr = np.ones(counts.sum(), dtype=int)
+    # First value in output array is always 0
+    incr[0] = 0
+    incr[reset_index] = 1 - counts_tmp
+    return incr.cumsum()

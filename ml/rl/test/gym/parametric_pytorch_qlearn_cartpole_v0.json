@@ -2,6 +2,7 @@
   "env": "CartPole-v0",
   "model_type": "pytorch_parametric_dqn",
   "max_replay_memory_size": 10000,
+  "use_gpu": true,
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.2,
@@ -11,6 +12,7 @@
     "temperature": 0.35,
     "softmax_policy": 1
   },
+  "rainbow": {},
   "training": {
     "layers": [
       -1,

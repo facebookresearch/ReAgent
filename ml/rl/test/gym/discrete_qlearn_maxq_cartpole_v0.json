@@ -11,6 +11,7 @@
     "temperature": 0.35,
     "softmax_policy": 0
   },
+  "rainbow": {},
   "training": {
     "layers": [
       -1,

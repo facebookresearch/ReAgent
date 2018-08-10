@@ -35,6 +35,7 @@ class DQNTrainer(RLTrainer):
         gradient_handler=None,
     ) -> None:
 
+        self.double_q_learning = parameters.rainbow.double_q_learning
         self.warm_start_model_path = parameters.training.warm_start_model_path
         self.minibatch_size = parameters.training.minibatch_size
         self._actions = parameters.actions if parameters.actions is not None else []
@@ -92,7 +93,7 @@ class DQNTrainer(RLTrainer):
     def target_propensities(self):
         return self.model_propensities
 
-    def get_max_q_values(self, states, possible_actions):
+    def get_max_q_values(self, states, possible_actions, double_q_learning):
         """
         Used in Q-learning update.
         :param states: Numpy array with shape (batch_size, state_dim). Each row
@@ -100,14 +101,28 @@ class DQNTrainer(RLTrainer):
         :param possible_actions: Numpy array with shape (batch_size, action_dim).
             possible_next_actions[i][j] = 1 iff the agent can take action j from
             state i.
+        :param double_q_learning: bool to use double q-learning
         """
-        q_values = self.q_network_target(states).detach()
-
-        # Set q-values of impossible actions to a very large negative number.
-        inverse_pna = 1 - possible_actions
-        impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
-        q_values += impossible_action_penalty
-        return Variable(torch.max(q_values, 1)[0])
+        if double_q_learning:
+            q_values = self.q_network(states).detach()
+            q_values_target = self.q_network_target(states).detach()
+            # Set q-values of impossible actions to a very large negative number.
+            inverse_pna = 1 - possible_actions
+            impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
+            q_values += impossible_action_penalty
+            # Select max_q action after scoring with online network
+            max_q_values, max_indicies = torch.max(q_values, 1)
+            # Use q_values from target network for max_q action from online q_network
+            # to decouble selection & scoring, preventing overestimation of q-values
+            q_values = torch.gather(q_values_target, 1, max_indicies.unsqueeze(1))
+            return Variable(q_values.squeeze())
+        else:
+            q_values = self.q_network_target(states).detach()
+            # Set q-values of impossible actions to a very large negative number.
+            inverse_pna = 1 - possible_actions
+            impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
+            q_values += impossible_action_penalty
+            return Variable(torch.max(q_values, 1)[0])
 
     def get_next_action_q_values(self, states, next_actions):
         """
@@ -155,7 +170,9 @@ class DQNTrainer(RLTrainer):
                     self.dtype
                 )
             )
-            next_q_values = self.get_max_q_values(next_states, possible_next_actions)
+            next_q_values = self.get_max_q_values(
+                next_states, possible_next_actions, self.double_q_learning
+            )
         else:
             # SARSA
             next_actions = Variable(

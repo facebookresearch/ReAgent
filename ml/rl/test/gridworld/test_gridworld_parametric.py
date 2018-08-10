@@ -13,6 +13,7 @@ from ml.rl.thrift.core.ttypes import (
     FactorizationParameters,
     FeedForwardParameters,
     KnnParameters,
+    RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
@@ -43,6 +44,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
+            rainbow=RainbowDQNParameters(),
         )
 
     def get_sarsa_parameters_factorized(self):

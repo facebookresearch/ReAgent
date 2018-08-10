@@ -16,6 +16,10 @@ struct RLParameters {
   9: bool use_seq_num_diff_as_time_diff = false,
 }
 
+struct RainbowDQNParameters {
+  1: bool double_q_learning = true,
+}
+
 struct CNNParameters {
   1: list<i32> conv_dims,
   2: list<i32> conv_height_kernels,
@@ -64,6 +68,7 @@ struct DiscreteActionModelParameters {
   2: RLParameters rl,
   3: TrainingParameters training,
   4: ActionBudget action_budget,
+  5: RainbowDQNParameters rainbow,
 }
 
 struct KnnParameters {
@@ -79,6 +84,7 @@ struct ContinuousActionModelParameters {
   1: RLParameters rl,
   2: TrainingParameters training,
   3: KnnParameters knn,
+  4: RainbowDQNParameters rainbow,
 }
 
 struct DDPGNetworkParameters {

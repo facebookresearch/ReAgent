@@ -10,6 +10,7 @@ from ml.rl.test.gridworld.gridworld_enum import GridworldEnum
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
+    RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
@@ -47,6 +48,7 @@ class TestGridworld(unittest.TestCase):
                 actions=environment.ACTIONS,
                 rl=rl_parameters,
                 training=training_parameters,
+                rainbow=RainbowDQNParameters(),
             ),
             environment.normalization,
         )

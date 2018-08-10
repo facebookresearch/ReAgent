@@ -28,6 +28,7 @@ from ml.rl.thrift.core.ttypes import (
     DDPGTrainingParameters,
     DiscreteActionModelParameters,
     KnnParameters,
+    RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
@@ -190,7 +191,7 @@ def train_gym_batch_rl(
                         test_run_name, avg_reward_history
                     )
                 )
-                return avg_reward_history, trainer, predictor
+                return avg_reward_history, timestep_history, trainer, predictor
 
     # Always eval after last training batch
     avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
@@ -337,7 +338,7 @@ def train_gym_online_rl(
                             test_run_name, avg_reward_history
                         )
                     )
-                    return avg_reward_history, trainer, predictor
+                    return avg_reward_history, timestep_history, trainer, predictor
 
             if max_steps and ep_timesteps >= max_steps:
                 break
@@ -473,6 +474,7 @@ def run_gym(
 
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
         training_settings = params["training"]
+        rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
         training_parameters = TrainingParameters(**training_settings)
         if env.img:
             assert (
@@ -492,7 +494,10 @@ def run_gym(
                 training_parameters.cnn_parameters is None
             ), "Extra CNN parameters for non-image input"
         trainer_params = DiscreteActionModelParameters(
-            actions=env.actions, rl=rl_parameters, training=training_parameters
+            actions=env.actions,
+            rl=rl_parameters,
+            training=training_parameters,
+            rainbow=rainbow_parameters,
         )
         trainer = DQNTrainer(trainer_params, env.normalization, use_gpu)
 
@@ -523,6 +528,7 @@ def run_gym(
             trainer = DiscreteActionTrainer(trainer_params, env.normalization)
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
         training_settings = params["training"]
+        rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
         training_parameters = TrainingParameters(**training_settings)
         if env.img:
             assert (
@@ -540,6 +546,7 @@ def run_gym(
             rl=rl_parameters,
             training=training_parameters,
             knn=KnnParameters(model_type="DQN"),
+            rainbow=rainbow_parameters,
         )
         trainer = ParametricDQNTrainer(
             trainer_params, env.normalization, env.normalization_action, use_gpu
