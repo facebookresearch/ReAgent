@@ -18,6 +18,7 @@ from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
+    DuelingArchitectureQNetwork,
     GenericFeedForwardNetwork,
     RLTrainer,
 )
@@ -60,9 +61,14 @@ class DQNTrainer(RLTrainer):
             self, parameters, use_gpu, additional_feature_types, gradient_handler
         )
 
-        self.q_network = GenericFeedForwardNetwork(
-            parameters.training.layers, parameters.training.activations
-        )
+        if parameters.rainbow.dueling_architecture:
+            self.q_network = DuelingArchitectureQNetwork(
+                parameters.training.layers, parameters.training.activations
+            )
+        else:
+            self.q_network = GenericFeedForwardNetwork(
+                parameters.training.layers, parameters.training.activations
+            )
         self.q_network_target = deepcopy(self.q_network)
         self._set_optimizer(parameters.training.optimizer)
         self.q_network_optimizer = self.optimizer_func(

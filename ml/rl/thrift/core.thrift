@@ -18,6 +18,7 @@ struct RLParameters {
 
 struct RainbowDQNParameters {
   1: bool double_q_learning = true,
+  2: bool dueling_architecture = true,
 }
 
 struct CNNParameters {

@@ -44,7 +44,9 @@ class TestGridworldContinuous(unittest.TestCase):
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
-            rainbow=RainbowDQNParameters(),
+            rainbow=RainbowDQNParameters(
+                double_q_learning=True, dueling_architecture=False
+            ),
         )
 
     def get_sarsa_parameters_factorized(self):

@@ -11,7 +11,10 @@
     "temperature": 0.35,
     "softmax_policy": 1
   },
-  "rainbow": {},
+  "rainbow": {
+    "double_q_learning": false,
+    "dueling_architecture": false
+  },
   "training": {
     "layers": [
       -1,

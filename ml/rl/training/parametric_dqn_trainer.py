@@ -20,6 +20,7 @@ from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.parametric_inner_product import ParametricInnerProduct
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
+    DuelingArchitectureQNetwork,
     GenericFeedForwardNetwork,
     RLTrainer,
 )
@@ -59,7 +60,14 @@ class ParametricDQNTrainer(RLTrainer):
             + str(overlapping_features)
         )
 
-        if parameters.training.factorization_parameters is None:
+        reward_network_layers = deepcopy(parameters.training.layers)
+        reward_network_layers[0] = self.num_features
+        reward_network_layers[-1] = 1
+
+        if parameters.rainbow.dueling_architecture:
+            parameters.training.layers[0] = self.num_state_features
+            parameters.training.layers[-1] = 1
+        elif parameters.training.factorization_parameters is None:
             parameters.training.layers[0] = self.num_features
             parameters.training.layers[-1] = 1
         else:
@@ -72,7 +80,9 @@ class ParametricDQNTrainer(RLTrainer):
 
         RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
 
-        self.q_network = self._get_model(parameters.training)
+        self.q_network = self._get_model(
+            parameters.training, parameters.rainbow.dueling_architecture
+        )
 
         self.q_network_target = deepcopy(self.q_network)
         self._set_optimizer(parameters.training.optimizer)
@@ -80,7 +90,9 @@ class ParametricDQNTrainer(RLTrainer):
             self.q_network.parameters(), lr=parameters.training.learning_rate
         )
 
-        self.reward_network = self._get_model(parameters.training)
+        self.reward_network = GenericFeedForwardNetwork(
+            reward_network_layers, parameters.training.activations
+        )
         self.reward_network_optimizer = self.optimizer_func(
             self.reward_network.parameters(), lr=parameters.training.learning_rate
         )
@@ -90,8 +102,14 @@ class ParametricDQNTrainer(RLTrainer):
             self.q_network_target.cuda()
             self.reward_network.cuda()
 
-    def _get_model(self, training_parameters):
-        if training_parameters.factorization_parameters is None:
+    def _get_model(self, training_parameters, dueling_architecture=False):
+        if dueling_architecture:
+            return DuelingArchitectureQNetwork(
+                training_parameters.layers,
+                training_parameters.activations,
+                action_dim=self.num_action_features,
+            )
+        elif training_parameters.factorization_parameters is None:
             return GenericFeedForwardNetwork(
                 training_parameters.layers, training_parameters.activations
             )
@@ -129,7 +147,7 @@ class ParametricDQNTrainer(RLTrainer):
             q_values = self.q_network(q_network_input).detach().squeeze()
             q_values_target = self.q_network_target(q_network_input).detach().squeeze()
         else:
-            q_values = self.q_network_target(q_network_input).detach()
+            q_values = self.q_network_target(q_network_input).detach().squeeze()
 
         dense_dim = [len(pnas_lens), max(pnas_lens)]
         # Add specific fingerprint to q-values so that after sparse -> dense we can

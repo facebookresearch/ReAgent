@@ -48,7 +48,9 @@ class TestGridworld(unittest.TestCase):
                 actions=environment.ACTIONS,
                 rl=rl_parameters,
                 training=training_parameters,
-                rainbow=RainbowDQNParameters(),
+                rainbow=RainbowDQNParameters(
+                    double_q_learning=True, dueling_architecture=False
+                ),
             ),
             environment.normalization,
         )

@@ -1,17 +1,21 @@
 {
   "env": "CartPole-v0",
-  "model_type": "pytorch_discrete_dqn",
+  "model_type": "pytorch_parametric_dqn",
   "max_replay_memory_size": 10000,
+  "use_gpu": true,
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.2,
     "reward_burnin": 1,
     "maxq_learning": 1,
-    "epsilon": 0.2,
+    "epsilon": 0,
     "temperature": 0.35,
-    "softmax_policy": 0
+    "softmax_policy": 1
   },
-  "rainbow": {},
+  "rainbow": {
+    "double_q_learning": false,
+    "dueling_architecture": false
+  },
   "training": {
     "layers": [
       -1,
