@@ -398,7 +398,7 @@ class DDPGPredictor(RLPredictor):
         )
 
         output_keys = "output/float_features.keys"
-        workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int32))
+        workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int64))
         C2.net().LengthsRangeFill([output_lengths], [output_keys])
 
         output_values = "output/float_features.values"
