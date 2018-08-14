@@ -225,7 +225,7 @@ class ParametricDQNTrainer(RLTrainer):
         q_values = self.q_network(state_action_pairs)
         self.all_action_scores = deepcopy(q_values.detach())
 
-        value_loss = F.mse_loss(q_values.squeeze(), target_q_values)
+        value_loss = self.q_network_loss(q_values.squeeze(), target_q_values)
         self.loss = value_loss.detach()
 
         self.q_network_optimizer.zero_grad()

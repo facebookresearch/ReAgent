@@ -157,7 +157,7 @@ class DDPGTrainer(RLTrainer):
             target_q_values = rewards
         # compute loss and update the critic network
         critic_predictions = q_s1_a1.squeeze()
-        loss_critic = F.mse_loss(critic_predictions, target_q_values)
+        loss_critic = self.q_network_loss(critic_predictions, target_q_values)
         self.critic_optimizer.zero_grad()
         loss_critic.backward()
         self.critic_optimizer.step()

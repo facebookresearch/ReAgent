@@ -14,6 +14,7 @@ struct RLParameters {
   7: double temperature = 0.5,
   8: i32 softmax_policy = 1,
   9: bool use_seq_num_diff_as_time_diff = false,
+  10: string q_network_loss = 'mse',
 }
 
 struct RainbowDQNParameters {

@@ -35,6 +35,17 @@ class RLTrainer:
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
         self.gradient_handler = gradient_handler
 
+        if parameters.rl.q_network_loss == "mse":
+            self.q_network_loss = getattr(F, "mse_loss")
+        elif parameters.rl.q_network_loss == "huber":
+            self.q_network_loss = getattr(F, "smooth_l1_loss")
+        else:
+            raise Exception(
+                "Q-Network loss type {} not valid loss.".format(
+                    parameters.rl.q_network_loss
+                )
+            )
+
         if use_gpu and torch.cuda.is_available():
             logger.info("Using GPU: GPU requested and available.")
             self.use_gpu = True

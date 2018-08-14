@@ -198,7 +198,7 @@ class DQNTrainer(RLTrainer):
         self.all_action_scores = deepcopy(all_q_values.detach())
         q_values = torch.sum(all_q_values * actions, 1)
 
-        loss = F.mse_loss(q_values, target_q_values)
+        loss = self.q_network_loss(q_values, target_q_values)
         self.loss = loss.detach()
 
         self.q_network_optimizer.zero_grad()
