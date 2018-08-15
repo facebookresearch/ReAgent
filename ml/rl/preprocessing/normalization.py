@@ -29,6 +29,9 @@ NormalizationParameters = namedtuple(
         "max_value",
     ],
 )
+NormalizationParameters.__new__.__defaults__ = (None,) * len(
+    NormalizationParameters._fields
+)
 
 BOX_COX_MAX_STDDEV = 1e8
 BOX_COX_MARGIN = 1e-4
