@@ -19,9 +19,9 @@ from ml.rl.test.gym.open_ai_gym_environment import (
     ModelType,
     OpenAIGymEnvironment,
 )
+from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 from ml.rl.test.utils import write_lists_to_csv
 from ml.rl.thrift.core.ttypes import (
-    CNNParameters,
     ContinuousActionModelParameters,
     DDPGModelParameters,
     DDPGNetworkParameters,
@@ -70,11 +70,13 @@ def get_possible_next_actions(gym_env, model_type, terminal):
     return possible_next_actions, possible_next_actions_lengths
 
 
-def run(
+def train_sgd(
     c2_device,
     gym_env,
+    replay_buffer,
     model_type,
     trainer,
+    predictor,
     test_run_name,
     score_bar,
     num_episodes=301,
@@ -90,17 +92,6 @@ def run(
     start_saving_from_episode=0,
     batch_rl_file_path=None,
 ):
-
-    if model_type == ModelType.CONTINUOUS_ACTION.value:
-        predictor = GymDDPGPredictor(trainer)
-    elif model_type in (
-        ModelType.PYTORCH_DISCRETE_DQN.value,
-        ModelType.PYTORCH_PARAMETRIC_DQN.value,
-    ):
-        predictor = GymDQNPredictorPytorch(trainer)
-    else:
-        predictor = GymDQNPredictor(trainer, c2_device)
-
     if batch_rl_file_path is not None:
         return train_gym_batch_rl(
             model_type,
@@ -108,6 +99,7 @@ def run(
             predictor,
             batch_rl_file_path,
             gym_env,
+            replay_buffer,
             num_train_batches,
             test_every_ts,
             test_after_ts,
@@ -120,6 +112,7 @@ def run(
         return train_gym_online_rl(
             c2_device,
             gym_env,
+            replay_buffer,
             model_type,
             trainer,
             predictor,
@@ -145,6 +138,7 @@ def train_gym_batch_rl(
     predictor,
     batch_rl_file_path,
     gym_env,
+    replay_buffer,
     num_train_batches,
     test_every_ts,
     test_after_ts,
@@ -159,11 +153,11 @@ def train_gym_batch_rl(
 
     batch_dataset = RLDataset(batch_rl_file_path)
     batch_dataset.load()
-    gym_env.replay_memory = batch_dataset.replay_memory
+    replay_buffer.replay_memory = batch_dataset.replay_memory
     test_every_ts_n = 1
 
     for _ in range(num_train_batches):
-        samples = gym_env.sample_memories(trainer.minibatch_size, model_type)
+        samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
         trainer.train(samples)
         total_timesteps += trainer.minibatch_size
 
@@ -215,6 +209,7 @@ def train_gym_batch_rl(
 def train_gym_online_rl(
     c2_device,
     gym_env,
+    replay_buffer,
     model_type,
     trainer,
     predictor,
@@ -271,7 +266,7 @@ def train_gym_online_rl(
                 possible_next_actions_lengths,
             ) = get_possible_next_actions(gym_env, model_type, terminal)
 
-            gym_env.insert_into_memory(
+            replay_buffer.insert_into_memory(
                 np.float32(state),
                 action,
                 np.float32(reward),
@@ -300,7 +295,7 @@ def train_gym_online_rl(
             if (
                 total_timesteps % train_every_ts == 0
                 and total_timesteps > train_after_ts
-                and len(gym_env.replay_memory) >= trainer.minibatch_size
+                and len(replay_buffer.replay_memory) >= trainer.minibatch_size
             ):
                 for _ in range(num_train_batches):
                     if model_type in (
@@ -308,13 +303,13 @@ def train_gym_online_rl(
                         ModelType.PYTORCH_DISCRETE_DQN.value,
                         ModelType.PYTORCH_PARAMETRIC_DQN.value,
                     ):
-                        samples = gym_env.sample_memories(
+                        samples = replay_buffer.sample_memories(
                             trainer.minibatch_size, model_type
                         )
                         trainer.train(samples)
                     else:
                         with core.DeviceScope(c2_device):
-                            gym_env.sample_and_load_training_data_c2(
+                            replay_buffer.sample_and_load_training_data_c2(
                                 trainer.minibatch_size, model_type
                             )
                             trainer.train()
@@ -463,26 +458,47 @@ def run_gym(
         env_type,
         rl_parameters.epsilon,
         rl_parameters.softmax_policy,
-        params["max_replay_memory_size"],
         rl_parameters.gamma,
     )
+    replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
     model_type = params["model_type"]
-    c2_device = core.DeviceOption(
-        caffe2_pb2.CPU if gpu_id == USE_CPU else caffe2_pb2.CUDA, gpu_id
-    )
+
     use_gpu = gpu_id != USE_CPU
+    trainer = create_trainer(params["model_type"], params, rl_parameters, use_gpu, env)
+    predictor = create_predictor(trainer, model_type, use_gpu)
+
+    c2_device = core.DeviceOption(
+        caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, gpu_id
+    )
+    return train_sgd(
+        c2_device,
+        env,
+        replay_buffer,
+        model_type,
+        trainer,
+        predictor,
+        "{} test run".format(env_type),
+        score_bar,
+        **params["run_details"],
+        save_timesteps_to_dataset=save_timesteps_to_dataset,
+        start_saving_from_episode=start_saving_from_episode,
+    )
+
+
+def create_trainer(model_type, params, rl_parameters, use_gpu, env):
+    c2_device = core.DeviceOption(caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU)
 
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
-        training_settings = params["training"]
-        rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
-        training_parameters = TrainingParameters(**training_settings)
+        training_parameters = params["training"]
+        if isinstance(training_parameters, dict):
+            training_parameters = TrainingParameters(**training_parameters)
+        rainbow_parameters = params["rainbow"]
+        if isinstance(rainbow_parameters, dict):
+            rainbow_parameters = RainbowDQNParameters(**rainbow_parameters)
         if env.img:
             assert (
                 training_parameters.cnn_parameters is not None
             ), "Missing CNN parameters for image input"
-            training_parameters.cnn_parameters = CNNParameters(
-                **training_settings["cnn_parameters"]
-            )
             training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
             training_parameters.cnn_parameters.input_height = env.height
             training_parameters.cnn_parameters.input_width = env.width
@@ -503,15 +519,13 @@ def run_gym(
 
     elif model_type == ModelType.DISCRETE_ACTION.value:
         with core.DeviceScope(c2_device):
-            training_settings = params["training"]
-            training_parameters = TrainingParameters(**training_settings)
+            training_parameters = params["training"]
+            if isinstance(training_parameters, dict):
+                training_parameters = TrainingParameters(**training_parameters)
             if env.img:
                 assert (
                     training_parameters.cnn_parameters is not None
                 ), "Missing CNN parameters for image input"
-                training_parameters.cnn_parameters = CNNParameters(
-                    **training_settings["cnn_parameters"]
-                )
                 training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
                 training_parameters.cnn_parameters.input_height = env.height
                 training_parameters.cnn_parameters.input_width = env.width
@@ -527,16 +541,16 @@ def run_gym(
             )
             trainer = DiscreteActionTrainer(trainer_params, env.normalization)
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
-        training_settings = params["training"]
-        rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
-        training_parameters = TrainingParameters(**training_settings)
+        training_parameters = params["training"]
+        if isinstance(training_parameters, dict):
+            training_parameters = TrainingParameters(**training_parameters)
+        rainbow_parameters = params["rainbow"]
+        if isinstance(rainbow_parameters, dict):
+            rainbow_parameters = RainbowDQNParameters(**rainbow_parameters)
         if env.img:
             assert (
                 training_parameters.cnn_parameters is not None
             ), "Missing CNN parameters for image input"
-            training_parameters.cnn_parameters = CNNParameters(
-                **training_settings["cnn_parameters"]
-            )
             training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
         else:
             assert (
@@ -553,15 +567,13 @@ def run_gym(
         )
     elif model_type == ModelType.PARAMETRIC_ACTION.value:
         with core.DeviceScope(c2_device):
-            training_settings = params["training"]
-            training_parameters = TrainingParameters(**training_settings)
+            training_parameters = params["training"]
+            if isinstance(training_parameters, dict):
+                training_parameters = TrainingParameters(**training_parameters)
             if env.img:
                 assert (
                     training_parameters.cnn_parameters is not None
                 ), "Missing CNN parameters for image input"
-                training_parameters.cnn_parameters = CNNParameters(
-                    **training_settings["cnn_parameters"]
-                )
                 training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
             else:
                 assert (
@@ -576,14 +588,23 @@ def run_gym(
                 trainer_params, env.normalization, env.normalization_action
             )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
-        training_settings = params["shared_training"]
-        actor_settings = params["actor_training"]
-        critic_settings = params["critic_training"]
+        training_parameters = params["shared_training"]
+        if isinstance(training_parameters, dict):
+            training_parameters = DDPGTrainingParameters(**training_parameters)
+
+        actor_parameters = params["actor_training"]
+        if isinstance(actor_parameters, dict):
+            actor_parameters = DDPGNetworkParameters(**actor_parameters)
+
+        critic_parameters = params["critic_training"]
+        if isinstance(critic_parameters, dict):
+            critic_parameters = DDPGNetworkParameters(**critic_parameters)
+
         trainer_params = DDPGModelParameters(
             rl=rl_parameters,
-            shared_training=DDPGTrainingParameters(**training_settings),
-            actor_training=DDPGNetworkParameters(**actor_settings),
-            critic_training=DDPGNetworkParameters(**critic_settings),
+            shared_training=training_parameters,
+            actor_training=actor_parameters,
+            critic_training=critic_parameters,
         )
 
         action_range_low = env.action_space.low.astype(np.float32)
@@ -601,18 +622,21 @@ def run_gym(
     else:
         raise NotImplementedError("Model of type {} not supported".format(model_type))
 
-    return run(
-        c2_device,
-        env,
-        model_type,
-        trainer,
-        "{} test run".format(env_type),
-        score_bar,
-        **params["run_details"],
-        save_timesteps_to_dataset=save_timesteps_to_dataset,
-        start_saving_from_episode=start_saving_from_episode,
-        batch_rl_file_path=batch_rl_file_path,
-    )
+    return trainer
+
+
+def create_predictor(trainer, model_type, use_gpu):
+    c2_device = core.DeviceOption(caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU)
+    if model_type == ModelType.CONTINUOUS_ACTION.value:
+        predictor = GymDDPGPredictor(trainer)
+    elif model_type in (
+        ModelType.PYTORCH_DISCRETE_DQN.value,
+        ModelType.PYTORCH_PARAMETRIC_DQN.value,
+    ):
+        predictor = GymDQNPredictorPytorch(trainer)
+    else:
+        predictor = GymDQNPredictor(trainer, c2_device)
+    return predictor
 
 
 if __name__ == "__main__":

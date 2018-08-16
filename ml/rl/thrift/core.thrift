@@ -57,6 +57,12 @@ struct TrainingParameters {
   11: optional FactorizationParameters factorization_parameters,
 }
 
+struct EvolutionParameters {
+  1: i32 population_size = 1000,
+  2: double mutation_power = 0.1,
+  3: double learning_rate = 0.01,
+}
+
 struct ActionBudget {
   1: string limited_action,
   2: double action_limit,
