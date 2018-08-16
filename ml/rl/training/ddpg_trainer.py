@@ -151,10 +151,11 @@ class DDPGTrainer(RLTrainer):
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)
 
-        if self.minibatch >= self.reward_burnin:
-            target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
-        else:
+        if self.use_reward_burnin and self.minibatch < self.reward_burnin:
             target_q_values = rewards
+        else:
+            target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
+
         # compute loss and update the critic network
         critic_predictions = q_s1_a1.squeeze()
         loss_critic = self.q_network_loss(critic_predictions, target_q_values)
@@ -169,14 +170,14 @@ class DDPGTrainer(RLTrainer):
         loss_actor.backward()
         self.actor_optimizer.step()
 
-        if self.minibatch >= self.reward_burnin:
-            # Use the soft update rule to update both target networks
-            self._soft_update(self.actor, self.actor_target, self.tau)
-            self._soft_update(self.critic, self.critic_target, self.tau)
-        else:
+        if self.use_reward_burnin and self.minibatch < self.reward_burnin:
             # Reward burnin: force target network
             self._soft_update(self.actor, self.actor_target, 1.0)
             self._soft_update(self.critic, self.critic_target, 1.0)
+        else:
+            # Use the soft update rule to update both target networks
+            self._soft_update(self.actor, self.actor_target, self.tau)
+            self._soft_update(self.critic, self.critic_target, self.tau)
 
         if evaluator is not None:
             evaluator.report(

@@ -81,6 +81,7 @@ class RLTrainer:
             self.ml_trainer,
         )
 
+        self.use_reward_burnin = False
         self.reward_burnin = parameters.rl.reward_burnin
         self.maxq_learning = parameters.rl.maxq_learning
         self.rl_discount_rate = parameters.rl.gamma
@@ -208,15 +209,15 @@ class RLTrainer:
         assert self.reward_train_model is not None
         assert self.q_score_model is not None
 
-        if self.training_iteration >= self.reward_burnin:
+        if self.use_reward_burnin and self.training_iteration < self.reward_burnin:
+            workspace.RunNet(self.reward_train_model.net)
+        else:
             if self.training_iteration == self.reward_burnin:
                 logger.info("Minibatch number == reward_burnin. Starting RL updates.")
                 self.target_network.enable_slow_updates()
                 if self.conv_target_network:
                     self.conv_target_network.enable_slow_updates()
             workspace.RunNet(self.rl_train_model.net)
-        else:
-            workspace.RunNet(self.reward_train_model.net)
 
         workspace.RunNet(self.target_network._update_model.net)
         if self.conv_target_network:
