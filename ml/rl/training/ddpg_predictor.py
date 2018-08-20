@@ -261,7 +261,7 @@ class DDPGPredictor(RLPredictor):
         workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int64))
         C2.net().LengthsRangeFill([output_lengths], [output_keys_int32])
         C2.net().Cast(
-            [output_keys_int32], [output_keys], dtype=caffe2_pb2.TensorProto.INT64
+            [output_keys_int32], [output_keys], to=caffe2_pb2.TensorProto.INT64
         )
 
         output_values = "output/float_features.values"
@@ -406,7 +406,7 @@ class DDPGPredictor(RLPredictor):
         workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int64))
         C2.net().LengthsRangeFill([output_lengths], [output_keys_int32])
         C2.net().Cast(
-            [output_keys_int32], [output_keys], dtype=caffe2_pb2.TensorProto.INT64
+            [output_keys_int32], [output_keys], to=caffe2_pb2.TensorProto.INT64
         )
 
         output_values = "output/float_features.values"
