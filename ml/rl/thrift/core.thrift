@@ -11,7 +11,7 @@ struct RLParameters {
   4: i32 reward_burnin = 1,
   5: bool maxq_learning = true,
   6: map<string, double> reward_boost,
-  7: double temperature = 0.5,
+  7: double temperature = 0.01,
   8: i32 softmax_policy = 1,
   9: bool use_seq_num_diff_as_time_diff = false,
   10: string q_network_loss = 'mse',
