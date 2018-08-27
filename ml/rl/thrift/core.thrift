@@ -57,6 +57,10 @@ struct TrainingParameters {
   11: optional FactorizationParameters factorization_parameters,
 }
 
+struct InTrainingCPEParameters {
+  1: double mdp_sampled_rate = 0.1,
+}
+
 struct EvolutionParameters {
   1: i32 population_size = 1000,
   2: double mutation_power = 0.1,
@@ -77,6 +81,7 @@ struct DiscreteActionModelParameters {
   3: TrainingParameters training,
   4: ActionBudget action_budget,
   5: RainbowDQNParameters rainbow,
+  6: InTrainingCPEParameters in_training_cpe_evaluation,
 }
 
 struct KnnParameters {
@@ -93,6 +98,7 @@ struct ContinuousActionModelParameters {
   2: TrainingParameters training,
   3: KnnParameters knn,
   4: RainbowDQNParameters rainbow,
+  5: InTrainingCPEParameters in_training_cpe_evaluation,
 }
 
 struct DDPGNetworkParameters {

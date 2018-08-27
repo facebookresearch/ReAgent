@@ -16,7 +16,7 @@ class GridworldEvaluator(Evaluator):
     def __init__(
         self, env, assume_optimal_policy: bool, gamma, use_int_features: bool, samples
     ) -> None:
-        super(GridworldEvaluator, self).__init__(None, 1, gamma)
+        super(GridworldEvaluator, self).__init__(None, 1, gamma, None, None)
 
         self._env = env
 

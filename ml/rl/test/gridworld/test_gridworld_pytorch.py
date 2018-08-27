@@ -10,6 +10,7 @@ from ml.rl.test.gridworld.gridworld_enum import GridworldEnum
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
+    InTrainingCPEParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -50,6 +51,9 @@ class TestGridworld(unittest.TestCase):
                 training=training_parameters,
                 rainbow=RainbowDQNParameters(
                     double_q_learning=True, dueling_architecture=False
+                ),
+                in_training_cpe_evaluation=InTrainingCPEParameters(
+                    mdp_sampled_rate=0.1
                 ),
             ),
             environment.normalization,
@@ -97,7 +101,7 @@ class TestGridworld(unittest.TestCase):
         for tv in true_values:
             samples.reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(environment.ACTIONS, 10, DISCOUNT)
+        evaluator = Evaluator(environment.ACTIONS, 10, DISCOUNT, None, None)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:

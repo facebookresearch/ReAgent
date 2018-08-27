@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import hashlib
 import itertools
 import logging
 from collections import Counter
-from typing import List, NamedTuple, Set
+from typing import List, NamedTuple
 
 import numpy as np
 import scipy as sp
@@ -17,47 +18,68 @@ class CPE_Estimate(NamedTuple):
     raw: float
 
 
-class Sample:
+class DiscreteActionSample:
     __slots__ = [
         "mdp_id",
         "sequence_number",
+        "state",
         "action",
         "reward",
-        "logged_propensity",
+        "propensity",
         "terminal",
-        "target_propensities",
-        "estimated_Q_values",
+    ]
+
+    def __init__(
+        self, mdp_id, sequence_number, state, action, reward, propensity, terminal
+    ):
+        self.mdp_id = mdp_id
+        self.sequence_number = sequence_number
+        self.state = state
+        self.action = action
+        self.reward = reward
+        self.propensity = propensity
+        self.terminal = terminal
+
+
+class ParametricActionSample:
+    __slots__ = [
+        "mdp_id",
+        "sequence_number",
+        "logged_state_action",
+        "reward",
+        "propensity",
+        "terminal",
+        "possible_state_actions",
     ]
 
     def __init__(
         self,
         mdp_id,
         sequence_number,
-        action,
+        logged_state_action,
         reward,
-        logged_propensity,
+        propensity,
         terminal,
-        target_propensities,
-        estimated_Q_values,
+        possible_state_actions,
     ):
         self.mdp_id = mdp_id
         self.sequence_number = sequence_number
-        self.action = action
+        self.logged_state_action = logged_state_action
         self.reward = reward
-        self.logged_propensity = logged_propensity
+        self.propensity = propensity
         self.terminal = terminal
-        self.target_propensities = target_propensities
-        self.estimated_Q_values = estimated_Q_values
+        self.possible_state_actions = possible_state_actions
 
 
 class Evaluator(object):
-    MDP_SAMPLED_RATE = 0.1
     NUM_J_STEPS_FOR_MAGIC_ESTIMATOR = 25
     NUM_SUBSETS_FOR_CB_ESTIMATES = 25
     CONFIDENCE_INTERVAL = 0.9
     RECENT_WINDOW_SIZE = 100
 
-    def __init__(self, action_names, evaluator_batch_size, gamma) -> None:
+    def __init__(
+        self, action_names, evaluator_batch_size, gamma, model, mdp_sampled_rate
+    ) -> None:
         self.action_names = action_names
         self.mc_loss: List[float] = []
         self.td_loss: List[float] = []
@@ -99,16 +121,19 @@ class Evaluator(object):
         ]
 
         self.gamma = gamma
+        self.model = model
+        self.mdp_sampled_rate = mdp_sampled_rate
 
-        self.unshuffled_samples: List[Sample] = []
-        self.mdp_id_visited: Set[int] = set()
-        self.sampled_mdp_ids: Set[int] = set()
+        self.hash_func = hashlib.sha512
+        self.max_hash = 2 ** (self.hash_func().digest_size * 8)
+
+        self.unshuffled_samples: List = []
         self.unshuffled_actions = np.array([])
         self.unshuffled_rewards = np.array([])
         self.unshuffled_logged_propensities = np.array([])
         self.unshuffled_terminals = np.array([])
         self.unshuffled_target_propensities = np.array([])
-        self.unshuffled_estimated_Q_values = np.array([])
+        self.unshuffled_estimated_q_values = np.array([])
 
     def report(
         self,
@@ -244,38 +269,74 @@ class Evaluator(object):
         for print_detail in print_details.split("\n"):
             logger.info(print_detail)
 
-    def collect_samples(
+    def _mdp_id_to_probability(self, mdp_id):
+        """
+        Return a reproducible random float in the interval [0, 1) for the mdp_id.
+        """
+        hash_digest = self.hash_func(mdp_id).digest()
+        hash_int = int.from_bytes(hash_digest, "big")
+        return hash_int / self.max_hash
+
+    def collect_discrete_action_samples(
         self,
         mdp_ids,
         sequence_numbers,
+        states,
         logged_actions,
         logged_rewards,
         logged_propensities,
         logged_terminals,
-        target_propensities,
-        estimated_Q_values,
     ):
         for i in range(len(mdp_ids)):
             mdp_id = mdp_ids[i]
-            if mdp_id not in self.mdp_id_visited:
-                self.mdp_id_visited.add(mdp_id)
-                if np.random.random() < Evaluator.MDP_SAMPLED_RATE:
-                    self.sampled_mdp_ids.add(mdp_id)
-            if mdp_id in self.sampled_mdp_ids:
+            if self._mdp_id_to_probability(mdp_id) < self.mdp_sampled_rate:
                 self.unshuffled_samples.append(
-                    Sample(
+                    DiscreteActionSample(
                         mdp_id=mdp_id,
                         sequence_number=sequence_numbers[i],
+                        state=states[i],
                         action=logged_actions[i],
                         reward=logged_rewards[i],
-                        logged_propensity=logged_propensities[i],
+                        propensity=logged_propensities[i],
                         terminal=logged_terminals[i],
-                        target_propensities=target_propensities[i],
-                        estimated_Q_values=estimated_Q_values[i],
+                    )
+                )
+
+    def collect_parametric_action_samples(
+        self,
+        mdp_ids,
+        sequence_numbers,
+        logged_state_actions,
+        logged_rewards,
+        logged_propensities,
+        logged_terminals,
+        possible_state_actions,
+        pas_lens,
+    ):
+        cum_pas_lens = np.zeros(len(pas_lens) + 1, dtype=np.int64)
+        cum_pas_lens[1:] = np.cumsum(pas_lens)
+
+        for i in range(len(mdp_ids)):
+            mdp_id = mdp_ids[i]
+            if self._mdp_id_to_probability(mdp_id) < self.mdp_sampled_rate:
+                self.unshuffled_samples.append(
+                    ParametricActionSample(
+                        mdp_id=mdp_id,
+                        sequence_number=sequence_numbers[i],
+                        logged_state_action=logged_state_actions[i],
+                        reward=logged_rewards[i],
+                        propensity=logged_propensities[i],
+                        terminal=logged_terminals[i],
+                        possible_state_actions=possible_state_actions[
+                            cum_pas_lens[i] : cum_pas_lens[i + 1]
+                        ],
                     )
                 )
 
     def recover_samples_to_be_unshuffled(self):
+        if len(self.unshuffled_samples) == 0:
+            return
+
         # sort to recover unshuffled samples
         self.unshuffled_samples.sort(key=lambda x: (x.mdp_id, x.sequence_number))
 
@@ -287,33 +348,67 @@ class Evaluator(object):
             ):
                 self.unshuffled_samples[i].terminal = True
 
-        self.unshuffled_actions = np.array([x.action for x in self.unshuffled_samples])
         self.unshuffled_rewards = np.array(
             [x.reward for x in self.unshuffled_samples]
         ).reshape(-1, 1)
         self.unshuffled_logged_propensities = np.array(
-            [x.logged_propensity for x in self.unshuffled_samples]
+            [x.propensity for x in self.unshuffled_samples]
         ).reshape(-1, 1)
         self.unshuffled_terminals = np.array(
             [x.terminal for x in self.unshuffled_samples]
         ).reshape(-1, 1)
-        self.unshuffled_target_propensities = np.array(
-            [x.target_propensities for x in self.unshuffled_samples]
-        )
-        self.unshuffled_estimated_Q_values = np.array(
-            [x.estimated_Q_values for x in self.unshuffled_samples]
+
+        if isinstance(self.unshuffled_samples[0], DiscreteActionSample):
+            unshuffled_states = np.array([x.state for x in self.unshuffled_samples])
+            self.unshuffled_estimated_q_values = (
+                self.model.calculate_q_values(unshuffled_states).cpu().numpy()
+            )
+            self.unshuffled_actions = np.array(
+                [x.action for x in self.unshuffled_samples]
+            )
+        else:
+            unshuffled_possible_state_actions = np.array(
+                [sa for x in self.unshuffled_samples for sa in x.possible_state_actions]
+            )
+            pas_lens = np.array(
+                [len(x.possible_state_actions) for x in self.unshuffled_samples]
+            )
+            self.unshuffled_estimated_q_values = (
+                self.model.calculate_q_values(
+                    unshuffled_possible_state_actions, pas_lens
+                )
+                .cpu()
+                .numpy()
+            )
+            unshuffled_logged_state_actions = np.array(
+                [x.logged_state_action for x in self.unshuffled_samples]
+            )
+            q_value_for_logged_state_action = (
+                self.model.calculate_q_values(
+                    unshuffled_logged_state_actions,
+                    np.ones(
+                        shape=(len(unshuffled_logged_state_actions),), dtype=np.int64
+                    ),
+                )
+                .cpu()
+                .numpy()
+            )
+            self.unshuffled_actions = (
+                q_value_for_logged_state_action == self.unshuffled_estimated_q_values
+            ).astype(np.int64)
+
+        self.unshuffled_target_propensities = Evaluator.softmax(
+            self.unshuffled_estimated_q_values, self.model.rl_temperature
         )
 
     def clear_collected_samples(self):
         self.unshuffled_samples.clear()
-        self.sampled_mdp_ids = set()
-        self.mdp_id_visited = set()
         self.unshuffled_actions = np.array([])
         self.unshuffled_rewards = np.array([])
         self.unshuffled_logged_propensities = np.array([])
         self.unshuffled_terminals = np.array([])
         self.unshuffled_target_propensities = np.array([])
-        self.unshuffled_estimated_Q_values = np.array([])
+        self.unshuffled_estimated_q_values = np.array([])
 
     def score_cpe(self):
         if len(self.unshuffled_samples) == 0 or len(self.unshuffled_actions) == 0:
@@ -324,13 +419,14 @@ class Evaluator(object):
                 len(self.value_sequential_doubly_robust) + 1
             )
         )
+
         sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
             self.unshuffled_actions,
             self.unshuffled_rewards,
             self.unshuffled_terminals,
             self.unshuffled_logged_propensities,
             self.unshuffled_target_propensities,
-            self.unshuffled_estimated_Q_values,
+            self.unshuffled_estimated_q_values,
         )
         self.value_sequential_doubly_robust.append(sequential_doubly_robust)
 
@@ -346,7 +442,7 @@ class Evaluator(object):
             self.unshuffled_terminals,
             self.unshuffled_logged_propensities,
             self.unshuffled_target_propensities,
-            self.unshuffled_estimated_Q_values,
+            self.unshuffled_estimated_q_values,
             num_j_steps=1,
             whether_self_normalize_importance_weights=True,
         )
@@ -364,7 +460,7 @@ class Evaluator(object):
             self.unshuffled_terminals,
             self.unshuffled_logged_propensities,
             self.unshuffled_target_propensities,
-            self.unshuffled_estimated_Q_values,
+            self.unshuffled_estimated_q_values,
             num_j_steps=Evaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
             whether_self_normalize_importance_weights=True,
         )
@@ -438,7 +534,8 @@ class Evaluator(object):
             begin = max(0, len(arr) - window_size)
             return np.mean(np.array(arr[begin:]), axis=0)
         else:
-            if num_entries == 0:
+            logger.error("Not enough samples for evaluation.")
+            if num_entries == 1:
                 return float("nan")
             else:
                 return [float("nan")] * num_entries
@@ -498,7 +595,7 @@ class Evaluator(object):
         logged_terminals,
         logged_propensities,
         target_propensities,
-        estimated_Q_values,
+        estimated_q_values,
     ):
         # For details, visit https://arxiv.org/pdf/1511.03722.pdf
         logged_terminals = logged_terminals.squeeze()
@@ -508,10 +605,10 @@ class Evaluator(object):
         num_examples = logged_actions.shape[0]
 
         estimated_state_values = np.sum(
-            target_propensities * estimated_Q_values, axis=1
+            target_propensities * estimated_q_values, axis=1
         )
-        estimated_Q_values_for_logged_action = np.sum(
-            estimated_Q_values * logged_actions, axis=1
+        estimated_q_values_for_logged_action = np.sum(
+            estimated_q_values * logged_actions, axis=1
         )
 
         target_propensity_for_action = np.sum(
@@ -534,7 +631,7 @@ class Evaluator(object):
                     doubly_robust = estimated_state_values[j] + importance_weight[j] * (
                         logged_rewards[j]
                         + self.gamma * doubly_robust
-                        - estimated_Q_values_for_logged_action[j]
+                        - estimated_q_values_for_logged_action[j]
                     )
                     episode_value *= self.gamma
                     episode_value += logged_rewards[j]
@@ -558,7 +655,7 @@ class Evaluator(object):
         logged_terminals,
         logged_propensities,
         target_propensities,
-        estimated_Q_values,
+        estimated_q_values,
         num_j_steps,
         whether_self_normalize_importance_weights,
     ):
@@ -568,14 +665,14 @@ class Evaluator(object):
             rewards,
             logged_propensities,
             target_propensities,
-            estimated_Q_values,
+            estimated_q_values,
         ) = Evaluator.transform_to_equal_length_trajectories(
             logged_terminals.squeeze(),
             logged_actions,
             logged_rewards.squeeze(),
             logged_propensities.squeeze(),
             target_propensities,
-            estimated_Q_values,
+            estimated_q_values,
         )
 
         num_trajectories = actions.shape[0]
@@ -592,11 +689,11 @@ class Evaluator(object):
         target_propensity_for_logged_action = np.sum(
             np.multiply(target_propensities, actions), axis=2
         )
-        estimated_Q_values_for_logged_action = np.sum(
-            np.multiply(estimated_Q_values, actions), axis=2
+        estimated_q_values_for_logged_action = np.sum(
+            np.multiply(estimated_q_values, actions), axis=2
         )
         estimated_state_values = np.sum(
-            np.multiply(target_propensities, estimated_Q_values), axis=2
+            np.multiply(target_propensities, estimated_q_values), axis=2
         )
 
         importance_weights = target_propensity_for_logged_action / logged_propensities
@@ -625,7 +722,7 @@ class Evaluator(object):
                     importance_weights,
                     importance_weights_one_earlier,
                     estimated_state_values,
-                    estimated_Q_values_for_logged_action,
+                    estimated_q_values_for_logged_action,
                     j_step,
                 )
             )
@@ -665,7 +762,7 @@ class Evaluator(object):
                         importance_weights,
                         importance_weights_one_earlier,
                         estimated_state_values[trajectory_subset],
-                        estimated_Q_values_for_logged_action[trajectory_subset],
+                        estimated_q_values_for_logged_action[trajectory_subset],
                         float("inf"),
                     )
                 )
@@ -733,7 +830,7 @@ class Evaluator(object):
         importance_weights,
         importance_weights_one_earlier,
         estimated_state_values,
-        estimated_Q_values,
+        estimated_q_values,
         j_step,
     ):
         trajectory_length = len(rewards[0])
@@ -760,7 +857,7 @@ class Evaluator(object):
 
         control_variate = np.sum(
             np.multiply(
-                weighted_discounts[:, : j_step + 1], estimated_Q_values[:, : j_step + 1]
+                weighted_discounts[:, : j_step + 1], estimated_q_values[:, : j_step + 1]
             )
             - np.multiply(
                 weighted_discounts_one_earlier[:, : j_step + 1],
@@ -789,7 +886,7 @@ class Evaluator(object):
         rewards,
         logged_propensities,
         target_propensities,
-        estimated_Q_values,
+        estimated_q_values,
     ):
         """
         Take into samples (action, rewards, propensities, etc.) and output lists
@@ -820,7 +917,7 @@ class Evaluator(object):
             reward_trajectories.append(rewards[trajectory])
             logged_propensity_trajectories.append(logged_propensities[trajectory])
             target_propensity_trajectories.append(target_propensities[trajectory])
-            Q_value_trajectories.append(estimated_Q_values[trajectory])
+            Q_value_trajectories.append(estimated_q_values[trajectory])
 
         def to_equal_length(x, fill_value):
             x_equal_length = np.array(

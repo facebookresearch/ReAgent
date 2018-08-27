@@ -91,13 +91,8 @@ class DQNTrainer(RLTrainer):
     def num_actions(self) -> int:
         return len(self._actions)
 
-    @property
-    def estimated_Q_values(self):
-        return self.all_action_scores
-
-    @property
-    def target_propensities(self):
-        return self.model_propensities
+    def calculate_q_values(self, states):
+        return self.q_network(states).detach()
 
     def get_max_q_values(self, states, possible_actions, double_q_learning):
         """

@@ -4,7 +4,7 @@
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-from ml.rl.test.gridworld.gridworld_base import G, GridworldBase, S, W
+from ml.rl.test.gridworld.gridworld_base import G, GridworldBase, S, Samples, W
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -37,19 +37,7 @@ class LimitedActionGridworld(GridworldBase):
                 break
         return state
 
-    def generate_samples(
-        self, num_transitions, epsilon, with_possible=True
-    ) -> Tuple[
-        List[Dict[int, float]],
-        List[str],
-        List[float],
-        List[float],
-        List[Dict[int, float]],
-        List[str],
-        List[bool],
-        List[List[str]],
-        List[Dict[int, float]],
-    ]:
+    def generate_samples(self, num_transitions, epsilon, with_possible=True) -> Samples:
         return self.generate_samples_discrete(num_transitions, epsilon, with_possible)
 
     def preprocess_samples(

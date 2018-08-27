@@ -45,6 +45,7 @@ class GridworldEnum(Gridworld):
             actions=samples.actions,
             propensities=samples.propensities,
             rewards=samples.rewards,
+            possible_actions=samples.possible_actions,
             next_states=enum_next_states,
             next_actions=samples.next_actions,
             terminals=samples.terminals,

@@ -12,6 +12,7 @@ from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
     FactorizationParameters,
     FeedForwardParameters,
+    InTrainingCPEParameters,
     KnnParameters,
     RainbowDQNParameters,
     RLParameters,
@@ -47,6 +48,7 @@ class TestGridworldContinuous(unittest.TestCase):
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
+            in_training_cpe_evaluation=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_parameters_factorized(self):
@@ -73,6 +75,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
+            in_training_cpe_evaluation=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_trainer(self, environment, parameters=None):
@@ -176,7 +179,7 @@ class TestGridworldContinuous(unittest.TestCase):
         for tv in true_values:
             samples.reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
-        evaluator = Evaluator(None, 10, DISCOUNT)
+        evaluator = Evaluator(None, 10, DISCOUNT, None, None)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:

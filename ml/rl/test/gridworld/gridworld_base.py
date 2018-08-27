@@ -32,6 +32,7 @@ class Samples(object):
         "actions",
         "propensities",
         "rewards",
+        "possible_actions",
         "next_states",
         "next_actions",
         "terminals",
@@ -47,6 +48,7 @@ class Samples(object):
         actions: List[str],
         propensities: List[float],
         rewards: List[float],
+        possible_actions: List[List[str]],
         next_states: List[Dict[int, float]],
         next_actions: List[str],
         terminals: List[bool],
@@ -59,6 +61,7 @@ class Samples(object):
         self.actions = actions
         self.propensities = propensities
         self.rewards = rewards
+        self.possible_actions = possible_actions
         self.next_states = next_states
         self.next_actions = next_actions
         self.terminals = terminals
@@ -76,6 +79,7 @@ class Samples(object):
                     self.actions,
                     self.propensities,
                     self.rewards,
+                    self.possible_actions,
                     self.next_states,
                     self.next_actions,
                     self.terminals,
@@ -90,6 +94,7 @@ class Samples(object):
                 self.actions,
                 self.propensities,
                 self.rewards,
+                self.possible_actions,
                 self.next_states,
                 self.next_actions,
                 self.terminals,
@@ -104,6 +109,7 @@ class Samples(object):
                     self.actions,
                     self.propensities,
                     self.rewards,
+                    self.possible_actions,
                     self.next_states,
                     self.next_actions,
                     self.terminals,
@@ -119,6 +125,7 @@ class Samples(object):
                 self.actions,
                 self.propensities,
                 self.rewards,
+                self.possible_actions,
                 self.next_states,
                 self.next_actions,
                 self.terminals,
@@ -178,7 +185,7 @@ class GridworldBase(object):
             if current in not_visited:
                 not_visited.remove(current)
 
-            possible_actions = self.possible_next_actions(self._index(current), True)
+            possible_actions = self.possible_actions(self._index(current), True)
             for action in possible_actions:
                 next_state_pos = self.move_on_pos(current[0], current[1], action)
                 next_state = self._index(next_state_pos)
@@ -262,7 +269,7 @@ class GridworldBase(object):
         self._state = self._no_cheat_step(self._state, action)
         reward = self.reward(self._state)
         if with_possible:
-            possible_next_action = self.possible_next_actions(self._state)
+            possible_next_action = self.possible_actions(self._state)
         else:
             possible_next_action = None
         return self._state, reward, self.is_terminal(self._state), possible_next_action
@@ -272,7 +279,7 @@ class GridworldBase(object):
         return self._optimal_policy[y, x]
 
     def sample_policy(self, state, epsilon) -> Tuple[str, float]:
-        possible_actions = self.possible_next_actions(state)
+        possible_actions = self.possible_actions(state)
         if len(possible_actions) == 0:
             return "", 1.0
         if np.random.rand() < epsilon:
@@ -330,7 +337,7 @@ class GridworldBase(object):
         y, x = self.move_on_pos_limit(y, x, act)
         return self._index((y, x))
 
-    def possible_next_actions(self, state, ignore_terminal=False):
+    def possible_actions(self, state, ignore_terminal=False):
         possible_actions = []
         if not ignore_terminal and self.is_terminal(state):
             return possible_actions
@@ -353,7 +360,7 @@ class GridworldBase(object):
             if not self.is_terminal(state):
                 poss_a = self.ACTIONS
                 if self.USING_ONLY_VALID_ACTION:
-                    poss_a = self.possible_next_actions(state)
+                    poss_a = self.possible_actions(state)
                 poss_a_count = len(poss_a)
                 fraction = 1.0 / poss_a_count
                 for action in poss_a:
@@ -409,7 +416,7 @@ class GridworldBase(object):
         func = partial(
             self.generate_samples_discrete_internal,
             epsilon=epsilon,
-            with_possible=with_possible
+            with_possible=with_possible,
         )
         pool = multiprocessing.Pool(processes=8)
         res = pool.map(func, args)
@@ -421,6 +428,7 @@ class GridworldBase(object):
             actions=[],
             propensities=[],
             rewards=[],
+            possible_actions=[],
             next_states=[],
             next_actions=[],
             terminals=[],
@@ -434,6 +442,7 @@ class GridworldBase(object):
             merge.actions += s.actions
             merge.propensities += s.propensities
             merge.rewards += s.rewards
+            merge.possible_actions += s.possible_actions
             merge.next_states += s.next_states
             merge.next_actions += s.next_actions
             merge.terminals += s.terminals
@@ -457,6 +466,7 @@ class GridworldBase(object):
         terminal = True
         next_action = ""
         next_propensity = 1.0
+        possible_actions: List[List[str]] = []
         possible_next_actions: List[List[str]] = []
         transition = 0
         last_terminal = -1
@@ -477,6 +487,9 @@ class GridworldBase(object):
                 propensity = next_propensity
                 sequence_number += 1
 
+            if with_possible:
+                possible_action = self.possible_actions(state)
+
             next_state, reward, terminal, possible_next_action = self.step(
                 action, with_possible
             )
@@ -488,6 +501,7 @@ class GridworldBase(object):
             actions.append(action)
             propensities.append(propensity)
             rewards.append(reward)
+            possible_actions.append(possible_action)
             next_states.append({next_state: 1.0})
             next_actions.append(next_action)
             terminals.append(terminal)
@@ -505,7 +519,6 @@ class GridworldBase(object):
 
             state = next_state
             transition += 1
-
         return Samples(
             mdp_ids=mdp_ids,
             sequence_numbers=sequence_numbers,
@@ -513,6 +526,7 @@ class GridworldBase(object):
             actions=actions,
             propensities=propensities,
             rewards=rewards,
+            possible_actions=possible_actions,
             next_states=next_states,
             next_actions=next_actions,
             terminals=terminals,

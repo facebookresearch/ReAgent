@@ -127,6 +127,27 @@ class ParametricDQNTrainer(RLTrainer):
                 self.num_action_features,
             )
 
+    def calculate_q_values(self, state_pas_concats, pas_lens):
+        row_nums = np.arange(len(pas_lens))
+        row_idxs = np.repeat(row_nums, pas_lens)
+        col_idxs = arange_expand(pas_lens)
+
+        dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
+        q_network_input = torch.from_numpy(state_pas_concats).type(self.dtype)
+
+        q_values = self.q_network(q_network_input).detach().squeeze()
+
+        dense_dim = [len(pas_lens), max(pas_lens)]
+        # Add specific fingerprint to q-values so that after sparse -> dense we can
+        # subtract the fingerprint to identify the 0's added in sparse -> dense
+        q_values.add_(self.FINGERPRINT)
+        sparse_q = torch.sparse_coo_tensor(dense_idxs, q_values, dense_dim)
+        dense_q = sparse_q.to_dense()
+        dense_q.add_(self.FINGERPRINT * -1)
+        dense_q[dense_q == self.FINGERPRINT * -1] = self.ACTION_NOT_POSSIBLE_VAL
+
+        return dense_q
+
     def get_max_q_values(self, next_state_pnas_concat, pnas_lens, double_q_learning):
         """
         :param next_state_pnas_concat: Numpy array with shape

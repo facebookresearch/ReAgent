@@ -62,6 +62,14 @@ class GridworldContinuous(GridworldBase):
             self.action_to_features(a) if a is not "" else {}
             for a in samples.next_actions
         ]
+        continuous_possible_actions = []
+        for possible_action in samples.possible_actions:
+            continuous_possible_actions.append(
+                [
+                    self.action_to_features(a) if a is not None else {}
+                    for a in possible_action
+                ]
+            )
         continuous_possible_next_actions = []
         for possible_next_action in samples.possible_next_actions:
             continuous_possible_next_actions.append(
@@ -78,6 +86,7 @@ class GridworldContinuous(GridworldBase):
             actions=continuous_actions,
             propensities=samples.propensities,
             rewards=samples.rewards,
+            possible_actions=continuous_possible_actions,
             next_states=samples.next_states,
             next_actions=continuous_next_actions,
             terminals=samples.terminals,
@@ -159,7 +168,7 @@ class GridworldContinuous(GridworldBase):
             False,
         )
 
-        state_pnas_blob = preprocessor.concat_states_and_possible_next_actions(
+        state_pnas_blob = preprocessor.concat_states_and_possible_actions(
             next_state_matrix, possible_next_actions_matrix, pna_lens_blob
         )
 
