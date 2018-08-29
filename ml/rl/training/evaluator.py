@@ -360,8 +360,8 @@ class Evaluator(object):
 
         if isinstance(self.unshuffled_samples[0], DiscreteActionSample):
             unshuffled_states = np.array([x.state for x in self.unshuffled_samples])
-            self.unshuffled_estimated_q_values = (
-                self.model.calculate_q_values(unshuffled_states).cpu().numpy()
+            self.unshuffled_estimated_q_values = self.model.calculate_q_values(
+                unshuffled_states
             )
             self.unshuffled_actions = np.array(
                 [x.action for x in self.unshuffled_samples]
@@ -373,25 +373,15 @@ class Evaluator(object):
             pas_lens = np.array(
                 [len(x.possible_state_actions) for x in self.unshuffled_samples]
             )
-            self.unshuffled_estimated_q_values = (
-                self.model.calculate_q_values(
-                    unshuffled_possible_state_actions, pas_lens
-                )
-                .cpu()
-                .numpy()
+            self.unshuffled_estimated_q_values = self.model.calculate_q_values(
+                unshuffled_possible_state_actions, pas_lens
             )
             unshuffled_logged_state_actions = np.array(
                 [x.logged_state_action for x in self.unshuffled_samples]
             )
-            q_value_for_logged_state_action = (
-                self.model.calculate_q_values(
-                    unshuffled_logged_state_actions,
-                    np.ones(
-                        shape=(len(unshuffled_logged_state_actions),), dtype=np.int64
-                    ),
-                )
-                .cpu()
-                .numpy()
+            q_value_for_logged_state_action = self.model.calculate_q_values(
+                unshuffled_logged_state_actions,
+                np.ones(shape=(len(unshuffled_logged_state_actions),), dtype=np.int64),
             )
             self.unshuffled_actions = (
                 q_value_for_logged_state_action == self.unshuffled_estimated_q_values

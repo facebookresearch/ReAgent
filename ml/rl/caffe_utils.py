@@ -200,7 +200,7 @@ class PytorchCaffe2Converter(object):
 
         write_buffer = BytesIO()
         dummy_input = torch.autograd.Variable(torch.randn(1, input_dim).type(dtype))
-        torch.onnx._export(pytorch_net, dummy_input, write_buffer)
+        torch.onnx.export(pytorch_net, dummy_input, write_buffer)
         return write_buffer
 
     @staticmethod
@@ -209,10 +209,11 @@ class PytorchCaffe2Converter(object):
         input and output blobs and the NetDef."""
         protobuf_model = onnx.load(BytesIO(buffer.getvalue()))
         input_blob_name = protobuf_model.graph.input[0].name
-        outout_blob_name = protobuf_model.graph.output[0].name
+        output_blob_name = protobuf_model.graph.output[0].name
+        print("INPUT BLOB", input_blob_name, "OUTPUT BLOB", output_blob_name)
         return (
             input_blob_name,
-            outout_blob_name,
+            output_blob_name,
             caffe2.python.onnx.backend.prepare(protobuf_model),
         )
 

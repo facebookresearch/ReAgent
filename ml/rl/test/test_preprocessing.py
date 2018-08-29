@@ -4,7 +4,6 @@ import unittest
 
 import numpy as np
 import six
-import torch
 from ml.rl.preprocessing import identify_types, normalization
 from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
 from ml.rl.preprocessing.normalization import NormalizationParameters
@@ -26,7 +25,7 @@ class TestPreprocessing(unittest.TestCase):
             left
             + (
                 (original_value - quantiles[left])
-                / (quantiles[right] - quantiles[left])
+                / ((quantiles[right] + 1e-6) - quantiles[left])
             )
         ) / n_quantiles
         return interpolated
@@ -51,7 +50,7 @@ class TestPreprocessing(unittest.TestCase):
             else:
                 assert v.feature_type == k or v.feature_type + "_2" + k
 
-        preprocessor = Preprocessor(normalization_parameters)
+        preprocessor = Preprocessor(normalization_parameters, False)
         preprocessor.clamp = False
         input_matrix = np.zeros([10000, len(features)], dtype=np.float32)
         for i, feature in enumerate(features):
@@ -148,7 +147,7 @@ class TestPreprocessing(unittest.TestCase):
                 identify_types.ENUM, None, None, None, None, [15, 3], None, None, None
             ),
         }
-        preprocessor = Preprocessor(normalization_parameters)
+        preprocessor = Preprocessor(normalization_parameters, False)
         preprocessor.clamp = False
 
         inputs = np.zeros([4, 3], dtype=np.float32)
@@ -228,28 +227,22 @@ class TestPreprocessing(unittest.TestCase):
     def test_preprocessing_network(self):
         features, feature_value_map = preprocessing_util.read_data()
         normalization_parameters = {}
-        for name, values in feature_value_map.items():
-            normalization_parameters[name] = normalization.identify_parameter(values)
-        test_features = self.preprocess(feature_value_map, normalization_parameters)
-
-        preprocessor = Preprocessor(normalization_parameters)
-        preprocessor.clamp = False
         name_preprocessed_blob_map = {}
+
         for feature_name, feature_values in feature_value_map.items():
-            feature_values = np.expand_dims(feature_values, -1)
-            if feature_name == identify_types.ENUM:
-                normalized_feature_values = torch.zeros(
-                    feature_values.shape[0],
-                    len(normalization_parameters[feature_name].possible_values),
-                )
-            else:
-                normalized_feature_values = torch.zeros(feature_values.shape)
-            preprocessor._preprocess_feature(
-                feature_values,
-                normalized_feature_values,
-                normalization_parameters[feature_name],
+            normalization_parameters[feature_name] = normalization.identify_parameter(
+                feature_values
             )
+
+            preprocessor = Preprocessor(
+                {feature_name: normalization_parameters[feature_name]}, False
+            )
+            preprocessor.clamp = False
+            feature_values_matrix = np.expand_dims(feature_values, -1)
+            normalized_feature_values = preprocessor.forward(feature_values_matrix)
             name_preprocessed_blob_map[feature_name] = normalized_feature_values.numpy()
+
+        test_features = self.preprocess(feature_value_map, normalization_parameters)
 
         for feature_name in feature_value_map:
             normalized_features = name_preprocessed_blob_map[feature_name]

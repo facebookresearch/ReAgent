@@ -10,6 +10,7 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 import numpy as np
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
+from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -551,6 +552,7 @@ class GridworldBase(object):
             "state_norm",
             False,
             False,
+            False,
         )
         saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
         next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
@@ -559,6 +561,7 @@ class GridworldBase(object):
             saa.values,
             self.normalization,
             "next_state_norm",
+            False,
             False,
             False,
         )
@@ -595,8 +598,14 @@ class GridworldBase(object):
                 for time_diff, reward in reward_timeline.items():
                     episode_values[i, 0] += reward * (DISCOUNT ** time_diff)
 
+        preprocessor = Preprocessor(self.normalization, False)
+
         states_ndarray = workspace.FetchBlob(state_matrix)
+        states_ndarray = preprocessor.forward(states_ndarray).numpy()
+
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
+        next_states_ndarray = preprocessor.forward(next_states_ndarray).numpy()
+
         time_diffs = np.ones(len(states_ndarray))
         tdps = []
         for start in range(0, states_ndarray.shape[0], minibatch_size):

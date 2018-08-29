@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class DDPGPredictor(RLPredictor):
-    def __init__(self, net, parameters, int_features=False) -> None:
-        RLPredictor.__init__(self, net, parameters, int_features)
+    def __init__(self, net, init_net, parameters, int_features) -> None:
+        RLPredictor.__init__(self, net, init_net, parameters, int_features)
         self._output_blobs = [
             "output/float_features.lengths",
             "output/float_features.keys",
@@ -277,7 +277,7 @@ class DDPGPredictor(RLPredictor):
         C2.net().FlattenToVec([scaled_for_serving_actions], [output_values])
 
         workspace.CreateNet(net)
-        return DDPGPredictor(net, parameters, int_features)
+        return DDPGPredictor(net, torch_init_net, parameters, int_features)
 
     @classmethod
     def export_critic(
@@ -414,4 +414,4 @@ class DDPGPredictor(RLPredictor):
         C2.net().FlattenToVec([critic_output_blob], [output_values])
 
         workspace.CreateNet(net)
-        return DDPGPredictor(net, parameters, int_features)
+        return DDPGPredictor(net, torch_init_net, parameters, int_features)

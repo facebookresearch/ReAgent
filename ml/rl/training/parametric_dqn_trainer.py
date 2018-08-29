@@ -146,7 +146,7 @@ class ParametricDQNTrainer(RLTrainer):
         dense_q.add_(self.FINGERPRINT * -1)
         dense_q[dense_q == self.FINGERPRINT * -1] = self.ACTION_NOT_POSSIBLE_VAL
 
-        return dense_q
+        return dense_q.cpu().numpy()
 
     def get_max_q_values(self, next_state_pnas_concat, pnas_lens, double_q_learning):
         """

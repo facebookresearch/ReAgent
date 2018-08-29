@@ -6,21 +6,19 @@ from typing import Dict, List
 import numpy as np
 import torch
 import torch.nn as nn
-from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing.identify_types import FEATURE_TYPES
-from ml.rl.preprocessing.normalization import (
-    MISSING_VALUE,
-    NormalizationParameters,
-    get_num_output_features,
-)
+from ml.rl.preprocessing.identify_types import ENUM, FEATURE_TYPES
+from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
+from torch.nn import Module, Parameter
 
 
 logger = logging.getLogger(__name__)
 
 
-class Preprocessor(nn.Module):
+class Preprocessor(Module):
     def __init__(
-        self, normalization_parameters: Dict[str, NormalizationParameters]
+        self,
+        normalization_parameters: Dict[str, NormalizationParameters],
+        use_gpu: bool,
     ) -> None:
         super(Preprocessor, self).__init__()
         self.normalization_parameters = normalization_parameters
@@ -29,139 +27,433 @@ class Preprocessor(nn.Module):
         )
         self.clamp = True  # Only set to false in unit tests
 
+        if use_gpu and torch.cuda.is_available():
+            logger.info("Using GPU: GPU requested and available.")
+            self.use_gpu = True
+            self.dtype = torch.cuda.FloatTensor
+        else:
+            logger.info("NOT Using GPU: GPU not requested or not available.")
+            self.use_gpu = False
+            self.dtype = torch.FloatTensor
+
+        # NOTE: Because of the way we call AppendNet to squash ONNX to a C2 net,
+        # We need to make tensors for every numeric literal
+        self.zero_tensor = Parameter(
+            torch.tensor([0.0]).type(self.dtype), requires_grad=False
+        )
+        self.one_tensor = Parameter(
+            torch.tensor([1.0]).type(self.dtype), requires_grad=False
+        )
+        self.one_half_tensor = Parameter(
+            torch.tensor([0.5]).type(self.dtype), requires_grad=False
+        )
+        self.one_hundredth_tensor = Parameter(
+            torch.tensor([0.01]).type(self.dtype), requires_grad=False
+        )
+        self.negative_one_tensor = Parameter(
+            torch.tensor([-1.0]).type(self.dtype), requires_grad=False
+        )
+        self.missing_tensor = Parameter(
+            torch.tensor([MISSING_VALUE]).type(self.dtype), requires_grad=False
+        )
+        self.min_tensor = Parameter(
+            torch.tensor([-1e20]).type(self.dtype), requires_grad=False
+        )
+        self.max_tensor = Parameter(
+            torch.tensor([1e20]).type(self.dtype), requires_grad=False
+        )
+        self.epsilon_tensor = Parameter(
+            torch.tensor([1e-6]).type(self.dtype), requires_grad=False
+        )
+
+        feature_starts = self._get_type_boundaries()
+        for i, feature_type in enumerate(FEATURE_TYPES):
+            begin_index = feature_starts[i]
+            if (i + 1) == len(FEATURE_TYPES):
+                end_index = len(self.normalization_parameters)
+            else:
+                end_index = feature_starts[i + 1]
+            if begin_index == end_index:
+                continue  # No features of this type
+            if feature_type == ENUM:
+                # Process one-at-a-time
+                for j in range(begin_index, end_index):
+                    norm_params = self.normalization_parameters[self.sorted_features[j]]
+                    func = getattr(self, "_create_parameters_" + feature_type)
+                    func(j, norm_params)
+            else:
+                norm_params = []
+                for f in self.sorted_features[begin_index:end_index]:
+                    norm_params.append(self.normalization_parameters[f])
+                func = getattr(self, "_create_parameters_" + feature_type)
+                func(begin_index, norm_params)
+
     def forward(self, input) -> torch.FloatTensor:
         """ Preprocess the input matrix
         :param input tensor
         """
         if isinstance(input, np.ndarray):
-            input = torch.from_numpy(input)
+            input = torch.from_numpy(input).type(self.dtype)
 
-        not_missing_input = (input != MISSING_VALUE).float()
+        # ONNX doesn't support != yet
+        not_missing_input = self.one_tensor - self._manual_broadcast_matrix_scalar(
+            input, self.missing_tensor, torch.eq
+        )
+        feature_starts = self._get_type_boundaries()
 
-        output_feature_dim = get_num_output_features(self.normalization_parameters)
-        output = torch.zeros(input.shape[0], output_feature_dim)
+        outputs = []
+        for i, feature_type in enumerate(FEATURE_TYPES):
+            begin_index = feature_starts[i]
+            if (i + 1) == len(FEATURE_TYPES):
+                end_index = len(self.normalization_parameters)
+            else:
+                end_index = feature_starts[i + 1]
+            if begin_index == end_index:
+                continue  # No features of this type
+            if feature_type == ENUM:
+                # Process one-at-a-time
+                for j in range(begin_index, end_index):
+                    norm_params = self.normalization_parameters[self.sorted_features[j]]
+                    new_output = self._preprocess_feature_single_column(
+                        j, input[:, j].unsqueeze(1), norm_params
+                    )
+                    new_output *= not_missing_input[:, j].unsqueeze(1)
+                    outputs.append(new_output)
+            else:
+                norm_params = []
+                for f in self.sorted_features[begin_index:end_index]:
+                    norm_params.append(self.normalization_parameters[f])
+                new_output = self._preprocess_feature_multi_column(
+                    begin_index, input[:, begin_index:end_index], norm_params
+                )
+                new_output *= not_missing_input[:, begin_index:end_index]
+                outputs.append(new_output)
 
-        output_cursor = 0
-        for column, feature in enumerate(self.sorted_features):
-            norm_params = self.normalization_parameters[feature]
-            output_size = (
-                len(norm_params.possible_values)
-                if norm_params.feature_type == identify_types.ENUM
-                else 1
-            )
-            sliced_output = output[:, output_cursor : output_cursor + output_size]
-            self._preprocess_feature(
-                input[:, column].reshape(-1, 1), sliced_output, norm_params
-            )
-            output[:, output_cursor : output_cursor + output_size] *= not_missing_input[
-                :, column
-            ].reshape(-1, 1)
-            output_cursor += output_size
-        return output
+        return torch.cat(outputs, dim=1)
 
-    def _preprocess_feature(
+    def _preprocess_feature_single_column(
         self,
+        begin_index: int,
         input: torch.Tensor,
-        output: torch.Tensor,
         norm_params: NormalizationParameters,
-    ) -> None:
+    ) -> torch.Tensor:
         if isinstance(input, np.ndarray):
-            input = torch.from_numpy(input)
+            input = torch.from_numpy(input).type(self.dtype)
 
         feature_type = norm_params.feature_type
         func = getattr(self, "_preprocess_" + feature_type)
-        func(input, output, norm_params)
+        return func(begin_index, input, norm_params)
+
+    def _preprocess_feature_multi_column(
+        self,
+        begin_index: int,
+        input: torch.Tensor,
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        if isinstance(input, np.ndarray):
+            input = torch.from_numpy(input).type(self.dtype)
+
+        feature_type = norm_params[0].feature_type
+        func = getattr(self, "_preprocess_" + feature_type)
+        return func(begin_index, input, norm_params)
+
+    def _create_parameters_BINARY(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        pass
 
     def _preprocess_BINARY(
         self,
+        begin_index: int,
         input: torch.Tensor,
-        output: torch.Tensor,
-        norm_params: NormalizationParameters,
-    ) -> None:
-        output[:] = (input != 0).float()
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        # ONNX doesn't support != yet
+        return self.one_tensor - self._manual_broadcast_matrix_scalar(
+            input, self.zero_tensor, torch.eq
+        )
+
+    def _create_parameters_PROBABILITY(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        pass
 
     def _preprocess_PROBABILITY(
         self,
+        begin_index: int,
         input: torch.Tensor,
-        output: torch.Tensor,
-        norm_params: NormalizationParameters,
-    ) -> None:
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
         if self.clamp:
             clamped_input = torch.clamp(input, 0.01, 0.99)
         else:
             clamped_input = input
-        output[:] = -1.0 * torch.log((1.0 / clamped_input) - 1.0)
+        return (
+            self.negative_one_tensor
+            * ((self.one_tensor / clamped_input) - self.one_tensor).log()
+        )
+
+    def _create_parameters_CONTINUOUS(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        self._create_parameter(
+            begin_index,
+            "means",
+            torch.Tensor([p.mean for p in norm_params]).type(self.dtype),
+        )
+        self._create_parameter(
+            begin_index,
+            "stddevs",
+            torch.Tensor([p.stddev for p in norm_params]).type(self.dtype),
+        )
 
     def _preprocess_CONTINUOUS(
         self,
+        begin_index: int,
         input: torch.Tensor,
-        output: torch.Tensor,
-        norm_params: NormalizationParameters,
-    ) -> None:
-        continuous_output = (input - norm_params.mean) / norm_params.stddev
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        means = self._fetch_parameter(begin_index, "means")
+        stddevs = self._fetch_parameter(begin_index, "stddevs")
+        continuous_output = (input - means) / stddevs
         if not self.clamp:
-            output[:] = continuous_output
+            return continuous_output
         else:
-            output[:] = torch.clamp(continuous_output, -3.0, 3.0)
+            return torch.clamp(continuous_output, -3.0, 3.0)
+
+    def _create_parameters_BOXCOX(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        self._create_parameter(
+            begin_index,
+            "shifts",
+            torch.Tensor([p.boxcox_shift for p in norm_params]).type(self.dtype),
+        )
+        self._create_parameter(
+            begin_index,
+            "lambdas",
+            torch.Tensor([p.boxcox_lambda for p in norm_params]).type(self.dtype),
+        )
+        self._create_parameters_CONTINUOUS(begin_index, norm_params)
 
     def _preprocess_BOXCOX(
         self,
+        begin_index: int,
         input: torch.Tensor,
-        output: torch.Tensor,
-        norm_params: NormalizationParameters,
-    ) -> None:
-        assert (
-            norm_params.boxcox_lambda != 0
-        ), "The estimated boxcox lambda should never be 0"
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        shifts = self._fetch_parameter(begin_index, "shifts")
+        lambdas = self._fetch_parameter(begin_index, "lambdas")
         boxcox_output = (
-            torch.pow(input + norm_params.boxcox_shift, norm_params.boxcox_lambda) - 1.0
-        ) / norm_params.boxcox_lambda
-        boxcox_output = (boxcox_output - norm_params.mean) / norm_params.stddev
-        if not self.clamp:
-            output[:] = boxcox_output
-        output[:] = torch.clamp(boxcox_output, -3.0, 3.0)
+            # We can replace this with a normal pow() call after D8528654 lands
+            self._manual_broadcast_matrix_scalar(input + shifts, lambdas, torch.pow)
+            - self.one_tensor
+        ) / lambdas
+        return self._preprocess_CONTINUOUS(begin_index, boxcox_output, norm_params)
+
+    def _create_parameters_QUANTILE(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        F = len(norm_params)
+
+        num_quantiles = torch.Tensor(
+            np.array([[float(len(p.quantiles)) - 1 for p in norm_params]])
+        ).type(self.dtype)
+        self._create_parameter(begin_index, "num_quantiles", num_quantiles)
+
+        max_num_quantile_boundaries = int(
+            np.max([len(p.quantiles) for p in norm_params])
+        )
+        B = max_num_quantile_boundaries
+
+        # The quantile boundaries is a FxB matrix where B is the max # of boundaries
+
+        # We take advantage of the fact that if the value is >= the max
+        # quantile boundary it automatically gets a 1.0 to repeat the max quantile
+        # so that we guarantee a square matrix.
+
+        # We project the quantiles boundaries to 3d and create a 1xFxB tensor
+        quantile_boundaries = np.zeros(
+            [1, len(norm_params), max_num_quantile_boundaries]
+        )
+        max_quantile_boundaries = np.zeros([1, len(norm_params)])
+        min_quantile_boundaries = np.zeros([1, len(norm_params)])
+        for i, p in enumerate(norm_params):
+            quantile_boundaries[0, i, :] = p.quantiles[-1]
+            quantile_boundaries[0, i, 0 : len(p.quantiles)] = p.quantiles
+            max_quantile_boundaries[0, i] = max(p.quantiles)
+            min_quantile_boundaries[0, i] = min(p.quantiles)
+
+        quantile_boundaries = torch.Tensor(quantile_boundaries).type(self.dtype)
+        assert quantile_boundaries.shape == torch.Size(
+            [1, F, B]
+        ), "Invalid shape: " + str(quantile_boundaries.shape)
+
+        max_quantile_boundaries = torch.Tensor(max_quantile_boundaries).type(self.dtype)
+        assert max_quantile_boundaries.shape == torch.Size(
+            [1, F]
+        ), "Invalid shape: " + str(max_quantile_boundaries.shape)
+
+        min_quantile_boundaries = torch.Tensor(min_quantile_boundaries).type(self.dtype)
+        assert min_quantile_boundaries.shape == torch.Size(
+            [1, F]
+        ), "Invalid shape: " + str(min_quantile_boundaries.shape)
+
+        self._create_parameter(begin_index, "quantile_boundaries", quantile_boundaries)
+        self._create_parameter(
+            begin_index, "max_quantile_boundaries", max_quantile_boundaries
+        )
+        self._create_parameter(
+            begin_index, "min_quantile_boundaries", min_quantile_boundaries
+        )
+        self._create_parameter(
+            begin_index,
+            "max_num_boundaries_3d",
+            torch.Tensor(1, 1, max_num_quantile_boundaries).type(self.dtype),
+        )
+        self._create_parameter(
+            begin_index,
+            "quantile_boundary_mask",
+            torch.ones([1, F, B]).type(self.dtype),
+        )
 
     def _preprocess_QUANTILE(
         self,
+        begin_index: int,
         input: torch.Tensor,
-        output: torch.Tensor,
-        norm_params: NormalizationParameters,
-    ) -> None:
-        num_quantiles = float(len(norm_params.quantiles)) - 1
-        assert num_quantiles > 2, "Need at least two quantile boundaries (min and max)"
-        quantile_values = torch.Tensor(norm_params.quantiles)
-        max_quantile = float(np.max(norm_params.quantiles))
-        min_quantile = float(np.min(norm_params.quantiles))
-        set_to_min = (input <= min_quantile).float()
-        set_to_max = (input >= max_quantile).float()
-        interpolate = ((set_to_min + set_to_max) == 0).float()
-        input_greater_than = (input >= quantile_values).float()
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        """
+        Replace the value with it's percentile in the range [0,1].
+
+        This preprocesses several features in a single step by putting the
+        quantile boundaries in the third dimension and broadcasting.
+
+        The input is a JxF matrix where J is the batch size and F is the # of features.
+        """
+
+        J = input.shape[0]
+        F = input.shape[1]
+        assert input.shape[1] == len(
+            norm_params
+        ), "Mismatch between # features and # norms"
+
+        # The number of quantiles is a 1xF matrix
+        num_quantiles = self._fetch_parameter(begin_index, "num_quantiles")
+        assert num_quantiles.shape == torch.Size([1, F]), "Invalid shape: " + str(
+            num_quantiles.shape
+        )
+
+        max_num_quantile_boundaries = int(
+            np.max([len(p.quantiles) for p in norm_params])
+        )
+        B = max_num_quantile_boundaries
+
+        quantile_boundaries = self._fetch_parameter(begin_index, "quantile_boundaries")
+        max_quantile_boundaries = self._fetch_parameter(
+            begin_index, "max_quantile_boundaries"
+        )
+        min_quantile_boundaries = self._fetch_parameter(
+            begin_index, "min_quantile_boundaries"
+        )
+
+        # Add a third dimension and repeat to create a JxFxB matrix, where the
+        # inputs are repeated B times in the third dimension.  We need to
+        # do this because we can't broadcast both operands in different
+        # dimensions in the same operation.
+
+        # repeat doesn't work yet, so * by a mask
+        mask = self._fetch_parameter(begin_index, "quantile_boundary_mask")
+        expanded_inputs = input.unsqueeze(2) * mask
+        assert expanded_inputs.shape == torch.Size([J, F, B]), "Invalid shape: " + str(
+            expanded_inputs.shape
+        )
+
+        input_greater_than_or_equal_to = self._hack_ge(
+            expanded_inputs, quantile_boundaries
+        )
+        assert input_greater_than_or_equal_to.shape == torch.Size(
+            [J, F, B]
+        ), "Invalid shape: " + str(input_greater_than_or_equal_to.shape)
+
+        input_less_than = (expanded_inputs < quantile_boundaries).float()
+        assert input_less_than.shape == torch.Size([J, F, B]), "Invalid shape: " + str(
+            input_less_than.shape
+        )
+
+        set_to_max = self._hack_ge(input, max_quantile_boundaries)
+        assert set_to_max.shape == torch.Size([J, F]), "Invalid shape: " + str(
+            set_to_max.shape
+        )
+
+        set_to_min = self._hack_le(input, min_quantile_boundaries)
+        assert set_to_min.shape == torch.Size([J, F]), "Invalid shape: " + str(
+            set_to_min.shape
+        )
+
+        min_or_max = set_to_min + set_to_max
+        interpolate = self._manual_broadcast_matrix_scalar(
+            min_or_max, self.one_hundredth_tensor, torch.lt
+        )
+        assert interpolate.shape == torch.Size([J, F]), "Invalid shape: " + str(
+            interpolate.shape
+        )
+
         interpolate_left, _ = torch.max(
-            (input_greater_than * quantile_values)
-            + ((input < quantile_values).float() * -1e20),
-            dim=1,
-            keepdim=True,
+            (input_greater_than_or_equal_to * quantile_boundaries)
+            + (input_less_than * self.min_tensor),
+            dim=2,
+        )
+        assert interpolate_left.shape == torch.Size([J, F]), "Invalid shape: " + str(
+            interpolate_left.shape
         )
         interpolate_right, _ = torch.min(
-            ((input < quantile_values).float() * quantile_values)
-            + ((input >= quantile_values).float() * 1e20),
-            dim=1,
-            keepdim=True,
+            (input_less_than * quantile_boundaries)
+            + (input_greater_than_or_equal_to * self.max_tensor),
+            dim=2,
         )
+        assert interpolate_right.shape == torch.Size([J, F]), "Invalid shape: " + str(
+            interpolate_right.shape
+        )
+
+        # This assumes that we need to interpolate and computes the value.
+        # If we don't need to interpolate, this will be some bogus value, but it
+        # will be multiplied by 0 so no big deal.
+        left_start = torch.sum(input_greater_than_or_equal_to, dim=2) - self.one_tensor
         interpolated_values = (
-            (torch.sum(input_greater_than, dim=1, keepdim=True) - 1.0)
-            + ((input - interpolate_left) / (interpolate_right - interpolate_left))
-        ) / num_quantiles
-        output[:] = set_to_max + (interpolate * interpolated_values)
+            (
+                left_start
+                + (
+                    (input - interpolate_left)
+                    / (
+                        (interpolate_right + self.epsilon_tensor) - interpolate_left
+                    )  # Add a small amount to interpolate_right to avoid div-0
+                )
+            )
+            / num_quantiles
+        ).float()
+        assert interpolated_values.shape == torch.Size([J, F]), "Invalid shape: " + str(
+            interpolated_values.shape
+        )
+        return set_to_max + (interpolate * interpolated_values).float()
+
+    def _create_parameters_ENUM(
+        self, begin_index: int, norm_params: NormalizationParameters
+    ):
+        self._create_parameter(
+            begin_index,
+            "enum_values",
+            torch.Tensor(norm_params.possible_values).unsqueeze(0).type(self.dtype),
+        )
 
     def _preprocess_ENUM(
         self,
+        begin_index: int,
         input: torch.Tensor,
-        output: torch.Tensor,
         norm_params: NormalizationParameters,
-    ) -> None:
-        enum_values = torch.Tensor(norm_params.possible_values)
-        output[:] = (input == enum_values).float()
+    ) -> torch.Tensor:
+        enum_values = self._fetch_parameter(begin_index, "enum_values")
+        return self._manual_broadcast_column_vec_row_vec(input, enum_values, torch.eq)
 
     def _sort_features_by_normalization(self):
         """
@@ -178,15 +470,11 @@ class Preprocessor(nn.Module):
                     sorted_features.append(feature)
         return sorted_features, feature_starts
 
-    def _get_type_boundaries(
-        self,
-        features: List[str],
-        normalization_parameters: Dict[str, NormalizationParameters],
-    ) -> List[int]:
+    def _get_type_boundaries(self) -> List[int]:
         feature_starts = []
         on_feature_type = -1
-        for i, feature in enumerate(features):
-            feature_type = normalization_parameters[feature].feature_type
+        for i, feature in enumerate(self.sorted_features):
+            feature_type = self.normalization_parameters[feature].feature_type
             feature_type_index = FEATURE_TYPES.index(feature_type)
             assert (
                 feature_type_index >= on_feature_type
@@ -195,6 +483,53 @@ class Preprocessor(nn.Module):
                 feature_starts.append(i)
                 on_feature_type += 1
         while on_feature_type < len(FEATURE_TYPES):
-            feature_starts.append(len(features))
+            feature_starts.append(len(self.sorted_features))
             on_feature_type += 1
         return feature_starts
+
+    def _create_parameter(
+        self, begin_index: int, name: str, t: torch.Tensor
+    ) -> Parameter:
+        p = Parameter(t, requires_grad=False)
+        setattr(self, "_auto_parameter_" + str(begin_index) + "_" + name, p)
+        return p
+
+    def _fetch_parameter(self, begin_index: int, name: str) -> Parameter:
+        return getattr(self, "_auto_parameter_" + str(begin_index) + "_" + name)
+
+    # GE does not exist in ONNX so for now we hack it in
+    def _hack_ge(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
+        return self._manual_broadcast_matrix_scalar(
+            ((t1 > t2).float() + (t1 == t2).float()), self.one_half_tensor, torch.gt
+        ).float()
+
+    # LE does not exist in ONNX so for now we hack it in
+    def _hack_le(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
+        return self._manual_broadcast_matrix_scalar(
+            ((t1 < t2).float() + (t1 == t2).float()), self.one_half_tensor, torch.gt
+        ).float()
+
+    def _manual_broadcast_matrix_scalar(
+        self, t1: torch.Tensor, s1: torch.Tensor, fn
+    ) -> torch.Tensor:
+        # Some ONNX ops don't support broadcasting so we need to do some matrix magic
+        return fn(t1, (t1 * self.zero_tensor) + s1).float()
+
+    def _manual_broadcast_column_vec_row_vec(
+        self, t1: torch.Tensor, t2: torch.Tensor, fn
+    ) -> torch.Tensor:
+        # Some ONNX ops don't support broadcasting so we need to do some matrix magic
+        t2_ones = torch.ones_like(t2)
+        t1_mask = t1.mm(t2_ones)
+
+        return fn(t1_mask, t2).float()
+
+
+class PreprocesserAndForwardPassContainer(nn.Module):
+    def __init__(self, preprocessor_module, forward_pass_module):
+        super(PreprocesserAndForwardPassContainer, self).__init__()
+        self.add_module("preprocess", preprocessor_module)
+        self.add_module("forward_pass", forward_pass_module)
+
+    def forward(self, input) -> torch.FloatTensor:
+        return self.forward_pass.forward(self.preprocess.forward(input))

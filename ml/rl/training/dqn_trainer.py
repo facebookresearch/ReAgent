@@ -92,7 +92,15 @@ class DQNTrainer(RLTrainer):
         return len(self._actions)
 
     def calculate_q_values(self, states):
-        return self.q_network(states).detach()
+        is_numpy = False
+        if isinstance(states, np.ndarray):
+            is_numpy = True
+            states = torch.tensor(states).type(self.dtype)
+        result = self.q_network(states).detach()
+        if is_numpy:
+            return result.cpu().numpy()
+        else:
+            return result
 
     def get_max_q_values(self, states, possible_actions, double_q_learning):
         """
@@ -147,12 +155,20 @@ class DQNTrainer(RLTrainer):
             boosted_rewards += boosts
 
         self.minibatch += 1
-        states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
+        if isinstance(training_samples.states, torch.Tensor):
+            states = training_samples.states.type(self.dtype)
+        else:
+            states = torch.from_numpy(training_samples.states).type(self.dtype)
+        states = Variable(states)
         actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
         rewards = Variable(torch.from_numpy(boosted_rewards).type(self.dtype))
-        next_states = Variable(
-            torch.from_numpy(training_samples.next_states).type(self.dtype)
-        )
+        if isinstance(training_samples.next_states, torch.Tensor):
+            next_states = training_samples.next_states.type(self.dtype)
+        else:
+            next_states = torch.from_numpy(training_samples.next_states).type(
+                self.dtype
+            )
+        next_states = Variable(next_states)
         time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
         discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
             self.dtype

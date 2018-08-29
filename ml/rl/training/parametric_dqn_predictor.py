@@ -18,8 +18,8 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/int_single_categorical_features.values"
 
 
 class ParametricDQNPredictor(RLPredictor):
-    def __init__(self, net, parameters, int_features=False):
-        RLPredictor.__init__(self, net, parameters, int_features)
+    def __init__(self, net, init_net, parameters, int_features):
+        RLPredictor.__init__(self, net, init_net, parameters, int_features)
         self.is_discrete = False
         self._output_blobs.extend(
             [
@@ -228,4 +228,4 @@ class ParametricDQNPredictor(RLPredictor):
         C2.net().FlattenToVec([output_key_tile], [output_keys])
 
         workspace.CreateNet(net)
-        return ParametricDQNPredictor(net, parameters, int_features)
+        return ParametricDQNPredictor(net, torch_init_net, parameters, int_features)

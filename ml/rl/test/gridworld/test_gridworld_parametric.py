@@ -24,7 +24,7 @@ from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 class TestGridworldContinuous(unittest.TestCase):
     def setUp(self):
-        self.minibatch_size = 512
+        self.minibatch_size = 1024
         super(self.__class__, self).setUp()
         np.random.seed(0)
         random.seed(0)
@@ -41,7 +41,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 layers=[-1, 256, 128, -1],
                 activations=["relu", "relu", "linear"],
                 minibatch_size=self.minibatch_size,
-                learning_rate=0.125,
+                learning_rate=0.05,
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
@@ -71,7 +71,7 @@ class TestGridworldContinuous(unittest.TestCase):
                     ),
                 ),
                 minibatch_size=self.minibatch_size,
-                learning_rate=0.125,
+                learning_rate=0.05,
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
@@ -86,7 +86,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(150000, 1.0)
+        samples = environment.generate_samples(300000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(
@@ -106,7 +106,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_factorized(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(150000, 1.0)
+        samples = environment.generate_samples(300000, 1.0)
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
@@ -128,7 +128,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(150000, 1.0)
+        samples = environment.generate_samples(300000, 1.0)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(
@@ -148,7 +148,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_enum_factorized(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(150000, 1.0)
+        samples = environment.generate_samples(300000, 1.0)
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
@@ -170,7 +170,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_ground_truth(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(200000, 1.0)
+        samples = environment.generate_samples(300000, 1.0)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
@@ -191,7 +191,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_ground_truth_factorized(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(200000, 1.0)
+        samples = environment.generate_samples(300000, 1.0)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )

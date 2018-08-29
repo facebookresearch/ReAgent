@@ -12,7 +12,7 @@ from caffe2.python.predictor.predictor_exporter import (
     prepare_prediction_net,
     save_to_db,
 )
-from caffe2.python.predictor.predictor_py_utils import GetBlobs
+from caffe2.python.predictor.predictor_py_utils import GetBlobs, GetNet
 from caffe2.python.predictor_constants import predictor_constants
 from ml.rl.caffe_utils import C2
 
@@ -21,13 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 class RLPredictor:
-    def __init__(self, net, parameters, int_features=False):
+    def __init__(self, net, init_net, parameters, int_features):
         """
         :param net caffe2 net used for prediction
         :param parameters caffe2 blobs used as network paramers
         :param int_features boolean indicating if int_features blob will be present
         """
         self._net = net
+        self._init_net = init_net
         self._input_blobs = [
             "input/float_features.lengths",
             "input/float_features.keys",
@@ -105,6 +106,12 @@ class RLPredictor:
         output_values = workspace.FetchBlob(
             "output/string_weighted_multi_categorical_features.values.values"
         )
+        assert len(output_lengths) == len(float_state_features), (
+            "Invalid number of outputs: "
+            + str(len(output_lengths))
+            + " != "
+            + str(len(float_state_features))
+        )
 
         results = []
 
@@ -126,7 +133,11 @@ class RLPredictor:
         Returns a PredictorExportMeta object
         """
         return PredictorExportMeta(
-            self._net, self._parameters, self._input_blobs, self._output_blobs
+            self._net,
+            self._parameters,
+            self._input_blobs,
+            self._output_blobs,
+            extra_init_net=self._init_net,
         )
 
     def save(self, db_path, db_type):
@@ -138,10 +149,8 @@ class RLPredictor:
         meta = self.get_predictor_export_meta()
         for parameter in self._parameters:
             parameter_data = workspace.FetchBlob(parameter)
-            logger.info("DATA TYPE " + parameter_data.dtype.kind)
             if parameter_data.dtype.kind in {"U", "S", "O"}:
                 continue  # Don't bother checking string blobs for nan
-            logger.info("Checking parameter {} for nan".format(parameter))
             if np.any(np.isnan(parameter_data)):
                 logger.info("WARNING: parameter {} is nan".format(parameter))
         save_to_db(db_type, db_path, meta)
@@ -154,10 +163,11 @@ class RLPredictor:
         :param db_type see load_from_db
         :param int_features bool indicating if int_features are present
         """
-        net = prepare_prediction_net(db_path, db_type)
         meta = load_from_db(db_path, db_type)
+        init_net = GetNet(meta, predictor_constants.PREDICT_INIT_NET_TYPE)
+        net = prepare_prediction_net(db_path, db_type)
         parameters = GetBlobs(meta, predictor_constants.PARAMETERS_BLOB_TYPE)
-        return cls(net, parameters, int_features)
+        return cls(net, parameters, init_net, int_features)
 
     def analyze(self, named_features):
         print("==================== Model parameters =========================")

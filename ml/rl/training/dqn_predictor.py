@@ -6,6 +6,10 @@ import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.preprocessing.preprocessor import (
+    PreprocesserAndForwardPassContainer,
+    Preprocessor,
+)
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 
@@ -18,8 +22,8 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/string_single_categorical_features.values"
 
 
 class DQNPredictor(RLPredictor):
-    def __init__(self, net, parameters, int_features=False):
-        RLPredictor.__init__(self, net, parameters, int_features)
+    def __init__(self, net, init_net, parameters, int_features):
+        RLPredictor.__init__(self, net, init_net, parameters, int_features)
         self.is_discrete = True
         self._output_blobs.extend(
             [
@@ -49,7 +53,12 @@ class DQNPredictor(RLPredictor):
 
         input_dim = trainer.num_features
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
-            trainer.q_network, input_dim, model_on_gpu
+            PreprocesserAndForwardPassContainer(
+                Preprocessor(state_normalization_parameters, model_on_gpu),
+                trainer.q_network,
+            ),
+            input_dim,
+            model_on_gpu,
         )
         qnet_input_blob, qnet_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
@@ -113,6 +122,7 @@ class DQNPredictor(RLPredictor):
                 blobname_prefix="state_norm",
                 split_sparse_to_dense=False,
                 split_expensive_feature_groups=False,
+                normalize=False,
             )
             parameters.extend(new_parameters)
         else:
@@ -186,4 +196,4 @@ class DQNPredictor(RLPredictor):
         C2.net().FlattenToVec([output_key_tile], [OUTPUT_SINGLE_CAT_KEYS_NAME])
 
         workspace.CreateNet(net)
-        return DQNPredictor(net, parameters, int_features)
+        return DQNPredictor(net, torch_init_net, parameters, int_features)
