@@ -115,9 +115,9 @@ class Preprocessor(Module):
                 for j in range(begin_index, end_index):
                     norm_params = self.normalization_parameters[self.sorted_features[j]]
                     new_output = self._preprocess_feature_single_column(
-                        j, input[:, j].unsqueeze(1), norm_params
+                        j, input[:, j : j + 1], norm_params
                     )
-                    new_output *= not_missing_input[:, j].unsqueeze(1)
+                    new_output *= not_missing_input[:, j : j + 1]
                     outputs.append(new_output)
             else:
                 norm_params = []
@@ -499,15 +499,11 @@ class Preprocessor(Module):
 
     # GE does not exist in ONNX so for now we hack it in
     def _hack_ge(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return self._manual_broadcast_matrix_scalar(
-            ((t1 > t2).float() + (t1 == t2).float()), self.one_half_tensor, torch.gt
-        ).float()
+        return (((t1 > t2).float() + (t1 == t2).float()) > self.one_half_tensor).float()
 
     # LE does not exist in ONNX so for now we hack it in
     def _hack_le(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return self._manual_broadcast_matrix_scalar(
-            ((t1 < t2).float() + (t1 == t2).float()), self.one_half_tensor, torch.gt
-        ).float()
+        return (((t1 < t2).float() + (t1 == t2).float()) > self.one_half_tensor).float()
 
     def _manual_broadcast_matrix_scalar(
         self, t1: torch.Tensor, s1: torch.Tensor, fn
