@@ -90,120 +90,28 @@ def train_sgd(
     render=False,
     save_timesteps_to_dataset=None,
     start_saving_from_episode=0,
-    batch_rl_file_path=None,
 ):
-    if batch_rl_file_path is not None:
-        return train_gym_batch_rl(
-            model_type,
-            trainer,
-            predictor,
-            batch_rl_file_path,
-            gym_env,
-            replay_buffer,
-            num_train_batches,
-            test_every_ts,
-            test_after_ts,
-            avg_over_num_episodes,
-            score_bar,
-            test_run_name,
-        )
-
-    else:
-        return train_gym_online_rl(
-            c2_device,
-            gym_env,
-            replay_buffer,
-            model_type,
-            trainer,
-            predictor,
-            test_run_name,
-            score_bar,
-            num_episodes,
-            max_steps,
-            train_every_ts,
-            train_after_ts,
-            test_every_ts,
-            test_after_ts,
-            num_train_batches,
-            avg_over_num_episodes,
-            render,
-            save_timesteps_to_dataset,
-            start_saving_from_episode,
-        )
-
-
-def train_gym_batch_rl(
-    model_type,
-    trainer,
-    predictor,
-    batch_rl_file_path,
-    gym_env,
-    replay_buffer,
-    num_train_batches,
-    test_every_ts,
-    test_after_ts,
-    avg_over_num_episodes,
-    score_bar,
-    test_run_name,
-):
-    """Train off of fixed set of stored transitions generated off-policy."""
-
-    total_timesteps = 0
-    avg_reward_history, timestep_history = [], []
-
-    batch_dataset = RLDataset(batch_rl_file_path)
-    batch_dataset.load()
-    replay_buffer.replay_memory = batch_dataset.replay_memory
-    test_every_ts_n = 1
-
-    for _ in range(num_train_batches):
-        samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
-        trainer.train(samples)
-        total_timesteps += trainer.minibatch_size
-
-        # Evaluation loop
-        if (
-            total_timesteps > (test_every_ts * test_every_ts_n)
-            and total_timesteps > test_after_ts
-        ):
-            avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-                avg_over_num_episodes, predictor, test=True
-            )
-            avg_reward_history.append(avg_rewards)
-            timestep_history.append(total_timesteps)
-            logger.info(
-                "Achieved an average reward score of {} over {} evaluations."
-                " Total timesteps: {}.".format(
-                    avg_rewards, avg_over_num_episodes, total_timesteps
-                )
-            )
-            test_every_ts_n += 1
-
-            if score_bar is not None and avg_rewards > score_bar:
-                logger.info(
-                    "Avg. reward history for {}: {}".format(
-                        test_run_name, avg_reward_history
-                    )
-                )
-                return avg_reward_history, timestep_history, trainer, predictor
-
-    # Always eval after last training batch
-    avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-        avg_over_num_episodes, predictor, test=True
+    return train_gym_online_rl(
+        c2_device,
+        gym_env,
+        replay_buffer,
+        model_type,
+        trainer,
+        predictor,
+        test_run_name,
+        score_bar,
+        num_episodes,
+        max_steps,
+        train_every_ts,
+        train_after_ts,
+        test_every_ts,
+        test_after_ts,
+        num_train_batches,
+        avg_over_num_episodes,
+        render,
+        save_timesteps_to_dataset,
+        start_saving_from_episode,
     )
-    avg_reward_history.append(avg_rewards)
-    timestep_history.append(total_timesteps)
-    logger.info(
-        "Achieved an average reward score of {} over {} evaluations."
-        " Total timesteps: {}.".format(
-            avg_rewards, avg_over_num_episodes, total_timesteps
-        )
-    )
-
-    logger.info(
-        "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
-    )
-    return avg_reward_history, timestep_history, trainer, predictor
 
 
 def train_gym_online_rl(
@@ -397,13 +305,6 @@ def main(args):
         default=0,
     )
     parser.add_argument(
-        "-b",
-        "--batch_rl_file_path",
-        help="If set, train in batch RL mode (policy is trained on off-policy transitions at file path).",
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
         "-r",
         "--results_file_path",
         help="If set, save evaluation results to file.",
@@ -422,12 +323,7 @@ def main(args):
 
     dataset = RLDataset(args.file_path) if args.file_path else None
     reward_history, timestep_history, trainer, predictor = run_gym(
-        params,
-        args.score_bar,
-        args.gpu_id,
-        dataset,
-        args.start_saving_from_episode,
-        args.batch_rl_file_path,
+        params, args.score_bar, args.gpu_id, dataset, args.start_saving_from_episode
     )
     if dataset:
         dataset.save()
@@ -442,7 +338,6 @@ def run_gym(
     gpu_id,
     save_timesteps_to_dataset=None,
     start_saving_from_episode=0,
-    batch_rl_file_path=None,
 ):
 
     # Caffe2 core uses the min of caffe2_log_level and minloglevel
