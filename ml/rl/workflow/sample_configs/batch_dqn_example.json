@@ -1,6 +1,8 @@
 {
   "training_data_path": "/home/edoardoc/cartpole_training_data.json",
   "state_norm_data_path": "/home/edoardoc/cartpole_normalization.json",
+  "pytorch_output_path": "/home/edoardoc/pytorch_model.pt",
+  "caffe2_output_path": "",
   "use_gpu": true,
   "actions": [
     "0",

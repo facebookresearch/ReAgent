@@ -70,6 +70,13 @@ def train_network(params):
             )
             trainer.train(tdp)
 
+    logger.info(
+        "Training finished. Saving PyTorch model to {}".format(
+            params["pytorch_output_path"]
+        )
+    )
+    helpers.save_model_to_file(trainer, params["pytorch_output_path"])
+
 
 if __name__ == "__main__":
     params = helpers.parse_args(sys.argv)
