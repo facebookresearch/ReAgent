@@ -96,9 +96,7 @@ class Preprocessor(Module):
             input = torch.from_numpy(input).type(self.dtype)
 
         # ONNX doesn't support != yet
-        not_missing_input = self.one_tensor - self._manual_broadcast_matrix_scalar(
-            input, self.missing_tensor, torch.eq
-        )
+        not_missing_input = self.one_tensor - (input == self.missing_tensor).float()
         feature_starts = self._get_type_boundaries()
 
         outputs = []
@@ -129,6 +127,8 @@ class Preprocessor(Module):
                 new_output *= not_missing_input[:, begin_index:end_index]
                 outputs.append(new_output)
 
+        if len(outputs) == 1:
+            return outputs[0]
         return torch.cat(outputs, dim=1)
 
     def _preprocess_feature_single_column(
@@ -169,9 +169,7 @@ class Preprocessor(Module):
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
         # ONNX doesn't support != yet
-        return self.one_tensor - self._manual_broadcast_matrix_scalar(
-            input, self.zero_tensor, torch.eq
-        )
+        return self.one_tensor - (input == self.zero_tensor).float()
 
     def _create_parameters_PROBABILITY(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -369,9 +367,9 @@ class Preprocessor(Module):
             expanded_inputs.shape
         )
 
-        input_greater_than_or_equal_to = self._hack_ge(
-            expanded_inputs, quantile_boundaries
-        )
+        input_greater_than_or_equal_to = (
+            expanded_inputs >= quantile_boundaries
+        ).float()
         assert input_greater_than_or_equal_to.shape == torch.Size(
             [J, F, B]
         ), "Invalid shape: " + str(input_greater_than_or_equal_to.shape)
@@ -381,20 +379,18 @@ class Preprocessor(Module):
             input_less_than.shape
         )
 
-        set_to_max = self._hack_ge(input, max_quantile_boundaries)
+        set_to_max = (input >= max_quantile_boundaries).float()
         assert set_to_max.shape == torch.Size([J, F]), "Invalid shape: " + str(
             set_to_max.shape
         )
 
-        set_to_min = self._hack_le(input, min_quantile_boundaries)
+        set_to_min = (input <= min_quantile_boundaries).float()
         assert set_to_min.shape == torch.Size([J, F]), "Invalid shape: " + str(
             set_to_min.shape
         )
 
-        min_or_max = set_to_min + set_to_max
-        interpolate = self._manual_broadcast_matrix_scalar(
-            min_or_max, self.one_hundredth_tensor, torch.lt
-        )
+        min_or_max = (set_to_min + set_to_max).float()
+        interpolate = (min_or_max < self.one_hundredth_tensor).float()
         assert interpolate.shape == torch.Size([J, F]), "Invalid shape: " + str(
             interpolate.shape
         )
@@ -453,7 +449,7 @@ class Preprocessor(Module):
         norm_params: NormalizationParameters,
     ) -> torch.Tensor:
         enum_values = self._fetch_parameter(begin_index, "enum_values")
-        return self._manual_broadcast_column_vec_row_vec(input, enum_values, torch.eq)
+        return (input == enum_values).float()
 
     def _sort_features_by_normalization(self):
         """
@@ -497,14 +493,6 @@ class Preprocessor(Module):
     def _fetch_parameter(self, begin_index: int, name: str) -> Parameter:
         return getattr(self, "_auto_parameter_" + str(begin_index) + "_" + name)
 
-    # GE does not exist in ONNX so for now we hack it in
-    def _hack_ge(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return (((t1 > t2).float() + (t1 == t2).float()) > self.one_half_tensor).float()
-
-    # LE does not exist in ONNX so for now we hack it in
-    def _hack_le(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return (((t1 < t2).float() + (t1 == t2).float()) > self.one_half_tensor).float()
-
     def _manual_broadcast_matrix_scalar(
         self, t1: torch.Tensor, s1: torch.Tensor, fn
     ) -> torch.Tensor:
@@ -515,7 +503,7 @@ class Preprocessor(Module):
         self, t1: torch.Tensor, t2: torch.Tensor, fn
     ) -> torch.Tensor:
         # Some ONNX ops don't support broadcasting so we need to do some matrix magic
-        t2_ones = torch.ones_like(t2)
+        t2_ones = t2 / t2
         t1_mask = t1.mm(t2_ones)
 
         return fn(t1_mask, t2).float()
