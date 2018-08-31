@@ -270,13 +270,19 @@ class PreprocessorNet:
         lengths_blob: str,
         keys_blob: str,
         values_blob: str,
-        normalization_parameters: Dict[str, NormalizationParameters],
+        normalization_parameters: Dict[int, NormalizationParameters],
         blobname_prefix: str,
         split_sparse_to_dense: bool,
         split_expensive_feature_groups: bool,
         normalize: bool = True,
+        sorted_features_override: List[int] = None,
     ) -> Tuple[str, List[str]]:
-        sorted_features, _ = sort_features_by_normalization(normalization_parameters)
+        if sorted_features_override:
+            sorted_features = sorted_features_override
+        else:
+            sorted_features, _ = sort_features_by_normalization(
+                normalization_parameters
+            )
         int_features = [int(feature) for feature in sorted_features]
 
         preprocess_num_batches = 8 if split_sparse_to_dense else 1
@@ -340,8 +346,8 @@ class PreprocessorNet:
     def normalize_dense_matrix(
         self,
         input_matrix: str,
-        features: List[str],
-        normalization_parameters: Dict[str, NormalizationParameters],
+        features: List[int],
+        normalization_parameters: Dict[int, NormalizationParameters],
         blobname_prefix: str,
         split_expensive_feature_groups: bool = False,
     ) -> Tuple[str, List[str]]:
@@ -442,12 +448,15 @@ class PreprocessorNet:
 
     def _get_type_boundaries(
         self,
-        features: List[str],
-        normalization_parameters: Dict[str, NormalizationParameters],
+        features: List[int],
+        normalization_parameters: Dict[int, NormalizationParameters],
     ) -> List[int]:
         feature_starts = []
         on_feature_type = -1
         for i, feature in enumerate(features):
+            assert normalization_parameters.get(feature, None) is not None, (
+                "feature " + str(feature) + " not found in normalization_parameters!"
+            )
             feature_type = normalization_parameters[feature].feature_type
             feature_type_index = FEATURE_TYPES.index(feature_type)
             assert (

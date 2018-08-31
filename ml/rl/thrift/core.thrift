@@ -104,15 +104,20 @@ struct ContinuousActionModelParameters {
 struct DDPGNetworkParameters {
   1: list<i32> layers = [-1, 512, 256, 128, 1],
   2: list<string> activations = ['relu', 'relu', 'relu', 'tanh'],
-  3: double l2_decay = 0.01
+  3: double l2_decay = 0.01,
   4: double learning_rate = 0.001,
 }
 
 struct DDPGTrainingParameters {
   1: i32 minibatch_size = 128,
   2: double final_layer_init = 0.003,
-  3: string optimizer = 'ADAM'
+  3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
+}
+
+struct StateFeatureParameters {
+  1: list<string> state_feature_names_override = [],
+  2: list<i32> state_feature_hashes_override = [],
 }
 
 struct DDPGModelParameters {
@@ -120,7 +125,9 @@ struct DDPGModelParameters {
   2: DDPGTrainingParameters shared_training,
   3: DDPGNetworkParameters actor_training,
   4: DDPGNetworkParameters critic_training,
-  5: optional map<i64, list<double>> action_rescale_map = {}
+  5: optional map<i64, list<double>> action_rescale_map = {},
+  6: optional StateFeatureParameters state_feature_params,
+  7: optional i32 entity_id = -1,
 }
 
 struct OpenAIGymParameters {
