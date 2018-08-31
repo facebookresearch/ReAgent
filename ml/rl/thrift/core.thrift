@@ -81,7 +81,7 @@ struct DiscreteActionModelParameters {
   3: TrainingParameters training,
   4: ActionBudget action_budget,
   5: RainbowDQNParameters rainbow,
-  6: InTrainingCPEParameters in_training_cpe_evaluation,
+  6: InTrainingCPEParameters in_training_cpe,
 }
 
 struct KnnParameters {
@@ -98,7 +98,7 @@ struct ContinuousActionModelParameters {
   2: TrainingParameters training,
   3: KnnParameters knn,
   4: RainbowDQNParameters rainbow,
-  5: InTrainingCPEParameters in_training_cpe_evaluation,
+  5: InTrainingCPEParameters in_training_cpe,
 }
 
 struct DDPGNetworkParameters {
