@@ -58,7 +58,7 @@ struct TrainingParameters {
 }
 
 struct InTrainingCPEParameters {
-  1: double mdp_sampled_rate = 0.1,
+  1: double mdp_sampled_rate,
 }
 
 struct EvolutionParameters {
@@ -81,7 +81,7 @@ struct DiscreteActionModelParameters {
   3: TrainingParameters training,
   4: ActionBudget action_budget,
   5: RainbowDQNParameters rainbow,
-  6: InTrainingCPEParameters in_training_cpe,
+  6: optional InTrainingCPEParameters in_training_cpe,
 }
 
 struct KnnParameters {
@@ -98,7 +98,7 @@ struct ContinuousActionModelParameters {
   2: TrainingParameters training,
   3: KnnParameters knn,
   4: RainbowDQNParameters rainbow,
-  5: InTrainingCPEParameters in_training_cpe,
+  5: optional InTrainingCPEParameters in_training_cpe,
 }
 
 struct DDPGNetworkParameters {
