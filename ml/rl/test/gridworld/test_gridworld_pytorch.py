@@ -55,9 +55,7 @@ class TestGridworld(unittest.TestCase):
                 rainbow=RainbowDQNParameters(
                     double_q_learning=True, dueling_architecture=False
                 ),
-                in_training_cpe_evaluation=InTrainingCPEParameters(
-                    mdp_sampled_rate=0.1
-                ),
+                in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
             ),
             environment.normalization,
         )

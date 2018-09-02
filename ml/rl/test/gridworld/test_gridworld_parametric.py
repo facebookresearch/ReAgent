@@ -48,7 +48,7 @@ class TestGridworldContinuous(unittest.TestCase):
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
-            in_training_cpe_evaluation=InTrainingCPEParameters(mdp_sampled_rate=0.1),
+            in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_parameters_factorized(self):
@@ -202,7 +202,7 @@ class TestGridworldContinuous(unittest.TestCase):
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
-        evaluator = Evaluator(None, 10, DISCOUNT)
+        evaluator = Evaluator(None, 10, DISCOUNT, None, None)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
