@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import json
+import os
+
 import numpy as np
 import pandas as pd
 from ml.rl.preprocessing import normalization, preprocessor_net
@@ -10,7 +13,7 @@ class JSONDataset:
     """Create the reader for a JSON training dataset."""
 
     def __init__(self, path, batch_size=None, converter=None):
-        self.path = path
+        self.path = os.path.expanduser(path)
         self.read_data_in_chunks = self._get_chunked_reading_setting()
         self.batch_size = batch_size
         self.len = self.line_count()
@@ -32,7 +35,7 @@ class JSONDataset:
         self._min_pd_version_for_chunking = 210
         return self._pd_version_int >= self._min_pd_version_for_chunking
 
-    def read_batch(self, index):
+    def read_batch(self, index, astype="dict"):
         assert (
             self.batch_size is not None
         ), "Batch size must be provided to read data in batches."
@@ -49,9 +52,13 @@ class JSONDataset:
                     names=self.column_names,
                 )
             )
-            return x.to_dict(orient="list")
+            if astype == "dict":
+                return x.to_dict(orient="list")
+            return x
         else:
-            return self.data[starting_row:ending_row].to_dict(orient="list")
+            if astype == "dict":
+                return self.data[starting_row:ending_row].to_dict(orient="list")
+            return self.data[starting_row:ending_row]
 
     def read_all(self):
         if self.read_data_in_chunks:
@@ -70,9 +77,11 @@ class JSONDataset:
         return lines
 
 
-def read_norm_params(table_output):
-    norm_data = dict(zip(table_output["feature"], table_output["normalization"]))
-    return normalization.deserialize(norm_data)
+def read_norm_file(path):
+    path = os.path.expanduser(path)
+    with open(path) as f:
+        norm_json = json.load(f)
+    return normalization.deserialize(norm_json)
 
 
 def read_actions(action_names, actions):
@@ -82,16 +91,26 @@ def read_actions(action_names, actions):
     return (actions == action_names_tiled).astype(int)
 
 
+def pandas_sparse_to_dense(feature_name_list, batch):
+    state_features_df = pd.DataFrame(batch).fillna(normalization.MISSING_VALUE)
+    # Add columns identified by normalization, but not present in batch
+    for col in feature_name_list:
+        if col not in state_features_df.columns:
+            state_features_df[col] = normalization.MISSING_VALUE
+    return state_features_df[feature_name_list].values
+
+
 def preprocess_batch_for_training(action_names, batch, state_normalization):
     sorted_features, _ = preprocessor_net.sort_features_by_normalization(
         state_normalization
     )
     sorted_features_str = [str(x) for x in sorted_features]
-
-    state_features_df = pd.DataFrame(batch["state_features"])
-    state_features_dense = state_features_df[sorted_features_str].values
-    next_state_features_df = pd.DataFrame(batch["next_state_features"])
-    next_state_features_dense = next_state_features_df[sorted_features_str].values
+    state_features_dense = pandas_sparse_to_dense(
+        sorted_features_str, batch["state_features"]
+    )
+    next_state_features_dense = pandas_sparse_to_dense(
+        sorted_features_str, batch["next_state_features"]
+    )
     actions = read_actions(action_names, batch["action"])
     pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
     rewards = np.array(batch["reward"], dtype=np.float32)

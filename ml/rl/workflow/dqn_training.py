@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 import sys
+import time
 
 import numpy as np
 from ml.rl.thrift.core.ttypes import (
@@ -11,11 +13,15 @@ from ml.rl.thrift.core.ttypes import (
     TrainingParameters,
 )
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.workflow import helpers
+from ml.rl.workflow.helpers import (
+    parse_args,
+    report_training_status,
+    save_model_to_file,
+)
 from ml.rl.workflow.training_data_reader import (
     JSONDataset,
     preprocess_batch_for_training,
-    read_norm_params,
+    read_norm_file,
 )
 
 
@@ -42,11 +48,9 @@ def train_network(params):
     dataset = JSONDataset(
         params["training_data_path"], batch_size=training_parameters.minibatch_size
     )
-    norm_data = JSONDataset(params["state_norm_data_path"])
-    state_normalization = read_norm_params(norm_data.read_all())
+    state_normalization = read_norm_file(params["state_norm_data_path"])
 
     num_batches = int(len(dataset) / training_parameters.minibatch_size)
-
     logger.info(
         "Read in batch data set {} of size {} examples. Data split "
         "into {} batches of size {}.".format(
@@ -59,25 +63,25 @@ def train_network(params):
 
     trainer = DQNTrainer(trainer_params, state_normalization, params["use_gpu"])
 
+    start_time = time.time()
     for epoch in range(params["epochs"]):
         for batch_idx in range(num_batches):
-            helpers.report_training_status(
-                batch_idx, num_batches, epoch, params["epochs"]
-            )
+            report_training_status(batch_idx, num_batches, epoch, params["epochs"])
             batch = dataset.read_batch(batch_idx)
             tdp = preprocess_batch_for_training(
                 action_names, batch, state_normalization
             )
             trainer.train(tdp)
 
+    through_put = (len(dataset) * params["epochs"]) / (time.time() - start_time)
     logger.info(
-        "Training finished. Saving PyTorch model to {}".format(
-            params["pytorch_output_path"]
-        )
+        "Training finished. Processed ~{} examples / s.".format(round(through_put))
     )
-    helpers.save_model_to_file(trainer, params["pytorch_output_path"])
+    output_path = os.path.expanduser(params["pytorch_output_path"])
+    logger.info("Saving PyTorch model to {}".format(output_path))
+    save_model_to_file(trainer, output_path)
 
 
 if __name__ == "__main__":
-    params = helpers.parse_args(sys.argv)
+    params = parse_args(sys.argv)
     train_network(params)

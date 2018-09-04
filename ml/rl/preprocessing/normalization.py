@@ -39,6 +39,7 @@ MISSING_VALUE = -1337.1337
 DEFAULT_QUANTILE_K2_THRESHOLD = 1000.0
 MINIMUM_SAMPLES_TO_IDENTIFY = 20
 DEFAULT_MAX_QUANTILE_SIZE = 20
+DEFAULT_NUM_SAMPLES = 100000
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -211,3 +212,34 @@ def serialize(parameters):
     for feature, feature_parameters in six.iteritems(parameters):
         parameters_json[feature] = serialize_one(feature_parameters)
     return parameters_json
+
+
+def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
+    logger.info("Got feature: " + feature_name)
+    num_features = len(feature_value_list)
+    if num_features < MINIMUM_SAMPLES_TO_IDENTIFY:
+        return
+
+    feature_override = None
+    if norm_params["feature_overrides"] is not None:
+        feature_override = norm_params["feature_overrides"].get(feature_name, None)
+
+    feature_values = np.array(feature_value_list, dtype=np.float32)
+    assert not (np.any(np.isinf(feature_values))), "Feature values contain infinity"
+    assert not (
+        np.any(np.isnan(feature_values))
+    ), "Feature values contain nan (are there nulls in the feature values?)"
+    normalization_parameters = identify_parameter(
+        feature_values,
+        norm_params["max_unique_enum_values"],
+        norm_params["quantile_size"],
+        norm_params["quantile_k2_threshold"],
+        norm_params["skip_box_cox"],
+        norm_params["skip_quantiles"],
+        feature_override,
+    )
+    normalization_parameters_json = serialize_one(normalization_parameters)
+    logger.info(
+        "Feature " + feature_name + " normalization: " + normalization_parameters_json
+    )
+    return normalization_parameters_json

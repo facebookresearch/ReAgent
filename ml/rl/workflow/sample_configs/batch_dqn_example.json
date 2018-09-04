@@ -1,9 +1,15 @@
 {
-  "training_data_path": "/home/edoardoc/cartpole_training_data.json",
-  "state_norm_data_path": "/home/edoardoc/cartpole_normalization.json",
-  "pytorch_output_path": "/home/edoardoc/pytorch_model.pt",
-  "caffe2_output_path": "",
+  "training_data_path": "~/cartpole_training_data.json",
+  "state_norm_data_path": "~/cartpole_normalization.json",
+  "pytorch_output_path": "~/pytorch_model.pt",
   "use_gpu": true,
+  "norm_params": {
+    "output_dir": "~/",
+    "cols_to_norm": [
+      "state_features"
+    ],
+    "num_samples": 1000
+  },
   "actions": [
     "0",
     "1"
@@ -34,7 +40,7 @@
       "relu",
       "linear"
     ],
-    "minibatch_size": 64,
+    "minibatch_size": 128,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
     "lr_decay": 0.999
