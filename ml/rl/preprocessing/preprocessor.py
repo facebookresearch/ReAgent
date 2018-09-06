@@ -460,7 +460,7 @@ class Preprocessor(Module):
         feature_starts = []
         for feature_type in FEATURE_TYPES:
             feature_starts.append(len(sorted_features))
-            for feature in self.normalization_parameters.keys():
+            for feature in sorted(self.normalization_parameters.keys()):
                 norm = self.normalization_parameters[feature]
                 if norm.feature_type == feature_type:
                     sorted_features.append(feature)

@@ -5,6 +5,7 @@ import sys
 import time
 
 import numpy as np
+from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
@@ -63,15 +64,14 @@ def train_network(params):
 
     trainer = DQNTrainer(trainer_params, state_normalization, params["use_gpu"])
     trainer = update_model_for_warm_start(trainer)
+    preprocessor = Preprocessor(state_normalization, params["use_gpu"])
 
     start_time = time.time()
     for epoch in range(params["epochs"]):
         for batch_idx in range(num_batches):
             report_training_status(batch_idx, num_batches, epoch, params["epochs"])
             batch = dataset.read_batch(batch_idx)
-            tdp = preprocess_batch_for_training(
-                action_names, batch, state_normalization
-            )
+            tdp = preprocess_batch_for_training(preprocessor, action_names, batch)
             trainer.train(tdp)
 
     through_put = (len(dataset) * params["epochs"]) / (time.time() - start_time)

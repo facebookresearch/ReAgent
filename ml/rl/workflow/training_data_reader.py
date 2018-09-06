@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 import pandas as pd
-from ml.rl.preprocessing import normalization, preprocessor_net
+from ml.rl.preprocessing import normalization
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -100,10 +100,8 @@ def pandas_sparse_to_dense(feature_name_list, batch):
     return state_features_df[feature_name_list].values
 
 
-def preprocess_batch_for_training(action_names, batch, state_normalization):
-    sorted_features, _ = preprocessor_net.sort_features_by_normalization(
-        state_normalization
-    )
+def preprocess_batch_for_training(preprocessor, action_names, batch):
+    sorted_features, _ = preprocessor._sort_features_by_normalization()
     sorted_features_str = [str(x) for x in sorted_features]
     state_features_dense = pandas_sparse_to_dense(
         sorted_features_str, batch["state_features"]
@@ -118,7 +116,9 @@ def preprocess_batch_for_training(action_names, batch, state_normalization):
     not_terminals = np.max(pnas, 1).astype(np.bool)
     episode_values = np.array(batch["episode_value"], dtype=np.float32)
 
-    # Add preprocessing steps in PyTorch here
+    # Preprocess state features
+    state_features_dense = preprocessor(state_features_dense)
+    next_state_features_dense = preprocessor(next_state_features_dense)
 
     return TrainingDataPage(
         states=state_features_dense,
