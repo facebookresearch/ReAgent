@@ -3,6 +3,8 @@
 import argparse
 import json
 import logging
+import os
+import time
 
 import torch
 from ml.rl.training.ddpg_trainer import DDPGTrainer
@@ -28,7 +30,6 @@ def report_training_status(batch_num, num_batches, epoch_num, num_epochs):
 
 
 def parse_args(args):
-
     if len(args) != 3:
         raise Exception("Usage: python <file.py> -p <parameters_file>")
 
@@ -73,16 +74,12 @@ def update_model_for_warm_start(model):
 
     :param model: one of (DQNTrainer, ParametricDQNTrainer, DDPGTrainer) object.
     """
-
     if model.warm_start_model_path is None:
         return model
 
-    state = torch.load(model.warm_start_model_path)
-    logger.info(
-        "Found model warm start checkpoint at path {}".format(
-            model.warm_start_model_path
-        )
-    )
+    path = os.path.expanduser(model.warm_start_model_path)
+    state = torch.load(path)
+    logger.info("Found model warm start checkpoint at path {}".format(path))
 
     if isinstance(model, (DQNTrainer, ParametricDQNTrainer)):
         model.q_network.load_state_dict(state["q_network"])
@@ -100,3 +97,16 @@ def update_model_for_warm_start(model):
 
     model.reward_burnin = -1
     return model
+
+
+def export_trainer_and_predictor(trainer, output_path):
+    """Exports PyTorch trainer and Caffe2 Predictor"""
+    export_time = round(time.time())
+    output_path = os.path.expanduser(output_path)
+    pytorch_output_path = output_path + "trainer_{}.pt".format(export_time)
+    caffe2_output_path = output_path + "predictor_{}.c2".format(export_time)
+    logger.info("Saving PyTorch trainer to {}".format(pytorch_output_path))
+    save_model_to_file(trainer, pytorch_output_path)
+    logger.info("Saving Caffe2 predictor to {}".format(caffe2_output_path))
+    caffe2_predictor = trainer.predictor()
+    caffe2_predictor.save(caffe2_output_path, "minidb")

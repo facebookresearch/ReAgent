@@ -1,7 +1,7 @@
 {
   "training_data_path": "~/cartpole_training_data.json",
   "state_norm_data_path": "~/cartpole_normalization.json",
-  "pytorch_output_path": "~/pytorch_model.pt",
+  "model_output_path": "~/",
   "use_gpu": true,
   "norm_params": {
     "output_dir": "~/",
@@ -25,7 +25,7 @@
     "softmax_policy": 0
   },
   "rainbow": {
-    "double_q_learning": false,
+    "double_q_learning": true,
     "dueling_architecture": false
   },
   "training": {
@@ -43,16 +43,7 @@
     "minibatch_size": 128,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
-    "lr_decay": 0.999
-  },
-  "run_details": {
-    "num_episodes": 5001,
-    "max_steps": 200,
-    "train_every_ts": 1,
-    "train_after_ts": 1,
-    "test_every_ts": 2000,
-    "test_after_ts": 1,
-    "num_train_batches": 1,
-    "avg_over_num_episodes": 100
+    "lr_decay": 0.999,
+    "warm_start_model_path": null
   }
 }

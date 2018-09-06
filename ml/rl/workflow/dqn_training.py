@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import logging
-import os
 import sys
 import time
 
@@ -14,9 +13,10 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.workflow.helpers import (
+    export_trainer_and_predictor,
     parse_args,
     report_training_status,
-    save_model_to_file,
+    update_model_for_warm_start,
 )
 from ml.rl.workflow.training_data_reader import (
     JSONDataset,
@@ -62,6 +62,7 @@ def train_network(params):
     )
 
     trainer = DQNTrainer(trainer_params, state_normalization, params["use_gpu"])
+    trainer = update_model_for_warm_start(trainer)
 
     start_time = time.time()
     for epoch in range(params["epochs"]):
@@ -77,9 +78,7 @@ def train_network(params):
     logger.info(
         "Training finished. Processed ~{} examples / s.".format(round(through_put))
     )
-    output_path = os.path.expanduser(params["pytorch_output_path"])
-    logger.info("Saving PyTorch model to {}".format(output_path))
-    save_model_to_file(trainer, output_path)
+    export_trainer_and_predictor(trainer, params["model_output_path"])
 
 
 if __name__ == "__main__":
