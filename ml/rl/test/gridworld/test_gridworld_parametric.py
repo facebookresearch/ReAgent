@@ -60,8 +60,9 @@ class TestGridworldContinuous(unittest.TestCase):
                 maxq_learning=False,
             ),
             training=TrainingParameters(
-                layers=[],
-                activations=[],
+                # These are used by reward network
+                layers=[-1, 256, 128, -1],
+                activations=["relu", "relu", "linear"],
                 factorization_parameters=FactorizationParameters(
                     state=FeedForwardParameters(
                         layers=[-1, 128, 64, 32], activations=["relu", "relu", "linear"]
@@ -75,7 +76,10 @@ class TestGridworldContinuous(unittest.TestCase):
                 optimizer="ADAM",
             ),
             knn=KnnParameters(model_type="DQN"),
-            in_training_cpe_evaluation=InTrainingCPEParameters(mdp_sampled_rate=0.1),
+            rainbow=RainbowDQNParameters(
+                double_q_learning=True, dueling_architecture=False
+            ),
+            in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_trainer(self, environment, parameters=None):
