@@ -6,6 +6,10 @@ import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.preprocessing.preprocessor import (
+    PreprocesserAndForwardPassContainer,
+    Preprocessor,
+)
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 
@@ -49,7 +53,12 @@ class DQNPredictor(RLPredictor):
 
         input_dim = trainer.num_features
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
-            trainer.q_network, input_dim, model_on_gpu
+            PreprocesserAndForwardPassContainer(
+                Preprocessor(state_normalization_parameters, model_on_gpu),
+                trainer.q_network,
+            ),
+            input_dim,
+            model_on_gpu,
         )
         qnet_input_blob, qnet_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
@@ -113,7 +122,7 @@ class DQNPredictor(RLPredictor):
                 blobname_prefix="state_norm",
                 split_sparse_to_dense=False,
                 split_expensive_feature_groups=False,
-                normalize=True,
+                normalize=False,
             )
             parameters.extend(new_parameters)
         else:
