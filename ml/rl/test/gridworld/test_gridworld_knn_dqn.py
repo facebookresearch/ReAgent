@@ -4,6 +4,7 @@ import random
 import unittest
 
 import numpy as np
+import torch
 from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
@@ -22,6 +23,7 @@ class TestGridworldContinuous(unittest.TestCase):
         super(self.__class__, self).setUp()
         np.random.seed(0)
         random.seed(0)
+        torch.manual_seed(0)
 
     def get_parameters(self, env, action_dim=4, k=2):
         # ONNX does't export `normalize`
