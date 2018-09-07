@@ -11,7 +11,7 @@ import numpy as np
 import onnx
 import torch
 import torch.nn as nn
-from caffe2.python import workspace
+from caffe2.python import core, workspace
 from caffe2.python.core import BlobReference
 
 
@@ -189,17 +189,25 @@ class StackedTwoLevelAssociativeArray(object):
 
 class PytorchCaffe2Converter(object):
     @staticmethod
-    def pytorch_net_to_buffer(pytorch_net, input_dim, model_on_gpu):
+    def pytorch_net_to_caffe2_netdef(*args, **kwargs):
+        buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(*args, **kwargs)
+        return PytorchCaffe2Converter.buffer_to_caffe2_netdef(buffer)
+
+    @staticmethod
+    def pytorch_net_to_buffer(pytorch_net, input_dim, model_on_gpu, float_input=True):
         """Traces a pytorch net and outputs a python buffer object
         holding net."""
 
-        if model_on_gpu:
-            dtype = torch.cuda.FloatTensor
+        if float_input:
+            dtype = torch.cuda.FloatTensor if model_on_gpu else torch.FloatTensor
+            dummy_input = torch.autograd.Variable(torch.randn(1, input_dim).type(dtype))
         else:
-            dtype = torch.FloatTensor
+            dtype = torch.cuda.LongTensor if model_on_gpu else torch.LongTensor
+            dummy_input = torch.autograd.Variable(
+                torch.randint(low=0, high=1, size=(1, input_dim)).type(dtype)
+            )
 
         write_buffer = BytesIO()
-        dummy_input = torch.autograd.Variable(torch.randn(1, input_dim).type(dtype))
         torch.onnx.export(pytorch_net, dummy_input, write_buffer)
         return write_buffer
 
@@ -215,6 +223,47 @@ class PytorchCaffe2Converter(object):
             input_blob_name,
             output_blob_name,
             caffe2.python.onnx.backend.prepare(protobuf_model),
+        )
+
+    @staticmethod
+    def remap_blobs(input_blob, output_blob, netdef, prefix):
+        init_net = core.Net(netdef.init_net)
+        predict_net = core.Net(netdef.predict_net)
+
+        blob_remap = {
+            str(b): "{}/{}".format(prefix, str(b))
+            for n in [init_net, predict_net]
+            for b in n.external_inputs + n.external_outputs
+        }
+
+        remapped_input_blob = blob_remap[input_blob]
+        remapped_output_blob = blob_remap[output_blob]
+
+        remapped_init_net, _blob_remap = core.clone_and_bind_net(
+            init_net, "{}_init".format(prefix), "{}_init/".format(prefix), blob_remap
+        )
+        remapped_predict_net, predict_blob_remap = core.clone_and_bind_net(
+            predict_net,
+            "{}_predict".format(prefix),
+            "{}_predict/".format(prefix),
+            blob_remap,
+        )
+
+        torch_workspace = netdef.workspace
+
+        parameters = torch_workspace.Blobs()
+        for blob_str in parameters:
+            workspace.FeedBlob(
+                blob_remap[blob_str], torch_workspace.FetchBlob(blob_str)
+            )
+
+        remapped_parameters = [predict_blob_remap[b] for b in parameters]
+        return (
+            remapped_input_blob,
+            remapped_output_blob,
+            remapped_parameters,
+            remapped_init_net,
+            remapped_predict_net,
         )
 
 

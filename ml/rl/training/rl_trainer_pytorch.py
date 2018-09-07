@@ -24,7 +24,9 @@ class RLTrainer:
     # Hack to mark legitimate 0 value q-values before pytorch sparse -> dense
     FINGERPRINT = 12345
 
-    def __init__(self, parameters, use_gpu, additional_feature_types, gradient_handler):
+    def __init__(
+        self, parameters, use_gpu, additional_feature_types, gradient_handler=None
+    ):
         self.minibatch = 0
         self.use_reward_burnin = False
         self.reward_burnin = parameters.rl.reward_burnin

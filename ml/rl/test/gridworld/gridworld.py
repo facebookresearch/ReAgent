@@ -15,6 +15,6 @@ class Gridworld(GridworldBase):
         return samples
 
     def preprocess_samples(
-        self, samples: Samples, minibatch_size: int
+        self, samples: Samples, minibatch_size: int, one_hot_action: bool = True
     ) -> List[TrainingDataPage]:
-        return self.preprocess_samples_discrete(samples, minibatch_size)
+        return self.preprocess_samples_discrete(samples, minibatch_size, one_hot_action)

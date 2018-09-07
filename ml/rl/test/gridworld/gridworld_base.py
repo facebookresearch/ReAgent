@@ -536,7 +536,7 @@ class GridworldBase(object):
         )
 
     def preprocess_samples_discrete(
-        self, samples: Samples, minibatch_size: int
+        self, samples: Samples, minibatch_size: int, one_hot_action: bool = True
     ) -> List[TrainingDataPage]:
         samples.shuffle()
 
@@ -571,6 +571,9 @@ class GridworldBase(object):
         )
         for i, action in enumerate(samples.actions):
             actions_one_hot[i, self.action_to_index(action)] = 1
+        actions = np.array(
+            [self.action_to_index(action) for action in samples.actions], dtype=np.int64
+        )
         rewards = np.array(samples.rewards, dtype=np.float32).reshape(-1, 1)
         propensities = np.array(samples.propensities, dtype=np.float32).reshape(-1, 1)
         next_actions_one_hot = np.zeros(
@@ -615,7 +618,9 @@ class GridworldBase(object):
             tdps.append(
                 TrainingDataPage(
                     states=states_ndarray[start:end],
-                    actions=actions_one_hot[start:end],
+                    actions=actions_one_hot[start:end]
+                    if one_hot_action
+                    else actions[start:end],
                     propensities=propensities[start:end],
                     rewards=rewards[start:end],
                     next_states=next_states_ndarray[start:end],

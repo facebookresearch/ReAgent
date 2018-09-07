@@ -130,6 +130,16 @@ struct DDPGModelParameters {
   7: optional i32 entity_id = -1,
 }
 
+struct KNNDQNModelParameters {
+  1: RLParameters rl,
+  2: DDPGTrainingParameters shared_training,
+  3: DDPGNetworkParameters actor_training,
+  4: DDPGNetworkParameters critic_training,
+  5: i64 num_actions,
+  6: i32 action_dim,
+  7: i64 k,
+}
+
 struct OpenAIGymParameters {
   1: i32 num_episodes = 1000,
   2: i32 max_steps = 200,

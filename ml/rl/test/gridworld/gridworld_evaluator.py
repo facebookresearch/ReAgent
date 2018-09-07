@@ -101,7 +101,7 @@ class GridworldEvaluator(Evaluator):
         )
         for x in range(len(self.logged_states)):
             for action_index, action in enumerate(self._env.ACTIONS):
-                prediction[x][action_index] = prediction_string[x][action]
+                prediction[x][action_index] = prediction_string[x].get(action, 1e-9)
 
         # Print out scores using all states
         all_states = []
@@ -124,7 +124,7 @@ class GridworldEvaluator(Evaluator):
             for action_index, action in enumerate(self._env.ACTIONS):
                 all_states_prediction[x][action_index] = all_states_prediction_string[
                     x
-                ][action]
+                ].get(action, 1e-9)
         print(all_states_prediction[:, 0].reshape(5, 5), "\n")
         print(all_states_prediction[:, 1].reshape(5, 5), "\n")
         print(all_states_prediction[:, 2].reshape(5, 5), "\n")
@@ -134,7 +134,7 @@ class GridworldEvaluator(Evaluator):
         num_error_prints = 0
         for x in range(len(self.logged_states)):
             logged_value = self.logged_values[x][0]
-            target_value = prediction_string[x][self.logged_actions[x]]
+            target_value = prediction_string[x].get(self.logged_actions[x], 1e-9)
             error = abs(logged_value - target_value)
             if num_error_prints < 10 and error > 0.2:
                 print(
