@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedArray, StackedAssociativeArray
+from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase, Samples
 from ml.rl.test.utils import default_normalizer
@@ -111,6 +112,7 @@ class GridworldContinuous(GridworldBase):
             "state_norm",
             False,
             False,
+            False,
         )
         saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
         next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
@@ -119,6 +121,7 @@ class GridworldContinuous(GridworldBase):
             saa.values,
             self.normalization,
             "next_state_norm",
+            False,
             False,
             False,
         )
@@ -131,6 +134,7 @@ class GridworldContinuous(GridworldBase):
             "action_norm",
             False,
             False,
+            False,
         )
         saa = StackedAssociativeArray.from_dict_list(
             samples.next_actions, "next_action"
@@ -141,6 +145,7 @@ class GridworldContinuous(GridworldBase):
             saa.values,
             self.normalization_action,
             "next_action_norm",
+            False,
             False,
             False,
         )
@@ -166,22 +171,41 @@ class GridworldContinuous(GridworldBase):
             "possible_next_action_norm",
             False,
             False,
+            False,
         )
 
-        state_pnas_blob = preprocessor.concat_states_and_possible_actions(
-            next_state_matrix, possible_next_actions_matrix, pna_lens_blob
-        )
+        state_pnas_tile_blob = C2.LengthsTile(next_state_matrix, pna_lens_blob)
 
         workspace.RunNetOnce(net)
 
+        state_preprocessor = Preprocessor(self.normalization, False)
+        action_preprocessor = Preprocessor(self.normalization_action, False)
+
         states_ndarray = workspace.FetchBlob(state_matrix)
+        states_ndarray = state_preprocessor.forward(states_ndarray).numpy()
+
         actions_ndarray = workspace.FetchBlob(action_matrix)
+        actions_ndarray = action_preprocessor.forward(actions_ndarray).numpy()
+
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
+        next_states_ndarray = state_preprocessor.forward(next_states_ndarray).numpy()
+
         next_actions_ndarray = workspace.FetchBlob(next_action_matrix)
-        possible_next_actions_ndarray = workspace.FetchBlob(
-            possible_next_actions_matrix
+        next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray).numpy()
+
+        logged_possible_next_actions = action_preprocessor.forward(
+            workspace.FetchBlob(possible_next_actions_matrix)
         )
-        next_state_pnas_concat = workspace.FetchBlob(state_pnas_blob)
+
+        state_pnas_tile = state_preprocessor.forward(
+            workspace.FetchBlob(state_pnas_tile_blob)
+        )
+        logged_possible_next_state_actions = torch.cat(
+            (state_pnas_tile, logged_possible_next_actions), dim=1
+        )
+
+        possible_next_actions_ndarray = logged_possible_next_actions.cpu().numpy()
+        next_state_pnas_concat = logged_possible_next_state_actions.cpu().numpy()
         time_diffs = np.ones(len(states_ndarray))
         episode_values = None
         if samples.reward_timelines is not None:
@@ -198,6 +222,7 @@ class GridworldContinuous(GridworldBase):
                 break
             pnas_end = pnas_start + np.sum(pnas_lengths[start:end])
             pnas = possible_next_actions_ndarray[pnas_start:pnas_end]
+            pnas_concat = next_state_pnas_concat[pnas_start:pnas_end]
             pnas_start = pnas_end
             tdps.append(
                 TrainingDataPage(
@@ -214,7 +239,7 @@ class GridworldContinuous(GridworldBase):
                     else None,
                     time_diffs=time_diffs[start:end],
                     possible_next_actions_lengths=pnas_lengths[start:end],
-                    next_state_pnas_concat=next_state_pnas_concat,
+                    next_state_pnas_concat=pnas_concat,
                 )
             )
         return tdps

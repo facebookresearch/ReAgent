@@ -36,6 +36,7 @@ class ParametricDQNTrainer(RLTrainer):
         action_normalization_parameters: Dict[int, NormalizationParameters],
         use_gpu=False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
+        gradient_handler=None,
     ) -> None:
 
         self.double_q_learning = parameters.rainbow.double_q_learning
@@ -78,7 +79,9 @@ class ParametricDQNTrainer(RLTrainer):
                 0
             ] = self.num_action_features
 
-        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
+        RLTrainer.__init__(
+            self, parameters, use_gpu, additional_feature_types, gradient_handler
+        )
 
         self.q_network = self._get_model(
             parameters.training, parameters.rainbow.dueling_architecture
@@ -162,7 +165,10 @@ class ParametricDQNTrainer(RLTrainer):
         col_idxs = arange_expand(pnas_lens)
 
         dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
-        q_network_input = torch.from_numpy(next_state_pnas_concat).type(self.dtype)
+        if isinstance(next_state_pnas_concat, torch.Tensor):
+            q_network_input = next_state_pnas_concat
+        else:
+            q_network_input = torch.from_numpy(next_state_pnas_concat).type(self.dtype)
 
         if double_q_learning:
             q_values = self.q_network(q_network_input).detach().squeeze()
@@ -191,24 +197,27 @@ class ParametricDQNTrainer(RLTrainer):
 
         return Variable(max_q_values.squeeze())
 
-    def get_next_action_q_values(self, states, next_actions):
-        """
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
-        :param next_actions: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of an action.
-        """
-        q_network_input = np.concatenate([states, next_actions], 1)
-        q_network_input = torch.from_numpy(q_network_input).type(self.dtype)
-        return Variable(self.q_network_target(q_network_input).detach().squeeze())
+    def get_next_action_q_values(self, state_action_pairs):
+        return Variable(self.q_network_target(state_action_pairs).detach().squeeze())
 
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
 
         self.minibatch += 1
-        states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
-        actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
+
+        if isinstance(training_samples.states, torch.Tensor):
+            states = training_samples.states.type(self.dtype)
+        else:
+            states = torch.from_numpy(training_samples.states).type(self.dtype)
+        states = Variable(states)
+
+        if isinstance(training_samples.actions, torch.Tensor):
+            actions = training_samples.actions.type(self.dtype)
+        else:
+            actions = torch.from_numpy(training_samples.actions).type(self.dtype)
+        actions = Variable(actions)
+
         state_action_pairs = torch.cat((states, actions), dim=1)
         rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
         time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
@@ -231,9 +240,7 @@ class ParametricDQNTrainer(RLTrainer):
             )
         else:
             # SARSA
-            next_q_values = self.get_next_action_q_values(
-                training_samples.next_states, training_samples.next_actions
-            )
+            next_q_values = self.get_next_action_q_values(state_action_pairs)
 
         filtered_max_q_vals = next_q_values * not_done_mask
 
@@ -251,6 +258,8 @@ class ParametricDQNTrainer(RLTrainer):
 
         self.q_network_optimizer.zero_grad()
         value_loss.backward()
+        if self.gradient_handler:
+            self.gradient_handler(self.q_network.parameters())
         self.q_network_optimizer.step()
 
         if self.use_reward_burnin and self.minibatch < self.reward_burnin:

@@ -214,6 +214,8 @@ class DQNTrainer(RLTrainer):
 
         self.q_network_optimizer.zero_grad()
         loss.backward()
+        if self.gradient_handler:
+            self.gradient_handler(self.q_network.parameters())
         self.q_network_optimizer.step()
 
         if self.use_reward_burnin and self.minibatch < self.reward_burnin:

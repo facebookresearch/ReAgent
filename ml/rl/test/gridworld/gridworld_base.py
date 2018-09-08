@@ -5,7 +5,7 @@ import collections
 import multiprocessing
 import random
 from functools import partial
-from typing import Dict, List, NamedTuple, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from caffe2.python import core, workspace
@@ -43,7 +43,7 @@ class Samples(object):
 
     def __init__(
         self,
-        mdp_ids: List[int],
+        mdp_ids: List[str],
         sequence_numbers: List[int],
         states: List[Dict[int, float]],
         actions: List[str],
@@ -496,7 +496,7 @@ class GridworldBase(object):
             )
             next_action, next_propensity = self.sample_policy(next_state, epsilon)
 
-            mdp_ids.append(mdp_id)
+            mdp_ids.append(str(mdp_id))
             sequence_numbers.append(sequence_number)
             states.append({state: 1.0})
             actions.append(action)
