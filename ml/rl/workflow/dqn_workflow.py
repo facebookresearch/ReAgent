@@ -78,7 +78,8 @@ def train_network(params):
     logger.info(
         "Training finished. Processed ~{} examples / s.".format(round(through_put))
     )
-    export_trainer_and_predictor(trainer, params["model_output_path"])
+
+    return export_trainer_and_predictor(trainer, params["model_output_path"])
 
 
 if __name__ == "__main__":
