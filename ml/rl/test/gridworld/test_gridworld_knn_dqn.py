@@ -76,8 +76,6 @@ class TestGridworldContinuous(unittest.TestCase):
             evaluator.value_doubly_robust[-1],
         )
         pre_train_loss = evaluator.mc_loss[-1]
-        pre_train_value = evaluator.value_doubly_robust[-1]
-        self.assertGreater(evaluator.mc_loss[-1], 0.09)
 
         for tdp in tdps:
             tdp.rewards = tdp.rewards.flatten()
@@ -91,5 +89,4 @@ class TestGridworldContinuous(unittest.TestCase):
             evaluator.mc_loss[-1],
             evaluator.value_doubly_robust[-1],
         )
-        print("Pre-Training eval: ", pre_train_loss, pre_train_value)
         self.assertLess(evaluator.mc_loss[-1], pre_train_loss)

@@ -28,7 +28,7 @@ class TestGridworld(unittest.TestCase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        self.minibatch_size = 2048
+        self.minibatch_size = 4096
         super(self.__class__, self).setUp()
 
     def get_sarsa_trainer(self, environment):

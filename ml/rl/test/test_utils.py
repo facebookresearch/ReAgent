@@ -9,11 +9,11 @@ from ml.rl.training.rl_trainer_pytorch import rescale_torch_tensor
 class TestUtils(unittest.TestCase):
     def test_rescale_torch_tensor(self):
         rows, cols = 3, 5
-        original_tensor = torch.randint(low=10, high=40, size=(rows, cols))
-        prev_max_tensor = torch.ones(1, 5) * 40
-        prev_min_tensor = torch.ones(1, 5) * 10
-        new_min_tensor = torch.ones(1, 5) * -1
-        new_max_tensor = torch.ones(1, 5)
+        original_tensor = torch.randint(low=10, high=40, size=(rows, cols)).float()
+        prev_max_tensor = torch.ones(1, 5) * 40.0
+        prev_min_tensor = torch.ones(1, 5) * 10.0
+        new_min_tensor = torch.ones(1, 5) * -1.0
+        new_max_tensor = torch.ones(1, 5).float()
 
         print("Original tensor: ", original_tensor)
         rescaled_tensor = rescale_torch_tensor(

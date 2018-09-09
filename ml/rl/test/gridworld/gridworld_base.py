@@ -262,7 +262,7 @@ class GridworldBase(object):
 
     def _no_cheat_step(self, state, action: str) -> int:
         p = self.transition_probabilities(state, action)
-        return np.random.choice(self.size, p=p)
+        return int(np.random.choice(self.size, p=p))
 
     def step(
         self, action: str, with_possible=True
@@ -412,15 +412,17 @@ class GridworldBase(object):
     def generate_samples_discrete(  # multiprocessing
         self, num_transitions, epsilon, with_possible=True
     ) -> Samples:
-        sub_transitions = int(num_transitions / 8)
-        args = [sub_transitions] * 8
+        NUM_PROCESSES = 8
+        sub_transitions = int(num_transitions / NUM_PROCESSES)
+        sub_transitions_map = [sub_transitions] * NUM_PROCESSES
+        seed = list(range(NUM_PROCESSES))
         func = partial(
             self.generate_samples_discrete_internal,
             epsilon=epsilon,
             with_possible=with_possible,
         )
-        pool = multiprocessing.Pool(processes=8)
-        res = pool.map(func, args)
+        pool = multiprocessing.Pool(processes=NUM_PROCESSES)
+        res = pool.map(func, list(zip(sub_transitions_map, seed)))
 
         merge = Samples(
             mdp_ids=[],
@@ -452,8 +454,10 @@ class GridworldBase(object):
         return merge
 
     def generate_samples_discrete_internal(
-        self, num_transitions, epsilon, with_possible=True
+        self, num_transitions_seed_pair, epsilon, with_possible=True
     ) -> Samples:
+        num_transitions = num_transitions_seed_pair[0]
+        seed = num_transitions_seed_pair[1]
         states = []
         actions: List[str] = []
         propensities = []
@@ -474,6 +478,8 @@ class GridworldBase(object):
         reward_timelines = []
         mdp_id = -1
         sequence_number = 0
+        np.random.seed(seed)
+        random.seed(seed)
         while True:
             if terminal:
                 if transition >= num_transitions:
@@ -498,12 +504,12 @@ class GridworldBase(object):
 
             mdp_ids.append(str(mdp_id))
             sequence_numbers.append(sequence_number)
-            states.append({state: 1.0})
+            states.append({int(state): 1.0})
             actions.append(action)
             propensities.append(propensity)
             rewards.append(reward)
             possible_actions.append(possible_action)
-            next_states.append({next_state: 1.0})
+            next_states.append({int(next_state): 1.0})
             next_actions.append(next_action)
             terminals.append(terminal)
             possible_next_actions.append(possible_next_action)

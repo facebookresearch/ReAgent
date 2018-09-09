@@ -25,7 +25,7 @@ from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 class TestGridworldContinuous(unittest.TestCase):
     def setUp(self):
-        self.minibatch_size = 1024
+        self.minibatch_size = 4096
         super(self.__class__, self).setUp()
         np.random.seed(0)
         random.seed(0)

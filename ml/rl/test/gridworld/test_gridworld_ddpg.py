@@ -19,7 +19,7 @@ from ml.rl.training.ddpg_trainer import DDPGTrainer
 
 class TestGridworldContinuous(unittest.TestCase):
     def setUp(self):
-        self.minibatch_size = 2048
+        self.minibatch_size = 4096
         super(self.__class__, self).setUp()
         np.random.seed(0)
         random.seed(0)
@@ -31,7 +31,7 @@ class TestGridworldContinuous(unittest.TestCase):
                 gamma=DISCOUNT,
                 target_update_rate=0.5,
                 reward_burnin=100,
-                maxq_learning=False,
+                maxq_learning=True,
             ),
             shared_training=DDPGTrainingParameters(
                 minibatch_size=self.minibatch_size,
@@ -53,7 +53,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_ddpg_trainer(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(200000, 0.25)
+        samples = environment.generate_samples(500000, 0.25)
         trainer = DDPGTrainer(
             self.get_ddpg_parameters(),
             environment.normalization,
