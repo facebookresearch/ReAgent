@@ -4,6 +4,7 @@ import random
 import unittest
 
 import numpy as np
+import torch
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_continuous_enum import GridworldContinuousEnum
@@ -25,6 +26,7 @@ class TestGridworldContinuous(unittest.TestCase):
         super(self.__class__, self).setUp()
         np.random.seed(0)
         random.seed(0)
+        torch.manual_seed(0)
 
     def get_sarsa_parameters(self):
         return ContinuousActionModelParameters(
