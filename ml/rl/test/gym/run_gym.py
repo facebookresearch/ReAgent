@@ -154,6 +154,11 @@ def train_gym_online_rl(
             state = next_state
             action = next_action
 
+            # Get possible actions
+            possible_actions, _ = get_possible_next_actions(
+                gym_env, model_type, terminal
+            )
+
             if render:
                 gym_env.env.render()
 
@@ -169,6 +174,7 @@ def train_gym_online_rl(
             next_action = gym_env.policy(predictor, next_state, False)
             reward_sum += reward
 
+            # Get possible next actions
             (
                 possible_next_actions,
                 possible_next_actions_lengths,
@@ -188,15 +194,19 @@ def train_gym_online_rl(
 
             if save_timesteps_to_dataset and i >= start_saving_from_episode:
                 save_timesteps_to_dataset.insert(
+                    i,
+                    ep_timesteps - 1,
                     state.tolist(),
                     action.tolist(),
                     reward,
                     next_state.tolist(),
                     next_action.tolist(),
                     terminal,
+                    possible_actions,
                     possible_next_actions,
                     possible_next_actions_lengths,
                     1,
+                    1.0,
                 )
 
             # Training loop

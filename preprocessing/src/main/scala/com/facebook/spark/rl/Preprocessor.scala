@@ -15,6 +15,17 @@ object Preprocessor {
     mapper.registerModule(DefaultScalaModule)
     val config = mapper.readValue(configJson, classOf[TimelineConfiguration])
 
+    val actionSchema = if (config.actionDiscrete) {
+      StructField("action", StringType)
+    } else {
+      StructField("action", MapType(StringType, DoubleType, true))
+    }
+    val possibleActionSchema = if (config.actionDiscrete) {
+      StructField("possible_actions", ArrayType(StringType))
+    } else {
+      StructField("possible_actions", ArrayType(MapType(StringType, DoubleType, true)))
+    }
+
     val schema = StructType(
       List(
         StructField("ds", StringType),
@@ -22,10 +33,11 @@ object Preprocessor {
         StructField("sequence_number", IntegerType),
         StructField("action_probability", DoubleType),
         StructField("state_features", MapType(StringType, DoubleType, true)),
-        StructField("action", StringType),
+        actionSchema,
         StructField("reward", DoubleType),
-        StructField("possible_actions", ArrayType(StringType))
+        possibleActionSchema
       ))
+
     val inputDf = sparkSession.read.schema(schema).json(config.inputTableName)
     inputDf.createOrReplaceTempView(config.inputTableName)
 
