@@ -109,20 +109,29 @@ def preprocess_batch_for_training(preprocessor, action_names, batch):
     next_state_features_dense = pandas_sparse_to_dense(
         sorted_features_str, batch["next_state_features"]
     )
+    mdp_ids = np.array(batch["mdp_id"])
+    sequence_numbers = np.array(batch["sequence_number"], dtype=np.int32)
     actions = read_actions(action_names, batch["action"])
     pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
     rewards = np.array(batch["reward"], dtype=np.float32)
     time_diffs = np.array(batch["time_diff"], dtype=np.int32)
     not_terminals = np.max(pnas, 1).astype(np.bool)
     episode_values = np.array(batch["episode_value"], dtype=np.float32)
+    if "action_probability" in batch:
+        propensities = np.array(batch["action_probability"], dtype=np.float32)
+    else:
+        propensities = np.ones(shape=rewards.shape, dtype=np.float32)
 
     # Preprocess state features
     state_features_dense = preprocessor(state_features_dense)
     next_state_features_dense = preprocessor(next_state_features_dense)
 
     return TrainingDataPage(
+        mdp_ids=mdp_ids,
+        sequence_numbers=sequence_numbers,
         states=state_features_dense,
         actions=actions,
+        propensities=propensities,
         rewards=rewards,
         next_states=next_state_features_dense,
         possible_next_actions=pnas,

@@ -3,6 +3,8 @@
 
 class TrainingDataPage(object):
     __slots__ = [
+        "mdp_ids",
+        "sequence_numbers",
         "states",
         "actions",
         "propensities",
@@ -19,6 +21,8 @@ class TrainingDataPage(object):
 
     def __init__(
         self,
+        mdp_ids=None,
+        sequence_numbers=None,
         states=None,
         actions=None,
         propensities=None,
@@ -38,6 +42,8 @@ class TrainingDataPage(object):
         In the case where `not_terminals` can be determined by next_actions or
         possible_next_actions, feel free to omit it.
         """
+        self.mdp_ids = mdp_ids
+        self.sequence_numbers = sequence_numbers
         self.states = states
         self.actions = actions
         self.propensities = propensities
@@ -67,6 +73,8 @@ class TrainingDataPage(object):
             sub_pna = (self.possible_next_actions[start:end],)
 
         return TrainingDataPage(
+            self.mdp_ids[start:end],
+            self.sequence_numbers[start:end],
             self.states[start:end],
             self.actions[start:end],
             self.propensities[start:end],

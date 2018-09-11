@@ -45,5 +45,6 @@
     "optimizer": "ADAM",
     "lr_decay": 0.999,
     "warm_start_model_path": null
-  }
+  },
+  "in_training_cpe": null
 }
