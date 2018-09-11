@@ -218,7 +218,7 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
     logger.info("Got feature: " + feature_name)
     num_features = len(feature_value_list)
     if num_features < MINIMUM_SAMPLES_TO_IDENTIFY:
-        return
+        return None
 
     feature_override = None
     if norm_params["feature_overrides"] is not None:
