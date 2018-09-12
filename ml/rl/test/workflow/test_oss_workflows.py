@@ -27,6 +27,7 @@ class TestOSSWorkflows(unittest.TestCase):
             "rl": {},
             "rainbow": {},
             "training": {"minibatch_size": 16},
+            "in_training_cpe": None,
         }
         predictor = train_network(params)
         test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
