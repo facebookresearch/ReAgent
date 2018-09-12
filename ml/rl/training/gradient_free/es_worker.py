@@ -3,12 +3,12 @@
 import logging
 
 import torch
-import torch.distributed.c10d as c10d
+import torch.distributed as c10d
 import torch.nn
 import torch.optim
 from ml.rl.thrift.core.ttypes import EvolutionParameters
 from ml.rl.training.gradient_free.evolution_pool import EvolutionPool
-from torch.distributed.c10d import ProcessGroup
+from torch.distributed import ProcessGroup
 
 
 logger = logging.getLogger(__name__)
