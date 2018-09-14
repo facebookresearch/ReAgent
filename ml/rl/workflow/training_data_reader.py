@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+import itertools
 import json
 import os
 
 import numpy as np
 import pandas as pd
+import torch
 from ml.rl.preprocessing import normalization
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -100,31 +102,61 @@ def pandas_sparse_to_dense(feature_name_list, batch):
     return state_features_df[feature_name_list].values
 
 
-def preprocess_batch_for_training(preprocessor, action_names, batch):
-    sorted_features, _ = preprocessor._sort_features_by_normalization()
-    sorted_features_str = [str(x) for x in sorted_features]
+def preprocess_batch_for_training(
+    state_preprocessor, batch, action_names=None, action_preprocessor=None
+):
+
+    assert (action_names is None) ^ (
+        action_preprocessor is None
+    ), "Either action_names should be None xor action_preprocessor should be None"
+
+    # Preprocess state features
+    sorted_state_features, _ = state_preprocessor._sort_features_by_normalization()
+    sorted_state_features_str = [str(x) for x in sorted_state_features]
     state_features_dense = pandas_sparse_to_dense(
-        sorted_features_str, batch["state_features"]
+        sorted_state_features_str, batch["state_features"]
     )
     next_state_features_dense = pandas_sparse_to_dense(
-        sorted_features_str, batch["next_state_features"]
+        sorted_state_features_str, batch["next_state_features"]
     )
+    state_features_dense = state_preprocessor.forward(state_features_dense)
+    next_state_features_dense = state_preprocessor.forward(next_state_features_dense)
+
     mdp_ids = np.array(batch["mdp_id"])
     sequence_numbers = np.array(batch["sequence_number"], dtype=np.int32)
-    actions = read_actions(action_names, batch["action"])
-    pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
     rewards = np.array(batch["reward"], dtype=np.float32)
     time_diffs = np.array(batch["time_diff"], dtype=np.int32)
-    not_terminals = np.max(pnas, 1).astype(np.bool)
     episode_values = np.array(batch["episode_value"], dtype=np.float32)
+
+    if action_preprocessor:
+        # Preprocess action features for parametric action DQN
+        sorted_action_features, _ = (
+            action_preprocessor._sort_features_by_normalization()
+        )
+        sorted_action_features_str = [str(x) for x in sorted_action_features]
+        actions = pandas_sparse_to_dense(sorted_action_features_str, batch["action"])
+        pnas_lens = np.array([len(l) for l in batch["possible_next_actions"]])
+        flat_pnas = list(itertools.chain.from_iterable(batch["possible_next_actions"]))
+        not_terminals = pnas_lens.astype(np.bool)
+        pnas = pandas_sparse_to_dense(sorted_action_features_str, flat_pnas)
+
+        actions = action_preprocessor.forward(actions)
+        pnas = action_preprocessor.forward(pnas)
+        tiled_next_state_features_dense = np.repeat(
+            next_state_features_dense, pnas_lens, axis=0
+        )
+        possible_next_state_actions = torch.cat(
+            (tiled_next_state_features_dense, pnas), dim=1
+        )
+    else:
+        actions = read_actions(action_names, batch["action"])
+        pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
+        not_terminals = np.max(pnas, 1).astype(np.bool)
+        pnas_lens, possible_next_state_actions = None, None
     if "action_probability" in batch:
         propensities = np.array(batch["action_probability"], dtype=np.float32)
     else:
         propensities = np.ones(shape=rewards.shape, dtype=np.float32)
-
-    # Preprocess state features
-    state_features_dense = preprocessor(state_features_dense)
-    next_state_features_dense = preprocessor(next_state_features_dense)
 
     return TrainingDataPage(
         mdp_ids=mdp_ids,
@@ -135,7 +167,9 @@ def preprocess_batch_for_training(preprocessor, action_names, batch):
         rewards=rewards,
         next_states=next_state_features_dense,
         possible_next_actions=pnas,
+        possible_next_actions_lengths=pnas_lens,
         episode_values=episode_values,
         not_terminals=not_terminals,
         time_diffs=time_diffs,
+        next_state_pnas_concat=possible_next_state_actions,
     )

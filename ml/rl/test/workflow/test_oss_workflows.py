@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from ml.rl.workflow.dqn_workflow import train_network
+from ml.rl.workflow import dqn_workflow, parametric_dqn_workflow
 
 
 curr_dir = os.path.dirname(__file__)
@@ -15,10 +15,10 @@ class TestOSSWorkflows(unittest.TestCase):
         not tested here."""
         params = {
             "training_data_path": os.path.join(
-                curr_dir, "test_data/cartpole_training_data.json"
+                curr_dir, "test_data/discrete_action/cartpole_training_data.json"
             ),
             "state_norm_data_path": os.path.join(
-                curr_dir, "test_data/cartpole_norm.json"
+                curr_dir, "test_data/discrete_action/cartpole_norm.json"
             ),
             "model_output_path": None,
             "use_gpu": False,
@@ -29,7 +29,37 @@ class TestOSSWorkflows(unittest.TestCase):
             "training": {"minibatch_size": 16},
             "in_training_cpe": None,
         }
-        predictor = train_network(params)
+        predictor = dqn_workflow.train_network(params)
         test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
         q_values = predictor.predict(test_float_state_features)
         assert len(q_values[0].keys()) == 2
+
+    def test_parametric_dqn_workflow(self):
+        """Run Parametric DQN workflow to ensure no crashes, algorithm correctness
+        not tested here."""
+        params = {
+            "training_data_path": os.path.join(
+                curr_dir, "test_data/parametric_action/cartpole_training_data.json"
+            ),
+            "state_norm_data_path": os.path.join(
+                curr_dir, "test_data/parametric_action/state_features_norm.json"
+            ),
+            "action_norm_data_path": os.path.join(
+                curr_dir, "test_data/parametric_action/action_norm.json"
+            ),
+            "model_output_path": None,
+            "use_gpu": False,
+            "epochs": 1,
+            "rl": {},
+            "rainbow": {},
+            "training": {"minibatch_size": 16},
+            "in_training_cpe": None,
+        }
+        predictor = parametric_dqn_workflow.train_network(params)
+        test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
+        test_int_state_features = [{}]
+        test_action_features = [{"4": 0.0, "5": 1.0}]
+        q_values = predictor.predict(
+            test_float_state_features, test_int_state_features, test_action_features
+        )
+        assert len(q_values[0].keys()) == 1

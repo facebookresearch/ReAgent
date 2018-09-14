@@ -76,10 +76,14 @@ class RLDataset:
             }
         )
 
+        state_features = {int(i): v for i, v in enumerate(state)}
+
         if isinstance(action, list):
-            action = {int(i): v for i, v in enumerate(action)}
+            idx_bump = max(state_features.keys()) + 1
+            action = {int(i + idx_bump): v for i, v in enumerate(action)}
             possible_actions = [
-                {int(k): v for v, k in enumerate(action)} for action in possible_actions
+                {int(k + idx_bump): v for v, k in enumerate(action)}
+                for action in possible_actions
             ]
 
         self.timeline_format_rows.append(
@@ -87,7 +91,7 @@ class RLDataset:
                 "ds": datetime.now().strftime("%Y-%m-%d"),
                 "mdp_id": str(mdp_id),
                 "sequence_number": int(sequence_number),
-                "state": {int(i): v for i, v in enumerate(state)},
+                "state_features": {int(i): v for i, v in enumerate(state)},
                 "action": action,
                 "reward": reward,
                 "action_probability": action_probability,

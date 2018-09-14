@@ -1,19 +1,17 @@
 {
   "training_data_path": "~/cartpole_training_data.json",
-  "state_norm_data_path": "~/cartpole_normalization.json",
+  "state_norm_data_path": "~/state_features_norm.json",
+  "action_norm_data_path": "~/action_norm.json",
   "model_output_path": "~/",
   "use_gpu": true,
   "norm_params": {
     "output_dir": "~/",
     "cols_to_norm": [
-      "state_features"
+      "state_features",
+      "action"
     ],
     "num_samples": 1000
   },
-  "actions": [
-    "0",
-    "1"
-  ],
   "epochs": 1,
   "rl": {
     "gamma": 0.99,

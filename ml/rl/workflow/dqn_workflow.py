@@ -99,7 +99,7 @@ def train_network(params):
         for batch_idx in range(num_batches):
             report_training_status(batch_idx, num_batches, epoch, params["epochs"])
             batch = dataset.read_batch(batch_idx)
-            tdp = preprocess_batch_for_training(preprocessor, action_names, batch)
+            tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
 
             trainer.train(tdp)
 
