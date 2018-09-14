@@ -135,24 +135,36 @@ def preprocess_batch_for_training(
         )
         sorted_action_features_str = [str(x) for x in sorted_action_features]
         actions = pandas_sparse_to_dense(sorted_action_features_str, batch["action"])
-        pnas_lens = np.array([len(l) for l in batch["possible_next_actions"]])
-        flat_pnas = list(itertools.chain.from_iterable(batch["possible_next_actions"]))
-        not_terminals = pnas_lens.astype(np.bool)
-        pnas = pandas_sparse_to_dense(sorted_action_features_str, flat_pnas)
         actions = action_preprocessor.forward(actions)
-        pnas = action_preprocessor.forward(pnas)
-        tiled_next_state_features_dense = np.repeat(
-            next_state_features_dense, pnas_lens, axis=0
-        )
-        possible_next_state_actions = torch.cat(
-            (tiled_next_state_features_dense, pnas), dim=1
-        )
-        pas_lens = np.array([len(l) for l in batch["possible_actions"]])
-        flat_pas = list(itertools.chain.from_iterable(batch["possible_actions"]))
-        pas = pandas_sparse_to_dense(sorted_action_features_str, flat_pas)
-        pas = action_preprocessor.forward(pas)
-        tiled_state_features_dense = np.repeat(state_features_dense, pas_lens, axis=0)
-        possible_state_actions = torch.cat((tiled_state_features_dense, pas), dim=1)
+
+        if "possible_next_actions" not in batch.keys():
+            # DDPG
+            not_terminals = np.array(batch["next_action"], dtype=np.bool) * 1
+            pnas, pnas_lens, possible_next_state_actions = None, None, None
+            pas, pas_lens, possible_state_actions = None, None, None
+        else:
+            # Parametric DQN
+            pnas_lens = np.array([len(l) for l in batch["possible_next_actions"]])
+            flat_pnas = list(
+                itertools.chain.from_iterable(batch["possible_next_actions"])
+            )
+            not_terminals = pnas_lens.astype(np.bool)
+            pnas = pandas_sparse_to_dense(sorted_action_features_str, flat_pnas)
+            pnas = action_preprocessor.forward(pnas)
+            tiled_next_state_features_dense = np.repeat(
+                next_state_features_dense, pnas_lens, axis=0
+            )
+            possible_next_state_actions = torch.cat(
+                (tiled_next_state_features_dense, pnas), dim=1
+            )
+            pas_lens = np.array([len(l) for l in batch["possible_actions"]])
+            flat_pas = list(itertools.chain.from_iterable(batch["possible_actions"]))
+            pas = pandas_sparse_to_dense(sorted_action_features_str, flat_pas)
+            pas = action_preprocessor.forward(pas)
+            tiled_state_features_dense = np.repeat(
+                state_features_dense, pas_lens, axis=0
+            )
+            possible_state_actions = torch.cat((tiled_state_features_dense, pas), dim=1)
     else:
         actions = read_actions(action_names, batch["action"])
         pnas = np.array(batch["possible_next_actions"], dtype=np.float32)

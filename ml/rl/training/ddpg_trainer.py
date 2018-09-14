@@ -12,6 +12,7 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
+from ml.rl.preprocessing.preprocessor_net import sort_features_by_normalization
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.rl_trainer_pytorch import (
@@ -116,10 +117,27 @@ class DDPGTrainer(RLTrainer):
     ) -> None:
 
         self.minibatch += 1
-        states = Variable(torch.from_numpy(training_samples.states).type(self.dtype))
-        actions = Variable(torch.from_numpy(training_samples.actions).type(self.dtype))
-        # As far as ddpg is concerned all actions are [-1, 1] due to actor tanh
+        if isinstance(training_samples.states, torch.Tensor):
+            states = training_samples.states.type(self.dtype)
+        else:
+            states = torch.from_numpy(training_samples.states).type(self.dtype)
+        states = Variable(states)
 
+        if isinstance(training_samples.actions, torch.Tensor):
+            actions = training_samples.actions.type(self.dtype)
+        else:
+            actions = torch.from_numpy(training_samples.actions).type(self.dtype)
+        actions = Variable(actions)
+
+        if isinstance(training_samples.next_states, torch.Tensor):
+            next_states = training_samples.next_states.type(self.dtype)
+        else:
+            next_states = torch.from_numpy(training_samples.next_states).type(
+                self.dtype
+            )
+        next_states = Variable(next_states)
+
+        # As far as ddpg is concerned all actions are [-1, 1] due to actor tanh
         actions = rescale_torch_tensor(
             actions,
             new_min=self.min_action_range_tensor_training,
@@ -128,9 +146,6 @@ class DDPGTrainer(RLTrainer):
             prev_max=self.max_action_range_tensor_serving,
         )
         rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
-        next_states = Variable(
-            torch.from_numpy(training_samples.next_states).type(self.dtype)
-        )
         time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
         discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
             self.dtype
@@ -360,3 +375,24 @@ class OrnsteinUhlenbeckProcessNoise:
 
     def clear(self) -> None:
         self.noise = np.zeros(self.action_dim)
+
+
+def construct_action_scale_tensor(action_norm_params, action_scale_overrides):
+    """Construct tensors that will rescale each action value on each dimension i
+    from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.
+    """
+    sorted_features, _ = sort_features_by_normalization(action_norm_params)
+    min_action_array = np.zeros((1, len(sorted_features)))
+    max_action_array = np.zeros((1, len(sorted_features)))
+
+    for idx, feature_id in enumerate(sorted_features):
+        if feature_id in action_scale_overrides:
+            min_action_array[0][idx] = action_scale_overrides[feature_id][0]
+            max_action_array[0][idx] = action_scale_overrides[feature_id][1]
+        else:
+            min_action_array[0][idx] = action_norm_params[feature_id].min_value
+            max_action_array[0][idx] = action_norm_params[feature_id].max_value
+
+    min_action_range_tensor_serving = torch.from_numpy(min_action_array)
+    max_action_range_tensor_serving = torch.from_numpy(max_action_array)
+    return min_action_range_tensor_serving, max_action_range_tensor_serving

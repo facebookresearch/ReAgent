@@ -54,7 +54,9 @@ class RLDataset:
         assert isinstance(next_state, list)
         assert isinstance(next_action, list)
         assert isinstance(terminal, bool)
-        assert isinstance(possible_actions, (list, np.ndarray))
+        assert possible_actions is None or isinstance(
+            possible_actions, (list, np.ndarray)
+        )
         assert possible_next_actions is None or isinstance(
             possible_next_actions, (list, np.ndarray)
         )
@@ -78,9 +80,10 @@ class RLDataset:
 
         state_features = {int(i): v for i, v in enumerate(state)}
 
+        idx_bump = max(state_features.keys()) + 1
         if isinstance(action, list):
-            idx_bump = max(state_features.keys()) + 1
             action = {int(i + idx_bump): v for i, v in enumerate(action)}
+        if isinstance(possible_actions, list):
             possible_actions = [
                 {int(k + idx_bump): v for v, k in enumerate(action)}
                 for action in possible_actions

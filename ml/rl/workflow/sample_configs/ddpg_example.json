@@ -1,0 +1,57 @@
+{
+  "training_data_path": "~/pendulum_training_data.json",
+  "state_norm_data_path": "~/state_features_norm.json",
+  "action_norm_data_path": "~/action_norm.json",
+  "model_output_path": "~/",
+  "use_gpu": true,
+  "norm_params": {
+    "output_dir": "~/",
+    "cols_to_norm": [
+      "state_features",
+      "action"
+    ],
+    "num_samples": 1000
+  },
+  "epochs": 1,
+  "rl": {
+    "gamma": 0.99,
+    "epsilon": 0,
+    "target_update_rate": 0.001,
+    "softmax_policy": 0
+  },
+  "shared_training": {
+    "minibatch_size": 64,
+    "final_layer_init": 0.003,
+    "optimizer": "ADAM"
+  },
+  "actor_training": {
+    "layers": [
+      -1,
+      128,
+      64,
+      -1
+    ],
+    "activations": [
+      "relu",
+      "relu",
+      "tanh"
+    ],
+    "learning_rate": 0.0001
+  },
+  "critic_training": {
+    "layers": [
+      -1,
+      128,
+      64,
+      -1
+    ],
+    "activations": [
+      "relu",
+      "relu",
+      "linear"
+    ],
+    "learning_rate": 0.001,
+    "l2_decay": 0.01
+  },
+  "in_training_cpe": null
+}
