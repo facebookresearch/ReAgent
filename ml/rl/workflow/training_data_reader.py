@@ -139,7 +139,6 @@ def preprocess_batch_for_training(
         flat_pnas = list(itertools.chain.from_iterable(batch["possible_next_actions"]))
         not_terminals = pnas_lens.astype(np.bool)
         pnas = pandas_sparse_to_dense(sorted_action_features_str, flat_pnas)
-
         actions = action_preprocessor.forward(actions)
         pnas = action_preprocessor.forward(pnas)
         tiled_next_state_features_dense = np.repeat(
@@ -148,13 +147,20 @@ def preprocess_batch_for_training(
         possible_next_state_actions = torch.cat(
             (tiled_next_state_features_dense, pnas), dim=1
         )
+        pas_lens = np.array([len(l) for l in batch["possible_actions"]])
+        flat_pas = list(itertools.chain.from_iterable(batch["possible_actions"]))
+        pas = pandas_sparse_to_dense(sorted_action_features_str, flat_pas)
+        pas = action_preprocessor.forward(pas)
+        tiled_state_features_dense = np.repeat(state_features_dense, pas_lens, axis=0)
+        possible_state_actions = torch.cat((tiled_state_features_dense, pas), dim=1)
     else:
         actions = read_actions(action_names, batch["action"])
         pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
         not_terminals = np.max(pnas, 1).astype(np.bool)
         pnas_lens, possible_next_state_actions = None, None
-    if "action_probability" in batch:
-        propensities = np.array(batch["action_probability"], dtype=np.float32)
+        pas, pas_lens, possible_state_actions = None, None, None
+    if "propensity" in batch:
+        propensities = np.array(batch["propensity"], dtype=np.float32)
     else:
         propensities = np.ones(shape=rewards.shape, dtype=np.float32)
 
@@ -165,11 +171,14 @@ def preprocess_batch_for_training(
         actions=actions,
         propensities=propensities,
         rewards=rewards,
+        possible_actions=pas,
+        possible_actions_lengths=pas_lens,
         next_states=next_state_features_dense,
         possible_next_actions=pnas,
         possible_next_actions_lengths=pnas_lens,
         episode_values=episode_values,
         not_terminals=not_terminals,
         time_diffs=time_diffs,
+        state_pas_concat=possible_state_actions,
         next_state_pnas_concat=possible_next_state_actions,
     )

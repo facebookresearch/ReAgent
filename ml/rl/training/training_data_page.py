@@ -9,6 +9,9 @@ class TrainingDataPage(object):
         "actions",
         "propensities",
         "rewards",
+        "possible_actions",
+        "possible_actions_lengths",
+        "state_pas_concat",
         "next_states",
         "next_actions",
         "possible_next_actions",
@@ -27,6 +30,9 @@ class TrainingDataPage(object):
         actions=None,
         propensities=None,
         rewards=None,
+        possible_actions=None,
+        possible_actions_lengths=None,
+        state_pas_concat=None,
         next_states=None,
         next_actions=None,
         possible_next_actions=None,
@@ -48,6 +54,9 @@ class TrainingDataPage(object):
         self.actions = actions
         self.propensities = propensities
         self.rewards = rewards
+        self.possible_actions = possible_actions
+        self.possible_actions_lengths = possible_actions_lengths
+        self.state_pas_concat = state_pas_concat
         self.next_states = next_states
         self.next_actions = next_actions
         self.possible_next_actions = possible_next_actions

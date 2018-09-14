@@ -724,10 +724,13 @@ class Evaluator(object):
             weighted_doubly_robust = j_step_returns[0]
 
         else:
-            # break trajectories into 25 subsets to estimate confidence bounds
+            # break trajectories into several subsets to estimate confidence bounds
             infinite_step_returns = []
-            interval = num_trajectories / Evaluator.NUM_SUBSETS_FOR_CB_ESTIMATES
-            for i in range(Evaluator.NUM_SUBSETS_FOR_CB_ESTIMATES):
+            num_subsets = int(
+                min(num_trajectories / 2, Evaluator.NUM_SUBSETS_FOR_CB_ESTIMATES)
+            )
+            interval = num_trajectories / num_subsets
+            for i in range(num_subsets):
                 trajectory_subset = np.arange(
                     int(i * interval), int((i + 1) * interval)
                 )

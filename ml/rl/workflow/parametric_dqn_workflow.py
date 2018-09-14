@@ -13,6 +13,7 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
 )
+from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
@@ -29,6 +30,8 @@ from ml.rl.workflow.training_data_reader import (
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+DEFAULT_NUM_SAMPLES_FOR_CPE = 500
 
 
 def train_network(params):
@@ -76,6 +79,23 @@ def train_network(params):
     state_preprocessor = Preprocessor(state_normalization, params["use_gpu"])
     action_preprocessor = Preprocessor(action_normalization, params["use_gpu"])
 
+    if trainer_params.in_training_cpe is not None:
+        evaluator = Evaluator(
+            None,
+            100,
+            trainer_params.rl.gamma,
+            trainer,
+            trainer_params.in_training_cpe.mdp_sampled_rate,
+        )
+    else:
+        evaluator = Evaluator(
+            None,
+            100,
+            trainer_params.rl.gamma,
+            trainer,
+            float(DEFAULT_NUM_SAMPLES_FOR_CPE) / len(dataset),
+        )
+
     start_time = time.time()
     for epoch in range(params["epochs"]):
         for batch_idx in range(num_batches):
@@ -84,7 +104,32 @@ def train_network(params):
             tdp = preprocess_batch_for_training(
                 state_preprocessor, batch, action_preprocessor=action_preprocessor
             )
+
             trainer.train(tdp)
+
+            trainer.evaluate(
+                evaluator, None, None, np.expand_dims(tdp.episode_values, axis=1)
+            )
+            evaluator.collect_parametric_action_samples(
+                mdp_ids=tdp.mdp_ids,
+                sequence_numbers=tdp.sequence_numbers,
+                logged_state_actions=np.concatenate(
+                    (tdp.states.cpu().numpy(), tdp.actions.cpu().numpy()), axis=1
+                ),
+                logged_rewards=tdp.rewards,
+                logged_propensities=tdp.propensities,
+                logged_terminals=np.invert(tdp.not_terminals),
+                possible_state_actions=tdp.state_pas_concat.cpu().numpy(),
+                pas_lens=tdp.possible_actions_lengths,
+            )
+
+        cpe_start_time = time.time()
+        evaluator.recover_samples_to_be_unshuffled()
+        evaluator.score_cpe()
+        evaluator.clear_collected_samples()
+        logger.info(
+            "CPE evaluation took {} seconds.".format(time.time() - cpe_start_time)
+        )
 
     through_put = (len(dataset) * params["epochs"]) / (time.time() - start_time)
     logger.info(

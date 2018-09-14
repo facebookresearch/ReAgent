@@ -114,7 +114,7 @@ def train_network(params):
             evaluator.collect_discrete_action_samples(
                 mdp_ids=tdp.mdp_ids,
                 sequence_numbers=tdp.sequence_numbers,
-                states=tdp.states.numpy(),
+                states=tdp.states.cpu().numpy(),
                 logged_actions=tdp.actions,
                 logged_rewards=tdp.rewards,
                 logged_propensities=tdp.propensities,

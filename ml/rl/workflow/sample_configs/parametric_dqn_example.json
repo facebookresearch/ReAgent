@@ -44,5 +44,7 @@
     "lr_decay": 0.999,
     "warm_start_model_path": null
   },
-  "in_training_cpe": null
+  "in_training_cpe": {
+    "mdp_sampled_rate": 0.5
+  }
 }
