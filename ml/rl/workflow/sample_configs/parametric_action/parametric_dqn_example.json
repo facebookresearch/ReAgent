@@ -1,0 +1,48 @@
+{
+  "training_data_path": "~/cartpole_training_data.json",
+  "state_norm_data_path": "~/state_features_norm.json",
+  "action_norm_data_path": "~/action_norm.json",
+  "model_output_path": "~/",
+  "use_gpu": true,
+  "norm_params": {
+    "output_dir": "~/",
+    "cols_to_norm": [
+      "state_features",
+      "action"
+    ],
+    "num_samples": 1000
+  },
+  "epochs": 1,
+  "rl": {
+    "gamma": 0.99,
+    "target_update_rate": 0.2,
+    "reward_burnin": 1,
+    "maxq_learning": 1,
+    "epsilon": 0.2,
+    "temperature": 0.35,
+    "softmax_policy": 0
+  },
+  "rainbow": {
+    "double_q_learning": true,
+    "dueling_architecture": false
+  },
+  "training": {
+    "layers": [
+      -1,
+      128,
+      64,
+      -1
+    ],
+    "activations": [
+      "relu",
+      "relu",
+      "linear"
+    ],
+    "minibatch_size": 128,
+    "learning_rate": 0.001,
+    "optimizer": "ADAM",
+    "lr_decay": 0.999,
+    "warm_start_model_path": null
+  },
+  "in_training_cpe": null
+}

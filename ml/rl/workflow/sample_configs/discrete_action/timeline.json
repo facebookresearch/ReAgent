@@ -1,0 +1,20 @@
+{
+  "timeline": {
+    "startDs": "2018-06-25",
+    "endDs": "2018-06-25",
+    "addTerminalStateRow": false,
+    "actionDiscrete": true,
+    "inputTableName": "cartpole_discrete",
+    "outputTableName": "cartpole_discrete_training_data"
+  },
+  "query": {
+    "discountFactor": 0.9,
+    "tableSample": 0.5,
+    "maxQLearning": true,
+    "useNonOrdinalRewardTimeline": false,
+    "actions": [
+      "0",
+      "1"
+    ]
+  }
+}
