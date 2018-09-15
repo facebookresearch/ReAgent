@@ -188,6 +188,7 @@ class KNNDQNTrainer(RLTrainer):
                 episode_values,
                 None,
                 None,
+                None,
                 critic_predictions.cpu().data.numpy(),
                 None,
             )

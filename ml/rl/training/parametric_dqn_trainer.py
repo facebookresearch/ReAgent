@@ -299,6 +299,7 @@ class ParametricDQNTrainer(RLTrainer):
             logged_values,
             None,
             None,
+            None,
             self.all_action_scores.cpu().numpy(),
             None,
         )

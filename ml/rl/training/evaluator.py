@@ -104,6 +104,7 @@ class Evaluator(object):
         self.logged_rewards_batches: List[np.ndarray] = []
         self.logged_values_batches: List[np.ndarray] = []
         self.model_propensities_batches: List[np.ndarray] = []
+        self.model_rewards_batches: List[np.ndaary] = []
         self.model_values_batches: List[np.ndarray] = []
         self.model_values_on_logged_actions_batches: List[np.ndarray] = []
         self.model_action_idxs_batches: List[np.ndarray] = []
@@ -115,6 +116,7 @@ class Evaluator(object):
             self.logged_rewards_batches,
             self.logged_values_batches,
             self.model_propensities_batches,
+            self.model_rewards_batches,
             self.model_values_batches,
             self.model_values_on_logged_actions_batches,
             self.model_action_idxs_batches,
@@ -143,6 +145,7 @@ class Evaluator(object):
         logged_rewards,
         logged_values,
         model_propensities,
+        model_rewards,
         model_values,
         model_values_on_logged_actions,
         model_action_idxs,
@@ -154,6 +157,7 @@ class Evaluator(object):
             logged_rewards,
             logged_values,
             model_propensities,
+            model_rewards,
             model_values,
             model_values_on_logged_actions,
             model_action_idxs,
@@ -181,7 +185,7 @@ class Evaluator(object):
                 merged_inputs.append(np.vstack(batch))
             else:
                 merged_inputs.append(None)
-        td_loss, logged_actions, logged_propensities, logged_rewards, logged_values, model_propensities, model_values, model_values_on_logged_actions, model_action_idxs = (
+        td_loss, logged_actions, logged_propensities, logged_rewards, logged_values, model_propensities, model_rewards, model_values, model_values_on_logged_actions, model_action_idxs = (
             merged_inputs
         )
 
@@ -202,6 +206,7 @@ class Evaluator(object):
             logged_actions is not None
             and model_propensities is not None
             and model_values is not None
+            and model_rewards is not None
         ):
             if logged_propensities is None:
                 # Assume a deterministic model
@@ -212,7 +217,7 @@ class Evaluator(object):
                 logged_rewards,
                 logged_propensities,
                 model_propensities,
-                None,
+                model_rewards,
             )
             self.reward_inverse_propensity_score.append(r_ips)
             self.reward_direct_method.append(r_dm)

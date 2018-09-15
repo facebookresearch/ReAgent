@@ -226,12 +226,12 @@ class DQNTrainer(RLTrainer):
             self._soft_update(self.q_network, self.q_network_target, self.tau)
 
         # get reward estimates
-        reward_estimates = (
-            self.reward_network(states)
-            .gather(1, actions.argmax(1).unsqueeze(1))
-            .squeeze()
-        )
-        reward_loss = F.mse_loss(reward_estimates, rewards)
+        reward_estimates = self.reward_network(states)
+        self.reward_estimates = deepcopy(reward_estimates.detach())
+        reward_estimates_for_logged_actions = reward_estimates.gather(
+            1, actions.argmax(1).unsqueeze(1)
+        ).squeeze()
+        reward_loss = F.mse_loss(reward_estimates_for_logged_actions, rewards)
         self.reward_network_optimizer.zero_grad()
         reward_loss.backward()
         self.reward_network_optimizer.step()
@@ -276,6 +276,7 @@ class DQNTrainer(RLTrainer):
             logged_rewards,
             logged_values,
             self.model_propensities,
+            self.reward_estimates,
             self.all_action_scores,
             model_values_on_logged_actions,
             maxq_action_idxs,

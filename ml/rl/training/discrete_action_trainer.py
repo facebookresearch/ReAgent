@@ -298,6 +298,7 @@ class DiscreteActionTrainer(RLTrainer):
             logged_rewards,
             logged_values,
             model_propensities,
+            None,
             all_action_scores,
             model_values_on_logged_actions,
             maxq_action_idxs,
