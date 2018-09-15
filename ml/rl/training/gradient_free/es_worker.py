@@ -3,7 +3,7 @@
 import logging
 
 import torch
-import torch.distributed as c10d
+import torch.distributed as distributed
 import torch.nn
 import torch.optim
 from ml.rl.thrift.core.ttypes import EvolutionParameters
@@ -37,7 +37,7 @@ class EsWorker:
         logger.info("Pushing reward")
 
         # Sum the rewards across all machines
-        c10d.all_reduce(rewards, self.process_group)
+        distributed.all_reduce(rewards, self.process_group)
 
         # Divide the rewards by the number of machines.  We do this because
         # there is no "average" all_reduce operator.

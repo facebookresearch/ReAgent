@@ -254,13 +254,13 @@ class Preprocessor(Module):
     ):
         F = len(norm_params)
 
-        num_quantiles = torch.Tensor(
-            np.array([[float(len(p.quantiles)) - 1 for p in norm_params]])
+        num_quantiles = torch.tensor(
+            [[float(len(p.quantiles)) - 1 for p in norm_params]]
         ).type(self.dtype)
         self._create_parameter(begin_index, "num_quantiles", num_quantiles)
 
         max_num_quantile_boundaries = int(
-            np.max([len(p.quantiles) for p in norm_params])
+            torch.max(torch.tensor([len(p.quantiles) for p in norm_params]))[0]
         )
         B = max_num_quantile_boundaries
 
@@ -271,28 +271,30 @@ class Preprocessor(Module):
         # so that we guarantee a square matrix.
 
         # We project the quantiles boundaries to 3d and create a 1xFxB tensor
-        quantile_boundaries = np.zeros(
+        quantile_boundaries = torch.zeros(
             [1, len(norm_params), max_num_quantile_boundaries]
-        )
-        max_quantile_boundaries = np.zeros([1, len(norm_params)])
-        min_quantile_boundaries = np.zeros([1, len(norm_params)])
+        ).type(self.dtype)
+        max_quantile_boundaries = torch.zeros([1, len(norm_params)]).type(self.dtype)
+        min_quantile_boundaries = torch.zeros([1, len(norm_params)]).type(self.dtype)
         for i, p in enumerate(norm_params):
             quantile_boundaries[0, i, :] = p.quantiles[-1]
-            quantile_boundaries[0, i, 0 : len(p.quantiles)] = p.quantiles
+            quantile_boundaries[0, i, 0 : len(p.quantiles)] = torch.tensor(
+                p.quantiles
+            ).type(self.dtype)
             max_quantile_boundaries[0, i] = max(p.quantiles)
             min_quantile_boundaries[0, i] = min(p.quantiles)
 
-        quantile_boundaries = torch.Tensor(quantile_boundaries).type(self.dtype)
+        quantile_boundaries = quantile_boundaries.type(self.dtype)
         assert quantile_boundaries.shape == torch.Size(
             [1, F, B]
         ), "Invalid shape: " + str(quantile_boundaries.shape)
 
-        max_quantile_boundaries = torch.Tensor(max_quantile_boundaries).type(self.dtype)
+        max_quantile_boundaries = max_quantile_boundaries.type(self.dtype)
         assert max_quantile_boundaries.shape == torch.Size(
             [1, F]
         ), "Invalid shape: " + str(max_quantile_boundaries.shape)
 
-        min_quantile_boundaries = torch.Tensor(min_quantile_boundaries).type(self.dtype)
+        min_quantile_boundaries = min_quantile_boundaries.type(self.dtype)
         assert min_quantile_boundaries.shape == torch.Size(
             [1, F]
         ), "Invalid shape: " + str(min_quantile_boundaries.shape)
@@ -343,7 +345,7 @@ class Preprocessor(Module):
         )
 
         max_num_quantile_boundaries = int(
-            np.max([len(p.quantiles) for p in norm_params])
+            torch.max(torch.tensor([len(p.quantiles) for p in norm_params]))[0]
         )
         B = max_num_quantile_boundaries
 

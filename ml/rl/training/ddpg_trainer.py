@@ -115,27 +115,46 @@ class DDPGTrainer(RLTrainer):
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
+        training_samples.set_type(self.dtype)
+
+        if self.minibatch == 0:
+            # Assume that the tensors are the right shape after the first minibatch
+            assert training_samples.states.shape[0] == self.minibatch_size, (
+                "Invalid shape: " + str(training_samples.states.shape)
+            )
+            assert training_samples.actions.shape[0] == self.minibatch_size, (
+                "Invalid shape: " + str(training_samples.actions.shape)
+            )
+            assert training_samples.rewards.shape == torch.Size(
+                [self.minibatch_size, 1]
+            ), "Invalid shape: " + str(training_samples.rewards.shape)
+            assert (
+                training_samples.episode_values is None
+                or training_samples.episode_values.shape
+                == training_samples.rewards.shape
+            ), (
+                "Invalid shape: " + str(training_samples.episode_values.shape)
+            )
+            assert (
+                training_samples.next_states.shape == training_samples.states.shape
+            ), (
+                "Invalid shape: " + str(training_samples.next_states.shape)
+            )
+            assert (
+                training_samples.not_terminals.shape == training_samples.rewards.shape
+            ), (
+                "Invalid shape: " + str(training_samples.not_terminals.shape)
+            )
+            if self.use_seq_num_diff_as_time_diff:
+                assert (
+                    training_samples.time_diffs.shape == training_samples.rewards.shape
+                ), (
+                    "Invalid shape: " + str(training_samples.time_diffs.shape)
+                )
 
         self.minibatch += 1
-        if isinstance(training_samples.states, torch.Tensor):
-            states = training_samples.states.type(self.dtype)
-        else:
-            states = torch.from_numpy(training_samples.states).type(self.dtype)
-        states = Variable(states)
-
-        if isinstance(training_samples.actions, torch.Tensor):
-            actions = training_samples.actions.type(self.dtype)
-        else:
-            actions = torch.from_numpy(training_samples.actions).type(self.dtype)
-        actions = Variable(actions)
-
-        if isinstance(training_samples.next_states, torch.Tensor):
-            next_states = training_samples.next_states.type(self.dtype)
-        else:
-            next_states = torch.from_numpy(training_samples.next_states).type(
-                self.dtype
-            )
-        next_states = Variable(next_states)
+        states = torch.tensor(training_samples.states, requires_grad=True)
+        actions = torch.tensor(training_samples.actions, requires_grad=True)
 
         # As far as ddpg is concerned all actions are [-1, 1] due to actor tanh
         actions = rescale_torch_tensor(
@@ -145,14 +164,13 @@ class DDPGTrainer(RLTrainer):
             prev_min=self.min_action_range_tensor_serving,
             prev_max=self.max_action_range_tensor_serving,
         )
-        rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
-        time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
-        discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
+        rewards = torch.tensor(training_samples.rewards, requires_grad=True)
+        next_states = torch.tensor(training_samples.next_states, requires_grad=True)
+        time_diffs = training_samples.time_diffs
+        discount_tensor = torch.tensor(np.full(rewards.shape, self.gamma)).type(
             self.dtype
         )
-        not_done_mask = Variable(
-            torch.from_numpy(training_samples.not_terminals.astype(int))
-        ).type(self.dtype)
+        not_done_mask = torch.tensor(training_samples.not_terminals, requires_grad=True)
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
@@ -160,7 +178,7 @@ class DDPGTrainer(RLTrainer):
         next_actions = self.actor_target(next_states)
 
         next_state_actions = torch.cat((next_states, next_actions), dim=1)
-        q_s2_a2 = self.critic_target(next_state_actions).detach().squeeze()
+        q_s2_a2 = self.critic_target(next_state_actions).detach()
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
 
         if self.use_seq_num_diff_as_time_diff:
@@ -172,7 +190,7 @@ class DDPGTrainer(RLTrainer):
             target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
 
         # compute loss and update the critic network
-        critic_predictions = q_s1_a1.squeeze()
+        critic_predictions = q_s1_a1
         loss_critic = self.q_network_loss(critic_predictions, target_q_values)
         self.critic_optimizer.zero_grad()
         loss_critic.backward()
@@ -214,8 +232,8 @@ class DDPGTrainer(RLTrainer):
         """
         self.actor.eval()
         with torch.no_grad():
-            state_examples = Variable(
-                torch.from_numpy(np.array(states)).type(self.dtype)
+            state_examples = torch.tensor(
+                torch.from_numpy(np.array(states)).type(self.dtype), requires_grad=True
             )
             actions = self.actor(state_examples)
 
@@ -285,7 +303,7 @@ class ActorNet(nn.Module):
         :param state state as list of state features
         """
         if isinstance(state, np.ndarray):
-            state = Variable(torch.from_numpy(state))
+            state = torch.tensor(torch.from_numpy(state), requires_grad=True)
 
         x = state
         for i, activation in enumerate(self.activations):

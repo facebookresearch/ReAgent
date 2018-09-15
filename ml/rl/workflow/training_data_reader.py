@@ -90,7 +90,9 @@ def read_actions(action_names, actions):
     actions = np.array(actions, dtype=np.str)
     actions = np.expand_dims(actions, axis=1)
     action_names_tiled = np.tile(action_names, actions.shape)
-    return (actions == action_names_tiled).astype(int)
+    return torch.tensor(
+        (actions == action_names_tiled).astype(np.int64), dtype=torch.int64
+    )
 
 
 def pandas_sparse_to_dense(feature_name_list, batch):
@@ -123,10 +125,12 @@ def preprocess_batch_for_training(
     next_state_features_dense = state_preprocessor.forward(next_state_features_dense)
 
     mdp_ids = np.array(batch["mdp_id"])
-    sequence_numbers = np.array(batch["sequence_number"], dtype=np.int32)
-    rewards = np.array(batch["reward"], dtype=np.float32)
-    time_diffs = np.array(batch["time_diff"], dtype=np.int32)
-    episode_values = np.array(batch["episode_value"], dtype=np.float32)
+    sequence_numbers = torch.tensor(batch["sequence_number"], dtype=torch.int32)
+    rewards = torch.tensor(batch["reward"], dtype=torch.float32).reshape(-1, 1)
+    time_diffs = torch.tensor(batch["time_diff"], dtype=torch.int32).reshape(-1, 1)
+    episode_values = torch.tensor(batch["episode_value"], dtype=torch.float32).reshape(
+        -1, 1
+    )
 
     if action_preprocessor:
         # Preprocess action features for parametric action DQN
@@ -139,7 +143,9 @@ def preprocess_batch_for_training(
 
         if "possible_next_actions" not in batch.keys():
             # DDPG
-            not_terminals = np.array(batch["next_action"], dtype=np.bool) * 1
+            not_terminals = torch.from_numpy(
+                np.array(batch["next_action"], dtype=np.bool) * 1.0
+            ).reshape(-1, 1)
             pnas, pnas_lens, possible_next_state_actions = None, None, None
             pas, pas_lens, possible_state_actions = None, None, None
         else:
@@ -148,12 +154,15 @@ def preprocess_batch_for_training(
             flat_pnas = list(
                 itertools.chain.from_iterable(batch["possible_next_actions"])
             )
-            not_terminals = pnas_lens.astype(np.bool)
+            not_terminals = torch.from_numpy(
+                (pnas_lens > 0).astype(np.float32)
+            ).reshape(-1, 1)
             pnas = pandas_sparse_to_dense(sorted_action_features_str, flat_pnas)
             pnas = action_preprocessor.forward(pnas)
-            tiled_next_state_features_dense = np.repeat(
-                next_state_features_dense, pnas_lens, axis=0
+            tiled_next_state_features_dense = torch.from_numpy(
+                np.repeat(next_state_features_dense.cpu().numpy(), pnas_lens, axis=0)
             )
+            pnas_lens = torch.from_numpy(pnas_lens)
             possible_next_state_actions = torch.cat(
                 (tiled_next_state_features_dense, pnas), dim=1
             )
@@ -161,20 +170,25 @@ def preprocess_batch_for_training(
             flat_pas = list(itertools.chain.from_iterable(batch["possible_actions"]))
             pas = pandas_sparse_to_dense(sorted_action_features_str, flat_pas)
             pas = action_preprocessor.forward(pas)
-            tiled_state_features_dense = np.repeat(
-                state_features_dense, pas_lens, axis=0
+            tiled_state_features_dense = torch.from_numpy(
+                np.repeat(state_features_dense.cpu().numpy(), pas_lens, axis=0)
             )
+            pas_lens = torch.from_numpy(pas_lens)
             possible_state_actions = torch.cat((tiled_state_features_dense, pas), dim=1)
     else:
         actions = read_actions(action_names, batch["action"])
         pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
-        not_terminals = np.max(pnas, 1).astype(np.bool)
+        not_terminals = np.max(pnas, 1).astype(np.float32).reshape(-1, 1)
+        pnas = torch.from_numpy(pnas)
+        not_terminals = torch.from_numpy(not_terminals)
         pnas_lens, possible_next_state_actions = None, None
         pas, pas_lens, possible_state_actions = None, None, None
     if "propensity" in batch:
-        propensities = np.array(batch["propensity"], dtype=np.float32)
+        propensities = torch.tensor(batch["propensity"], dtype=torch.float32).reshape(
+            -1, 1
+        )
     else:
-        propensities = np.ones(shape=rewards.shape, dtype=np.float32)
+        propensities = torch.ones(rewards.shape, dtype=torch.float32)
 
     return TrainingDataPage(
         mdp_ids=mdp_ids,
@@ -192,5 +206,5 @@ def preprocess_batch_for_training(
         not_terminals=not_terminals,
         time_diffs=time_diffs,
         state_pas_concat=possible_state_actions,
-        next_state_pnas_concat=possible_next_state_actions,
+        possible_next_actions_state_concat=possible_next_state_actions,
     )

@@ -64,7 +64,7 @@ class TestGridworld(unittest.TestCase):
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldEnum()
-        samples = environment.generate_samples(500000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         evaluator = GridworldEvaluator(environment, False, DISCOUNT, False, samples)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
@@ -79,8 +79,6 @@ class TestGridworld(unittest.TestCase):
         self.assertGreater(evaluator.mc_loss[-1], 0.12)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp)
 
         predictor = trainer.predictor()
@@ -94,21 +92,17 @@ class TestGridworld(unittest.TestCase):
 
     def test_evaluator_ground_truth(self):
         environment = Gridworld()
-        samples = environment.generate_samples(500000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
         # Hijack the reward timeline to insert the ground truth
-        samples.reward_timelines = []
-        for tv in true_values:
-            samples.reward_timelines.append({0: tv})
+        samples.episode_values = true_values
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(environment.ACTIONS, 10, DISCOUNT, None, None)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp, evaluator)
 
         self.assertLess(evaluator.mc_loss[-1], 0.1)
@@ -118,7 +112,7 @@ class TestGridworld(unittest.TestCase):
         reward_boost = {"L": 100, "R": 200, "U": 300, "D": 400}
         trainer = self.get_sarsa_trainer_reward_boost(environment, reward_boost)
         predictor = trainer.predictor()
-        samples = environment.generate_samples(500000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         rewards_update = []
         for action, reward in zip(samples.actions, samples.rewards):
             rewards_update.append(reward - reward_boost[action])
@@ -140,8 +134,6 @@ class TestGridworld(unittest.TestCase):
         self.assertGreater(evaluator.mc_loss[-1], 0.12)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp, None)
 
         predictor = trainer.predictor()

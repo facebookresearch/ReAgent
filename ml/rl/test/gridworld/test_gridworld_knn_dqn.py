@@ -57,7 +57,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_knn_dqn_trainer(self):
         environment = Gridworld()
-        samples = environment.generate_samples(200000, 1.0)
+        samples = environment.generate_samples(200000, 1.0, DISCOUNT)
         evaluator = GridworldEvaluator(environment, False, DISCOUNT, False, samples)
 
         parameters = self.get_parameters(environment)

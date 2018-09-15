@@ -28,9 +28,9 @@ class GridworldEnum(Gridworld):
             )
         }
 
-    def generate_samples(self, num_transitions, epsilon, with_possible=True) -> Samples:
+    def generate_samples(self, num_transitions, epsilon, discount_factor) -> Samples:
         samples = Gridworld.generate_samples(
-            self, num_transitions, epsilon, with_possible
+            self, num_transitions, epsilon, discount_factor
         )
         enum_states = []
         for state in samples.states:
@@ -50,7 +50,7 @@ class GridworldEnum(Gridworld):
             next_actions=samples.next_actions,
             terminals=samples.terminals,
             possible_next_actions=samples.possible_next_actions,
-            reward_timelines=samples.reward_timelines,
+            episode_values=samples.episode_values,
         )
 
     def true_values_for_sample(self, enum_states, actions, assume_optimal_policy: bool):

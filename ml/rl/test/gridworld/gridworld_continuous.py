@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 
+import logging
 from typing import List
 
-import numpy as np
 import torch
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedArray, StackedAssociativeArray
@@ -12,6 +12,9 @@ from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase, Samples
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
+
+
+logger = logging.getLogger(__name__)
 
 
 class GridworldContinuous(GridworldBase):
@@ -54,9 +57,9 @@ class GridworldContinuous(GridworldBase):
     def features_to_state(self, state):
         return list(state.keys())[0]
 
-    def generate_samples(self, num_transitions, epsilon, with_possible=True) -> Samples:
+    def generate_samples(self, num_transitions, epsilon, discount_factor) -> Samples:
         samples = self.generate_samples_discrete(
-            num_transitions, epsilon, with_possible
+            num_transitions, epsilon, discount_factor
         )
         continuous_actions = [self.action_to_features(a) for a in samples.actions]
         continuous_next_actions = [
@@ -92,14 +95,16 @@ class GridworldContinuous(GridworldBase):
             next_actions=continuous_next_actions,
             terminals=samples.terminals,
             possible_next_actions=continuous_possible_next_actions,
-            reward_timelines=samples.reward_timelines,
+            episode_values=samples.episode_values,
         )
 
     def preprocess_samples(
         self, samples: Samples, minibatch_size: int
     ) -> List[TrainingDataPage]:
+        logger.info("Shuffling...")
         samples.shuffle()
 
+        logger.info("Sparse2Dense...")
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
         preprocessor = PreprocessorNet(True)
@@ -149,8 +154,10 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
-        propensities = np.array(samples.propensities, dtype=np.float32).reshape(-1, 1)
-        rewards = np.array(samples.rewards, dtype=np.float32).reshape(-1, 1)
+        propensities = torch.tensor(samples.propensities, dtype=torch.float32).reshape(
+            -1, 1
+        )
+        rewards = torch.tensor(samples.rewards, dtype=torch.float32).reshape(-1, 1)
 
         pnas_lengths_list = []
         pnas_flat: List[List[str]] = []
@@ -159,9 +166,9 @@ class GridworldContinuous(GridworldBase):
             pnas_flat.extend(pnas)
         saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
 
-        pnas_lengths = np.array(pnas_lengths_list, dtype=np.int32)
+        pnas_lengths = torch.tensor(pnas_lengths_list, dtype=torch.int32)
         pna_lens_blob = "pna_lens_blob"
-        workspace.FeedBlob(pna_lens_blob, pnas_lengths)
+        workspace.FeedBlob(pna_lens_blob, pnas_lengths.numpy())
 
         possible_next_actions_matrix, _ = preprocessor.normalize_sparse_matrix(
             saa.lengths,
@@ -178,20 +185,21 @@ class GridworldContinuous(GridworldBase):
 
         workspace.RunNetOnce(net)
 
+        logger.info("Preprocessing...")
         state_preprocessor = Preprocessor(self.normalization, False)
         action_preprocessor = Preprocessor(self.normalization_action, False)
 
         states_ndarray = workspace.FetchBlob(state_matrix)
-        states_ndarray = state_preprocessor.forward(states_ndarray).numpy()
+        states_ndarray = state_preprocessor.forward(states_ndarray)
 
         actions_ndarray = workspace.FetchBlob(action_matrix)
-        actions_ndarray = action_preprocessor.forward(actions_ndarray).numpy()
+        actions_ndarray = action_preprocessor.forward(actions_ndarray)
 
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
-        next_states_ndarray = state_preprocessor.forward(next_states_ndarray).numpy()
+        next_states_ndarray = state_preprocessor.forward(next_states_ndarray)
 
         next_actions_ndarray = workspace.FetchBlob(next_action_matrix)
-        next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray).numpy()
+        next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray)
 
         logged_possible_next_actions = action_preprocessor.forward(
             workspace.FetchBlob(possible_next_actions_matrix)
@@ -204,25 +212,24 @@ class GridworldContinuous(GridworldBase):
             (state_pnas_tile, logged_possible_next_actions), dim=1
         )
 
-        possible_next_actions_ndarray = logged_possible_next_actions.cpu().numpy()
-        next_state_pnas_concat = logged_possible_next_state_actions.cpu().numpy()
-        time_diffs = np.ones(len(states_ndarray))
-        episode_values = None
-        if samples.reward_timelines is not None:
-            episode_values = np.zeros(rewards.shape, dtype=np.float32)
-            for i, reward_timeline in enumerate(samples.reward_timelines):
-                for time_diff, reward in reward_timeline.items():
-                    episode_values[i, 0] += reward * (DISCOUNT ** time_diff)
+        logger.info("Reward Timeline to Torch...")
+        possible_next_actions_ndarray = logged_possible_next_actions
+        possible_next_actions_state_concat = logged_possible_next_state_actions
+        time_diffs = torch.ones([len(samples.states), 1])
+        episode_values = torch.tensor(
+            samples.episode_values, dtype=torch.float32
+        ).reshape(-1, 1)
 
         tdps = []
         pnas_start = 0
+        logger.info("Batching...")
         for start in range(0, states_ndarray.shape[0], minibatch_size):
             end = start + minibatch_size
             if end > states_ndarray.shape[0]:
                 break
-            pnas_end = pnas_start + np.sum(pnas_lengths[start:end])
+            pnas_end = pnas_start + torch.sum(pnas_lengths[start:end])
             pnas = possible_next_actions_ndarray[pnas_start:pnas_end]
-            pnas_concat = next_state_pnas_concat[pnas_start:pnas_end]
+            pnas_concat = possible_next_actions_state_concat[pnas_start:pnas_end]
             pnas_start = pnas_end
             tdps.append(
                 TrainingDataPage(
@@ -232,14 +239,14 @@ class GridworldContinuous(GridworldBase):
                     rewards=rewards[start:end],
                     next_states=next_states_ndarray[start:end],
                     next_actions=next_actions_ndarray[start:end],
-                    possible_next_actions=StackedArray(pnas_lengths[start:end], pnas),
+                    possible_next_actions=None,
                     not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
                     episode_values=episode_values[start:end]
                     if episode_values is not None
                     else None,
                     time_diffs=time_diffs[start:end],
                     possible_next_actions_lengths=pnas_lengths[start:end],
-                    next_state_pnas_concat=pnas_concat,
+                    possible_next_actions_state_concat=pnas_concat,
                 )
             )
         return tdps

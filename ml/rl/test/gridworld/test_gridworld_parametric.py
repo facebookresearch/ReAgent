@@ -23,7 +23,7 @@ from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
-class TestGridworldContinuous(unittest.TestCase):
+class TestGridworldParametric(unittest.TestCase):
     def setUp(self):
         self.minibatch_size = 4096
         super(self.__class__, self).setUp()
@@ -92,7 +92,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(300000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(
@@ -101,8 +101,6 @@ class TestGridworldContinuous(unittest.TestCase):
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp)
 
         predictor = trainer.predictor()
@@ -112,7 +110,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_factorized(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(300000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
@@ -123,8 +121,6 @@ class TestGridworldContinuous(unittest.TestCase):
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp)
 
         predictor = trainer.predictor()
@@ -134,7 +130,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(300000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(
@@ -143,8 +139,6 @@ class TestGridworldContinuous(unittest.TestCase):
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp)
 
         predictor = trainer.predictor()
@@ -154,7 +148,7 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_trainer_sarsa_enum_factorized(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(300000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
@@ -165,8 +159,6 @@ class TestGridworldContinuous(unittest.TestCase):
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp)
 
         predictor = trainer.predictor()
@@ -176,35 +168,28 @@ class TestGridworldContinuous(unittest.TestCase):
 
     def test_evaluator_ground_truth(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(300000, 1.0)
-        true_values = environment.true_values_for_sample(
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        # Hijack the reward timeline to insert the ground truth
+        samples.episode_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
-        # Hijack the reward timeline to insert the ground truth
-        samples.reward_timelines = []
-        for tv in true_values:
-            samples.reward_timelines.append({0: tv})
         trainer = self.get_sarsa_trainer(environment)
         evaluator = Evaluator(None, 10, DISCOUNT, None, None)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp, evaluator)
 
         self.assertLess(evaluator.mc_loss[-1], 0.15)
 
     def test_evaluator_ground_truth_factorized(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(300000, 1.0)
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
         # Hijack the reward timeline to insert the ground truth
-        samples.reward_timelines = []
-        for tv in true_values:
-            samples.reward_timelines.append({0: tv})
+        samples.episode_values = true_values
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
@@ -212,8 +197,6 @@ class TestGridworldContinuous(unittest.TestCase):
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
             trainer.train(tdp, evaluator)
 
         self.assertLess(evaluator.mc_loss[-1], 0.15)

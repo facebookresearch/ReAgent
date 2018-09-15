@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+from typing import Optional
+
+import numpy as np
+import torch
+
 
 class TrainingDataPage(object):
     __slots__ = [
@@ -19,28 +24,28 @@ class TrainingDataPage(object):
         "episode_values",
         "not_terminals",
         "time_diffs",
-        "next_state_pnas_concat",
+        "possible_next_actions_state_concat",
     ]
 
     def __init__(
         self,
-        mdp_ids=None,
-        sequence_numbers=None,
-        states=None,
-        actions=None,
-        propensities=None,
-        rewards=None,
-        possible_actions=None,
-        possible_actions_lengths=None,
-        state_pas_concat=None,
-        next_states=None,
-        next_actions=None,
-        possible_next_actions=None,
-        episode_values=None,
-        not_terminals=None,
-        time_diffs=None,
-        possible_next_actions_lengths=None,
-        next_state_pnas_concat=None,
+        mdp_ids: Optional[np.ndarray] = None,
+        sequence_numbers: Optional[torch.Tensor] = None,
+        states: Optional[torch.Tensor] = None,
+        actions: Optional[torch.Tensor] = None,
+        propensities: Optional[torch.Tensor] = None,
+        rewards: Optional[torch.Tensor] = None,
+        possible_actions: Optional[torch.Tensor] = None,
+        possible_actions_lengths: Optional[torch.Tensor] = None,
+        state_pas_concat: Optional[torch.Tensor] = None,
+        next_states: Optional[torch.Tensor] = None,
+        next_actions: Optional[torch.Tensor] = None,
+        possible_next_actions: Optional[torch.Tensor] = None,
+        episode_values: Optional[torch.Tensor] = None,
+        not_terminals: Optional[torch.Tensor] = None,
+        time_diffs: Optional[torch.Tensor] = None,
+        possible_next_actions_lengths: Optional[torch.Tensor] = None,
+        possible_next_actions_state_concat: Optional[torch.Tensor] = None,
     ) -> None:
         """
         Creates a TrainingDataPage object.
@@ -64,38 +69,24 @@ class TrainingDataPage(object):
         self.not_terminals = not_terminals
         self.time_diffs = time_diffs
         self.possible_next_actions_lengths = possible_next_actions_lengths
-        self.next_state_pnas_concat = next_state_pnas_concat
+        self.possible_next_actions_state_concat = possible_next_actions_state_concat
 
     def size(self) -> int:
         if self.states:
             return len(self.states)
         raise Exception("Cannot get size of TrainingDataPage missing states.")
 
-    def get_sub_page(self, start, end):
-        if isinstance(self.possible_next_actions, (list, tuple)):
-            assert len(self.possible_next_actions) == 2, "Invalid size for pna"
-            sub_pna = (
-                self.possible_next_actions[0][start:end],
-                self.possible_next_actions[1][start:end],
-            )
-        else:
-            sub_pna = (self.possible_next_actions[start:end],)
-
-        return TrainingDataPage(
-            self.mdp_ids[start:end],
-            self.sequence_numbers[start:end],
-            self.states[start:end],
-            self.actions[start:end],
-            self.propensities[start:end],
-            self.rewards[start:end],
-            self.next_states[start:end],
-            None if self.next_actions is None else self.next_actions[start:end],
-            None if self.possible_next_actions is None else sub_pna,
-            None if self.episode_values is None else self.episode_values[start:end],
-            None if self.not_terminals is None else self.not_terminals[start:end],
-            None if self.time_diffs is None else self.time_diffs[start:end],
-            None
-            if self.possible_next_actions_lengths is None
-            else self.possible_next_actions_lengths[start:end],
-            self.next_state_pnas_concat[start:end],
-        )
+    def set_type(self, dtype):
+        # TODO: Clean this up in a future diff.  Figure out which should be long/float
+        for x in TrainingDataPage.__slots__:
+            if x == "mdp_ids":
+                continue  # Torch does not support tensors of strings
+            t = getattr(self, x)
+            if t is not None:
+                assert isinstance(t, torch.Tensor), (
+                    x + " is not a torch tensor (is " + str(type(t)) + ")"
+                )
+                if x == "possible_next_actions_lengths":
+                    setattr(self, x, t.type(dtype).long())
+                else:
+                    setattr(self, x, t.type(dtype))

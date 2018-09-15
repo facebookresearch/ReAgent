@@ -99,21 +99,19 @@ class KNNDQNTrainer(RLTrainer):
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
+        training_samples.set_type(self.dtype)
 
         self.minibatch += 1
-        states = torch.from_numpy(training_samples.states).type(self.dtype)
-        actions = torch.from_numpy(training_samples.actions).type(self.dtypelong)
-        # As far as ddpg is concerned all actions are [-1, 1] due to actor tanh
+        states = training_samples.states
+        actions = training_samples.actions.long()
 
-        rewards = torch.from_numpy(training_samples.rewards).type(self.dtype)
-        next_states = torch.from_numpy(training_samples.next_states).type(self.dtype)
-        time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
+        rewards = training_samples.rewards
+        next_states = training_samples.next_states
+        time_diffs = training_samples.time_diffs
         discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
             self.dtype
         )
-        not_done_mask = Variable(
-            torch.from_numpy(training_samples.not_terminals.astype(int))
-        ).type(self.dtype)
+        not_done_mask = torch.tensor(training_samples.not_terminals, requires_grad=True)
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2

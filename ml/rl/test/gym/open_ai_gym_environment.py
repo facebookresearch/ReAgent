@@ -13,8 +13,6 @@ from ml.rl.test.utils import default_normalizer
 
 
 class ModelType(enum.Enum):
-    DISCRETE_ACTION = "discrete"
-    PARAMETRIC_ACTION = "parametric"
     CONTINUOUS_ACTION = "continuous"
     PYTORCH_DISCRETE_DQN = "pytorch_discrete_dqn"
     PYTORCH_PARAMETRIC_DQN = "pytorch_parametric_dqn"

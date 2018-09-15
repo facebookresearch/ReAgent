@@ -8,9 +8,9 @@ from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class Gridworld(GridworldBase):
-    def generate_samples(self, num_transitions, epsilon, with_possible=True) -> Samples:
+    def generate_samples(self, num_transitions, epsilon, discount_factor) -> Samples:
         samples = self.generate_samples_discrete(
-            num_transitions, epsilon, with_possible
+            num_transitions, epsilon, discount_factor
         )
         return samples
 

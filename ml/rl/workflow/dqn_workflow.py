@@ -104,21 +104,19 @@ def train_network(params):
             trainer.train(tdp)
 
             trainer.evaluate(
-                evaluator,
-                tdp.actions,
-                None,
-                np.expand_dims(tdp.rewards, axis=1),
-                np.expand_dims(tdp.episode_values, axis=1),
+                evaluator, tdp.actions, None, tdp.rewards, tdp.episode_values
             )
 
             evaluator.collect_discrete_action_samples(
                 mdp_ids=tdp.mdp_ids,
-                sequence_numbers=tdp.sequence_numbers,
+                sequence_numbers=tdp.sequence_numbers.cpu().numpy(),
                 states=tdp.states.cpu().numpy(),
-                logged_actions=tdp.actions,
-                logged_rewards=tdp.rewards,
-                logged_propensities=tdp.propensities,
-                logged_terminals=np.invert(tdp.not_terminals),
+                logged_actions=tdp.actions.cpu().numpy(),
+                logged_rewards=tdp.rewards.cpu().numpy(),
+                logged_propensities=tdp.propensities.cpu().numpy(),
+                logged_terminals=np.invert(
+                    tdp.not_terminals.cpu().numpy().astype(np.bool)
+                ),
             )
 
         cpe_start_time = time.time()

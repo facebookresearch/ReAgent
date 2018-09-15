@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 from copy import deepcopy
 from typing import Dict, Optional
 
@@ -25,7 +26,9 @@ from ml.rl.training.rl_trainer_pytorch import (
     RLTrainer,
 )
 from ml.rl.training.training_data_page import TrainingDataPage
-from torch.autograd import Variable
+
+
+logger = logging.getLogger(__name__)
 
 
 class ParametricDQNTrainer(RLTrainer):
@@ -136,24 +139,25 @@ class ParametricDQNTrainer(RLTrainer):
         col_idxs = arange_expand(pas_lens)
 
         dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
-        q_network_input = torch.from_numpy(state_pas_concats).type(self.dtype)
 
-        q_values = self.q_network(q_network_input).detach().squeeze()
+        q_values = self.q_network(state_pas_concats).detach().squeeze()
 
-        dense_dim = [len(pas_lens), max(pas_lens)]
+        dense_dim = [len(pas_lens), int(torch.max(pas_lens)[0])]
         # Add specific fingerprint to q-values so that after sparse -> dense we can
         # subtract the fingerprint to identify the 0's added in sparse -> dense
         q_values.add_(self.FINGERPRINT)
-        sparse_q = torch.sparse_coo_tensor(dense_idxs, q_values, dense_dim)
+        sparse_q = torch.sparse_coo_tensor(dense_idxs, q_values, size=dense_dim)
         dense_q = sparse_q.to_dense()
         dense_q.add_(self.FINGERPRINT * -1)
         dense_q[dense_q == self.FINGERPRINT * -1] = self.ACTION_NOT_POSSIBLE_VAL
 
-        return dense_q.cpu().numpy()
+        return dense_q
 
-    def get_max_q_values(self, next_state_pnas_concat, pnas_lens, double_q_learning):
+    def get_max_q_values(
+        self, possible_next_actions_state_concat, pnas_lens, double_q_learning
+    ):
         """
-        :param next_state_pnas_concat: Numpy array with shape
+        :param possible_next_actions_state_concat: Numpy array with shape
             (sum(pnas_lens), state_dim + action_dim). Each row
             contains a representation of a state + possible next action pair.
         :param pnas_lens: Numpy array that describes number of
@@ -165,10 +169,12 @@ class ParametricDQNTrainer(RLTrainer):
         col_idxs = arange_expand(pnas_lens)
 
         dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
-        if isinstance(next_state_pnas_concat, torch.Tensor):
-            q_network_input = next_state_pnas_concat
+        if isinstance(possible_next_actions_state_concat, torch.Tensor):
+            q_network_input = possible_next_actions_state_concat
         else:
-            q_network_input = torch.from_numpy(next_state_pnas_concat).type(self.dtype)
+            q_network_input = torch.from_numpy(possible_next_actions_state_concat).type(
+                self.dtype
+            )
 
         if double_q_learning:
             q_values = self.q_network(q_network_input).detach().squeeze()
@@ -195,54 +201,87 @@ class ParametricDQNTrainer(RLTrainer):
                 dense_q_values_target, 1, max_indexes.unsqueeze(1)
             )
 
-        return Variable(max_q_values.squeeze())
+        return torch.tensor(max_q_values.squeeze(), requires_grad=True)
 
     def get_next_action_q_values(self, state_action_pairs):
-        return Variable(self.q_network_target(state_action_pairs).detach().squeeze())
+        return self.q_network_target(state_action_pairs).detach()
 
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
+        training_samples.set_type(self.dtype)
+
+        if self.minibatch == 0:
+            # Assume that the tensors are the right shape after the first minibatch
+            assert training_samples.states.shape[0] == self.minibatch_size, (
+                "Invalid shape: " + str(training_samples.states.shape)
+            )
+            assert training_samples.actions.shape[0] == self.minibatch_size, (
+                "Invalid shape: " + str(training_samples.actions.shape)
+            )
+            assert training_samples.rewards.shape == torch.Size(
+                [self.minibatch_size, 1]
+            ), "Invalid shape: " + str(training_samples.rewards.shape)
+            assert (
+                training_samples.episode_values is None
+                or training_samples.episode_values.shape
+                == training_samples.rewards.shape
+            ), (
+                "Invalid shape: " + str(training_samples.episode_values.shape)
+            )
+            assert (
+                training_samples.next_states.shape == training_samples.states.shape
+            ), (
+                "Invalid shape: " + str(training_samples.next_states.shape)
+            )
+            assert (
+                training_samples.not_terminals.shape == training_samples.rewards.shape
+            ), (
+                "Invalid shape: " + str(training_samples.not_terminals.shape)
+            )
+            assert training_samples.possible_next_actions_state_concat.shape[1] == (
+                training_samples.states.shape[1] + training_samples.actions.shape[1]
+            ), (
+                "Invalid shape: "
+                + str(training_samples.possible_next_actions_state_concat.shape)
+            )
+            assert training_samples.possible_next_actions_lengths.shape == torch.Size(
+                [self.minibatch_size]
+            ), (
+                "Invalid shape: "
+                + str(training_samples.possible_next_actions_lengths.shape)
+            )
 
         self.minibatch += 1
 
-        if isinstance(training_samples.states, torch.Tensor):
-            states = training_samples.states.type(self.dtype)
-        else:
-            states = torch.from_numpy(training_samples.states).type(self.dtype)
-        states = Variable(states)
-
-        if isinstance(training_samples.actions, torch.Tensor):
-            actions = training_samples.actions.type(self.dtype)
-        else:
-            actions = torch.from_numpy(training_samples.actions).type(self.dtype)
-        actions = Variable(actions)
-
+        states = torch.tensor(training_samples.states, requires_grad=True)
+        actions = torch.tensor(training_samples.actions, requires_grad=True)
         state_action_pairs = torch.cat((states, actions), dim=1)
-        rewards = Variable(torch.from_numpy(training_samples.rewards).type(self.dtype))
-        time_diffs = torch.tensor(training_samples.time_diffs).type(self.dtype)
-        discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
-            self.dtype
-        )
-        not_done_mask = Variable(
-            torch.from_numpy(training_samples.not_terminals.astype(int))
+
+        rewards = torch.tensor(training_samples.rewards, requires_grad=True)
+        discount_tensor = torch.full(
+            training_samples.time_diffs.shape, self.gamma
         ).type(self.dtype)
+        not_done_mask = torch.tensor(training_samples.not_terminals, requires_grad=True)
 
         if self.use_seq_num_diff_as_time_diff:
-            discount_tensor = discount_tensor.pow(time_diffs)
+            discount_tensor = discount_tensor.pow(training_samples.time_diffs)
 
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
             next_q_values = self.get_max_q_values(
-                training_samples.next_state_pnas_concat,
+                training_samples.possible_next_actions_state_concat,
                 training_samples.possible_next_actions_lengths,
                 self.double_q_learning,
             )
         else:
             # SARSA
-            next_q_values = self.get_next_action_q_values(state_action_pairs)
+            next_state_action_pairs = torch.cat(
+                (training_samples.next_states, training_samples.next_actions), dim=1
+            )
+            next_q_values = self.get_next_action_q_values(next_state_action_pairs)
 
-        filtered_max_q_vals = next_q_values * not_done_mask
+        filtered_max_q_vals = next_q_values.reshape(-1, 1) * not_done_mask
 
         if self.use_reward_burnin and self.minibatch < self.reward_burnin:
             target_q_values = rewards
@@ -253,7 +292,7 @@ class ParametricDQNTrainer(RLTrainer):
         q_values = self.q_network(state_action_pairs)
         self.all_action_scores = deepcopy(q_values.detach())
 
-        value_loss = self.q_network_loss(q_values.squeeze(), target_q_values)
+        value_loss = self.q_network_loss(q_values, target_q_values)
         self.loss = value_loss.detach()
 
         self.q_network_optimizer.zero_grad()
@@ -270,7 +309,7 @@ class ParametricDQNTrainer(RLTrainer):
             self._soft_update(self.q_network, self.q_network_target, self.tau)
 
         # get reward estimates
-        reward_estimates = self.reward_network(state_action_pairs).squeeze()
+        reward_estimates = self.reward_network(state_action_pairs)
         reward_loss = F.mse_loss(reward_estimates, rewards)
         self.reward_network_optimizer.zero_grad()
         reward_loss.backward()
@@ -287,16 +326,16 @@ class ParametricDQNTrainer(RLTrainer):
     def evaluate(
         self,
         evaluator: Evaluator,
-        logged_actions: Optional[np.ndarray],
-        logged_propensities: Optional[np.ndarray],
-        logged_values: Optional[np.ndarray],
+        logged_actions: Optional[torch.Tensor],
+        logged_propensities: Optional[torch.Tensor],
+        logged_values: Optional[torch.Tensor],
     ):
         evaluator.report(
             self.loss.cpu().numpy(),
             None,
             None,
             None,
-            logged_values,
+            logged_values.cpu().numpy() if logged_values is not None else None,
             None,
             None,
             None,

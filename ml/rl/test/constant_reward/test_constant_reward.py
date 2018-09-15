@@ -52,7 +52,7 @@ class TestConstantReward(unittest.TestCase):
 
         logger.info("Generating constant_reward MDPs..")
 
-        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, reward_timelines = env.generate_samples_discrete(
+        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions, episode_values = env.generate_samples_discrete(
             self.num_samples
         )
 
@@ -66,7 +66,7 @@ class TestConstantReward(unittest.TestCase):
             next_actions,
             is_terminal,
             possible_next_actions,
-            reward_timelines,
+            episode_values,
             self.minibatch_size,
         )
 

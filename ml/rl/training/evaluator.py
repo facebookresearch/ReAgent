@@ -8,6 +8,7 @@ from typing import List, NamedTuple
 
 import numpy as np
 import scipy as sp
+import torch
 
 
 logger = logging.getLogger(__name__)
@@ -359,34 +360,57 @@ class Evaluator(object):
         self.unshuffled_logged_propensities = np.array(
             [x.propensity for x in self.unshuffled_samples]
         ).reshape(-1, 1)
-        self.unshuffled_terminals = np.array(
-            [x.terminal for x in self.unshuffled_samples]
-        ).reshape(-1, 1)
+        self.unshuffled_terminals = (
+            np.array([x.terminal for x in self.unshuffled_samples])
+            .astype(np.bool)
+            .reshape(-1, 1)
+        )
 
         if isinstance(self.unshuffled_samples[0], DiscreteActionSample):
-            unshuffled_states = np.array([x.state for x in self.unshuffled_samples])
-            self.unshuffled_estimated_q_values = self.model.calculate_q_values(
-                unshuffled_states
+            unshuffled_states = torch.tensor(
+                np.array([x.state for x in self.unshuffled_samples]),
+                dtype=torch.float32,
+            )
+            self.unshuffled_estimated_q_values = (
+                self.model.calculate_q_values(unshuffled_states).cpu().numpy()
             )
             self.unshuffled_actions = np.array(
                 [x.action for x in self.unshuffled_samples]
             )
         else:
-            unshuffled_possible_state_actions = np.array(
-                [sa for x in self.unshuffled_samples for sa in x.possible_state_actions]
+            unshuffled_possible_state_actions = torch.tensor(
+                np.array(
+                    [
+                        sa
+                        for x in self.unshuffled_samples
+                        for sa in x.possible_state_actions
+                    ]
+                )
             )
-            pas_lens = np.array(
-                [len(x.possible_state_actions) for x in self.unshuffled_samples]
+            pas_lens = torch.tensor(
+                np.array(
+                    [len(x.possible_state_actions) for x in self.unshuffled_samples]
+                ),
+                dtype=torch.int64,
             )
-            self.unshuffled_estimated_q_values = self.model.calculate_q_values(
-                unshuffled_possible_state_actions, pas_lens
+            self.unshuffled_estimated_q_values = (
+                self.model.calculate_q_values(
+                    unshuffled_possible_state_actions, pas_lens
+                )
+                .cpu()
+                .numpy()
             )
-            unshuffled_logged_state_actions = np.array(
-                [x.logged_state_action for x in self.unshuffled_samples]
+            unshuffled_logged_state_actions = torch.tensor(
+                np.array([x.logged_state_action for x in self.unshuffled_samples]),
+                dtype=torch.float32,
             )
-            q_value_for_logged_state_action = self.model.calculate_q_values(
-                unshuffled_logged_state_actions,
-                np.ones(shape=(len(unshuffled_logged_state_actions),), dtype=np.int64),
+            q_value_for_logged_state_action = (
+                self.model.calculate_q_values(
+                    unshuffled_logged_state_actions,
+                    torch.ones([unshuffled_logged_state_actions.shape[0]]),
+                )
+                .cpu()
+                .numpy()
             )
             self.unshuffled_actions = (
                 q_value_for_logged_state_action == self.unshuffled_estimated_q_values
@@ -413,6 +437,56 @@ class Evaluator(object):
             "CPE Evaluator after {} epoches".format(
                 len(self.value_sequential_doubly_robust) + 1
             )
+        )
+
+        assert len(self.unshuffled_actions.shape) == 2, "Invalid number of dimensions"
+        assert len(self.unshuffled_rewards.shape) == 2, "Invalid number of dimensions"
+        assert len(self.unshuffled_terminals.shape) == 2, "Invalid number of dimensions"
+        assert (
+            len(self.unshuffled_logged_propensities.shape) == 2
+        ), "Invalid number of dimensions"
+        assert (
+            len(self.unshuffled_target_propensities.shape) == 2
+        ), "Invalid number of dimensions"
+        assert (
+            len(self.unshuffled_estimated_q_values.shape) == 2
+        ), "Invalid number of dimensions"
+        assert (
+            len(self.unshuffled_logged_propensities.shape) == 2
+        ), "Invalid number of dimensions"
+
+        assert (
+            self.unshuffled_actions.shape[0] == self.unshuffled_rewards.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0] == self.unshuffled_terminals.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0]
+            == self.unshuffled_logged_propensities.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0]
+            == self.unshuffled_target_propensities.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0]
+            == self.unshuffled_estimated_q_values.shape[0]
+        ), "Mismatched minibatch size"
+
+        # [N,1]
+        assert self.unshuffled_rewards.shape[1] == 1
+        assert self.unshuffled_terminals.shape[1] == 1
+        assert self.unshuffled_logged_propensities.shape[1] == 1
+
+        # [N, Max_Num_Possible_actions]
+        assert (
+            self.unshuffled_target_propensities.shape[1]
+            == self.unshuffled_estimated_q_values.shape[1]
+        )
+        assert (
+            self.unshuffled_target_propensities.shape[1]
+            == self.unshuffled_actions.shape[1]
         )
 
         sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
@@ -630,10 +704,13 @@ class Evaluator(object):
                     )
                     episode_value *= self.gamma
                     episode_value += logged_rewards[j]
-                doubly_robusts.append(doubly_robust)
-                episode_values.append(episode_value)
+                if episode_value > 1e-6 or episode_value < -1e-6:
+                    doubly_robusts.append(doubly_robust)
+                    episode_values.append(episode_value)
                 last_episode_end = episode_end
             i += 1
+
+        assert len(episode_values) > 0, "Did not find any episode values"
 
         doubly_robusts = np.array(doubly_robusts)
         episode_values = np.array(episode_values)

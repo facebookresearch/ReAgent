@@ -2,18 +2,24 @@
 
 
 import collections
-import multiprocessing
+import itertools
+import logging
 import random
 from functools import partial
 from typing import Dict, List, Tuple
 
 import numpy as np
+import torch
+import torch.multiprocessing as multiprocessing
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
+
+
+logger = logging.getLogger(__name__)
 
 
 # Environment parameters
@@ -38,7 +44,7 @@ class Samples(object):
         "next_actions",
         "terminals",
         "possible_next_actions",
-        "reward_timelines",
+        "episode_values",
     ]
 
     def __init__(
@@ -54,7 +60,7 @@ class Samples(object):
         next_actions: List[str],
         terminals: List[bool],
         possible_next_actions: List[List[str]],
-        reward_timelines: List[Dict[int, float]],
+        episode_values: List[float],
     ) -> None:
         self.mdp_ids = mdp_ids
         self.sequence_numbers = sequence_numbers
@@ -67,11 +73,11 @@ class Samples(object):
         self.next_actions = next_actions
         self.terminals = terminals
         self.possible_next_actions = possible_next_actions
-        self.reward_timelines = reward_timelines
+        self.episode_values = episode_values
 
     def shuffle(self):
         # Shuffle
-        if self.reward_timelines is None:
+        if self.episode_values is None:
             merged = list(
                 zip(
                     self.mdp_ids,
@@ -115,7 +121,7 @@ class Samples(object):
                     self.next_actions,
                     self.terminals,
                     self.possible_next_actions,
-                    self.reward_timelines,
+                    self.episode_values,
                 )
             )
             random.shuffle(merged)
@@ -131,7 +137,7 @@ class Samples(object):
                 self.next_actions,
                 self.terminals,
                 self.possible_next_actions,
-                self.reward_timelines,
+                self.episode_values,
             ) = zip(*merged)
 
 
@@ -264,15 +270,10 @@ class GridworldBase(object):
         p = self.transition_probabilities(state, action)
         return int(np.random.choice(self.size, p=p))
 
-    def step(
-        self, action: str, with_possible=True
-    ) -> Tuple[int, float, bool, List[str]]:
+    def step(self, action: str) -> Tuple[int, float, bool, List[str]]:
         self._state = self._no_cheat_step(self._state, action)
         reward = self.reward(self._state)
-        if with_possible:
-            possible_next_action = self.possible_actions(self._state)
-        else:
-            possible_next_action = None
+        possible_next_action = self.possible_actions(self._state)
         return self._state, reward, self.is_terminal(self._state), possible_next_action
 
     def optimal_policy(self, state):
@@ -410,7 +411,7 @@ class GridworldBase(object):
         return np.array(results).reshape(-1, 1)
 
     def generate_samples_discrete(  # multiprocessing
-        self, num_transitions, epsilon, with_possible=True
+        self, num_transitions, epsilon, discount_factor
     ) -> Samples:
         NUM_PROCESSES = 8
         sub_transitions = int(num_transitions / NUM_PROCESSES)
@@ -419,7 +420,7 @@ class GridworldBase(object):
         func = partial(
             self.generate_samples_discrete_internal,
             epsilon=epsilon,
-            with_possible=with_possible,
+            discount_factor=discount_factor,
         )
         pool = multiprocessing.Pool(processes=NUM_PROCESSES)
         res = pool.map(func, list(zip(sub_transitions_map, seed)))
@@ -436,7 +437,7 @@ class GridworldBase(object):
             next_actions=[],
             terminals=[],
             possible_next_actions=[],
-            reward_timelines=[],
+            episode_values=[],
         )
         for s in res:
             merge.mdp_ids += s.mdp_ids
@@ -450,11 +451,11 @@ class GridworldBase(object):
             merge.next_actions += s.next_actions
             merge.terminals += s.terminals
             merge.possible_next_actions += s.possible_next_actions
-            merge.reward_timelines += s.reward_timelines
+            merge.episode_values += s.episode_values
         return merge
 
     def generate_samples_discrete_internal(
-        self, num_transitions_seed_pair, epsilon, with_possible=True
+        self, num_transitions_seed_pair, epsilon, discount_factor
     ) -> Samples:
         num_transitions = num_transitions_seed_pair[0]
         seed = num_transitions_seed_pair[1]
@@ -475,7 +476,7 @@ class GridworldBase(object):
         possible_next_actions: List[List[str]] = []
         transition = 0
         last_terminal = -1
-        reward_timelines = []
+        episode_values = []
         mdp_id = -1
         sequence_number = 0
         np.random.seed(seed)
@@ -494,12 +495,9 @@ class GridworldBase(object):
                 propensity = next_propensity
                 sequence_number += 1
 
-            if with_possible:
-                possible_action = self.possible_actions(state)
+            possible_action = self.possible_actions(state)
 
-            next_state, reward, terminal, possible_next_action = self.step(
-                action, with_possible
-            )
+            next_state, reward, terminal, possible_next_action = self.step(action)
             next_action, next_propensity = self.sample_policy(next_state, epsilon)
 
             mdp_ids.append(str(mdp_id))
@@ -514,14 +512,15 @@ class GridworldBase(object):
             terminals.append(terminal)
             possible_next_actions.append(possible_next_action)
             if not terminal:
-                reward_timelines.append({0: 0.0})
+                episode_values.append(0.0)
             else:
-                reward_timelines.append({0: 1.0})
+                episode_values.append(1.0)
                 i = 1
+                discounted_value = discount_factor
                 while transition - i > last_terminal:
-                    assert len(reward_timelines[transition - i]) == 1
-                    reward_timelines[transition - i][i] = 1.0
+                    episode_values[transition - i] += discounted_value
                     i += 1
+                    discounted_value *= discount_factor
                 last_terminal = transition
 
             state = next_state
@@ -538,13 +537,15 @@ class GridworldBase(object):
             next_actions=next_actions,
             terminals=terminals,
             possible_next_actions=possible_next_actions,
-            reward_timelines=reward_timelines,
+            episode_values=episode_values,
         )
 
     def preprocess_samples_discrete(
         self, samples: Samples, minibatch_size: int, one_hot_action: bool = True
     ) -> List[TrainingDataPage]:
+        logger.info("Shuffling...")
         samples.shuffle()
+        logger.info("Preprocessing...")
 
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
@@ -572,50 +573,54 @@ class GridworldBase(object):
             False,
         )
         workspace.RunNetOnce(net)
-        actions_one_hot = np.zeros(
-            [len(samples.actions), len(self.ACTIONS)], dtype=np.float32
-        )
-        for i, action in enumerate(samples.actions):
-            actions_one_hot[i, self.action_to_index(action)] = 1
-        actions = np.array(
-            [self.action_to_index(action) for action in samples.actions], dtype=np.int64
-        )
-        rewards = np.array(samples.rewards, dtype=np.float32).reshape(-1, 1)
-        propensities = np.array(samples.propensities, dtype=np.float32).reshape(-1, 1)
-        next_actions_one_hot = np.zeros(
-            [len(samples.next_actions), len(self.ACTIONS)], dtype=np.float32
-        )
-        for i, action in enumerate(samples.next_actions):
-            if action == "":
-                continue
-            next_actions_one_hot[i, self.action_to_index(action)] = 1
-        possible_next_actions_mask = []
-        for pna in samples.possible_next_actions:
-            pna_mask = [0] * self.num_actions
-            for action in pna:
-                pna_mask[self.action_to_index(action)] = 1
-            possible_next_actions_mask.append(pna_mask)
-        possible_next_actions_mask = np.array(
-            possible_next_actions_mask, dtype=np.float32
-        )
-        terminals = np.array(samples.terminals, dtype=np.bool).reshape(-1, 1)
-        not_terminals = np.logical_not(terminals)
-        episode_values = None
-        if samples.reward_timelines is not None:
-            episode_values = np.zeros(rewards.shape, dtype=np.float32)
-            for i, reward_timeline in enumerate(samples.reward_timelines):
-                for time_diff, reward in reward_timeline.items():
-                    episode_values[i, 0] += reward * (DISCOUNT ** time_diff)
 
+        logger.info("Converting to Torch...")
+        actions_one_hot = torch.tensor(
+            (np.array(samples.actions).reshape(-1, 1) == np.array(self.ACTIONS)).astype(
+                np.int64
+            )
+        )
+        actions = actions_one_hot.argmax(dim=1, keepdim=True)
+        rewards = torch.tensor(samples.rewards, dtype=torch.float32).reshape(-1, 1)
+        propensities = torch.tensor(samples.propensities, dtype=torch.float32).reshape(
+            -1, 1
+        )
+        next_actions_one_hot = torch.tensor(
+            (
+                np.array(samples.next_actions).reshape(-1, 1) == np.array(self.ACTIONS)
+            ).astype(np.int64)
+        )
+        logger.info("Converting PNA to Torch...")
+        possible_next_action_strings = np.array(
+            list(itertools.zip_longest(*samples.possible_next_actions, fillvalue=""))
+        ).T
+        possible_next_actions_mask = torch.zeros(
+            [len(samples.next_actions), len(self.ACTIONS)]
+        )
+        for i, action in enumerate(self.ACTIONS):
+            possible_next_actions_mask[:, i] = torch.tensor(
+                np.max(possible_next_action_strings == action, axis=1).astype(np.int64)
+            )
+        terminals = torch.tensor(samples.terminals, dtype=torch.int32).reshape(-1, 1)
+        not_terminals = 1 - terminals
+        episode_values = None
+        logger.info("Converting RT to Torch...")
+        episode_values = torch.tensor(
+            samples.episode_values, dtype=torch.float32
+        ).reshape(-1, 1)
+
+        time_diffs = torch.ones([len(samples.states), 1])
+
+        logger.info("Preprocessing...")
         preprocessor = Preprocessor(self.normalization, False)
 
         states_ndarray = workspace.FetchBlob(state_matrix)
-        states_ndarray = preprocessor.forward(states_ndarray).numpy()
+        states_ndarray = preprocessor.forward(states_ndarray)
 
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
-        next_states_ndarray = preprocessor.forward(next_states_ndarray).numpy()
+        next_states_ndarray = preprocessor.forward(next_states_ndarray)
 
-        time_diffs = np.ones(len(states_ndarray))
+        logger.info("Batching...")
         tdps = []
         for start in range(0, states_ndarray.shape[0], minibatch_size):
             end = start + minibatch_size
@@ -641,7 +646,7 @@ class GridworldBase(object):
             )
         return tdps
 
-    def generate_samples(self, num_transitions, epsilon, with_possible=True):
+    def generate_samples(self, num_transitions, epsilon, discount_factor):
         raise NotImplementedError()
 
     def preprocess_samples(self, samples, minibatch_size):

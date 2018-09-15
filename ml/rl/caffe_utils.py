@@ -200,12 +200,10 @@ class PytorchCaffe2Converter(object):
 
         if float_input:
             dtype = torch.cuda.FloatTensor if model_on_gpu else torch.FloatTensor
-            dummy_input = torch.autograd.Variable(torch.randn(1, input_dim).type(dtype))
+            dummy_input = torch.randn(1, input_dim).type(dtype)
         else:
             dtype = torch.cuda.LongTensor if model_on_gpu else torch.LongTensor
-            dummy_input = torch.autograd.Variable(
-                torch.randint(low=0, high=1, size=(1, input_dim)).type(dtype)
-            )
+            dummy_input = torch.randint(low=0, high=1, size=(1, input_dim)).type(dtype)
 
         write_buffer = BytesIO()
         torch.onnx.export(pytorch_net, dummy_input, write_buffer)
@@ -276,17 +274,18 @@ def arange_expand(lens_array):
         lens_array: [0, 2, 1, 0, 2]
         returns: [0, 1, 0, 0, 1]
     """
+    lens_array = lens_array.long()
     # Return empty np array if all 0s
     if lens_array.sum() == 0:
-        return np.array([])
+        return torch.tensor([])
     # Keep values that need to be expaned
     counts = lens_array[lens_array != 0]
     # Record indexes in final array where ranges start over
     counts_tmp = counts[:-1]
-    reset_index = np.cumsum(counts_tmp)
+    reset_index = torch.cumsum(counts_tmp, dim=0)
     # Init final array with 1s
-    incr = np.ones(counts.sum(), dtype=int)
+    incr = torch.ones(counts.sum())
     # First value in output array is always 0
     incr[0] = 0
-    incr[reset_index] = 1 - counts_tmp
-    return incr.cumsum()
+    incr[reset_index] = 1.0 - counts_tmp.float()
+    return incr.cumsum(dim=0)

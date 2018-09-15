@@ -90,7 +90,7 @@ class RLTrainer:
         """
         self.q_network.eval()
         with torch.no_grad():
-            input = Variable(torch.from_numpy(np.array(input)).type(self.dtype))
+            input = torch.from_numpy(np.array(input)).type(self.dtype)
             q_values = self.q_network(input)
         self.q_network.train()
         return q_values.cpu().data.numpy()
@@ -99,7 +99,7 @@ class RLTrainer:
         """ Reward-network forward pass for internal domains. """
         self.reward_network.eval()
         with torch.no_grad():
-            input = Variable(torch.from_numpy(np.array(input)).type(self.dtype))
+            input = torch.from_numpy(np.array(input)).type(self.dtype)
             reward_estimates = self.reward_network(input)
         self.reward_network.train()
         return reward_estimates.cpu().data.numpy()
@@ -152,7 +152,7 @@ class GenericFeedForwardNetwork(nn.Module):
         :param input tensor
         """
         if isinstance(input, np.ndarray):
-            input = Variable(torch.from_numpy(input))
+            input = torch.tensor(torch.from_numpy(input), requires_grad=True)
 
         x = input
         for i, activation in enumerate(self.activations):
@@ -209,7 +209,7 @@ class DuelingArchitectureQNetwork(nn.Module):
 
     def forward(self, input) -> torch.FloatTensor:
         if isinstance(input, np.ndarray):
-            input = Variable(torch.from_numpy(input))
+            input = torch.tensor(torch.from_numpy(input), requires_grad=True)
 
         state_dim = self.layers[0].in_features
         state = input[:, :state_dim]

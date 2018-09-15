@@ -107,9 +107,7 @@ def train_network(params):
 
             trainer.train(tdp)
 
-            trainer.evaluate(
-                evaluator, None, None, np.expand_dims(tdp.episode_values, axis=1)
-            )
+            trainer.evaluate(evaluator, None, None, tdp.episode_values)
             evaluator.collect_parametric_action_samples(
                 mdp_ids=tdp.mdp_ids,
                 sequence_numbers=tdp.sequence_numbers,
@@ -118,7 +116,7 @@ def train_network(params):
                 ),
                 logged_rewards=tdp.rewards,
                 logged_propensities=tdp.propensities,
-                logged_terminals=np.invert(tdp.not_terminals),
+                logged_terminals=(1.0 - tdp.not_terminals),
                 possible_state_actions=tdp.state_pas_concat.cpu().numpy(),
                 pas_lens=tdp.possible_actions_lengths,
             )
