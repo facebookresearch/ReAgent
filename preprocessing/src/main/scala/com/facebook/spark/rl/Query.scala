@@ -62,4 +62,28 @@ object Query {
     """).stripMargin
     return query
   }
+
+  def getContinuousQuery(config: QueryConfiguration): String = {
+    val rewardTimelineCol = if (config.useNonOrdinalRewardTimeline) {
+      "reward_timeline"
+    } else {
+      "reward_timeline_ordinal"
+    }
+
+    return s"""
+    SELECT
+      mdp_id,
+      sequence_number,
+      state_features,
+      action,
+      action_probability as propensity,
+      reward,
+      next_state_features,
+      next_action,
+      time_diff,
+      possible_actions,
+      possible_next_actions,
+      COMPUTE_EPISODE_VALUE(${config.discountFactor}, ${rewardTimelineCol}) as episode_value
+    """.stripMargin
+  }
 }

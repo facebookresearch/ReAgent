@@ -1,0 +1,15 @@
+{
+  "timeline": {
+    "startDs": "2018-09-12",
+    "endDs": "2018-09-12",
+    "addTerminalStateRow": false,
+    "actionDiscrete": false,
+    "inputTableName": "pendulum",
+    "outputTableName": "pendulum_training_data"
+  },
+  "query": {
+    "discountFactor": 0.9,
+    "tableSample": 0.5,
+    "useNonOrdinalRewardTimeline": false
+  }
+}
