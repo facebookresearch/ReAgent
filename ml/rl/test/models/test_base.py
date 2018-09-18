@@ -6,7 +6,7 @@ from io import BytesIO
 import onnx
 import torch
 from ml.rl.models.base import ModelBase
-from ml.rl.models.types import FeatureVector, StateAction
+from ml.rl.types import FeatureVector, StateAction
 
 
 class Model(ModelBase):

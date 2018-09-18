@@ -10,7 +10,7 @@ than dictionary; so, this should be good overall.
 
 """
 
-from typing import NamedTuple, Optional, Union
+from typing import Any, NamedTuple, Optional, Union
 
 import numpy as np
 import torch
@@ -63,14 +63,23 @@ class StatePossibleActions(NamedTuple):
 
 
 class MaxQLearningInput(NamedTuple):
-    state_action: StateAction
-    state_possible_actions: StatePossibleActions
+    state: State
+    action: Action
+    next_state: State
+    possible_next_actions: PossibleActions
     reward: ValueType
     is_terminal: ValueType
 
 
 class SARSAInput(NamedTuple):
-    state_action: StateAction
-    next_state_action: StateAction
+    state: State
+    action: Action
+    next_state: State
+    next_action: Action
     reward: ValueType
     is_terminal: ValueType
+
+
+class TrainingBatch(NamedTuple):
+    training_input: Union[MaxQLearningInput, SARSAInput]
+    extras: Any
