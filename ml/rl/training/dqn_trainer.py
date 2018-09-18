@@ -18,6 +18,7 @@ from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
     DuelingArchitectureQNetwork,
+    GenericConvNetwork,
     GenericFeedForwardNetwork,
     RLTrainer,
 )
@@ -65,18 +66,33 @@ class DQNTrainer(RLTrainer):
                 parameters.training.layers, parameters.training.activations
             )
         else:
-            self.q_network = GenericFeedForwardNetwork(
-                parameters.training.layers, parameters.training.activations
-            )
+            if parameters.training.cnn_parameters is None:
+                self.q_network = GenericFeedForwardNetwork(
+                    parameters.training.layers, parameters.training.activations
+                )
+            else:
+                self.q_network = GenericConvNetwork(
+                    parameters.training.cnn_parameters,
+                    parameters.training.layers,
+                    parameters.training.activations,
+                )
+
         self.q_network_target = deepcopy(self.q_network)
         self._set_optimizer(parameters.training.optimizer)
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(), lr=parameters.training.learning_rate
         )
 
-        self.reward_network = GenericFeedForwardNetwork(
-            parameters.training.layers, parameters.training.activations
-        )
+        if parameters.training.cnn_parameters is None:
+            self.reward_network = GenericFeedForwardNetwork(
+                parameters.training.layers, parameters.training.activations
+            )
+        else:
+            self.reward_network = GenericConvNetwork(
+                parameters.training.cnn_parameters,
+                parameters.training.layers,
+                parameters.training.activations,
+            )
         self.reward_network_optimizer = self.optimizer_func(
             self.reward_network.parameters(), lr=parameters.training.learning_rate
         )

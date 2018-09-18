@@ -22,6 +22,7 @@ from ml.rl.test.gym.open_ai_gym_environment import (
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 from ml.rl.test.utils import write_lists_to_csv
 from ml.rl.thrift.core.ttypes import (
+    CNNParameters,
     ContinuousActionModelParameters,
     DDPGModelParameters,
     DDPGNetworkParameters,
@@ -356,7 +357,7 @@ def run_gym(
     predictor = create_predictor(trainer, model_type, use_gpu)
 
     c2_device = core.DeviceOption(
-        caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, gpu_id
+        caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, int(gpu_id)
     )
     return train_sgd(
         c2_device,
@@ -385,6 +386,10 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             assert (
                 training_parameters.cnn_parameters is not None
             ), "Missing CNN parameters for image input"
+            if isinstance(training_parameters.cnn_parameters, dict):
+                training_parameters.cnn_parameters = CNNParameters(
+                    **training_parameters.cnn_parameters
+                )
             training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
             training_parameters.cnn_parameters.input_height = env.height
             training_parameters.cnn_parameters.input_width = env.width
