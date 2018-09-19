@@ -236,3 +236,89 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         )
 
         return FeatureExtractorNet(net, init_net)
+
+
+class PredictorFeatureExtractor(FeatureExtractorBase):
+    """
+    This class assumes that action is not in the input unless it's parametric
+    action.
+
+    The features (of both states & actions, if any) are expected to come in the
+    following blobs:
+    - input/float_features.keys
+    - input/float_features.values
+    - input/float_features.lengths
+
+    TODO: Support int features
+    """
+
+    def __init__(
+        self,
+        state_normalization_parameters: Dict[int, NormalizationParameters],
+        action_normalization_parameters: Optional[
+            Dict[int, NormalizationParameters]
+        ] = None,
+    ) -> None:
+        self.sorted_state_features, _ = sort_features_by_normalization(
+            state_normalization_parameters
+        )
+        if action_normalization_parameters:
+            self.sorted_action_features, _ = sort_features_by_normalization(
+                action_normalization_parameters
+            )
+        else:
+            self.sorted_action_features = None
+
+    def extract(self, ws, input_record, extract_record):
+        def fetch(b):
+            data = ws.fetch_blob(str(b()))
+            return torch.tensor(data)
+
+        state = mt.FeatureVector(float_features=fetch(extract_record.state))
+        if self.sorted_action_features is None:
+            action = None
+        else:
+            action = mt.FeatureVector(float_features=fetch(extract_record.action))
+        return mt.StateAction(state=state, action=action)
+
+    def create_net(self):
+        net = core.Net("feature_extractor")
+        init_net = core.Net("feature_extractor_init")
+        missing_scalar = self.create_const(init_net, "MISSING_SCALAR", MISSING_VALUE)
+
+        input_schema = schema.Struct(
+            (
+                "float_features",
+                schema.Map(
+                    keys=core.BlobReference("input/float_features.keys"),
+                    values=core.BlobReference("input/float_features.values"),
+                    lengths_blob=core.BlobReference("input/float_features.lengths"),
+                ),
+            )
+        )
+
+        input_record = net.set_input_record(input_schema)
+
+        state = self.extract_float_features(
+            net,
+            "state",
+            input_record.float_features,
+            self.sorted_state_features,
+            missing_scalar,
+        )
+
+        output_record = schema.Struct(("state", state))
+
+        if self.sorted_action_features:
+            action = self.extract_float_features(
+                net,
+                "action",
+                input_record.float_features,
+                self.sorted_action_features,
+                missing_scalar,
+            )
+            output_record += schema.Struct(("action", action))
+
+        net.set_output_record(output_record)
+
+        return FeatureExtractorNet(net, init_net)
