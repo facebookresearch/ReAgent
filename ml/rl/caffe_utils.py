@@ -284,8 +284,8 @@ def arange_expand(lens_array):
     counts_tmp = counts[:-1]
     reset_index = torch.cumsum(counts_tmp, dim=0)
     # Init final array with 1s
-    incr = torch.ones(counts.sum())
+    incr = torch.ones([counts.sum()]).type(counts_tmp.type())
     # First value in output array is always 0
     incr[0] = 0
-    incr[reset_index] = 1.0 - counts_tmp.float()
+    incr[reset_index] = 1 - counts_tmp
     return incr.cumsum(dim=0)

@@ -140,9 +140,9 @@ class ParametricDQNTrainer(RLTrainer):
 
         dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
 
-        q_values = self.q_network(state_pas_concats).detach().squeeze()
+        q_values = self.q_network(state_pas_concats).squeeze().detach()
 
-        dense_dim = [len(pas_lens), int(torch.max(pas_lens)[0])]
+        dense_dim = [len(pas_lens), int(torch.max(pas_lens))]
         # Add specific fingerprint to q-values so that after sparse -> dense we can
         # subtract the fingerprint to identify the 0's added in sparse -> dense
         q_values.add_(self.FINGERPRINT)
@@ -177,10 +177,10 @@ class ParametricDQNTrainer(RLTrainer):
             )
 
         if double_q_learning:
-            q_values = self.q_network(q_network_input).detach().squeeze()
-            q_values_target = self.q_network_target(q_network_input).detach().squeeze()
+            q_values = self.q_network(q_network_input).squeeze().detach()
+            q_values_target = self.q_network_target(q_network_input).squeeze().detach()
         else:
-            q_values = self.q_network_target(q_network_input).detach().squeeze()
+            q_values = self.q_network_target(q_network_input).squeeze().detach()
 
         dense_dim = [len(pnas_lens), max(pnas_lens)]
         # Add specific fingerprint to q-values so that after sparse -> dense we can
@@ -201,10 +201,10 @@ class ParametricDQNTrainer(RLTrainer):
                 dense_q_values_target, 1, max_indexes.unsqueeze(1)
             )
 
-        return torch.tensor(max_q_values.squeeze(), requires_grad=True)
+        return max_q_values.squeeze()
 
     def get_next_action_q_values(self, state_action_pairs):
-        return self.q_network_target(state_action_pairs).detach()
+        return self.q_network_target(state_action_pairs)
 
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
@@ -254,15 +254,15 @@ class ParametricDQNTrainer(RLTrainer):
 
         self.minibatch += 1
 
-        states = torch.tensor(training_samples.states, requires_grad=True)
-        actions = torch.tensor(training_samples.actions, requires_grad=True)
+        states = training_samples.states.detach().requires_grad_(True)
+        actions = training_samples.actions
         state_action_pairs = torch.cat((states, actions), dim=1)
 
-        rewards = torch.tensor(training_samples.rewards, requires_grad=True)
+        rewards = training_samples.rewards
         discount_tensor = torch.full(
             training_samples.time_diffs.shape, self.gamma
         ).type(self.dtype)
-        not_done_mask = torch.tensor(training_samples.not_terminals, requires_grad=True)
+        not_done_mask = training_samples.not_terminals
 
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(training_samples.time_diffs)
@@ -290,7 +290,7 @@ class ParametricDQNTrainer(RLTrainer):
 
         # Get Q-value of action taken
         q_values = self.q_network(state_action_pairs)
-        self.all_action_scores = deepcopy(q_values.detach())
+        self.all_action_scores = q_values.detach()
 
         value_loss = self.q_network_loss(q_values, target_q_values)
         self.loss = value_loss.detach()

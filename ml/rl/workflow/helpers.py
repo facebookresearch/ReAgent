@@ -112,8 +112,12 @@ def export_trainer_and_predictor(trainer, output_path):
     else:
         # Write models to file and return predictor
         output_path = os.path.expanduser(output_path)
-        pytorch_output_path = output_path + "trainer_{}.pt".format(export_time)
-        caffe2_output_path = output_path + "predictor_{}.c2".format(export_time)
+        pytorch_output_path = os.path.join(
+            output_path, "trainer_{}.pt".format(export_time)
+        )
+        caffe2_output_path = os.path.join(
+            output_path, "predictor_{}.c2".format(export_time)
+        )
         logger.info("Saving PyTorch trainer to {}".format(pytorch_output_path))
         save_model_to_file(trainer, pytorch_output_path)
         logger.info("Saving Caffe2 predictor to {}".format(caffe2_output_path))

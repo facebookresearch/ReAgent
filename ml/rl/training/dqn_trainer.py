@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 from copy import deepcopy
 from typing import Dict, Optional
 
@@ -23,7 +24,9 @@ from ml.rl.training.rl_trainer_pytorch import (
     RLTrainer,
 )
 from ml.rl.training.training_data_page import TrainingDataPage
-from torch.autograd import Variable
+
+
+logger = logging.getLogger(__name__)
 
 
 class DQNTrainer(RLTrainer):
@@ -127,18 +130,19 @@ class DQNTrainer(RLTrainer):
             impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
             q_values += impossible_action_penalty
             # Select max_q action after scoring with online network
-            max_q_values, max_indicies = torch.max(q_values, 1)
+            max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
             # Use q_values from target network for max_q action from online q_network
             # to decouble selection & scoring, preventing overestimation of q-values
-            q_values = torch.gather(q_values_target, 1, max_indicies.unsqueeze(1))
-            return torch.tensor(q_values.squeeze(), requires_grad=True)
+            q_values = torch.gather(q_values_target, 1, max_indicies)
+            logger.info(q_values.shape)
+            return q_values
         else:
             q_values = self.q_network_target(states).detach()
             # Set q-values of impossible actions to a very large negative number.
             inverse_pna = 1 - possible_actions
             impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
             q_values += impossible_action_penalty
-            return torch.tensor(torch.max(q_values, 1)[0], requires_grad=True)
+            return torch.max(q_values, dim=1, keepdim=True)[0]
 
     def get_next_action_q_values(self, states, next_actions):
         """
@@ -148,7 +152,7 @@ class DQNTrainer(RLTrainer):
         :param next_actions: Numpy array with shape (batch_size, action_dim).
         """
         q_values = self.q_network_target(states).detach()
-        return torch.sum(q_values * next_actions, 1)
+        return torch.sum(q_values * next_actions, dim=1, keepdim=True)
 
     def train(
         self, training_samples: TrainingDataPage, evaluator: Optional[Evaluator] = None
@@ -206,34 +210,30 @@ class DQNTrainer(RLTrainer):
         boosted_rewards = training_samples.rewards + reward_boosts
 
         self.minibatch += 1
-        states = torch.tensor(training_samples.states, requires_grad=True)
-        actions = torch.tensor(training_samples.actions, requires_grad=True)
-        rewards = torch.tensor(boosted_rewards, requires_grad=True)
-        next_states = torch.tensor(training_samples.next_states, requires_grad=True)
+        states = training_samples.states.detach().requires_grad_(True)
+        actions = training_samples.actions
+        rewards = boosted_rewards
+        next_states = training_samples.next_states
         discount_tensor = torch.full(
             training_samples.time_diffs.shape, self.gamma
         ).type(self.dtype)
-        not_done_mask = torch.tensor(training_samples.not_terminals, requires_grad=True)
+        not_done_mask = training_samples.not_terminals
 
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(training_samples.time_diffs)
 
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
-            possible_next_actions = torch.tensor(
-                training_samples.possible_next_actions, requires_grad=True
-            )
+            possible_next_actions = training_samples.possible_next_actions
             next_q_values = self.get_max_q_values(
                 next_states, possible_next_actions, self.double_q_learning
             )
         else:
             # SARSA
-            next_actions = torch.tensor(
-                training_samples.next_actions, requires_grad=True
-            )
+            next_actions = training_samples.next_actions
             next_q_values = self.get_next_action_q_values(next_states, next_actions)
 
-        filtered_next_q_vals = next_q_values.reshape(-1, 1) * not_done_mask
+        filtered_next_q_vals = next_q_values * not_done_mask
 
         if self.use_reward_burnin and self.minibatch < self.reward_burnin:
             target_q_values = rewards
@@ -245,6 +245,10 @@ class DQNTrainer(RLTrainer):
         self.all_action_scores = deepcopy(all_q_values.detach())
         q_values = torch.sum(all_q_values * actions, 1, keepdim=True)
 
+        logger.info(q_values.shape)
+        logger.info(target_q_values.shape)
+        logger.info(rewards.shape)
+        logger.info(next_q_values.shape)
         loss = self.q_network_loss(q_values, target_q_values)
         self.loss = loss.detach()
 

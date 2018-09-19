@@ -3,12 +3,14 @@
 import hashlib
 import itertools
 import logging
+import math
 from collections import Counter
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 import numpy as np
 import scipy as sp
 import torch
+from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -1021,6 +1023,37 @@ class Evaluator(object):
             target_propensity_trajectories,
             Q_value_trajectories,
         )
+
+    def log_to_tensorboard(self, writer: SummaryWriter, epoch: int) -> None:
+        def none_to_zero(x: Optional[float]) -> float:
+            if x is None or math.isnan(x):
+                return 0.0
+            return x
+
+        for name, value in [
+            ("data/td_loss", self.get_recent_td_loss()),
+            ("data/mc_loss", self.get_recent_mc_loss()),
+            ("Direct Method Reward", self.get_recent_reward_direct_method().normalized),
+            (
+                "IPS Reward",
+                self.get_recent_reward_inverse_propensity_score().normalized,
+            ),
+            ("Doubly Robust Reward", self.get_recent_reward_doubly_robust().normalized),
+            ("MAGIC Estimator", self.get_recent_value_magic_doubly_robust().normalized),
+            (
+                "Doubly Robust One Step",
+                self.get_recent_value_one_step_doubly_robust().normalized,
+            ),
+            (
+                "Weighted Doubly Robust",
+                self.get_recent_value_weighted_doubly_robust().normalized,
+            ),
+            (
+                "Sequential Doubly Robust",
+                self.get_recent_value_sequential_doubly_robust().normalized,
+            ),
+        ]:
+            writer.add_scalar(name, none_to_zero(value), epoch)
 
     @staticmethod
     def softmax(x, temperature):

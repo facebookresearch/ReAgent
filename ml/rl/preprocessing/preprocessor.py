@@ -260,7 +260,7 @@ class Preprocessor(Module):
         self._create_parameter(begin_index, "num_quantiles", num_quantiles)
 
         max_num_quantile_boundaries = int(
-            torch.max(torch.tensor([len(p.quantiles) for p in norm_params]))[0]
+            torch.max(torch.tensor([len(p.quantiles) for p in norm_params]))
         )
         B = max_num_quantile_boundaries
 
@@ -285,19 +285,8 @@ class Preprocessor(Module):
             min_quantile_boundaries[0, i] = min(p.quantiles)
 
         quantile_boundaries = quantile_boundaries.type(self.dtype)
-        assert quantile_boundaries.shape == torch.Size(
-            [1, F, B]
-        ), "Invalid shape: " + str(quantile_boundaries.shape)
-
         max_quantile_boundaries = max_quantile_boundaries.type(self.dtype)
-        assert max_quantile_boundaries.shape == torch.Size(
-            [1, F]
-        ), "Invalid shape: " + str(max_quantile_boundaries.shape)
-
         min_quantile_boundaries = min_quantile_boundaries.type(self.dtype)
-        assert min_quantile_boundaries.shape == torch.Size(
-            [1, F]
-        ), "Invalid shape: " + str(min_quantile_boundaries.shape)
 
         self._create_parameter(begin_index, "quantile_boundaries", quantile_boundaries)
         self._create_parameter(
@@ -332,22 +321,8 @@ class Preprocessor(Module):
         The input is a JxF matrix where J is the batch size and F is the # of features.
         """
 
-        J = input.shape[0]
-        F = input.shape[1]
-        assert input.shape[1] == len(
-            norm_params
-        ), "Mismatch between # features and # norms"
-
         # The number of quantiles is a 1xF matrix
         num_quantiles = self._fetch_parameter(begin_index, "num_quantiles")
-        assert num_quantiles.shape == torch.Size([1, F]), "Invalid shape: " + str(
-            num_quantiles.shape
-        )
-
-        max_num_quantile_boundaries = int(
-            torch.max(torch.tensor([len(p.quantiles) for p in norm_params]))[0]
-        )
-        B = max_num_quantile_boundaries
 
         quantile_boundaries = self._fetch_parameter(begin_index, "quantile_boundaries")
         max_quantile_boundaries = self._fetch_parameter(
@@ -365,53 +340,25 @@ class Preprocessor(Module):
         # repeat doesn't work yet, so * by a mask
         mask = self._fetch_parameter(begin_index, "quantile_boundary_mask")
         expanded_inputs = input.unsqueeze(2) * mask
-        assert expanded_inputs.shape == torch.Size([J, F, B]), "Invalid shape: " + str(
-            expanded_inputs.shape
-        )
 
         input_greater_than_or_equal_to = (
             expanded_inputs >= quantile_boundaries
         ).float()
-        assert input_greater_than_or_equal_to.shape == torch.Size(
-            [J, F, B]
-        ), "Invalid shape: " + str(input_greater_than_or_equal_to.shape)
 
         input_less_than = (expanded_inputs < quantile_boundaries).float()
-        assert input_less_than.shape == torch.Size([J, F, B]), "Invalid shape: " + str(
-            input_less_than.shape
-        )
-
         set_to_max = (input >= max_quantile_boundaries).float()
-        assert set_to_max.shape == torch.Size([J, F]), "Invalid shape: " + str(
-            set_to_max.shape
-        )
-
         set_to_min = (input <= min_quantile_boundaries).float()
-        assert set_to_min.shape == torch.Size([J, F]), "Invalid shape: " + str(
-            set_to_min.shape
-        )
-
         min_or_max = (set_to_min + set_to_max).float()
         interpolate = (min_or_max < self.one_hundredth_tensor).float()
-        assert interpolate.shape == torch.Size([J, F]), "Invalid shape: " + str(
-            interpolate.shape
-        )
-
         interpolate_left, _ = torch.max(
             (input_greater_than_or_equal_to * quantile_boundaries)
             + (input_less_than * self.min_tensor),
             dim=2,
         )
-        assert interpolate_left.shape == torch.Size([J, F]), "Invalid shape: " + str(
-            interpolate_left.shape
-        )
         interpolate_right, _ = torch.min(
             (input_less_than * quantile_boundaries)
             + (input_greater_than_or_equal_to * self.max_tensor),
             dim=2,
-        )
-        assert interpolate_right.shape == torch.Size([J, F]), "Invalid shape: " + str(
-            interpolate_right.shape
         )
 
         # This assumes that we need to interpolate and computes the value.
@@ -430,9 +377,6 @@ class Preprocessor(Module):
             )
             / num_quantiles
         ).float()
-        assert interpolated_values.shape == torch.Size([J, F]), "Invalid shape: " + str(
-            interpolated_values.shape
-        )
         return set_to_max + (interpolate * interpolated_values).float()
 
     def _create_parameters_ENUM(

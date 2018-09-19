@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 import sys
 import time
 
@@ -26,6 +27,7 @@ from ml.rl.workflow.training_data_reader import (
     preprocess_batch_for_training,
     read_norm_file,
 )
+from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,14 @@ DEFAULT_NUM_SAMPLES_FOR_CPE = 5000
 
 
 def train_network(params):
+    writer = None
+    if params["model_output_path"] is not None:
+        writer = SummaryWriter(
+            log_dir=os.path.join(
+                os.path.expanduser(params["model_output_path"]), "training_data"
+            )
+        )
+
     logger.info("Running DQN workflow with params:")
     logger.info(params)
 
@@ -80,7 +90,7 @@ def train_network(params):
     if trainer_params.in_training_cpe is not None:
         evaluator = Evaluator(
             trainer_params.actions,
-            100,
+            10,
             trainer_params.rl.gamma,
             trainer,
             trainer_params.in_training_cpe.mdp_sampled_rate,
@@ -88,16 +98,16 @@ def train_network(params):
     else:
         evaluator = Evaluator(
             trainer_params.actions,
-            100,
+            10,
             trainer_params.rl.gamma,
             trainer,
             float(DEFAULT_NUM_SAMPLES_FOR_CPE) / len(dataset),
         )
 
     start_time = time.time()
-    for epoch in range(params["epochs"]):
+    for epoch in range(int(params["epochs"])):
         for batch_idx in range(num_batches):
-            report_training_status(batch_idx, num_batches, epoch, params["epochs"])
+            report_training_status(batch_idx, num_batches, epoch, int(params["epochs"]))
             batch = dataset.read_batch(batch_idx)
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
 
@@ -122,15 +132,20 @@ def train_network(params):
         cpe_start_time = time.time()
         evaluator.recover_samples_to_be_unshuffled()
         evaluator.score_cpe()
+        if writer is not None:
+            evaluator.log_to_tensorboard(writer, epoch)
         evaluator.clear_collected_samples()
         logger.info(
             "CPE evaluation took {} seconds.".format(time.time() - cpe_start_time)
         )
 
-    through_put = (len(dataset) * params["epochs"]) / (time.time() - start_time)
+    through_put = (len(dataset) * int(params["epochs"])) / (time.time() - start_time)
     logger.info(
         "Training finished. Processed ~{} examples / s.".format(round(through_put))
     )
+
+    if writer is not None:
+        writer.close()
 
     return export_trainer_and_predictor(trainer, params["model_output_path"])
 

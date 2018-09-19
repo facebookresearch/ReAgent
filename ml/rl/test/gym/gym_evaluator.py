@@ -26,7 +26,7 @@ class GymEvaluator(Evaluator):
 
     def __init__(self, env, gamma, use_int_features: bool = False) -> None:
         # TODO: incorporate int features
-        super(GymEvaluator, self).__init__(None, 1, gamma, None, None)
+        super(GymEvaluator, self).__init__(None, 1, gamma, None, 0.1)
 
         self._env = env
         if self._env.action_type == EnvType.CONTINUOUS_ACTION:

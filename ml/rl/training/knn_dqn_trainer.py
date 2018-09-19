@@ -102,7 +102,7 @@ class KNNDQNTrainer(RLTrainer):
         training_samples.set_type(self.dtype)
 
         self.minibatch += 1
-        states = training_samples.states
+        states = torch.tensor(training_samples.states, requires_grad=True)
         actions = training_samples.actions.long()
 
         rewards = training_samples.rewards
@@ -111,7 +111,7 @@ class KNNDQNTrainer(RLTrainer):
         discount_tensor = torch.tensor(np.full(len(rewards), self.gamma)).type(
             self.dtype
         )
-        not_done_mask = torch.tensor(training_samples.not_terminals, requires_grad=True)
+        not_done_mask = training_samples.not_terminals
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2

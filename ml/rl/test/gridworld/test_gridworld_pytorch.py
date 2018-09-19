@@ -31,10 +31,10 @@ class TestGridworld(unittest.TestCase):
         self.minibatch_size = 4096
         super(self.__class__, self).setUp()
 
-    def get_sarsa_trainer(self, environment):
-        return self.get_sarsa_trainer_reward_boost(environment, {})
+    def get_sarsa_trainer(self, environment, dueling):
+        return self.get_sarsa_trainer_reward_boost(environment, {}, dueling)
 
-    def get_sarsa_trainer_reward_boost(self, environment, reward_shape):
+    def get_sarsa_trainer_reward_boost(self, environment, reward_shape, dueling):
         rl_parameters = RLParameters(
             gamma=DISCOUNT,
             target_update_rate=1.0,
@@ -43,8 +43,8 @@ class TestGridworld(unittest.TestCase):
             reward_boost=reward_shape,
         )
         training_parameters = TrainingParameters(
-            layers=[-1, -1],
-            activations=["linear"],
+            layers=[-1, 128, -1] if dueling else [-1, -1],
+            activations=["relu", "linear"] if dueling else ["linear"],
             minibatch_size=self.minibatch_size,
             learning_rate=0.125,
             optimizer="ADAM",
@@ -55,7 +55,7 @@ class TestGridworld(unittest.TestCase):
                 rl=rl_parameters,
                 training=training_parameters,
                 rainbow=RainbowDQNParameters(
-                    double_q_learning=True, dueling_architecture=False
+                    double_q_learning=True, dueling_architecture=dueling
                 ),
                 in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
             ),
@@ -66,7 +66,7 @@ class TestGridworld(unittest.TestCase):
         environment = GridworldEnum()
         samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         evaluator = GridworldEvaluator(environment, False, DISCOUNT, False, samples)
-        trainer = self.get_sarsa_trainer(environment)
+        trainer = self.get_sarsa_trainer(environment, False)
         predictor = trainer.predictor()
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
@@ -90,7 +90,7 @@ class TestGridworld(unittest.TestCase):
         )
         self.assertLess(evaluator.mc_loss[-1], 0.1)
 
-    def test_evaluator_ground_truth(self):
+    def test_evaluator_ground_truth_no_dueling(self):
         environment = Gridworld()
         samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         true_values = environment.true_values_for_sample(
@@ -98,7 +98,24 @@ class TestGridworld(unittest.TestCase):
         )
         # Hijack the reward timeline to insert the ground truth
         samples.episode_values = true_values
-        trainer = self.get_sarsa_trainer(environment)
+        trainer = self.get_sarsa_trainer(environment, False)
+        evaluator = Evaluator(environment.ACTIONS, 10, DISCOUNT, None, None)
+        tdps = environment.preprocess_samples(samples, self.minibatch_size)
+
+        for tdp in tdps:
+            trainer.train(tdp, evaluator)
+
+        self.assertLess(evaluator.mc_loss[-1], 0.1)
+
+    def test_evaluator_ground_truth_dueling(self):
+        environment = Gridworld()
+        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        true_values = environment.true_values_for_sample(
+            samples.states, samples.actions, False
+        )
+        # Hijack the reward timeline to insert the ground truth
+        samples.episode_values = true_values
+        trainer = self.get_sarsa_trainer(environment, True)
         evaluator = Evaluator(environment.ACTIONS, 10, DISCOUNT, None, None)
         tdps = environment.preprocess_samples(samples, self.minibatch_size)
 
@@ -110,7 +127,7 @@ class TestGridworld(unittest.TestCase):
     def test_reward_boost(self):
         environment = Gridworld()
         reward_boost = {"L": 100, "R": 200, "U": 300, "D": 400}
-        trainer = self.get_sarsa_trainer_reward_boost(environment, reward_boost)
+        trainer = self.get_sarsa_trainer_reward_boost(environment, reward_boost, False)
         predictor = trainer.predictor()
         samples = environment.generate_samples(500000, 1.0, DISCOUNT)
         rewards_update = []

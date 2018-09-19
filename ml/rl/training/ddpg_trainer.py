@@ -153,8 +153,8 @@ class DDPGTrainer(RLTrainer):
                 )
 
         self.minibatch += 1
-        states = torch.tensor(training_samples.states, requires_grad=True)
-        actions = torch.tensor(training_samples.actions, requires_grad=True)
+        states = training_samples.states.detach().requires_grad_(True)
+        actions = training_samples.actions.detach().requires_grad_(True)
 
         # As far as ddpg is concerned all actions are [-1, 1] due to actor tanh
         actions = rescale_torch_tensor(
@@ -164,13 +164,13 @@ class DDPGTrainer(RLTrainer):
             prev_min=self.min_action_range_tensor_serving,
             prev_max=self.max_action_range_tensor_serving,
         )
-        rewards = torch.tensor(training_samples.rewards, requires_grad=True)
+        rewards = training_samples.rewards
         next_states = torch.tensor(training_samples.next_states, requires_grad=True)
         time_diffs = training_samples.time_diffs
         discount_tensor = torch.tensor(np.full(rewards.shape, self.gamma)).type(
             self.dtype
         )
-        not_done_mask = torch.tensor(training_samples.not_terminals, requires_grad=True)
+        not_done_mask = training_samples.not_terminals
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
@@ -178,7 +178,7 @@ class DDPGTrainer(RLTrainer):
         next_actions = self.actor_target(next_states)
 
         next_state_actions = torch.cat((next_states, next_actions), dim=1)
-        q_s2_a2 = self.critic_target(next_state_actions).detach()
+        q_s2_a2 = self.critic_target(next_state_actions)
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
 
         if self.use_seq_num_diff_as_time_diff:
@@ -231,11 +231,8 @@ class DDPGTrainer(RLTrainer):
         :param states states as list of states to produce actions for
         """
         self.actor.eval()
-        with torch.no_grad():
-            state_examples = torch.tensor(
-                torch.from_numpy(np.array(states)).type(self.dtype), requires_grad=True
-            )
-            actions = self.actor(state_examples)
+        state_examples = torch.from_numpy(np.array(states)).type(self.dtype)
+        actions = self.actor(state_examples)
 
         self.actor.train()
 
@@ -302,9 +299,6 @@ class ActorNet(nn.Module):
         valid pytorch activation names.
         :param state state as list of state features
         """
-        if isinstance(state, np.ndarray):
-            state = torch.tensor(torch.from_numpy(state), requires_grad=True)
-
         x = state
         for i, activation in enumerate(self.activations):
             x = self.batch_norm_ops[i](x)
