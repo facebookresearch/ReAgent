@@ -77,6 +77,13 @@ class ParametricDQNPredictor(RLPredictor):
 
         torch_init_net = core.Net(caffe2_netdef.init_net)
         torch_predict_net = core.Net(caffe2_netdef.predict_net)
+        # While converting to metanetdef, the external_input of predict_net
+        # will be recomputed. Add the real output of init_net to parameters
+        # to make sure they will be counted.
+        parameters.extend(
+            set(caffe2_netdef.init_net.external_output)
+            - set(caffe2_netdef.init_net.external_input)
+        )
 
         # ensure state and action IDs have no intersection
         assert (
