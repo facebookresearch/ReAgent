@@ -6,5 +6,8 @@ virtualenv -p python3 env
 pip install -r requirements.txt
 
 # Install thrift and generate python bindings
-sudo apt-get install thrift-compiler
+sudo apt install thrift-compiler
 thrift --gen py:json --out . ml/rl/thrift/core.thrift
+
+# Install maven for timeline operator
+sudo apt install maven

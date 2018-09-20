@@ -49,7 +49,7 @@ def get_norm_metadata(dataset, norm_params, norm_col):
     samples_per_feature, samples = defaultdict(int), defaultdict(list)
 
     while not done:
-        if len(batch[norm_col]) == 0:
+        if not batch or len(batch[norm_col]) == 0:
             logger.info("No more data in training data. Breaking.")
             break
 

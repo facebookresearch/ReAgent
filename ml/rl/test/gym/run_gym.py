@@ -334,11 +334,6 @@ def run_gym(
     save_timesteps_to_dataset=None,
     start_saving_from_episode=0,
 ):
-
-    # Caffe2 core uses the min of caffe2_log_level and minloglevel
-    # to determine loglevel. See caffe2/caffe2/core/logging.cc for more info.
-    core.GlobalInit(["caffe2", "--caffe2_log_level=2", "--minloglevel=2"])
-
     logger.info("Running gym with params")
     logger.info(params)
     rl_parameters = RLParameters(**params["rl"])

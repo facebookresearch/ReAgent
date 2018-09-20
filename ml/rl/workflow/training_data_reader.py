@@ -46,7 +46,11 @@ class JSONDataset:
         starting_row = index * self.batch_size
         ending_row = starting_row + self.batch_size
         if self.read_data_in_chunks:
-            x = next(self.data_iterator)
+            try:
+                x = next(self.data_iterator)
+            except StopIteration:
+                # No more data to read
+                return None
             if astype == "dict":
                 return x.to_dict(orient="list")
             return x
