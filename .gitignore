@@ -1,3 +1,10 @@
+# Spark data
+metastore_db
+spark-warehouse
+
+# Compiled POM
+dependency-reduced-pom.xml
+
 # Model outputs
 outputs
 
