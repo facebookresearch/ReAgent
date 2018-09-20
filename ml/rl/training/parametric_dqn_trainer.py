@@ -134,8 +134,8 @@ class ParametricDQNTrainer(RLTrainer):
             )
 
     def calculate_q_values(self, state_pas_concats, pas_lens):
-        row_nums = np.arange(len(pas_lens))
-        row_idxs = np.repeat(row_nums, pas_lens)
+        row_nums = np.arange(pas_lens.shape[0], dtype=np.int64)
+        row_idxs = np.repeat(row_nums, pas_lens.cpu().numpy())
         col_idxs = arange_expand(pas_lens)
 
         dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
@@ -165,8 +165,8 @@ class ParametricDQNTrainer(RLTrainer):
         :param double_q_learning: bool to use double q-learning
         """
         row_nums = np.arange(len(pnas_lens))
-        row_idxs = np.repeat(row_nums, pnas_lens)
-        col_idxs = arange_expand(pnas_lens)
+        row_idxs = np.repeat(row_nums, pnas_lens.cpu().numpy())
+        col_idxs = arange_expand(pnas_lens).cpu().numpy()
 
         dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
         if isinstance(possible_next_actions_state_concat, torch.Tensor):
@@ -209,8 +209,6 @@ class ParametricDQNTrainer(RLTrainer):
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
-        training_samples.set_type(self.dtype)
-
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert training_samples.states.shape[0] == self.minibatch_size, (

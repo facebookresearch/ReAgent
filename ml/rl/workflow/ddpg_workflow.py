@@ -86,6 +86,7 @@ def train_network(params):
             tdp = preprocess_batch_for_training(
                 state_preprocessor, batch, action_preprocessor=action_preprocessor
             )
+            tdp.set_type(trainer.dtype)
             trainer.train(tdp)
 
     through_put = (len(dataset) * params["epochs"]) / (time.time() - start_time)

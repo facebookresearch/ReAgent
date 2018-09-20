@@ -105,6 +105,7 @@ def train_network(params):
                 state_preprocessor, batch, action_preprocessor=action_preprocessor
             )
 
+            tdp.set_type(trainer.dtype)
             trainer.train(tdp)
 
             trainer.evaluate(evaluator, None, None, tdp.episode_values)

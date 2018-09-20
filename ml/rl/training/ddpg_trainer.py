@@ -115,8 +115,6 @@ class DDPGTrainer(RLTrainer):
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
-        training_samples.set_type(self.dtype)
-
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert training_samples.states.shape[0] == self.minibatch_size, (

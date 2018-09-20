@@ -231,24 +231,24 @@ class GridworldContinuous(GridworldBase):
             pnas = possible_next_actions_ndarray[pnas_start:pnas_end]
             pnas_concat = possible_next_actions_state_concat[pnas_start:pnas_end]
             pnas_start = pnas_end
-            tdps.append(
-                TrainingDataPage(
-                    states=states_ndarray[start:end],
-                    actions=actions_ndarray[start:end],
-                    propensities=propensities[start:end],
-                    rewards=rewards[start:end],
-                    next_states=next_states_ndarray[start:end],
-                    next_actions=next_actions_ndarray[start:end],
-                    possible_next_actions=None,
-                    not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
-                    episode_values=episode_values[start:end]
-                    if episode_values is not None
-                    else None,
-                    time_diffs=time_diffs[start:end],
-                    possible_next_actions_lengths=pnas_lengths[start:end],
-                    possible_next_actions_state_concat=pnas_concat,
-                )
+            tdp = TrainingDataPage(
+                states=states_ndarray[start:end],
+                actions=actions_ndarray[start:end],
+                propensities=propensities[start:end],
+                rewards=rewards[start:end],
+                next_states=next_states_ndarray[start:end],
+                next_actions=next_actions_ndarray[start:end],
+                possible_next_actions=None,
+                not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
+                episode_values=episode_values[start:end]
+                if episode_values is not None
+                else None,
+                time_diffs=time_diffs[start:end],
+                possible_next_actions_lengths=pnas_lengths[start:end],
+                possible_next_actions_state_concat=pnas_concat,
             )
+            tdp.set_type(torch.FloatTensor)
+            tdps.append(tdp)
         return tdps
 
     def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):

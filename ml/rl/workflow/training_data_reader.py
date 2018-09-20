@@ -146,7 +146,7 @@ def preprocess_batch_for_training(
         if "possible_next_actions" not in batch.keys():
             # DDPG
             not_terminals = torch.from_numpy(
-                np.array(batch["next_action"], dtype=np.bool) * 1.0
+                np.array(batch["next_action"], dtype=np.bool).astype(np.float32)
             ).reshape(-1, 1)
             pnas, pnas_lens, possible_next_state_actions = None, None, None
             pas, pas_lens, possible_state_actions = None, None, None

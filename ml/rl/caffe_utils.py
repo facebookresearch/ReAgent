@@ -10,7 +10,6 @@ import caffe2.python.onnx.backend
 import numpy as np
 import onnx
 import torch
-import torch.nn as nn
 from caffe2.python import core, workspace
 from caffe2.python.core import BlobReference
 
@@ -277,7 +276,7 @@ def arange_expand(lens_array):
     lens_array = lens_array.long()
     # Return empty np array if all 0s
     if lens_array.sum() == 0:
-        return torch.tensor([])
+        return torch.tensor([]).type(lens_array.type())
     # Keep values that need to be expaned
     counts = lens_array[lens_array != 0]
     # Record indexes in final array where ranges start over

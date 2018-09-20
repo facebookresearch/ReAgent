@@ -49,6 +49,7 @@ class DQNTrainer(RLTrainer):
                 Dict[int, NormalizationParameters]
             ] = state_normalization_parameters
             self.num_features = get_num_output_features(state_normalization_parameters)
+            logger.info("Number of state features: " + str(self.num_features))
             parameters.training.layers[0] = self.num_features
         else:
             self.state_normalization_parameters = None
@@ -157,8 +158,6 @@ class DQNTrainer(RLTrainer):
     def train(
         self, training_samples: TrainingDataPage, evaluator: Optional[Evaluator] = None
     ) -> None:
-        training_samples.set_type(self.dtype)
-
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert training_samples.states.shape[0] == self.minibatch_size, (
@@ -205,7 +204,7 @@ class DQNTrainer(RLTrainer):
 
         # Apply reward boost if specified
         reward_boosts = torch.sum(
-            training_samples.actions * self.reward_boosts, dim=1, keepdim=True
+            training_samples.actions.float() * self.reward_boosts, dim=1, keepdim=True
         )
         boosted_rewards = training_samples.rewards + reward_boosts
 
@@ -242,7 +241,7 @@ class DQNTrainer(RLTrainer):
 
         # Get Q-value of action taken
         all_q_values = self.q_network(states)
-        self.all_action_scores = deepcopy(all_q_values.detach())
+        self.all_action_scores = all_q_values.detach()
         q_values = torch.sum(all_q_values * actions, 1, keepdim=True)
 
         logger.info(q_values.shape)
@@ -299,11 +298,12 @@ class DQNTrainer(RLTrainer):
             None,
         )
         if self.all_action_scores is not None:
-            self.all_action_scores = self.all_action_scores
             self.model_propensities = Evaluator.softmax(
                 self.all_action_scores.cpu().numpy(), self.rl_temperature
             )
-            maxq_action_idxs = self.all_action_scores.argmax(dim=1, keepdim=True)
+            maxq_action_idxs = (
+                self.all_action_scores.argmax(dim=1, keepdim=True).cpu().numpy()
+            )
             if logged_actions is not None:
                 model_values_on_logged_actions = (
                     torch.sum(

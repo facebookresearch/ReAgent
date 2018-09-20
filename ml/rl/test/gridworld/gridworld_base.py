@@ -626,24 +626,24 @@ class GridworldBase(object):
             end = start + minibatch_size
             if end > states_ndarray.shape[0]:
                 break
-            tdps.append(
-                TrainingDataPage(
-                    states=states_ndarray[start:end],
-                    actions=actions_one_hot[start:end]
-                    if one_hot_action
-                    else actions[start:end],
-                    propensities=propensities[start:end],
-                    rewards=rewards[start:end],
-                    next_states=next_states_ndarray[start:end],
-                    not_terminals=not_terminals[start:end],
-                    next_actions=next_actions_one_hot[start:end],
-                    possible_next_actions=possible_next_actions_mask[start:end],
-                    episode_values=episode_values[start:end]
-                    if episode_values is not None
-                    else None,
-                    time_diffs=time_diffs[start:end],
-                )
+            tdp = TrainingDataPage(
+                states=states_ndarray[start:end],
+                actions=actions_one_hot[start:end]
+                if one_hot_action
+                else actions[start:end],
+                propensities=propensities[start:end],
+                rewards=rewards[start:end],
+                next_states=next_states_ndarray[start:end],
+                not_terminals=not_terminals[start:end],
+                next_actions=next_actions_one_hot[start:end],
+                possible_next_actions=possible_next_actions_mask[start:end],
+                episode_values=episode_values[start:end]
+                if episode_values is not None
+                else None,
+                time_diffs=time_diffs[start:end],
             )
+            tdp.set_type(torch.FloatTensor)
+            tdps.append(tdp)
         return tdps
 
     def generate_samples(self, num_transitions, epsilon, discount_factor):

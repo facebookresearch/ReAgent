@@ -111,6 +111,7 @@ def train_network(params):
             batch = dataset.read_batch(batch_idx)
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
 
+            tdp.set_type(trainer.dtype)
             trainer.train(tdp)
 
             trainer.evaluate(

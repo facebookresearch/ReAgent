@@ -372,7 +372,7 @@ class Evaluator(object):
             unshuffled_states = torch.tensor(
                 np.array([x.state for x in self.unshuffled_samples]),
                 dtype=torch.float32,
-            )
+            ).type(self.model.dtype)
             self.unshuffled_estimated_q_values = (
                 self.model.calculate_q_values(unshuffled_states).cpu().numpy()
             )
@@ -388,13 +388,13 @@ class Evaluator(object):
                         for sa in x.possible_state_actions
                     ]
                 )
-            )
+            ).type(self.model.dtype)
             pas_lens = torch.tensor(
                 np.array(
                     [len(x.possible_state_actions) for x in self.unshuffled_samples]
                 ),
                 dtype=torch.int64,
-            )
+            ).type(self.model.dtypelong)
             self.unshuffled_estimated_q_values = (
                 self.model.calculate_q_values(
                     unshuffled_possible_state_actions, pas_lens
@@ -405,11 +405,13 @@ class Evaluator(object):
             unshuffled_logged_state_actions = torch.tensor(
                 np.array([x.logged_state_action for x in self.unshuffled_samples]),
                 dtype=torch.float32,
-            )
+            ).type(self.model.dtype)
             q_value_for_logged_state_action = (
                 self.model.calculate_q_values(
                     unshuffled_logged_state_actions,
-                    torch.ones([unshuffled_logged_state_actions.shape[0]]),
+                    torch.ones([unshuffled_logged_state_actions.shape[0]]).type(
+                        self.model.dtypelong
+                    ),
                 )
                 .cpu()
                 .numpy()

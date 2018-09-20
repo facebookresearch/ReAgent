@@ -214,6 +214,7 @@ def train_gym_online_rl(
                     samples = replay_buffer.sample_memories(
                         trainer.minibatch_size, model_type
                     )
+                    samples.set_type(trainer.dtype)
                     trainer.train(samples)
 
             # Evaluation loop
