@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import gzip
 import itertools
 import json
 import os
@@ -16,18 +17,18 @@ class JSONDataset:
 
     def __init__(self, path, batch_size=None, converter=None):
         self.path = os.path.expanduser(path)
+        self.file_type = path.split(".")[-1]
         self.read_data_in_chunks = self._get_chunked_reading_setting()
         self.batch_size = batch_size
         self.len = self.line_count()
         if self.read_data_in_chunks:
             # Do not read entire dataset into memory
-            self.column_names = next(
-                pd.read_json(self.path, lines=True, chunksize=1)
-            ).columns.values
+            self.data_iterator = pd.read_json(
+                self.path, lines=True, chunksize=self.batch_size
+            )
         else:
             # Read entire dataset into memory
             self.data = pd.read_json(self.path, lines=True)
-            self.column_names = self.data.columns.values
 
     def _get_chunked_reading_setting(self):
         """FB internal is currently pinned to Pandas 0.20.3 which does
@@ -45,15 +46,7 @@ class JSONDataset:
         starting_row = index * self.batch_size
         ending_row = starting_row + self.batch_size
         if self.read_data_in_chunks:
-            x = next(
-                pd.read_json(
-                    self.path,
-                    lines=True,
-                    skiprows=starting_row + 1,  # +1 to skip the header
-                    chunksize=self.batch_size,
-                    names=self.column_names,
-                )
-            )
+            x = next(self.data_iterator)
             if astype == "dict":
                 return x.to_dict(orient="list")
             return x
@@ -73,16 +66,25 @@ class JSONDataset:
 
     def line_count(self):
         lines = 0
-        with open(self.path) as f:
-            for _ in f:
-                lines += 1
+        if self.file_type == "gz":
+            with gzip.open(self.path) as f:
+                for _ in f:
+                    lines += 1
+        else:
+            with open(self.path) as f:
+                for _ in f:
+                    lines += 1
         return lines
 
 
 def read_norm_file(path):
     path = os.path.expanduser(path)
-    with open(path) as f:
-        norm_json = json.load(f)
+    if path.split(".")[-1] == "gz":
+        with gzip.open(path) as f:
+            norm_json = json.load(f)
+    else:
+        with open(path) as f:
+            norm_json = json.load(f)
     return normalization.deserialize(norm_json)
 
 
