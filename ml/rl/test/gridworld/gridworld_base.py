@@ -284,16 +284,16 @@ class GridworldBase(object):
         possible_actions = self.possible_actions(state)
         if len(possible_actions) == 0:
             return "", 1.0
+        optimal_action = self.optimal_policy(state)
         if np.random.rand() < epsilon:
-            if len(possible_actions) == 1:
-                return possible_actions[0], 1.0
-            else:
-                return (
-                    np.random.choice(possible_actions),
-                    epsilon / (len(possible_actions) - 1),
-                )
+            action = np.random.choice(possible_actions)
         else:
-            return self.optimal_policy(state), (1.0 - epsilon)
+            action = optimal_action
+        if action == optimal_action:
+            action_probability = (1.0 - epsilon) + epsilon / len(possible_actions)
+        else:
+            action_probability = epsilon / len(possible_actions)
+        return action, action_probability
 
     @property
     def num_actions(self):
