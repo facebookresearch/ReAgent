@@ -37,18 +37,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     protobuf-compiler \
     sudo \
     software-properties-common \
+    thrift-compiler \
     wget
 
 # Sometimes needed to avoid SSL CA issues.
 RUN update-ca-certificates
 
-# Install Horizon requirement
-# ENV DEBIAN_FRONTEND noninteractive
-# RUN add-apt-repository ppa:webupd8team/java && apt-get update && apt-get install -y \
-#    maven \
-#    oracle-java8-installer \
-#    thrift-compiler
-RUN apt-get install -y thrift-compiler
+
+# Install Java & maven.
+# Taken from https://github.com/dockerfile/java/blob/master/oracle-java8/Dockerfile
+RUN \
+  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+  add-apt-repository -y ppa:webupd8team/java && \
+  apt-get update && \
+  apt-get install -y oracle-java8-installer maven && \
+  rm -rf /var/lib/apt/lists/* && \
+  rm -rf /var/cache/oracle-jdk8-installer
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 ENV HOME /home
 WORKDIR ${HOME}/
@@ -78,7 +83,8 @@ ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
 
 ADD ./install_prereqs.sh install_prereqs.sh
 ADD ./requirements.txt requirements.txt
-RUN ./install_prereqs.sh
+ARG USE_GPU
+RUN ./install_prereqs.sh ${USE_GPU}
 RUN rm install_prereqs.sh requirements.txt
 
 # Add Jenkins user
@@ -88,3 +94,6 @@ ARG JENKINS_GID
 ADD ./add_jenkins_user.sh add_jenkins_user.sh
 RUN if [ -n "${JENKINS}" ]; then bash ./add_jenkins_user.sh ${JENKINS_UID} ${JENKINS_GID}; fi
 RUN rm add_jenkins_user.sh
+
+# Define default command.
+CMD ["bash"]
