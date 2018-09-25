@@ -1,11 +1,10 @@
 #!/bin/bash
 
-set -e
-
 # Assuming that passing an argument means to use GPU
 gpu="$1"
 # shifting is needed to avoid error running pip below...
 shift
+set -e
 
 . ${HOME}/miniconda/bin/activate
 export LD_LIBRARY_PATH="${CONDA_PATH}/lib:${LD_LIBRARY_PATH}"
