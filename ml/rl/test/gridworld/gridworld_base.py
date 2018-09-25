@@ -37,7 +37,7 @@ class Samples(object):
         "sequence_numbers",
         "states",
         "actions",
-        "propensities",
+        "action_probabilities",
         "rewards",
         "possible_actions",
         "next_states",
@@ -53,7 +53,7 @@ class Samples(object):
         sequence_numbers: List[int],
         states: List[Dict[int, float]],
         actions: List[str],
-        propensities: List[float],
+        action_probabilities: List[float],
         rewards: List[float],
         possible_actions: List[List[str]],
         next_states: List[Dict[int, float]],
@@ -66,7 +66,7 @@ class Samples(object):
         self.sequence_numbers = sequence_numbers
         self.states = states
         self.actions = actions
-        self.propensities = propensities
+        self.action_probabilities = action_probabilities
         self.rewards = rewards
         self.possible_actions = possible_actions
         self.next_states = next_states
@@ -84,7 +84,7 @@ class Samples(object):
                     self.sequence_numbers,
                     self.states,
                     self.actions,
-                    self.propensities,
+                    self.action_probabilities,
                     self.rewards,
                     self.possible_actions,
                     self.next_states,
@@ -99,7 +99,7 @@ class Samples(object):
                 self.sequence_numbers,
                 self.states,
                 self.actions,
-                self.propensities,
+                self.action_probabilities,
                 self.rewards,
                 self.possible_actions,
                 self.next_states,
@@ -114,7 +114,7 @@ class Samples(object):
                     self.sequence_numbers,
                     self.states,
                     self.actions,
-                    self.propensities,
+                    self.action_probabilities,
                     self.rewards,
                     self.possible_actions,
                     self.next_states,
@@ -130,7 +130,7 @@ class Samples(object):
                 self.sequence_numbers,
                 self.states,
                 self.actions,
-                self.propensities,
+                self.action_probabilities,
                 self.rewards,
                 self.possible_actions,
                 self.next_states,
@@ -430,7 +430,7 @@ class GridworldBase(object):
             sequence_numbers=[],
             states=[],
             actions=[],
-            propensities=[],
+            action_probabilities=[],
             rewards=[],
             possible_actions=[],
             next_states=[],
@@ -444,7 +444,7 @@ class GridworldBase(object):
             merge.sequence_numbers += s.sequence_numbers
             merge.states += s.states
             merge.actions += s.actions
-            merge.propensities += s.propensities
+            merge.action_probabilities += s.action_probabilities
             merge.rewards += s.rewards
             merge.possible_actions += s.possible_actions
             merge.next_states += s.next_states
@@ -461,7 +461,7 @@ class GridworldBase(object):
         seed = num_transitions_seed_pair[1]
         states = []
         actions: List[str] = []
-        propensities = []
+        action_probabilities = []
         rewards = []
         next_states = []
         next_actions: List[str] = []
@@ -471,7 +471,7 @@ class GridworldBase(object):
         state: int = -1
         terminal = True
         next_action = ""
-        next_propensity = 1.0
+        next_action_probability = 1.0
         possible_actions: List[List[str]] = []
         possible_next_actions: List[List[str]] = []
         transition = 0
@@ -489,22 +489,24 @@ class GridworldBase(object):
                 terminal = False
                 mdp_id += 1
                 sequence_number = 0
-                action, propensity = self.sample_policy(state, epsilon)
+                action, action_probability = self.sample_policy(state, epsilon)
             else:
                 action = next_action
-                propensity = next_propensity
+                action_probability = next_action_probability
                 sequence_number += 1
 
             possible_action = self.possible_actions(state)
 
             next_state, reward, terminal, possible_next_action = self.step(action)
-            next_action, next_propensity = self.sample_policy(next_state, epsilon)
+            next_action, next_action_probability = self.sample_policy(
+                next_state, epsilon
+            )
 
             mdp_ids.append(str(mdp_id))
             sequence_numbers.append(sequence_number)
             states.append({int(state): 1.0})
             actions.append(action)
-            propensities.append(propensity)
+            action_probabilities.append(action_probability)
             rewards.append(reward)
             possible_actions.append(possible_action)
             next_states.append({int(next_state): 1.0})
@@ -530,7 +532,7 @@ class GridworldBase(object):
             sequence_numbers=sequence_numbers,
             states=states,
             actions=actions,
-            propensities=propensities,
+            action_probabilities=action_probabilities,
             rewards=rewards,
             possible_actions=possible_actions,
             next_states=next_states,
@@ -582,9 +584,9 @@ class GridworldBase(object):
         )
         actions = actions_one_hot.argmax(dim=1, keepdim=True)
         rewards = torch.tensor(samples.rewards, dtype=torch.float32).reshape(-1, 1)
-        propensities = torch.tensor(samples.propensities, dtype=torch.float32).reshape(
-            -1, 1
-        )
+        action_probabilities = torch.tensor(
+            samples.action_probabilities, dtype=torch.float32
+        ).reshape(-1, 1)
         next_actions_one_hot = torch.tensor(
             (
                 np.array(samples.next_actions).reshape(-1, 1) == np.array(self.ACTIONS)
@@ -631,7 +633,7 @@ class GridworldBase(object):
                 actions=actions_one_hot[start:end]
                 if one_hot_action
                 else actions[start:end],
-                propensities=propensities[start:end],
+                propensities=action_probabilities[start:end],
                 rewards=rewards[start:end],
                 next_states=next_states_ndarray[start:end],
                 not_terminals=not_terminals[start:end],

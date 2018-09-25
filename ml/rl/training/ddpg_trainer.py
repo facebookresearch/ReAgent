@@ -30,8 +30,8 @@ class DDPGTrainer(RLTrainer):
         parameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
-        min_action_range_tensor_serving: torch.tensor,
-        max_action_range_tensor_serving: torch.tensor,
+        min_action_range_tensor_serving: torch.Tensor,
+        max_action_range_tensor_serving: torch.Tensor,
         use_gpu: bool = False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
         use_all_avail_gpus: bool = False,
@@ -170,7 +170,7 @@ class DDPGTrainer(RLTrainer):
             prev_max=self.max_action_range_tensor_serving,
         )
         rewards = training_samples.rewards
-        next_states = torch.tensor(training_samples.next_states, requires_grad=True)
+        next_states = training_samples.next_states
         time_diffs = training_samples.time_diffs
         discount_tensor = torch.tensor(np.full(rewards.shape, self.gamma)).type(
             self.dtype

@@ -141,7 +141,6 @@ class DQNTrainer(RLTrainer):
             # Use q_values from target network for max_q action from online q_network
             # to decouble selection & scoring, preventing overestimation of q-values
             q_values = torch.gather(q_values_target, 1, max_indicies)
-            logger.info(q_values.shape)
             return q_values
         else:
             q_values = self.q_network_target(states).detach()
@@ -250,10 +249,6 @@ class DQNTrainer(RLTrainer):
         self.all_action_scores = all_q_values.detach()
         q_values = torch.sum(all_q_values * actions, 1, keepdim=True)
 
-        logger.info(q_values.shape)
-        logger.info(target_q_values.shape)
-        logger.info(rewards.shape)
-        logger.info(next_q_values.shape)
         loss = self.q_network_loss(q_values, target_q_values)
         self.loss = loss.detach()
 

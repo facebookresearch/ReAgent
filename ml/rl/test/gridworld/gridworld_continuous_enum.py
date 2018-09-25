@@ -50,7 +50,7 @@ class GridworldContinuousEnum(GridworldContinuous):
             sequence_numbers=samples.sequence_numbers,
             states=enum_states,
             actions=samples.actions,
-            propensities=samples.propensities,
+            action_probabilities=samples.action_probabilities,
             rewards=samples.rewards,
             possible_actions=samples.possible_actions,
             next_states=enum_next_states,

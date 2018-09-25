@@ -191,10 +191,10 @@ def preprocess_batch_for_training(
         not_terminals = torch.from_numpy(not_terminals)
         pnas_lens, possible_next_state_actions = None, None
         pas, pas_lens, possible_state_actions = None, None, None
-    if "propensity" in batch:
-        propensities = torch.tensor(batch["propensity"], dtype=torch.float32).reshape(
-            -1, 1
-        )
+    if "action_probability" in batch:
+        propensities = torch.tensor(
+            batch["action_probability"], dtype=torch.float32
+        ).reshape(-1, 1)
     else:
         propensities = torch.ones(rewards.shape, dtype=torch.float32)
 
