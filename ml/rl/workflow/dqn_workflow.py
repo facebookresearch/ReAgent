@@ -6,6 +6,7 @@ import sys
 import time
 
 import numpy as np
+import torch
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
@@ -18,6 +19,7 @@ from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
+    minibatch_size_multiplier,
     parse_args,
     report_training_status,
     update_model_for_warm_start,
@@ -47,6 +49,11 @@ def train_network(params):
 
     logger.info("Running DQN workflow with params:")
     logger.info(params)
+
+    # Set minibatch size based on # of devices being used to train
+    params["training"]["minibatch_size"] *= minibatch_size_multiplier(
+        params["use_gpu"], params["use_all_avail_gpus"]
+    )
 
     action_names = np.array(params["actions"])
     rl_parameters = RLParameters(**params["rl"])
@@ -83,7 +90,12 @@ def train_network(params):
         )
     )
 
-    trainer = DQNTrainer(trainer_params, state_normalization, params["use_gpu"])
+    trainer = DQNTrainer(
+        trainer_params,
+        state_normalization,
+        use_gpu=params["use_gpu"],
+        use_all_avail_gpus=params["use_all_avail_gpus"],
+    )
     trainer = update_model_for_warm_start(trainer)
     preprocessor = Preprocessor(state_normalization, params["use_gpu"])
 

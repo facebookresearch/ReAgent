@@ -8,6 +8,7 @@ from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
+from torch.nn import DataParallel
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,9 @@ class ParametricDQNPredictor(RLPredictor):
         """
 
         input_dim = trainer.num_features
+        if isinstance(trainer.q_network, DataParallel):
+            trainer.q_network = trainer.q_network.module
+
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
             trainer.q_network, input_dim, model_on_gpu
         )

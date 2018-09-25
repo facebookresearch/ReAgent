@@ -47,9 +47,40 @@ python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0.json
 ```
 Configs for different environments and algorithms can be found in `ml/rl/test/gym/`.
 
-##### Batch RL Training
+##### Batch RL Training Details
 Horizon also supports training on offline data (Batch RL).
 
+##### Quick Batch RL Examples
+Discrete-Action DQN Workflow
+```
+cp ml/rl/workflow/sample_datasets/discrete_action/cartpole_training_data.json.gz ~
+cp ml/rl/workflow/sample_datasets/discrete_action/state_features_norm.json.gz ~
+gunzip ~/cartpole_training_data.json.gz ~/state_features_norm.json.gz
+
+python ml/rl/workflow/dqn_workflow.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_example.json
+```
+
+Parametric-Action DQN Workflow
+```
+cp ml/rl/workflow/sample_datasets/parametric_action/cartpole_training_data.json.gz ~
+cp ml/rl/workflow/sample_datasets/parametric_action/state_features_norm.json.gz ~
+cp ml/rl/workflow/sample_datasets/parametric_action/action_norm.json.gz
+gunzip ~/cartpole_training_data.json.gz ~/state_features_norm.json.gz ~/action_norm.json.gz
+
+python ml/rl/workflow/parametric_dqn_workflow.py -p ml/rl/workflow/sample_configs/parametric_action/parametric_dqn_example.json
+```
+
+DDPG Workflow
+```
+cp ml/rl/workflow/sample_datasets/continuous_action/pendulum_training_data.json.gz ~
+cp ml/rl/workflow/sample_datasets/continuous_action/state_features_norm.json.gz ~
+cp ml/rl/workflow/sample_datasets/continuous_action/action_norm.json.gz ~
+gunzip ~/pendulum_training_data.json.gz ~/state_features_norm.json.gz ~/action_norm.json.gz
+
+python ml/rl/workflow/ddpg_workflow.py -p ml/rl/workflow/sample_configs/continuous_action/ddpg_example.json
+```
+
+##### Detailed Overview
 For DQN training, we expect the input data to have the following schema:
 
 <TODO: add schema>

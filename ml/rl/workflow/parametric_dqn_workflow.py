@@ -17,6 +17,7 @@ from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
+    minibatch_size_multiplier,
     parse_args,
     report_training_status,
     update_model_for_warm_start,
@@ -37,6 +38,11 @@ DEFAULT_NUM_SAMPLES_FOR_CPE = 500
 def train_network(params):
     logger.info("Running Parametric DQN workflow with params:")
     logger.info(params)
+
+    # Set minibatch size based on # of devices being used to train
+    params["training"]["minibatch_size"] *= minibatch_size_multiplier(
+        params["use_gpu"], params["use_all_avail_gpus"]
+    )
 
     rl_parameters = RLParameters(**params["rl"])
     training_parameters = TrainingParameters(**params["training"])
@@ -73,7 +79,11 @@ def train_network(params):
     )
 
     trainer = ParametricDQNTrainer(
-        trainer_params, state_normalization, action_normalization, params["use_gpu"]
+        trainer_params,
+        state_normalization,
+        action_normalization,
+        use_gpu=params["use_gpu"],
+        use_all_avail_gpus=params["use_all_avail_gpus"],
     )
     trainer = update_model_for_warm_start(trainer)
     state_preprocessor = Preprocessor(state_normalization, params["use_gpu"])
@@ -115,11 +125,11 @@ def train_network(params):
                 logged_state_actions=np.concatenate(
                     (tdp.states.cpu().numpy(), tdp.actions.cpu().numpy()), axis=1
                 ),
-                logged_rewards=tdp.rewards,
-                logged_propensities=tdp.propensities,
+                logged_rewards=tdp.rewards.cpu().numpy(),
+                logged_propensities=tdp.propensities.cpu().numpy(),
                 logged_terminals=(1.0 - tdp.not_terminals),
                 possible_state_actions=tdp.state_pas_concat.cpu().numpy(),
-                pas_lens=tdp.possible_actions_lengths,
+                pas_lens=tdp.possible_actions_lengths.cpu().numpy(),
             )
 
         cpe_start_time = time.time()

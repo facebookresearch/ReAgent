@@ -34,6 +34,7 @@ class DDPGTrainer(RLTrainer):
         max_action_range_tensor_serving: torch.tensor,
         use_gpu: bool = False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
+        use_all_avail_gpus: bool = False,
     ) -> None:
 
         self.state_normalization_parameters = state_normalization_parameters
@@ -111,6 +112,12 @@ class DDPGTrainer(RLTrainer):
             self.actor_target.cuda()
             self.critic.cuda()
             self.critic_target.cuda()
+
+            if use_all_avail_gpus:
+                self.actor = nn.DataParallel(self.actor)
+                self.actor_target = nn.DataParallel(self.actor_target)
+                self.critic = nn.DataParallel(self.critic)
+                self.critic_target = nn.DataParallel(self.critic_target)
 
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
