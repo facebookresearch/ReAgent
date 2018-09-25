@@ -170,7 +170,7 @@ def preprocess_batch_for_training(
             )
             pnas_lens = torch.from_numpy(pnas_lens)
             possible_next_state_actions = torch.cat(
-                (tiled_next_state_features_dense, pnas), dim=1
+                (tiled_next_state_features_dense, pnas.cpu()), dim=1
             )
             pas_lens = np.array([len(l) for l in batch["possible_actions"]])
             flat_pas = list(itertools.chain.from_iterable(batch["possible_actions"]))
@@ -180,7 +180,9 @@ def preprocess_batch_for_training(
                 np.repeat(state_features_dense.cpu().numpy(), pas_lens, axis=0)
             )
             pas_lens = torch.from_numpy(pas_lens)
-            possible_state_actions = torch.cat((tiled_state_features_dense, pas), dim=1)
+            possible_state_actions = torch.cat(
+                (tiled_state_features_dense, pas.cpu()), dim=1
+            )
     else:
         actions = read_actions(action_names, batch["action"])
         pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
@@ -189,10 +191,10 @@ def preprocess_batch_for_training(
         not_terminals = torch.from_numpy(not_terminals)
         pnas_lens, possible_next_state_actions = None, None
         pas, pas_lens, possible_state_actions = None, None, None
-    if "propensity" in batch:
-        propensities = torch.tensor(batch["propensity"], dtype=torch.float32).reshape(
-            -1, 1
-        )
+    if "action_probability" in batch:
+        propensities = torch.tensor(
+            batch["action_probability"], dtype=torch.float32
+        ).reshape(-1, 1)
     else:
         propensities = torch.ones(rewards.shape, dtype=torch.float32)
 

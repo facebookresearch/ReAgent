@@ -34,9 +34,10 @@ class DQNTrainer(RLTrainer):
         self,
         parameters: DiscreteActionModelParameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
-        use_gpu=False,
+        use_gpu: bool = False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
         gradient_handler=None,
+        use_all_avail_gpus: bool = False,
     ) -> None:
 
         self.double_q_learning = parameters.rainbow.double_q_learning
@@ -106,6 +107,11 @@ class DQNTrainer(RLTrainer):
             self.q_network_target.cuda()
             self.reward_network.cuda()
 
+            if use_all_avail_gpus:
+                self.q_network = torch.nn.DataParallel(self.q_network)
+                self.q_network_target = torch.nn.DataParallel(self.q_network_target)
+                self.reward_network = torch.nn.DataParallel(self.reward_network)
+
     @property
     def num_actions(self) -> int:
         return len(self._actions)
@@ -135,7 +141,6 @@ class DQNTrainer(RLTrainer):
             # Use q_values from target network for max_q action from online q_network
             # to decouble selection & scoring, preventing overestimation of q-values
             q_values = torch.gather(q_values_target, 1, max_indicies)
-            logger.info(q_values.shape)
             return q_values
         else:
             q_values = self.q_network_target(states).detach()
@@ -244,10 +249,6 @@ class DQNTrainer(RLTrainer):
         self.all_action_scores = all_q_values.detach()
         q_values = torch.sum(all_q_values * actions, 1, keepdim=True)
 
-        logger.info(q_values.shape)
-        logger.info(target_q_values.shape)
-        logger.info(rewards.shape)
-        logger.info(next_q_values.shape)
         loss = self.q_network_loss(q_values, target_q_values)
         self.loss = loss.detach()
 

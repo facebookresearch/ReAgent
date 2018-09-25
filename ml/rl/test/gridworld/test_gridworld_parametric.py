@@ -25,7 +25,7 @@ from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 class TestGridworldParametric(unittest.TestCase):
     def setUp(self):
-        self.minibatch_size = 4096
+        self.minibatch_size = 512
         super(self.__class__, self).setUp()
         np.random.seed(0)
         random.seed(0)
@@ -92,7 +92,7 @@ class TestGridworldParametric(unittest.TestCase):
 
     def test_trainer_sarsa(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(
@@ -110,7 +110,7 @@ class TestGridworldParametric(unittest.TestCase):
 
     def test_trainer_sarsa_factorized(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
@@ -130,7 +130,7 @@ class TestGridworldParametric(unittest.TestCase):
 
     def test_trainer_sarsa_enum(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(environment)
         predictor = trainer.predictor()
         evaluator = GridworldContinuousEvaluator(
@@ -148,7 +148,7 @@ class TestGridworldParametric(unittest.TestCase):
 
     def test_trainer_sarsa_enum_factorized(self):
         environment = GridworldContinuousEnum()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         trainer = self.get_sarsa_trainer(
             environment, self.get_sarsa_parameters_factorized()
         )
@@ -168,7 +168,7 @@ class TestGridworldParametric(unittest.TestCase):
 
     def test_evaluator_ground_truth(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         # Hijack the reward timeline to insert the ground truth
         samples.episode_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
@@ -184,7 +184,7 @@ class TestGridworldParametric(unittest.TestCase):
 
     def test_evaluator_ground_truth_factorized(self):
         environment = GridworldContinuous()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )

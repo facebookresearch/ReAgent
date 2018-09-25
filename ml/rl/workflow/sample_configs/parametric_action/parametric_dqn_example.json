@@ -4,6 +4,7 @@
   "action_norm_data_path": "~/action_norm.json",
   "model_output_path": "~/",
   "use_gpu": true,
+  "use_all_avail_gpus": true,
   "norm_params": {
     "output_dir": "~/",
     "cols_to_norm": [

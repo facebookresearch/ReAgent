@@ -277,7 +277,7 @@ class Evaluator(object):
         for print_detail in print_details.split("\n"):
             logger.info(print_detail)
 
-    def _mdp_id_to_probability(self, mdp_id):
+    def mdp_id_to_probability(self, mdp_id):
         """
         Return a reproducible random float in the interval [0, 1) for the mdp_id.
         """
@@ -297,7 +297,7 @@ class Evaluator(object):
     ):
         for i in range(len(mdp_ids)):
             mdp_id = mdp_ids[i]
-            if self._mdp_id_to_probability(mdp_id) < self.mdp_sampled_rate:
+            if self.mdp_id_to_probability(mdp_id) < self.mdp_sampled_rate:
                 self.unshuffled_samples.append(
                     DiscreteActionSample(
                         mdp_id=mdp_id,
@@ -326,7 +326,7 @@ class Evaluator(object):
 
         for i in range(len(mdp_ids)):
             mdp_id = mdp_ids[i]
-            if self._mdp_id_to_probability(mdp_id) < self.mdp_sampled_rate:
+            if self.mdp_id_to_probability(mdp_id) < self.mdp_sampled_rate:
                 self.unshuffled_samples.append(
                     ParametricActionSample(
                         mdp_id=mdp_id,
@@ -355,6 +355,7 @@ class Evaluator(object):
                 != self.unshuffled_samples[i + 1].mdp_id
             ):
                 self.unshuffled_samples[i].terminal = True
+        self.unshuffled_samples[-1].terminal = True
 
         self.unshuffled_rewards = np.array(
             [x.reward for x in self.unshuffled_samples]

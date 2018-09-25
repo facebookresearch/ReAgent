@@ -88,7 +88,7 @@ class GridworldContinuous(GridworldBase):
             sequence_numbers=samples.sequence_numbers,
             states=samples.states,
             actions=continuous_actions,
-            propensities=samples.propensities,
+            action_probabilities=samples.action_probabilities,
             rewards=samples.rewards,
             possible_actions=continuous_possible_actions,
             next_states=samples.next_states,
@@ -154,9 +154,9 @@ class GridworldContinuous(GridworldBase):
             False,
             False,
         )
-        propensities = torch.tensor(samples.propensities, dtype=torch.float32).reshape(
-            -1, 1
-        )
+        action_probabilities = torch.tensor(
+            samples.action_probabilities, dtype=torch.float32
+        ).reshape(-1, 1)
         rewards = torch.tensor(samples.rewards, dtype=torch.float32).reshape(-1, 1)
 
         pnas_lengths_list = []
@@ -234,7 +234,7 @@ class GridworldContinuous(GridworldBase):
             tdp = TrainingDataPage(
                 states=states_ndarray[start:end],
                 actions=actions_ndarray[start:end],
-                propensities=propensities[start:end],
+                propensities=action_probabilities[start:end],
                 rewards=rewards[start:end],
                 next_states=next_states_ndarray[start:end],
                 next_actions=next_actions_ndarray[start:end],

@@ -49,7 +49,9 @@ class RLTrainer:
                 )
             )
 
-        if use_gpu and torch.cuda.is_available():
+        cuda_available = torch.cuda.is_available()
+        logger.info("CUDA availability: {}".format(cuda_available))
+        if use_gpu and cuda_available:
             logger.info("Using GPU: GPU requested and available.")
             self.use_gpu = True
             self.dtype = torch.cuda.FloatTensor

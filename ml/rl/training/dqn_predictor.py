@@ -12,6 +12,7 @@ from ml.rl.preprocessing.preprocessor import (
 )
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
+from torch.nn import DataParallel
 
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,10 @@ class DQNPredictor(RLPredictor):
         """
 
         input_dim = trainer.num_features
+
+        if isinstance(trainer.q_network, DataParallel):
+            trainer.q_network = trainer.q_network.module
+
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
             PreprocesserAndForwardPassContainer(
                 Preprocessor(state_normalization_parameters, model_on_gpu),

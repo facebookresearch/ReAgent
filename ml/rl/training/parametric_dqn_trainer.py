@@ -37,9 +37,10 @@ class ParametricDQNTrainer(RLTrainer):
         parameters: ContinuousActionModelParameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
-        use_gpu=False,
+        use_gpu: bool = False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
         gradient_handler=None,
+        use_all_avail_gpus: bool = False,
     ) -> None:
 
         self.double_q_learning = parameters.rainbow.double_q_learning
@@ -107,6 +108,11 @@ class ParametricDQNTrainer(RLTrainer):
             self.q_network.cuda()
             self.q_network_target.cuda()
             self.reward_network.cuda()
+
+            if use_all_avail_gpus:
+                self.q_network = torch.nn.DataParallel(self.q_network)
+                self.q_network_target = torch.nn.DataParallel(self.q_network_target)
+                self.reward_network = torch.nn.DataParallel(self.reward_network)
 
     def _get_model(self, training_parameters, dueling_architecture=False):
         if dueling_architecture:

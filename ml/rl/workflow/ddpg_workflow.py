@@ -14,6 +14,7 @@ from ml.rl.thrift.core.ttypes import (
 from ml.rl.training.ddpg_trainer import DDPGTrainer, construct_action_scale_tensor
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
+    minibatch_size_multiplier,
     parse_args,
     report_training_status,
     update_model_for_warm_start,
@@ -32,6 +33,11 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 def train_network(params):
     logger.info("Running Parametric DQN workflow with params:")
     logger.info(params)
+
+    # Set minibatch size based on # of devices being used to train
+    params["shared_training"]["minibatch_size"] *= minibatch_size_multiplier(
+        params["use_gpu"], params["use_all_avail_gpus"]
+    )
 
     rl_parameters = RLParameters(**params["rl"])
     training_parameters = DDPGTrainingParameters(**params["shared_training"])
@@ -72,7 +78,8 @@ def train_network(params):
         action_normalization,
         min_action_range_tensor_serving,
         max_action_range_tensor_serving,
-        params["use_gpu"],
+        use_gpu=params["use_gpu"],
+        use_all_avail_gpus=params["use_all_avail_gpus"],
     )
     trainer = update_model_for_warm_start(trainer)
     state_preprocessor = Preprocessor(state_normalization, params["use_gpu"])
