@@ -16,8 +16,17 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+def minibatch_size_multiplier(use_gpu, use_all_avail_gpus):
+    """Increase size of minibatch if using PyTorch DataParallel."""
+    if use_gpu and use_all_avail_gpus and torch.cuda.is_available():
+        return torch.cuda.device_count()
+    return 1
+
+
 def report_training_status(batch_num, num_batches, epoch_num, num_epochs):
-    percent_complete = batch_num / (num_batches * num_epochs) * 100
+    percent_complete = (
+        (batch_num + epoch_num * num_batches) / (num_batches * num_epochs) * 100
+    )
     logger.info(
         "On batch {} of {} and epoch {} of {} ({}% complete)".format(
             batch_num + 1,

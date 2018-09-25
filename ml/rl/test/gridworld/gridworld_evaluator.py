@@ -27,7 +27,7 @@ class GridworldEvaluator(Evaluator):
                 samples = env.generate_samples(200000, 1.0, gamma)
         self.logged_states = samples.states
         self.logged_actions = samples.actions
-        self.logged_propensities = np.array(samples.propensities).reshape(-1, 1)
+        self.logged_propensities = np.array(samples.action_probabilities).reshape(-1, 1)
         self.logged_terminals = np.array(samples.terminals).reshape(-1, 1)
         # Create integer logged actions
         self.logged_actions_int: List[int] = []

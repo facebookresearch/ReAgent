@@ -8,6 +8,7 @@ from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
+from torch.nn import DataParallel
 
 
 logger = logging.getLogger(__name__)
@@ -150,6 +151,9 @@ class DDPGPredictor(RLPredictor):
         :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
         """
         input_dim = trainer.state_dim
+        if isinstance(trainer.actor, DataParallel):
+            trainer.actor = trainer.actor.module
+
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
             trainer.actor, input_dim, model_on_gpu
         )
@@ -304,6 +308,9 @@ class DDPGPredictor(RLPredictor):
         :param int_features boolean indicating if int features blob will be present
         """
         input_dim = trainer.state_dim + trainer.action_dim
+        if isinstance(trainer.critic, DataParallel):
+            trainer.critic = trainer.critic.module
+
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
             trainer.critic, input_dim, model_on_gpu
         )

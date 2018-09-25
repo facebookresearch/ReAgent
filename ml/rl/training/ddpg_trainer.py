@@ -30,10 +30,11 @@ class DDPGTrainer(RLTrainer):
         parameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
-        min_action_range_tensor_serving: torch.tensor,
-        max_action_range_tensor_serving: torch.tensor,
+        min_action_range_tensor_serving: torch.Tensor,
+        max_action_range_tensor_serving: torch.Tensor,
         use_gpu: bool = False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
+        use_all_avail_gpus: bool = False,
     ) -> None:
 
         self.state_normalization_parameters = state_normalization_parameters
@@ -112,6 +113,12 @@ class DDPGTrainer(RLTrainer):
             self.critic.cuda()
             self.critic_target.cuda()
 
+            if use_all_avail_gpus:
+                self.actor = nn.DataParallel(self.actor)
+                self.actor_target = nn.DataParallel(self.actor_target)
+                self.critic = nn.DataParallel(self.critic)
+                self.critic_target = nn.DataParallel(self.critic_target)
+
     def train(
         self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
     ) -> None:
@@ -163,7 +170,7 @@ class DDPGTrainer(RLTrainer):
             prev_max=self.max_action_range_tensor_serving,
         )
         rewards = training_samples.rewards
-        next_states = torch.tensor(training_samples.next_states, requires_grad=True)
+        next_states = training_samples.next_states
         time_diffs = training_samples.time_diffs
         discount_tensor = torch.tensor(np.full(rewards.shape, self.gamma)).type(
             self.dtype
@@ -189,7 +196,7 @@ class DDPGTrainer(RLTrainer):
 
         # compute loss and update the critic network
         critic_predictions = q_s1_a1
-        loss_critic = self.q_network_loss(critic_predictions, target_q_values)
+        loss_critic = self.q_network_loss(critic_predictions, target_q_values.detach())
         self.critic_optimizer.zero_grad()
         loss_critic.backward()
         self.critic_optimizer.step()

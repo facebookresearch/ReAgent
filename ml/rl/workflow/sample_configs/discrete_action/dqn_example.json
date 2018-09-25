@@ -3,6 +3,7 @@
   "state_norm_data_path": "~/state_features_norm.json",
   "model_output_path": "~/",
   "use_gpu": true,
+  "use_all_avail_gpus": true,
   "norm_params": {
     "output_dir": "~/",
     "cols_to_norm": [
@@ -40,7 +41,7 @@
       "relu",
       "linear"
     ],
-    "minibatch_size": 128,
+    "minibatch_size": 512,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
     "lr_decay": 0.999,
