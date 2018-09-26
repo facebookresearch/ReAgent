@@ -189,7 +189,7 @@ class DDPGTrainer(RLTrainer):
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)
 
-        if self.use_reward_burnin and self.minibatch < self.reward_burnin:
+        if self.minibatch < self.reward_burnin:
             target_q_values = rewards
         else:
             target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
@@ -208,7 +208,7 @@ class DDPGTrainer(RLTrainer):
         loss_actor.backward()
         self.actor_optimizer.step()
 
-        if self.use_reward_burnin and self.minibatch < self.reward_burnin:
+        if self.minibatch < self.reward_burnin:
             # Reward burnin: force target network
             self._soft_update(self.actor, self.actor_target, 1.0)
             self._soft_update(self.critic, self.critic_target, 1.0)

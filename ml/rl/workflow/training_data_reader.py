@@ -23,12 +23,16 @@ class JSONDataset:
         self.len = self.line_count()
         if self.read_data_in_chunks:
             # Do not read entire dataset into memory
-            self.data_iterator = pd.read_json(
-                self.path, lines=True, chunksize=self.batch_size
-            )
+            self.reset_iterator()
         else:
             # Read entire dataset into memory
             self.data = pd.read_json(self.path, lines=True)
+
+    def reset_iterator(self):
+        if self.read_data_in_chunks:
+            self.data_iterator = pd.read_json(
+                self.path, lines=True, chunksize=self.batch_size
+            )
 
     def _get_chunked_reading_setting(self):
         """FB internal is currently pinned to Pandas 0.20.3 which does
