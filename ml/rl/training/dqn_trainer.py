@@ -239,7 +239,7 @@ class DQNTrainer(RLTrainer):
 
         filtered_next_q_vals = next_q_values * not_done_mask
 
-        if self.use_reward_burnin and self.minibatch < self.reward_burnin:
+        if self.minibatch < self.reward_burnin:
             target_q_values = rewards
         else:
             target_q_values = rewards + (discount_tensor * filtered_next_q_vals)
@@ -258,7 +258,7 @@ class DQNTrainer(RLTrainer):
             self.gradient_handler(self.q_network.parameters())
         self.q_network_optimizer.step()
 
-        if self.use_reward_burnin and self.minibatch < self.reward_burnin:
+        if self.minibatch < self.reward_burnin:
             # Reward burnin: force target network
             self._soft_update(self.q_network, self.q_network_target, 1.0)
         else:
