@@ -87,6 +87,7 @@ def train_network(params):
 
     start_time = time.time()
     for epoch in range(params["epochs"]):
+        dataset.reset_iterator()
         for batch_idx in range(num_batches):
             report_training_status(batch_idx, num_batches, epoch, params["epochs"])
             batch = dataset.read_batch(batch_idx)
