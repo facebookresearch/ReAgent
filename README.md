@@ -1,4 +1,5 @@
 ![Alt text](logo/horizon_banner.png)
+
 ### Applied Reinforcement Learning @ Facebook
 ---
 
