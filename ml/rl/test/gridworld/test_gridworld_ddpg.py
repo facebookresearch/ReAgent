@@ -67,8 +67,8 @@ class TestGridworldContinuous(unittest.TestCase):
         critic_predictor = trainer.predictor(actor=False)
         evaluator.evaluate_critic(critic_predictor)
         for tdp in tdps:
-            tdp.rewards = tdp.rewards.flatten()
-            tdp.not_terminals = tdp.not_terminals.flatten()
+            tdp.rewards = tdp.rewards.reshape(-1, 1)
+            tdp.not_terminals = tdp.not_terminals.reshape(-1, 1)
             trainer.train(tdp)
 
         # Make sure actor predictor works
