@@ -51,7 +51,7 @@ class TestGridworldContinuous(unittest.TestCase):
             ),
         )
 
-    def test_ddpg_trainer(self):
+    def _test_ddpg_trainer(self, use_gpu=False, use_all_avail_gpus=False):
         environment = GridworldContinuous()
         samples = environment.generate_samples(500000, 0.25, DISCOUNT)
         trainer = DDPGTrainer(
@@ -60,9 +60,13 @@ class TestGridworldContinuous(unittest.TestCase):
             environment.normalization_action,
             environment.min_action_range,
             environment.max_action_range,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
         )
         evaluator = GridworldDDPGEvaluator(environment, True, DISCOUNT, False, samples)
-        tdps = environment.preprocess_samples(samples, self.minibatch_size)
+        tdps = environment.preprocess_samples(
+            samples, self.minibatch_size, use_gpu=use_gpu
+        )
 
         critic_predictor = trainer.predictor(actor=False)
         evaluator.evaluate_critic(critic_predictor)
@@ -82,3 +86,14 @@ class TestGridworldContinuous(unittest.TestCase):
         # For now we are disabling this test until we can get DDPG to be healthy
         # on discrete action domains (T30810709).
         # assert error < 0.1, "gridworld MAE: {} > {}".format(error, 0.1)
+
+    def test_ddpg_trainer(self):
+        self._test_ddpg_trainer()
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_ddpg_trainer_gpu(self):
+        self._test_ddpg_trainer(use_gpu=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_ddpg_trainer_all_gpus(self):
+        self._test_ddpg_trainer(use_gpu=True, use_all_avail_gpus=True)

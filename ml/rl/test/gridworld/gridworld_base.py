@@ -543,7 +543,11 @@ class GridworldBase(object):
         )
 
     def preprocess_samples_discrete(
-        self, samples: Samples, minibatch_size: int, one_hot_action: bool = True
+        self,
+        samples: Samples,
+        minibatch_size: int,
+        one_hot_action: bool = True,
+        use_gpu: bool = False,
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
         samples.shuffle()
@@ -644,7 +648,7 @@ class GridworldBase(object):
                 else None,
                 time_diffs=time_diffs[start:end],
             )
-            tdp.set_type(torch.FloatTensor)
+            tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
             tdps.append(tdp)
         return tdps
 
