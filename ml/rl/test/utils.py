@@ -63,6 +63,17 @@ def default_normalizer(feats, min_value=None, max_value=None):
             min_value=min_value,
             max_value=max_value,
         ),
+        NormalizationParameters(
+            feature_type="ENUM",
+            boxcox_lambda=None,
+            boxcox_shift=None,
+            mean=0,
+            stddev=1,
+            possible_values=[0, 1],
+            quantiles=None,
+            min_value=min_value,
+            max_value=max_value,
+        ),
     ]
     normalization = collections.OrderedDict(
         [

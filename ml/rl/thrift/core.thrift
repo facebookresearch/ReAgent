@@ -84,19 +84,9 @@ struct DiscreteActionModelParameters {
   6: optional InTrainingCPEParameters in_training_cpe,
 }
 
-struct KnnParameters {
-  1: string model_type,
-  2: i32 knn_frequency,
-  3: i32 knn_k,
-  4: bool knn_dynreindex,
-  5: double knn_dynreindex_threshold,
-  6: i32 knn_dynreindex_rand_other,
-}
-
 struct ContinuousActionModelParameters {
   1: RLParameters rl,
   2: TrainingParameters training,
-  3: KnnParameters knn,
   4: RainbowDQNParameters rainbow,
   5: optional InTrainingCPEParameters in_training_cpe,
 }

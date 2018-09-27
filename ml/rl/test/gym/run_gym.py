@@ -28,7 +28,6 @@ from ml.rl.thrift.core.ttypes import (
     DDPGNetworkParameters,
     DDPGTrainingParameters,
     DiscreteActionModelParameters,
-    KnnParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -421,10 +420,7 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
                 training_parameters.cnn_parameters is None
             ), "Extra CNN parameters for non-image input"
         trainer_params = ContinuousActionModelParameters(
-            rl=rl_parameters,
-            training=training_parameters,
-            knn=KnnParameters(model_type="DQN"),
-            rainbow=rainbow_parameters,
+            rl=rl_parameters, training=training_parameters, rainbow=rainbow_parameters
         )
         trainer = ParametricDQNTrainer(
             trainer_params, env.normalization, env.normalization_action, use_gpu
