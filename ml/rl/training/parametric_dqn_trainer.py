@@ -8,6 +8,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from ml.rl.caffe_utils import arange_expand
+from ml.rl.models.dueling_q_network import DuelingQNetwork
+from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
@@ -21,8 +23,6 @@ from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.parametric_inner_product import ParametricInnerProduct
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
-    DuelingArchitectureQNetwork,
-    GenericFeedForwardNetwork,
     RLTrainer,
 )
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -97,7 +97,7 @@ class ParametricDQNTrainer(RLTrainer):
             self.q_network.parameters(), lr=parameters.training.learning_rate
         )
 
-        self.reward_network = GenericFeedForwardNetwork(
+        self.reward_network = FullyConnectedNetwork(
             reward_network_layers, parameters.training.activations
         )
         self.reward_network_optimizer = self.optimizer_func(
@@ -116,22 +116,22 @@ class ParametricDQNTrainer(RLTrainer):
 
     def _get_model(self, training_parameters, dueling_architecture=False):
         if dueling_architecture:
-            return DuelingArchitectureQNetwork(
+            return DuelingQNetwork(
                 training_parameters.layers,
                 training_parameters.activations,
                 action_dim=self.num_action_features,
             )
         elif training_parameters.factorization_parameters is None:
-            return GenericFeedForwardNetwork(
+            return FullyConnectedNetwork(
                 training_parameters.layers, training_parameters.activations
             )
         else:
             return ParametricInnerProduct(
-                GenericFeedForwardNetwork(
+                FullyConnectedNetwork(
                     training_parameters.factorization_parameters.state.layers,
                     training_parameters.factorization_parameters.state.activations,
                 ),
-                GenericFeedForwardNetwork(
+                FullyConnectedNetwork(
                     training_parameters.factorization_parameters.action.layers,
                     training_parameters.factorization_parameters.action.activations,
                 ),

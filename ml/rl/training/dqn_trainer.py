@@ -6,6 +6,9 @@ from typing import Dict, Optional
 
 import torch
 import torch.nn.functional as F
+from ml.rl.models.convolutional_network import ConvolutionalNetwork
+from ml.rl.models.dueling_q_network import DuelingQNetwork
+from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
@@ -18,9 +21,6 @@ from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
-    DuelingArchitectureQNetwork,
-    GenericConvNetwork,
-    GenericFeedForwardNetwork,
     RLTrainer,
 )
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -67,16 +67,16 @@ class DQNTrainer(RLTrainer):
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
         if parameters.rainbow.dueling_architecture:
-            self.q_network = DuelingArchitectureQNetwork(
+            self.q_network = DuelingQNetwork(
                 parameters.training.layers, parameters.training.activations
             )
         else:
             if parameters.training.cnn_parameters is None:
-                self.q_network = GenericFeedForwardNetwork(
+                self.q_network = FullyConnectedNetwork(
                     parameters.training.layers, parameters.training.activations
                 )
             else:
-                self.q_network = GenericConvNetwork(
+                self.q_network = ConvolutionalNetwork(
                     parameters.training.cnn_parameters,
                     parameters.training.layers,
                     parameters.training.activations,
@@ -89,11 +89,11 @@ class DQNTrainer(RLTrainer):
         )
 
         if parameters.training.cnn_parameters is None:
-            self.reward_network = GenericFeedForwardNetwork(
+            self.reward_network = FullyConnectedNetwork(
                 parameters.training.layers, parameters.training.activations
             )
         else:
-            self.reward_network = GenericConvNetwork(
+            self.reward_network = ConvolutionalNetwork(
                 parameters.training.cnn_parameters,
                 parameters.training.layers,
                 parameters.training.activations,
