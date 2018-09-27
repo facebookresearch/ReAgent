@@ -14,7 +14,6 @@ from ml.rl.thrift.core.ttypes import (
     FactorizationParameters,
     FeedForwardParameters,
     InTrainingCPEParameters,
-    KnnParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -46,7 +45,6 @@ class TestGridworldParametric(unittest.TestCase):
                 learning_rate=0.05,
                 optimizer="ADAM",
             ),
-            knn=KnnParameters(model_type="DQN"),
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
@@ -77,7 +75,6 @@ class TestGridworldParametric(unittest.TestCase):
                 learning_rate=0.05,
                 optimizer="ADAM",
             ),
-            knn=KnnParameters(model_type="DQN"),
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
