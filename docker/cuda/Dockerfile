@@ -101,8 +101,9 @@ ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
 ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
 
 ADD ./install_prereqs.sh install_prereqs.sh
+ADD ./requirements.txt requirements.txt
 RUN ./install_prereqs.sh
-RUN rm install_prereqs.sh
+RUN rm install_prereqs.sh requirements.txt
 
 RUN git clone https://github.com/facebookresearch/Horizon.git && \
     cd Horizon && \

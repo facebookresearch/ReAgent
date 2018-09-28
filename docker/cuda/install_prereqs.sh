@@ -13,6 +13,8 @@ TMP_CUDA_VERSION="9"
 pip uninstall -y torch || true
 pip uninstall -y torch || true
 
+pip install -r requirements.txt
+
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu90/torch_nightly.html
 
 # Install NCCL2.

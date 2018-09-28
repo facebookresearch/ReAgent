@@ -10,7 +10,8 @@
 
 ##### Docker
 
-We have included Dockerfile for CPU-only build and CUDA build under `docker` directory. The CUDA build will need [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) to run.
+We have included a Dockerfile for the CPU-only build and CUDA build under the docker directory.
+The CUDA build will need [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) to run.
 
 To build, `cd` into the respective directory and run
 
@@ -26,14 +27,14 @@ git clone https://github.com/facebookresearch/Horizon.git
 cd Horizon/
 ```
 
-Our project use Thrift to define configuration and Spark to transform training data into the right format.
-They require installing dependencies not managed by virtualenv. Here is the list of softwares needed to be installed on your system.
+Our project uses Thrift to define configuration and Spark to transform training data into the right format.
+They require installing dependencies not managed by virtualenv. Here is the list of software needed to be installed on your system.
 - Thrift compiler version 0.11.0 or above. You will need to build from source.
   See [1](https://thrift.apache.org/docs/install/debian), [2](https://thrift.apache.org/docs/BuildingFromSource).
 - [Oracle Java 8](https://launchpad.net/~webupd8team/+archive/ubuntu/java)
 - Maven
 
-To install them all, you can run `./install_compilers.sh`. This may break your system. After it finished, you will need to add this line to your .bash_profile
+To install them all, you can run `./install_compilers.sh`. After it finished, you will need to add this line to your `.bash_profile`
 
 ```
 export JAVA_HOME=/usr/lib/jvm/java-8-oracle
@@ -46,7 +47,13 @@ virtualenv -p python3 env
 . env/bin/activate
 ```
 
-Install appropriate PyTorch 1.0 nightly build into the virtual environment:
+First, install dependencies:
+
+```
+pip install -r requirements.txt
+```
+
+Then, install appropriate PyTorch 1.0 nightly build into the virtual environment:
 ```
 # For CPU build
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html

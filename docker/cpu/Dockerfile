@@ -98,8 +98,9 @@ ENV LC_ALL en_US.UTF-8
 ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 
 ADD ./install_prereqs.sh install_prereqs.sh
+ADD ./requirements.txt requirements.txt
 RUN ./install_prereqs.sh
-RUN rm install_prereqs.sh
+RUN rm install_prereqs.sh requirements.txt
 
 RUN git clone https://github.com/facebookresearch/Horizon.git && \
     cd Horizon && \

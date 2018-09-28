@@ -10,5 +10,6 @@ export LD_LIBRARY_PATH="${CONDA_PATH}/lib:${LD_LIBRARY_PATH}"
 pip uninstall -y torch || true
 pip uninstall -y torch || true
 
-pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+pip install -r requirements.txt
 
+pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
