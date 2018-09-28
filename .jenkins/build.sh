@@ -5,5 +5,6 @@ pip uninstall -y horizon
 
 thrift --gen py --out . ml/rl/thrift/core.thrift
 
-sudo python3 setup.py build develop
+# Installing from current directory, any update will be reflected system-wide
+pip install -e .
 python3 setup.py test
