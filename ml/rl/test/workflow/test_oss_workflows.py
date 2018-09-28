@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 
+import torch
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.workflow import ddpg_workflow, dqn_workflow, parametric_dqn_workflow
 
@@ -12,7 +13,7 @@ curr_dir = os.path.dirname(__file__)
 
 
 class TestOSSWorkflows(unittest.TestCase):
-    def test_dqn_workflow(self):
+    def _test_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
         """Run DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -24,8 +25,8 @@ class TestOSSWorkflows(unittest.TestCase):
                     curr_dir, "test_data/discrete_action/cartpole_norm.json"
                 ),
                 "model_output_path": tmpdirname,
-                "use_gpu": False,
-                "use_all_avail_gpus": False,
+                "use_gpu": use_gpu,
+                "use_all_avail_gpus": use_all_avail_gpus,
                 "actions": ["0", "1"],
                 "epochs": 5,
                 "rl": {},
@@ -38,7 +39,18 @@ class TestOSSWorkflows(unittest.TestCase):
             q_values = predictor.predict(test_float_state_features)
         assert len(q_values[0].keys()) == 2
 
-    def test_parametric_dqn_workflow(self):
+    def test_dqn_workflow(self):
+        self._test_dqn_workflow()
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_dqn_workflow_gpu(self):
+        self._test_dqn_workflow(use_gpu=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_dqn_workflow_all_gpus(self):
+        self._test_dqn_workflow(use_gpu=True, use_all_avail_gpus=True)
+
+    def _test_parametric_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
         """Run Parametric DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -53,8 +65,8 @@ class TestOSSWorkflows(unittest.TestCase):
                     curr_dir, "test_data/parametric_action/action_norm.json"
                 ),
                 "model_output_path": tmpdirname,
-                "use_gpu": False,
-                "use_all_avail_gpus": False,
+                "use_gpu": use_gpu,
+                "use_all_avail_gpus": use_all_avail_gpus,
                 "epochs": 5,
                 "rl": {},
                 "rainbow": {},
@@ -70,7 +82,18 @@ class TestOSSWorkflows(unittest.TestCase):
             )
         assert len(q_values[0].keys()) == 1
 
-    def test_ddpg_workflow(self):
+    def test_parametric_dqn_workflow(self):
+        self._test_parametric_dqn_workflow()
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_parametric_dqn_workflow_gpu(self):
+        self._test_parametric_dqn_workflow(use_gpu=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_parametric_dqn_workflow_all_gpus(self):
+        self._test_parametric_dqn_workflow(use_gpu=True, use_all_avail_gpus=True)
+
+    def _test_ddpg_workflow(self, use_gpu=False, use_all_avail_gpus=False):
         """Run DDPG workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -85,8 +108,8 @@ class TestOSSWorkflows(unittest.TestCase):
                     curr_dir, "test_data/continuous_action/action_norm.json"
                 ),
                 "model_output_path": tmpdirname,
-                "use_gpu": False,
-                "use_all_avail_gpus": False,
+                "use_gpu": use_gpu,
+                "use_all_avail_gpus": use_all_avail_gpus,
                 "epochs": 5,
                 "rl": {},
                 "rainbow": {},
@@ -101,6 +124,17 @@ class TestOSSWorkflows(unittest.TestCase):
                 test_float_state_features, test_int_state_features
             )
         assert len(action) == 1
+
+    def test_ddpg_workflow(self):
+        self._test_ddpg_workflow()
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_ddpg_workflow_gpu(self):
+        self._test_ddpg_workflow(use_gpu=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_ddpg_workflow_all_gpus(self):
+        self._test_ddpg_workflow(use_gpu=True, use_all_avail_gpus=True)
 
     def test_read_c2_model_from_file(self):
         """Test reading output caffe2 model from file and using it for inference."""

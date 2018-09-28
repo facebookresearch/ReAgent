@@ -99,7 +99,7 @@ class GridworldContinuous(GridworldBase):
         )
 
     def preprocess_samples(
-        self, samples: Samples, minibatch_size: int
+        self, samples: Samples, minibatch_size: int, use_gpu: bool = False
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
         samples.shuffle()
@@ -247,7 +247,7 @@ class GridworldContinuous(GridworldBase):
                 possible_next_actions_lengths=pnas_lengths[start:end],
                 possible_next_actions_state_concat=pnas_concat,
             )
-            tdp.set_type(torch.FloatTensor)
+            tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
             tdps.append(tdp)
         return tdps
 
