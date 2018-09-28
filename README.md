@@ -19,6 +19,11 @@ To build, `cd` into the respective directory and run
 docker build -t horizon:dev .
 ```
 
+If the Horizon unittests seem stuck, your Docker VM might not have enough memory.
+In that case, multiprocessing might be killed and the tests could be left in a hanging state.
+You can try to [increase docker resource limit](https://docs.docker.com/config/containers/resource_constraints/)
+or comment out `python3 setup.py test` from Dockerfile.
+
 ##### Linux (Ubuntu)
 
 Clone repo:
