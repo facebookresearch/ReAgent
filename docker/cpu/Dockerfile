@@ -102,11 +102,12 @@ ADD ./requirements.txt requirements.txt
 RUN ./install_prereqs.sh
 RUN rm install_prereqs.sh requirements.txt
 
+# Install and run key tests, this should finish quickly
 RUN git clone https://github.com/facebookresearch/Horizon.git && \
     cd Horizon && \
     thrift --gen py --out . ml/rl/thrift/core.thrift && \
     pip install -e . && \
-    python3 setup.py test
+    python -m ml.rl.test.workflow.test_oss_workflows
 
 # Define default command.
 CMD ["bash"]
