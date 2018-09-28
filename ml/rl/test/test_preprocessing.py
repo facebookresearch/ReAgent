@@ -4,9 +4,11 @@ import unittest
 
 import numpy as np
 import six
+from caffe2.python import core
+from ml.rl.caffe_utils import PytorchCaffe2Converter
 from ml.rl.preprocessing import identify_types, normalization
 from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
-from ml.rl.preprocessing.normalization import NormalizationParameters
+from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test import preprocessing_util
 from scipy import special, stats
@@ -36,7 +38,10 @@ class TestPreprocessing(unittest.TestCase):
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values, 10
+                values[
+                    1:
+                ],  # Skip the first value when identifying because it's MISSING_VALUE
+                10,
             )
         for k, v in normalization_parameters.items():
             if k == CONTINUOUS:
@@ -100,9 +105,13 @@ class TestPreprocessing(unittest.TestCase):
 
                 for i, row in enumerate(v):
                     original_feature = feature_value_map[k][i]
-                    self.assertEqual(
-                        possible_value_map[original_feature], np.where(row == 1)[0][0]
-                    )
+                    if abs(original_feature - MISSING_VALUE) < 0.01:
+                        self.assertEqual(0.0, np.sum(row))
+                    else:
+                        self.assertEqual(
+                            possible_value_map[original_feature],
+                            np.where(row == 1)[0][0],
+                        )
             elif feature_type == identify_types.QUANTILE:
                 for i, feature in enumerate(v[0]):
                     original_feature = feature_value_map[k][i]
@@ -174,6 +183,7 @@ class TestPreprocessing(unittest.TestCase):
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(values)
+            values[0] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
 
         s = normalization.serialize(normalization_parameters)
         read_parameters = normalization.deserialize(s)
@@ -193,7 +203,7 @@ class TestPreprocessing(unittest.TestCase):
             )
         # No *= to ensure consistent out-of-place operation.
         if parameters.feature_type == identify_types.PROBABILITY:
-            feature = special.logit(feature)
+            feature = special.logit(np.clip(feature, 1e-6, 1.0))
         elif parameters.feature_type == identify_types.QUANTILE:
             transformed_feature = np.zeros_like(feature)
             for i in six.moves.range(feature.shape[0]):
@@ -208,6 +218,8 @@ class TestPreprocessing(unittest.TestCase):
                 mapping[possible_value] = i
             output_feature = np.zeros((len(feature), len(possible_values)))
             for i, val in enumerate(feature):
+                if abs(val - MISSING_VALUE) < 1e-2:
+                    continue
                 output_feature[i][mapping[val]] = 1.0
             return output_feature
         else:
@@ -224,6 +236,58 @@ class TestPreprocessing(unittest.TestCase):
             )
         return result
 
+    def test_preprocessing_network_onnx(self):
+        features, feature_value_map = preprocessing_util.read_data()
+
+        for feature_name, feature_values in feature_value_map.items():
+            normalization_parameters = normalization.identify_parameter(feature_values)
+            feature_values[
+                0
+            ] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
+            feature_values_matrix = np.expand_dims(feature_values, -1)
+
+            preprocessor = Preprocessor({feature_name: normalization_parameters}, False)
+            normalized_feature_values = preprocessor.forward(feature_values_matrix)
+
+            input_blob, output_blob, netdef = PytorchCaffe2Converter.pytorch_net_to_caffe2_netdef(
+                preprocessor, 1, False, float_input=True
+            )
+
+            preproc_workspace = netdef.workspace
+
+            preproc_workspace.FeedBlob(input_blob, feature_values_matrix)
+
+            preproc_workspace.RunNetOnce(core.Net(netdef.init_net))
+            preproc_workspace.RunNetOnce(core.Net(netdef.predict_net))
+
+            normalized_feature_values_onnx = netdef.workspace.FetchBlob(output_blob)
+            tolerance = 0.0001
+            non_matching = np.where(
+                np.logical_not(
+                    np.isclose(
+                        normalized_feature_values,
+                        normalized_feature_values_onnx,
+                        rtol=tolerance,
+                        atol=tolerance,
+                    )
+                )
+            )
+            self.assertTrue(
+                np.all(
+                    np.isclose(
+                        normalized_feature_values,
+                        normalized_feature_values_onnx,
+                        rtol=tolerance,
+                        atol=tolerance,
+                    )
+                ),
+                "{} does not match: {} \n!=\n {}".format(
+                    feature_name,
+                    normalized_feature_values[non_matching].tolist()[0:10],
+                    normalized_feature_values_onnx[non_matching].tolist()[0:10],
+                ),
+            )
+
     def test_preprocessing_network(self):
         features, feature_value_map = preprocessing_util.read_data()
         normalization_parameters = {}
@@ -233,6 +297,9 @@ class TestPreprocessing(unittest.TestCase):
             normalization_parameters[feature_name] = normalization.identify_parameter(
                 feature_values
             )
+            feature_values[
+                0
+            ] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
 
             preprocessor = Preprocessor(
                 {feature_name: normalization_parameters[feature_name]}, False
@@ -256,8 +323,8 @@ class TestPreprocessing(unittest.TestCase):
             non_matching = np.where(
                 np.logical_not(
                     np.isclose(
-                        normalized_features,
-                        test_features[feature_name],
+                        normalized_features.flatten(),
+                        test_features[feature_name].flatten(),
                         rtol=tolerance,
                         atol=tolerance,
                     )
@@ -266,16 +333,16 @@ class TestPreprocessing(unittest.TestCase):
             self.assertTrue(
                 np.all(
                     np.isclose(
-                        normalized_features,
-                        test_features[feature_name],
+                        normalized_features.flatten(),
+                        test_features[feature_name].flatten(),
                         rtol=tolerance,
                         atol=tolerance,
                     )
                 ),
-                "{} does not match: {} {}".format(
+                "{} does not match: {} \n!=\n {}".format(
                     feature_name,
-                    normalized_features[non_matching].tolist()[0:10],
-                    test_features[feature_name][non_matching].tolist()[0:10],
+                    normalized_features.flatten()[non_matching],
+                    test_features[feature_name].flatten()[non_matching],
                 ),
             )
 
