@@ -187,7 +187,8 @@ class Preprocessor(Module):
         if self.clamp:
             clamped_input = torch.clamp(input, 0.01, 0.99)
         else:
-            clamped_input = input
+            # Still clamp to avoid MISSING_VALUE from causing NaN
+            clamped_input = torch.clamp(input, 1e-6)
         return (
             self.negative_one_tensor
             * ((self.one_tensor / clamped_input) - self.one_tensor).log()
@@ -229,6 +230,10 @@ class Preprocessor(Module):
             "shifts",
             torch.Tensor([p.boxcox_shift for p in norm_params]).type(self.dtype),
         )
+        for p in norm_params:
+            assert p.boxcox_lambda > 1e-6, "Invalid value for boxcox lambda: " + str(
+                p.boxcox_lambda
+            )
         self._create_parameter(
             begin_index,
             "lambdas",
@@ -246,7 +251,13 @@ class Preprocessor(Module):
         lambdas = self._fetch_parameter(begin_index, "lambdas")
         boxcox_output = (
             # We can replace this with a normal pow() call after D8528654 lands
-            self._manual_broadcast_matrix_scalar(input + shifts, lambdas, torch.pow)
+            self._manual_broadcast_matrix_scalar(
+                torch.clamp(
+                    input + shifts, 1e-6
+                ),  # Clamp is necessary to prevent MISSING_VALUE from going to NaN
+                lambdas,
+                torch.pow,
+            )
             - self.one_tensor
         ) / lambdas
         return self._preprocess_CONTINUOUS(begin_index, boxcox_output, norm_params)
@@ -344,12 +355,12 @@ class Preprocessor(Module):
         expanded_inputs = input.unsqueeze(2) * mask
 
         input_greater_than_or_equal_to = (
-            expanded_inputs >= quantile_boundaries
+            self.hack_ge(expanded_inputs, quantile_boundaries)
         ).float()
 
         input_less_than = (expanded_inputs < quantile_boundaries).float()
-        set_to_max = (input >= max_quantile_boundaries).float()
-        set_to_min = (input <= min_quantile_boundaries).float()
+        set_to_max = self.hack_ge(input, max_quantile_boundaries).float()
+        set_to_min = self.hack_le(input, min_quantile_boundaries).float()
         min_or_max = (set_to_min + set_to_max).float()
         interpolate = (min_or_max < self.one_hundredth_tensor).float()
         interpolate_left, _ = torch.max(
@@ -455,6 +466,12 @@ class Preprocessor(Module):
         t1_mask = t1.mm(t2_ones)
 
         return fn(t1_mask, t2).float()
+
+    def hack_ge(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
+        return t1 > (t2 - self.epsilon_tensor)
+
+    def hack_le(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
+        return t1 < (t2 + self.epsilon_tensor)
 
 
 class PreprocesserAndForwardPassContainer(nn.Module):

@@ -1034,25 +1034,34 @@ class Evaluator(object):
             return x
 
         for name, value in [
-            ("data/td_loss", self.get_recent_td_loss()),
-            ("data/mc_loss", self.get_recent_mc_loss()),
-            ("Direct Method Reward", self.get_recent_reward_direct_method().normalized),
+            ("Training/td_loss", self.get_recent_td_loss()),
+            ("Training/mc_loss", self.get_recent_mc_loss()),
             (
-                "IPS Reward",
+                "Reward_CPE/Direct Method Reward",
+                self.get_recent_reward_direct_method().normalized,
+            ),
+            (
+                "Reward_CPE/IPS Reward",
                 self.get_recent_reward_inverse_propensity_score().normalized,
             ),
-            ("Doubly Robust Reward", self.get_recent_reward_doubly_robust().normalized),
-            ("MAGIC Estimator", self.get_recent_value_magic_doubly_robust().normalized),
             (
-                "Doubly Robust One Step",
+                "Reward_CPE/Doubly Robust Reward",
+                self.get_recent_reward_doubly_robust().normalized,
+            ),
+            (
+                "Value_CPE/MAGIC Estimator",
+                self.get_recent_value_magic_doubly_robust().normalized,
+            ),
+            (
+                "Value_CPE/Doubly Robust One Step",
                 self.get_recent_value_one_step_doubly_robust().normalized,
             ),
             (
-                "Weighted Doubly Robust",
+                "Value_CPE/Weighted Doubly Robust",
                 self.get_recent_value_weighted_doubly_robust().normalized,
             ),
             (
-                "Sequential Doubly Robust",
+                "Value_CPE/Sequential Doubly Robust",
                 self.get_recent_value_sequential_doubly_robust().normalized,
             ),
         ]:

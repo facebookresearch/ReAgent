@@ -28,8 +28,8 @@ def read_data():
     feature_value_map[QUANTILE] = np.concatenate(
         (stats.norm.rvs(size=5000), stats.expon.rvs(size=5000))
     ).astype(np.float32)
-    feature_value_map[PROBABILITY] = stats.beta.rvs(a=2.0, b=2.0, size=10000).astype(
-        np.float32
+    feature_value_map[PROBABILITY] = np.clip(
+        stats.beta.rvs(a=2.0, b=2.0, size=10000).astype(np.float32), -4, 4
     )
 
     features = [
