@@ -1,4 +1,5 @@
 ![Alt text](logo/horizon_banner.png)
+
 ### Applied Reinforcement Learning @ Facebook
 [![Build Status](https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master)](https://ci.pytorch.org/jenkins/job/horizon-master/)
 ---
