@@ -217,12 +217,12 @@ class ParametricDQNTrainer(RLTrainer):
     ) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
-            assert training_samples.states.shape[0] == self.minibatch_size, (
-                "Invalid shape: " + str(training_samples.states.shape)
-            )
-            assert training_samples.actions.shape[0] == self.minibatch_size, (
-                "Invalid shape: " + str(training_samples.actions.shape)
-            )
+            assert (
+                training_samples.states.shape[0] == self.minibatch_size
+            ), "Invalid shape: " + str(training_samples.states.shape)
+            assert (
+                training_samples.actions.shape[0] == self.minibatch_size
+            ), "Invalid shape: " + str(training_samples.actions.shape)
             assert training_samples.rewards.shape == torch.Size(
                 [self.minibatch_size, 1]
             ), "Invalid shape: " + str(training_samples.rewards.shape)
@@ -230,19 +230,13 @@ class ParametricDQNTrainer(RLTrainer):
                 training_samples.episode_values is None
                 or training_samples.episode_values.shape
                 == training_samples.rewards.shape
-            ), (
-                "Invalid shape: " + str(training_samples.episode_values.shape)
-            )
+            ), "Invalid shape: " + str(training_samples.episode_values.shape)
             assert (
                 training_samples.next_states.shape == training_samples.states.shape
-            ), (
-                "Invalid shape: " + str(training_samples.next_states.shape)
-            )
+            ), "Invalid shape: " + str(training_samples.next_states.shape)
             assert (
                 training_samples.not_terminals.shape == training_samples.rewards.shape
-            ), (
-                "Invalid shape: " + str(training_samples.not_terminals.shape)
-            )
+            ), "Invalid shape: " + str(training_samples.not_terminals.shape)
             assert training_samples.possible_next_actions_state_concat.shape[1] == (
                 training_samples.states.shape[1] + training_samples.actions.shape[1]
             ), (
