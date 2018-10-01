@@ -254,7 +254,7 @@ class PreprocessorNet:
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 
-        zeros = C2.ConstantFill(blob, value=0.)
+        zeros = C2.ConstantFill(blob, value=0.0)
         output_blob = C2.Where(is_empty, zeros, blob)
 
         return output_blob, parameters

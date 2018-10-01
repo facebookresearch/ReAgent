@@ -231,9 +231,9 @@ class Preprocessor(Module):
             torch.Tensor([p.boxcox_shift for p in norm_params]).type(self.dtype),
         )
         for p in norm_params:
-            assert p.boxcox_lambda > 1e-6, "Invalid value for boxcox lambda: " + str(
-                p.boxcox_lambda
-            )
+            assert (
+                abs(p.boxcox_lambda) > 1e-6
+            ), "Invalid value for boxcox lambda: " + str(p.boxcox_lambda)
         self._create_parameter(
             begin_index,
             "lambdas",

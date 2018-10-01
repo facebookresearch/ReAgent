@@ -1,11 +1,27 @@
 ![Alt text](logo/horizon_banner.png)
 ### Applied Reinforcement Learning @ Facebook
+[![Build Status](https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master)](https://ci.pytorch.org/jenkins/job/horizon-master/)
 ---
 
 #### Overview
 <TODO: add stuff from dex here>
 
 #### Installation
+
+##### Docker
+
+We have included a Dockerfile for the CPU-only build and CUDA build under the docker directory.
+The CUDA build will need [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) to run.
+
+To build, `cd` into the respective directory and run
+
+```
+docker build -t horizon:dev .
+```
+
+If the Horizon unittests seem stuck, your Docker VM might not have enough memory.
+In that case, multiprocessing might be killed and the tests could be left in a hanging state.
+You can try to [increase docker resource limit](https://docs.docker.com/config/containers/resource_constraints/).
 
 ##### Linux (Ubuntu)
 
@@ -14,15 +30,35 @@ Clone repo:
 git clone https://github.com/facebookresearch/Horizon.git
 cd Horizon/
 ```
-Run install script:
+
+Our project uses Thrift to define configuration and Spark to transform training data into the right format.
+They require installing dependencies not managed by virtualenv. Here is the list of software needed to be installed on your system.
+- Thrift compiler version 0.11.0 or above. You will need to build from source.
+  See [1](https://thrift.apache.org/docs/install/debian), [2](https://thrift.apache.org/docs/BuildingFromSource).
+- [Oracle Java 8](https://launchpad.net/~webupd8team/+archive/ubuntu/java)
+- Maven
+
+To install them all, you can run `./install_compilers.sh`. After it finished, you will need to add this line to your `.bash_profile`
+
 ```
-bash linux_install.sh
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
 ```
 
-Install appropriate PyTorch 1.0 nightly build into the virtual environment:
+Now, we recommend you to create virtualenv so that python dependencies can be contained in this project.
+
 ```
+virtualenv -p python3 env
 . env/bin/activate
+```
 
+First, install dependencies:
+
+```
+pip install -r requirements.txt
+```
+
+Then, install appropriate PyTorch 1.0 nightly build into the virtual environment:
+```
 # For CPU build
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 
@@ -33,12 +69,25 @@ pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu90/torch
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu92/torch_nightly.html
 ```
 
-#### Usage
+After that, you will need to generate the python code of the thrift config definition. If you changed the thrift later on, you will have to rerun this.
 
-Set PYTHONPATH to access caffe2 and import our modules:
 ```
-export PYTHONPATH=/usr/local:./:$PYTHONPATH
+thrift --gen py --out . ml/rl/thrift/core.thrift
 ```
+
+And now, you are ready for installation.
+
+```
+pip install -e .
+```
+
+At this point, you should be able to run all unit tests:
+
+```
+python setup.py test
+```
+
+#### Usage
 
 ##### Online RL Training
 Horizon supports online training environments for model testing. To train a model on OpenAI Gym, simply run:

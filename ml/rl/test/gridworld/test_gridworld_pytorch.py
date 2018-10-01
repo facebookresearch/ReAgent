@@ -264,7 +264,7 @@ class TestGridworld(unittest.TestCase):
             sequence_numbers=[0],
             states=[{0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 15: 1.0, 24: 1.0}],
             actions=["D"],
-            action_probabilities=[.5],
+            action_probabilities=[0.5],
             rewards=[0],
             possible_actions=[["R", "D"]],
             next_states=[{5: 1.0}],

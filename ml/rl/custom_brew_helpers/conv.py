@@ -1,4 +1,3 @@
-
 from caffe2.python.modeling import initializers
 from caffe2.python.modeling.parameter_info import ParameterTags
 
