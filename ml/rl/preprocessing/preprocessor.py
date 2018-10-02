@@ -11,6 +11,9 @@ from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParame
 from torch.nn import Module, Parameter
 
 
+MAX_FEATURE_VALUE = 6
+MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
+
 logger = logging.getLogger(__name__)
 
 
@@ -118,6 +121,8 @@ class Preprocessor(Module):
                         j, input[:, j : j + 1], norm_params
                     )
                     new_output *= not_missing_input[:, j : j + 1]
+                    # TODO: Renable when T34648262 is fixed
+                    # self._check_preprocessing_output(new_output, [norm_params])
                     outputs.append(new_output)
             else:
                 norm_params = []
@@ -127,11 +132,17 @@ class Preprocessor(Module):
                     begin_index, input[:, begin_index:end_index], norm_params
                 )
                 new_output *= not_missing_input[:, begin_index:end_index]
+                # TODO: Renable when T34648262 is fixed
+                # self._check_preprocessing_output(new_output, norm_params)
                 outputs.append(new_output)
 
+        # TODO: Remove clamp values when preprocessing issues are solved (T34648262)
         if len(outputs) == 1:
-            return outputs[0]
-        return torch.cat(outputs, dim=1)
+            return torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+
+        return torch.clamp(
+            torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+        )
 
     def _preprocess_feature_single_column(
         self,
@@ -466,6 +477,29 @@ class Preprocessor(Module):
         t1_mask = t1.mm(t2_ones)
 
         return fn(t1_mask, t2).float()
+
+    def _check_preprocessing_output(self, batch, norm_params):
+        """
+        Check that preprocessed features fall within range of valid output.
+        :param batch: torch tensor
+        :param norm_params: list of normalization parameters
+        """
+        feature_type = norm_params[0].feature_type
+        max_value = batch.max()
+        if bool(max_value > MAX_FEATURE_VALUE):
+            raise Exception(
+                "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
+                    feature_type, max_value, MAX_FEATURE_VALUE
+                )
+            )
+
+        min_value = batch.min()
+        if bool(min_value < MIN_FEATURE_VALUE):
+            raise Exception(
+                "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
+                    feature_type, min_value, MIN_FEATURE_VALUE
+                )
+            )
 
     def hack_ge(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
         return t1 > (t2 - self.epsilon_tensor)
