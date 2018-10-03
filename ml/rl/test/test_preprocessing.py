@@ -4,6 +4,7 @@ import unittest
 
 import numpy as np
 import six
+import torch
 from caffe2.python import core
 from ml.rl.caffe_utils import PytorchCaffe2Converter
 from ml.rl.preprocessing import identify_types, normalization
@@ -287,6 +288,27 @@ class TestPreprocessing(unittest.TestCase):
                     normalized_feature_values_onnx[non_matching].tolist()[0:10],
                 ),
             )
+
+    def test_quantile_boundary_logic(self):
+        """Test quantile logic when feaure value == quantile boundary."""
+        input = torch.tensor([[0.0], [80.0], [100.0]])
+        norm_params = NormalizationParameters(
+            feature_type="QUANTILE",
+            boxcox_lambda=None,
+            boxcox_shift=None,
+            mean=0,
+            stddev=1,
+            possible_values=None,
+            quantiles=[0.0, 80.0, 100.0],
+            min_value=0.0,
+            max_value=100.0,
+        )
+        preprocessor = Preprocessor({"f1": norm_params}, False)
+        output = preprocessor._preprocess_QUANTILE(0, input.float(), [norm_params])
+
+        expected_output = torch.tensor([[0.0], [0.5], [1.0]])
+
+        self.assertTrue(np.all(np.isclose(output, expected_output)))
 
     def test_preprocessing_network(self):
         features, feature_value_map = preprocessing_util.read_data()

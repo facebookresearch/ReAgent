@@ -121,8 +121,7 @@ class Preprocessor(Module):
                         j, input[:, j : j + 1], norm_params
                     )
                     new_output *= not_missing_input[:, j : j + 1]
-                    # TODO: Renable when T34648262 is fixed
-                    # self._check_preprocessing_output(new_output, [norm_params])
+                    self._check_preprocessing_output(new_output, [norm_params])
                     outputs.append(new_output)
             else:
                 norm_params = []
@@ -132,11 +131,9 @@ class Preprocessor(Module):
                     begin_index, input[:, begin_index:end_index], norm_params
                 )
                 new_output *= not_missing_input[:, begin_index:end_index]
-                # TODO: Renable when T34648262 is fixed
-                # self._check_preprocessing_output(new_output, norm_params)
+                self._check_preprocessing_output(new_output, norm_params)
                 outputs.append(new_output)
 
-        # TODO: Remove clamp values when preprocessing issues are solved (T34648262)
         if len(outputs) == 1:
             return torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
 
@@ -366,12 +363,12 @@ class Preprocessor(Module):
         expanded_inputs = input.unsqueeze(2) * mask
 
         input_greater_than_or_equal_to = (
-            self.hack_ge(expanded_inputs, quantile_boundaries)
+            expanded_inputs >= quantile_boundaries
         ).float()
 
         input_less_than = (expanded_inputs < quantile_boundaries).float()
-        set_to_max = self.hack_ge(input, max_quantile_boundaries).float()
-        set_to_min = self.hack_le(input, min_quantile_boundaries).float()
+        set_to_max = (input >= max_quantile_boundaries).float()
+        set_to_min = (input <= min_quantile_boundaries).float()
         min_or_max = (set_to_min + set_to_max).float()
         interpolate = (min_or_max < self.one_hundredth_tensor).float()
         interpolate_left, _ = torch.max(
@@ -485,27 +482,22 @@ class Preprocessor(Module):
         :param norm_params: list of normalization parameters
         """
         feature_type = norm_params[0].feature_type
-        max_value = batch.max()
-        if bool(max_value > MAX_FEATURE_VALUE):
+        min_value, max_value = batch.min(), batch.max()
+        if feature_type == "CONTINUOUS":
+            # Continuous features may be in range (-inf, inf)
+            pass
+        elif bool(max_value > MAX_FEATURE_VALUE):
             raise Exception(
                 "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
                     feature_type, max_value, MAX_FEATURE_VALUE
                 )
             )
-
-        min_value = batch.min()
-        if bool(min_value < MIN_FEATURE_VALUE):
+        elif bool(min_value < MIN_FEATURE_VALUE):
             raise Exception(
                 "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
                     feature_type, min_value, MIN_FEATURE_VALUE
                 )
             )
-
-    def hack_ge(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return t1 > (t2 - self.epsilon_tensor)
-
-    def hack_le(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return t1 < (t2 + self.epsilon_tensor)
 
 
 class PreprocesserAndForwardPassContainer(nn.Module):
