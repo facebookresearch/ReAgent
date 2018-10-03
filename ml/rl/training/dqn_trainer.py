@@ -85,7 +85,9 @@ class DQNTrainer(RLTrainer):
         self.q_network_target = deepcopy(self.q_network)
         self._set_optimizer(parameters.training.optimizer)
         self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(), lr=parameters.training.learning_rate
+            self.q_network.parameters(),
+            lr=parameters.training.learning_rate,
+            weight_decay=parameters.training.l2_decay,
         )
 
         if parameters.training.cnn_parameters is None:

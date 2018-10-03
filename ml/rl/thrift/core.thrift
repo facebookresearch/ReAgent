@@ -55,6 +55,7 @@ struct TrainingParameters {
   9: optional string warm_start_model_path,
   10: optional CNNParameters cnn_parameters,
   11: optional FactorizationParameters factorization_parameters,
+  12: double l2_decay = 0.01,
 }
 
 struct InTrainingCPEParameters {
