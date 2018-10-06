@@ -459,32 +459,35 @@ class GridworldBase(object):
     ) -> Samples:
         num_transitions = num_transitions_seed_pair[0]
         seed = num_transitions_seed_pair[1]
-        states = []
-        actions: List[str] = []
-        action_probabilities = []
-        rewards = []
-        next_states = []
-        next_actions: List[str] = []
-        terminals = []
-        mdp_ids = []
-        sequence_numbers = []
+
+        # Initialize lists
+        states: List[Dict[int, float]] = [{}] * num_transitions
+        actions: List[str] = [""] * num_transitions
+        action_probabilities = [0.0] * num_transitions
+        rewards = [0.0] * num_transitions
+        next_states: List[Dict[int, float]] = [{}] * num_transitions
+        next_actions: List[str] = [""] * num_transitions
+        terminals = [False] * num_transitions
+        mdp_ids = [""] * num_transitions
+        sequence_numbers = [0] * num_transitions
+        possible_actions: List[List[str]] = [[]] * num_transitions
+        possible_next_actions: List[List[str]] = [[]] * num_transitions
+        episode_values = [0.0] * num_transitions
+
         state: int = -1
         terminal = True
         next_action = ""
         next_action_probability = 1.0
-        possible_actions: List[List[str]] = []
-        possible_next_actions: List[List[str]] = []
         transition = 0
         last_terminal = -1
-        episode_values = []
         mdp_id = -1
         sequence_number = 0
         np.random.seed(seed)
         random.seed(seed)
-        while True:
+        # We run until we finish the episode that completes N transitions, but
+        # we may have to go beyond N to reach the end of that episode
+        while not terminal or transition < num_transitions:
             if terminal:
-                if transition >= num_transitions:
-                    break
                 state = self.reset()
                 terminal = False
                 mdp_id += 1
@@ -502,25 +505,40 @@ class GridworldBase(object):
                 next_state, epsilon
             )
 
-            mdp_ids.append(str(mdp_id))
-            sequence_numbers.append(sequence_number)
-            states.append({int(state): 1.0})
-            actions.append(action)
-            action_probabilities.append(action_probability)
-            rewards.append(reward)
-            possible_actions.append(possible_action)
-            next_states.append({int(next_state): 1.0})
-            next_actions.append(next_action)
-            terminals.append(terminal)
-            possible_next_actions.append(possible_next_action)
+            # We want exactly N data points, but we need to wait until the
+            # episode is over so we can get the episode values.  This function
+            # will set episode values if they are in the range [0,N) and ignore
+            # otherwise.
+            def set_if_in_range(l, i, v):
+                if i >= num_transitions:
+                    return
+                l[i] = v
+
+            def add_if_in_range(l, i, v):
+                if i >= num_transitions:
+                    return
+                l[i] += v
+
+            set_if_in_range(mdp_ids, transition, str(mdp_id))
+            set_if_in_range(sequence_numbers, transition, sequence_number)
+            set_if_in_range(states, transition, {int(state): 1.0})
+            set_if_in_range(actions, transition, action)
+            set_if_in_range(action_probabilities, transition, action_probability)
+            set_if_in_range(rewards, transition, reward)
+            set_if_in_range(possible_actions, transition, possible_action)
+            set_if_in_range(next_states, transition, {int(next_state): 1.0})
+            set_if_in_range(next_actions, transition, next_action)
+            set_if_in_range(terminals, transition, terminal)
+            set_if_in_range(possible_next_actions, transition, possible_next_action)
+
             if not terminal:
-                episode_values.append(0.0)
+                set_if_in_range(episode_values, transition, 0.0)
             else:
-                episode_values.append(1.0)
+                set_if_in_range(episode_values, transition, 1.0)
                 i = 1
                 discounted_value = discount_factor
                 while transition - i > last_terminal:
-                    episode_values[transition - i] += discounted_value
+                    add_if_in_range(episode_values, transition - i, discounted_value)
                     i += 1
                     discounted_value *= discount_factor
                 last_terminal = transition
