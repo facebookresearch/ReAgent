@@ -3,7 +3,7 @@
 import abc
 from collections import OrderedDict
 from io import BytesIO
-from typing import List, Tuple
+from typing import List, NamedTuple, Tuple
 
 import caffe2.python.onnx.backend
 import onnx
@@ -19,18 +19,18 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def forward(self, input: OrderedDict) -> OrderedDict:
+    def forward(self, input: NamedTuple) -> NamedTuple:
         """
         Args:
-            input: An (nested) OrderedDict of torch.Tensor
+            input: An (nested) NamedTuple of torch.Tensor
 
         Returns:
-            An OrderedDict of torch.Tensor
+            An NamedTuple of torch.Tensor
         """
         pass
 
     @abc.abstractmethod
-    def input_prototype(self) -> OrderedDict:
+    def input_prototype(self) -> NamedTuple:
         """
         This function provides the input for ONNX graph tracing.
 
@@ -246,7 +246,7 @@ class ONNXExportModel(nn.Module):
 
         return derived_names
 
-    def structurize_input(self, args) -> OrderedDict:
+    def structurize_input(self, args) -> NamedTuple:
         """
         Put args into input_prototype
 
