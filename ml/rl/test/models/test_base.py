@@ -21,6 +21,7 @@ from ml.rl.models.base import ModelBase
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.identify_types import CONTINUOUS
 from ml.rl.preprocessing.normalization import NormalizationParameters
+from ml.rl.test.models.test_utils import check_save_load
 from ml.rl.types import FeatureVector, StateAction
 
 
@@ -67,41 +68,12 @@ class TestBase(unittest.TestCase):
 
     def test_get_predictor_export_meta_and_workspace(self):
         model = Model()
-        pem, ws = model.get_predictor_export_meta_and_workspace()
-        self.assertEqual(4, len(pem.parameters))  # 2 params + 2 const
-        for p in pem.parameters:
-            self.assertTrue(ws.HasBlob(p))
-        self.assertEqual(2, len(pem.inputs))
-        self.assertEqual(4, len(pem.outputs))
 
-        input_prototype = model.input_prototype()
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            db_path = os.path.join(tmpdirname, "model")
-            logger.info("DB path: ", db_path)
-            db_type = "minidb"
-            with ws._ctx:
-                save_to_db(db_type, db_path, pem)
-
-            # Load the model from DB file and run it
-            net = prepare_prediction_net(db_path, db_type)
-
-            state_features = input_prototype.state.float_features.numpy()
-            action_features = input_prototype.action.float_features.numpy()
-            workspace.FeedBlob("state:float_features", state_features)
-            workspace.FeedBlob("action:float_features", action_features)
-            workspace.RunNet(net)
-            net_sum = workspace.FetchBlob("sum")
-            net_mul = workspace.FetchBlob("mul")
-            net_plus_one = workspace.FetchBlob("plus_one")
-            net_linear = workspace.FetchBlob("linear")
-
-            model_sum, model_mul, model_plus_one, model_linear = model(input_prototype)
-
-            npt.assert_array_equal(model_sum.numpy(), net_sum)
-            npt.assert_array_equal(model_mul.numpy(), net_mul)
-            npt.assert_array_equal(model_plus_one.numpy(), net_plus_one)
-            npt.assert_array_equal(model_linear.detach().numpy(), net_linear)
+        # 2 params + 2 const
+        expected_num_params, expected_num_inputs, expected_num_outputs = 4, 2, 4
+        check_save_load(
+            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
+        )
 
     def test_get_predictor_export_meta_and_workspace_with_feature_extractor(self):
         model = Model()

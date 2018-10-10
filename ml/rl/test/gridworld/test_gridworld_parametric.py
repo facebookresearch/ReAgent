@@ -65,14 +65,14 @@ class TestGridworldParametric(unittest.TestCase):
                 activations=["relu", "relu", "linear"],
                 factorization_parameters=FactorizationParameters(
                     state=FeedForwardParameters(
-                        layers=[-1, 128, 64, 32], activations=["relu", "relu", "linear"]
+                        layers=[-1, 128, 64], activations=["relu", "linear"]
                     ),
                     action=FeedForwardParameters(
-                        layers=[-1, 128, 64, 32], activations=["relu", "relu", "linear"]
+                        layers=[-1, 128, 64], activations=["relu", "linear"]
                     ),
                 ),
                 minibatch_size=self.minibatch_size,
-                learning_rate=0.05,
+                learning_rate=0.03,
                 optimizer="ADAM",
             ),
             rainbow=RainbowDQNParameters(

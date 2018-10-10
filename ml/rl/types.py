@@ -83,3 +83,7 @@ class SARSAInput(NamedTuple):
 class TrainingBatch(NamedTuple):
     training_input: Union[MaxQLearningInput, SARSAInput]
     extras: Any
+
+
+class SingleQValue(NamedTuple):
+    q_value: ValueType

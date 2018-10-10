@@ -31,7 +31,8 @@ class FullyConnectedNetwork(nn.Module):
 
         for i, layer in enumerate(layers[1:]):
             self.layers.append(nn.Linear(layers[i], layer))
-            self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
+            if self.use_batch_norm:
+                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
             gaussian_fill_w_gain(self.layers[i].weight, self.activations[i], layers[i])
             init.constant_(self.layers[i].bias, 0)
 

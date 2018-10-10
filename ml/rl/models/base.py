@@ -80,6 +80,7 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         Export the instance to BytesIO buffer
         """
         export_model = ONNXExportModel(self)
+        export_model.eval()
         write_buffer = BytesIO()
         torch.onnx.export(
             export_model,
@@ -229,6 +230,8 @@ class ONNXExportModel(nn.Module):
         self.m = m
         self.input_prototype = m.input_prototype()
         self.onnx_input_args = self.flatten(self.input_prototype)
+        # Put this into eval mode
+        self.eval()
 
     def onnx_input_names(self) -> List[str]:
         """
