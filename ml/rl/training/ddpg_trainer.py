@@ -11,8 +11,8 @@ import torch.nn.init as init
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
+    sort_features_by_normalization,
 )
-from ml.rl.preprocessing.preprocessor_net import sort_features_by_normalization
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.rl_trainer_pytorch import (

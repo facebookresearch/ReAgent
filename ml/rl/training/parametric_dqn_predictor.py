@@ -6,7 +6,9 @@ import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
 
@@ -137,28 +139,45 @@ class ParametricDQNPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
-        preprocessor = PreprocessorNet(clip_anomalies=True)
-
-        state_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
+        preprocessor = PreprocessorNet(True)
+        sorted_state_features, _ = sort_features_by_normalization(
+            state_normalization_parameters
+        )
+        state_dense_matrix, new_parameters = sparse_to_dense(
             input_feature_lengths,
             input_feature_keys,
             input_feature_values,
+            sorted_state_features,
+        )
+        parameters.extend(new_parameters)
+        state_normalized_dense_matrix, new_parameters = preprocessor.normalize_dense_matrix(
+            state_dense_matrix,
+            sorted_state_features,
             state_normalization_parameters,
             "state_norm",
             False,
-            False,
         )
         parameters.extend(new_parameters)
-        action_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
+
+        sorted_action_features, _ = sort_features_by_normalization(
+            action_normalization_parameters
+        )
+        action_dense_matrix, new_parameters = sparse_to_dense(
             input_feature_lengths,
             input_feature_keys,
             input_feature_values,
+            sorted_action_features,
+        )
+        parameters.extend(new_parameters)
+        action_normalized_dense_matrix, new_parameters = preprocessor.normalize_dense_matrix(
+            action_dense_matrix,
+            sorted_action_features,
             action_normalization_parameters,
             "action_norm",
             False,
-            False,
         )
         parameters.extend(new_parameters)
+
         state_action_normalized = "state_action_normalized"
         state_action_normalized_dim = "state_action_normalized_dim"
         net.Concat(

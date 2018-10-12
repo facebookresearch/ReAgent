@@ -101,7 +101,9 @@ class Preprocessor(Module):
             input = torch.from_numpy(input).type(self.dtype)
 
         # ONNX doesn't support != yet
-        not_missing_input = self.one_tensor - (input == self.missing_tensor).float()
+        not_missing_input = (
+            self.one_tensor.float() - (input == self.missing_tensor).float()
+        )
         feature_starts = self._get_type_boundaries()
 
         outputs = []

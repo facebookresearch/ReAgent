@@ -28,7 +28,7 @@ class TestGridworld(unittest.TestCase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        self.minibatch_size = 4096
+        self.minibatch_size = 512
         super(self.__class__, self).setUp()
 
     def get_sarsa_trainer(
@@ -81,7 +81,7 @@ class TestGridworld(unittest.TestCase):
 
     def _test_trainer_sarsa_enum(self, use_gpu=False, use_all_avail_gpus=False):
         environment = GridworldEnum()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         evaluator = GridworldEvaluator(environment, False, DISCOUNT, False, samples)
         trainer = self.get_sarsa_trainer(
             environment, False, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
@@ -126,7 +126,7 @@ class TestGridworld(unittest.TestCase):
         self, use_gpu=False, use_all_avail_gpus=False
     ):
         environment = Gridworld()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
@@ -162,7 +162,7 @@ class TestGridworld(unittest.TestCase):
         self, use_gpu=False, use_all_avail_gpus=False
     ):
         environment = Gridworld()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         true_values = environment.true_values_for_sample(
             samples.states, samples.actions, False
         )
@@ -203,7 +203,7 @@ class TestGridworld(unittest.TestCase):
             use_all_avail_gpus=use_all_avail_gpus,
         )
         predictor = trainer.predictor()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
+        samples = environment.generate_samples(100000, 1.0, DISCOUNT)
         rewards_update = []
         for action, reward in zip(samples.actions, samples.rewards):
             rewards_update.append(reward - reward_boost[action])

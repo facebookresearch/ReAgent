@@ -3,25 +3,33 @@
 import unittest
 
 from ml.rl.preprocessing import identify_types
-from ml.rl.test import preprocessing_util
+from ml.rl.test.preprocessing_util import (
+    BINARY_FEATURE_ID,
+    BOXCOX_FEATURE_ID,
+    CONTINUOUS_FEATURE_ID,
+    ENUM_FEATURE_ID,
+    PROBABILITY_FEATURE_ID,
+    QUANTILE_FEATURE_ID,
+    read_data,
+)
 
 
 class TestTypeIdentification(unittest.TestCase):
     def test_identification(self):
-        _, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
 
         types = {}
         for name, values in feature_value_map.items():
             types[name] = identify_types.identify_type(values)
 
         # Examples through manual inspection
-        self.assertEqual(types[identify_types.BINARY], identify_types.BINARY)
-        self.assertEqual(types[identify_types.CONTINUOUS], identify_types.CONTINUOUS)
+        self.assertEqual(types[BINARY_FEATURE_ID], identify_types.BINARY)
+        self.assertEqual(types[CONTINUOUS_FEATURE_ID], identify_types.CONTINUOUS)
 
         # We don't yet know the boxcox type
-        self.assertEqual(types[identify_types.BOXCOX], identify_types.CONTINUOUS)
+        self.assertEqual(types[BOXCOX_FEATURE_ID], identify_types.CONTINUOUS)
 
         # We don't yet know the quantile type
-        self.assertEqual(types[identify_types.QUANTILE], identify_types.CONTINUOUS)
-        self.assertEqual(types[identify_types.ENUM], identify_types.ENUM)
-        self.assertEqual(types[identify_types.PROBABILITY], identify_types.PROBABILITY)
+        self.assertEqual(types[QUANTILE_FEATURE_ID], identify_types.CONTINUOUS)
+        self.assertEqual(types[ENUM_FEATURE_ID], identify_types.ENUM)
+        self.assertEqual(types[PROBABILITY_FEATURE_ID], identify_types.PROBABILITY)

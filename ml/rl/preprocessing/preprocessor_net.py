@@ -16,22 +16,6 @@ from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParame
 logger = logging.getLogger(__name__)
 
 
-def sort_features_by_normalization(normalization_parameters):
-    """
-    Helper function to return a sorted list from a normalization map.
-    Also returns the starting index for each feature type"""
-    # Sort features by feature type
-    sorted_features = []
-    feature_starts = []
-    for feature_type in FEATURE_TYPES:
-        feature_starts.append(len(sorted_features))
-        for feature in sorted(normalization_parameters.keys()):
-            norm = normalization_parameters[feature]
-            if norm.feature_type == feature_type:
-                sorted_features.append(feature)
-    return sorted_features, feature_starts
-
-
 class PreprocessorNet:
     def __init__(self, clip_anomalies: bool) -> None:
         self.clip_anomalies = clip_anomalies
@@ -265,91 +249,13 @@ class PreprocessorNet:
         parameters.append(c2_name)
         return c2_name
 
-    def normalize_sparse_matrix(
-        self,
-        lengths_blob: str,
-        keys_blob: str,
-        values_blob: str,
-        normalization_parameters: Dict[int, NormalizationParameters],
-        blobname_prefix: str,
-        split_sparse_to_dense: bool,
-        split_expensive_feature_groups: bool,
-        normalize: bool = True,
-        sorted_features_override: List[int] = None,
-    ) -> Tuple[str, List[str]]:
-        if sorted_features_override:
-            sorted_features = sorted_features_override
-        else:
-            sorted_features, _ = sort_features_by_normalization(
-                normalization_parameters
-            )
-        int_features = [int(feature) for feature in sorted_features]
-
-        preprocess_num_batches = 8 if split_sparse_to_dense else 1
-
-        lengths_batch = []
-        keys_batch = []
-        values_batch = []
-        for _ in range(preprocess_num_batches):
-            lengths_batch.append(C2.NextBlob(blobname_prefix + "_length_batch"))
-            keys_batch.append(C2.NextBlob(blobname_prefix + "_key_batch"))
-            values_batch.append(C2.NextBlob(blobname_prefix + "_value_batch"))
-
-        C2.net().Split([lengths_blob], lengths_batch, axis=0)
-        total_lengths_batch = []
-        for x in range(preprocess_num_batches):
-            total_lengths_batch.append(
-                C2.Reshape(
-                    C2.ReduceBackSum(lengths_batch[x], num_reduce_dims=1), shape=[1]
-                )[0]
-            )
-        total_lengths_batch_concat, _ = C2.Concat(*total_lengths_batch, axis=0)
-        C2.net().Split([keys_blob, total_lengths_batch_concat], keys_batch, axis=0)
-        C2.net().Split([values_blob, total_lengths_batch_concat], values_batch, axis=0)
-
-        dense_input_fragments = []
-        parameters: List[str] = []
-
-        MISSING_SCALAR = self._store_parameter(
-            parameters, "MISSING_SCALAR", np.array([MISSING_VALUE], dtype=np.float32)
-        )
-        C2.net().GivenTensorFill([], [MISSING_SCALAR], shape=[], values=[MISSING_VALUE])
-
-        for preprocess_batch in range(preprocess_num_batches):
-            dense_input_fragment = C2.SparseToDenseMask(
-                keys_batch[preprocess_batch],
-                values_batch[preprocess_batch],
-                MISSING_SCALAR,
-                lengths_batch[preprocess_batch],
-                mask=int_features,
-            )[0]
-
-            if normalize:
-                normalized_fragment, p = self.normalize_dense_matrix(
-                    dense_input_fragment,
-                    sorted_features,
-                    normalization_parameters,
-                    blobname_prefix,
-                    split_expensive_feature_groups,
-                )
-                dense_input_fragments.append(normalized_fragment)
-                parameters.extend(p)
-            else:
-                dense_input_fragments.append(dense_input_fragment)
-
-        dense_input = C2.NextBlob(blobname_prefix + "_dense_input")
-        dense_input_dims = C2.NextBlob(blobname_prefix + "_dense_input_dims")
-        C2.net().Concat(dense_input_fragments, [dense_input, dense_input_dims], axis=0)
-
-        return dense_input, parameters
-
     def normalize_dense_matrix(
         self,
         input_matrix: str,
         features: List[int],
         normalization_parameters: Dict[int, NormalizationParameters],
         blobname_prefix: str,
-        split_expensive_feature_groups: bool = False,
+        split_expensive_feature_groups: bool,
     ) -> Tuple[str, List[str]]:
         """
         Normalizes inputs according to parameters. Expects a dense matrix whose ith
@@ -432,7 +338,7 @@ class PreprocessorNet:
             concatenated_input_blob, concatenated_input_blob_dim = C2.Concat(
                 *normalized_input_blobs, axis=1
             )
-            return concatenated_input_blob, parameters
+        return concatenated_input_blob, parameters
 
     def _get_type_boundaries(
         self,

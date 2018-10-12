@@ -6,11 +6,12 @@ import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import (
     PreprocesserAndForwardPassContainer,
     Preprocessor,
 )
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
 
@@ -76,6 +77,8 @@ class DQNPredictor(RLPredictor):
 
         torch_init_net = core.Net(caffe2_netdef.init_net)
         torch_predict_net = core.Net(caffe2_netdef.predict_net)
+        logger.info("Generated ONNX predict net:")
+        logger.info(str(torch_predict_net.Proto()))
         # While converting to metanetdef, the external_input of predict_net
         # will be recomputed. Add the real output of init_net to parameters
         # to make sure they will be counted.
@@ -125,16 +128,11 @@ class DQNPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
         if state_normalization_parameters is not None:
-            preprocessor = PreprocessorNet(clip_anomalies=True)
-            state_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
+            state_normalized_dense_matrix, new_parameters = sparse_to_dense(
                 input_feature_lengths,
                 input_feature_keys,
                 input_feature_values,
-                state_normalization_parameters,
-                blobname_prefix="state_norm",
-                split_sparse_to_dense=False,
-                split_expensive_feature_groups=False,
-                normalize=False,
+                sort_features_by_normalization(state_normalization_parameters)[0],
             )
             parameters.extend(new_parameters)
         else:

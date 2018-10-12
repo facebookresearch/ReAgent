@@ -7,7 +7,7 @@ from caffe2.proto import caffe2_pb2
 from caffe2.python import model_helper, workspace
 from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from ml.rl.caffe_utils import C2
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.training.rl_predictor import RLPredictor
 
 
@@ -116,26 +116,21 @@ class ContinuousActionDQNPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
-        preprocessor = PreprocessorNet(True)
         parameters = []
-        state_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
+        state_normalized_dense_matrix, new_parameters = sparse_to_dense(
             input_feature_lengths,
             input_feature_keys,
             input_feature_values,
             state_normalization_parameters,
-            "state_norm",
-            False,
-            False,
+            None,
         )
         parameters.extend(new_parameters)
-        action_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
+        action_normalized_dense_matrix, new_parameters = sparse_to_dense(
             input_feature_lengths,
             input_feature_keys,
             input_feature_values,
             action_normalization_parameters,
-            "action_norm",
-            False,
-            False,
+            None,
         )
         parameters.extend(new_parameters)
         state_action_normalized = "state_action_normalized"

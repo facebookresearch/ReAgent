@@ -8,9 +8,18 @@ from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing import identify_types, normalization
 from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
-from ml.rl.preprocessing.normalization import NormalizationParameters
+from ml.rl.preprocessing.normalization import (
+    NormalizationParameters,
+    sort_features_by_normalization,
+)
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
-from ml.rl.test import preprocessing_util
+from ml.rl.test.preprocessing_util import (
+    BOXCOX_FEATURE_ID,
+    ENUM_FEATURE_ID,
+    PROBABILITY_FEATURE_ID,
+    id_to_type,
+    read_data,
+)
 from scipy import special, stats
 
 
@@ -33,7 +42,7 @@ class TestNormalization(unittest.TestCase):
         return interpolated
 
     def test_prepare_normalization_and_normalize(self):
-        features, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
 
         normalization_parameters = {}
         for name, values in feature_value_map.items():
@@ -41,27 +50,28 @@ class TestNormalization(unittest.TestCase):
                 values, 10
             )
         for k, v in normalization_parameters.items():
-            if k == CONTINUOUS:
+            if id_to_type(k) == CONTINUOUS:
                 self.assertEqual(v.feature_type, CONTINUOUS)
                 self.assertIs(v.boxcox_lambda, None)
                 self.assertIs(v.boxcox_shift, None)
-            elif k == BOXCOX:
+            elif id_to_type(k) == BOXCOX:
                 self.assertEqual(v.feature_type, BOXCOX)
                 self.assertIsNot(v.boxcox_lambda, None)
                 self.assertIsNot(v.boxcox_shift, None)
             else:
-                assert v.feature_type == k or v.feature_type + "_2" + k
+                assert v.feature_type == id_to_type(k)
+        sorted_features, _ = sort_features_by_normalization(normalization_parameters)
 
         norm_net = core.Net("net")
         C2.set_net(norm_net)
         preprocessor = PreprocessorNet(False)
-        input_matrix = np.zeros([10000, len(features)], dtype=np.float32)
-        for i, feature in enumerate(features):
+        input_matrix = np.zeros([10000, len(sorted_features)], dtype=np.float32)
+        for i, feature in enumerate(sorted_features):
             input_matrix[:, i] = feature_value_map[feature]
         input_matrix_blob = "input_matrix_blob"
         workspace.FeedBlob(input_matrix_blob, np.array([], dtype=np.float32))
         output_blob, _ = preprocessor.normalize_dense_matrix(
-            input_matrix_blob, features, normalization_parameters, ""
+            input_matrix_blob, sorted_features, normalization_parameters, "", False
         )
         workspace.FeedBlob(input_matrix_blob, input_matrix)
         workspace.RunNetOnce(norm_net)
@@ -69,7 +79,7 @@ class TestNormalization(unittest.TestCase):
 
         normalized_features = {}
         on_column = 0
-        for feature in features:
+        for feature in sorted_features:
             norm = normalization_parameters[feature]
             if norm.feature_type == ENUM:
                 column_size = len(norm.possible_values)
@@ -138,7 +148,7 @@ class TestNormalization(unittest.TestCase):
 
     def test_normalize_dense_matrix_enum(self):
         normalization_parameters = {
-            "f1": NormalizationParameters(
+            1: NormalizationParameters(
                 identify_types.ENUM,
                 None,
                 None,
@@ -149,10 +159,10 @@ class TestNormalization(unittest.TestCase):
                 None,
                 None,
             ),
-            "f2": NormalizationParameters(
+            2: NormalizationParameters(
                 identify_types.CONTINUOUS, None, 0, 0, 1, None, None, None, None
             ),
-            "f3": NormalizationParameters(
+            3: NormalizationParameters(
                 identify_types.ENUM, None, None, None, None, [15, 3], None, None, None
             ),
         }
@@ -161,14 +171,14 @@ class TestNormalization(unittest.TestCase):
         preprocessor = PreprocessorNet(False)
 
         inputs = np.zeros([4, 3], dtype=np.float32)
-        feature_ids = ["f2", "f1", "f3"]  # Sorted according to feature type
-        inputs[:, feature_ids.index("f1")] = [12, 4, 2, 2]
-        inputs[:, feature_ids.index("f2")] = [1.0, 2.0, 3.0, 3.0]
-        inputs[:, feature_ids.index("f3")] = [15, 3, 15, normalization.MISSING_VALUE]
+        feature_ids = [2, 1, 3]  # Sorted according to feature type
+        inputs[:, feature_ids.index(1)] = [12, 4, 2, 2]
+        inputs[:, feature_ids.index(2)] = [1.0, 2.0, 3.0, 3.0]
+        inputs[:, feature_ids.index(3)] = [15, 3, 15, normalization.MISSING_VALUE]
         input_blob = C2.NextBlob("input_blob")
         workspace.FeedBlob(input_blob, np.array([0], dtype=np.float32))
         normalized_output_blob, _ = preprocessor.normalize_dense_matrix(
-            input_blob, feature_ids, normalization_parameters, ""
+            input_blob, feature_ids, normalization_parameters, "", False
         )
         workspace.FeedBlob(input_blob, inputs)
         workspace.RunNetOnce(norm_net)
@@ -187,7 +197,7 @@ class TestNormalization(unittest.TestCase):
         )
 
     def test_persistency(self):
-        _, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(values)
@@ -243,7 +253,8 @@ class TestNormalization(unittest.TestCase):
         return result
 
     def test_preprocessing_network(self):
-        features, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
+
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(values)
@@ -254,9 +265,9 @@ class TestNormalization(unittest.TestCase):
         preprocessor = PreprocessorNet(False)
         name_preprocessed_blob_map = {}
         for feature_name in feature_value_map:
-            workspace.FeedBlob(feature_name, np.array([0], dtype=np.int32))
+            workspace.FeedBlob(str(feature_name), np.array([0], dtype=np.int32))
             preprocessed_blob, _ = preprocessor.preprocess_blob(
-                feature_name, [normalization_parameters[feature_name]]
+                str(feature_name), [normalization_parameters[feature_name]]
             )
             name_preprocessed_blob_map[feature_name] = preprocessed_blob
 
@@ -264,18 +275,18 @@ class TestNormalization(unittest.TestCase):
 
         for feature_name, feature_value in six.iteritems(feature_value_map):
             feature_value = np.expand_dims(feature_value, -1)
-            workspace.FeedBlob(feature_name, feature_value)
+            workspace.FeedBlob(str(feature_name), feature_value)
         workspace.RunNetOnce(net)
 
         for feature_name in feature_value_map:
             normalized_features = workspace.FetchBlob(
                 name_preprocessed_blob_map[feature_name]
             )
-            if feature_name != identify_types.ENUM:
+            if feature_name != ENUM_FEATURE_ID:
                 normalized_features = np.squeeze(normalized_features, -1)
 
             tolerance = 0.01
-            if feature_name == BOXCOX:
+            if feature_name == BOXCOX_FEATURE_ID:
                 # At the limit, boxcox has some numerical instability
                 tolerance = 0.5
             non_matching = np.where(
@@ -306,8 +317,8 @@ class TestNormalization(unittest.TestCase):
 
     def test_type_override(self):
         # Take a feature that should be identified as probability
-        _, feature_value_map = preprocessing_util.read_data()
-        probability_values = feature_value_map[identify_types.PROBABILITY]
+        feature_value_map = read_data()
+        probability_values = feature_value_map[PROBABILITY_FEATURE_ID]
 
         # And ask for a binary anyways
         parameter = normalization.identify_parameter(

@@ -13,8 +13,9 @@ import torch
 import torch.multiprocessing as multiprocessing
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -573,28 +574,14 @@ class GridworldBase(object):
 
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
-        preprocessor = PreprocessorNet(True)
         saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-        state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "state_norm",
-            False,
-            False,
-            False,
+        sorted_features, _ = sort_features_by_normalization(self.normalization)
+        state_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_features
         )
         saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "next_state_norm",
-            False,
-            False,
-            False,
+        next_state_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_features
         )
         workspace.RunNetOnce(net)
 

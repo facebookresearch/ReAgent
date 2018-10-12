@@ -7,8 +7,11 @@ import ml.rl.types as mt
 import torch
 from caffe2.python import core, schema
 
-from .normalization import MISSING_VALUE, NormalizationParameters
-from .preprocessor_net import sort_features_by_normalization
+from .normalization import (
+    MISSING_VALUE,
+    NormalizationParameters,
+    sort_features_by_normalization,
+)
 
 
 """

@@ -7,7 +7,7 @@ from collections import namedtuple
 import numpy as np
 import six
 from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM
+from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
 from scipy.stats.mstats import mquantiles
 
@@ -179,6 +179,22 @@ def get_num_output_features(normalization_parmeters):
     )
 
 
+def sort_features_by_normalization(normalization_parameters):
+    """
+    Helper function to return a sorted list from a normalization map.
+    Also returns the starting index for each feature type"""
+    # Sort features by feature type
+    sorted_features = []
+    feature_starts = []
+    for feature_type in FEATURE_TYPES:
+        feature_starts.append(len(sorted_features))
+        for feature in sorted(normalization_parameters.keys()):
+            norm = normalization_parameters[feature]
+            if norm.feature_type == feature_type:
+                sorted_features.append(feature)
+    return sorted_features, feature_starts
+
+
 def deserialize(parameters_json):
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
@@ -199,7 +215,7 @@ def deserialize(parameters_json):
                         + ")"
                     )
                     raise Exception("Invalid enum ID")
-        parameters[feature] = params
+        parameters[int(feature)] = params
     return parameters
 
 

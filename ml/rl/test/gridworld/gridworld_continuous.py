@@ -6,10 +6,11 @@ from typing import List
 
 import torch
 from caffe2.python import core, workspace
-from ml.rl.caffe_utils import C2, StackedArray, StackedAssociativeArray
+from ml.rl.caffe_utils import C2, StackedAssociativeArray
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase, Samples
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -107,52 +108,27 @@ class GridworldContinuous(GridworldBase):
         logger.info("Sparse2Dense...")
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
-        preprocessor = PreprocessorNet(True)
         saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-        state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "state_norm",
-            False,
-            False,
-            False,
+        sorted_state_features, _ = sort_features_by_normalization(self.normalization)
+        state_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_state_features
         )
         saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "next_state_norm",
-            False,
-            False,
-            False,
+        next_state_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_state_features
+        )
+        sorted_action_features, _ = sort_features_by_normalization(
+            self.normalization_action
         )
         saa = StackedAssociativeArray.from_dict_list(samples.actions, "action")
-        action_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization_action,
-            "action_norm",
-            False,
-            False,
-            False,
+        action_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_action_features
         )
         saa = StackedAssociativeArray.from_dict_list(
             samples.next_actions, "next_action"
         )
-        next_action_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization_action,
-            "next_action_norm",
-            False,
-            False,
-            False,
+        next_action_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_action_features
         )
         action_probabilities = torch.tensor(
             samples.action_probabilities, dtype=torch.float32
@@ -170,15 +146,8 @@ class GridworldContinuous(GridworldBase):
         pna_lens_blob = "pna_lens_blob"
         workspace.FeedBlob(pna_lens_blob, pnas_lengths.numpy())
 
-        possible_next_actions_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization_action,
-            "possible_next_action_norm",
-            False,
-            False,
-            False,
+        possible_next_actions_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_action_features
         )
 
         state_pnas_tile_blob = C2.LengthsTile(next_state_matrix, pna_lens_blob)
