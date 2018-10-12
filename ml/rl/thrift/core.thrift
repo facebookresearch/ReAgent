@@ -56,6 +56,7 @@ struct TrainingParameters {
   10: optional CNNParameters cnn_parameters,
   11: optional FactorizationParameters factorization_parameters,
   12: double l2_decay = 0.01,
+  13: bool use_noisy_linear_layers = false,
 }
 
 struct InTrainingCPEParameters {
@@ -104,6 +105,7 @@ struct DDPGTrainingParameters {
   2: double final_layer_init = 0.003,
   3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
+  5: bool use_noisy_linear_layers = false,
 }
 
 struct StateFeatureParameters {

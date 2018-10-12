@@ -73,7 +73,9 @@ class DQNTrainer(RLTrainer):
         else:
             if parameters.training.cnn_parameters is None:
                 self.q_network = FullyConnectedNetwork(
-                    parameters.training.layers, parameters.training.activations
+                    parameters.training.layers,
+                    parameters.training.activations,
+                    use_noisy_linear_layers=parameters.training.use_noisy_linear_layers,
                 )
             else:
                 self.q_network = ConvolutionalNetwork(
