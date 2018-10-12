@@ -172,11 +172,6 @@ class ParametricDQNTrainer(RLTrainer):
             possible_actions per item in minibatch
         :param double_q_learning: bool to use double q-learning
         """
-        row_nums = np.arange(len(pnas_lens))
-        row_idxs = np.repeat(row_nums, pnas_lens.cpu().numpy())
-        col_idxs = arange_expand(pnas_lens).cpu().numpy()
-
-        dense_idxs = torch.LongTensor((row_idxs, col_idxs)).type(self.dtypelong)
         if isinstance(possible_next_actions_state_concat, torch.Tensor):
             q_network_input = possible_next_actions_state_concat
         else:
@@ -190,25 +185,16 @@ class ParametricDQNTrainer(RLTrainer):
         else:
             q_values = self.q_network_target(q_network_input).squeeze().detach()
 
-        dense_dim = [len(pnas_lens), max(pnas_lens)]
-        # Add specific fingerprint to q-values so that after sparse -> dense we can
-        # subtract the fingerprint to identify the 0's added in sparse -> dense
-        q_values.add_(self.FINGERPRINT)
-        sparse_q = torch.sparse_coo_tensor(dense_idxs, q_values, dense_dim)
-        dense_q = sparse_q.to_dense()
-        dense_q.add_(self.FINGERPRINT * -1)
-        dense_q[dense_q == self.FINGERPRINT * -1] = self.ACTION_NOT_POSSIBLE_VAL
-        max_q_values, max_indexes = torch.max(dense_q, dim=1)
-
-        if double_q_learning:
-            sparse_q_target = torch.sparse_coo_tensor(
-                dense_idxs, q_values_target, dense_dim
-            )
-            dense_q_values_target = sparse_q_target.to_dense()
-            max_q_values = torch.gather(
-                dense_q_values_target, 1, max_indexes.unsqueeze(1)
-            )
-
+        max_q_values = torch.zeros(pnas_lens.size()).type(self.dtype)
+        offset = torch.tensor([0]).type(self.dtypelong)
+        for i, l in enumerate(pnas_lens):
+            if l > 0:
+                max_q_values[i], max_index = torch.max(
+                    q_values[offset : offset + l], dim=0
+                )
+                if double_q_learning:
+                    max_q_values[i] = q_values_target[offset : offset + l][max_index]
+            offset += l
         return max_q_values.squeeze()
 
     def get_next_action_q_values(self, state_action_pairs):
