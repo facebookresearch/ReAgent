@@ -132,12 +132,21 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 return mt.FeatureVector(float_features=fetch(b))
 
         state = mt.FeatureVector(float_features=fetch(extract_record.state))
-        next_state = mt.FeatureVector(float_features=fetch(extract_record.next_state))
         action = fetch_action(extract_record.action)
         reward = fetch(input_record.reward)
 
         # is_terminal should be filled by preprocessor
         if self.max_q_learning:
+            if self.sorted_action_features is not None:
+                next_state = None
+                tiled_next_state = mt.FeatureVector(
+                    float_features=fetch(extract_record.tiled_next_state)
+                )
+            else:
+                next_state = mt.FeatureVector(
+                    float_features=fetch(extract_record.next_state)
+                )
+                tiled_next_state = None
             possible_next_actions = mt.PossibleActions(
                 lengths=fetch(extract_record.possible_next_actions["lengths"]),
                 actions=fetch_action(extract_record.possible_next_actions["values"]),
@@ -147,11 +156,15 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 state=state,
                 action=action,
                 next_state=next_state,
+                tiled_next_state=tiled_next_state,
                 possible_next_actions=possible_next_actions,
                 reward=reward,
                 is_terminal=None,
             )
         else:
+            next_state = mt.FeatureVector(
+                float_features=fetch(extract_record.next_state)
+            )
             next_action = fetch_action(extract_record.next_action)
             training_input = mt.SARSAInput(
                 state=state,
@@ -205,6 +218,16 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             missing_scalar,
         )
 
+        if self.max_q_learning and self.sorted_action_features is not None:
+            next_state_field = "tiled_next_state"
+            # TODO: this will need to be more complicated to support sparse features
+            next_state = net.LengthsTile(
+                [next_state, input_record.possible_next_actions.lengths()],
+                ["tiled_next_state"],
+            )
+        else:
+            next_state_field = "next_state"
+
         action = input_record.action
         next_action = input_record[next_action_field]
         if self.max_q_learning:
@@ -233,7 +256,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             schema.Struct(
                 ("state", state),
                 ("action", action),
-                ("next_state", next_state),
+                (next_state_field, next_state),
                 (next_action_field, next_action_output),
             )
         )

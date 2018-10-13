@@ -65,7 +65,8 @@ class StatePossibleActions(NamedTuple):
 class MaxQLearningInput(NamedTuple):
     state: State
     action: Action
-    next_state: State
+    next_state: Optional[State]  # Available in case of discrete action
+    tiled_next_state: Optional[State]  # Available in case of parametric action
     possible_next_actions: PossibleActions
     reward: ValueType
     is_terminal: ValueType

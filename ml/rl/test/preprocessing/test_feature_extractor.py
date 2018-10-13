@@ -72,6 +72,18 @@ class FeatureExtractorTestBase(unittest.TestCase):
             dtype=np.float32,
         )
 
+    def expected_tiled_next_state_features(self):
+        # NOTE: this depends on lengths of possible next action
+        # Feature order: 1, 3, 2, 4
+        return np.array(
+            [
+                [11, MISSING_VALUE, 10, MISSING_VALUE],
+                [13, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
+                [13, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
+            ],
+            dtype=np.float32,
+        )
+
     def setup_action(self, ws, field):
         action = np.array([3, 2, 1], dtype=np.int64)
         ws.feed_blob(str(field()), action)
@@ -282,7 +294,8 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             self.expected_state_features(), o.state.float_features.numpy()
         )
         npt.assert_array_equal(
-            self.expected_next_state_features(), o.next_state.float_features.numpy()
+            self.expected_tiled_next_state_features(),
+            o.tiled_next_state.float_features.numpy(),
         )
 
     def test_extract_sarsa_parametric_action(self):
@@ -375,7 +388,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         expected_output_record = schema.Struct(
             ("state", schema.Scalar()),
-            ("next_state", schema.Scalar()),
+            ("tiled_next_state", schema.Scalar()),
             ("action", schema.Scalar()),
             ("possible_next_actions", schema.List(schema.Scalar())),
         )
