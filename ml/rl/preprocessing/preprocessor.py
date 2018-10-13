@@ -199,9 +199,8 @@ class Preprocessor(Module):
         else:
             # Still clamp to avoid MISSING_VALUE from causing NaN
             clamped_input = torch.clamp(input, 1e-6)
-        return (
-            self.negative_one_tensor
-            * ((self.one_tensor / clamped_input) - self.one_tensor).log()
+        return self.negative_one_tensor * (
+            ((self.one_tensor / clamped_input) - self.one_tensor).log()
         )
 
     def _create_parameters_CONTINUOUS(
@@ -427,6 +426,9 @@ class Preprocessor(Module):
         # Sort features by feature type
         sorted_features = []
         feature_starts = []
+        assert isinstance(
+            list(self.normalization_parameters.keys())[0], int
+        ), "Normalization Parameters need to be int"
         for feature_type in FEATURE_TYPES:
             feature_starts.append(len(sorted_features))
             for feature in sorted(self.normalization_parameters.keys()):

@@ -7,10 +7,7 @@ from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
-from ml.rl.preprocessing.preprocessor import (
-    PreprocesserAndForwardPassContainer,
-    Preprocessor,
-)
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
@@ -59,12 +56,7 @@ class DQNPredictor(RLPredictor):
             trainer.q_network = trainer.q_network.module
 
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
-            PreprocesserAndForwardPassContainer(
-                Preprocessor(state_normalization_parameters, model_on_gpu),
-                trainer.q_network,
-            ),
-            input_dim,
-            model_on_gpu,
+            trainer.q_network, input_dim, model_on_gpu
         )
         qnet_input_blob, qnet_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
@@ -128,11 +120,23 @@ class DQNPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
         if state_normalization_parameters is not None:
-            state_normalized_dense_matrix, new_parameters = sparse_to_dense(
+            sorted_feature_ids = sort_features_by_normalization(
+                state_normalization_parameters
+            )[0]
+            dense_matrix, new_parameters = sparse_to_dense(
                 input_feature_lengths,
                 input_feature_keys,
                 input_feature_values,
-                sort_features_by_normalization(state_normalization_parameters)[0],
+                sorted_feature_ids,
+            )
+            parameters.extend(new_parameters)
+            preprocessor_net = PreprocessorNet(clip_anomalies=True)
+            state_normalized_dense_matrix, new_parameters = preprocessor_net.normalize_dense_matrix(
+                dense_matrix,
+                sorted_feature_ids,
+                state_normalization_parameters,
+                "state_norm_",
+                False,
             )
             parameters.extend(new_parameters)
         else:

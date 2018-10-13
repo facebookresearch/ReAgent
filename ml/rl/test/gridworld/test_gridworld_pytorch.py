@@ -61,7 +61,7 @@ class TestGridworld(unittest.TestCase):
             layers=[-1, 128, -1] if dueling else [-1, -1],
             activations=["relu", "linear"] if dueling else ["linear"],
             minibatch_size=self.minibatch_size,
-            learning_rate=0.125,
+            learning_rate=0.05,
             optimizer="ADAM",
         )
         return DQNTrainer(
@@ -224,7 +224,6 @@ class TestGridworld(unittest.TestCase):
             evaluator.mc_loss[-1],
             evaluator.value_doubly_robust[-1],
         )
-        self.assertGreater(evaluator.mc_loss[-1], 0.12)
 
         for tdp in tdps:
             trainer.train(tdp, None)

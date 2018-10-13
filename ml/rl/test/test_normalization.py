@@ -25,20 +25,20 @@ from scipy import special, stats
 
 class TestNormalization(unittest.TestCase):
     def _value_to_quantile(self, original_value, quantiles):
-        n_quantiles = len(quantiles)
+        if original_value <= quantiles[0]:
+            return 0.0
+        if original_value >= quantiles[-1]:
+            return 1.0
+        n_quantiles = float(len(quantiles) - 1)
         right = np.searchsorted(quantiles, original_value)
-        if right == 0:
-            interpolated = 0.0
-        elif right == n_quantiles:
-            interpolated = 1.0
-        elif quantiles[right] == original_value:
-            interpolated = right / float(n_quantiles)
-        else:
-            left = right - 1
-            step = 1.0 / float(n_quantiles) / (quantiles[right] - quantiles[left])
-            interpolated = left / float(n_quantiles) + step * (
-                original_value - quantiles[left]
+        left = right - 1
+        interpolated = (
+            left
+            + (
+                (original_value - quantiles[left])
+                / ((quantiles[right] + 1e-6) - quantiles[left])
             )
+        ) / n_quantiles
         return interpolated
 
     def test_prepare_normalization_and_normalize(self):

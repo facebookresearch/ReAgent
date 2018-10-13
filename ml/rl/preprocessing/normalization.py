@@ -186,6 +186,9 @@ def sort_features_by_normalization(normalization_parameters):
     # Sort features by feature type
     sorted_features = []
     feature_starts = []
+    assert isinstance(
+        list(normalization_parameters.keys())[0], int
+    ), "Normalization Parameters need to be int"
     for feature_type in FEATURE_TYPES:
         feature_starts.append(len(sorted_features))
         for feature in sorted(normalization_parameters.keys()):

@@ -35,6 +35,10 @@ class PreprocessorNet:
         ZERO = self._store_parameter(
             parameters, "ZERO", np.array([0], dtype=np.float32)
         )
+        ONE = self._store_parameter(parameters, "ONE", np.array([1], dtype=np.float32))
+        NEGATIVE_ONE = self._store_parameter(
+            parameters, "NEGATIVE_ONE", np.array([-1], dtype=np.float32)
+        )
 
         MISSING_U = self._store_parameter(
             parameters, "MISSING_U", np.array([MISSING_VALUE + 1e-4], dtype=np.float32)
@@ -65,7 +69,12 @@ class PreprocessorNet:
             bool_blob = C2.Or(is_gt_zero, is_lt_zero)
             blob = C2.Cast(bool_blob, to=caffe2_pb2.TensorProto.FLOAT)
         elif feature_type == identify_types.PROBABILITY:
-            blob = C2.Logit(C2.Clip(blob, min=0.01, max=0.99))
+            clipped = C2.Clip(blob, min=0.01, max=0.99)
+            blob = C2.Mul(
+                C2.Log(C2.Sub(C2.Pow(clipped, exponent=-1.0), ONE, broadcast=1)),
+                NEGATIVE_ONE,
+                broadcast=1,
+            )
         elif feature_type == identify_types.ENUM:
             for parameter in normalization_parameters:
                 possible_values = parameter.possible_values
@@ -178,11 +187,10 @@ class PreprocessorNet:
                 quantile_values = np.append(
                     quantile_values, np.array(norm.quantiles, dtype=np.float32)
                 )
-                # TODO: Fix this: the np.unique is making this part not true.
                 quantile_labels = np.append(
                     quantile_labels,
                     np.arange(len(norm.quantiles), dtype=np.float32)
-                    / float(len(norm.quantiles)),
+                    / float(len(norm.quantiles) - 1.0),
                 )
             quantiles = np.vstack([quantile_values, quantile_labels]).T
             quantiles_blob = self._store_parameter(
@@ -234,7 +242,7 @@ class PreprocessorNet:
             blob = C2.Sub(blob, means_blob, broadcast=1, axis=0)
             blob = C2.Div(blob, stddevs_blob, broadcast=1, axis=0)
             if self.clip_anomalies:
-                blob = C2.Clip(blob, min=-3.0, max=3.0)
+                blob = C2.Clip(blob, min=-5.0, max=5.0)
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 
