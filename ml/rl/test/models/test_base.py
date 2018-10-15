@@ -81,8 +81,8 @@ class TestBase(unittest.TestCase):
     def test_get_predictor_export_meta_and_workspace(self):
         model = Model()
 
-        # 2 params + 2 const
-        expected_num_params, expected_num_inputs, expected_num_outputs = 4, 2, 4
+        # 2 params + 1 const
+        expected_num_params, expected_num_inputs, expected_num_outputs = 3, 2, 4
         check_save_load(
             self, model, expected_num_params, expected_num_inputs, expected_num_outputs
         )
@@ -105,8 +105,8 @@ class TestBase(unittest.TestCase):
         pem, ws = model.get_predictor_export_meta_and_workspace(
             feature_extractor=extractor
         )
-        # model has 2 params + 2 const. extractor has 1 const.
-        self.assertEqual(5, len(pem.parameters))
+        # model has 2 params + 1 const. extractor has 1 const.
+        self.assertEqual(4, len(pem.parameters))
         for p in pem.parameters:
             self.assertTrue(ws.HasBlob(p))
         self.assertEqual(3, len(pem.inputs))

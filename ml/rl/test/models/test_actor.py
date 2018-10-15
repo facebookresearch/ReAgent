@@ -38,8 +38,7 @@ class TestFullyConnectedActor(unittest.TestCase):
             activations=["relu", "relu"],
             use_batch_norm=False,
         )
-        # With ONNX, each layer of linear has 3 parameters
-        expected_num_params, expected_num_inputs, expected_num_outputs = 9, 1, 1
+        expected_num_params, expected_num_inputs, expected_num_outputs = 6, 1, 1
         check_save_load(
             self, model, expected_num_params, expected_num_inputs, expected_num_outputs
         )
@@ -56,7 +55,7 @@ class TestFullyConnectedActor(unittest.TestCase):
         )
         # Freezing batch_norm
         model.eval()
-        expected_num_params, expected_num_inputs, expected_num_outputs = 24, 1, 1
+        expected_num_params, expected_num_inputs, expected_num_outputs = 21, 1, 1
         check_save_load(
             self, model, expected_num_params, expected_num_inputs, expected_num_outputs
         )
