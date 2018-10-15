@@ -88,3 +88,15 @@ class TrainingBatch(NamedTuple):
 
 class SingleQValue(NamedTuple):
     q_value: ValueType
+
+
+class AllActionQValues(NamedTuple):
+    q_values: ValueType
+
+
+class CappedContinuousAction(NamedTuple):
+    """
+    Continuous action in range [-1, 1], e.g., the output of DDPG actor
+    """
+
+    action: ValueType
