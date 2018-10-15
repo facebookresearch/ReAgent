@@ -71,7 +71,9 @@ class DDPGTrainer(RLTrainer):
         )
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = self.optimizer_func(
-            self.actor.parameters(), lr=self.actor_params.learning_rate
+            self.actor.parameters(),
+            lr=self.actor_params.learning_rate,
+            weight_decay=self.actor_params.l2_decay,
         )
         self.noise = self.noise_generator
 
@@ -194,8 +196,8 @@ class DDPGTrainer(RLTrainer):
         self.critic_optimizer.step()
 
         # Optimize the actor network subject to the following:
-        # max sum(Q(s1, a1)) or min -sum(Q(s1, a1))
-        loss_actor = -self.critic(torch.cat((states, self.actor(states)), dim=1)).sum()
+        # max mean(Q(s1, a1)) or min -mean(Q(s1, a1))
+        loss_actor = -self.critic(torch.cat((states, self.actor(states)), dim=1)).mean()
         self.actor_optimizer.zero_grad()
         loss_actor.backward()
         self.actor_optimizer.step()
@@ -289,7 +291,7 @@ class ActorNet(nn.Module):
                 init.uniform_(self.layers[i].bias, -fl_init, fl_init)
             # Else use fan in uniform init (as outlined in DDPG paper)
             else:
-                fan_in_init(self.layers[i].weight)
+                fan_in_init(self.layers[i].weight, self.layers[i].bias)
 
     def forward(self, state) -> torch.FloatTensor:
         """ Forward pass for actor network. Assumes activation names are
@@ -334,7 +336,7 @@ class CriticNet(nn.Module):
                 init.uniform_(self.layers[i].bias, -fl_init, fl_init)
             # Else use fan in uniform init (as outlined in DDPG paper)
             else:
-                fan_in_init(self.layers[i].weight)
+                fan_in_init(self.layers[i].weight, self.layers[i].bias)
 
     def forward(self, state_action) -> torch.FloatTensor:
         """ Forward pass for critic network. Assumes activation names are
@@ -359,10 +361,11 @@ class CriticNet(nn.Module):
         return x
 
 
-def fan_in_init(tensor) -> None:
+def fan_in_init(weight_tensor, bias_tensor) -> None:
     """ Fan in initialization as described in DDPG paper."""
-    val_range = 1.0 / np.sqrt(tensor.size(1))
-    init.uniform_(tensor, -val_range, val_range)
+    val_range = 1.0 / np.sqrt(weight_tensor.size(1))
+    init.uniform_(weight_tensor, -val_range, val_range)
+    init.uniform_(bias_tensor, -val_range, val_range)
 
 
 class OrnsteinUhlenbeckProcessNoise:
