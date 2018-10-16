@@ -1,11 +1,11 @@
 {
   "timeline": {
     "startDs": "2019-01-01",
-    "endDs": "2018-01-01",
+    "endDs": "2019-01-01",
     "addTerminalStateRow": false,
     "actionDiscrete": true,
     "inputTableName": "cartpole_discrete",
-    "outputTableName": "cartpole_discrete_training_data"
+    "outputTableName": "cartpole_discrete_timeline"
   },
   "query": {
     "discountFactor": 0.9,

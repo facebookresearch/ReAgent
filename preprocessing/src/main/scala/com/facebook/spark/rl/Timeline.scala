@@ -9,7 +9,8 @@ case class TimelineConfiguration(startDs: String,
                                  addTerminalStateRow: Boolean,
                                  actionDiscrete: Boolean,
                                  inputTableName: String,
-                                 outputTableName: String)
+                                 outputTableName: String,
+                                 numOutputShards: Int = 1)
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions

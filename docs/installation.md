@@ -1,3 +1,5 @@
+# Installation
+---
 
 ##### Docker
 
@@ -10,7 +12,13 @@ git clone https://github.com/facebookresearch/Horizon.git
 cd Horizon/docker/cpu/
 ```
 
-Run:
+On macOS you will need to increase the default memory allocation as the default of 2G is not enough. You can do this by clicking the whale icon in the task bar. We recommend using at least 8G of memory.
+
+On macOS, you can then build the image:
+```
+docker build -t horizon:dev .
+```
+On Linux you can build the image with specific memory allocations from command line:
 ```
 docker build -t horizon:dev --memory=8g --memory-swap=8g .
 ```
