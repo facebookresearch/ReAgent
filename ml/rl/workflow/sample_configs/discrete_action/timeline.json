@@ -1,7 +1,7 @@
 {
   "timeline": {
-    "startDs": "2018-06-25",
-    "endDs": "2018-06-25",
+    "startDs": "2019-01-01",
+    "endDs": "2018-01-01",
     "addTerminalStateRow": false,
     "actionDiscrete": true,
     "inputTableName": "cartpole_discrete",

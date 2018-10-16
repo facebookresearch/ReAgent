@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     protobuf-compiler \
     sudo \
     software-properties-common \
+    vim \
     wget
 
 # Sometimes needed to avoid SSL CA issues.

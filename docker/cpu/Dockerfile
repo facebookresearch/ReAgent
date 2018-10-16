@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     protobuf-compiler \
     sudo \
     software-properties-common \
+    vim \
     wget
 
 # Sometimes needed to avoid SSL CA issues.
@@ -73,6 +74,11 @@ RUN \
   rm -rf /var/lib/apt/lists/* && \
   rm -rf /var/cache/oracle-jdk8-installer
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+
+# Install Spark
+RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz && \
+    tar -xzf spark-2.3.1-bin-hadoop2.7.tgz && \
+    mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
 
 ENV HOME /home
 WORKDIR ${HOME}/

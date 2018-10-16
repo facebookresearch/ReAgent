@@ -16,17 +16,21 @@ class RLDataset:
         """
         self.file_path = file_path
         self.rows = []
-        self.timeline_format_rows = []
+        self.pre_timeline_format_rows = []
 
     def load(self):
         """Load samples from a gzipped json file."""
         with gzip.open(self.file_path) as f:
             self.rows = json.load(f)
 
-    def save(self):
+    def save(self, pre_timeline_format=True):
         """Save samples as a JSON file."""
+        data = self.rows
+        if pre_timeline_format:
+            data = self.pre_timeline_format_rows
+
         with open(self.file_path, "w") as f:
-            json.dump(self.rows, f)
+            json.dump(data, f)
 
     def insert(
         self,
@@ -84,14 +88,23 @@ class RLDataset:
         if isinstance(action, list):
             action = {int(i + idx_bump): v for i, v in enumerate(action)}
         if isinstance(possible_actions, list):
-            possible_actions = [
-                {int(k + idx_bump): v for v, k in enumerate(action)}
-                for action in possible_actions
-            ]
+            if len(possible_actions) == 0:
+                pass
+            elif isinstance(possible_actions[0], int):
+                # Discrete action domain
+                possible_actions = [
+                    idx for idx, val in enumerate(possible_actions) if val == 1
+                ]
+            elif isinstance(possible_actions[0], dict):
+                # Parametric or continuous action domain
+                possible_actions = [
+                    {int(k + idx_bump): v for v, k in enumerate(action)}
+                    for action in possible_actions
+                ]
 
-        self.timeline_format_rows.append(
+        self.pre_timeline_format_rows.append(
             {
-                "ds": datetime.now().strftime("%Y-%m-%d"),
+                "ds": "2019-01-01",  # Fix ds for simplicity in open source examples
                 "mdp_id": str(mdp_id),
                 "sequence_number": int(sequence_number),
                 "state_features": {int(i): v for i, v in enumerate(state)},
