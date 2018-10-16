@@ -66,7 +66,7 @@ object Preprocessor {
         s" FROM ${timelineConfig.outputTableName} where rand() <= ${queryConfig.tableSample}"))
 
     outputDf.show()
-    outputDf.write.json(timelineConfig.outputTableName)
+    outputDf.repartition(1).write.json(timelineConfig.outputTableName)
     sparkSession.stop()
   }
 }
