@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class RLPredictor:
-    def __init__(self, net, init_net, parameters, int_features):
+    def __init__(self, net, init_net, parameters, int_features, ws=None):
         """
         :param net caffe2 net used for prediction
         :param parameters caffe2 blobs used as network paramers
@@ -51,6 +51,11 @@ class RLPredictor:
         ]
         self._parameters = parameters
         self.is_discrete = None
+        self.ws = ws or workspace
+
+    @property
+    def predict_net(self):
+        return self._net
 
     def predict(self, float_state_features, int_state_features=None):
         """ Returns values for each state
@@ -63,20 +68,20 @@ class RLPredictor:
             for k, v in example.items():
                 float_state_keys.append(k)
                 float_state_values.append(v)
-        workspace.FeedBlob(
+        self.ws.FeedBlob(
             "input/float_features.lengths",
             np.array([len(e) for e in float_state_features], dtype=np.int32),
         )
-        workspace.FeedBlob(
+        self.ws.FeedBlob(
             "input/float_features.keys", np.array(float_state_keys, dtype=np.int64)
         )
-        workspace.FeedBlob(
+        self.ws.FeedBlob(
             "input/float_features.values",
             np.array(float_state_values, dtype=np.float32).flatten(),
         )
 
         if int_state_features is not None:
-            workspace.FeedBlob(
+            self.ws.FeedBlob(
                 "input/int_features.lengths",
                 np.array([len(e) for e in int_state_features], dtype=np.int32),
             )
@@ -86,24 +91,24 @@ class RLPredictor:
                 for k, v in example.items():
                     int_state_keys.append(k)
                     int_state_values.append(v)
-            workspace.FeedBlob(
+            self.ws.FeedBlob(
                 "input/int_features.keys",
                 np.array(int_state_keys, dtype=np.int64).flatten(),
             )
-            workspace.FeedBlob(
+            self.ws.FeedBlob(
                 "input/int_features.values",
                 np.array(int_state_values, dtype=np.int32).flatten(),
             )
 
-        workspace.RunNet(self._net)
+        self.ws.RunNet(self.predict_net)
 
-        output_lengths = workspace.FetchBlob(
+        output_lengths = self.ws.FetchBlob(
             "output/string_weighted_multi_categorical_features.values.lengths"
         )
-        output_names = workspace.FetchBlob(
+        output_names = self.ws.FetchBlob(
             "output/string_weighted_multi_categorical_features.values.keys"
         )
-        output_values = workspace.FetchBlob(
+        output_values = self.ws.FetchBlob(
             "output/string_weighted_multi_categorical_features.values.values"
         )
         assert len(output_lengths) == len(float_state_features), (

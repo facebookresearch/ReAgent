@@ -6,6 +6,7 @@ from typing import Dict, List
 import numpy as np
 import torch
 import torch.nn as nn
+from ml.rl import types as rlt
 from ml.rl.preprocessing.identify_types import ENUM, FEATURE_TYPES
 from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
 from torch.nn import Module, Parameter
@@ -22,6 +23,7 @@ class Preprocessor(Module):
         self,
         normalization_parameters: Dict[str, NormalizationParameters],
         use_gpu: bool,
+        typed_output: bool = False,
     ) -> None:
         super(Preprocessor, self).__init__()
         self.normalization_parameters = normalization_parameters
@@ -29,6 +31,7 @@ class Preprocessor(Module):
             self._sort_features_by_normalization()
         )
         self.clamp = True  # Only set to false in unit tests
+        self.typed_output = typed_output
 
         cuda_available = torch.cuda.is_available()
         logger.info("CUDA availability: {}".format(cuda_available))
@@ -93,12 +96,19 @@ class Preprocessor(Module):
                 func = getattr(self, "_create_parameters_" + feature_type)
                 func(begin_index, norm_params)
 
+    def input_prototype(self):
+        return rlt.FeatureVector(
+            float_features=torch.randn(1, len(self.normalization_parameters))
+        )
+
     def forward(self, input) -> torch.FloatTensor:
         """ Preprocess the input matrix
         :param input tensor
         """
         if isinstance(input, np.ndarray):
             input = torch.from_numpy(input).type(self.dtype)
+        if isinstance(input, rlt.FeatureVector):
+            input = input.float_features.type(self.dtype)
 
         # ONNX doesn't support != yet
         not_missing_input = (
@@ -136,11 +146,17 @@ class Preprocessor(Module):
                 self._check_preprocessing_output(new_output, norm_params)
                 outputs.append(new_output)
 
-        if len(outputs) == 1:
-            return torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+        def wrap(output):
+            if self.typed_output:
+                return rlt.FeatureVector(float_features=output)
+            else:
+                return output
 
-        return torch.clamp(
-            torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+        if len(outputs) == 1:
+            return wrap(torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE))
+
+        return wrap(
+            torch.clamp(torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
         )
 
     def _preprocess_feature_single_column(

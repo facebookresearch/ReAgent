@@ -69,7 +69,7 @@ class MaxQLearningInput(NamedTuple):
     tiled_next_state: Optional[State]  # Available in case of parametric action
     possible_next_actions: PossibleActions
     reward: ValueType
-    is_terminal: ValueType
+    not_terminal: ValueType
 
 
 class SARSAInput(NamedTuple):
@@ -78,7 +78,11 @@ class SARSAInput(NamedTuple):
     next_state: State
     next_action: Action
     reward: ValueType
-    is_terminal: ValueType
+    not_terminal: ValueType
+
+
+class ExtraData(NamedTuple):
+    episode_value: Optional[ValueType] = None
 
 
 class TrainingBatch(NamedTuple):
