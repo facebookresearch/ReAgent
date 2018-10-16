@@ -2,6 +2,7 @@
 
 import abc
 from collections import OrderedDict
+from copy import deepcopy
 from io import BytesIO
 from typing import List, NamedTuple, Tuple
 
@@ -36,7 +37,26 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
 
         The return value should be what expected by `forward()`.
         """
-        raise NotImplemented
+        raise NotImplementedError
+
+    def get_target_network(self):
+        """
+        Return a copy of this network to be used as target network
+
+        Subclass should override this if the target network should share parameters
+        with the network to be trained.
+        """
+        return deepcopy(self)
+
+    def get_data_parallel_model(self):
+        """
+        Return DataParallel version of this model
+
+        This needs to be implemented explicitly because:
+        1) Model with EmbeddingBag module is not compatible with vanilla DataParallel
+        2) Exporting logic needs structured data. DataParallel doesn't work with structured data.
+        """
+        raise NotImplementedError
 
     def input_blob_names(self) -> List[str]:
         """
@@ -77,6 +97,12 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
 
     def output_field_names(self) -> List[str]:
         return self.derive_blob_names(self(self.input_prototype()))
+
+    def cpu_model(self):
+        """
+        Override this in DataParallel models
+        """
+        return self.cpu()
 
     def export_to_buffer(self) -> BytesIO:
         """

@@ -159,7 +159,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 tiled_next_state=tiled_next_state,
                 possible_next_actions=possible_next_actions,
                 reward=reward,
-                is_terminal=None,
+                not_terminal=None,
             )
         else:
             next_state = mt.FeatureVector(
@@ -172,7 +172,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 next_state=next_state,
                 next_action=next_action,
                 reward=reward,
-                is_terminal=None,
+                not_terminal=None,
             )
 
         # TODO: stuff other fields in here
