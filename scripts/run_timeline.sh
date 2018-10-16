@@ -3,9 +3,30 @@
 # Build timeline package (only need to do this first time)
 mvn -f preprocessing/pom.xml package
 
-# Move the training data to a directory (expected by Spark)
-mkdir ~/cartpole_discrete
-cp ~/ cartpole_discrete/training_data.json ~/cartpole_discrete
+# Clear last run's spark data (in case of interruption) and run timelime on pre-timeline data
+rm -Rf cartpole_discrete_timeline spark-warehouse training_data derby.log metastore_db
+/usr/local/spark/bin/spark-submit --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar '
+{
+  "timeline": {
+    "startDs": "2019-01-01",
+    "endDs": "2019-01-01",
+    "addTerminalStateRow": false,
+    "actionDiscrete": true,
+    "inputTableName": "cartpole_discrete",
+    "outputTableName": "cartpole_discrete_timeline"
+  },
+  "query": {
+    "discountFactor": 0.99,
+    "tableSample": 1,
+    "maxQLearning": true,
+    "useNonOrdinalRewardTimeline": false,
+    "actions": [
+      "4",
+      "5"
+    ]
+  }
+}
+'
 
-# Run timelime on pre-timeline data
-/usr/local/spark/bin/spark-submit --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar "`cat home/cartpole_training_data.json`"
+# Clear spark data for next run
+rm -Rf spark-warehouse training_data derby.log metastore_db
