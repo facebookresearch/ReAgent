@@ -414,7 +414,7 @@ class GridworldBase(object):
     def generate_samples_discrete(  # multiprocessing
         self, num_transitions, epsilon, discount_factor
     ) -> Samples:
-        NUM_PROCESSES = 8
+        NUM_PROCESSES = 2
         sub_transitions = int(num_transitions / NUM_PROCESSES)
         sub_transitions_map = [sub_transitions] * NUM_PROCESSES
         seed = list(range(NUM_PROCESSES))

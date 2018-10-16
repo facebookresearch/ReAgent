@@ -22,9 +22,9 @@ class GridworldEvaluator(Evaluator):
 
         if samples is None:
             if assume_optimal_policy:
-                samples = env.generate_samples(200000, 0.25, gamma)
+                samples = env.generate_samples(100000, 0.25, gamma)
             else:
-                samples = env.generate_samples(200000, 1.0, gamma)
+                samples = env.generate_samples(100000, 1.0, gamma)
         self.logged_states = samples.states
         self.logged_actions = samples.actions
         self.logged_propensities = np.array(samples.action_probabilities).reshape(-1, 1)
