@@ -2,6 +2,7 @@
 
 from typing import Optional
 
+import ml.rl.types as rlt
 import numpy as np
 import torch
 
@@ -70,6 +71,19 @@ class TrainingDataPage(object):
         self.time_diffs = time_diffs
         self.possible_next_actions_lengths = possible_next_actions_lengths
         self.possible_next_actions_state_concat = possible_next_actions_state_concat
+
+    def as_parametric_sarsa_training_batch(self):
+        return rlt.TrainingBatch(
+            training_input=rlt.SARSAInput(
+                state=rlt.FeatureVector(float_features=self.states),
+                action=rlt.FeatureVector(float_features=self.actions),
+                next_state=rlt.FeatureVector(float_features=self.next_states),
+                next_action=rlt.FeatureVector(float_features=self.next_actions),
+                reward=self.rewards,
+                not_terminal=self.not_terminals,
+            ),
+            extras=rlt.ExtraData(episode_value=self.episode_values),
+        )
 
     def size(self) -> int:
         if self.states:
