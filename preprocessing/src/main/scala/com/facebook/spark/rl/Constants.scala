@@ -16,7 +16,8 @@ object Constants {
     "possible_actions",
     "possible_next_actions",
     "reward_timeline",
-    "reward_timeline_ordinal"
+    "reward_timeline_ordinal",
+    "metrics"
   );
 
 }

@@ -58,7 +58,8 @@ object Query {
     }
 
     query = query.concat(s"""
-      , COMPUTE_EPISODE_VALUE(${config.discountFactor}, ${rewardTimelineCol}) as episode_value
+      , COMPUTE_EPISODE_VALUE(${config.discountFactor}, ${rewardTimelineCol}) as episode_value,
+      metrics
     """).stripMargin
     return query
   }
@@ -83,7 +84,8 @@ object Query {
       time_diff,
       possible_actions,
       possible_next_actions,
-      COMPUTE_EPISODE_VALUE(${config.discountFactor}, ${rewardTimelineCol}) as episode_value
+      COMPUTE_EPISODE_VALUE(${config.discountFactor}, ${rewardTimelineCol}) as episode_value,
+      metrics
     """.stripMargin
   }
 }
