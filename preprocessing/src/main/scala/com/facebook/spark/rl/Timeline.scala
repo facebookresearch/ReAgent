@@ -134,6 +134,7 @@ object Timeline {
               FIRST(action_probability) as action_probability,
               FIRST(reward) as reward,
               FIRST(possible_actions) as possible_actions,
+              FIRST(metrics) as metrics,
               FIRST(ds) as ds,
               sequence_number as sequence_number
               FROM (
@@ -150,6 +151,7 @@ object Timeline {
               action_probability as action_probability,
               reward as reward,
               possible_actions as possible_actions,
+              metrics as metrics,
               ds as ds,
               sequence_number as sequence_number,
               row_number() over (partition by mdp_id order by mdp_id, sequence_number) as sequence_number_ordinal
@@ -201,7 +203,8 @@ object Timeline {
               first_sa.sequence_number_ordinal AS sequence_number_ordinal,
               second_sa.sequence_number - first_sa.sequence_number AS time_diff,
               first_sa.possible_actions AS possible_actions,
-              second_sa.possible_actions AS possible_next_actions
+              second_sa.possible_actions AS possible_next_actions,
+              first_sa.metrics as metrics
           FROM
               ordinal first_sa
               ${terminalJoin} JOIN ordinal second_sa
@@ -289,7 +292,8 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     possible_actions ${possibleActionType},
     possible_next_actions ${possibleActionType},
     reward_timeline MAP < BIGINT, DOUBLE >,
-    reward_timeline_ordinal MAP < BIGINT, DOUBLE >
+    reward_timeline_ordinal MAP < BIGINT, DOUBLE >,
+    metrics MAP< STRING, DOUBLE>
 ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);

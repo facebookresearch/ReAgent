@@ -5,7 +5,8 @@
     "addTerminalStateRow": false,
     "actionDiscrete": true,
     "inputTableName": "cartpole_discrete",
-    "outputTableName": "cartpole_discrete_timeline"
+    "outputTableName": "cartpole_discrete_timeline",
+    "numOutputShards": 1
   },
   "query": {
     "discountFactor": 0.9,

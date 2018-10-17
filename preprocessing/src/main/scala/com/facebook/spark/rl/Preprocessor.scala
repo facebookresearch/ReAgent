@@ -47,7 +47,8 @@ object Preprocessor {
         StructField("state_features", MapType(StringType, DoubleType, true)),
         actionSchema,
         StructField("reward", DoubleType),
-        possibleActionSchema
+        possibleActionSchema,
+        StructField("metrics", MapType(StringType, DoubleType, true))
       ))
 
     val inputDf = sparkSession.read.schema(schema).json(timelineConfig.inputTableName)

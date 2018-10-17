@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# Build timeline package
-mvn -f preprocessing/pom.xml package
+# Build timeline package (only need to do this first time)
+mvn -f preprocessing/pom.xml clean package
 
 # Clear last run's spark data (in case of interruption) and run timelime on pre-timeline data
 function finish {
-  rm -Rf spark-warehouse training_data derby.log metastore_db
+  rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log
 }
 trap finish EXIT
 
