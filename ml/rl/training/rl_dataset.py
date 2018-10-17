@@ -28,7 +28,6 @@ class RLDataset:
         data = self.rows
         if pre_timeline_format:
             data = self.pre_timeline_format_rows
-
         with open(self.file_path, "w") as f:
             json.dump(data, f)
 
@@ -53,7 +52,7 @@ class RLDataset:
         """
 
         assert isinstance(state, list)
-        assert isinstance(action, (list, str))
+        assert isinstance(action, list)
         assert isinstance(reward, float)
         assert isinstance(next_state, list)
         assert isinstance(next_action, list)
@@ -82,23 +81,25 @@ class RLDataset:
             }
         )
 
-        state_features = {int(i): v for i, v in enumerate(state)}
+        state_features = {str(i): v for i, v in enumerate(state)}
 
-        idx_bump = max(state_features.keys()) + 1
-        if isinstance(action, list):
-            action = {int(i + idx_bump): v for i, v in enumerate(action)}
+        # This assumes that every state feature is present in every training example.
+        int_state_feature_keys = [int(k) for k in state_features.keys()]
+        idx_bump = max(int_state_feature_keys) + 1
         if isinstance(possible_actions, list):
             if len(possible_actions) == 0:
                 pass
             elif isinstance(possible_actions[0], int):
                 # Discrete action domain
+                action = str(np.argmax(action))
                 possible_actions = [
-                    idx for idx, val in enumerate(possible_actions) if val == 1
+                    str(idx) for idx, val in enumerate(possible_actions) if val == 1
                 ]
             elif isinstance(possible_actions[0], dict):
                 # Parametric or continuous action domain
+                action = {str(i + idx_bump): v for i, v in enumerate(action)}
                 possible_actions = [
-                    {int(k + idx_bump): v for v, k in enumerate(action)}
+                    {str(k + idx_bump): v for v, k in enumerate(action)}
                     for action in possible_actions
                 ]
 
@@ -107,10 +108,11 @@ class RLDataset:
                 "ds": "2019-01-01",  # Fix ds for simplicity in open source examples
                 "mdp_id": str(mdp_id),
                 "sequence_number": int(sequence_number),
-                "state_features": {int(i): v for i, v in enumerate(state)},
+                "state_features": state_features,
                 "action": action,
                 "reward": reward,
                 "action_probability": action_probability,
                 "possible_actions": possible_actions,
+                "metrics": {"reward": reward},
             }
         )

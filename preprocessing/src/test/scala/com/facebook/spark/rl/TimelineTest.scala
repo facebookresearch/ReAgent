@@ -34,8 +34,17 @@ class TimelineTest extends PipelineTester {
            "action1",
            0.8,
            Map("s1" -> 1.0),
-           List("action1", "action2")), // First state
-          ("2018-01-01", "mdp1", 11, 0.2, "action2", 0.7, Map("s2" -> 1.0), List()) // Second state
+           List("action1", "action2"),
+           Map("Widgets" -> 10.0)), // First state
+          ("2018-01-01",
+           "mdp1",
+           11,
+           0.2,
+           "action2",
+           0.7,
+           Map("s2" -> 1.0),
+           List(),
+           Map("Widgets" -> 20.0)) // Second state
         ))
       .toDF("ds",
             "mdp_id",
@@ -44,7 +53,8 @@ class TimelineTest extends PipelineTester {
             "action",
             "action_probability",
             "state_features",
-            "possible_actions")
+            "possible_actions",
+            "metrics")
     rl_input.createOrReplaceTempView(config.inputTableName)
 
     // Create a mis-specified output table that will be deleted
@@ -86,5 +96,6 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Seq[String]](12) == List())
     assert(firstRow.getAs[Map[Long, Double]](13) == Map(0 -> 1.0, 10 -> 0.2))
     assert(firstRow.getAs[Map[Long, Double]](14) == Map(0 -> 1.0, 1 -> 0.2))
+    assert(firstRow.getAs[Map[String, Double]](15) == Map("Widgets" -> 10.0))
   }
 }
