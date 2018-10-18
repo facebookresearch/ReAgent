@@ -1,3 +1,4 @@
+// Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.rl
 
 import com.fasterxml.jackson.databind.ObjectMapper
