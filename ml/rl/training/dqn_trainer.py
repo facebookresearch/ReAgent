@@ -83,6 +83,7 @@ class DQNTrainer(RLTrainer):
                     parameters.training.cnn_parameters,
                     parameters.training.layers,
                     parameters.training.activations,
+                    use_noisy_linear_layers=parameters.training.use_noisy_linear_layers,
                 )
 
         self.q_network_target = deepcopy(self.q_network)

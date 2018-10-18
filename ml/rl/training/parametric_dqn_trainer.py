@@ -126,7 +126,9 @@ class ParametricDQNTrainer(RLTrainer):
             )
         elif training_parameters.factorization_parameters is None:
             return FullyConnectedNetwork(
-                training_parameters.layers, training_parameters.activations
+                training_parameters.layers,
+                training_parameters.activations,
+                use_noisy_linear_layers=training_parameters.use_noisy_linear_layers,
             )
         else:
             return ParametricInnerProduct(
