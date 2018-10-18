@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import hashlib
 import itertools
@@ -107,7 +108,7 @@ class Evaluator(object):
         self.logged_rewards_batches: List[np.ndarray] = []
         self.logged_values_batches: List[np.ndarray] = []
         self.model_propensities_batches: List[np.ndarray] = []
-        self.model_rewards_batches: List[np.ndaary] = []
+        self.model_rewards_batches: List[np.ndarray] = []
         self.model_values_batches: List[np.ndarray] = []
         self.model_values_on_logged_actions_batches: List[np.ndarray] = []
         self.model_action_idxs_batches: List[np.ndarray] = []

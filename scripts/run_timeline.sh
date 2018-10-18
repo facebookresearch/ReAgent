@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 # Build timeline package (only need to do this first time)
 mvn -f preprocessing/pom.xml clean package

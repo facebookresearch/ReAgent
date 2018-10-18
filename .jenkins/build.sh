@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 # Builds Horizon and runs basic tests.
 
 pip uninstall -y horizon
