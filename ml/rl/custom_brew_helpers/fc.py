@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from caffe2.python.modeling import initializers
 from caffe2.python.modeling.parameter_info import ParameterTags
