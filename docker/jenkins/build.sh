@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 # Builds Docker image.
 
 set -ex

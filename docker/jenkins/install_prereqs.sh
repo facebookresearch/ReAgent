@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 # Assuming that passing an argument means to use GPU
 gpu="$1"

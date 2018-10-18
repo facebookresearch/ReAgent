@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 # Taken from https://github.com/pytorch/pytorch/blob/master/docker/caffe2/jenkins/common/add_jenkins_user.sh
 
 set -ex
