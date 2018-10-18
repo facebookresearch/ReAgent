@@ -53,7 +53,7 @@ def check_save_load(
         for a, t in zip(output_arrays, output_tensors):
             # FXIME: PyTorch and Caffe2 has slightly different operator implementation;
             # assert_array_equal would fail in some cases :(
-            npt.assert_almost_equal(t.detach().numpy(), a)
+            npt.assert_allclose(t.detach().numpy(), a, atol=1e-6)
 
 
 def _flatten_named_tuple(nt):
