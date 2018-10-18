@@ -1,3 +1,4 @@
+// Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.common.testutil
 
 import com.google.common.collect.ImmutableList

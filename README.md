@@ -17,3 +17,6 @@ Horizon can be installed via. Docker or manually. Detailed instructions on how t
 
 #### Usage
 Detailed instructions on how to use Horizon can be found [here](docs/usage.md).
+
+#### License
+Horizon is released under a BSD license.  Find out more about there [here](LICENSE).
