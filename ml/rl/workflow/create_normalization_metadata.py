@@ -22,7 +22,6 @@ from ml.rl.workflow.training_data_reader import JSONDataset
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-
 NORMALIZATION_BATCH_READ_SIZE = 50000
 
 
@@ -50,7 +49,7 @@ def get_norm_metadata(dataset, norm_params, norm_col):
     samples_per_feature, samples = defaultdict(int), defaultdict(list)
 
     while not done:
-        if not batch or len(batch[norm_col]) == 0:
+        if batch is None or len(batch[norm_col]) == 0:
             logger.info("No more data in training data. Breaking.")
             break
 

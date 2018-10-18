@@ -29,6 +29,7 @@ class RLDataset:
         data = self.rows
         if pre_timeline_format:
             data = self.pre_timeline_format_rows
+
         with open(self.file_path, "w") as f:
             json.dump(data, f)
 
@@ -53,7 +54,7 @@ class RLDataset:
         """
 
         assert isinstance(state, list)
-        assert isinstance(action, list)
+        assert isinstance(action, (list, str))
         assert isinstance(reward, float)
         assert isinstance(next_state, list)
         assert isinstance(next_action, list)
@@ -87,12 +88,15 @@ class RLDataset:
         # This assumes that every state feature is present in every training example.
         int_state_feature_keys = [int(k) for k in state_features.keys()]
         idx_bump = max(int_state_feature_keys) + 1
+        if isinstance(action, list):
+            # Parametric or continuous action domain
+            action = {str(i + idx_bump): v for i, v in enumerate(action)}
+
         if isinstance(possible_actions, list):
             if len(possible_actions) == 0:
                 pass
             elif isinstance(possible_actions[0], int):
                 # Discrete action domain
-                action = str(np.argmax(action))
                 possible_actions = [
                     str(idx) for idx, val in enumerate(possible_actions) if val == 1
                 ]

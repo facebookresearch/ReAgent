@@ -23,10 +23,20 @@ On Linux you can build the image with specific memory allocations from command l
 docker build -t horizon:dev --memory=8g --memory-swap=8g .
 ```
 
-Once the Docker image is built you can start an interactive shell in the container and run the unit tests:
+Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume:
 ```
-docker run -it horizon:dev
+docker run -v /<LOCAL_PATH_TO_HORIZON>/Horizon:/home/Horizon -it horizon:dev
 cd Horizon
+```
+Depending on where your local Horizon copy is, you may need to white list your shared path via Docker -> Preferences... -> File Sharing.
+
+Run the setup file:
+```
+bash scripts/setup.sh
+```
+
+Now you can run the tests:
+```
 python setup.py test
 ```
 

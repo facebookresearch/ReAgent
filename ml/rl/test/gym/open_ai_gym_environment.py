@@ -11,6 +11,7 @@ from ml.rl.test.gym.gym_predictor import (
     GymDQNPredictorPytorch,
 )
 from ml.rl.test.utils import default_normalizer
+from ml.rl.training.dqn_predictor import DQNPredictor
 
 
 class ModelType(enum.Enum):
@@ -25,7 +26,7 @@ class EnvType(enum.Enum):
 
 
 class OpenAIGymEnvironment:
-    def __init__(self, gymenv, epsilon, softmax_policy, gamma):
+    def __init__(self, gymenv, epsilon=0, softmax_policy=False, gamma=0.99):
         """
         Creates an OpenAIGymEnvironment object.
 
@@ -129,6 +130,13 @@ class OpenAIGymEnvironment:
             if test:
                 return predictor.policy(next_state)[0]
             return predictor.policy(next_state, add_action_noise=True)[0]
+        elif isinstance(predictor, DQNPredictor):
+            # Use DQNPredictor directly - useful to test caffe2 predictor
+            sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
+            q_values = predictor.predict(sparse_next_states)
+            action_idx = max(q_values[0], key=q_values[0].get)
+            action[int(action_idx)] = 1.0
+            return action
         else:
             raise NotImplementedError("Unknown predictor type")
 

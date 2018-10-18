@@ -15,6 +15,7 @@ from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class CPE_Estimate(NamedTuple):

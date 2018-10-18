@@ -160,8 +160,10 @@ def train_gym_online_rl(
             if gym_env.action_type == EnvType.DISCRETE_ACTION:
                 action_index = np.argmax(action)
                 next_state, reward, terminal, _ = gym_env.env.step(action_index)
+                action_to_log = str(action_index)
             else:
                 next_state, reward, terminal, _ = gym_env.env.step(action)
+                action_to_log = action.tolist()
             next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
@@ -192,7 +194,7 @@ def train_gym_online_rl(
                     i,
                     ep_timesteps - 1,
                     state.tolist(),
-                    action.tolist(),
+                    action_to_log,
                     reward,
                     next_state.tolist(),
                     next_action.tolist(),

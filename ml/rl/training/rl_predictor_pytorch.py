@@ -58,6 +58,14 @@ class RLPredictor:
     def predict_net(self):
         return self._net
 
+    def in_order_dense_to_sparse(self, dense):
+        """Convert dense observation to sparse observation assuming in order
+        feature ids."""
+        sparse = []
+        for row in dense:
+            sparse.append({str(k): v for k, v in enumerate(row)})
+        return sparse
+
     def predict(self, float_state_features, int_state_features=None):
         """ Returns values for each state
         :param float_state_features A list of feature -> float value dict examples

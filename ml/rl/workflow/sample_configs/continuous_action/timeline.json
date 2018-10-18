@@ -5,7 +5,8 @@
     "addTerminalStateRow": false,
     "actionDiscrete": false,
     "inputTableName": "pendulum",
-    "outputTableName": "pendulum_training_data"
+    "outputTableName": "pendulum_training_data",
+    "numOutputShards": 1
   },
   "query": {
     "discountFactor": 0.9,

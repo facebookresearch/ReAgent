@@ -65,15 +65,9 @@ RUN wget https://archive.apache.org/dist/thrift/0.11.0/thrift-0.11.0.tar.gz -O t
     make install
 
 # Install Java & maven.
-# Taken from https://github.com/dockerfile/java/blob/master/oracle-java8/Dockerfile
-RUN \
-  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
-  apt-get update && \
-  apt-get install -y oracle-java8-installer maven && \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /var/cache/oracle-jdk8-installer
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+RUN apt-get install -y openjdk-8-jre && \
+    apt-get install -y maven
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 
 # Install Spark
 RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz && \
@@ -107,13 +101,6 @@ ADD ./install_prereqs.sh install_prereqs.sh
 ADD ./requirements.txt requirements.txt
 RUN ./install_prereqs.sh
 RUN rm install_prereqs.sh requirements.txt
-
-# Install and run key tests, this should finish quickly
-RUN git clone https://github.com/facebookresearch/Horizon.git && \
-    cd Horizon && \
-    thrift --gen py --out . ml/rl/thrift/core.thrift && \
-    pip install -e . && \
-    python -m ml.rl.test.workflow.test_oss_workflows
 
 # Define default command.
 CMD ["bash"]

@@ -5,7 +5,8 @@
     "addTerminalStateRow": false,
     "actionDiscrete": false,
     "inputTableName": "cartpole_parametric",
-    "outputTableName": "cartpole_parametric_training_data"
+    "outputTableName": "cartpole_parametric_training_data",
+    "numOutputShards": 1
   },
   "query": {
     "discountFactor": 0.9,

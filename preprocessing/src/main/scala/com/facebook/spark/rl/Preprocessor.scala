@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.rl
 
+import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql._
@@ -16,6 +17,9 @@ case class QueryConfiguration(discountFactor: Double = 0.9,
                               actions: Array[String] = Array())
 
 object Preprocessor {
+
+  private val log = LoggerFactory.getLogger(this.getClass.getName)
+
   def main(args: Array[String]) {
     val sparkSession = SparkSession.builder().enableHiveSupport().getOrCreate()
     sparkSession.sqlContext.udf.register("COMPUTE_EPISODE_VALUE", Udfs.getEpisodeValue[Double] _)
@@ -62,10 +66,14 @@ object Preprocessor {
       Query.getContinuousQuery(queryConfig)
     }
 
+    val sqlCommand = query.concat(
+      s" FROM ${timelineConfig.outputTableName} where rand() <= ${queryConfig.tableSample}")
+
+    log.info("Executing query: ")
+    log.info(sqlCommand)
+
     // Query the results
-    val outputDf = sparkSession.sql(
-      query.concat(
-        s" FROM ${timelineConfig.outputTableName} where rand() <= ${queryConfig.tableSample}"))
+    val outputDf = sparkSession.sql(sqlCommand)
 
     outputDf.show()
     outputDf

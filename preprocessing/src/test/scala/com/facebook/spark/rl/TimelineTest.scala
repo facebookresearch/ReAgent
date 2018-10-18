@@ -22,7 +22,8 @@ class TimelineTest extends PipelineTester {
                                        false,
                                        true,
                                        "some_rl_input",
-                                       "some_rl_timeline")
+                                       "some_rl_timeline",
+                                       1)
 
     // Create fake input data
     val rl_input = sparkContext
