@@ -18,26 +18,26 @@ The main use case of Horizon is to train RL models in the **batch** setting. In 
 First we need to generate the data required to train our RL models. For this example we generate data from the `Cartpole-v0` environment in OpenAI Gym. In practice, end users would generate a dataset in a similar format from their production system.
 
 ```
-bash scripts/gen_training_data.sh
+./scripts/gen_training_data.sh
 ```
 Alternatively, to skip generating the Gym data, you can use the pre-generated data found in `ml/rl/workflow/sample_datasets`.
 ##### Step 2 - Convert the data to the `timeline` format
 Models are trained on consecutive pairs of state/action tuples. To assist in creating this table, we have an `RLTimelineOperator` spark operator. Build and run the timeline operator on the data:
 ```
-bash scripts/run_timeline.sh
+./scripts/run_timeline.sh
 ```
 ##### Step 3 - Create the normalization parameters
 Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. Horizon includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data:
 ```
-bash scripts/create_normalization.sh
+./scripts/create_normalization.sh
 ```
 ##### Step 4 - Train model
 Now we are ready to train a model by running:
 ```
-bash scripts/train.sh
+./scripts/train.sh
 ```
 ##### Step 5 - Evaluate Model
 Now that we have trained a new policy on the offline `Cartpole-v0` data, we can try it out to see how it does:
 ```
-bash scripts/eval.sh
+./scripts/eval.sh
 ```
