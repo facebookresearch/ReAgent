@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-
 import logging
 from typing import Dict, List, Tuple
 
@@ -243,7 +242,7 @@ class PreprocessorNet:
             blob = C2.Sub(blob, means_blob, broadcast=1, axis=0)
             blob = C2.Div(blob, stddevs_blob, broadcast=1, axis=0)
             if self.clip_anomalies:
-                blob = C2.Clip(blob, min=-5.0, max=5.0)
+                blob = C2.Clip(blob, min=-6.0, max=6.0)
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 

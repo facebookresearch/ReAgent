@@ -132,6 +132,7 @@ def preprocess_batch_for_training(
     next_state_features_dense = pandas_sparse_to_dense(
         sorted_state_features_str, batch["next_state_features"]
     )
+
     state_features_dense = state_preprocessor.forward(state_features_dense)
     next_state_features_dense = state_preprocessor.forward(next_state_features_dense)
 

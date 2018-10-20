@@ -9,6 +9,8 @@ import time
 import numpy as np
 import torch
 from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.test.gym.open_ai_gym_environment import ModelType, OpenAIGymEnvironment
+from ml.rl.test.gym.run_gym import create_predictor
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
     InTrainingCPEParameters,

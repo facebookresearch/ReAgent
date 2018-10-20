@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 ENV = "CartPole-v0"
-AVG_OVER_NUM_EPS = 20
+AVG_OVER_NUM_EPS = 100
 
 
 def main(model_path):

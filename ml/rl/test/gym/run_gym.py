@@ -157,10 +157,9 @@ def train_gym_online_rl(
             if render:
                 gym_env.env.render()
 
+            action_to_log = _format_action_for_rl_dataset(action, gym_env.action_type)
             if gym_env.action_type == EnvType.DISCRETE_ACTION:
-                action_index = np.argmax(action)
-                next_state, reward, terminal, _ = gym_env.env.step(action_index)
-                action_to_log = str(action_index)
+                next_state, reward, terminal, _ = gym_env.env.step(int(action_to_log))
             else:
                 next_state, reward, terminal, _ = gym_env.env.step(action)
                 action_to_log = action.tolist()
@@ -169,6 +168,9 @@ def train_gym_online_rl(
             ep_timesteps += 1
             total_timesteps += 1
             next_action = gym_env.policy(predictor, next_state, False)
+            next_action_to_log = _format_action_for_rl_dataset(
+                next_action, gym_env.action_type
+            )
             reward_sum += reward
 
             # Get possible next actions
@@ -196,12 +198,8 @@ def train_gym_online_rl(
                     state.tolist(),
                     action_to_log,
                     reward,
-                    next_state.tolist(),
-                    next_action.tolist(),
                     terminal,
                     possible_actions,
-                    possible_next_actions,
-                    possible_next_actions_lengths,
                     1,
                     1.0,
                 )
@@ -242,6 +240,20 @@ def train_gym_online_rl(
 
             if max_steps and ep_timesteps >= max_steps:
                 break
+
+        # If the episode ended due to a terminal state being hit, log that
+        if terminal and save_timesteps_to_dataset:
+            save_timesteps_to_dataset.insert(
+                i,
+                ep_timesteps,
+                next_state.tolist(),
+                next_action_to_log,
+                0.0,
+                terminal,
+                possible_next_actions,
+                1,
+                1.0,
+            )
 
         # Always eval on last episode if previous eval loop didn't return.
         if i == num_episodes - 1:
@@ -464,6 +476,13 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         raise NotImplementedError("Model of type {} not supported".format(model_type))
 
     return trainer
+
+
+def _format_action_for_rl_dataset(action, env_type):
+    if env_type == EnvType.DISCRETE_ACTION:
+        action_index = np.argmax(action)
+        return str(action_index)
+    return action.tolist()
 
 
 def create_predictor(trainer, model_type, use_gpu):

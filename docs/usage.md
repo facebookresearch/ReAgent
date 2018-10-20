@@ -1,5 +1,4 @@
 # Usage
----
 
 ## 1 - Online RL Training
 Horizon supports online training environments for model testing. To train a model on OpenAI Gym, simply run:
@@ -39,5 +38,5 @@ Now we are ready to train a model by running:
 ##### Step 5 - Evaluate Model
 Now that we have trained a new policy on the offline `Cartpole-v0` data, we can try it out to see how it does:
 ```
-./scripts/eval.sh
+./scripts/eval.sh predictor_<number>.c2
 ```

@@ -93,7 +93,7 @@ def get_norm_params(norm_params):
             "quantile_k2_threshold", DEFAULT_QUANTILE_K2_THRESHOLD
         ),
         "skip_box_cox": norm_params.get("skip_box_cox", False),
-        "skip_quantiles": norm_params.get("skip_quantiles", False),
+        "skip_quantiles": True,  # Skipping quantiles helps performance in OpenAI Gym Cartpole-v0
         "feature_overrides": norm_params.get("feature_overrides", None),
         "cols_to_norm": norm_params["cols_to_norm"],
         "output_dir": norm_params["output_dir"],

@@ -18,8 +18,8 @@
   "epochs": 100,
   "rl": {
     "gamma": 0.99,
-    "target_update_rate": 0.2,
-    "reward_burnin": 1,
+    "target_update_rate": 0.15,
+    "reward_burnin": 40,
     "maxq_learning": 1,
     "epsilon": 0.2,
     "temperature": 0.35,
@@ -45,7 +45,8 @@
     "learning_rate": 0.001,
     "optimizer": "ADAM",
     "lr_decay": 0.999,
-    "warm_start_model_path": null
+    "warm_start_model_path": null,
+    "l2_decay": 0.001
   },
   "in_training_cpe": null
 }
