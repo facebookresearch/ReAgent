@@ -43,6 +43,12 @@ DiscreteAction = ValueType
 
 ParametricAction = FeatureVector
 
+
+class ActorOutput(NamedTuple):
+    action: ValueType
+    log_prob: Optional[ValueType] = None
+
+
 Action = Union[DiscreteAction, ParametricAction]
 
 State = FeatureVector

@@ -4,7 +4,8 @@
 import logging
 import unittest
 
-from ml.rl.models.actor import FullyConnectedActor
+import numpy.testing as npt
+from ml.rl.models.actor import FullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.test.models.test_utils import check_save_load
 
 
@@ -27,7 +28,7 @@ class TestFullyConnectedActor(unittest.TestCase):
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         action = model(input)
-        self.assertEqual((1, action_dim), action.float_features.shape)
+        self.assertEqual((1, action_dim), action.action.shape)
 
     def test_save_load(self):
         state_dim = 8
@@ -60,3 +61,54 @@ class TestFullyConnectedActor(unittest.TestCase):
         check_save_load(
             self, model, expected_num_params, expected_num_inputs, expected_num_outputs
         )
+
+
+class TestGaussianFullyConnectedActor(unittest.TestCase):
+    def test_basic(self):
+        state_dim = 8
+        action_dim = 4
+        model = GaussianFullyConnectedActor(
+            state_dim,
+            action_dim,
+            sizes=[7, 6],
+            activations=["relu", "relu"],
+            use_batch_norm=True,
+        )
+        input = model.input_prototype()
+        self.assertEqual((1, state_dim), input.float_features.shape)
+        # Using batch norm requires more than 1 example in training, avoid that
+        model.eval()
+        action = model(input)
+        self.assertEqual((1, action_dim), action.action.shape)
+
+    def test_save_load(self):
+        state_dim = 8
+        action_dim = 4
+        model = GaussianFullyConnectedActor(
+            state_dim,
+            action_dim,
+            sizes=[7, 6],
+            activations=["relu", "relu"],
+            use_batch_norm=False,
+        )
+        expected_num_params, expected_num_inputs, expected_num_outputs = 8, 1, 1
+        check_save_load(
+            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
+        )
+
+    def test_get_log_prob(self):
+        state_dim = 8
+        action_dim = 4
+        model = GaussianFullyConnectedActor(
+            state_dim,
+            action_dim,
+            sizes=[7, 6],
+            activations=["relu", "relu"],
+            use_batch_norm=False,
+        )
+        input = model.input_prototype()
+        self.assertEqual((1, state_dim), input.float_features.shape)
+        action = model(input)
+        squashed_action = action.action.detach()
+        action_log_prob = model.get_log_prob(input, squashed_action)
+        npt.assert_allclose(action.log_prob.detach(), action_log_prob, rtol=1e-6)

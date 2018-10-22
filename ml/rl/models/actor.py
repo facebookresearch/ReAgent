@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import math
+
 import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from torch.distributions.normal import Normal
 
 
 class FullyConnectedActor(ModelBase):
@@ -39,4 +42,108 @@ class FullyConnectedActor(ModelBase):
 
     def forward(self, input):
         action = self.fc(input.float_features)
-        return rlt.ParametricAction(float_features=action)
+        return rlt.ActorOutput(action=action)
+
+
+class GaussianFullyConnectedActor(ModelBase):
+    def __init__(
+        self,
+        state_dim,
+        action_dim,
+        sizes,
+        activations,
+        scale=0.05,
+        use_batch_norm=False,
+    ):
+        super(GaussianFullyConnectedActor, self).__init__()
+        assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
+        assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+        assert len(sizes) == len(
+            activations
+        ), "The numbers of sizes and activations must match; got {} vs {}".format(
+            len(sizes), len(activations)
+        )
+        # The last layer is mean & scale for reparamerization trick
+        self.fc = FullyConnectedNetwork(
+            [state_dim] + sizes + [action_dim * 2],
+            activations + ["linear"],
+            use_batch_norm=use_batch_norm,
+        )
+
+        # used to calculate log-prob
+        self.const = math.log(math.sqrt(2 * math.pi))
+        self.eps = 1e-6
+        self._log_min_max = (-20.0, 2.0)
+
+    def input_prototype(self):
+        return rlt.State(float_features=torch.randn(1, self.state_dim))
+
+    def _log_prob(self, r, scale_log):
+        """
+        Compute log probability from normal distribution the same way as
+        torch.distributions.normal.Normal, which is:
+
+        ```
+        -((value - loc) ** 2) / (2 * var) - log_scale - math.log(math.sqrt(2 * math.pi))
+        ```
+
+        In the context of this class, `value = loc + r * scale`. Therefore, this function
+        only takes `r` & `scale`; it can be reduced to below.
+
+        The primary reason we don't use Normal class is thta it currently
+        cannot be exported through ONNX.
+        """
+        return -(r ** 2) / 2 - scale_log - self.const
+
+    def _squash_correction(self, squashed_action):
+        """
+        Same as
+        https://github.com/haarnoja/sac/blob/108a4229be6f040360fcca983113df9c4ac23a6a/sac/policies/gaussian_policy.py#L133
+        """
+        return (1 - squashed_action ** 2 + self.eps).log()
+
+    def _get_loc_and_scale_log(self, state):
+        loc_scale = self.fc(state.float_features)
+        loc = loc_scale[::, : self.action_dim]
+        scale_log = loc_scale[::, self.action_dim :].clamp(*self._log_min_max)
+        return loc, scale_log
+
+    def forward(self, input):
+        loc, scale_log = self._get_loc_and_scale_log(input)
+        if self.training:
+            r = torch.randn(scale_log.shape, device=scale_log.device)
+        else:
+            # Workaround until ONNX is fixed
+            r = torch.zeros(scale_log.shape, device=scale_log.device)
+        action = torch.tanh(loc + r * scale_log.exp())
+        if not self.training:
+            # ONNX doesn't like reshape either..
+            return rlt.ActorOutput(action=action)
+        # Since each dim are independent, log-prob is simply sum
+        log_prob = torch.sum(
+            self._log_prob(r, scale_log) - self._squash_correction(action), dim=1
+        )
+        return rlt.ActorOutput(action=action, log_prob=log_prob.reshape(-1, 1))
+
+    def _atanh(self, x):
+        """
+        Can't find this on pytorch doc :(
+        """
+        return ((1 + x).log() - (1 - x).log()) / 2
+
+    def get_log_prob(self, state, squashed_action):
+        """
+        Action is expected to be squashed with tanh
+        """
+        with torch.no_grad():
+            loc, scale_log = self._get_loc_and_scale_log(state)
+            # This is not getting exported; we can use it
+            n = Normal(loc, scale_log.exp())
+            raw_action = self._atanh(squashed_action)
+            log_prob = torch.sum(
+                n.log_prob(raw_action) - self._squash_correction(squashed_action), dim=1
+            ).reshape(-1, 1)
+
+        return log_prob
