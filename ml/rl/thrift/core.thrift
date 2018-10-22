@@ -84,6 +84,7 @@ struct DiscreteActionModelParameters {
   4: ActionBudget action_budget,
   5: RainbowDQNParameters rainbow,
   6: optional InTrainingCPEParameters in_training_cpe,
+  7: optional StateFeatureParameters state_feature_params,
 }
 
 struct ContinuousActionModelParameters {
@@ -120,7 +121,6 @@ struct DDPGModelParameters {
   4: DDPGNetworkParameters critic_training,
   5: optional map<i64, list<double>> action_rescale_map = {},
   6: optional StateFeatureParameters state_feature_params,
-  7: optional i32 entity_id = -1,
 }
 
 struct KNNDQNModelParameters {
