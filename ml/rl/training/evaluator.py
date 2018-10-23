@@ -560,6 +560,28 @@ class Evaluator(object):
             self.mc_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
         )
 
+    def get_recent_logged_actions(self):
+        arr = self.logged_actions_batches
+        action_counter = Counter()
+        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+            action_counter.update(Counter(np.argmax(actions, axis=1)))
+        total_actions = 1.0 * sum(action_counter.values())
+        return {
+            action_name: (action_counter[i] / total_actions)
+            for i, action_name in enumerate(self.action_names)
+        }
+
+    def get_recent_model_actions(self):
+        arr = self.model_action_idxs_batches
+        action_counter = Counter()
+        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+            action_counter.update(Counter(actions.reshape(-1)))
+        total_actions = 1.0 * sum(action_counter.values())
+        return {
+            action_name: (action_counter[i] / total_actions)
+            for i, action_name in enumerate(self.action_names)
+        }
+
     def get_recent_reward_inverse_propensity_score(self):
         ips = Evaluator.calculate_recent_window_average(
             self.reward_inverse_propensity_score,
