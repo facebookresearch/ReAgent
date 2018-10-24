@@ -271,6 +271,9 @@ class DDPGTrainer(RLTrainer):
             self.use_gpu,
         )
 
+    def export(self) -> DDPGPredictor:
+        return self.predictor(actor=False)
+
 
 class ActorNet(nn.Module):
     def __init__(self, layers, activations, fl_init) -> None:

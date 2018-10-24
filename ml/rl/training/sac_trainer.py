@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.rl_exporter import ParametricDQNExporter
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
 
@@ -181,11 +182,11 @@ class SACTrainer(RLTrainer):
 
     def predictor(
         self, feature_extractor=None, output_trasnformer=None, net_container=None
-    ):
+    ) -> _ParametricDQNPredictor:
         # TODO: We should combine the two Q functions
         q_network = self.q1_network.cpu_model()
         if net_container is not None:
             q_network = net_container(q_network)
-        return _ParametricDQNPredictor.export(
+        return ParametricDQNExporter(
             q_network, feature_extractor, output_trasnformer
-        )
+        ).export()

@@ -41,8 +41,5 @@ class _ParametricDQNPredictor(RLPredictor):
             save_to_db(db_type, db_path, self.pem)
 
     @classmethod
-    def export(cls, q_network, feature_extractor=None, output_transformer=None):
-        pem, ws = q_network.get_predictor_export_meta_and_workspace(
-            feature_extractor=feature_extractor, output_transformer=output_transformer
-        )
-        return cls(pem, ws)
+    def load(cls, db_path, db_type):
+        raise NotImplementedError

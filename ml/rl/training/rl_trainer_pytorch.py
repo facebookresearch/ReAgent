@@ -28,6 +28,7 @@ class RLTrainer:
         self, parameters, use_gpu, additional_feature_types, gradient_handler=None
     ):
         self.minibatch = 0
+        self.parameters = parameters
         self.reward_burnin = parameters.rl.reward_burnin
         self._additional_feature_types = additional_feature_types
         self.rl_temperature = parameters.rl.temperature

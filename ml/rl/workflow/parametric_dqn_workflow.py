@@ -120,7 +120,9 @@ def train_network(params):
             tdp.set_type(trainer.dtype)
             trainer.train(tdp)
 
-            trainer.evaluate(evaluator, None, None, tdp.episode_values)
+            trainer.evaluate(
+                evaluator, tdp.actions, None, tdp.rewards, tdp.episode_values
+            )
             evaluator.collect_parametric_action_samples(
                 mdp_ids=tdp.mdp_ids,
                 sequence_numbers=tdp.sequence_numbers,

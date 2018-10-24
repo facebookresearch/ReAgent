@@ -293,7 +293,7 @@ class ParametricDQNTrainer(RLTrainer):
 
         # Get Q-value of action taken
         q_values = self.q_network(state_action_pairs)
-        self.all_action_scores = q_values.detach()
+        self.model_values_on_logged_actions = q_values.detach()
 
         value_loss = self.q_network_loss(q_values, target_q_values)
         self.loss = value_loss.detach()
@@ -323,27 +323,32 @@ class ParametricDQNTrainer(RLTrainer):
                 evaluator,
                 training_samples.actions,
                 training_samples.propensities,
+                rewards,
                 training_samples.episode_values,
             )
 
     def evaluate(
         self,
         evaluator: Evaluator,
-        logged_actions: Optional[torch.Tensor],
+        logged_actions: torch.Tensor,
         logged_propensities: Optional[torch.Tensor],
+        logged_rewards: torch.Tensor,
         logged_values: Optional[torch.Tensor],
     ):
+        self.model_propensities, maxq_action_idxs = (None, None)
         evaluator.report(
             self.loss.cpu().numpy(),
-            None,
-            None,
-            None,
+            logged_actions.cpu().numpy(),
+            logged_propensities.cpu().numpy()
+            if logged_propensities is not None
+            else None,
+            logged_rewards.cpu().numpy(),
             logged_values.cpu().numpy() if logged_values is not None else None,
+            self.model_propensities,
             None,
             None,
-            None,
-            self.all_action_scores.cpu().numpy(),
-            None,
+            self.model_values_on_logged_actions.cpu().numpy(),
+            maxq_action_idxs,
         )
 
     def predictor(self) -> ParametricDQNPredictor:
@@ -355,3 +360,6 @@ class ParametricDQNTrainer(RLTrainer):
             self._additional_feature_types.int_features,
             self.use_gpu,
         )
+
+    def export(self) -> ParametricDQNPredictor:
+        return self.predictor()

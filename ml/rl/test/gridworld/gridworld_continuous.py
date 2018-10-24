@@ -101,7 +101,11 @@ class GridworldContinuous(GridworldBase):
         )
 
     def preprocess_samples(
-        self, samples: Samples, minibatch_size: int, use_gpu: bool = False
+        self,
+        samples: Samples,
+        minibatch_size: int,
+        use_gpu: bool = False,
+        one_hot_action: bool = True,
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
         samples.shuffle()
@@ -210,9 +214,7 @@ class GridworldContinuous(GridworldBase):
                 next_actions=next_actions_ndarray[start:end],
                 possible_next_actions=None,
                 not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
-                episode_values=episode_values[start:end]
-                if episode_values is not None
-                else None,
+                episode_values=episode_values[start:end],
                 time_diffs=time_diffs[start:end],
                 possible_next_actions_lengths=pnas_lengths[start:end],
                 possible_next_actions_state_concat=pnas_concat,

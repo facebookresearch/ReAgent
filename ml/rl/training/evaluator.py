@@ -238,6 +238,13 @@ class Evaluator(object):
                 r_dr.normalized, r_dr.raw
             )
 
+        if (
+            logged_actions is not None
+            and logged_values is not None
+            and model_propensities is not None
+            and model_values is not None
+            and model_rewards is not None
+        ):
             v_ips, v_dm, v_dr = self.doubly_robust_one_step_policy_estimation(
                 logged_actions,
                 logged_values,

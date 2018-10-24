@@ -134,7 +134,6 @@ class TestGridworldSAC(unittest.TestCase):
             assume_optimal_policy=False,
             gamma=DISCOUNT,
             use_int_features=False,
-            samples=samples,
         )
 
         # FIXME: need to be able to export w/o calling .cpu()
@@ -154,7 +153,8 @@ class TestGridworldSAC(unittest.TestCase):
             trainer.train(tdp.as_parametric_sarsa_training_batch())
 
         critic_predictor = self.get_predictor(trainer, environment)
-        self.assertLess(evaluator.evaluate(critic_predictor), 0.15)
+        evaluator.evaluate(critic_predictor)
+        self.assertLess(evaluator.mc_loss[-1], 0.15)
         # Make sure actor predictor works
         # actor = trainer.predictor(actor=True)
         # evaluator.evaluate_actor(actor)

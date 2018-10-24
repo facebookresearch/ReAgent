@@ -79,55 +79,8 @@ class Samples(object):
 
     def shuffle(self):
         # Shuffle
-        if self.episode_values is None:
-            merged = list(
-                zip(
-                    self.mdp_ids,
-                    self.sequence_numbers,
-                    self.states,
-                    self.actions,
-                    self.action_probabilities,
-                    self.rewards,
-                    self.possible_actions,
-                    self.next_states,
-                    self.next_actions,
-                    self.terminals,
-                    self.possible_next_actions,
-                )
-            )
-            random.shuffle(merged)
-            (
-                self.mdp_ids,
-                self.sequence_numbers,
-                self.states,
-                self.actions,
-                self.action_probabilities,
-                self.rewards,
-                self.possible_actions,
-                self.next_states,
-                self.next_actions,
-                self.terminals,
-                self.possible_next_actions,
-            ) = zip(*merged)
-        else:
-            merged = list(
-                zip(
-                    self.mdp_ids,
-                    self.sequence_numbers,
-                    self.states,
-                    self.actions,
-                    self.action_probabilities,
-                    self.rewards,
-                    self.possible_actions,
-                    self.next_states,
-                    self.next_actions,
-                    self.terminals,
-                    self.possible_next_actions,
-                    self.episode_values,
-                )
-            )
-            random.shuffle(merged)
-            (
+        merged = list(
+            zip(
                 self.mdp_ids,
                 self.sequence_numbers,
                 self.states,
@@ -140,7 +93,23 @@ class Samples(object):
                 self.terminals,
                 self.possible_next_actions,
                 self.episode_values,
-            ) = zip(*merged)
+            )
+        )
+        random.shuffle(merged)
+        (
+            self.mdp_ids,
+            self.sequence_numbers,
+            self.states,
+            self.actions,
+            self.action_probabilities,
+            self.rewards,
+            self.possible_actions,
+            self.next_states,
+            self.next_actions,
+            self.terminals,
+            self.possible_next_actions,
+            self.episode_values,
+        ) = zip(*merged)
 
 
 class GridworldBase(object):
@@ -173,6 +142,7 @@ class GridworldBase(object):
     def __init__(self):
         self.reset()
         self._optimal_policy = self._compute_optimal()
+        self.sparse_to_dense_net = None
 
     @property
     def normalization(self):
@@ -573,18 +543,25 @@ class GridworldBase(object):
         samples.shuffle()
         logger.info("Preprocessing...")
 
-        net = core.Net("gridworld_preprocessing")
-        C2.set_net(net)
-        saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-        sorted_features, _ = sort_features_by_normalization(self.normalization)
-        state_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_features
-        )
-        saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_features
-        )
-        workspace.RunNetOnce(net)
+        if self.sparse_to_dense_net is None:
+            self.sparse_to_dense_net = core.Net("gridworld_sparse_to_dense")
+            C2.set_net(self.sparse_to_dense_net)
+            saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
+            sorted_features, _ = sort_features_by_normalization(self.normalization)
+            self.state_matrix, _ = sparse_to_dense(
+                saa.lengths, saa.keys, saa.values, sorted_features
+            )
+            saa = StackedAssociativeArray.from_dict_list(
+                samples.next_states, "next_states"
+            )
+            self.next_state_matrix, _ = sparse_to_dense(
+                saa.lengths, saa.keys, saa.values, sorted_features
+            )
+            C2.set_net(None)
+        else:
+            StackedAssociativeArray.from_dict_list(samples.states, "states")
+            StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
+        workspace.RunNetOnce(self.sparse_to_dense_net)
 
         logger.info("Converting to Torch...")
         actions_one_hot = torch.tensor(
@@ -615,7 +592,6 @@ class GridworldBase(object):
             )
         terminals = torch.tensor(samples.terminals, dtype=torch.int32).reshape(-1, 1)
         not_terminals = 1 - terminals
-        episode_values = None
         logger.info("Converting RT to Torch...")
         episode_values = torch.tensor(
             samples.episode_values, dtype=torch.float32
@@ -626,10 +602,10 @@ class GridworldBase(object):
         logger.info("Preprocessing...")
         preprocessor = Preprocessor(self.normalization, False)
 
-        states_ndarray = workspace.FetchBlob(state_matrix)
+        states_ndarray = workspace.FetchBlob(self.state_matrix)
         states_ndarray = preprocessor.forward(states_ndarray)
 
-        next_states_ndarray = workspace.FetchBlob(next_state_matrix)
+        next_states_ndarray = workspace.FetchBlob(self.next_state_matrix)
         next_states_ndarray = preprocessor.forward(next_states_ndarray)
 
         logger.info("Batching...")
@@ -649,9 +625,7 @@ class GridworldBase(object):
                 not_terminals=not_terminals[start:end],
                 next_actions=next_actions_one_hot[start:end],
                 possible_next_actions=possible_next_actions_mask[start:end],
-                episode_values=episode_values[start:end]
-                if episode_values is not None
-                else None,
+                episode_values=episode_values[start:end],
                 time_diffs=time_diffs[start:end],
             )
             tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)

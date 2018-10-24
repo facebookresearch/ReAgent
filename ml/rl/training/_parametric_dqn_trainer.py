@@ -186,13 +186,3 @@ class _ParametricDQNTrainer(RLTrainer):
             self.all_action_scores.cpu().numpy(),
             None,
         )
-
-    def predictor(
-        self, feature_extractor=None, output_trasnformer=None, net_container=None
-    ):
-        q_network = self.q_network.cpu_model()
-        if net_container is not None:
-            q_network = net_container(q_network)
-        return _ParametricDQNPredictor.export(
-            q_network, feature_extractor, output_trasnformer
-        )

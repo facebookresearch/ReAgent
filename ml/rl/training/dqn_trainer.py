@@ -333,3 +333,6 @@ class DQNTrainer(RLTrainer):
             self._additional_feature_types.int_features,
             self.use_gpu,
         )
+
+    def export(self) -> DQNPredictor:
+        return self.predictor()
