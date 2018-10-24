@@ -5,8 +5,10 @@ import logging
 from typing import Optional
 
 import ml.rl.types as rlt
+import numpy as np
 import torch
 import torch.nn.functional as F
+from ml.rl.caffe_utils import arange_expand
 from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.evaluator import Evaluator
@@ -56,26 +58,45 @@ class _ParametricDQNTrainer(RLTrainer):
         :param double_q_learning: bool to use double q-learning
         """
 
+        lengths = possible_next_actions.lengths
+        row_nums = np.arange(len(lengths))
+        row_idxs = np.repeat(row_nums, lengths.cpu().numpy())
+        col_idxs = arange_expand(lengths).cpu().numpy()
+
+        dense_idxs = torch.tensor(
+            (row_idxs, col_idxs), device=lengths.device, dtype=torch.int64
+        )
+
         q_network_input = rlt.StateAction(
             state=tiled_next_state, action=possible_next_actions.actions
         )
         if double_q_learning:
-            q_values = self.q_network(q_network_input).q_value.detach()
-            q_values_target = self.q_network_target(q_network_input).q_value.detach()
+            q_values = self.q_network(q_network_input).q_value.squeeze().detach()
+            q_values_target = (
+                self.q_network_target(q_network_input).q_value.squeeze().detach()
+            )
         else:
-            q_values = self.q_network_target(q_network_input).q_value.detach()
+            q_values = self.q_network_target(q_network_input).q_value.squeeze().detach()
 
-        lengths = possible_next_actions.lengths
-        max_q_values = torch.zeros(lengths.size())
-        offset = torch.tensor([0])
-        for i, l in enumerate(lengths):
-            if l > 0:
-                max_q_values[i], max_index = torch.max(
-                    q_values[offset : offset + l], dim=0
-                )
-                if double_q_learning:
-                    max_q_values[i] = q_values_target[offset : offset + l][max_index]
-            offset += l
+        dense_dim = [len(lengths), max(lengths)]
+        # Add specific fingerprint to q-values so that after sparse -> dense we can
+        # subtract the fingerprint to identify the 0's added in sparse -> dense
+        q_values.add_(self.FINGERPRINT)
+        sparse_q = torch.sparse_coo_tensor(dense_idxs, q_values, dense_dim)
+        dense_q = sparse_q.to_dense()
+        dense_q.add_(self.FINGERPRINT * -1)
+        dense_q[dense_q == self.FINGERPRINT * -1] = self.ACTION_NOT_POSSIBLE_VAL
+        max_q_values, max_indexes = torch.max(dense_q, dim=1)
+
+        if double_q_learning:
+            sparse_q_target = torch.sparse_coo_tensor(
+                dense_idxs, q_values_target, dense_dim
+            )
+            dense_q_values_target = sparse_q_target.to_dense()
+            max_q_values = torch.gather(
+                dense_q_values_target, 1, max_indexes.unsqueeze(1)
+            )
+
         return max_q_values.squeeze()
 
     def get_next_action_q_values(self, state, action):

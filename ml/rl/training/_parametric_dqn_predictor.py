@@ -4,6 +4,7 @@
 import logging
 
 from caffe2.python import core
+from caffe2.python.predictor.predictor_exporter import save_to_db
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 
 
@@ -35,7 +36,9 @@ class _ParametricDQNPredictor(RLPredictor):
         return super(_ParametricDQNPredictor, self).predict(float_examples)
 
     def save(self, db_path, db_type):
-        raise NotImplementedError
+        # The workspace here is expected to be the Workspace class from ONNX
+        with self.ws._ctx:
+            save_to_db(db_type, db_path, self.pem)
 
     @classmethod
     def export(cls, q_network, feature_extractor=None, output_transformer=None):

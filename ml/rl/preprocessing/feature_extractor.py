@@ -134,7 +134,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
         state = mt.FeatureVector(float_features=fetch(extract_record.state))
         action = fetch_action(extract_record.action)
-        reward = fetch(input_record.reward)
+        reward = fetch(input_record.reward).reshape(-1, 1)
 
         # is_terminal should be filled by preprocessor
         if self.max_q_learning:
@@ -160,7 +160,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 tiled_next_state=tiled_next_state,
                 possible_next_actions=possible_next_actions,
                 reward=reward,
-                not_terminal=None,
+                not_terminal=(possible_next_actions.lengths > 0).float().reshape(-1, 1),
             )
         else:
             next_state = mt.FeatureVector(
@@ -177,7 +177,10 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             )
 
         # TODO: stuff other fields in here
-        extras = None
+        extras = mt.ExtraData(
+            episode_value=fetch(input_record.episode_value).reshape(-1, 1),
+            action_probability=fetch(input_record.action_probability).reshape(-1, 1),
+        )
 
         return mt.TrainingBatch(training_input=training_input, extras=extras)
 

@@ -90,6 +90,7 @@ class SARSAInput(NamedTuple):
 
 class ExtraData(NamedTuple):
     episode_value: Optional[ValueType] = None
+    action_probability: Optional[ValueType] = None
 
 
 class TrainingBatch(NamedTuple):

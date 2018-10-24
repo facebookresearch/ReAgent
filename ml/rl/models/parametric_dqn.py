@@ -15,16 +15,28 @@ class ParametricDQNWithPreprocessing(ModelBase):
         self.q_network = q_network
 
     def forward(self, input):
-        preprocessed_state = self.state_preprocessor(input.state)
-        preprocessed_action = self.action_preprocessor(input.action)
+        preprocessed_state = (
+            self.state_preprocessor(input.state)
+            if self.state_preprocessor
+            else input.state
+        )
+        preprocessed_action = (
+            self.action_preprocessor(input.action)
+            if self.action_preprocessor
+            else input.action
+        )
         return self.q_network(
             rlt.StateAction(state=preprocessed_state, action=preprocessed_action)
         )
 
     def input_prototype(self):
         return rlt.StateAction(
-            state=self.state_preprocessor.input_prototype(),
-            action=self.action_preprocessor.input_prototype(),
+            state=self.state_preprocessor.input_prototype()
+            if self.state_preprocessor
+            else self.q_network.input_prototype().state,
+            action=self.action_preprocessor.input_prototype()
+            if self.action_preprocessor
+            else self.q_network.input_prototype().action,
         )
 
 
