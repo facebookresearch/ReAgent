@@ -42,13 +42,21 @@ class TestNormalization(unittest.TestCase):
         ) / n_quantiles
         return interpolated
 
+    def _feature_type_override(self, feature_id):
+        """
+        This should only be used to test CONTINUOUS_ACTION
+        """
+        if id_to_type(feature_id) == identify_types.CONTINUOUS_ACTION:
+            return identify_types.CONTINUOUS_ACTION
+        return None
+
     def test_prepare_normalization_and_normalize(self):
         feature_value_map = read_data()
 
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values, 10
+                values, 10, feature_type=self._feature_type_override(name)
             )
         for k, v in normalization_parameters.items():
             if id_to_type(k) == CONTINUOUS:
@@ -144,6 +152,17 @@ class TestNormalization(unittest.TestCase):
                     "mean of feature {} is {}, not 0".format(k, np.mean(v)),
                 )
                 self.assertTrue(np.all(np.logical_or(one_stddev, zero_stddev)))
+            elif feature_type == identify_types.CONTINUOUS_ACTION:
+                less_than_max = v < 1
+                more_than_min = v > -1
+                self.assertTrue(
+                    np.all(less_than_max),
+                    "values are not less than 1: {}".format(v[less_than_max == False]),
+                )
+                self.assertTrue(
+                    np.all(more_than_min),
+                    "values are not more than -1: {}".format(v[more_than_min == False]),
+                )
             else:
                 raise NotImplementedError()
 
@@ -201,7 +220,9 @@ class TestNormalization(unittest.TestCase):
         feature_value_map = read_data()
         normalization_parameters = {}
         for name, values in feature_value_map.items():
-            normalization_parameters[name] = normalization.identify_parameter(values)
+            normalization_parameters[name] = normalization.identify_parameter(
+                values, feature_type=self._feature_type_override(name)
+            )
 
         s = normalization.serialize(normalization_parameters)
         read_parameters = normalization.deserialize(s)
@@ -239,6 +260,14 @@ class TestNormalization(unittest.TestCase):
             for i, val in enumerate(feature):
                 output_feature[i][mapping[val]] = 1.0
             return output_feature
+        elif parameters.feature_type == identify_types.CONTINUOUS_ACTION:
+            min_value = parameters.min_value
+            max_value = parameters.max_value
+            feature = (
+                (feature - min_value) * ((1 - 1e-6) * 2 / (max_value - min_value))
+                - 1
+                + 1e-6
+            )
         else:
             feature = feature - parameters.mean
             feature /= parameters.stddev
@@ -258,7 +287,9 @@ class TestNormalization(unittest.TestCase):
 
         normalization_parameters = {}
         for name, values in feature_value_map.items():
-            normalization_parameters[name] = normalization.identify_parameter(values)
+            normalization_parameters[name] = normalization.identify_parameter(
+                values, feature_type=self._feature_type_override(name)
+            )
         test_features = self.preprocess(feature_value_map, normalization_parameters)
 
         net = core.Net("PreprocessingTestNet")

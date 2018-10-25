@@ -78,6 +78,7 @@ def identify_parameter(
         identify_types.PROBABILITY,
         identify_types.BINARY,
         identify_types.ENUM,
+        identify_types.CONTINUOUS_ACTION,
     ], "unknown type {}".format(feature_type)
     assert (
         len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
@@ -145,6 +146,7 @@ def identify_parameter(
     if (
         feature_type == identify_types.CONTINUOUS
         or feature_type == identify_types.BOXCOX
+        or feature_type == identify_types.CONTINUOUS_ACTION
     ):
         mean = float(np.mean(values))
         values = values - mean
@@ -208,15 +210,10 @@ def deserialize(parameters_json):
             for x in params.possible_values:
                 if x < 0:
                     logger.fatal(
-                        "Invalid enum ID: "
-                        + str(x)
-                        + " in feature: "
-                        + feature
-                        + " with possible_values "
-                        + str(params.possible_values)
-                        + " (raw: "
-                        + feature_parameters
-                        + ")"
+                        "Invalid enum ID: {} in feature: {} with possible_values {}"
+                        " (raw: {})".format(
+                            x, feature, params.possible_values, feature_parameters
+                        )
                     )
                     raise Exception("Invalid enum ID")
         parameters[int(feature)] = params

@@ -243,6 +243,39 @@ class PreprocessorNet:
             blob = C2.Div(blob, stddevs_blob, broadcast=1, axis=0)
             if self.clip_anomalies:
                 blob = C2.Clip(blob, min=-6.0, max=6.0)
+        elif feature_type == identify_types.CONTINUOUS_ACTION:
+            serving_min_value = np.array(
+                [norm.min_value for norm in normalization_parameters], dtype=np.float32
+            )
+            serving_max_value = np.array(
+                [norm.max_value for norm in normalization_parameters], dtype=np.float32
+            )
+
+            training_min_value = (
+                np.ones(len(normalization_parameters), dtype=np.float32) * -1 + 1e-6
+            )
+
+            scaling_factor = (
+                (np.ones(len(normalization_parameters), dtype=np.float32) - 1e-6)
+                * 2
+                / (serving_max_value - serving_min_value)
+            )
+
+            serving_min_blob = self._store_parameter(
+                parameters, "serving_min_blob", serving_min_value
+            )
+            training_min_blob = self._store_parameter(
+                parameters, "training_min_blob", training_min_value
+            )
+            scaling_factor_blob = self._store_parameter(
+                parameters, "scaling_factor_blob", scaling_factor
+            )
+
+            blob = C2.Sub(blob, serving_min_blob, broadcast=1, axis=1)
+            blob = C2.Mul(blob, scaling_factor_blob, broadcast=1, axis=1)
+            blob = C2.Add(blob, training_min_blob, broadcast=1, axis=1)
+            if self.clip_anomalies:
+                blob = C2.Clip(blob, min=-1 + 1e-6, max=1 - 1e-6)
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 

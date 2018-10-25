@@ -13,6 +13,8 @@ CONTINUOUS_FEATURE_ID_2 = 5
 ENUM_FEATURE_ID = 6
 PROBABILITY_FEATURE_ID = 7
 QUANTILE_FEATURE_ID = 8
+CONTINUOUS_ACTION_FEATURE_ID = 9
+CONTINUOUS_ACTION_FEATURE_ID_2 = 10
 
 
 def id_to_type(id):
@@ -28,6 +30,8 @@ def id_to_type(id):
         return "PROBABILITY"
     if id == QUANTILE_FEATURE_ID:
         return "QUANTILE"
+    if id == CONTINUOUS_ACTION_FEATURE_ID or id == CONTINUOUS_ACTION_FEATURE_ID_2:
+        return "CONTINUOUS_ACTION"
     assert False, "Invalid feature id: " + id
 
 
@@ -58,5 +62,11 @@ def read_data():
     feature_value_map[PROBABILITY_FEATURE_ID] = np.clip(
         stats.beta.rvs(a=2.0, b=2.0, size=10000).astype(np.float32), -4, 4
     )
+    feature_value_map[CONTINUOUS_ACTION_FEATURE_ID] = stats.norm.rvs(size=10000).astype(
+        np.float32
+    )
+    feature_value_map[CONTINUOUS_ACTION_FEATURE_ID_2] = stats.norm.rvs(
+        size=10000
+    ).astype(np.float32)
 
     return feature_value_map

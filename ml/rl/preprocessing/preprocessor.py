@@ -15,6 +15,7 @@ from torch.nn import Module, Parameter
 
 MAX_FEATURE_VALUE = 6
 MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
+EPS = 1e-6
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ class Preprocessor(Module):
             torch.tensor([1e20]).type(self.dtype), requires_grad=False
         )
         self.epsilon_tensor = Parameter(
-            torch.tensor([1e-6]).type(self.dtype), requires_grad=False
+            torch.tensor([EPS]).type(self.dtype), requires_grad=False
         )
 
         feature_starts = self._get_type_boundaries()
@@ -219,6 +220,46 @@ class Preprocessor(Module):
         return self.negative_one_tensor * (
             ((self.one_tensor / clamped_input) - self.one_tensor).log()
         )
+
+    def _create_parameters_CONTINUOUS_ACTION(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        self._create_parameter(
+            begin_index,
+            "min_serving_value",
+            torch.Tensor([p.min_value for p in norm_params]).type(self.dtype),
+        )
+        self._create_parameter(
+            begin_index,
+            "min_training_value",
+            torch.ones(len(norm_params)).type(self.dtype) * -1 + EPS,
+        )
+        self._create_parameter(
+            begin_index,
+            "scaling_factor",
+            (torch.ones(len(norm_params)).type(self.dtype) - EPS)
+            * 2
+            / torch.tensor([p.max_value - p.min_value for p in norm_params]).type(
+                self.dtype
+            ),
+        )
+
+    def _preprocess_CONTINUOUS_ACTION(
+        self,
+        begin_index: int,
+        input: torch.Tensor,
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        min_serving_value = self._fetch_parameter(begin_index, "min_serving_value")
+        min_training_value = self._fetch_parameter(begin_index, "min_training_value")
+        scaling_factor = self._fetch_parameter(begin_index, "scaling_factor")
+        continuous_action = (
+            input - min_serving_value
+        ) * scaling_factor + min_training_value
+        if not self.clamp:
+            return continuous_action
+        else:
+            return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)
 
     def _create_parameters_CONTINUOUS(
         self, begin_index: int, norm_params: List[NormalizationParameters]
