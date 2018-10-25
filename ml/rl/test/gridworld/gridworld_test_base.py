@@ -13,22 +13,23 @@ class GridworldTestBase(unittest.TestCase):
         self.test_save_load = True
         self.num_epochs = 5
         self.tolerance_threshold = 0.1
+        self.run_pre_training_eval = True
 
     def evaluate_gridworld(
         self, environment, evaluator, trainer, exporter, use_gpu, one_hot_action=True
     ):
-        predictor = exporter.export()
-        predictorClass = predictor.__class__
+        if self.run_pre_training_eval:
+            predictor = exporter.export()
 
-        evaluator.evaluate(predictor)
-        print(
-            "Pre-Training eval: ",
-            evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1]
-            if len(evaluator.reward_doubly_robust) > 0
-            else "None",
-        )
-        self.assertGreater(evaluator.mc_loss[-1], 0.09)
+            evaluator.evaluate(predictor)
+            print(
+                "Pre-Training eval: ",
+                evaluator.mc_loss[-1],
+                evaluator.reward_doubly_robust[-1]
+                if len(evaluator.reward_doubly_robust) > 0
+                else "None",
+            )
+            self.assertGreater(evaluator.mc_loss[-1], 0.09)
 
         for _ in range(self.num_epochs):
             samples = environment.generate_samples(10240, 1.0, DISCOUNT)
@@ -61,6 +62,7 @@ class GridworldTestBase(unittest.TestCase):
                 trainer.train(tdp)
 
         predictor = exporter.export()
+        predictorClass = predictor.__class__
         evaluator.evaluate(predictor)
         print(
             "Post-Training eval: ",

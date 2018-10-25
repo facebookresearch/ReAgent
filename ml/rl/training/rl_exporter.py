@@ -39,7 +39,7 @@ class ParametricDQNExporter(RLExporter):
         module_to_export = self.dnn.cpu_model()
         if self.state_preprocessor is not None or self.action_preprocessor is not None:
             module_to_export = ParametricDQNWithPreprocessing(
-                self.dnn, self.state_preprocessor, self.action_preprocessor
+                module_to_export, self.state_preprocessor, self.action_preprocessor
             )
         pem, ws = module_to_export.get_predictor_export_meta_and_workspace(
             feature_extractor=self.feature_extractor,
