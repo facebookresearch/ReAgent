@@ -54,6 +54,14 @@ Action = Union[DiscreteAction, ParametricAction]
 State = FeatureVector
 
 
+class StateInput(NamedTuple):
+    """
+    This class makes it easier to plug modules into predictor
+    """
+
+    state: State
+
+
 class StateAction(NamedTuple):
     state: State
     action: Action

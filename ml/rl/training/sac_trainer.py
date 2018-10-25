@@ -9,6 +9,7 @@ import torch
 import torch.nn.functional as F
 from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
+from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.rl_exporter import ParametricDQNExporter
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
@@ -65,6 +66,9 @@ class SACTrainer(RLTrainer):
         self.entropy_temperature = parameters.training.entropy_temperature
 
     def train(self, training_batch, evaluator=None) -> None:
+        if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
+            training_batch = training_batch.as_parametric_sarsa_training_batch()
+
         learning_input = training_batch.training_input
         self.minibatch += 1
 
@@ -136,7 +140,7 @@ class SACTrainer(RLTrainer):
         # log_prob(actor_action) - Q(s, actor_action)
         #
 
-        actor_output = self.actor_network(learning_input.state)
+        actor_output = self.actor_network(rlt.StateInput(state=learning_input.state))
 
         state_actor_action = rlt.StateAction(
             state=s, action=rlt.FeatureVector(float_features=actor_output.action)
@@ -180,13 +184,27 @@ class SACTrainer(RLTrainer):
             None,
         )
 
-    def predictor(
+    def actor_predictor(
+        self, feature_extractor=None, output_trasnformer=None, net_container=None
+    ):
+        actor_network = self.actor_network.cpu_model()
+        if net_container is not None:
+            actor_network = net_container(actor_network)
+        predictor = ActorPredictor.export(
+            actor_network, feature_extractor, output_trasnformer
+        )
+        self.actor_network.train()
+        return predictor
+
+    def critic_predictor(
         self, feature_extractor=None, output_trasnformer=None, net_container=None
     ) -> _ParametricDQNPredictor:
         # TODO: We should combine the two Q functions
         q_network = self.q1_network.cpu_model()
         if net_container is not None:
             q_network = net_container(q_network)
-        return ParametricDQNExporter(
+        predictor = ParametricDQNExporter(
             q_network, feature_extractor, output_trasnformer
         ).export()
+        self.q1_network.train()
+        return predictor

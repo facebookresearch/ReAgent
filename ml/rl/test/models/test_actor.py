@@ -24,7 +24,7 @@ class TestFullyConnectedActor(unittest.TestCase):
             use_batch_norm=True,
         )
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.float_features.shape)
+        self.assertEqual((1, state_dim), input.state.float_features.shape)
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         action = model(input)
@@ -75,7 +75,7 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
             use_batch_norm=True,
         )
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.float_features.shape)
+        self.assertEqual((1, state_dim), input.state.float_features.shape)
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         action = model(input)
@@ -107,8 +107,8 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
             use_batch_norm=False,
         )
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.float_features.shape)
+        self.assertEqual((1, state_dim), input.state.float_features.shape)
         action = model(input)
         squashed_action = action.action.detach()
-        action_log_prob = model.get_log_prob(input, squashed_action)
+        action_log_prob = model.get_log_prob(input.state, squashed_action)
         npt.assert_allclose(action.log_prob.detach(), action_log_prob, rtol=1e-6)

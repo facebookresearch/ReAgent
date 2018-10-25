@@ -10,6 +10,20 @@ from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from torch.distributions.normal import Normal
 
 
+class ActorWithPreprocessing(ModelBase):
+    def __init__(self, actor_network, state_preprocessor):
+        super(ActorWithPreprocessing, self).__init__()
+        self.state_preprocessor = state_preprocessor
+        self.actor_network = actor_network
+
+    def forward(self, input):
+        preprocessed_state = self.state_preprocessor(input.state)
+        return self.actor_network(rlt.StateInput(state=preprocessed_state))
+
+    def input_prototype(self):
+        return rlt.StateInput(state=self.state_preprocessor.input_prototype())
+
+
 class FullyConnectedActor(ModelBase):
     def __init__(
         self,
@@ -38,10 +52,12 @@ class FullyConnectedActor(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.State(float_features=torch.randn(1, self.state_dim))
+        return rlt.StateInput(
+            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
+        )
 
     def forward(self, input):
-        action = self.fc(input.float_features)
+        action = self.fc(input.state.float_features)
         return rlt.ActorOutput(action=action)
 
 
@@ -78,7 +94,9 @@ class GaussianFullyConnectedActor(ModelBase):
         self._log_min_max = (-20.0, 2.0)
 
     def input_prototype(self):
-        return rlt.State(float_features=torch.randn(1, self.state_dim))
+        return rlt.StateInput(
+            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
+        )
 
     def _log_prob(self, r, scale_log):
         """
@@ -111,7 +129,7 @@ class GaussianFullyConnectedActor(ModelBase):
         return loc, scale_log
 
     def forward(self, input):
-        loc, scale_log = self._get_loc_and_scale_log(input)
+        loc, scale_log = self._get_loc_and_scale_log(input.state)
         if self.training:
             r = torch.randn(scale_log.shape, device=scale_log.device)
         else:
