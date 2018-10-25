@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional
 
 import ml.rl.types as rlt
 import numpy as np
@@ -10,8 +9,7 @@ import torch
 import torch.nn.functional as F
 from ml.rl.caffe_utils import arange_expand
 from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
-from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
-from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
 
@@ -171,18 +169,8 @@ class _ParametricDQNTrainer(RLTrainer):
         self.reward_network_optimizer.step()
 
         if evaluator is not None:
-            self.evaluate(evaluator, training_batch.extras.episode_value)
-
-    def evaluate(self, evaluator: Evaluator, logged_value: Optional[torch.Tensor]):
-        evaluator.report(
-            self.loss.cpu().numpy(),
-            None,
-            None,
-            None,
-            logged_value.cpu().numpy() if logged_value is not None else None,
-            None,
-            None,
-            None,
-            self.all_action_scores.cpu().numpy(),
-            None,
-        )
+            cpe_stats = BatchStatsForCPE(
+                td_loss=self.loss.cpu().numpy(),
+                model_values_on_logged_actions=self.all_action_scores.cpu().numpy(),
+            )
+            evaluator.report(cpe_stats)

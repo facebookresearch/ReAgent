@@ -128,11 +128,7 @@ def train_network(params):
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
 
             tdp.set_type(trainer.dtype)
-            trainer.train(tdp)
-
-            trainer.evaluate(
-                evaluator, tdp.actions, None, tdp.rewards, tdp.episode_values
-            )
+            training_metadata = trainer.train(tdp, evaluator)
 
             evaluator.collect_discrete_action_samples(
                 mdp_ids=tdp.mdp_ids,
@@ -144,11 +140,12 @@ def train_network(params):
                 logged_terminals=np.invert(
                     tdp.not_terminals.cpu().numpy().astype(np.bool)
                 ),
+                model_rewards=training_metadata["model_rewards"],
             )
 
         cpe_start_time = time.time()
         evaluator.recover_samples_to_be_unshuffled()
-        evaluator.score_cpe()
+        evaluator.score_cpe(trainer_params.rl.gamma)
         if writer is not None:
             evaluator.log_to_tensorboard(writer, epoch)
         evaluator.clear_collected_samples()

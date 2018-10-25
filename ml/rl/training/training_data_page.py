@@ -94,7 +94,7 @@ class TrainingDataPage(object):
     def set_type(self, dtype):
         # TODO: Clean this up in a future diff.  Figure out which should be long/float
         for x in TrainingDataPage.__slots__:
-            if x == "mdp_ids":
+            if x in ("mdp_ids", "sequence_numbers"):
                 continue  # Torch does not support tensors of strings
             t = getattr(self, x)
             if t is not None:

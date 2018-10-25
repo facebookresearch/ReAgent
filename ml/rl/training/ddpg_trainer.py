@@ -16,6 +16,7 @@ from ml.rl.preprocessing.normalization import (
 )
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
+from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
     RLTrainer,
@@ -192,6 +193,7 @@ class DDPGTrainer(RLTrainer):
         # compute loss and update the critic network
         critic_predictions = q_s1_a1
         loss_critic = self.q_network_loss(critic_predictions, target_q_values.detach())
+        loss_critic_for_eval = loss_critic.detach()
         self.critic_optimizer.zero_grad()
         loss_critic.backward()
         self.critic_optimizer.step()
@@ -213,18 +215,8 @@ class DDPGTrainer(RLTrainer):
             self._soft_update(self.critic, self.critic_target, self.tau)
 
         if evaluator is not None:
-            evaluator.report(
-                loss_critic.cpu().data.numpy(),
-                None,
-                None,
-                None,
-                episode_values,
-                None,
-                None,
-                None,
-                critic_predictions.cpu().data.numpy(),
-                None,
-            )
+            cpe_stats = BatchStatsForCPE(td_loss=loss_critic_for_eval.cpu().numpy())
+            evaluator.report(cpe_stats)
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:
         """ Returns list of actions output from actor network

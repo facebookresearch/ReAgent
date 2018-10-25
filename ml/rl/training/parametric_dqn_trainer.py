@@ -3,7 +3,7 @@
 
 import logging
 from copy import deepcopy
-from typing import Dict, Optional
+from typing import Dict
 
 import numpy as np
 import torch
@@ -19,7 +19,7 @@ from ml.rl.thrift.core.ttypes import (
     AdditionalFeatureTypes,
     ContinuousActionModelParameters,
 )
-from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.parametric_inner_product import ParametricInnerProduct
 from ml.rl.training.rl_trainer_pytorch import (
@@ -293,6 +293,7 @@ class ParametricDQNTrainer(RLTrainer):
 
         # Get Q-value of action taken
         q_values = self.q_network(state_action_pairs)
+        all_action_scores = q_values.detach()
         self.model_values_on_logged_actions = q_values.detach()
 
         value_loss = self.q_network_loss(q_values, target_q_values)
@@ -319,37 +320,11 @@ class ParametricDQNTrainer(RLTrainer):
         self.reward_network_optimizer.step()
 
         if evaluator is not None:
-            self.evaluate(
-                evaluator,
-                training_samples.actions,
-                training_samples.propensities,
-                rewards,
-                training_samples.episode_values,
+            cpe_stats = BatchStatsForCPE(
+                td_loss=self.loss.cpu().numpy(),
+                model_values_on_logged_actions=all_action_scores.cpu().numpy(),
             )
-
-    def evaluate(
-        self,
-        evaluator: Evaluator,
-        logged_actions: torch.Tensor,
-        logged_propensities: Optional[torch.Tensor],
-        logged_rewards: torch.Tensor,
-        logged_values: Optional[torch.Tensor],
-    ):
-        self.model_propensities, maxq_action_idxs = (None, None)
-        evaluator.report(
-            self.loss.cpu().numpy(),
-            logged_actions.cpu().numpy(),
-            logged_propensities.cpu().numpy()
-            if logged_propensities is not None
-            else None,
-            logged_rewards.cpu().numpy(),
-            logged_values.cpu().numpy() if logged_values is not None else None,
-            self.model_propensities,
-            None,
-            None,
-            self.model_values_on_logged_actions.cpu().numpy(),
-            maxq_action_idxs,
-        )
+            evaluator.report(cpe_stats)
 
     def predictor(self) -> ParametricDQNPredictor:
         """Builds a ParametricDQNPredictor."""

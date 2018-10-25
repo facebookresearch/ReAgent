@@ -118,14 +118,11 @@ def train_network(params):
             )
 
             tdp.set_type(trainer.dtype)
-            trainer.train(tdp)
+            trainer.train(tdp, evaluator)
 
-            trainer.evaluate(
-                evaluator, tdp.actions, None, tdp.rewards, tdp.episode_values
-            )
             evaluator.collect_parametric_action_samples(
                 mdp_ids=tdp.mdp_ids,
-                sequence_numbers=tdp.sequence_numbers,
+                sequence_numbers=tdp.sequence_numbers.cpu().numpy(),
                 logged_state_actions=np.concatenate(
                     (tdp.states.cpu().numpy(), tdp.actions.cpu().numpy()), axis=1
                 ),
@@ -138,7 +135,7 @@ def train_network(params):
 
         cpe_start_time = time.time()
         evaluator.recover_samples_to_be_unshuffled()
-        evaluator.score_cpe()
+        evaluator.score_cpe(trainer_params.rl.gamma)
         evaluator.clear_collected_samples()
         logger.info(
             "CPE evaluation took {} seconds.".format(time.time() - cpe_start_time)
