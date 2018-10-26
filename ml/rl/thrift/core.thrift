@@ -85,6 +85,7 @@ struct DiscreteActionModelParameters {
   5: RainbowDQNParameters rainbow,
   6: optional InTrainingCPEParameters in_training_cpe,
   7: optional StateFeatureParameters state_feature_params,
+  8: optional list<double> target_action_distribution,
 }
 
 struct ContinuousActionModelParameters {

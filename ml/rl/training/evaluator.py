@@ -671,6 +671,17 @@ class Evaluator(object):
             else:
                 return [float("nan")] * num_entries
 
+    def get_target_distribution_error(
+        self, actions, target_distribution, actual_distribution
+    ):
+        """Calculate MSE between actual and target action distribution."""
+        if not target_distribution:
+            return None
+        error = 0
+        for i, action in enumerate(actions):
+            error += (target_distribution[i] - actual_distribution[action]) ** 2
+        return error / len(actions)
+
     def doubly_robust_one_step_policy_estimation(
         self,
         logged_actions,
