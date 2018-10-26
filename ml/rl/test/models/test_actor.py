@@ -5,6 +5,7 @@ import logging
 import unittest
 
 import numpy.testing as npt
+import torch
 from ml.rl.models.actor import FullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.test.models.test_utils import check_save_load
 
@@ -97,6 +98,7 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
         )
 
     def test_get_log_prob(self):
+        torch.manual_seed(0)
         state_dim = 8
         action_dim = 4
         model = GaussianFullyConnectedActor(
