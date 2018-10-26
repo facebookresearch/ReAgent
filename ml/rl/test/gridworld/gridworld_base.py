@@ -46,7 +46,6 @@ class Samples(object):
         "next_actions",
         "terminals",
         "possible_next_actions",
-        "episode_values",
     ]
 
     def __init__(
@@ -62,7 +61,6 @@ class Samples(object):
         next_actions: List[str],
         terminals: List[bool],
         possible_next_actions: List[List[str]],
-        episode_values: List[float],
     ) -> None:
         self.mdp_ids = mdp_ids
         self.sequence_numbers = sequence_numbers
@@ -75,7 +73,6 @@ class Samples(object):
         self.next_actions = next_actions
         self.terminals = terminals
         self.possible_next_actions = possible_next_actions
-        self.episode_values = episode_values
 
     def shuffle(self):
         # Shuffle
@@ -92,7 +89,6 @@ class Samples(object):
                 self.next_actions,
                 self.terminals,
                 self.possible_next_actions,
-                self.episode_values,
             )
         )
         random.shuffle(merged)
@@ -108,7 +104,6 @@ class Samples(object):
             self.next_actions,
             self.terminals,
             self.possible_next_actions,
-            self.episode_values,
         ) = zip(*merged)
 
 
@@ -409,7 +404,6 @@ class GridworldBase(object):
             next_actions=[],
             terminals=[],
             possible_next_actions=[],
-            episode_values=[],
         )
         for s in res:
             merge.mdp_ids += s.mdp_ids
@@ -423,7 +417,6 @@ class GridworldBase(object):
             merge.next_actions += s.next_actions
             merge.terminals += s.terminals
             merge.possible_next_actions += s.possible_next_actions
-            merge.episode_values += s.episode_values
         return merge
 
     def generate_samples_discrete_internal(
@@ -444,14 +437,12 @@ class GridworldBase(object):
         sequence_numbers = [0] * num_transitions
         possible_actions: List[List[str]] = [[]] * num_transitions
         possible_next_actions: List[List[str]] = [[]] * num_transitions
-        episode_values = [0.0] * num_transitions
 
         state: int = -1
         terminal = True
         next_action = ""
         next_action_probability = 1.0
         transition = 0
-        last_terminal = -1
         mdp_id = -1
         sequence_number = 0
         np.random.seed(seed)
@@ -503,18 +494,6 @@ class GridworldBase(object):
             set_if_in_range(terminals, transition, terminal)
             set_if_in_range(possible_next_actions, transition, possible_next_action)
 
-            if not terminal:
-                set_if_in_range(episode_values, transition, 0.0)
-            else:
-                set_if_in_range(episode_values, transition, 1.0)
-                i = 1
-                discounted_value = discount_factor
-                while transition - i > last_terminal:
-                    add_if_in_range(episode_values, transition - i, discounted_value)
-                    i += 1
-                    discounted_value *= discount_factor
-                last_terminal = transition
-
             state = next_state
             transition += 1
         return Samples(
@@ -529,7 +508,6 @@ class GridworldBase(object):
             next_actions=next_actions,
             terminals=terminals,
             possible_next_actions=possible_next_actions,
-            episode_values=episode_values,
         )
 
     def preprocess_samples_discrete(
@@ -593,9 +571,6 @@ class GridworldBase(object):
         terminals = torch.tensor(samples.terminals, dtype=torch.int32).reshape(-1, 1)
         not_terminals = 1 - terminals
         logger.info("Converting RT to Torch...")
-        episode_values = torch.tensor(
-            samples.episode_values, dtype=torch.float32
-        ).reshape(-1, 1)
 
         time_diffs = torch.ones([len(samples.states), 1])
 
@@ -625,7 +600,6 @@ class GridworldBase(object):
                 not_terminals=not_terminals[start:end],
                 next_actions=next_actions_one_hot[start:end],
                 possible_next_actions=possible_next_actions_mask[start:end],
-                episode_values=episode_values[start:end],
                 time_diffs=time_diffs[start:end],
             )
             tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)

@@ -182,11 +182,6 @@ class DQNTrainer(RLTrainer):
                 [self.minibatch_size, 1]
             ), "Invalid shape: " + str(training_samples.rewards.shape)
             assert (
-                training_samples.episode_values is None
-                or training_samples.episode_values.shape
-                == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.episode_values.shape)
-            assert (
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)
             assert (

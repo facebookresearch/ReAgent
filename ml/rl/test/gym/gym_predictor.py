@@ -5,7 +5,6 @@ import logging
 
 import numpy as np
 from caffe2.python import core, workspace
-from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.evaluator import Evaluator
@@ -38,13 +37,6 @@ class GymDQNPredictor(GymPredictor):
         with core.DeviceScope(self.c2_device):
             if isinstance(self.trainer, DiscreteActionTrainer):
                 workspace.FeedBlob("states", states)
-            elif isinstance(self.trainer, ContinuousActionDQNTrainer):
-                num_actions = len(self.trainer.action_normalization_parameters)
-                actions = np.eye(num_actions, dtype=np.float32)
-                actions = np.tile(actions, reps=(len(states), 1))
-                states = np.repeat(states, repeats=num_actions, axis=0)
-                workspace.FeedBlob("states", states)
-                workspace.FeedBlob("actions", actions)
             else:
                 raise NotImplementedError("Invalid trainer passed to GymPredictor")
             workspace.RunNetOnce(self.trainer.internal_policy_model.net)
@@ -68,13 +60,6 @@ class GymDQNPredictor(GymPredictor):
         with core.DeviceScope(self.c2_device):
             if isinstance(self.trainer, DiscreteActionTrainer):
                 workspace.FeedBlob("states", states)
-            elif isinstance(self.trainer, ContinuousActionDQNTrainer):
-                num_actions = len(self.trainer.action_normalization_parameters)
-                actions = np.eye(num_actions, dtype=np.float32)
-                actions = np.tile(actions, reps=(len(states), 1))
-                states = np.repeat(states, repeats=num_actions, axis=0)
-                workspace.FeedBlob("states", states)
-                workspace.FeedBlob("actions", actions)
             else:
                 raise NotImplementedError("Invalid trainer passed to GymPredictor")
             workspace.RunNetOnce(self.trainer.internal_policy_model.net)

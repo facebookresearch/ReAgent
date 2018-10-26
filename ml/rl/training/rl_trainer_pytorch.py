@@ -91,7 +91,7 @@ class RLTrainer:
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 
-    def train(self, training_samples, evaluator=None, episode_values=None) -> None:
+    def train(self, training_samples, evaluator=None) -> None:
         raise NotImplementedError()
 
     def internal_prediction(self, input):

@@ -96,8 +96,6 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Long](10) == 10)
     assert(firstRow.getAs[Seq[String]](11) == List("action1", "action2"))
     assert(firstRow.getAs[Seq[String]](12) == List())
-    assert(firstRow.getAs[Map[Long, Double]](13) == Map(0 -> 1.0, 10 -> 0.2))
-    assert(firstRow.getAs[Map[Long, Double]](14) == Map(0 -> 1.0, 1 -> 0.2))
-    assert(firstRow.getAs[Map[String, Double]](15) == Map("Widgets" -> 10.0))
+    assert(firstRow.getAs[Map[String, Double]](13) == Map("Widgets" -> 10.0))
   }
 }

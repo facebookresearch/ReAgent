@@ -33,11 +33,6 @@ class GridworldTestBase(unittest.TestCase):
 
         for _ in range(self.num_epochs):
             samples = environment.generate_samples(10240, 1.0, DISCOUNT)
-            true_values = environment.true_values_for_sample(
-                samples.states, samples.actions, False
-            )
-            # Hijack the reward timeline to insert the ground truth
-            samples.episode_values = true_values
 
             if (
                 hasattr(trainer.parameters.rl, "reward_boost")

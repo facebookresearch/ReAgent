@@ -123,9 +123,7 @@ class DDPGTrainer(RLTrainer):
                 self.critic = nn.DataParallel(self.critic)
                 self.critic_target = nn.DataParallel(self.critic_target)
 
-    def train(
-        self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
-    ) -> None:
+    def train(self, training_samples: TrainingDataPage, evaluator=None) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert (
@@ -137,11 +135,6 @@ class DDPGTrainer(RLTrainer):
             assert training_samples.rewards.shape == torch.Size(
                 [self.minibatch_size, 1]
             ), "Invalid shape: " + str(training_samples.rewards.shape)
-            assert (
-                training_samples.episode_values is None
-                or training_samples.episode_values.shape
-                == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.episode_values.shape)
             assert (
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)

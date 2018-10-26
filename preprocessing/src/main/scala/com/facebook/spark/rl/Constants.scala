@@ -16,8 +16,6 @@ object Constants {
     "time_diff",
     "possible_actions",
     "possible_next_actions",
-    "reward_timeline",
-    "reward_timeline_ordinal",
     "metrics"
   );
 

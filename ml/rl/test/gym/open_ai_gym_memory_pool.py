@@ -70,7 +70,6 @@ class OpenAIGymMemoryPool:
             next_states=torch.tensor(cols[3], dtype=torch.float32),
             next_actions=torch.tensor(cols[4], dtype=torch.float32),
             possible_next_actions=possible_next_actions,
-            episode_values=None,
             not_terminals=torch.from_numpy(
                 np.logical_not(np.array(cols[5]), dtype=np.bool).astype(np.int32)
             ).reshape(-1, 1),

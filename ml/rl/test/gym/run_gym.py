@@ -33,7 +33,6 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer

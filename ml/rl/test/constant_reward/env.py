@@ -39,7 +39,6 @@ class Env(object):
         List[np.ndarray],
         List[bool],
         List[np.ndarray],
-        List[float],
     ]:
 
         states: List[np.ndarray] = []
@@ -49,7 +48,6 @@ class Env(object):
         next_actions: List[np.ndarray] = []
         terminals: List[bool] = []
         possible_next_actions: List[np.ndarray] = []
-        episode_values: List[float] = []
 
         state = self.np_random.uniform(low=-1, high=-1, size=(self.state_dims))
         action = np.zeros(self.action_dims)
@@ -73,7 +71,6 @@ class Env(object):
             next_actions.append(next_action)
             terminals.append(False)
             possible_next_actions.append(np.ones(self.action_dims))
-            episode_values.append(1 / (1 - self.gamma))
 
             state = next_state
             action = next_action
@@ -86,7 +83,6 @@ class Env(object):
             next_actions,
             terminals,
             possible_next_actions,
-            episode_values,
         )
 
     def preprocess_samples_discrete(
@@ -98,7 +94,6 @@ class Env(object):
         next_actions: List[np.ndarray],
         terminals: List[bool],
         possible_next_actions: List[np.ndarray],
-        episode_values: List[float],
         minibatch_size: int,
     ) -> List[TrainingDataPage]:
         # Shuffle
@@ -111,11 +106,10 @@ class Env(object):
                 next_actions,
                 terminals,
                 possible_next_actions,
-                episode_values,
             )
         )
         self.np_random.shuffle(merged)
-        states, actions, rewards, next_states, next_actions, terminals, possible_next_actions, episode_values = zip(
+        states, actions, rewards, next_states, next_actions, terminals, possible_next_actions = zip(
             *merged
         )
 
@@ -139,9 +133,6 @@ class Env(object):
                     possible_next_actions=np.array(
                         possible_next_actions[start:end], dtype=np.float32
                     ),
-                    episode_values=np.array(
-                        episode_values[start:end], dtype=np.float32
-                    ).reshape(-1, 1),
                     not_terminals=not_terminals[start:end],
                 )
             )

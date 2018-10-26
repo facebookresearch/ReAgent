@@ -140,9 +140,6 @@ def preprocess_batch_for_training(
     sequence_numbers = torch.tensor(batch["sequence_number"], dtype=torch.int32)
     rewards = torch.tensor(batch["reward"], dtype=torch.float32).reshape(-1, 1)
     time_diffs = torch.tensor(batch["time_diff"], dtype=torch.int32).reshape(-1, 1)
-    episode_values = torch.tensor(batch["episode_value"], dtype=torch.float32).reshape(
-        -1, 1
-    )
 
     if action_preprocessor:
         # Preprocess action features for parametric action DQN
@@ -216,7 +213,6 @@ def preprocess_batch_for_training(
         next_states=next_state_features_dense,
         possible_next_actions=pnas,
         possible_next_actions_lengths=pnas_lens,
-        episode_values=episode_values,
         not_terminals=not_terminals,
         time_diffs=time_diffs,
         state_pas_concat=possible_state_actions,

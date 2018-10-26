@@ -178,8 +178,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
         # TODO: stuff other fields in here
         extras = mt.ExtraData(
-            episode_value=fetch(input_record.episode_value).reshape(-1, 1),
-            action_probability=fetch(input_record.action_probability).reshape(-1, 1),
+            action_probability=fetch(input_record.action_probability).reshape(-1, 1)
         )
 
         return mt.TrainingBatch(training_input=training_input, extras=extras)

@@ -23,7 +23,6 @@ class TrainingDataPage(object):
         "next_actions",
         "possible_next_actions",
         "possible_next_actions_lengths",
-        "episode_values",
         "not_terminals",
         "time_diffs",
         "possible_next_actions_state_concat",
@@ -43,7 +42,6 @@ class TrainingDataPage(object):
         next_states: Optional[torch.Tensor] = None,
         next_actions: Optional[torch.Tensor] = None,
         possible_next_actions: Optional[torch.Tensor] = None,
-        episode_values: Optional[torch.Tensor] = None,
         not_terminals: Optional[torch.Tensor] = None,
         time_diffs: Optional[torch.Tensor] = None,
         possible_next_actions_lengths: Optional[torch.Tensor] = None,
@@ -67,7 +65,6 @@ class TrainingDataPage(object):
         self.next_states = next_states
         self.next_actions = next_actions
         self.possible_next_actions = possible_next_actions
-        self.episode_values = episode_values
         self.not_terminals = not_terminals
         self.time_diffs = time_diffs
         self.possible_next_actions_lengths = possible_next_actions_lengths
@@ -83,7 +80,7 @@ class TrainingDataPage(object):
                 reward=self.rewards,
                 not_terminal=self.not_terminals,
             ),
-            extras=rlt.ExtraData(episode_value=self.episode_values),
+            extras=rlt.ExtraData(),
         )
 
     def size(self) -> int:

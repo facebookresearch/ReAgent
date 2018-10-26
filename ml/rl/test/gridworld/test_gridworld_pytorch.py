@@ -106,6 +106,7 @@ class TestGridworld(GridworldTestBase):
         self, use_gpu=False, use_all_avail_gpus=False
     ):
         environment = Gridworld()
+
         trainer = self.get_sarsa_trainer(
             environment, True, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
         )
@@ -170,7 +171,6 @@ class TestGridworld(GridworldTestBase):
             next_actions=["U"],
             terminals=[False],
             possible_next_actions=[["R", "U", "D"]],
-            episode_values=[0.00161],
         )
         tdps = environment.preprocess_samples(samples, 1)
 

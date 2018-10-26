@@ -202,7 +202,7 @@ class RLTrainer:
             workspace.FeedBlob("next_actions", tdp.next_actions)
         self.train()
         if evaluator is not None:
-            self.evaluate(evaluator, tdp.actions, tdp.propensities, tdp.episode_values)
+            self.evaluate(evaluator, tdp.actions, tdp.propensities)
 
     def train(self) -> None:
         assert self.rl_train_model is not None
@@ -230,7 +230,6 @@ class RLTrainer:
         evaluator: Optional[Evaluator],
         logged_actions: Optional[np.ndarray],
         logged_propensities: Optional[np.ndarray],
-        logged_values: Optional[np.ndarray],
     ):
         raise NotImplementedError()
 

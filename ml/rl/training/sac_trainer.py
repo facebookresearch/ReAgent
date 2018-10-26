@@ -167,16 +167,16 @@ class SACTrainer(RLTrainer):
 
         if evaluator is not None:
             # FIXME
-            self.evaluate(evaluator, training_batch.extras.episode_value)
+            self.evaluate(evaluator)
 
-    def evaluate(self, evaluator: Evaluator, logged_value: Optional[torch.Tensor]):
+    def evaluate(self, evaluator: Evaluator):
         # FIXME
         evaluator.report(
             self.loss.cpu().numpy(),
             None,
             None,
             None,
-            logged_value.cpu().numpy() if logged_value is not None else None,
+            None,
             None,
             None,
             None,

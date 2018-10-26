@@ -97,7 +97,6 @@ class GridworldContinuous(GridworldBase):
             next_actions=continuous_next_actions,
             terminals=samples.terminals,
             possible_next_actions=continuous_possible_next_actions,
-            episode_values=samples.episode_values,
         )
 
     def preprocess_samples(
@@ -190,9 +189,6 @@ class GridworldContinuous(GridworldBase):
         possible_next_actions_ndarray = logged_possible_next_actions
         possible_next_actions_state_concat = logged_possible_next_state_actions
         time_diffs = torch.ones([len(samples.states), 1])
-        episode_values = torch.tensor(
-            samples.episode_values, dtype=torch.float32
-        ).reshape(-1, 1)
 
         tdps = []
         pnas_start = 0
@@ -214,7 +210,6 @@ class GridworldContinuous(GridworldBase):
                 next_actions=next_actions_ndarray[start:end],
                 possible_next_actions=None,
                 not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
-                episode_values=episode_values[start:end],
                 time_diffs=time_diffs[start:end],
                 possible_next_actions_lengths=pnas_lengths[start:end],
                 possible_next_actions_state_concat=pnas_concat,

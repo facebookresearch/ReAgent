@@ -102,7 +102,7 @@ class _ParametricDQNTrainer(RLTrainer):
             rlt.StateAction(state=state, action=action)
         ).q_value
 
-    def train(self, training_batch, evaluator=None, episode_values=None) -> None:
+    def train(self, training_batch, evaluator=None) -> None:
         if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
             training_batch = training_batch.as_parametric_sarsa_training_batch()
 

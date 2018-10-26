@@ -198,18 +198,14 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         return net.input_record() + schema.NewRecord(
             net,
             schema.Struct(
-                ("reward", schema.Scalar()),
-                ("episode_value", schema.Scalar()),
-                ("action_probability", schema.Scalar()),
+                ("reward", schema.Scalar()), ("action_probability", schema.Scalar())
             ),
         )
 
     def setup_extra_data(self, ws, input_record):
         extra_data = rlt.ExtraData(
-            episode_value=np.array([5, 6, 7], dtype=np.float32),
-            action_probability=np.array([0.11, 0.21, 0.13], dtype=np.float32),
+            action_probability=np.array([0.11, 0.21, 0.13], dtype=np.float32)
         )
-        ws.feed_blob(str(input_record.episode_value()), extra_data.episode_value)
         ws.feed_blob(
             str(input_record.action_probability()), extra_data.action_probability
         )
@@ -236,9 +232,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
-        npt.assert_array_equal(
-            extra_data.episode_value.reshape(-1, 1), res.extras.episode_value.numpy()
-        )
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
@@ -277,9 +270,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(
-            extra_data.episode_value.reshape(-1, 1), res.extras.episode_value.numpy()
-        )
-        npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
         )
@@ -314,9 +304,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
-        npt.assert_array_equal(
-            extra_data.episode_value.reshape(-1, 1), res.extras.episode_value.numpy()
-        )
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
@@ -359,9 +346,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
-        npt.assert_array_equal(
-            extra_data.episode_value.reshape(-1, 1), res.extras.episode_value.numpy()
-        )
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),

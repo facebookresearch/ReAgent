@@ -8,12 +8,6 @@ import org.apache.spark.sql.functions.udf
 object Query {
 
   def getDiscreteQuery(config: QueryConfiguration): String = {
-    val rewardTimelineCol = if (config.useNonOrdinalRewardTimeline) {
-      "reward_timeline"
-    } else {
-      "reward_timeline_ordinal"
-    }
-
     var query = """
     SELECT
         mdp_id,
@@ -59,19 +53,12 @@ object Query {
     }
 
     query = query.concat(s"""
-      , COMPUTE_EPISODE_VALUE(${config.discountFactor}, ${rewardTimelineCol}) as episode_value,
-      metrics
+      , metrics
     """).stripMargin
     return query
   }
 
-  def getContinuousQuery(config: QueryConfiguration): String = {
-    val rewardTimelineCol = if (config.useNonOrdinalRewardTimeline) {
-      "reward_timeline"
-    } else {
-      "reward_timeline_ordinal"
-    }
-
+  def getContinuousQuery(config: QueryConfiguration): String =
     return s"""
     SELECT
       mdp_id,
@@ -85,8 +72,6 @@ object Query {
       time_diff,
       possible_actions,
       possible_next_actions,
-      COMPUTE_EPISODE_VALUE(${config.discountFactor}, ${rewardTimelineCol}) as episode_value,
       metrics
     """.stripMargin
-  }
 }

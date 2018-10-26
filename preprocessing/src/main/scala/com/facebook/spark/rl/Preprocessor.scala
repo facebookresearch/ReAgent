@@ -10,10 +10,8 @@ import org.apache.spark.sql.functions.udf
 
 case class Configuration(timeline: TimelineConfiguration, query: QueryConfiguration)
 
-case class QueryConfiguration(discountFactor: Double = 0.9,
-                              tableSample: Double = 1.0,
+case class QueryConfiguration(tableSample: Double = 1.0,
                               maxQLearning: Boolean = true,
-                              useNonOrdinalRewardTimeline: Boolean = false,
                               actions: Array[String] = Array())
 
 object Preprocessor {
@@ -22,7 +20,6 @@ object Preprocessor {
 
   def main(args: Array[String]) {
     val sparkSession = SparkSession.builder().enableHiveSupport().getOrCreate()
-    sparkSession.sqlContext.udf.register("COMPUTE_EPISODE_VALUE", Udfs.getEpisodeValue[Double] _)
 
     val configJson = args(0)
 

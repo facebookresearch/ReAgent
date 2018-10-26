@@ -6,7 +6,6 @@ from typing import List, Tuple
 
 import numpy as np
 from ml.rl.test.gym.open_ai_gym_environment import EnvType
-from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
@@ -111,9 +110,7 @@ class GymEvaluator(Evaluator):
         # test only float features
         predictions = predictor.predict(self.logged_states)
         estimated_reward_values = predictor.estimate_reward(self.logged_states)
-        if isinstance(
-            predictor.trainer, (ParametricDQNTrainer, ContinuousActionDQNTrainer)
-        ):
+        if isinstance(predictor.trainer, ParametricDQNTrainer):
             predictions = predictions.reshape([-1, self._env.action_dim])
             estimated_reward_values = estimated_reward_values.reshape(
                 [-1, self._env.action_dim]

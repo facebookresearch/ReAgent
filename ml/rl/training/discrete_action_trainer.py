@@ -281,7 +281,6 @@ class DiscreteActionTrainer(RLTrainer):
         evaluator: Evaluator,
         logged_actions: Optional[np.ndarray],
         logged_propensities: Optional[np.ndarray],
-        logged_values: Optional[np.ndarray],
     ):
         workspace.RunNet(self.all_q_score_model.net)
         all_action_scores = workspace.FetchBlob(self.all_q_score_output)
@@ -297,7 +296,7 @@ class DiscreteActionTrainer(RLTrainer):
             logged_actions,
             logged_propensities,
             logged_rewards,
-            logged_values,
+            None,
             model_propensities,
             None,
             all_action_scores,
