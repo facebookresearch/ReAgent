@@ -15,10 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 def sparse_to_dense(
-    lengths_blob: str, keys_blob: str, values_blob: str, sorted_features: List[int]
+    lengths_blob: str,
+    keys_blob: str,
+    values_blob: str,
+    sorted_features: List[int],
+    set_missing_value_to_zero: bool = False,
 ) -> Tuple[str, List[str]]:
     MISSING_SCALAR = C2.NextBlob("MISSING_SCALAR")
-    workspace.FeedBlob(MISSING_SCALAR, np.array([MISSING_VALUE], dtype=np.float32))
+    missing_value = 0.0 if set_missing_value_to_zero else MISSING_VALUE
+    workspace.FeedBlob(MISSING_SCALAR, np.array([missing_value], dtype=np.float32))
     C2.net().GivenTensorFill([], [MISSING_SCALAR], shape=[], values=[MISSING_VALUE])
 
     parameters: List[str] = [MISSING_SCALAR]

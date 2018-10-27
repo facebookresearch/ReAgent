@@ -18,7 +18,7 @@ from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
 )
 from ml.rl.training.discrete_action_predictor import DiscreteActionPredictor
-from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
 from ml.rl.training.rl_trainer import DEFAULT_ADDITIONAL_FEATURE_TYPES, RLTrainer
 
 
@@ -291,18 +291,19 @@ class DiscreteActionTrainer(RLTrainer):
         model_propensities = Evaluator.softmax(all_action_scores, self.rl_temperature)
         logged_rewards = workspace.FetchBlob("rewards")
 
-        evaluator.report(
-            workspace.FetchBlob(self.loss_blob),
-            logged_actions,
-            logged_propensities,
-            logged_rewards,
-            None,
-            model_propensities,
-            None,
-            all_action_scores,
-            model_values_on_logged_actions,
-            maxq_action_idxs,
+        cpe_stats = BatchStatsForCPE(
+            td_loss=workspace.FetchBlob(self.loss_blob),
+            logged_actions=logged_actions,
+            logged_propensities=logged_propensities,
+            logged_rewards=logged_rewards,
+            logged_values=None,
+            model_propensities=model_propensities,
+            model_rewards=None,
+            model_values=all_action_scores,
+            model_values_on_logged_actions=model_values_on_logged_actions,
+            model_action_idxs=maxq_action_idxs,
         )
+        evaluator.report(cpe_stats)
 
     def predictor(self) -> DiscreteActionPredictor:
         """
