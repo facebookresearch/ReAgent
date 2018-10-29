@@ -5,6 +5,7 @@ import tempfile
 import unittest
 
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
+from ml.rl.training.ddpg_trainer import DDPGTrainer
 
 
 class GridworldTestBase(unittest.TestCase):
@@ -55,6 +56,15 @@ class GridworldTestBase(unittest.TestCase):
 
             for tdp in tdps:
                 trainer.train(tdp)
+
+        # Test actor if it exists
+        if isinstance(trainer, DDPGTrainer):
+            # Make sure actor predictor works
+            actor = trainer.predictor(actor=True)
+            # Make sure all actions are optimal
+            error = evaluator.evaluate_optimal_actions(actor, thres=0.2)
+            print("gridworld optimal action match MAE: {0:.3f}".format(error))
+            evaluator.evaluate_actor(actor)
 
         predictor = exporter.export()
         predictorClass = predictor.__class__

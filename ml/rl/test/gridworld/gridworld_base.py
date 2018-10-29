@@ -137,6 +137,7 @@ class GridworldBase(object):
     def __init__(self):
         self.reset()
         self._optimal_policy = self._compute_optimal()
+        self._optimal_actions = self._compute_optimal_actions()
         self.sparse_to_dense_net = None
 
     @property
@@ -148,6 +149,44 @@ class GridworldBase(object):
 
     def index_to_action(self, index):
         return self.ACTIONS[index]
+
+    def _compute_optimal_actions(self):
+        not_visited = {(y, x) for x in range(self.width) for y in range(self.height)}
+        queue = collections.deque()
+        bfs_start = tuple(j[0] for j in np.where(self.grid == G))
+        queue.append(bfs_start)
+        working_set = set()
+        working_set.add(bfs_start)
+        # record optimal actions for each grid cell
+        optimal_actions = np.empty(self.grid.shape, dtype=np.object)
+        while len(queue) > 0:
+            current = queue.pop()
+            working_set.remove(current)
+            if current in not_visited:
+                not_visited.remove(current)
+            possible_actions = self.possible_actions(self._index(current), True)
+            for action in possible_actions:
+                next_state_pos = self.move_on_pos(current[0], current[1], action)
+                next_state = self._index(next_state_pos)
+                if next_state_pos not in not_visited:
+                    continue
+                if not self.is_terminal(next_state) and self.grid[next_state_pos] != W:
+                    self._add_optimal_action(
+                        optimal_actions, next_state_pos, self.invert_action(action)
+                    )
+                    bfs_next = self._pos(next_state)
+                    if bfs_next not in working_set:
+                        queue.appendleft(bfs_next)
+                        working_set.add(bfs_next)
+        print("OPTIMAL ACTIONS")
+        print(optimal_actions)
+        return optimal_actions
+
+    def _add_optimal_action(self, optimal_actions, pos, action):
+        if optimal_actions[pos] is None:
+            optimal_actions[pos] = [action]
+        else:
+            optimal_actions[pos].append(action)
 
     def _compute_optimal(self):
         not_visited = {(y, x) for x in range(self.width) for y in range(self.height)}

@@ -75,7 +75,23 @@ class DDPGPredictor(RLPredictor):
 
         workspace.RunNet(self._net)
 
-        results = workspace.FetchBlob("output/float_features.values")
+        output_lengths = workspace.FetchBlob("output/float_features.lengths")
+        output_keys = workspace.FetchBlob("output/float_features.keys")
+        output_values = workspace.FetchBlob("output/float_features.values")
+
+        first_length = output_lengths[0]
+        results = []
+        cursor = 0
+        for length in output_lengths:
+            assert (
+                length == first_length
+            ), "Number of lengths is not consistent: {}".format(output_lengths)
+            result = {}
+            for x in range(length):
+                result[output_keys[cursor + x]] = output_values[cursor + x]
+            results.append(result)
+            cursor += length
+
         return results
 
     def critic_prediction(self, float_state_features, int_state_features, actions):

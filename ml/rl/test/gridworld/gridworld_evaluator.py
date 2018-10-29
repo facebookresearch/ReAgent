@@ -344,6 +344,46 @@ class GridworldDDPGEvaluator(GridworldEvaluator):
             )
         )
 
+    def evaluate_optimal_actions(self, actor, thres: float = 0.2):
+        actor_prediction = actor.actor_prediction(self.logged_states)
+
+        res_msg = (
+            "num of state, num of error, state pos, pred act, "
+            "optimal act, match, predicted probabilities\n"
+        )
+        num_of_error = 0
+        for i, (state, prediction) in enumerate(
+            zip(self.logged_states, actor_prediction)
+        ):
+            state_pos = self._env._pos(list(state.keys())[0])
+            optimal_actions = self._env._optimal_actions[state_pos]
+            top_prediction_index = int(
+                max(prediction, key=(lambda key: prediction[key]))
+            )
+            top_prediction = self._env.ACTIONS[top_prediction_index]
+            if top_prediction not in optimal_actions:
+                num_of_error += 1
+            res_msg += "{:>12}, {:>12}, {:>9}, {:>8}, {:>11}, {:>5}, {}\n".format(
+                i,
+                num_of_error,
+                str(state_pos),
+                top_prediction,
+                str(optimal_actions),
+                str(top_prediction in optimal_actions),
+                str(prediction),
+            )
+
+        mae = float(num_of_error) / len(self.logged_states)
+        logger.info("MAE of optimal action matching: {}".format(mae))
+        logger.info("optimal action matching result:\n{}".format(res_msg))
+        if mae > thres:
+            logger.error(
+                "High MAE of optimal action matching! MAE: {}, Threshold: {}".format(
+                    mae, thres
+                )
+            )
+        return mae
+
     def evaluate_critic(self, critic):
         critic_prediction = critic.critic_prediction(
             float_state_features=self.logged_states,
