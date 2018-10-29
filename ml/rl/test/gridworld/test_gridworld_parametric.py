@@ -158,8 +158,6 @@ class TestGridworldParametric(GridworldTestBase):
         )
 
         if modular:
-            # TODO: test save/load once it's implemented
-            self.test_save_load = False
             # FIXME: the exporter should make a copy of the model; moving it to CPU inplace
             if use_gpu:
                 self.run_pre_training_eval = False
