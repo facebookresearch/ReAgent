@@ -35,7 +35,7 @@
     "use_noisy_linear_layers": false
   },
   "run_details": {
-    "num_episodes": 400,
+    "num_episodes": 100,
     "max_steps": 200,
     "train_every_ts": 1,
     "train_after_ts": 1,

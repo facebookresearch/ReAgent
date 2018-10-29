@@ -9,8 +9,6 @@
     "numOutputShards": 1
   },
   "query": {
-    "discountFactor": 0.9,
-    "tableSample": 0.5,
-    "useNonOrdinalRewardTimeline": false
+    "tableSample": 0.5
   }
 }

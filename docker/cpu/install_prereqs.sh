@@ -11,6 +11,10 @@ export LD_LIBRARY_PATH="${CONDA_PATH}/lib:${LD_LIBRARY_PATH}"
 pip uninstall -y torch || true
 pip uninstall -y torch || true
 
-pip install -r requirements.txt
+pip install --ignore-installed -r requirements.txt
+
+# Tensorboard: Downgrade setup tools
+pip install setuptools==39.1.0
+pip install --ignore-installed tensorflow==1.11.0
 
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html

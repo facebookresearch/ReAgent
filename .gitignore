@@ -1,6 +1,9 @@
 # Test data
 cartpole_discrete
 cartpole_discrete_timeline
+cartpole_training_data.json
+state_features_norm.json
+training_data
 
 # Spark data
 metastore_db
@@ -11,6 +14,8 @@ dependency-reduced-pom.xml
 
 # Model outputs
 outputs
+trainer_*
+predictor_*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

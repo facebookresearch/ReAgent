@@ -88,6 +88,9 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
 
+# Downgrade Python version to 3.6 for Tensorflow (for Tensorboard)
+RUN conda install python=3.6
+
 # Needed to prevent UnicodeDecodeError: 'ascii' codec can't decode byte
 # when installing fairseq.
 RUN locale-gen en_US.UTF-8

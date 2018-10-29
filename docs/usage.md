@@ -40,3 +40,9 @@ Now that we have trained a new policy on the offline `Cartpole-v0` data, we can 
 ```
 ./scripts/eval.sh predictor_<number>.c2
 ```
+##### Step 6 - Visualize Results via Tensorboard
+We can now view loss plots and CPE estimates in Tensorboard after running:
+```
+tensorboard --logdir training_data
+```
+at [localhost:6006 ](localhost:6006).
