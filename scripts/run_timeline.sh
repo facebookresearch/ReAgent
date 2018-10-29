@@ -15,7 +15,8 @@ trap finish EXIT
   --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
   "`cat ml/rl/workflow/sample_configs/discrete_action/timeline.json`"
 
-mv cartpole_discrete_timeline/part* cartpole_training_data.json
+mkdir training_data
+mv cartpole_discrete_timeline/part* training_data/cartpole_training_data.json
 
 # Remove the output data folder
 rm -Rf cartpole_discrete_timeline
