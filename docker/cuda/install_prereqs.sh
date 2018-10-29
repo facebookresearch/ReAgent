@@ -14,11 +14,7 @@ TMP_CUDA_VERSION="9"
 pip uninstall -y torch || true
 pip uninstall -y torch || true
 
-pip install --ignore-installed -r requirements.txt
-
-# Tensorboard: Downgrade setup tools
-pip install setuptools==39.1.0
-pip install --ignore-installed tensorflow==1.11.0
+pip install -r requirements.txt
 
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu90/torch_nightly.html
 

@@ -43,6 +43,7 @@ Now that we have trained a new policy on the offline `Cartpole-v0` data, we can 
 ##### Step 6 - Visualize Results via Tensorboard
 We can now view loss plots and CPE estimates in Tensorboard after running:
 ```
+source /home/tensorboard_env/bin/activate
 tensorboard --logdir outputs/
 ```
-at [localhost:6006 ](localhost:6006).
+at [localhost:6006 ](localhost:6006). When done viewing the results deactivate the virtualenv by typing `deactivate`.
