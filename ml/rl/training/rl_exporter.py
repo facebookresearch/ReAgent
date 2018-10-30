@@ -3,8 +3,10 @@
 
 import logging
 
+from ml.rl.models.actor import ActorWithPreprocessing
 from ml.rl.models.parametric_dqn import ParametricDQNWithPreprocessing
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
+from ml.rl.training.actor_predictor import ActorPredictor
 
 
 logger = logging.getLogger(__name__)
@@ -46,3 +48,27 @@ class ParametricDQNExporter(RLExporter):
             output_transformer=self.output_transformer,
         )
         return _ParametricDQNPredictor(pem, ws)
+
+
+class ActorExporter(RLExporter):
+    def __init__(
+        self,
+        dnn,
+        feature_extractor=None,
+        output_transformer=None,
+        state_preprocessor=None,
+    ):
+        super(ActorExporter, self).__init__(dnn, feature_extractor, output_transformer)
+        self.state_preprocessor = state_preprocessor
+
+    def export(self):
+        module_to_export = self.dnn.cpu_model()
+        if self.state_preprocessor:
+            module_to_export = ActorWithPreprocessing(
+                module_to_export, self.state_preprocessor
+            )
+        pem, ws = module_to_export.get_predictor_export_meta_and_workspace(
+            feature_extractor=self.feature_extractor,
+            output_transformer=self.output_transformer,
+        )
+        return ActorPredictor(pem, ws)

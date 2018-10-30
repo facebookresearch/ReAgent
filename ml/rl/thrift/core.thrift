@@ -35,8 +35,8 @@ struct CNNParameters {
 }
 
 struct FeedForwardParameters {
-  1: list<i32> layers = [-1, 512, 256, 128, 1],
-  2: list<string> activations = ['relu', 'relu', 'relu', 'linear'],
+  1: list<i32> layers = [256, 128],
+  2: list<string> activations = ['relu', 'relu'],
 }
 
 struct FactorizationParameters {
@@ -147,6 +147,7 @@ struct SACModelParameters {
   3: FeedForwardParameters q_network,
   4: FeedForwardParameters value_network,
   5: FeedForwardParameters actor_network,
+  7: optional InTrainingCPEParameters in_training_cpe,
 }
 
 struct KNNDQNModelParameters {

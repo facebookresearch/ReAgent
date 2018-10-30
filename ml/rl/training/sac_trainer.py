@@ -10,8 +10,8 @@ import torch.nn.functional as F
 from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
-from ml.rl.training.evaluator import Evaluator
-from ml.rl.training.rl_exporter import ParametricDQNExporter
+from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
+from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
 
@@ -34,6 +34,11 @@ class SACTrainer(RLTrainer):
         parameters: SACModelParameters,
         q2_network=None,
     ) -> None:
+        """
+        Args:
+            action_serving_range: tuple of min and max value of action at serving time
+        """
+        self.minibatch_size = parameters.training.minibatch_size
         super(SACTrainer, self).__init__(
             parameters,
             use_gpu=False,
@@ -66,21 +71,23 @@ class SACTrainer(RLTrainer):
         self.entropy_temperature = parameters.training.entropy_temperature
 
     def train(self, training_batch, evaluator=None) -> None:
+        """
+        IMPORTANT: the input action here is assumed to be preprocessed to match the
+        range of the output of the actor.
+        """
         if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
             training_batch = training_batch.as_parametric_sarsa_training_batch()
 
         learning_input = training_batch.training_input
         self.minibatch += 1
 
-        s = learning_input.state
-        a = learning_input.action.float_features
+        state = learning_input.state
+        action = learning_input.action
         reward = learning_input.reward
         discount = torch.full_like(reward, self.gamma)
         not_done_mask = learning_input.not_terminal
 
-        current_state_action = rlt.StateAction(
-            state=learning_input.state, action=learning_input.action
-        )
+        current_state_action = rlt.StateAction(state=state, action=action)
 
         q1_value = self.q1_network(current_state_action).q_value
         min_q_value = q1_value
@@ -97,10 +104,10 @@ class SACTrainer(RLTrainer):
         # V(s) & Q(s, a) - log(pi(a|s))
         #
 
-        state_value = self.value_network(s.float_features)  # .q_value
+        state_value = self.value_network(state.float_features)  # .q_value
 
         with torch.no_grad():
-            log_prob_a = self.actor_network.get_log_prob(s, a)
+            log_prob_a = self.actor_network.get_log_prob(state, action.float_features)
             target_value = min_q_value - self.entropy_temperature * log_prob_a
 
         value_loss = F.mse_loss(state_value, target_value)
@@ -140,10 +147,10 @@ class SACTrainer(RLTrainer):
         # log_prob(actor_action) - Q(s, actor_action)
         #
 
-        actor_output = self.actor_network(rlt.StateInput(state=learning_input.state))
+        actor_output = self.actor_network(rlt.StateInput(state=state))
 
         state_actor_action = rlt.StateAction(
-            state=s, action=rlt.FeatureVector(float_features=actor_output.action)
+            state=state, action=rlt.FeatureVector(float_features=actor_output.action)
         )
         q1_actor_value = self.q1_network(state_actor_action).q_value
         min_q_actor_value = q1_actor_value
@@ -166,33 +173,21 @@ class SACTrainer(RLTrainer):
             self._soft_update(self.value_network, self.value_network_target, self.tau)
 
         if evaluator is not None:
-            # FIXME
-            self.evaluate(evaluator)
-
-    def evaluate(self, evaluator: Evaluator):
-        # FIXME
-        evaluator.report(
-            self.loss.cpu().numpy(),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            self.all_action_scores.cpu().numpy(),
-            None,
-        )
+            cpe_stats = BatchStatsForCPE(
+                td_loss=q1_loss.detach().cpu().numpy(),
+                model_values_on_logged_actions=q1_value.detach().cpu().numpy(),
+            )
+            evaluator.report(cpe_stats)
 
     def actor_predictor(
         self, feature_extractor=None, output_trasnformer=None, net_container=None
-    ):
+    ) -> ActorPredictor:
         actor_network = self.actor_network.cpu_model()
         if net_container is not None:
             actor_network = net_container(actor_network)
-        predictor = ActorPredictor.export(
+        predictor = ActorExporter(
             actor_network, feature_extractor, output_trasnformer
-        )
+        ).export()
         self.actor_network.train()
         return predictor
 

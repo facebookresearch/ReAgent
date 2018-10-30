@@ -5,6 +5,7 @@ import logging
 
 import numpy as np
 from caffe2.python import core
+from caffe2.python.predictor.predictor_exporter import save_to_db
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 
 
@@ -71,11 +72,6 @@ class ActorPredictor(RLPredictor):
         return self.predict(float_state_features, int_state_features=None)
 
     def save(self, db_path, db_type):
-        raise NotImplementedError
-
-    @classmethod
-    def export(cls, network, feature_extractor=None, output_transformer=None):
-        pem, ws = network.get_predictor_export_meta_and_workspace(
-            feature_extractor=feature_extractor, output_transformer=output_transformer
-        )
-        return cls(pem, ws)
+        # The workspace here is expected to be the Workspace class from ONNX
+        with self.ws._ctx:
+            save_to_db(db_type, db_path, self.pem)

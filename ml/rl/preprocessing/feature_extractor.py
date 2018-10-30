@@ -173,7 +173,8 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 next_state=next_state,
                 next_action=next_action,
                 reward=reward,
-                not_terminal=None,
+                # HACK: Need a better way to check this
+                not_terminal=torch.ones_like(reward),
             )
 
         # TODO: stuff other fields in here
