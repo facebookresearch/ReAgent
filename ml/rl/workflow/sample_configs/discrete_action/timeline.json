@@ -9,10 +9,8 @@
     "numOutputShards": 1
   },
   "query": {
-    "discountFactor": 0.9,
     "tableSample": 0.5,
     "maxQLearning": true,
-    "useNonOrdinalRewardTimeline": false,
     "actions": [
       "0",
       "1"

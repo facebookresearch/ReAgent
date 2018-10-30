@@ -1,6 +1,7 @@
 # Test data
 cartpole_discrete
 cartpole_discrete_timeline
+training_data
 
 # Spark data
 metastore_db

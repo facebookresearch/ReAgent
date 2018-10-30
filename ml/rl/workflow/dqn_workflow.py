@@ -7,10 +7,7 @@ import sys
 import time
 
 import numpy as np
-import torch
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.test.gym.open_ai_gym_environment import ModelType, OpenAIGymEnvironment
-from ml.rl.test.gym.run_gym import create_predictor
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
     InTrainingCPEParameters,
@@ -44,11 +41,7 @@ DEFAULT_NUM_SAMPLES_FOR_CPE = 5000
 def train_network(params):
     writer = None
     if params["model_output_path"] is not None:
-        writer = SummaryWriter(
-            log_dir=os.path.join(
-                os.path.expanduser(params["model_output_path"]), "training_data"
-            )
-        )
+        writer = SummaryWriter(log_dir=params["model_output_path"])
 
     logger.info("Running DQN workflow with params:")
     logger.info(params)

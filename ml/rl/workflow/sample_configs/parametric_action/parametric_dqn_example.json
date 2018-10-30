@@ -1,12 +1,12 @@
 {
-  "training_data_path": "~/cartpole_training_data.json",
-  "state_norm_data_path": "~/state_features_norm.json",
-  "action_norm_data_path": "~/action_norm.json",
-  "model_output_path": "~/",
+  "training_data_path": "training_data/cartpole_training_data.json",
+  "state_norm_data_path": "training_data/state_features_norm.json",
+  "action_norm_data_path": "training_data/action_norm.json",
+  "model_output_path": "outputs/",
   "use_gpu": true,
   "use_all_avail_gpus": true,
   "norm_params": {
-    "output_dir": "~/",
+    "output_dir": "training_data/",
     "cols_to_norm": [
       "state_features",
       "action"

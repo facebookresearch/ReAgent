@@ -38,5 +38,12 @@ Now we are ready to train a model by running:
 ##### Step 5 - Evaluate Model
 Now that we have trained a new policy on the offline `Cartpole-v0` data, we can try it out to see how it does:
 ```
-./scripts/eval.sh predictor_<number>.c2
+./scripts/eval.sh outputs/predictor_<number>.c2
 ```
+##### Step 6 - Visualize Results via Tensorboard
+We can now view loss plots and CPE estimates in Tensorboard after running:
+```
+source /home/tensorboard_env/bin/activate
+tensorboard --logdir outputs/
+```
+at [localhost:6006 ](localhost:6006). When done viewing the results deactivate the virtualenv by typing `deactivate`.

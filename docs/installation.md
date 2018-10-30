@@ -1,6 +1,6 @@
 # Installation
 
-##### Docker
+### Docker (recommended)
 
 We have included a Dockerfile for the CPU-only build and CUDA build under the docker directory.
 The CUDA build will need [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) to run.
@@ -22,15 +22,15 @@ On Linux you can build the image with specific memory allocations from command l
 docker build -t horizon:dev --memory=8g --memory-swap=8g .
 ```
 
-Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume:
+Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume using the `-v` flag. We also add `-p` for port mapping so we can view Tensorboard visualizations locally.
 ```
-docker run -v /<LOCAL_PATH_TO_HORIZON>/Horizon:/home/Horizon -it horizon:dev
+docker run -v /<LOCAL_PATH_TO_HORIZON>/Horizon:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
 ```
 
 If you have SELinux (Fedora, Redhat, etc.) you will have to start docker with the following command (notice the `:Z` at the end of path):
 
 ```
-docker run -v /<LOCAL_PATH_TO_HORIZON>/Horizon:/home/Horizon:Z -it horizon:dev
+docker run -v /<LOCAL_PATH_TO_HORIZON>/Horizon:/home/Horizon:Z -p 0.0.0.0:6006:6006 -it horizon:dev
 ```
 
 Depending on where your local Horizon copy is, you may need to white list your shared path via Docker -> Preferences... -> File Sharing.
@@ -46,7 +46,7 @@ Now you can run the tests:
 python setup.py test
 ```
 
-##### Linux (Ubuntu)
+### Linux (Ubuntu)
 
 Clone repo:
 ```
