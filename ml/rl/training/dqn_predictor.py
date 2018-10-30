@@ -24,7 +24,6 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/string_single_categorical_features.values"
 class DQNPredictor(RLPredictor):
     def __init__(self, net, init_net, parameters, int_features):
         RLPredictor.__init__(self, net, init_net, parameters, int_features)
-        self.is_discrete = True
         self._output_blobs.extend(
             [
                 OUTPUT_SINGLE_CAT_KEYS_NAME,

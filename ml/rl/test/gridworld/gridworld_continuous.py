@@ -12,7 +12,7 @@ from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
-from ml.rl.test.utils import default_normalizer
+from ml.rl.test.utils import only_continuous_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class GridworldContinuous(GridworldBase):
     @property
     def normalization_action(self):
-        return default_normalizer(
+        return only_continuous_normalizer(
             [
                 x
                 for x in list(
@@ -105,6 +105,7 @@ class GridworldContinuous(GridworldBase):
         minibatch_size: int,
         use_gpu: bool = False,
         one_hot_action: bool = True,
+        normalize_actions: bool = True,
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
         samples.shuffle()
@@ -165,14 +166,16 @@ class GridworldContinuous(GridworldBase):
         states_ndarray = workspace.FetchBlob(state_matrix)
         states_ndarray = state_preprocessor.forward(states_ndarray)
 
-        actions_ndarray = workspace.FetchBlob(action_matrix)
-        actions_ndarray = action_preprocessor.forward(actions_ndarray)
+        actions_ndarray = torch.from_numpy(workspace.FetchBlob(action_matrix))
+        if normalize_actions:
+            actions_ndarray = action_preprocessor.forward(actions_ndarray)
 
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
         next_states_ndarray = state_preprocessor.forward(next_states_ndarray)
 
-        next_actions_ndarray = workspace.FetchBlob(next_action_matrix)
-        next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray)
+        next_actions_ndarray = torch.from_numpy(workspace.FetchBlob(next_action_matrix))
+        if normalize_actions:
+            next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray)
 
         logged_possible_next_actions = action_preprocessor.forward(
             workspace.FetchBlob(possible_next_actions_matrix)

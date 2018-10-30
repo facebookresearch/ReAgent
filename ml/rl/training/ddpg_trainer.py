@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+from ml.rl.preprocessing.identify_types import CONTINUOUS
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
@@ -42,8 +43,16 @@ class DDPGTrainer(RLTrainer):
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
 
+        for param in self.action_normalization_parameters.values():
+            assert param.feature_type == CONTINUOUS, (
+                "DDPG Actor features must be set to continuous (set to "
+                + param.feature_type
+                + ")"
+            )
+
         self.state_dim = get_num_output_features(state_normalization_parameters)
         self.action_dim = min_action_range_tensor_serving.shape[1]
+        self.num_features = self.state_dim + self.action_dim
 
         # Actor generates actions between -1 and 1 due to tanh output layer so
         # convert actions to range [-1, 1] before training.
@@ -83,7 +92,7 @@ class DDPGTrainer(RLTrainer):
         self.critic_params = parameters.critic_training
         self.critic_params.layers[0] = self.state_dim
         self.critic_params.layers[-1] = 1
-        self.critic = CriticNet(
+        self.critic = self.q_network = CriticNet(
             self.critic_params.layers,
             self.critic_params.activations,
             self.final_layer_init,
@@ -94,6 +103,15 @@ class DDPGTrainer(RLTrainer):
             self.critic.parameters(),
             lr=self.critic_params.learning_rate,
             weight_decay=self.critic_params.l2_decay,
+        )
+
+        # ensure state and action IDs have no intersection
+        overlapping_features = set(state_normalization_parameters.keys()) & set(
+            action_normalization_parameters.keys()
+        )
+        assert len(overlapping_features) == 0, (
+            "There are some overlapping state and action features: "
+            + str(overlapping_features)
         )
 
         RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
@@ -168,11 +186,10 @@ class DDPGTrainer(RLTrainer):
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
-        q_s1_a1 = self.critic(torch.cat((states, actions), dim=1))
+        q_s1_a1 = self.critic.forward_split(states, actions)
         next_actions = self.actor_target(next_states)
 
-        next_state_actions = torch.cat((next_states, next_actions), dim=1)
-        q_s2_a2 = self.critic_target(next_state_actions)
+        q_s2_a2 = self.critic_target.forward_split(next_states, next_actions)
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
 
         if self.use_seq_num_diff_as_time_diff:
@@ -193,7 +210,12 @@ class DDPGTrainer(RLTrainer):
 
         # Optimize the actor network subject to the following:
         # max mean(Q(s1, a1)) or min -mean(Q(s1, a1))
-        loss_actor = -self.critic(torch.cat((states, self.actor(states)), dim=1)).mean()
+        loss_actor = -(
+            self.critic.forward_split(states.detach(), self.actor(states)).mean()
+        )
+
+        # Zero out both the actor and critic gradients because we need
+        #   to backprop through the critic to get to the actor
         self.actor_optimizer.zero_grad()
         loss_actor.backward()
         self.actor_optimizer.step()
@@ -243,6 +265,7 @@ class DDPGTrainer(RLTrainer):
             return DDPGPredictor.export_actor(
                 self,
                 self.state_normalization_parameters,
+                sort_features_by_normalization(self.action_normalization_parameters)[0],
                 self.min_action_range_tensor_serving,
                 self.max_action_range_tensor_serving,
                 self._additional_feature_types.int_features,
@@ -307,6 +330,8 @@ class CriticNet(nn.Module):
             layers
         )
 
+        assert layers[-1] == 1, "Only one output node for the critic net"
+
         for i, layer in enumerate(layers[1:]):
             # Batch norm only applied to pre-action layers
             if i == 0:
@@ -335,7 +360,9 @@ class CriticNet(nn.Module):
         state_dim = self.layers[0].in_features
         state = state_action[:, :state_dim]
         action = state_action[:, state_dim:]
+        return self.forward_split(state, action)
 
+    def forward_split(self, state, action) -> torch.FloatTensor:
         x = state
         for i, activation in enumerate(self.activations):
             if i == 0:

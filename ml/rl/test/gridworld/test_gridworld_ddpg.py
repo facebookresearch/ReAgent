@@ -19,7 +19,7 @@ from ml.rl.thrift.core.ttypes import (
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 
 
-class TestGridworldContinuous(GridworldTestBase):
+class TestGridworldDdpg(GridworldTestBase):
     def setUp(self):
         self.minibatch_size = 4096
         super(self.__class__, self).setUp()
@@ -41,15 +41,16 @@ class TestGridworldContinuous(GridworldTestBase):
                 optimizer="ADAM",
             ),
             actor_training=DDPGNetworkParameters(
-                layers=[-1, 400, 300, -1],
+                layers=[-1, 256, 128, -1],
                 activations=["relu", "relu", "tanh"],
-                learning_rate=0.1,
+                learning_rate=0.05,
+                l2_decay=0.01,
             ),
             critic_training=DDPGNetworkParameters(
-                layers=[-1, 400, 300, -1],
-                activations=["relu", "relu", "tanh"],
-                learning_rate=0.1,
-                l2_decay=0.999,
+                layers=[-1, 256, 256, 128, -1],
+                activations=["relu", "relu", "relu", "linear"],
+                learning_rate=0.05,
+                l2_decay=0.01,
             ),
         )
 
@@ -66,7 +67,7 @@ class TestGridworldContinuous(GridworldTestBase):
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
         )
-        evaluator = GridworldDDPGEvaluator(environment, True, DISCOUNT, False)
+        evaluator = GridworldDDPGEvaluator(environment, DISCOUNT)
         self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
 
     def test_ddpg_trainer(self):

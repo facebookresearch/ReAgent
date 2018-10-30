@@ -24,7 +24,6 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/int_single_categorical_features.values"
 class ParametricDQNPredictor(RLPredictor):
     def __init__(self, net, init_net, parameters, int_features):
         RLPredictor.__init__(self, net, init_net, parameters, int_features)
-        self.is_discrete = False
         self._output_blobs.extend(
             [
                 OUTPUT_SINGLE_CAT_KEYS_NAME,
@@ -55,6 +54,7 @@ class ParametricDQNPredictor(RLPredictor):
         action_normalization_parameters,
         int_features=False,
         model_on_gpu=False,
+        normalize_actions=True,
     ):
         """Export caffe2 preprocessor net and pytorch DQN forward pass as one
         caffe2 net.
@@ -170,14 +170,17 @@ class ParametricDQNPredictor(RLPredictor):
             sorted_action_features,
         )
         parameters.extend(new_parameters)
-        action_normalized_dense_matrix, new_parameters = preprocessor.normalize_dense_matrix(
-            action_dense_matrix,
-            sorted_action_features,
-            action_normalization_parameters,
-            "action_norm",
-            False,
-        )
-        parameters.extend(new_parameters)
+        if normalize_actions:
+            action_normalized_dense_matrix, new_parameters = preprocessor.normalize_dense_matrix(
+                action_dense_matrix,
+                sorted_action_features,
+                action_normalization_parameters,
+                "action_norm",
+                False,
+            )
+            parameters.extend(new_parameters)
+        else:
+            action_normalized_dense_matrix = action_dense_matrix
 
         state_action_normalized = "state_action_normalized"
         state_action_normalized_dim = "state_action_normalized_dim"

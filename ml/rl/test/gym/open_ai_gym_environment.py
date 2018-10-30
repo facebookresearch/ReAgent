@@ -10,7 +10,7 @@ from ml.rl.test.gym.gym_predictor import (
     GymDQNPredictor,
     GymDQNPredictorPytorch,
 )
-from ml.rl.test.utils import default_normalizer
+from ml.rl.test.utils import default_normalizer, only_continuous_normalizer
 from ml.rl.training.dqn_predictor import DQNPredictor
 
 
@@ -99,7 +99,7 @@ class OpenAIGymEnvironment:
 
     @property
     def normalization_action(self):
-        return default_normalizer(
+        return only_continuous_normalizer(
             [x for x in list(range(self.state_dim, self.state_dim + self.action_dim))]
         )
 

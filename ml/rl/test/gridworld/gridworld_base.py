@@ -430,6 +430,8 @@ class GridworldBase(object):
         )
         pool = multiprocessing.Pool(processes=NUM_PROCESSES)
         res = pool.map(func, list(zip(sub_transitions_map, seed)))
+        pool.close()
+        pool.join()
 
         merge = Samples(
             mdp_ids=[],

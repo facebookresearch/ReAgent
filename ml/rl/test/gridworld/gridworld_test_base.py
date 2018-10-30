@@ -62,9 +62,8 @@ class GridworldTestBase(unittest.TestCase):
             # Make sure actor predictor works
             actor = trainer.predictor(actor=True)
             # Make sure all actions are optimal
-            error = evaluator.evaluate_optimal_actions(actor, thres=0.2)
+            error = evaluator.evaluate_actor(actor, thres=0.2)
             print("gridworld optimal action match MAE: {0:.3f}".format(error))
-            evaluator.evaluate_actor(actor)
 
         predictor = exporter.export()
         predictorClass = predictor.__class__

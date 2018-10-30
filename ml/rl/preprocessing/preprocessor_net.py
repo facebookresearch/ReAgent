@@ -390,7 +390,10 @@ class PreprocessorNet:
         on_feature_type = -1
         for i, feature in enumerate(features):
             assert normalization_parameters.get(feature, None) is not None, (
-                "feature " + str(feature) + " not found in normalization_parameters!"
+                "feature "
+                + str(feature)
+                + " not found in normalization_parameters: "
+                + str(normalization_parameters.keys())
             )
             feature_type = normalization_parameters[feature].feature_type
             feature_type_index = FEATURE_TYPES.index(feature_type)

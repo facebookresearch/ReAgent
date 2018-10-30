@@ -51,7 +51,6 @@ class RLPredictor:
             "output/string_weighted_multi_categorical_features.values.values",
         ]
         self._parameters = parameters
-        self.is_discrete = None
         self.ws = ws or workspace
 
     @property
