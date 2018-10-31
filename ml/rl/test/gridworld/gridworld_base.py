@@ -11,7 +11,6 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
-import torch.multiprocessing as multiprocessing
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
@@ -416,56 +415,9 @@ class GridworldBase(object):
             results.append(self.reward(next_state))
         return np.array(results).reshape(-1, 1)
 
-    def generate_samples_discrete(  # multiprocessing
+    def generate_samples_discrete(
         self, num_transitions, epsilon, discount_factor
     ) -> Samples:
-        NUM_PROCESSES = 2
-        sub_transitions = int(num_transitions / NUM_PROCESSES)
-        sub_transitions_map = [sub_transitions] * NUM_PROCESSES
-        seed = list(range(NUM_PROCESSES))
-        func = partial(
-            self.generate_samples_discrete_internal,
-            epsilon=epsilon,
-            discount_factor=discount_factor,
-        )
-        pool = multiprocessing.Pool(processes=NUM_PROCESSES)
-        res = pool.map(func, list(zip(sub_transitions_map, seed)))
-        pool.close()
-        pool.join()
-
-        merge = Samples(
-            mdp_ids=[],
-            sequence_numbers=[],
-            states=[],
-            actions=[],
-            action_probabilities=[],
-            rewards=[],
-            possible_actions=[],
-            next_states=[],
-            next_actions=[],
-            terminals=[],
-            possible_next_actions=[],
-        )
-        for s in res:
-            merge.mdp_ids += s.mdp_ids
-            merge.sequence_numbers += s.sequence_numbers
-            merge.states += s.states
-            merge.actions += s.actions
-            merge.action_probabilities += s.action_probabilities
-            merge.rewards += s.rewards
-            merge.possible_actions += s.possible_actions
-            merge.next_states += s.next_states
-            merge.next_actions += s.next_actions
-            merge.terminals += s.terminals
-            merge.possible_next_actions += s.possible_next_actions
-        return merge
-
-    def generate_samples_discrete_internal(
-        self, num_transitions_seed_pair, epsilon, discount_factor
-    ) -> Samples:
-        num_transitions = num_transitions_seed_pair[0]
-        seed = num_transitions_seed_pair[1]
-
         # Initialize lists
         states: List[Dict[int, float]] = [{}] * num_transitions
         actions: List[str] = [""] * num_transitions
@@ -486,8 +438,7 @@ class GridworldBase(object):
         transition = 0
         mdp_id = -1
         sequence_number = 0
-        np.random.seed(seed)
-        random.seed(seed)
+
         # We run until we finish the episode that completes N transitions, but
         # we may have to go beyond N to reach the end of that episode
         while not terminal or transition < num_transitions:

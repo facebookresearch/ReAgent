@@ -5,11 +5,7 @@ import enum
 
 import gym
 import numpy as np
-from ml.rl.test.gym.gym_predictor import (
-    GymDDPGPredictor,
-    GymDQNPredictor,
-    GymDQNPredictorPytorch,
-)
+from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
 from ml.rl.test.utils import default_normalizer, only_continuous_normalizer
 from ml.rl.training.dqn_predictor import DQNPredictor
 
@@ -116,7 +112,7 @@ class OpenAIGymEnvironment:
         next_state = np.expand_dims(next_state.astype(np.float32), axis=0)
         action = np.zeros([self.action_dim], dtype=np.float32)
 
-        if isinstance(predictor, (GymDQNPredictor, GymDQNPredictorPytorch)):
+        if isinstance(predictor, GymDQNPredictor):
             if not test and np.random.rand() < self.epsilon:
                 action_idx = np.random.randint(self.action_dim)
             else:

@@ -4,15 +4,15 @@
 import logging
 import unittest
 
-import numpy as np
-from caffe2.python import workspace
+import torch
 from ml.rl.test.constant_reward.env import Env
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
+    RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer
 
 
 logger = logging.getLogger(__name__)
@@ -40,6 +40,9 @@ class TestConstantReward(unittest.TestCase):
                 reward_burnin=100,
                 maxq_learning=True,
             ),
+            rainbow=RainbowDQNParameters(
+                double_q_learning=True, dueling_architecture=False
+            ),
             training=TrainingParameters(
                 layers=self.layers,
                 activations=self.activations,
@@ -48,8 +51,7 @@ class TestConstantReward(unittest.TestCase):
                 optimizer="ADAM",
             ),
         )
-        maxq_trainer = DiscreteActionTrainer(maxq_parameters, env.normalization)
-        # predictor = maxq_trainer.predictor()
+        maxq_trainer = DQNTrainer(maxq_parameters, env.normalization)
 
         logger.info("Generating constant_reward MDPs..")
 
@@ -73,24 +75,20 @@ class TestConstantReward(unittest.TestCase):
         for epoch in range(self.epochs):
             logger.info("Training.. " + str(epoch))
             for tdp in tdps:
-                maxq_trainer.train_numpy(tdp, None)
+                maxq_trainer.train(tdp, None)
             logger.info(
                 " ".join(
                     [
                         "Training epoch",
                         str(epoch),
                         "average q values",
-                        str(np.mean(workspace.FetchBlob(maxq_trainer.q_score_output))),
-                        "td_loss",
-                        str(workspace.FetchBlob(maxq_trainer.loss_blob)),
+                        str(torch.mean(maxq_trainer.all_action_scores)),
                     ]
                 )
             )
 
         # Q value should converge to very close to 100
-        avg_q_value_after_training = np.mean(
-            workspace.FetchBlob(maxq_trainer.q_score_output)
-        )
+        avg_q_value_after_training = torch.mean(maxq_trainer.all_action_scores)
 
         self.assertLess(avg_q_value_after_training, 101)
         self.assertGreater(avg_q_value_after_training, 99)
