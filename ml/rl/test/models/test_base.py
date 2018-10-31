@@ -190,7 +190,7 @@ class TestBase(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             db_path = os.path.join(tmpdirname, "model")
-            logger.info("DB path: ", db_path)
+            logger.info("DB path: {}".format(db_path))
             db_type = "minidb"
             with ws._ctx:
                 save_to_db(db_type, db_path, pem)
