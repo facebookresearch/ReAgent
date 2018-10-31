@@ -21,4 +21,5 @@ Detailed instructions on how to use Horizon can be found [here](docs/usage.md).
 #### License
 Horizon is released under a BSD license.  Find out more about it [here](LICENSE).
 
-![Logo](logo/horizon_logo.png)
+<img src="logo/horizon_logo.png" alt="Logo" width="200"/>
+
