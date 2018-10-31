@@ -2,17 +2,18 @@
   "env": "CartPole-v0",
   "model_type": "pytorch_discrete_dqn",
   "max_replay_memory_size": 10000,
+  "use_gpu": false,
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.2,
     "reward_burnin": 1,
     "maxq_learning": 1,
-    "epsilon": 0.2,
+    "epsilon": 0.5,
     "temperature": 0.35,
     "softmax_policy": 0
   },
   "rainbow": {
-    "double_q_learning": true,
+    "double_q_learning": false,
     "dueling_architecture": false
   },
   "training": {
@@ -30,16 +31,17 @@
     "minibatch_size": 64,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
-    "lr_decay": 0.999
+    "lr_decay": 0.999,
+    "use_noisy_linear_layers": false
   },
   "run_details": {
-    "num_episodes": 5001,
+    "num_episodes": 100,
     "max_steps": 200,
     "train_every_ts": 1,
     "train_after_ts": 1,
     "test_every_ts": 2000,
     "test_after_ts": 1,
-    "num_train_batches": 1000,
+    "num_train_batches": 1,
     "avg_over_num_episodes": 100
   }
 }

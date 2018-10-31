@@ -1,5 +1,7 @@
+// Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.rl
 
+import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql._
@@ -8,16 +10,16 @@ import org.apache.spark.sql.functions.udf
 
 case class Configuration(timeline: TimelineConfiguration, query: QueryConfiguration)
 
-case class QueryConfiguration(discountFactor: Double = 0.9,
-                              tableSample: Double = 1.0,
+case class QueryConfiguration(tableSample: Double = 1.0,
                               maxQLearning: Boolean = true,
-                              useNonOrdinalRewardTimeline: Boolean = false,
                               actions: Array[String] = Array())
 
 object Preprocessor {
+
+  private val log = LoggerFactory.getLogger(this.getClass.getName)
+
   def main(args: Array[String]) {
     val sparkSession = SparkSession.builder().enableHiveSupport().getOrCreate()
-    sparkSession.sqlContext.udf.register("COMPUTE_EPISODE_VALUE", Udfs.getEpisodeValue[Double] _)
 
     val configJson = args(0)
 
@@ -47,7 +49,8 @@ object Preprocessor {
         StructField("state_features", MapType(StringType, DoubleType, true)),
         actionSchema,
         StructField("reward", DoubleType),
-        possibleActionSchema
+        possibleActionSchema,
+        StructField("metrics", MapType(StringType, DoubleType, true))
       ))
 
     val inputDf = sparkSession.read.schema(schema).json(timelineConfig.inputTableName)
@@ -60,13 +63,20 @@ object Preprocessor {
       Query.getContinuousQuery(queryConfig)
     }
 
+    val sqlCommand = query.concat(
+      s" FROM ${timelineConfig.outputTableName} where rand() <= ${queryConfig.tableSample}")
+
+    log.info("Executing query: ")
+    log.info(sqlCommand)
+
     // Query the results
-    val outputDf = sparkSession.sql(
-      query.concat(
-        s" FROM ${timelineConfig.outputTableName} where rand() <= ${queryConfig.tableSample}"))
+    val outputDf = sparkSession.sql(sqlCommand)
 
     outputDf.show()
-    outputDf.write.json(timelineConfig.outputTableName)
+    outputDf
+      .repartition(timelineConfig.numOutputShards)
+      .write
+      .json(timelineConfig.outputTableName)
     sparkSession.stop()
   }
 }

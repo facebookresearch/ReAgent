@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 from copy import deepcopy
-from typing import Dict, Optional
+from typing import Dict
 
 import numpy as np
 import torch
@@ -18,7 +19,7 @@ from ml.rl.thrift.core.ttypes import (
     AdditionalFeatureTypes,
     ContinuousActionModelParameters,
 )
-from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.parametric_inner_product import ParametricInnerProduct
 from ml.rl.training.rl_trainer_pytorch import (
@@ -94,7 +95,9 @@ class ParametricDQNTrainer(RLTrainer):
         self.q_network_target = deepcopy(self.q_network)
         self._set_optimizer(parameters.training.optimizer)
         self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(), lr=parameters.training.learning_rate
+            self.q_network.parameters(),
+            lr=parameters.training.learning_rate,
+            weight_decay=parameters.training.l2_decay,
         )
 
         self.reward_network = FullyConnectedNetwork(
@@ -123,7 +126,9 @@ class ParametricDQNTrainer(RLTrainer):
             )
         elif training_parameters.factorization_parameters is None:
             return FullyConnectedNetwork(
-                training_parameters.layers, training_parameters.activations
+                training_parameters.layers,
+                training_parameters.activations,
+                use_noisy_linear_layers=training_parameters.use_noisy_linear_layers,
             )
         else:
             return ParametricInnerProduct(
@@ -212,9 +217,7 @@ class ParametricDQNTrainer(RLTrainer):
     def get_next_action_q_values(self, state_action_pairs):
         return self.q_network_target(state_action_pairs)
 
-    def train(
-        self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
-    ) -> None:
+    def train(self, training_samples: TrainingDataPage, evaluator=None) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert (
@@ -226,11 +229,6 @@ class ParametricDQNTrainer(RLTrainer):
             assert training_samples.rewards.shape == torch.Size(
                 [self.minibatch_size, 1]
             ), "Invalid shape: " + str(training_samples.rewards.shape)
-            assert (
-                training_samples.episode_values is None
-                or training_samples.episode_values.shape
-                == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.episode_values.shape)
             assert (
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)
@@ -288,7 +286,8 @@ class ParametricDQNTrainer(RLTrainer):
 
         # Get Q-value of action taken
         q_values = self.q_network(state_action_pairs)
-        self.all_action_scores = q_values.detach()
+        all_action_scores = q_values.detach()
+        self.model_values_on_logged_actions = q_values.detach()
 
         value_loss = self.q_network_loss(q_values, target_q_values)
         self.loss = value_loss.detach()
@@ -314,32 +313,11 @@ class ParametricDQNTrainer(RLTrainer):
         self.reward_network_optimizer.step()
 
         if evaluator is not None:
-            self.evaluate(
-                evaluator,
-                training_samples.actions,
-                training_samples.propensities,
-                training_samples.episode_values,
+            cpe_stats = BatchStatsForCPE(
+                td_loss=self.loss.cpu().numpy(),
+                model_values_on_logged_actions=all_action_scores.cpu().numpy(),
             )
-
-    def evaluate(
-        self,
-        evaluator: Evaluator,
-        logged_actions: Optional[torch.Tensor],
-        logged_propensities: Optional[torch.Tensor],
-        logged_values: Optional[torch.Tensor],
-    ):
-        evaluator.report(
-            self.loss.cpu().numpy(),
-            None,
-            None,
-            None,
-            logged_values.cpu().numpy() if logged_values is not None else None,
-            None,
-            None,
-            None,
-            self.all_action_scores.cpu().numpy(),
-            None,
-        )
+            evaluator.report(cpe_stats)
 
     def predictor(self) -> ParametricDQNPredictor:
         """Builds a ParametricDQNPredictor."""
@@ -350,3 +328,6 @@ class ParametricDQNTrainer(RLTrainer):
             self._additional_feature_types.int_features,
             self.use_gpu,
         )
+
+    def export(self) -> ParametricDQNPredictor:
+        return self.predictor()

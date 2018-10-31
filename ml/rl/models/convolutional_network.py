@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 import math
@@ -15,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 class ConvolutionalNetwork(nn.Module):
-    def __init__(self, cnn_parameters, layers, activations) -> None:
+    def __init__(
+        self, cnn_parameters, layers, activations, use_noisy_linear_layers=False
+    ) -> None:
         super(ConvolutionalNetwork, self).__init__()
         self.conv_dims = cnn_parameters.conv_dims
         self.conv_height_kernels = cnn_parameters.conv_height_kernels
@@ -50,7 +53,9 @@ class ConvolutionalNetwork(nn.Module):
         conv_out = self.conv_forward(torch.ones(1, *input_size))
         self.fc_input_dim = int(np.prod(conv_out.size()[1:]))
         layers[0] = self.fc_input_dim
-        self.feed_forward = FullyConnectedNetwork(layers, activations)
+        self.feed_forward = FullyConnectedNetwork(
+            layers, activations, use_noisy_linear_layers=use_noisy_linear_layers
+        )
 
     def conv_forward(self, input):
         x = input

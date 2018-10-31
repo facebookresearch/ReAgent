@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import hashlib
 import itertools
@@ -14,6 +15,20 @@ from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+class BatchStatsForCPE(NamedTuple):
+    td_loss: Optional[np.ndarray] = None
+    logged_actions: Optional[np.ndarray] = None
+    logged_propensities: Optional[np.ndarray] = None
+    logged_rewards: Optional[np.ndarray] = None
+    logged_values: Optional[np.ndarray] = None
+    model_propensities: Optional[np.ndarray] = None
+    model_rewards: Optional[np.ndarray] = None
+    model_values: Optional[np.ndarray] = None
+    model_values_on_logged_actions: Optional[np.ndarray] = None
+    model_action_idxs: Optional[np.ndarray] = None
 
 
 class CPE_Estimate(NamedTuple):
@@ -30,10 +45,19 @@ class DiscreteActionSample:
         "reward",
         "propensity",
         "terminal",
+        "model_reward",
     ]
 
     def __init__(
-        self, mdp_id, sequence_number, state, action, reward, propensity, terminal
+        self,
+        mdp_id,
+        sequence_number,
+        state,
+        action,
+        reward,
+        propensity,
+        terminal,
+        model_reward,
     ):
         self.mdp_id = mdp_id
         self.sequence_number = sequence_number
@@ -42,6 +66,7 @@ class DiscreteActionSample:
         self.reward = reward
         self.propensity = propensity
         self.terminal = terminal
+        self.model_reward = model_reward
 
 
 class ParametricActionSample:
@@ -107,7 +132,7 @@ class Evaluator(object):
         self.logged_rewards_batches: List[np.ndarray] = []
         self.logged_values_batches: List[np.ndarray] = []
         self.model_propensities_batches: List[np.ndarray] = []
-        self.model_rewards_batches: List[np.ndaary] = []
+        self.model_rewards_batches: List[np.ndarray] = []
         self.model_values_batches: List[np.ndarray] = []
         self.model_values_on_logged_actions_batches: List[np.ndarray] = []
         self.model_action_idxs_batches: List[np.ndarray] = []
@@ -140,42 +165,23 @@ class Evaluator(object):
         self.unshuffled_target_propensities = np.array([])
         self.unshuffled_estimated_q_values = np.array([])
 
-    def report(
-        self,
-        td_loss,
-        logged_actions,
-        logged_propensities,
-        logged_rewards,
-        logged_values,
-        model_propensities,
-        model_rewards,
-        model_values,
-        model_values_on_logged_actions,
-        model_action_idxs,
-    ):
-        input_list = [
-            td_loss,
-            logged_actions,
-            logged_propensities,
-            logged_rewards,
-            logged_values,
-            model_propensities,
-            model_rewards,
-            model_values,
-            model_values_on_logged_actions,
-            model_action_idxs,
-        ]
-        for i, input in enumerate(input_list):
+    def report(self, cpe_stats):
+        for i, input_name in enumerate(cpe_stats._fields):
+            input = getattr(cpe_stats, input_name, None)
             if input is None:
                 assert (
                     len(self.all_batches[i]) == 0
-                ), "Missing a batch.  Either omit completely or fill every time"
+                ), "{} missing in a batch.  Either omit completely or fill every time".format(
+                    input_name
+                )
             else:
                 self.all_batches[i].append(input)
 
         if len(self.td_loss_batches) >= self.evaluator_batch_size:
             self.evaluate_batch()
             self.clear_evaluation_containers()
+            # Save last batch for end of training eval on last batch
+            self.last_batch = cpe_stats
 
     def clear_evaluation_containers(self):
         for batch in self.all_batches:
@@ -188,9 +194,10 @@ class Evaluator(object):
                 merged_inputs.append(np.vstack(batch))
             else:
                 merged_inputs.append(None)
-        td_loss, logged_actions, logged_propensities, logged_rewards, logged_values, model_propensities, model_rewards, model_values, model_values_on_logged_actions, model_action_idxs = (
-            merged_inputs
-        )
+
+        td_loss = merged_inputs[0]
+        logged_actions = merged_inputs[1]
+        model_action_idxs = merged_inputs[9]
 
         logger.info("Evaluating on {} batches".format(len(self.td_loss_batches)))
         print_details = "Evaluator:\n"
@@ -198,64 +205,6 @@ class Evaluator(object):
             td_loss_mean = float(np.mean(td_loss))
             self.td_loss.append(td_loss_mean)
             print_details = print_details + "TD LOSS: {0:.3f}\n".format(td_loss_mean)
-        if logged_values is not None:
-            mc_loss = float(
-                np.mean(np.abs(logged_values - model_values_on_logged_actions))
-            )
-            self.mc_loss.append(mc_loss)
-            print_details = print_details + "MC LOSS: {0:.3f}\n".format(mc_loss)
-
-        if (
-            logged_actions is not None
-            and model_propensities is not None
-            and model_values is not None
-            and model_rewards is not None
-        ):
-            if logged_propensities is None:
-                # Assume a deterministic model
-                logged_propensities = np.ones(logged_values.shape)
-
-            r_ips, r_dm, r_dr = self.doubly_robust_one_step_policy_estimation(
-                logged_actions,
-                logged_rewards,
-                logged_propensities,
-                model_propensities,
-                model_rewards,
-            )
-            self.reward_inverse_propensity_score.append(r_ips)
-            self.reward_direct_method.append(r_dm)
-            self.reward_doubly_robust.append(r_dr)
-
-            print_details += "Reward Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}\n".format(
-                r_ips.normalized, r_ips.raw
-            )
-            print_details += "Reward Direct Method            : normalized {0:.3f} raw {1:.3f}\n".format(
-                r_dm.normalized, r_dm.raw
-            )
-            print_details += "Reward Doubly Robust P.E.       : normalized {0:.3f} raw {1:.3f}\n".format(
-                r_dr.normalized, r_dr.raw
-            )
-
-            v_ips, v_dm, v_dr = self.doubly_robust_one_step_policy_estimation(
-                logged_actions,
-                logged_values,
-                logged_propensities,
-                model_propensities,
-                model_values,
-            )
-            self.value_inverse_propensity_score.append(v_ips)
-            self.value_direct_method.append(v_dm)
-            self.value_doubly_robust.append(v_dr)
-
-            print_details += "Value Inverse Propensity Score    : normalized {0:.3f} raw {1:.3f}\n".format(
-                v_ips.normalized, v_ips.raw
-            )
-            print_details += "Value Direct Method               : normalized {0:.3f} raw {1:.3f}\n".format(
-                v_dm.normalized, v_dm.raw
-            )
-            print_details += "Value One-Step Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}\n".format(
-                v_dr.normalized, v_dr.raw
-            )
 
         if logged_actions is not None and model_action_idxs is not None:
             logged_action_counter = Counter(np.argmax(logged_actions, axis=1))
@@ -294,6 +243,7 @@ class Evaluator(object):
         logged_rewards,
         logged_propensities,
         logged_terminals,
+        model_rewards,
     ):
         for i in range(len(mdp_ids)):
             mdp_id = mdp_ids[i]
@@ -307,6 +257,7 @@ class Evaluator(object):
                         reward=logged_rewards[i],
                         propensity=logged_propensities[i],
                         terminal=logged_terminals[i],
+                        model_reward=model_rewards[i],
                     )
                 )
 
@@ -380,6 +331,10 @@ class Evaluator(object):
             self.unshuffled_actions = np.array(
                 [x.action for x in self.unshuffled_samples]
             )
+            self.unshuffled_model_rewards = np.array(
+                [x.model_reward for x in self.unshuffled_samples]
+            )
+
         else:
             unshuffled_possible_state_actions = torch.tensor(
                 np.array(
@@ -420,6 +375,7 @@ class Evaluator(object):
             self.unshuffled_actions = (
                 q_value_for_logged_state_action == self.unshuffled_estimated_q_values
             ).astype(np.int64)
+            self.unshuffled_model_rewards = None
 
         self.unshuffled_target_propensities = Evaluator.softmax(
             self.unshuffled_estimated_q_values, self.model.rl_temperature
@@ -434,7 +390,13 @@ class Evaluator(object):
         self.unshuffled_target_propensities = np.array([])
         self.unshuffled_estimated_q_values = np.array([])
 
-    def score_cpe(self):
+    def get_mc_loss(self, logged_values, model_values_on_logged_actions):
+        return float(np.mean(np.abs(logged_values - model_values_on_logged_actions)))
+
+    def score_cpe(self, gamma):
+        # Evaluate last batch so can see final td loss and action distribution
+        self.evaluate_batch()
+
         if len(self.unshuffled_samples) == 0 or len(self.unshuffled_actions) == 0:
             return
 
@@ -493,6 +455,81 @@ class Evaluator(object):
             self.unshuffled_target_propensities.shape[1]
             == self.unshuffled_actions.shape[1]
         )
+
+        logged_values = Evaluator.compute_episode_value_from_samples(
+            self.unshuffled_samples, gamma
+        )
+        model_values_on_logged_actions = np.sum(
+            self.unshuffled_actions * self.unshuffled_estimated_q_values, axis=1
+        )
+        mc_loss = self.get_mc_loss(logged_values, model_values_on_logged_actions)
+        self.mc_loss.append(mc_loss)
+        logger.info("MC Loss : {0:.3f}".format(mc_loss))
+
+        if (
+            self.unshuffled_actions is not None
+            and self.unshuffled_target_propensities is not None
+            and self.unshuffled_estimated_q_values is not None
+            and self.unshuffled_model_rewards is not None
+        ):
+
+            if self.unshuffled_logged_propensities is None:
+                # Assume a deterministic model
+                self.unshuffled_logged_propensities = np.ones(logged_values.shape)
+
+            r_ips, r_dm, r_dr = self.doubly_robust_one_step_policy_estimation(
+                self.unshuffled_actions,
+                self.unshuffled_rewards,
+                self.unshuffled_logged_propensities,
+                self.unshuffled_target_propensities,
+                self.unshuffled_model_rewards,
+            )
+            self.reward_inverse_propensity_score.append(r_ips)
+            self.reward_direct_method.append(r_dm)
+            self.reward_doubly_robust.append(r_dr)
+
+            logger.info(
+                "Reward Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}\n".format(
+                    r_ips.normalized, r_ips.raw
+                )
+            )
+            logger.info(
+                "Reward Direct Method : normalized {0:.3f} raw {1:.3f}".format(
+                    r_dm.normalized, r_dm.raw
+                )
+            )
+            logger.info(
+                "Reward Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
+                    r_dr.normalized, r_dr.raw
+                )
+            )
+
+            v_ips, v_dm, v_dr = self.doubly_robust_one_step_policy_estimation(
+                self.unshuffled_actions,
+                logged_values,
+                self.unshuffled_logged_propensities,
+                self.unshuffled_target_propensities,
+                self.unshuffled_estimated_q_values,
+            )
+            self.value_inverse_propensity_score.append(v_ips)
+            self.value_direct_method.append(v_dm)
+            self.value_doubly_robust.append(v_dr)
+
+            logger.info(
+                "Value Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}".format(
+                    v_ips.normalized, v_ips.raw
+                )
+            )
+            logger.info(
+                "Value Direct Method : normalized {0:.3f} raw {1:.3f}".format(
+                    v_dm.normalized, v_dm.raw
+                )
+            )
+            logger.info(
+                "Value One-Step Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
+                    v_dr.normalized, v_dr.raw
+                )
+            )
 
         sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
             self.unshuffled_actions,
@@ -558,6 +595,28 @@ class Evaluator(object):
             self.mc_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
         )
 
+    def get_recent_logged_actions(self):
+        arr = self.logged_actions_batches
+        action_counter = Counter()
+        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+            action_counter.update(Counter(np.argmax(actions, axis=1)))
+        total_actions = 1.0 * sum(action_counter.values())
+        return {
+            action_name: (action_counter[i] / total_actions)
+            for i, action_name in enumerate(self.action_names)
+        }
+
+    def get_recent_model_actions(self):
+        arr = self.model_action_idxs_batches
+        action_counter = Counter()
+        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+            action_counter.update(Counter(actions.reshape(-1)))
+        total_actions = 1.0 * sum(action_counter.values())
+        return {
+            action_name: (action_counter[i] / total_actions)
+            for i, action_name in enumerate(self.action_names)
+        }
+
     def get_recent_reward_inverse_propensity_score(self):
         ips = Evaluator.calculate_recent_window_average(
             self.reward_inverse_propensity_score,
@@ -613,6 +672,17 @@ class Evaluator(object):
                 return float("nan")
             else:
                 return [float("nan")] * num_entries
+
+    def get_target_distribution_error(
+        self, actions, target_distribution, actual_distribution
+    ):
+        """Calculate MSE between actual and target action distribution."""
+        if not target_distribution:
+            return None
+        error = 0
+        for i, action in enumerate(actions):
+            error += (target_distribution[i] - actual_distribution[action]) ** 2
+        return error / len(actions)
 
     def doubly_robust_one_step_policy_estimation(
         self,
@@ -1081,3 +1151,28 @@ class Evaluator(object):
             return abs(label - output) - 0.5
         else:
             return 0.5 * (label - output) * (label - output)
+
+    @staticmethod
+    def compute_episode_value_from_samples(samples, gamma):
+        """Computes the episode values (aka reward timeline) from a set
+        of sorted mdp samples."""
+
+        num_samples = len(samples)
+        timeline = np.zeros(num_samples)
+        for i in range(num_samples - 1, -1, -1):
+            curr_mdp = samples[i]
+            if i == 0:
+                # First entry in list, add reward undiscounted
+                timeline[i] += samples[i].reward
+            else:
+                prev_mdp_id = i
+                while prev_mdp_id >= 0:
+                    prev_mdp = samples[prev_mdp_id]
+                    if prev_mdp.mdp_id == curr_mdp.mdp_id:
+                        time_diff = curr_mdp.sequence_number - prev_mdp.sequence_number
+                        assert time_diff >= 0, "MDP should be sorted."
+                        timeline[prev_mdp_id] += curr_mdp.reward * (gamma ** time_diff)
+                        prev_mdp_id -= 1
+                    else:
+                        break
+        return timeline

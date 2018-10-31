@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from typing import List, Tuple
 
 import numpy as np
+import torch
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -38,7 +40,6 @@ class Env(object):
         List[np.ndarray],
         List[bool],
         List[np.ndarray],
-        List[float],
     ]:
 
         states: List[np.ndarray] = []
@@ -48,7 +49,6 @@ class Env(object):
         next_actions: List[np.ndarray] = []
         terminals: List[bool] = []
         possible_next_actions: List[np.ndarray] = []
-        episode_values: List[float] = []
 
         state = self.np_random.uniform(low=-1, high=-1, size=(self.state_dims))
         action = np.zeros(self.action_dims)
@@ -72,7 +72,6 @@ class Env(object):
             next_actions.append(next_action)
             terminals.append(False)
             possible_next_actions.append(np.ones(self.action_dims))
-            episode_values.append(1 / (1 - self.gamma))
 
             state = next_state
             action = next_action
@@ -85,7 +84,6 @@ class Env(object):
             next_actions,
             terminals,
             possible_next_actions,
-            episode_values,
         )
 
     def preprocess_samples_discrete(
@@ -97,7 +95,6 @@ class Env(object):
         next_actions: List[np.ndarray],
         terminals: List[bool],
         possible_next_actions: List[np.ndarray],
-        episode_values: List[float],
         minibatch_size: int,
     ) -> List[TrainingDataPage]:
         # Shuffle
@@ -110,15 +107,15 @@ class Env(object):
                 next_actions,
                 terminals,
                 possible_next_actions,
-                episode_values,
             )
         )
         self.np_random.shuffle(merged)
-        states, actions, rewards, next_states, next_actions, terminals, possible_next_actions, episode_values = zip(
+        states, actions, rewards, next_states, next_actions, terminals, possible_next_actions = zip(
             *merged
         )
 
         not_terminals = np.logical_not(terminals).reshape(-1, 1)
+        time_diffs = torch.ones([len(states), 1], dtype=torch.float32)
 
         tdps = []
         for start in range(0, len(states), minibatch_size):
@@ -127,21 +124,26 @@ class Env(object):
                 break
             tdps.append(
                 TrainingDataPage(
-                    states=np.array(states[start:end], dtype=np.float32),
-                    actions=np.array(actions[start:end], dtype=np.float32),
-                    propensities=np.ones([end - start, 1]),
-                    rewards=np.array(rewards[start:end], dtype=np.float32).reshape(
-                        -1, 1
-                    ),
-                    next_states=np.array(next_states[start:end], dtype=np.float32),
-                    next_actions=np.array(next_actions[start:end], dtype=np.float32),
-                    possible_next_actions=np.array(
-                        possible_next_actions[start:end], dtype=np.float32
-                    ),
-                    episode_values=np.array(
-                        episode_values[start:end], dtype=np.float32
+                    states=torch.tensor(states[start:end], dtype=torch.float32),
+                    actions=torch.tensor(actions[start:end], dtype=torch.float32),
+                    propensities=torch.ones([end - start, 1], dtype=torch.float32),
+                    rewards=torch.tensor(
+                        rewards[start:end], dtype=torch.float32
                     ).reshape(-1, 1),
-                    not_terminals=not_terminals[start:end],
+                    next_states=torch.tensor(
+                        next_states[start:end], dtype=torch.float32
+                    ),
+                    next_actions=torch.tensor(
+                        next_actions[start:end], dtype=torch.float32
+                    ),
+                    possible_next_actions=torch.tensor(
+                        possible_next_actions[start:end], dtype=torch.float32
+                    ),
+                    not_terminals=torch.tensor(
+                        not_terminals[start:end].astype(np.float32), dtype=torch.float32
+                    ),
+                    time_diffs=time_diffs[start:end],
                 )
             )
+            tdps[-1].set_type(torch.FloatTensor)
         return tdps

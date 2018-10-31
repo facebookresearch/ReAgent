@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import json
 import logging
@@ -20,7 +21,6 @@ from ml.rl.workflow.training_data_reader import JSONDataset
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
 
 NORMALIZATION_BATCH_READ_SIZE = 50000
 
@@ -49,7 +49,7 @@ def get_norm_metadata(dataset, norm_params, norm_col):
     samples_per_feature, samples = defaultdict(int), defaultdict(list)
 
     while not done:
-        if not batch or len(batch[norm_col]) == 0:
+        if batch is None or len(batch[norm_col]) == 0:
             logger.info("No more data in training data. Breaking.")
             break
 
@@ -93,7 +93,7 @@ def get_norm_params(norm_params):
             "quantile_k2_threshold", DEFAULT_QUANTILE_K2_THRESHOLD
         ),
         "skip_box_cox": norm_params.get("skip_box_cox", False),
-        "skip_quantiles": norm_params.get("skip_quantiles", False),
+        "skip_quantiles": True,  # Skipping quantiles helps performance in OpenAI Gym Cartpole-v0
         "feature_overrides": norm_params.get("feature_overrides", None),
         "cols_to_norm": norm_params["cols_to_norm"],
         "output_dir": norm_params["output_dir"],

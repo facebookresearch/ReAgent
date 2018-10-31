@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 """
 EXPERIMENTAL
@@ -42,9 +43,23 @@ DiscreteAction = ValueType
 
 ParametricAction = FeatureVector
 
+
+class ActorOutput(NamedTuple):
+    action: ValueType
+    log_prob: Optional[ValueType] = None
+
+
 Action = Union[DiscreteAction, ParametricAction]
 
 State = FeatureVector
+
+
+class StateInput(NamedTuple):
+    """
+    This class makes it easier to plug modules into predictor
+    """
+
+    state: State
 
 
 class StateAction(NamedTuple):
@@ -65,10 +80,11 @@ class StatePossibleActions(NamedTuple):
 class MaxQLearningInput(NamedTuple):
     state: State
     action: Action
-    next_state: State
+    next_state: Optional[State]  # Available in case of discrete action
+    tiled_next_state: Optional[State]  # Available in case of parametric action
     possible_next_actions: PossibleActions
     reward: ValueType
-    is_terminal: ValueType
+    not_terminal: ValueType
 
 
 class SARSAInput(NamedTuple):
@@ -77,9 +93,29 @@ class SARSAInput(NamedTuple):
     next_state: State
     next_action: Action
     reward: ValueType
-    is_terminal: ValueType
+    not_terminal: ValueType
+
+
+class ExtraData(NamedTuple):
+    action_probability: Optional[ValueType] = None
 
 
 class TrainingBatch(NamedTuple):
     training_input: Union[MaxQLearningInput, SARSAInput]
     extras: Any
+
+
+class SingleQValue(NamedTuple):
+    q_value: ValueType
+
+
+class AllActionQValues(NamedTuple):
+    q_values: ValueType
+
+
+class CappedContinuousAction(NamedTuple):
+    """
+    Continuous action in range [-1, 1], e.g., the output of DDPG actor
+    """
+
+    action: ValueType

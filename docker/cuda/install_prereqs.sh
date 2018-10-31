@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 set -e
 
@@ -24,4 +25,3 @@ tar -xvf "${TMP_NCCL_VERSION}.txz"
 export NCCL_ROOT_DIR="$(pwd)/${TMP_NCCL_VERSION}"
 export LD_LIBRARY_PATH="${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}"
 rm "${TMP_NCCL_VERSION}.txz"
-

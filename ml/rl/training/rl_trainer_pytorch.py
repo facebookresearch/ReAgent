@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 import math
@@ -27,6 +28,7 @@ class RLTrainer:
         self, parameters, use_gpu, additional_feature_types, gradient_handler=None
     ):
         self.minibatch = 0
+        self.parameters = parameters
         self.reward_burnin = parameters.rl.reward_burnin
         self._additional_feature_types = additional_feature_types
         self.rl_temperature = parameters.rl.temperature
@@ -61,10 +63,18 @@ class RLTrainer:
             self.dtypelong = torch.LongTensor
 
     def _set_optimizer(self, optimizer_name):
+        self.optimizer_func = self._get_optimizer_func(optimizer_name)
+
+    def _get_optimizer(self, network, param):
+        return self._get_optimizer_func(param.optimizer)(
+            network.parameters(), lr=param.learning_rate, weight_decay=param.l2_decay
+        )
+
+    def _get_optimizer_func(self, optimizer_name):
         if optimizer_name == "ADAM":
-            self.optimizer_func = torch.optim.Adam
+            return torch.optim.Adam
         elif optimizer_name == "SGD":
-            self.optimizer_func = torch.optim.SGD
+            return torch.optim.SGD
         else:
             raise NotImplementedError(
                 "{} optimizer not implemented".format(optimizer_name)
@@ -81,7 +91,7 @@ class RLTrainer:
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 
-    def train(self, training_samples, evaluator=None, episode_values=None) -> None:
+    def train(self, training_samples, evaluator=None) -> None:
         raise NotImplementedError()
 
     def internal_prediction(self, input):

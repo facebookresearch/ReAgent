@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import random
 import unittest
@@ -8,6 +9,7 @@ import torch
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldDDPGEvaluator
+from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.thrift.core.ttypes import (
     DDPGModelParameters,
     DDPGNetworkParameters,
@@ -17,7 +19,7 @@ from ml.rl.thrift.core.ttypes import (
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 
 
-class TestGridworldContinuous(unittest.TestCase):
+class TestGridworldDdpg(GridworldTestBase):
     def setUp(self):
         self.minibatch_size = 4096
         super(self.__class__, self).setUp()
@@ -39,21 +41,23 @@ class TestGridworldContinuous(unittest.TestCase):
                 optimizer="ADAM",
             ),
             actor_training=DDPGNetworkParameters(
-                layers=[-1, 400, 300, -1],
+                layers=[-1, 256, 128, -1],
                 activations=["relu", "relu", "tanh"],
-                learning_rate=0.1,
+                learning_rate=0.05,
+                l2_decay=0.01,
             ),
             critic_training=DDPGNetworkParameters(
-                layers=[-1, 400, 300, -1],
-                activations=["relu", "relu", "tanh"],
-                learning_rate=0.1,
-                l2_decay=0.999,
+                layers=[-1, 256, 256, 128, -1],
+                activations=["relu", "relu", "relu", "linear"],
+                learning_rate=0.05,
+                l2_decay=0.01,
             ),
         )
 
     def _test_ddpg_trainer(self, use_gpu=False, use_all_avail_gpus=False):
+        self.check_tolerance = False
+        self.tolerance_threshold = 1.0
         environment = GridworldContinuous()
-        samples = environment.generate_samples(500000, 0.25, DISCOUNT)
         trainer = DDPGTrainer(
             self.get_ddpg_parameters(),
             environment.normalization,
@@ -63,29 +67,8 @@ class TestGridworldContinuous(unittest.TestCase):
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
         )
-        evaluator = GridworldDDPGEvaluator(environment, True, DISCOUNT, False, samples)
-        tdps = environment.preprocess_samples(
-            samples, self.minibatch_size, use_gpu=use_gpu
-        )
-
-        critic_predictor = trainer.predictor(actor=False)
-        evaluator.evaluate_critic(critic_predictor)
-        for tdp in tdps:
-            tdp.rewards = tdp.rewards.reshape(-1, 1)
-            tdp.not_terminals = tdp.not_terminals.reshape(-1, 1)
-            trainer.train(tdp)
-
-        # Make sure actor predictor works
-        actor = trainer.predictor(actor=True)
-        evaluator.evaluate_actor(actor)
-
-        # Evaluate critic predicor for correctness
-        critic_predictor = trainer.predictor(actor=False)
-        error = evaluator.evaluate_critic(critic_predictor)
-        print("gridworld MAE: {0:.3f}".format(error))
-        # For now we are disabling this test until we can get DDPG to be healthy
-        # on discrete action domains (T30810709).
-        # assert error < 0.1, "gridworld MAE: {} > {}".format(error, 0.1)
+        evaluator = GridworldDDPGEvaluator(environment, DISCOUNT)
+        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
 
     def test_ddpg_trainer(self):
         self._test_ddpg_trainer()

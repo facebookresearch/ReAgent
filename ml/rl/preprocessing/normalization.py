@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import json
 import logging
@@ -7,7 +8,7 @@ from collections import namedtuple
 import numpy as np
 import six
 from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM
+from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
 from scipy.stats.mstats import mquantiles
 
@@ -77,6 +78,7 @@ def identify_parameter(
         identify_types.PROBABILITY,
         identify_types.BINARY,
         identify_types.ENUM,
+        identify_types.CONTINUOUS_ACTION,
     ], "unknown type {}".format(feature_type)
     assert (
         len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
@@ -144,6 +146,7 @@ def identify_parameter(
     if (
         feature_type == identify_types.CONTINUOUS
         or feature_type == identify_types.BOXCOX
+        or feature_type == identify_types.CONTINUOUS_ACTION
     ):
         mean = float(np.mean(values))
         values = values - mean
@@ -179,6 +182,25 @@ def get_num_output_features(normalization_parmeters):
     )
 
 
+def sort_features_by_normalization(normalization_parameters):
+    """
+    Helper function to return a sorted list from a normalization map.
+    Also returns the starting index for each feature type"""
+    # Sort features by feature type
+    sorted_features = []
+    feature_starts = []
+    assert isinstance(
+        list(normalization_parameters.keys())[0], int
+    ), "Normalization Parameters need to be int"
+    for feature_type in FEATURE_TYPES:
+        feature_starts.append(len(sorted_features))
+        for feature in sorted(normalization_parameters.keys()):
+            norm = normalization_parameters[feature]
+            if norm.feature_type == feature_type:
+                sorted_features.append(feature)
+    return sorted_features, feature_starts
+
+
 def deserialize(parameters_json):
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
@@ -188,18 +210,13 @@ def deserialize(parameters_json):
             for x in params.possible_values:
                 if x < 0:
                     logger.fatal(
-                        "Invalid enum ID: "
-                        + str(x)
-                        + " in feature: "
-                        + feature
-                        + " with possible_values "
-                        + str(params.possible_values)
-                        + " (raw: "
-                        + feature_parameters
-                        + ")"
+                        "Invalid enum ID: {} in feature: {} with possible_values {}"
+                        " (raw: {})".format(
+                            x, feature, params.possible_values, feature_parameters
+                        )
                     )
                     raise Exception("Invalid enum ID")
-        parameters[feature] = params
+        parameters[int(feature)] = params
     return parameters
 
 
@@ -223,6 +240,9 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
     feature_override = None
     if norm_params["feature_overrides"] is not None:
         feature_override = norm_params["feature_overrides"].get(feature_name, None)
+
+    if norm_params.get("set_missing_value_to_zero", None):
+        feature_value_list.append(0.0)
 
     feature_values = np.array(feature_value_list, dtype=np.float32)
     assert not (np.any(np.isinf(feature_values))), "Feature values contain infinity"

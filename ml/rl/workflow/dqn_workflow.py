@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 import os
@@ -6,7 +7,6 @@ import sys
 import time
 
 import numpy as np
-import torch
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
@@ -33,7 +33,7 @@ from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger.setLevel(logging.INFO)
 
 DEFAULT_NUM_SAMPLES_FOR_CPE = 5000
 
@@ -41,11 +41,7 @@ DEFAULT_NUM_SAMPLES_FOR_CPE = 5000
 def train_network(params):
     writer = None
     if params["model_output_path"] is not None:
-        writer = SummaryWriter(
-            log_dir=os.path.join(
-                os.path.expanduser(params["model_output_path"]), "training_data"
-            )
-        )
+        writer = SummaryWriter(log_dir=params["model_output_path"])
 
     logger.info("Running DQN workflow with params:")
     logger.info(params)
@@ -125,11 +121,7 @@ def train_network(params):
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
 
             tdp.set_type(trainer.dtype)
-            trainer.train(tdp)
-
-            trainer.evaluate(
-                evaluator, tdp.actions, None, tdp.rewards, tdp.episode_values
-            )
+            training_metadata = trainer.train(tdp, evaluator)
 
             evaluator.collect_discrete_action_samples(
                 mdp_ids=tdp.mdp_ids,
@@ -141,11 +133,12 @@ def train_network(params):
                 logged_terminals=np.invert(
                     tdp.not_terminals.cpu().numpy().astype(np.bool)
                 ),
+                model_rewards=training_metadata["model_rewards"],
             )
 
         cpe_start_time = time.time()
         evaluator.recover_samples_to_be_unshuffled()
-        evaluator.score_cpe()
+        evaluator.score_cpe(trainer_params.rl.gamma)
         if writer is not None:
             evaluator.log_to_tensorboard(writer, epoch)
         evaluator.clear_collected_samples()

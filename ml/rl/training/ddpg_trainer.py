@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from copy import deepcopy
 from typing import Dict
@@ -8,13 +9,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+from ml.rl.preprocessing.identify_types import CONTINUOUS
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
+    sort_features_by_normalization,
 )
-from ml.rl.preprocessing.preprocessor_net import sort_features_by_normalization
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
+from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
     RLTrainer,
@@ -40,8 +43,16 @@ class DDPGTrainer(RLTrainer):
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
 
+        for param in self.action_normalization_parameters.values():
+            assert param.feature_type == CONTINUOUS, (
+                "DDPG Actor features must be set to continuous (set to "
+                + param.feature_type
+                + ")"
+            )
+
         self.state_dim = get_num_output_features(state_normalization_parameters)
         self.action_dim = min_action_range_tensor_serving.shape[1]
+        self.num_features = self.state_dim + self.action_dim
 
         # Actor generates actions between -1 and 1 due to tanh output layer so
         # convert actions to range [-1, 1] before training.
@@ -71,7 +82,9 @@ class DDPGTrainer(RLTrainer):
         )
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = self.optimizer_func(
-            self.actor.parameters(), lr=self.actor_params.learning_rate
+            self.actor.parameters(),
+            lr=self.actor_params.learning_rate,
+            weight_decay=self.actor_params.l2_decay,
         )
         self.noise = self.noise_generator
 
@@ -79,7 +92,7 @@ class DDPGTrainer(RLTrainer):
         self.critic_params = parameters.critic_training
         self.critic_params.layers[0] = self.state_dim
         self.critic_params.layers[-1] = 1
-        self.critic = CriticNet(
+        self.critic = self.q_network = CriticNet(
             self.critic_params.layers,
             self.critic_params.activations,
             self.final_layer_init,
@@ -90,6 +103,15 @@ class DDPGTrainer(RLTrainer):
             self.critic.parameters(),
             lr=self.critic_params.learning_rate,
             weight_decay=self.critic_params.l2_decay,
+        )
+
+        # ensure state and action IDs have no intersection
+        overlapping_features = set(state_normalization_parameters.keys()) & set(
+            action_normalization_parameters.keys()
+        )
+        assert len(overlapping_features) == 0, (
+            "There are some overlapping state and action features: "
+            + str(overlapping_features)
         )
 
         RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
@@ -119,9 +141,7 @@ class DDPGTrainer(RLTrainer):
                 self.critic = nn.DataParallel(self.critic)
                 self.critic_target = nn.DataParallel(self.critic_target)
 
-    def train(
-        self, training_samples: TrainingDataPage, evaluator=None, episode_values=None
-    ) -> None:
+    def train(self, training_samples: TrainingDataPage, evaluator=None) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert (
@@ -133,11 +153,6 @@ class DDPGTrainer(RLTrainer):
             assert training_samples.rewards.shape == torch.Size(
                 [self.minibatch_size, 1]
             ), "Invalid shape: " + str(training_samples.rewards.shape)
-            assert (
-                training_samples.episode_values is None
-                or training_samples.episode_values.shape
-                == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.episode_values.shape)
             assert (
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)
@@ -171,11 +186,10 @@ class DDPGTrainer(RLTrainer):
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
-        q_s1_a1 = self.critic(torch.cat((states, actions), dim=1))
+        q_s1_a1 = self.critic.forward([states, actions])
         next_actions = self.actor_target(next_states)
 
-        next_state_actions = torch.cat((next_states, next_actions), dim=1)
-        q_s2_a2 = self.critic_target(next_state_actions)
+        q_s2_a2 = self.critic_target.forward([next_states, next_actions])
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
 
         if self.use_seq_num_diff_as_time_diff:
@@ -189,13 +203,19 @@ class DDPGTrainer(RLTrainer):
         # compute loss and update the critic network
         critic_predictions = q_s1_a1
         loss_critic = self.q_network_loss(critic_predictions, target_q_values.detach())
+        loss_critic_for_eval = loss_critic.detach()
         self.critic_optimizer.zero_grad()
         loss_critic.backward()
         self.critic_optimizer.step()
 
         # Optimize the actor network subject to the following:
-        # max sum(Q(s1, a1)) or min -sum(Q(s1, a1))
-        loss_actor = -self.critic(torch.cat((states, self.actor(states)), dim=1)).sum()
+        # max mean(Q(s1, a1)) or min -mean(Q(s1, a1))
+        loss_actor = -(
+            self.critic.forward([states.detach(), self.actor(states)]).mean()
+        )
+
+        # Zero out both the actor and critic gradients because we need
+        #   to backprop through the critic to get to the actor
         self.actor_optimizer.zero_grad()
         loss_actor.backward()
         self.actor_optimizer.step()
@@ -210,18 +230,8 @@ class DDPGTrainer(RLTrainer):
             self._soft_update(self.critic, self.critic_target, self.tau)
 
         if evaluator is not None:
-            evaluator.report(
-                loss_critic.cpu().data.numpy(),
-                None,
-                None,
-                None,
-                episode_values,
-                None,
-                None,
-                None,
-                critic_predictions.cpu().data.numpy(),
-                None,
-            )
+            cpe_stats = BatchStatsForCPE(td_loss=loss_critic_for_eval.cpu().numpy())
+            evaluator.report(cpe_stats)
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:
         """ Returns list of actions output from actor network
@@ -255,6 +265,7 @@ class DDPGTrainer(RLTrainer):
             return DDPGPredictor.export_actor(
                 self,
                 self.state_normalization_parameters,
+                sort_features_by_normalization(self.action_normalization_parameters)[0],
                 self.min_action_range_tensor_serving,
                 self.max_action_range_tensor_serving,
                 self._additional_feature_types.int_features,
@@ -267,6 +278,9 @@ class DDPGTrainer(RLTrainer):
             self._additional_feature_types.int_features,
             self.use_gpu,
         )
+
+    def export(self) -> DDPGPredictor:
+        return self.predictor(actor=False)
 
 
 class ActorNet(nn.Module):
@@ -289,7 +303,7 @@ class ActorNet(nn.Module):
                 init.uniform_(self.layers[i].bias, -fl_init, fl_init)
             # Else use fan in uniform init (as outlined in DDPG paper)
             else:
-                fan_in_init(self.layers[i].weight)
+                fan_in_init(self.layers[i].weight, self.layers[i].bias)
 
     def forward(self, state) -> torch.FloatTensor:
         """ Forward pass for actor network. Assumes activation names are
@@ -316,6 +330,8 @@ class CriticNet(nn.Module):
             layers
         )
 
+        assert layers[-1] == 1, "Only one output node for the critic net"
+
         for i, layer in enumerate(layers[1:]):
             # Batch norm only applied to pre-action layers
             if i == 0:
@@ -334,17 +350,22 @@ class CriticNet(nn.Module):
                 init.uniform_(self.layers[i].bias, -fl_init, fl_init)
             # Else use fan in uniform init (as outlined in DDPG paper)
             else:
-                fan_in_init(self.layers[i].weight)
+                fan_in_init(self.layers[i].weight, self.layers[i].bias)
 
     def forward(self, state_action) -> torch.FloatTensor:
         """ Forward pass for critic network. Assumes activation names are
         valid pytorch activation names.
         :param state_action tensor of state & actions concatted
         """
+        if isinstance(state_action, list):
+            return self.forward_split(*state_action)
+
         state_dim = self.layers[0].in_features
         state = state_action[:, :state_dim]
         action = state_action[:, state_dim:]
+        return self.forward_split(state, action)
 
+    def forward_split(self, state, action) -> torch.FloatTensor:
         x = state
         for i, activation in enumerate(self.activations):
             if i == 0:
@@ -359,10 +380,11 @@ class CriticNet(nn.Module):
         return x
 
 
-def fan_in_init(tensor) -> None:
+def fan_in_init(weight_tensor, bias_tensor) -> None:
     """ Fan in initialization as described in DDPG paper."""
-    val_range = 1.0 / np.sqrt(tensor.size(1))
-    init.uniform_(tensor, -val_range, val_range)
+    val_range = 1.0 / np.sqrt(weight_tensor.size(1))
+    init.uniform_(weight_tensor, -val_range, val_range)
+    init.uniform_(bias_tensor, -val_range, val_range)
 
 
 class OrnsteinUhlenbeckProcessNoise:

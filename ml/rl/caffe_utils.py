@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import itertools
+import logging
 import os
 import traceback
 from io import BytesIO
@@ -12,6 +14,9 @@ import onnx
 import torch
 from caffe2.python import core, workspace
 from caffe2.python.core import BlobReference
+
+
+logger = logging.getLogger(__name__)
 
 
 class C2Meta(type):
@@ -215,7 +220,9 @@ class PytorchCaffe2Converter(object):
         protobuf_model = onnx.load(BytesIO(buffer.getvalue()))
         input_blob_name = protobuf_model.graph.input[0].name
         output_blob_name = protobuf_model.graph.output[0].name
-        print("INPUT BLOB", input_blob_name, "OUTPUT BLOB", output_blob_name)
+        logger.info(
+            "INPUT BLOB: " + input_blob_name + ". OUTPUT BLOB:" + output_blob_name
+        )
         return (
             input_blob_name,
             output_blob_name,

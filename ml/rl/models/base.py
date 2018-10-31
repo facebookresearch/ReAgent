@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
 from collections import OrderedDict
+from copy import deepcopy
 from io import BytesIO
-from typing import List, Tuple
+from typing import List, NamedTuple, Tuple
 
 import caffe2.python.onnx.backend
 import onnx
 import torch
 import torch.nn as nn
-from caffe2.python import core
+from caffe2.python import core, schema
 from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 
 
@@ -19,24 +21,43 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def forward(self, input: OrderedDict) -> OrderedDict:
+    def forward(self, input: NamedTuple) -> NamedTuple:
         """
         Args:
-            input: An (nested) OrderedDict of torch.Tensor
+            input: An (nested) NamedTuple of torch.Tensor
 
         Returns:
-            An OrderedDict of torch.Tensor
+            An NamedTuple of torch.Tensor
         """
         pass
 
     @abc.abstractmethod
-    def input_prototype(self) -> OrderedDict:
+    def input_prototype(self) -> NamedTuple:
         """
         This function provides the input for ONNX graph tracing.
 
         The return value should be what expected by `forward()`.
         """
-        raise NotImplemented
+        raise NotImplementedError
+
+    def get_target_network(self):
+        """
+        Return a copy of this network to be used as target network
+
+        Subclass should override this if the target network should share parameters
+        with the network to be trained.
+        """
+        return deepcopy(self)
+
+    def get_data_parallel_model(self):
+        """
+        Return DataParallel version of this model
+
+        This needs to be implemented explicitly because:
+        1) Model with EmbeddingBag module is not compatible with vanilla DataParallel
+        2) Exporting logic needs structured data. DataParallel doesn't work with structured data.
+        """
+        raise NotImplementedError
 
     def input_blob_names(self) -> List[str]:
         """
@@ -73,13 +94,23 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
 
         Returns the names of the output blobs.
         """
+        return self.output_field_names()
+
+    def output_field_names(self) -> List[str]:
         return self.derive_blob_names(self(self.input_prototype()))
+
+    def cpu_model(self):
+        """
+        Override this in DataParallel models
+        """
+        return self.cpu()
 
     def export_to_buffer(self) -> BytesIO:
         """
         Export the instance to BytesIO buffer
         """
         export_model = ONNXExportModel(self)
+        export_model.eval()
         write_buffer = BytesIO()
         torch.onnx.export(
             export_model,
@@ -99,7 +130,9 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
             output_blobs,
         )
 
-    def get_predictor_export_meta_and_workspace(self, feature_extractor=None):
+    def get_predictor_export_meta_and_workspace(
+        self, feature_extractor=None, output_transformer=None
+    ):
         """
 
         ONNX would load blobs into a private workspace. We returns the workspace
@@ -199,6 +232,26 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         # 5. Join feature extractor net & model net
         predict_net.AppendNet(model_net)
 
+        if output_transformer is not None:
+            output_field_names = self.output_field_names()
+            original_output = schema.from_column_list(
+                col_names=output_field_names,
+                col_blobs=[core.BlobReference(b) for b in output_blob_names],
+            )
+            output_transformer_nets = output_transformer.create_net(original_output)
+            # Initializing output transformer parameters
+            ws.CreateNet(output_transformer_nets.init_net)
+            ws.RunNet(output_transformer_nets.init_net)
+            output_transformer_params = set(
+                output_transformer_nets.init_net.Proto().external_output
+            )
+            assert (
+                len(set(parameters) & output_transformer_params) == 0
+            ), "Blob names collide! Please open a bug report"
+            parameters += output_transformer_params
+            del predict_net.Proto().external_output[:]
+            predict_net.AppendNet(output_transformer_nets.net)
+
         # These shapes are not really used but required, so just pass fake ones
         shapes.update({b: [] for b in predict_net.Proto().external_output})
 
@@ -229,6 +282,8 @@ class ONNXExportModel(nn.Module):
         self.m = m
         self.input_prototype = m.input_prototype()
         self.onnx_input_args = self.flatten(self.input_prototype)
+        # Put this into eval mode
+        self.eval()
 
     def onnx_input_names(self) -> List[str]:
         """
@@ -246,7 +301,7 @@ class ONNXExportModel(nn.Module):
 
         return derived_names
 
-    def structurize_input(self, args) -> OrderedDict:
+    def structurize_input(self, args) -> NamedTuple:
         """
         Put args into input_prototype
 

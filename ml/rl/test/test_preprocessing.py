@@ -1,16 +1,30 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import unittest
 
 import numpy as np
 import six
+import torch
 from caffe2.python import core
 from ml.rl.caffe_utils import PytorchCaffe2Converter
 from ml.rl.preprocessing import identify_types, normalization
 from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
-from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
+from ml.rl.preprocessing.normalization import (
+    MISSING_VALUE,
+    NormalizationParameters,
+    sort_features_by_normalization,
+)
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.test import preprocessing_util
+from ml.rl.test.preprocessing_util import (
+    BOXCOX_FEATURE_ID,
+    CONTINUOUS_ACTION_FEATURE_ID,
+    CONTINUOUS_ACTION_FEATURE_ID_2,
+    ENUM_FEATURE_ID,
+    PROBABILITY_FEATURE_ID,
+    id_to_type,
+    read_data,
+)
 from scipy import special, stats
 
 
@@ -32,39 +46,45 @@ class TestPreprocessing(unittest.TestCase):
         ) / n_quantiles
         return interpolated
 
+    def _feature_type_override(self, feature_id):
+        """
+        This should only be used to test CONTINUOUS_ACTION
+        """
+        if id_to_type(feature_id) == identify_types.CONTINUOUS_ACTION:
+            return identify_types.CONTINUOUS_ACTION
+        return None
+
     def test_prepare_normalization_and_normalize(self):
-        features, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
 
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values[
-                    1:
-                ],  # Skip the first value when identifying because it's MISSING_VALUE
-                10,
+                values, 10, feature_type=self._feature_type_override(name)
             )
         for k, v in normalization_parameters.items():
-            if k == CONTINUOUS:
+            if id_to_type(k) == CONTINUOUS:
                 self.assertEqual(v.feature_type, CONTINUOUS)
                 self.assertIs(v.boxcox_lambda, None)
                 self.assertIs(v.boxcox_shift, None)
-            elif k == BOXCOX:
+            elif id_to_type(k) == BOXCOX:
                 self.assertEqual(v.feature_type, BOXCOX)
                 self.assertIsNot(v.boxcox_lambda, None)
                 self.assertIsNot(v.boxcox_shift, None)
             else:
-                assert v.feature_type == k or v.feature_type + "_2" + k
+                assert v.feature_type == id_to_type(k)
 
         preprocessor = Preprocessor(normalization_parameters, False)
+        sorted_features, _ = sort_features_by_normalization(normalization_parameters)
         preprocessor.clamp = False
-        input_matrix = np.zeros([10000, len(features)], dtype=np.float32)
-        for i, feature in enumerate(features):
+        input_matrix = np.zeros([10000, len(sorted_features)], dtype=np.float32)
+        for i, feature in enumerate(sorted_features):
             input_matrix[:, i] = feature_value_map[feature]
         normalized_feature_matrix = preprocessor.forward(input_matrix)
 
         normalized_features = {}
         on_column = 0
-        for feature in features:
+        for feature in sorted_features:
             norm = normalization_parameters[feature]
             if norm.feature_type == ENUM:
                 column_size = len(norm.possible_values)
@@ -133,12 +153,23 @@ class TestPreprocessing(unittest.TestCase):
                     "mean of feature {} is {}, not 0".format(k, np.mean(v)),
                 )
                 self.assertTrue(np.all(np.logical_or(one_stddev, zero_stddev)))
+            elif feature_type == identify_types.CONTINUOUS_ACTION:
+                less_than_max = v < 1
+                more_than_min = v > -1
+                self.assertTrue(
+                    np.all(less_than_max),
+                    "values are not less than 1: {}".format(v[less_than_max == False]),
+                )
+                self.assertTrue(
+                    np.all(more_than_min),
+                    "values are not more than -1: {}".format(v[more_than_min == False]),
+                )
             else:
                 raise NotImplementedError()
 
     def test_normalize_dense_matrix_enum(self):
         normalization_parameters = {
-            "f1": NormalizationParameters(
+            1: NormalizationParameters(
                 identify_types.ENUM,
                 None,
                 None,
@@ -149,10 +180,10 @@ class TestPreprocessing(unittest.TestCase):
                 None,
                 None,
             ),
-            "f2": NormalizationParameters(
+            2: NormalizationParameters(
                 identify_types.CONTINUOUS, None, 0, 0, 1, None, None, None, None
             ),
-            "f3": NormalizationParameters(
+            3: NormalizationParameters(
                 identify_types.ENUM, None, None, None, None, [15, 3], None, None, None
             ),
         }
@@ -160,10 +191,10 @@ class TestPreprocessing(unittest.TestCase):
         preprocessor.clamp = False
 
         inputs = np.zeros([4, 3], dtype=np.float32)
-        feature_ids = ["f2", "f1", "f3"]  # Sorted according to feature type
-        inputs[:, feature_ids.index("f1")] = [12, 4, 2, 2]
-        inputs[:, feature_ids.index("f2")] = [1.0, 2.0, 3.0, 3.0]
-        inputs[:, feature_ids.index("f3")] = [15, 3, 15, normalization.MISSING_VALUE]
+        feature_ids = [2, 1, 3]  # Sorted according to feature type
+        inputs[:, feature_ids.index(1)] = [12, 4, 2, 2]
+        inputs[:, feature_ids.index(2)] = [1.0, 2.0, 3.0, 3.0]
+        inputs[:, feature_ids.index(3)] = [15, 3, 15, normalization.MISSING_VALUE]
         normalized_feature_matrix = preprocessor.forward(inputs)
 
         np.testing.assert_allclose(
@@ -179,10 +210,12 @@ class TestPreprocessing(unittest.TestCase):
         )
 
     def test_persistency(self):
-        _, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
         normalization_parameters = {}
         for name, values in feature_value_map.items():
-            normalization_parameters[name] = normalization.identify_parameter(values)
+            normalization_parameters[name] = normalization.identify_parameter(
+                values, feature_type=self._feature_type_override(name)
+            )
             values[0] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
 
         s = normalization.serialize(normalization_parameters)
@@ -222,6 +255,14 @@ class TestPreprocessing(unittest.TestCase):
                     continue
                 output_feature[i][mapping[val]] = 1.0
             return output_feature
+        elif parameters.feature_type == identify_types.CONTINUOUS_ACTION:
+            min_value = parameters.min_value
+            max_value = parameters.max_value
+            feature = (
+                (feature - min_value) * ((1 - 1e-6) * 2 / (max_value - min_value))
+                - 1
+                + 1e-6
+            )
         else:
             feature = feature - parameters.mean
             feature /= parameters.stddev
@@ -237,10 +278,12 @@ class TestPreprocessing(unittest.TestCase):
         return result
 
     def test_preprocessing_network_onnx(self):
-        features, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
 
         for feature_name, feature_values in feature_value_map.items():
-            normalization_parameters = normalization.identify_parameter(feature_values)
+            normalization_parameters = normalization.identify_parameter(
+                feature_values, feature_type=self._feature_type_override(feature_name)
+            )
             feature_values[
                 0
             ] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
@@ -288,14 +331,36 @@ class TestPreprocessing(unittest.TestCase):
                 ),
             )
 
+    def test_quantile_boundary_logic(self):
+        """Test quantile logic when feaure value == quantile boundary."""
+        input = torch.tensor([[0.0], [80.0], [100.0]])
+        norm_params = NormalizationParameters(
+            feature_type="QUANTILE",
+            boxcox_lambda=None,
+            boxcox_shift=None,
+            mean=0,
+            stddev=1,
+            possible_values=None,
+            quantiles=[0.0, 80.0, 100.0],
+            min_value=0.0,
+            max_value=100.0,
+        )
+        preprocessor = Preprocessor({1: norm_params}, False)
+        output = preprocessor._preprocess_QUANTILE(0, input.float(), [norm_params])
+
+        expected_output = torch.tensor([[0.0], [0.5], [1.0]])
+
+        self.assertTrue(np.all(np.isclose(output, expected_output)))
+
     def test_preprocessing_network(self):
-        features, feature_value_map = preprocessing_util.read_data()
+        feature_value_map = read_data()
+
         normalization_parameters = {}
         name_preprocessed_blob_map = {}
 
         for feature_name, feature_values in feature_value_map.items():
             normalization_parameters[feature_name] = normalization.identify_parameter(
-                feature_values
+                feature_values, feature_type=self._feature_type_override(feature_name)
             )
             feature_values[
                 0
@@ -313,11 +378,11 @@ class TestPreprocessing(unittest.TestCase):
 
         for feature_name in feature_value_map:
             normalized_features = name_preprocessed_blob_map[feature_name]
-            if feature_name != identify_types.ENUM:
+            if feature_name != ENUM_FEATURE_ID:
                 normalized_features = np.squeeze(normalized_features, -1)
 
             tolerance = 0.01
-            if feature_name == BOXCOX:
+            if feature_name == BOXCOX_FEATURE_ID:
                 # At the limit, boxcox has some numerical instability
                 tolerance = 0.5
             non_matching = np.where(
@@ -348,8 +413,8 @@ class TestPreprocessing(unittest.TestCase):
 
     def test_type_override(self):
         # Take a feature that should be identified as probability
-        _, feature_value_map = preprocessing_util.read_data()
-        probability_values = feature_value_map[identify_types.PROBABILITY]
+        feature_value_map = read_data()
+        probability_values = feature_value_map[PROBABILITY_FEATURE_ID]
 
         # And ask for a binary anyways
         parameter = normalization.identify_parameter(

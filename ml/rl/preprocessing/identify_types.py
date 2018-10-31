@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import numpy as np
 
@@ -9,7 +10,16 @@ CONTINUOUS = "CONTINUOUS"
 BOXCOX = "BOXCOX"
 ENUM = "ENUM"
 QUANTILE = "QUANTILE"
-FEATURE_TYPES = (BINARY, PROBABILITY, CONTINUOUS, BOXCOX, ENUM, QUANTILE)
+CONTINUOUS_ACTION = "CONTINUOUS_ACTION"
+FEATURE_TYPES = (
+    BINARY,
+    PROBABILITY,
+    CONTINUOUS,
+    BOXCOX,
+    ENUM,
+    QUANTILE,
+    CONTINUOUS_ACTION,
+)
 
 ROW_DELIM = "\n"
 COLUMN_DELIM = ";"

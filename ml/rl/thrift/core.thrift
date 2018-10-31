@@ -15,6 +15,7 @@ struct RLParameters {
   8: i32 softmax_policy = 1,
   9: bool use_seq_num_diff_as_time_diff = false,
   10: string q_network_loss = 'mse',
+  11: bool set_missing_value_to_zero = false,
 }
 
 struct RainbowDQNParameters {
@@ -34,8 +35,8 @@ struct CNNParameters {
 }
 
 struct FeedForwardParameters {
-  1: list<i32> layers = [-1, 512, 256, 128, 1],
-  2: list<string> activations = ['relu', 'relu', 'relu', 'linear'],
+  1: list<i32> layers = [256, 128],
+  2: list<string> activations = ['relu', 'relu'],
 }
 
 struct FactorizationParameters {
@@ -55,6 +56,8 @@ struct TrainingParameters {
   9: optional string warm_start_model_path,
   10: optional CNNParameters cnn_parameters,
   11: optional FactorizationParameters factorization_parameters,
+  12: double l2_decay = 0.01,
+  13: bool use_noisy_linear_layers = false,
 }
 
 struct InTrainingCPEParameters {
@@ -82,6 +85,8 @@ struct DiscreteActionModelParameters {
   4: ActionBudget action_budget,
   5: RainbowDQNParameters rainbow,
   6: optional InTrainingCPEParameters in_training_cpe,
+  7: optional StateFeatureParameters state_feature_params,
+  8: optional list<double> target_action_distribution,
 }
 
 struct ContinuousActionModelParameters {
@@ -103,6 +108,7 @@ struct DDPGTrainingParameters {
   2: double final_layer_init = 0.003,
   3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
+  5: bool use_noisy_linear_layers = false,
 }
 
 struct StateFeatureParameters {
@@ -117,7 +123,31 @@ struct DDPGModelParameters {
   4: DDPGNetworkParameters critic_training,
   5: optional map<i64, list<double>> action_rescale_map = {},
   6: optional StateFeatureParameters state_feature_params,
-  7: optional i32 entity_id = -1,
+}
+
+struct OptimizerParameters {
+  1: string optimizer = 'ADAM',
+  2: double learning_rate = 0.01,
+  3: double l2_decay = 0.01,
+}
+
+struct SACTrainingParameters {
+  1: i32 minibatch_size = 16384,
+  2: OptimizerParameters q_network_optimizer,
+  3: OptimizerParameters value_network_optimizer,
+  4: OptimizerParameters actor_network_optimizer,
+  5: bool use_2_q_functions,
+  # alpha in the paper; controlling explore & exploit
+  6: double entropy_temperature = 0.1,
+}
+
+struct SACModelParameters {
+  1: RLParameters rl,
+  2: SACTrainingParameters training,
+  3: FeedForwardParameters q_network,
+  4: FeedForwardParameters value_network,
+  5: FeedForwardParameters actor_network,
+  7: optional InTrainingCPEParameters in_training_cpe,
 }
 
 struct KNNDQNModelParameters {

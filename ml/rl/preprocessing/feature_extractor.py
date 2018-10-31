@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
 from typing import Dict, NamedTuple, Optional
@@ -7,8 +8,11 @@ import ml.rl.types as mt
 import torch
 from caffe2.python import core, schema
 
-from .normalization import MISSING_VALUE, NormalizationParameters
-from .preprocessor_net import sort_features_by_normalization
+from .normalization import (
+    MISSING_VALUE,
+    NormalizationParameters,
+    sort_features_by_normalization,
+)
 
 
 """
@@ -58,9 +62,14 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         """
         pass
 
-    def create_const(self, init_net, name, value):
+    def create_const(self, init_net, name, value, dtype=core.DataType.FLOAT):
         blob = init_net.NextScopedBlob(name)
-        init_net.GivenTensorFill([], blob, shape=[], values=[value])
+        if not isinstance(value, list):
+            shape = []
+            value = [value]
+        else:
+            shape = [len(value)]
+        init_net.GivenTensorFill([], blob, shape=shape, values=value, dtype=dtype)
         init_net.AddExternalOutput(blob)
         return blob
 
@@ -129,12 +138,21 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 return mt.FeatureVector(float_features=fetch(b))
 
         state = mt.FeatureVector(float_features=fetch(extract_record.state))
-        next_state = mt.FeatureVector(float_features=fetch(extract_record.next_state))
         action = fetch_action(extract_record.action)
-        reward = fetch(input_record.reward)
+        reward = fetch(input_record.reward).reshape(-1, 1)
 
         # is_terminal should be filled by preprocessor
         if self.max_q_learning:
+            if self.sorted_action_features is not None:
+                next_state = None
+                tiled_next_state = mt.FeatureVector(
+                    float_features=fetch(extract_record.tiled_next_state)
+                )
+            else:
+                next_state = mt.FeatureVector(
+                    float_features=fetch(extract_record.next_state)
+                )
+                tiled_next_state = None
             possible_next_actions = mt.PossibleActions(
                 lengths=fetch(extract_record.possible_next_actions["lengths"]),
                 actions=fetch_action(extract_record.possible_next_actions["values"]),
@@ -144,11 +162,15 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 state=state,
                 action=action,
                 next_state=next_state,
+                tiled_next_state=tiled_next_state,
                 possible_next_actions=possible_next_actions,
                 reward=reward,
-                is_terminal=None,
+                not_terminal=(possible_next_actions.lengths > 0).float().reshape(-1, 1),
             )
         else:
+            next_state = mt.FeatureVector(
+                float_features=fetch(extract_record.next_state)
+            )
             next_action = fetch_action(extract_record.next_action)
             training_input = mt.SARSAInput(
                 state=state,
@@ -156,11 +178,14 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 next_state=next_state,
                 next_action=next_action,
                 reward=reward,
-                is_terminal=None,
+                # HACK: Need a better way to check this
+                not_terminal=torch.ones_like(reward),
             )
 
         # TODO: stuff other fields in here
-        extras = None
+        extras = mt.ExtraData(
+            action_probability=fetch(input_record.action_probability).reshape(-1, 1)
+        )
 
         return mt.TrainingBatch(training_input=training_input, extras=extras)
 
@@ -202,6 +227,16 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             missing_scalar,
         )
 
+        if self.max_q_learning and self.sorted_action_features is not None:
+            next_state_field = "tiled_next_state"
+            # TODO: this will need to be more complicated to support sparse features
+            next_state = net.LengthsTile(
+                [next_state, input_record.possible_next_actions.lengths()],
+                ["tiled_next_state"],
+            )
+        else:
+            next_state_field = "next_state"
+
         action = input_record.action
         next_action = input_record[next_action_field]
         if self.max_q_learning:
@@ -230,7 +265,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             schema.Struct(
                 ("state", state),
                 ("action", action),
-                ("next_state", next_state),
+                (next_state_field, next_state),
                 (next_action_field, next_action_output),
             )
         )

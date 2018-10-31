@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     protobuf-compiler \
     sudo \
     software-properties-common \
+    vim \
     wget
 
 # Sometimes needed to avoid SSL CA issues.
@@ -64,15 +65,9 @@ RUN wget https://archive.apache.org/dist/thrift/0.11.0/thrift-0.11.0.tar.gz -O t
     make install
 
 # Install Java & maven.
-# Taken from https://github.com/dockerfile/java/blob/master/oracle-java8/Dockerfile
-RUN \
-  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
-  apt-get update && \
-  apt-get install -y oracle-java8-installer maven && \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /var/cache/oracle-jdk8-installer
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+RUN apt-get install -y openjdk-8-jre && \
+    apt-get install -y maven
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 
 ENV HOME /home
 WORKDIR ${HOME}/
@@ -87,6 +82,14 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 # (See https://stackoverflow.com/questions/33379393/docker-env-vs-run-export)
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
+
+# Install Python 3.6 for Tensorflow (for Tensorboard), virtualenv, & TF
+RUN add-apt-repository -y ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y python3.6 && \
+    pip install virtualenv && \
+    virtualenv --python=python3.6 tensorboard_env && \
+    tensorboard_env/bin/pip3.6 install tensorflow
 
 # Needed to prevent UnicodeDecodeError: 'ascii' codec can't decode byte
 # when installing fairseq.
@@ -105,12 +108,6 @@ ADD ./requirements.txt requirements.txt
 RUN ./install_prereqs.sh
 RUN rm install_prereqs.sh requirements.txt
 
-# Install and run key tests, this should finish quickly
-RUN git clone https://github.com/facebookresearch/Horizon.git && \
-    cd Horizon && \
-    thrift --gen py --out . ml/rl/thrift/core.thrift && \
-    pip install -e . && \
-    python -m ml.rl.test.workflow.test_oss_workflows
 
 # Define default command.
 CMD ["bash"]

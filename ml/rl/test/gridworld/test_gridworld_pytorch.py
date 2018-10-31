@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import os
 import random
@@ -9,8 +10,8 @@ import numpy as np
 import torch
 from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
-from ml.rl.test.gridworld.gridworld_enum import GridworldEnum
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
+from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
     InTrainingCPEParameters,
@@ -20,15 +21,14 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.evaluator import Evaluator
 
 
-class TestGridworld(unittest.TestCase):
+class TestGridworld(GridworldTestBase):
     def setUp(self):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        self.minibatch_size = 4096
+        self.minibatch_size = 512
         super(self.__class__, self).setUp()
 
     def get_sarsa_trainer(
@@ -61,7 +61,7 @@ class TestGridworld(unittest.TestCase):
             layers=[-1, 128, -1] if dueling else [-1, -1],
             activations=["relu", "linear"] if dueling else ["linear"],
             minibatch_size=self.minibatch_size,
-            learning_rate=0.125,
+            learning_rate=0.05,
             optimizer="ADAM",
         )
         return DQNTrainer(
@@ -79,71 +79,15 @@ class TestGridworld(unittest.TestCase):
             use_all_avail_gpus=use_all_avail_gpus,
         )
 
-    def _test_trainer_sarsa_enum(self, use_gpu=False, use_all_avail_gpus=False):
-        environment = GridworldEnum()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
-        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False, samples)
-        trainer = self.get_sarsa_trainer(
-            environment, False, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
-        )
-        predictor = trainer.predictor()
-        tdps = environment.preprocess_samples(
-            samples, self.minibatch_size, use_gpu=use_gpu
-        )
-
-        evaluator.evaluate(predictor)
-        print(
-            "Pre-Training eval: ",
-            evaluator.mc_loss[-1],
-            evaluator.value_doubly_robust[-1],
-        )
-        self.assertGreater(evaluator.mc_loss[-1], 0.12)
-
-        for tdp in tdps:
-            trainer.train(tdp)
-
-        predictor = trainer.predictor()
-        evaluator.evaluate(predictor)
-        print(
-            "Post-Training eval: ",
-            evaluator.mc_loss[-1],
-            evaluator.value_doubly_robust[-1],
-        )
-        self.assertLess(evaluator.mc_loss[-1], 0.1)
-
-    def test_trainer_sarsa_enum(self):
-        self._test_trainer_sarsa_enum()
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_trainer_sarsa_enum_gpu(self):
-        self._test_trainer_sarsa_enum(use_gpu=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_trainer_sarsa_enum_all_gpus(self):
-        self._test_trainer_sarsa_enum(use_gpu=True, use_all_avail_gpus=True)
-
     def _test_evaluator_ground_truth_no_dueling(
         self, use_gpu=False, use_all_avail_gpus=False
     ):
         environment = Gridworld()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
-        true_values = environment.true_values_for_sample(
-            samples.states, samples.actions, False
-        )
-        # Hijack the reward timeline to insert the ground truth
-        samples.episode_values = true_values
         trainer = self.get_sarsa_trainer(
             environment, False, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
         )
-        evaluator = Evaluator(environment.ACTIONS, 10, DISCOUNT, None, None)
-        tdps = environment.preprocess_samples(
-            samples, self.minibatch_size, use_gpu=use_gpu
-        )
-
-        for tdp in tdps:
-            trainer.train(tdp, evaluator)
-
-        self.assertLess(evaluator.mc_loss[-1], 0.1)
+        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
+        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
 
     def test_evaluator_ground_truth_no_dueling(self):
         self._test_evaluator_ground_truth_no_dueling()
@@ -162,24 +106,12 @@ class TestGridworld(unittest.TestCase):
         self, use_gpu=False, use_all_avail_gpus=False
     ):
         environment = Gridworld()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
-        true_values = environment.true_values_for_sample(
-            samples.states, samples.actions, False
-        )
-        # Hijack the reward timeline to insert the ground truth
-        samples.episode_values = true_values
+
         trainer = self.get_sarsa_trainer(
             environment, True, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
         )
-        evaluator = Evaluator(environment.ACTIONS, 10, DISCOUNT, None, None)
-        tdps = environment.preprocess_samples(
-            samples, self.minibatch_size, use_gpu=use_gpu
-        )
-
-        for tdp in tdps:
-            trainer.train(tdp, evaluator)
-
-        self.assertLess(evaluator.mc_loss[-1], 0.1)
+        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
+        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
 
     def test_evaluator_ground_truth_dueling(self):
         self._test_evaluator_ground_truth_dueling()
@@ -202,45 +134,13 @@ class TestGridworld(unittest.TestCase):
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
         )
-        predictor = trainer.predictor()
-        samples = environment.generate_samples(500000, 1.0, DISCOUNT)
-        rewards_update = []
-        for action, reward in zip(samples.actions, samples.rewards):
-            rewards_update.append(reward - reward_boost[action])
-        samples.rewards = rewards_update
-        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False, samples)
-
-        tdps = environment.preprocess_samples(
-            samples, self.minibatch_size, use_gpu=use_gpu
+        evaluator = GridworldEvaluator(
+            env=environment,
+            assume_optimal_policy=False,
+            gamma=DISCOUNT,
+            use_int_features=False,
         )
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            tmp_path = os.path.join(tmpdirname, "model")
-            predictor.save(tmp_path, "minidb")
-            new_predictor = DQNPredictor.load(tmp_path, "minidb", False)
-            evaluator.evaluate(new_predictor)
-        print(
-            "Pre-Training eval: ",
-            evaluator.mc_loss[-1],
-            evaluator.value_doubly_robust[-1],
-        )
-        self.assertGreater(evaluator.mc_loss[-1], 0.12)
-
-        for tdp in tdps:
-            trainer.train(tdp, None)
-
-        predictor = trainer.predictor()
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            tmp_path = os.path.join(tmpdirname, "model")
-            predictor.save(tmp_path, "minidb")
-            new_predictor = DQNPredictor.load(tmp_path, "minidb", False)
-            evaluator.evaluate(new_predictor)
-        print(
-            "Post-Training eval: ",
-            evaluator.mc_loss[-1],
-            evaluator.value_doubly_robust[-1],
-        )
-        self.assertLess(evaluator.mc_loss[-1], 0.1)
+        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
 
     def test_reward_boost(self):
         self._test_reward_boost()
@@ -271,7 +171,6 @@ class TestGridworld(unittest.TestCase):
             next_actions=["U"],
             terminals=[False],
             possible_next_actions=[["R", "U", "D"]],
-            episode_values=[0.00161],
         )
         tdps = environment.preprocess_samples(samples, 1)
 

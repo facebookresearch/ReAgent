@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import collections
 import queue
 import random
 import sys
 import threading
+from typing import NamedTuple
 
 import torch
 import torch.multiprocessing as multiprocessing
@@ -138,9 +140,13 @@ def pin_memory_batch(batch):
     the type of Mapping so that the OrderedDict is maintained.
     """
     if isinstance(batch, torch.Tensor):
-        return batch.pin_memory()
+        return batch.pin_memory().cuda(non_blocking=True)
     elif isinstance(batch, string_classes):
         return batch
+    elif isinstance(batch, NamedTuple) or hasattr(batch, "_asdict"):
+        return type(batch)(
+            **{name: pin_memory_batch(value) for name, value in batch._asdict().items()}
+        )
     elif isinstance(batch, collections.Mapping):
         # NB: preserving OrderedDict
         return type(batch)((k, pin_memory_batch(sample)) for k, sample in batch.items())

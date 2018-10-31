@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import argparse
 import json
@@ -9,11 +10,7 @@ import numpy as np
 import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
-from ml.rl.test.gym.gym_predictor import (
-    GymDDPGPredictor,
-    GymDQNPredictor,
-    GymDQNPredictorPytorch,
-)
+from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
@@ -32,9 +29,7 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.training.continuous_action_dqn_trainer import ContinuousActionDQNTrainer
 from ml.rl.training.ddpg_trainer import DDPGTrainer
-from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_dataset import RLDataset
@@ -156,16 +151,20 @@ def train_gym_online_rl(
             if render:
                 gym_env.env.render()
 
+            action_to_log = _format_action_for_rl_dataset(action, gym_env.action_type)
             if gym_env.action_type == EnvType.DISCRETE_ACTION:
-                action_index = np.argmax(action)
-                next_state, reward, terminal, _ = gym_env.env.step(action_index)
+                next_state, reward, terminal, _ = gym_env.env.step(int(action_to_log))
             else:
                 next_state, reward, terminal, _ = gym_env.env.step(action)
+                action_to_log = action.tolist()
             next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
             total_timesteps += 1
             next_action = gym_env.policy(predictor, next_state, False)
+            next_action_to_log = _format_action_for_rl_dataset(
+                next_action, gym_env.action_type
+            )
             reward_sum += reward
 
             # Get possible next actions
@@ -191,14 +190,10 @@ def train_gym_online_rl(
                     i,
                     ep_timesteps - 1,
                     state.tolist(),
-                    action.tolist(),
+                    action_to_log,
                     reward,
-                    next_state.tolist(),
-                    next_action.tolist(),
                     terminal,
                     possible_actions,
-                    possible_next_actions,
-                    possible_next_actions_lengths,
                     1,
                     1.0,
                 )
@@ -239,6 +234,20 @@ def train_gym_online_rl(
 
             if max_steps and ep_timesteps >= max_steps:
                 break
+
+        # If the episode ended due to a terminal state being hit, log that
+        if terminal and save_timesteps_to_dataset:
+            save_timesteps_to_dataset.insert(
+                i,
+                ep_timesteps,
+                next_state.tolist(),
+                next_action_to_log,
+                0.0,
+                terminal,
+                possible_next_actions,
+                1,
+                1.0,
+            )
 
         # Always eval on last episode if previous eval loop didn't return.
         if i == num_episodes - 1:
@@ -463,17 +472,23 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
     return trainer
 
 
+def _format_action_for_rl_dataset(action, env_type):
+    if env_type == EnvType.DISCRETE_ACTION:
+        action_index = np.argmax(action)
+        return str(action_index)
+    return action.tolist()
+
+
 def create_predictor(trainer, model_type, use_gpu):
-    c2_device = core.DeviceOption(caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU)
     if model_type == ModelType.CONTINUOUS_ACTION.value:
         predictor = GymDDPGPredictor(trainer)
     elif model_type in (
         ModelType.PYTORCH_DISCRETE_DQN.value,
         ModelType.PYTORCH_PARAMETRIC_DQN.value,
     ):
-        predictor = GymDQNPredictorPytorch(trainer)
+        predictor = GymDQNPredictor(trainer)
     else:
-        predictor = GymDQNPredictor(trainer, c2_device)
+        raise NotImplementedError()
     return predictor
 
 

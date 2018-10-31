@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 from copy import deepcopy
@@ -18,7 +19,7 @@ from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
 )
 from ml.rl.training.dqn_predictor import DQNPredictor
-from ml.rl.training.evaluator import Evaluator
+from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
     RLTrainer,
@@ -73,19 +74,24 @@ class DQNTrainer(RLTrainer):
         else:
             if parameters.training.cnn_parameters is None:
                 self.q_network = FullyConnectedNetwork(
-                    parameters.training.layers, parameters.training.activations
+                    parameters.training.layers,
+                    parameters.training.activations,
+                    use_noisy_linear_layers=parameters.training.use_noisy_linear_layers,
                 )
             else:
                 self.q_network = ConvolutionalNetwork(
                     parameters.training.cnn_parameters,
                     parameters.training.layers,
                     parameters.training.activations,
+                    use_noisy_linear_layers=parameters.training.use_noisy_linear_layers,
                 )
 
         self.q_network_target = deepcopy(self.q_network)
         self._set_optimizer(parameters.training.optimizer)
         self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(), lr=parameters.training.learning_rate
+            self.q_network.parameters(),
+            lr=parameters.training.learning_rate,
+            weight_decay=parameters.training.l2_decay,
         )
 
         if parameters.training.cnn_parameters is None:
@@ -162,7 +168,8 @@ class DQNTrainer(RLTrainer):
 
     def train(
         self, training_samples: TrainingDataPage, evaluator: Optional[Evaluator] = None
-    ) -> None:
+    ):
+
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert (
@@ -174,11 +181,6 @@ class DQNTrainer(RLTrainer):
             assert training_samples.rewards.shape == torch.Size(
                 [self.minibatch_size, 1]
             ), "Invalid shape: " + str(training_samples.rewards.shape)
-            assert (
-                training_samples.episode_values is None
-                or training_samples.episode_values.shape
-                == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.episode_values.shape)
             assert (
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)
@@ -265,58 +267,31 @@ class DQNTrainer(RLTrainer):
         reward_loss.backward()
         self.reward_network_optimizer.step()
 
+        training_metadata = {}
         if evaluator is not None:
-            self.evaluate(
-                evaluator,
-                training_samples.actions,
-                training_samples.propensities,
-                boosted_rewards,
-                training_samples.episode_values,
-            )
 
-    def evaluate(
-        self,
-        evaluator: Evaluator,
-        logged_actions: torch.Tensor,
-        logged_propensities: Optional[torch.Tensor],
-        logged_rewards: torch.Tensor,
-        logged_values: Optional[torch.Tensor],
-    ):
-        self.model_propensities, model_values_on_logged_actions, maxq_action_idxs = (
-            None,
-            None,
-            None,
-        )
-        if self.all_action_scores is not None:
-            self.model_propensities = Evaluator.softmax(
+            model_propensities = Evaluator.softmax(
                 self.all_action_scores.cpu().numpy(), self.rl_temperature
             )
-            maxq_action_idxs = (
-                self.all_action_scores.argmax(dim=1, keepdim=True).cpu().numpy()
-            )
-            if logged_actions is not None:
-                model_values_on_logged_actions = (
-                    torch.sum(
-                        (logged_actions * self.all_action_scores), dim=1, keepdim=True
-                    )
-                    .cpu()
-                    .numpy()
-                )
 
-        evaluator.report(
-            self.loss.cpu().numpy(),
-            logged_actions.cpu().numpy(),
-            logged_propensities.cpu().numpy()
-            if logged_propensities is not None
-            else None,
-            logged_rewards.cpu().numpy(),
-            logged_values.cpu().numpy() if logged_values is not None else None,
-            self.model_propensities,
-            self.reward_estimates.cpu().numpy(),
-            self.all_action_scores.cpu().numpy(),
-            model_values_on_logged_actions,
-            maxq_action_idxs,
-        )
+            cpe_stats = BatchStatsForCPE(
+                td_loss=self.loss.cpu().numpy(),
+                logged_actions=training_samples.actions.cpu().numpy(),
+                logged_propensities=training_samples.propensities.cpu().numpy(),
+                logged_rewards=rewards.cpu().numpy(),
+                logged_values=None,  # Compute at end of each epoch for CPE
+                model_propensities=model_propensities,
+                model_rewards=self.reward_estimates.cpu().numpy(),
+                model_values=self.all_action_scores.cpu().numpy(),
+                model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
+                model_action_idxs=self.all_action_scores.argmax(dim=1, keepdim=True)
+                .cpu()
+                .numpy(),
+            )
+            evaluator.report(cpe_stats)
+            training_metadata["model_rewards"] = self.reward_estimates.cpu().numpy()
+
+        return training_metadata
 
     def predictor(self) -> DQNPredictor:
         """Builds a DQNPredictor."""
@@ -327,3 +302,6 @@ class DQNTrainer(RLTrainer):
             self._additional_feature_types.int_features,
             self.use_gpu,
         )
+
+    def export(self) -> DQNPredictor:
+        return self.predictor()

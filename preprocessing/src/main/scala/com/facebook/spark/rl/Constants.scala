@@ -1,3 +1,4 @@
+// Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.rl
 
 object Constants {
@@ -15,8 +16,7 @@ object Constants {
     "time_diff",
     "possible_actions",
     "possible_next_actions",
-    "reward_timeline",
-    "reward_timeline_ordinal"
+    "metrics"
   );
 
 }

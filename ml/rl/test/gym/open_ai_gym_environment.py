@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import enum
 
 import gym
 import numpy as np
-from ml.rl.test.gym.gym_predictor import (
-    GymDDPGPredictor,
-    GymDQNPredictor,
-    GymDQNPredictorPytorch,
-)
-from ml.rl.test.utils import default_normalizer
+from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
+from ml.rl.test.utils import default_normalizer, only_continuous_normalizer
+from ml.rl.training.dqn_predictor import DQNPredictor
 
 
 class ModelType(enum.Enum):
@@ -24,7 +22,7 @@ class EnvType(enum.Enum):
 
 
 class OpenAIGymEnvironment:
-    def __init__(self, gymenv, epsilon, softmax_policy, gamma):
+    def __init__(self, gymenv, epsilon=0, softmax_policy=False, gamma=0.99):
         """
         Creates an OpenAIGymEnvironment object.
 
@@ -97,26 +95,29 @@ class OpenAIGymEnvironment:
 
     @property
     def normalization_action(self):
-        return default_normalizer(
+        return only_continuous_normalizer(
             [x for x in list(range(self.state_dim, self.state_dim + self.action_dim))]
         )
 
-    def policy(self, predictor, next_state, test):
+    def policy(self, predictor, next_state, test, state_preprocessor=None):
         """
         Selects the next action.
 
         :param predictor: RLPredictor object whose policy to follow.
         :param next_state: State to evaluate predictor's policy on.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
+        :param state_preprocessor: State preprocessor to use to preprocess states
         """
         # Add a dimension since this expects a batch of examples
         next_state = np.expand_dims(next_state.astype(np.float32), axis=0)
         action = np.zeros([self.action_dim], dtype=np.float32)
 
-        if isinstance(predictor, (GymDQNPredictor, GymDQNPredictorPytorch)):
+        if isinstance(predictor, GymDQNPredictor):
             if not test and np.random.rand() < self.epsilon:
                 action_idx = np.random.randint(self.action_dim)
             else:
+                if state_preprocessor:
+                    next_state = state_preprocessor.forward(next_state)
                 if self.softmax_policy:
                     action_idx = predictor.policy(next_state)[1]
                 else:
@@ -125,13 +126,31 @@ class OpenAIGymEnvironment:
             action[action_idx] = 1.0
             return action
         elif isinstance(predictor, GymDDPGPredictor):
+            if state_preprocessor:
+                next_state = state_preprocessor.forward(next_state)
             if test:
                 return predictor.policy(next_state)[0]
             return predictor.policy(next_state, add_action_noise=True)[0]
+        elif isinstance(predictor, DQNPredictor):
+            # Use DQNPredictor directly - useful to test caffe2 predictor
+            # assumes state preprocessor already part of predictor net.
+            sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
+            q_values = predictor.predict(sparse_next_states)
+            action_idx = max(q_values[0], key=q_values[0].get)
+            action[int(action_idx)] = 1.0
+            return action
         else:
             raise NotImplementedError("Unknown predictor type")
 
-    def run_ep_n_times(self, n, predictor, max_steps=None, test=False, render=False):
+    def run_ep_n_times(
+        self,
+        n,
+        predictor,
+        max_steps=None,
+        test=False,
+        render=False,
+        state_preprocessor=None,
+    ):
         """
         Runs an episode of the environment n times and returns the average
         sum of rewards.
@@ -141,12 +160,13 @@ class OpenAIGymEnvironment:
         :param max_steps: Max number of timesteps before ending episode.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         :param render: Whether or not to render the episode.
+        :param state_preprocessor: State preprocessor to use to preprocess states
         """
         reward_sum = 0.0
         discounted_reward_sum = 0.0
         for _ in range(n):
             ep_rew_sum, ep_raw_discounted_sum = self.run_episode(
-                predictor, max_steps, test, render
+                predictor, max_steps, test, render, state_preprocessor
             )
             reward_sum += ep_rew_sum
             discounted_reward_sum += ep_raw_discounted_sum
@@ -160,7 +180,14 @@ class OpenAIGymEnvironment:
             state = np.transpose(state, axes=[2, 0, 1])
         return state
 
-    def run_episode(self, predictor, max_steps=None, test=False, render=False):
+    def run_episode(
+        self,
+        predictor,
+        max_steps=None,
+        test=False,
+        render=False,
+        state_preprocessor=None,
+    ):
         """
         Runs an episode of the environment and returns the sum of rewards
         experienced in the episode. For evaluation purposes.
@@ -169,10 +196,11 @@ class OpenAIGymEnvironment:
         :param max_steps: Max number of timesteps before ending episode.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         :param render: Whether or not to render the episode.
+        :param state_preprocessor: State preprocessor to use to preprocess states
         """
         terminal = False
         next_state = self.transform_state(self.env.reset())
-        next_action = self.policy(predictor, next_state, test)
+        next_action = self.policy(predictor, next_state, test, state_preprocessor)
         reward_sum = 0
         discounted_reward_sum = 0
         num_steps_taken = 0
@@ -190,7 +218,7 @@ class OpenAIGymEnvironment:
 
             next_state = self.transform_state(next_state)
             num_steps_taken += 1
-            next_action = self.policy(predictor, next_state, test)
+            next_action = self.policy(predictor, next_state, test, state_preprocessor)
             reward_sum += reward
             discounted_reward_sum += reward * self.gamma ** (num_steps_taken - 1)
 

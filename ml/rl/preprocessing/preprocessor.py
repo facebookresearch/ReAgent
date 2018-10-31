@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 from typing import Dict, List
@@ -6,10 +7,15 @@ from typing import Dict, List
 import numpy as np
 import torch
 import torch.nn as nn
+from ml.rl import types as rlt
 from ml.rl.preprocessing.identify_types import ENUM, FEATURE_TYPES
 from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
 from torch.nn import Module, Parameter
 
+
+MAX_FEATURE_VALUE = 6
+MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
+EPS = 1e-6
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +25,7 @@ class Preprocessor(Module):
         self,
         normalization_parameters: Dict[str, NormalizationParameters],
         use_gpu: bool,
+        typed_output: bool = False,
     ) -> None:
         super(Preprocessor, self).__init__()
         self.normalization_parameters = normalization_parameters
@@ -26,6 +33,7 @@ class Preprocessor(Module):
             self._sort_features_by_normalization()
         )
         self.clamp = True  # Only set to false in unit tests
+        self.typed_output = typed_output
 
         cuda_available = torch.cuda.is_available()
         logger.info("CUDA availability: {}".format(cuda_available))
@@ -65,7 +73,7 @@ class Preprocessor(Module):
             torch.tensor([1e20]).type(self.dtype), requires_grad=False
         )
         self.epsilon_tensor = Parameter(
-            torch.tensor([1e-6]).type(self.dtype), requires_grad=False
+            torch.tensor([EPS]).type(self.dtype), requires_grad=False
         )
 
         feature_starts = self._get_type_boundaries()
@@ -90,15 +98,24 @@ class Preprocessor(Module):
                 func = getattr(self, "_create_parameters_" + feature_type)
                 func(begin_index, norm_params)
 
+    def input_prototype(self):
+        return rlt.FeatureVector(
+            float_features=torch.randn(1, len(self.normalization_parameters))
+        )
+
     def forward(self, input) -> torch.FloatTensor:
         """ Preprocess the input matrix
         :param input tensor
         """
         if isinstance(input, np.ndarray):
             input = torch.from_numpy(input).type(self.dtype)
+        if isinstance(input, rlt.FeatureVector):
+            input = input.float_features.type(self.dtype)
 
         # ONNX doesn't support != yet
-        not_missing_input = self.one_tensor - (input == self.missing_tensor).float()
+        not_missing_input = (
+            self.one_tensor.float() - (input == self.missing_tensor).float()
+        )
         feature_starts = self._get_type_boundaries()
 
         outputs = []
@@ -118,6 +135,7 @@ class Preprocessor(Module):
                         j, input[:, j : j + 1], norm_params
                     )
                     new_output *= not_missing_input[:, j : j + 1]
+                    self._check_preprocessing_output(new_output, [norm_params])
                     outputs.append(new_output)
             else:
                 norm_params = []
@@ -127,11 +145,21 @@ class Preprocessor(Module):
                     begin_index, input[:, begin_index:end_index], norm_params
                 )
                 new_output *= not_missing_input[:, begin_index:end_index]
+                self._check_preprocessing_output(new_output, norm_params)
                 outputs.append(new_output)
 
+        def wrap(output):
+            if self.typed_output:
+                return rlt.FeatureVector(float_features=output)
+            else:
+                return output
+
         if len(outputs) == 1:
-            return outputs[0]
-        return torch.cat(outputs, dim=1)
+            return wrap(torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE))
+
+        return wrap(
+            torch.clamp(torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+        )
 
     def _preprocess_feature_single_column(
         self,
@@ -189,10 +217,49 @@ class Preprocessor(Module):
         else:
             # Still clamp to avoid MISSING_VALUE from causing NaN
             clamped_input = torch.clamp(input, 1e-6)
-        return (
-            self.negative_one_tensor
-            * ((self.one_tensor / clamped_input) - self.one_tensor).log()
+        return self.negative_one_tensor * (
+            ((self.one_tensor / clamped_input) - self.one_tensor).log()
         )
+
+    def _create_parameters_CONTINUOUS_ACTION(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        self._create_parameter(
+            begin_index,
+            "min_serving_value",
+            torch.Tensor([p.min_value for p in norm_params]).type(self.dtype),
+        )
+        self._create_parameter(
+            begin_index,
+            "min_training_value",
+            torch.ones(len(norm_params)).type(self.dtype) * -1 + EPS,
+        )
+        self._create_parameter(
+            begin_index,
+            "scaling_factor",
+            (torch.ones(len(norm_params)).type(self.dtype) - EPS)
+            * 2
+            / torch.tensor([p.max_value - p.min_value for p in norm_params]).type(
+                self.dtype
+            ),
+        )
+
+    def _preprocess_CONTINUOUS_ACTION(
+        self,
+        begin_index: int,
+        input: torch.Tensor,
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        min_serving_value = self._fetch_parameter(begin_index, "min_serving_value")
+        min_training_value = self._fetch_parameter(begin_index, "min_training_value")
+        scaling_factor = self._fetch_parameter(begin_index, "scaling_factor")
+        continuous_action = (
+            input - min_serving_value
+        ) * scaling_factor + min_training_value
+        if not self.clamp:
+            return continuous_action
+        else:
+            return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)
 
     def _create_parameters_CONTINUOUS(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -355,12 +422,12 @@ class Preprocessor(Module):
         expanded_inputs = input.unsqueeze(2) * mask
 
         input_greater_than_or_equal_to = (
-            self.hack_ge(expanded_inputs, quantile_boundaries)
+            expanded_inputs >= quantile_boundaries
         ).float()
 
         input_less_than = (expanded_inputs < quantile_boundaries).float()
-        set_to_max = self.hack_ge(input, max_quantile_boundaries).float()
-        set_to_min = self.hack_le(input, min_quantile_boundaries).float()
+        set_to_max = (input >= max_quantile_boundaries).float()
+        set_to_min = (input <= min_quantile_boundaries).float()
         min_or_max = (set_to_min + set_to_max).float()
         interpolate = (min_or_max < self.one_hundredth_tensor).float()
         interpolate_left, _ = torch.max(
@@ -417,6 +484,9 @@ class Preprocessor(Module):
         # Sort features by feature type
         sorted_features = []
         feature_starts = []
+        assert isinstance(
+            list(self.normalization_parameters.keys())[0], int
+        ), "Normalization Parameters need to be int"
         for feature_type in FEATURE_TYPES:
             feature_starts.append(len(sorted_features))
             for feature in sorted(self.normalization_parameters.keys()):
@@ -467,11 +537,29 @@ class Preprocessor(Module):
 
         return fn(t1_mask, t2).float()
 
-    def hack_ge(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return t1 > (t2 - self.epsilon_tensor)
-
-    def hack_le(self, t1: torch.Tensor, t2: torch.Tensor) -> torch.Tensor:
-        return t1 < (t2 + self.epsilon_tensor)
+    def _check_preprocessing_output(self, batch, norm_params):
+        """
+        Check that preprocessed features fall within range of valid output.
+        :param batch: torch tensor
+        :param norm_params: list of normalization parameters
+        """
+        feature_type = norm_params[0].feature_type
+        min_value, max_value = batch.min(), batch.max()
+        if feature_type == "CONTINUOUS":
+            # Continuous features may be in range (-inf, inf)
+            pass
+        elif bool(max_value > MAX_FEATURE_VALUE):
+            raise Exception(
+                "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
+                    feature_type, max_value, MAX_FEATURE_VALUE
+                )
+            )
+        elif bool(min_value < MIN_FEATURE_VALUE):
+            raise Exception(
+                "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
+                    feature_type, min_value, MIN_FEATURE_VALUE
+                )
+            )
 
 
 class PreprocesserAndForwardPassContainer(nn.Module):

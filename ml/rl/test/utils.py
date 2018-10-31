@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import collections
 import csv
@@ -78,6 +79,29 @@ def default_normalizer(feats, min_value=None, max_value=None):
     normalization = collections.OrderedDict(
         [
             (feats[i], normalization_types[i % len(normalization_types)])
+            for i in range(len(feats))
+        ]
+    )
+    return normalization
+
+
+def only_continuous_normalizer(feats, min_value=None, max_value=None):
+    normalization = collections.OrderedDict(
+        [
+            (
+                feats[i],
+                NormalizationParameters(
+                    feature_type="CONTINUOUS",
+                    boxcox_lambda=None,
+                    boxcox_shift=None,
+                    mean=0,
+                    stddev=1,
+                    possible_values=None,
+                    quantiles=None,
+                    min_value=min_value,
+                    max_value=max_value,
+                ),
+            )
             for i in range(len(feats))
         ]
     )

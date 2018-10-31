@@ -1,15 +1,14 @@
 {
   "timeline": {
-    "startDs": "2018-09-11",
-    "endDs": "2018-09-11",
+    "startDs": "2019-01-01",
+    "endDs": "2019-01-01",
     "addTerminalStateRow": false,
     "actionDiscrete": false,
     "inputTableName": "cartpole_parametric",
-    "outputTableName": "cartpole_parametric_training_data"
+    "outputTableName": "cartpole_parametric_training_data",
+    "numOutputShards": 1
   },
   "query": {
-    "discountFactor": 0.9,
-    "tableSample": 0.5,
-    "useNonOrdinalRewardTimeline": false
+    "tableSample": 0.5
   }
 }

@@ -1,3 +1,4 @@
+// Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.rl
 
 import org.slf4j.LoggerFactory
@@ -9,14 +10,15 @@ case class TimelineConfiguration(startDs: String,
                                  addTerminalStateRow: Boolean,
                                  actionDiscrete: Boolean,
                                  inputTableName: String,
-                                 outputTableName: String)
+                                 outputTableName: String,
+                                 numOutputShards: Int)
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
   * return the table needed for reinforcement learning (MDP: Markov Decision Process)
   * mdp_id, state_features, action, reward, next_state_features, next_action,
-  * sequence_number, sequence_number_ordinal, time_diff, possible_next_actions,
-  * reward_timeline. Shuffles the results.
+  * sequence_number, sequence_number_ordinal, time_diff, possible_next_actions.
+  * Shuffles the results.
   * Reference:
   * https://our.intern.facebook.com/intern/wiki/Reinforcement-learning/
   *
@@ -101,12 +103,6 @@ case class TimelineConfiguration(startDs: String,
   * possible_next_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> )
   * A list of actions that were possible at the next step.
   *
-  * reward_timeline ( MAP<INT, DOUBLE> ). A map containing the future reward.
-  * Each key is the number of timesteps forward,
-  * and the value is the reward at that timestep.
-  * The key with index 0 should have a value equal to the reward column.
-  * This column is optional but used to measure the model performance.
-  *
   */
 object Timeline {
 
@@ -122,8 +118,6 @@ object Timeline {
                                             config.actionDiscrete)
     Timeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
 
-    sqlContext.udf.register("UNION_LIST_OF_REWARD_TIMELINES", Udfs.unionListOfMaps[Long, Double] _)
-
     val sqlCommand = s"""
       WITH deduped as (
           SELECT
@@ -133,6 +127,7 @@ object Timeline {
               FIRST(action_probability) as action_probability,
               FIRST(reward) as reward,
               FIRST(possible_actions) as possible_actions,
+              FIRST(metrics) as metrics,
               FIRST(ds) as ds,
               sequence_number as sequence_number
               FROM (
@@ -149,41 +144,11 @@ object Timeline {
               action_probability as action_probability,
               reward as reward,
               possible_actions as possible_actions,
+              metrics as metrics,
               ds as ds,
               sequence_number as sequence_number,
               row_number() over (partition by mdp_id order by mdp_id, sequence_number) as sequence_number_ordinal
               FROM deduped
-      ),
-      reward_only AS (
-          SELECT
-              mdp_id,
-              sequence_number,
-              sequence_number_ordinal,
-              reward
-          FROM
-              ordinal
-      ),
-      reward_timeline AS (
-          SELECT
-              t1.mdp_id AS mdp_id,
-              t1.sequence_number AS sequence_number,
-              UNION_LIST_OF_REWARD_TIMELINES(
-                COLLECT_LIST(
-                  MAP(CAST((t2.sequence_number - t1.sequence_number) AS BIGINT), t2.reward))) AS reward_timeline,
-              UNION_LIST_OF_REWARD_TIMELINES(
-                COLLECT_LIST(
-                  MAP(CAST((t2.sequence_number_ordinal - t1.sequence_number_ordinal) AS BIGINT), t2.reward))) AS reward_timeline_ordinal
-          FROM
-              reward_only t1
-              JOIN reward_only t2
-              ON t1.mdp_id = t2.mdp_id
-          WHERE
-              t1.sequence_number_ordinal <= t2.sequence_number_ordinal
-              AND t1.sequence_number_ordinal + 100 > t2.sequence_number_ordinal -- Disregard rewards too far in the future
-              AND (t2.reward != 0 OR t1.sequence_number_ordinal = t2.sequence_number_ordinal) -- Only include reward=0 for t=0
-          GROUP BY
-              t1.mdp_id,
-              t1.sequence_number
       ),
       sarsa_unshuffled AS (
           SELECT
@@ -192,23 +157,19 @@ object Timeline {
               first_sa.action AS action,
               first_sa.action_probability as action_probability,
               first_sa.reward AS reward,
-              rt.reward_timeline AS reward_timeline,
-              rt.reward_timeline_ordinal AS reward_timeline_ordinal,
               second_sa.state_features AS next_state_features,
               second_sa.action AS next_action,
               first_sa.sequence_number AS sequence_number,
               first_sa.sequence_number_ordinal AS sequence_number_ordinal,
               second_sa.sequence_number - first_sa.sequence_number AS time_diff,
               first_sa.possible_actions AS possible_actions,
-              second_sa.possible_actions AS possible_next_actions
+              second_sa.possible_actions AS possible_next_actions,
+              first_sa.metrics as metrics
           FROM
               ordinal first_sa
               ${terminalJoin} JOIN ordinal second_sa
               ON first_sa.mdp_id = second_sa.mdp_id
               AND (first_sa.sequence_number_ordinal + 1) = second_sa.sequence_number_ordinal
-              JOIN reward_timeline rt
-              ON first_sa.mdp_id = rt.mdp_id
-              AND first_sa.sequence_number = rt.sequence_number
       )
       INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
       SELECT ${Constants.TRAINING_DATA_COLUMN_NAMES
@@ -287,8 +248,7 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     time_diff BIGINT,
     possible_actions ${possibleActionType},
     possible_next_actions ${possibleActionType},
-    reward_timeline MAP < BIGINT, DOUBLE >,
-    reward_timeline_ordinal MAP < BIGINT, DOUBLE >
+    metrics MAP< STRING, DOUBLE>
 ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);

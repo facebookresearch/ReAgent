@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 from typing import Dict, List, Tuple
@@ -14,22 +14,6 @@ from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParame
 
 
 logger = logging.getLogger(__name__)
-
-
-def sort_features_by_normalization(normalization_parameters):
-    """
-    Helper function to return a sorted list from a normalization map.
-    Also returns the starting index for each feature type"""
-    # Sort features by feature type
-    sorted_features = []
-    feature_starts = []
-    for feature_type in FEATURE_TYPES:
-        feature_starts.append(len(sorted_features))
-        for feature in sorted(normalization_parameters.keys()):
-            norm = normalization_parameters[feature]
-            if norm.feature_type == feature_type:
-                sorted_features.append(feature)
-    return sorted_features, feature_starts
 
 
 class PreprocessorNet:
@@ -50,6 +34,10 @@ class PreprocessorNet:
 
         ZERO = self._store_parameter(
             parameters, "ZERO", np.array([0], dtype=np.float32)
+        )
+        ONE = self._store_parameter(parameters, "ONE", np.array([1], dtype=np.float32))
+        NEGATIVE_ONE = self._store_parameter(
+            parameters, "NEGATIVE_ONE", np.array([-1], dtype=np.float32)
         )
 
         MISSING_U = self._store_parameter(
@@ -81,7 +69,12 @@ class PreprocessorNet:
             bool_blob = C2.Or(is_gt_zero, is_lt_zero)
             blob = C2.Cast(bool_blob, to=caffe2_pb2.TensorProto.FLOAT)
         elif feature_type == identify_types.PROBABILITY:
-            blob = C2.Logit(C2.Clip(blob, min=0.01, max=0.99))
+            clipped = C2.Clip(blob, min=0.01, max=0.99)
+            blob = C2.Mul(
+                C2.Log(C2.Sub(C2.Pow(clipped, exponent=-1.0), ONE, broadcast=1)),
+                NEGATIVE_ONE,
+                broadcast=1,
+            )
         elif feature_type == identify_types.ENUM:
             for parameter in normalization_parameters:
                 possible_values = parameter.possible_values
@@ -194,11 +187,10 @@ class PreprocessorNet:
                 quantile_values = np.append(
                     quantile_values, np.array(norm.quantiles, dtype=np.float32)
                 )
-                # TODO: Fix this: the np.unique is making this part not true.
                 quantile_labels = np.append(
                     quantile_labels,
                     np.arange(len(norm.quantiles), dtype=np.float32)
-                    / float(len(norm.quantiles)),
+                    / float(len(norm.quantiles) - 1.0),
                 )
             quantiles = np.vstack([quantile_values, quantile_labels]).T
             quantiles_blob = self._store_parameter(
@@ -250,7 +242,40 @@ class PreprocessorNet:
             blob = C2.Sub(blob, means_blob, broadcast=1, axis=0)
             blob = C2.Div(blob, stddevs_blob, broadcast=1, axis=0)
             if self.clip_anomalies:
-                blob = C2.Clip(blob, min=-3.0, max=3.0)
+                blob = C2.Clip(blob, min=-6.0, max=6.0)
+        elif feature_type == identify_types.CONTINUOUS_ACTION:
+            serving_min_value = np.array(
+                [norm.min_value for norm in normalization_parameters], dtype=np.float32
+            )
+            serving_max_value = np.array(
+                [norm.max_value for norm in normalization_parameters], dtype=np.float32
+            )
+
+            training_min_value = (
+                np.ones(len(normalization_parameters), dtype=np.float32) * -1 + 1e-6
+            )
+
+            scaling_factor = (
+                (np.ones(len(normalization_parameters), dtype=np.float32) - 1e-6)
+                * 2
+                / (serving_max_value - serving_min_value)
+            )
+
+            serving_min_blob = self._store_parameter(
+                parameters, "serving_min_blob", serving_min_value
+            )
+            training_min_blob = self._store_parameter(
+                parameters, "training_min_blob", training_min_value
+            )
+            scaling_factor_blob = self._store_parameter(
+                parameters, "scaling_factor_blob", scaling_factor
+            )
+
+            blob = C2.Sub(blob, serving_min_blob, broadcast=1, axis=1)
+            blob = C2.Mul(blob, scaling_factor_blob, broadcast=1, axis=1)
+            blob = C2.Add(blob, training_min_blob, broadcast=1, axis=1)
+            if self.clip_anomalies:
+                blob = C2.Clip(blob, min=-1 + 1e-6, max=1 - 1e-6)
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 
@@ -265,91 +290,13 @@ class PreprocessorNet:
         parameters.append(c2_name)
         return c2_name
 
-    def normalize_sparse_matrix(
-        self,
-        lengths_blob: str,
-        keys_blob: str,
-        values_blob: str,
-        normalization_parameters: Dict[int, NormalizationParameters],
-        blobname_prefix: str,
-        split_sparse_to_dense: bool,
-        split_expensive_feature_groups: bool,
-        normalize: bool = True,
-        sorted_features_override: List[int] = None,
-    ) -> Tuple[str, List[str]]:
-        if sorted_features_override:
-            sorted_features = sorted_features_override
-        else:
-            sorted_features, _ = sort_features_by_normalization(
-                normalization_parameters
-            )
-        int_features = [int(feature) for feature in sorted_features]
-
-        preprocess_num_batches = 8 if split_sparse_to_dense else 1
-
-        lengths_batch = []
-        keys_batch = []
-        values_batch = []
-        for _ in range(preprocess_num_batches):
-            lengths_batch.append(C2.NextBlob(blobname_prefix + "_length_batch"))
-            keys_batch.append(C2.NextBlob(blobname_prefix + "_key_batch"))
-            values_batch.append(C2.NextBlob(blobname_prefix + "_value_batch"))
-
-        C2.net().Split([lengths_blob], lengths_batch, axis=0)
-        total_lengths_batch = []
-        for x in range(preprocess_num_batches):
-            total_lengths_batch.append(
-                C2.Reshape(
-                    C2.ReduceBackSum(lengths_batch[x], num_reduce_dims=1), shape=[1]
-                )[0]
-            )
-        total_lengths_batch_concat, _ = C2.Concat(*total_lengths_batch, axis=0)
-        C2.net().Split([keys_blob, total_lengths_batch_concat], keys_batch, axis=0)
-        C2.net().Split([values_blob, total_lengths_batch_concat], values_batch, axis=0)
-
-        dense_input_fragments = []
-        parameters: List[str] = []
-
-        MISSING_SCALAR = self._store_parameter(
-            parameters, "MISSING_SCALAR", np.array([MISSING_VALUE], dtype=np.float32)
-        )
-        C2.net().GivenTensorFill([], [MISSING_SCALAR], shape=[], values=[MISSING_VALUE])
-
-        for preprocess_batch in range(preprocess_num_batches):
-            dense_input_fragment = C2.SparseToDenseMask(
-                keys_batch[preprocess_batch],
-                values_batch[preprocess_batch],
-                MISSING_SCALAR,
-                lengths_batch[preprocess_batch],
-                mask=int_features,
-            )[0]
-
-            if normalize:
-                normalized_fragment, p = self.normalize_dense_matrix(
-                    dense_input_fragment,
-                    sorted_features,
-                    normalization_parameters,
-                    blobname_prefix,
-                    split_expensive_feature_groups,
-                )
-                dense_input_fragments.append(normalized_fragment)
-                parameters.extend(p)
-            else:
-                dense_input_fragments.append(dense_input_fragment)
-
-        dense_input = C2.NextBlob(blobname_prefix + "_dense_input")
-        dense_input_dims = C2.NextBlob(blobname_prefix + "_dense_input_dims")
-        C2.net().Concat(dense_input_fragments, [dense_input, dense_input_dims], axis=0)
-
-        return dense_input, parameters
-
     def normalize_dense_matrix(
         self,
         input_matrix: str,
         features: List[int],
         normalization_parameters: Dict[int, NormalizationParameters],
         blobname_prefix: str,
-        split_expensive_feature_groups: bool = False,
+        split_expensive_feature_groups: bool,
     ) -> Tuple[str, List[str]]:
         """
         Normalizes inputs according to parameters. Expects a dense matrix whose ith
@@ -432,7 +379,7 @@ class PreprocessorNet:
             concatenated_input_blob, concatenated_input_blob_dim = C2.Concat(
                 *normalized_input_blobs, axis=1
             )
-            return concatenated_input_blob, parameters
+        return concatenated_input_blob, parameters
 
     def _get_type_boundaries(
         self,
@@ -443,7 +390,10 @@ class PreprocessorNet:
         on_feature_type = -1
         for i, feature in enumerate(features):
             assert normalization_parameters.get(feature, None) is not None, (
-                "feature " + str(feature) + " not found in normalization_parameters!"
+                "feature "
+                + str(feature)
+                + " not found in normalization_parameters: "
+                + str(normalization_parameters.keys())
             )
             feature_type = normalization_parameters[feature].feature_type
             feature_type_index = FEATURE_TYPES.index(feature_type)

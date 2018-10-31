@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import unittest
 
 import numpy as np
 import numpy.testing as npt
 from caffe2.python import schema, workspace
+from ml.rl import types as rlt
 from ml.rl.preprocessing.feature_extractor import (
     PredictorFeatureExtractor,
     TrainingFeatureExtractor,
@@ -68,6 +70,18 @@ class FeatureExtractorTestBase(unittest.TestCase):
                 [11, MISSING_VALUE, 10, MISSING_VALUE],
                 [13, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
                 [MISSING_VALUE, 15, 14, 16],
+            ],
+            dtype=np.float32,
+        )
+
+    def expected_tiled_next_state_features(self):
+        # NOTE: this depends on lengths of possible next action
+        # Feature order: 1, 3, 2, 4
+        return np.array(
+            [
+                [11, MISSING_VALUE, 10, MISSING_VALUE],
+                [13, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
+                [13, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
             ],
             dtype=np.float32,
         )
@@ -180,6 +194,23 @@ class FeatureExtractorTestBase(unittest.TestCase):
 
 
 class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
+    def create_extra_input_record(self, net):
+        return net.input_record() + schema.NewRecord(
+            net,
+            schema.Struct(
+                ("reward", schema.Scalar()), ("action_probability", schema.Scalar())
+            ),
+        )
+
+    def setup_extra_data(self, ws, input_record):
+        extra_data = rlt.ExtraData(
+            action_probability=np.array([0.11, 0.21, 0.13], dtype=np.float32)
+        )
+        ws.feed_blob(
+            str(input_record.action_probability()), extra_data.action_probability
+        )
+        return extra_data
+
     def test_extract_max_q_discrete_action(self):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
@@ -187,9 +218,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = net.input_record() + schema.NewRecord(
-            net, schema.Struct(("reward", schema.Scalar()))
-        )
+        input_record = self.create_extra_input_record(net)
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         action = self.setup_action(ws, input_record.action)
@@ -197,11 +226,16 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ws, input_record.possible_next_actions
         )
         reward = self.setup_reward(ws, input_record.reward)
+        extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
-        npt.assert_array_equal(reward, o.reward.numpy())
+        npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(
+            extra_data.action_probability.reshape(-1, 1),
+            res.extras.action_probability.numpy(),
+        )
         npt.assert_array_equal(action, o.action.numpy())
         npt.assert_array_equal(
             possible_next_actions[0], o.possible_next_actions.lengths.numpy()
@@ -223,19 +257,22 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = net.input_record() + schema.NewRecord(
-            net, schema.Struct(("reward", schema.Scalar()))
-        )
+        input_record = self.create_extra_input_record(net)
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         action = self.setup_action(ws, input_record.action)
         next_action = self.setup_next_action(ws, input_record.next_action)
         reward = self.setup_reward(ws, input_record.reward)
+        extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
-        npt.assert_array_equal(reward, o.reward.numpy())
+        npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(
+            extra_data.action_probability.reshape(-1, 1),
+            res.extras.action_probability.numpy(),
+        )
         npt.assert_array_equal(action, o.action.numpy())
         npt.assert_array_equal(next_action, o.next_action.numpy())
         npt.assert_array_equal(
@@ -253,9 +290,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = net.input_record() + schema.NewRecord(
-            net, schema.Struct(("reward", schema.Scalar()))
-        )
+        input_record = self.create_extra_input_record(net)
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         self.setup_action_features(ws, input_record.action)
@@ -263,11 +298,16 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ws, input_record.possible_next_actions
         )
         reward = self.setup_reward(ws, input_record.reward)
+        extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
-        npt.assert_array_equal(reward, o.reward.numpy())
+        npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(
+            extra_data.action_probability.reshape(-1, 1),
+            res.extras.action_probability.numpy(),
+        )
         npt.assert_array_equal(
             self.expected_action_features(), o.action.float_features.numpy()
         )
@@ -282,7 +322,8 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             self.expected_state_features(), o.state.float_features.numpy()
         )
         npt.assert_array_equal(
-            self.expected_next_state_features(), o.next_state.float_features.numpy()
+            self.expected_tiled_next_state_features(),
+            o.tiled_next_state.float_features.numpy(),
         )
 
     def test_extract_sarsa_parametric_action(self):
@@ -293,19 +334,22 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = net.input_record() + schema.NewRecord(
-            net, schema.Struct(("reward", schema.Scalar()))
-        )
+        input_record = self.create_extra_input_record(net)
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         self.setup_action_features(ws, input_record.action)
         self.setup_next_action_features(ws, input_record.next_action)
         reward = self.setup_reward(ws, input_record.reward)
+        extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
-        npt.assert_array_equal(reward, o.reward.numpy())
+        npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(
+            extra_data.action_probability.reshape(-1, 1),
+            res.extras.action_probability.numpy(),
+        )
         npt.assert_array_equal(
             self.expected_action_features(), o.action.float_features.numpy()
         )
@@ -375,7 +419,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         expected_output_record = schema.Struct(
             ("state", schema.Scalar()),
-            ("next_state", schema.Scalar()),
+            ("tiled_next_state", schema.Scalar()),
             ("action", schema.Scalar()),
             ("possible_next_actions", schema.List(schema.Scalar())),
         )

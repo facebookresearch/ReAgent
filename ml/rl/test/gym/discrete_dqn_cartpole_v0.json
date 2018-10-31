@@ -2,7 +2,7 @@
   "env": "CartPole-v0",
   "model_type": "pytorch_discrete_dqn",
   "max_replay_memory_size": 10000,
-  "use_gpu": true,
+  "use_gpu": false,
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.2,
@@ -31,7 +31,8 @@
     "minibatch_size": 64,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
-    "lr_decay": 0.999
+    "lr_decay": 0.999,
+    "use_noisy_linear_layers": false
   },
   "run_details": {
     "num_episodes": 5001,

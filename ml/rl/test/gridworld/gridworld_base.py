@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
 import collections
@@ -10,11 +11,11 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
-import torch.multiprocessing as multiprocessing
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -44,7 +45,6 @@ class Samples(object):
         "next_actions",
         "terminals",
         "possible_next_actions",
-        "episode_values",
     ]
 
     def __init__(
@@ -60,7 +60,6 @@ class Samples(object):
         next_actions: List[str],
         terminals: List[bool],
         possible_next_actions: List[List[str]],
-        episode_values: List[float],
     ) -> None:
         self.mdp_ids = mdp_ids
         self.sequence_numbers = sequence_numbers
@@ -73,28 +72,11 @@ class Samples(object):
         self.next_actions = next_actions
         self.terminals = terminals
         self.possible_next_actions = possible_next_actions
-        self.episode_values = episode_values
 
     def shuffle(self):
         # Shuffle
-        if self.episode_values is None:
-            merged = list(
-                zip(
-                    self.mdp_ids,
-                    self.sequence_numbers,
-                    self.states,
-                    self.actions,
-                    self.action_probabilities,
-                    self.rewards,
-                    self.possible_actions,
-                    self.next_states,
-                    self.next_actions,
-                    self.terminals,
-                    self.possible_next_actions,
-                )
-            )
-            random.shuffle(merged)
-            (
+        merged = list(
+            zip(
                 self.mdp_ids,
                 self.sequence_numbers,
                 self.states,
@@ -106,39 +88,22 @@ class Samples(object):
                 self.next_actions,
                 self.terminals,
                 self.possible_next_actions,
-            ) = zip(*merged)
-        else:
-            merged = list(
-                zip(
-                    self.mdp_ids,
-                    self.sequence_numbers,
-                    self.states,
-                    self.actions,
-                    self.action_probabilities,
-                    self.rewards,
-                    self.possible_actions,
-                    self.next_states,
-                    self.next_actions,
-                    self.terminals,
-                    self.possible_next_actions,
-                    self.episode_values,
-                )
             )
-            random.shuffle(merged)
-            (
-                self.mdp_ids,
-                self.sequence_numbers,
-                self.states,
-                self.actions,
-                self.action_probabilities,
-                self.rewards,
-                self.possible_actions,
-                self.next_states,
-                self.next_actions,
-                self.terminals,
-                self.possible_next_actions,
-                self.episode_values,
-            ) = zip(*merged)
+        )
+        random.shuffle(merged)
+        (
+            self.mdp_ids,
+            self.sequence_numbers,
+            self.states,
+            self.actions,
+            self.action_probabilities,
+            self.rewards,
+            self.possible_actions,
+            self.next_states,
+            self.next_actions,
+            self.terminals,
+            self.possible_next_actions,
+        ) = zip(*merged)
 
 
 class GridworldBase(object):
@@ -171,6 +136,8 @@ class GridworldBase(object):
     def __init__(self):
         self.reset()
         self._optimal_policy = self._compute_optimal()
+        self._optimal_actions = self._compute_optimal_actions()
+        self.sparse_to_dense_net = None
 
     @property
     def normalization(self):
@@ -181,6 +148,44 @@ class GridworldBase(object):
 
     def index_to_action(self, index):
         return self.ACTIONS[index]
+
+    def _compute_optimal_actions(self):
+        not_visited = {(y, x) for x in range(self.width) for y in range(self.height)}
+        queue = collections.deque()
+        bfs_start = tuple(j[0] for j in np.where(self.grid == G))
+        queue.append(bfs_start)
+        working_set = set()
+        working_set.add(bfs_start)
+        # record optimal actions for each grid cell
+        optimal_actions = np.empty(self.grid.shape, dtype=np.object)
+        while len(queue) > 0:
+            current = queue.pop()
+            working_set.remove(current)
+            if current in not_visited:
+                not_visited.remove(current)
+            possible_actions = self.possible_actions(self._index(current), True)
+            for action in possible_actions:
+                next_state_pos = self.move_on_pos(current[0], current[1], action)
+                next_state = self._index(next_state_pos)
+                if next_state_pos not in not_visited:
+                    continue
+                if not self.is_terminal(next_state) and self.grid[next_state_pos] != W:
+                    self._add_optimal_action(
+                        optimal_actions, next_state_pos, self.invert_action(action)
+                    )
+                    bfs_next = self._pos(next_state)
+                    if bfs_next not in working_set:
+                        queue.appendleft(bfs_next)
+                        working_set.add(bfs_next)
+        print("OPTIMAL ACTIONS")
+        print(optimal_actions)
+        return optimal_actions
+
+    def _add_optimal_action(self, optimal_actions, pos, action):
+        if optimal_actions[pos] is None:
+            optimal_actions[pos] = [action]
+        else:
+            optimal_actions[pos].append(action)
 
     def _compute_optimal(self):
         not_visited = {(y, x) for x in range(self.width) for y in range(self.height)}
@@ -410,81 +415,34 @@ class GridworldBase(object):
             results.append(self.reward(next_state))
         return np.array(results).reshape(-1, 1)
 
-    def generate_samples_discrete(  # multiprocessing
+    def generate_samples_discrete(
         self, num_transitions, epsilon, discount_factor
     ) -> Samples:
-        NUM_PROCESSES = 8
-        sub_transitions = int(num_transitions / NUM_PROCESSES)
-        sub_transitions_map = [sub_transitions] * NUM_PROCESSES
-        seed = list(range(NUM_PROCESSES))
-        func = partial(
-            self.generate_samples_discrete_internal,
-            epsilon=epsilon,
-            discount_factor=discount_factor,
-        )
-        pool = multiprocessing.Pool(processes=NUM_PROCESSES)
-        res = pool.map(func, list(zip(sub_transitions_map, seed)))
+        # Initialize lists
+        states: List[Dict[int, float]] = [{}] * num_transitions
+        actions: List[str] = [""] * num_transitions
+        action_probabilities = [0.0] * num_transitions
+        rewards = [0.0] * num_transitions
+        next_states: List[Dict[int, float]] = [{}] * num_transitions
+        next_actions: List[str] = [""] * num_transitions
+        terminals = [False] * num_transitions
+        mdp_ids = [""] * num_transitions
+        sequence_numbers = [0] * num_transitions
+        possible_actions: List[List[str]] = [[]] * num_transitions
+        possible_next_actions: List[List[str]] = [[]] * num_transitions
 
-        merge = Samples(
-            mdp_ids=[],
-            sequence_numbers=[],
-            states=[],
-            actions=[],
-            action_probabilities=[],
-            rewards=[],
-            possible_actions=[],
-            next_states=[],
-            next_actions=[],
-            terminals=[],
-            possible_next_actions=[],
-            episode_values=[],
-        )
-        for s in res:
-            merge.mdp_ids += s.mdp_ids
-            merge.sequence_numbers += s.sequence_numbers
-            merge.states += s.states
-            merge.actions += s.actions
-            merge.action_probabilities += s.action_probabilities
-            merge.rewards += s.rewards
-            merge.possible_actions += s.possible_actions
-            merge.next_states += s.next_states
-            merge.next_actions += s.next_actions
-            merge.terminals += s.terminals
-            merge.possible_next_actions += s.possible_next_actions
-            merge.episode_values += s.episode_values
-        return merge
-
-    def generate_samples_discrete_internal(
-        self, num_transitions_seed_pair, epsilon, discount_factor
-    ) -> Samples:
-        num_transitions = num_transitions_seed_pair[0]
-        seed = num_transitions_seed_pair[1]
-        states = []
-        actions: List[str] = []
-        action_probabilities = []
-        rewards = []
-        next_states = []
-        next_actions: List[str] = []
-        terminals = []
-        mdp_ids = []
-        sequence_numbers = []
         state: int = -1
         terminal = True
         next_action = ""
         next_action_probability = 1.0
-        possible_actions: List[List[str]] = []
-        possible_next_actions: List[List[str]] = []
         transition = 0
-        last_terminal = -1
-        episode_values = []
         mdp_id = -1
         sequence_number = 0
-        np.random.seed(seed)
-        random.seed(seed)
-        while True:
+
+        # We run until we finish the episode that completes N transitions, but
+        # we may have to go beyond N to reach the end of that episode
+        while not terminal or transition < num_transitions:
             if terminal:
-                if transition >= num_transitions:
-                    break
                 state = self.reset()
                 terminal = False
                 mdp_id += 1
@@ -502,28 +460,31 @@ class GridworldBase(object):
                 next_state, epsilon
             )
 
-            mdp_ids.append(str(mdp_id))
-            sequence_numbers.append(sequence_number)
-            states.append({int(state): 1.0})
-            actions.append(action)
-            action_probabilities.append(action_probability)
-            rewards.append(reward)
-            possible_actions.append(possible_action)
-            next_states.append({int(next_state): 1.0})
-            next_actions.append(next_action)
-            terminals.append(terminal)
-            possible_next_actions.append(possible_next_action)
-            if not terminal:
-                episode_values.append(0.0)
-            else:
-                episode_values.append(1.0)
-                i = 1
-                discounted_value = discount_factor
-                while transition - i > last_terminal:
-                    episode_values[transition - i] += discounted_value
-                    i += 1
-                    discounted_value *= discount_factor
-                last_terminal = transition
+            # We want exactly N data points, but we need to wait until the
+            # episode is over so we can get the episode values.  This function
+            # will set episode values if they are in the range [0,N) and ignore
+            # otherwise.
+            def set_if_in_range(l, i, v):
+                if i >= num_transitions:
+                    return
+                l[i] = v
+
+            def add_if_in_range(l, i, v):
+                if i >= num_transitions:
+                    return
+                l[i] += v
+
+            set_if_in_range(mdp_ids, transition, str(mdp_id))
+            set_if_in_range(sequence_numbers, transition, sequence_number)
+            set_if_in_range(states, transition, {int(state): 1.0})
+            set_if_in_range(actions, transition, action)
+            set_if_in_range(action_probabilities, transition, action_probability)
+            set_if_in_range(rewards, transition, reward)
+            set_if_in_range(possible_actions, transition, possible_action)
+            set_if_in_range(next_states, transition, {int(next_state): 1.0})
+            set_if_in_range(next_actions, transition, next_action)
+            set_if_in_range(terminals, transition, terminal)
+            set_if_in_range(possible_next_actions, transition, possible_next_action)
 
             state = next_state
             transition += 1
@@ -539,7 +500,6 @@ class GridworldBase(object):
             next_actions=next_actions,
             terminals=terminals,
             possible_next_actions=possible_next_actions,
-            episode_values=episode_values,
         )
 
     def preprocess_samples_discrete(
@@ -553,32 +513,25 @@ class GridworldBase(object):
         samples.shuffle()
         logger.info("Preprocessing...")
 
-        net = core.Net("gridworld_preprocessing")
-        C2.set_net(net)
-        preprocessor = PreprocessorNet(True)
-        saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-        state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "state_norm",
-            False,
-            False,
-            False,
-        )
-        saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "next_state_norm",
-            False,
-            False,
-            False,
-        )
-        workspace.RunNetOnce(net)
+        if self.sparse_to_dense_net is None:
+            self.sparse_to_dense_net = core.Net("gridworld_sparse_to_dense")
+            C2.set_net(self.sparse_to_dense_net)
+            saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
+            sorted_features, _ = sort_features_by_normalization(self.normalization)
+            self.state_matrix, _ = sparse_to_dense(
+                saa.lengths, saa.keys, saa.values, sorted_features
+            )
+            saa = StackedAssociativeArray.from_dict_list(
+                samples.next_states, "next_states"
+            )
+            self.next_state_matrix, _ = sparse_to_dense(
+                saa.lengths, saa.keys, saa.values, sorted_features
+            )
+            C2.set_net(None)
+        else:
+            StackedAssociativeArray.from_dict_list(samples.states, "states")
+            StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
+        workspace.RunNetOnce(self.sparse_to_dense_net)
 
         logger.info("Converting to Torch...")
         actions_one_hot = torch.tensor(
@@ -609,21 +562,17 @@ class GridworldBase(object):
             )
         terminals = torch.tensor(samples.terminals, dtype=torch.int32).reshape(-1, 1)
         not_terminals = 1 - terminals
-        episode_values = None
         logger.info("Converting RT to Torch...")
-        episode_values = torch.tensor(
-            samples.episode_values, dtype=torch.float32
-        ).reshape(-1, 1)
 
         time_diffs = torch.ones([len(samples.states), 1])
 
         logger.info("Preprocessing...")
         preprocessor = Preprocessor(self.normalization, False)
 
-        states_ndarray = workspace.FetchBlob(state_matrix)
+        states_ndarray = workspace.FetchBlob(self.state_matrix)
         states_ndarray = preprocessor.forward(states_ndarray)
 
-        next_states_ndarray = workspace.FetchBlob(next_state_matrix)
+        next_states_ndarray = workspace.FetchBlob(self.next_state_matrix)
         next_states_ndarray = preprocessor.forward(next_states_ndarray)
 
         logger.info("Batching...")
@@ -643,9 +592,6 @@ class GridworldBase(object):
                 not_terminals=not_terminals[start:end],
                 next_actions=next_actions_one_hot[start:end],
                 possible_next_actions=possible_next_actions_mask[start:end],
-                episode_values=episode_values[start:end]
-                if episode_values is not None
-                else None,
                 time_diffs=time_diffs[start:end],
             )
             tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)

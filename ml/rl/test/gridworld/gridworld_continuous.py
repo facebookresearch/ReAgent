@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
 import logging
@@ -6,11 +7,12 @@ from typing import List
 
 import torch
 from caffe2.python import core, workspace
-from ml.rl.caffe_utils import C2, StackedArray, StackedAssociativeArray
+from ml.rl.caffe_utils import C2, StackedAssociativeArray
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase, Samples
-from ml.rl.test.utils import default_normalizer
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
+from ml.rl.test.utils import only_continuous_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -20,7 +22,7 @@ logger = logging.getLogger(__name__)
 class GridworldContinuous(GridworldBase):
     @property
     def normalization_action(self):
-        return default_normalizer(
+        return only_continuous_normalizer(
             [
                 x
                 for x in list(
@@ -95,11 +97,15 @@ class GridworldContinuous(GridworldBase):
             next_actions=continuous_next_actions,
             terminals=samples.terminals,
             possible_next_actions=continuous_possible_next_actions,
-            episode_values=samples.episode_values,
         )
 
     def preprocess_samples(
-        self, samples: Samples, minibatch_size: int, use_gpu: bool = False
+        self,
+        samples: Samples,
+        minibatch_size: int,
+        use_gpu: bool = False,
+        one_hot_action: bool = True,
+        normalize_actions: bool = True,
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
         samples.shuffle()
@@ -107,52 +113,27 @@ class GridworldContinuous(GridworldBase):
         logger.info("Sparse2Dense...")
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
-        preprocessor = PreprocessorNet(True)
         saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-        state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "state_norm",
-            False,
-            False,
-            False,
+        sorted_state_features, _ = sort_features_by_normalization(self.normalization)
+        state_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_state_features
         )
         saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization,
-            "next_state_norm",
-            False,
-            False,
-            False,
+        next_state_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_state_features
+        )
+        sorted_action_features, _ = sort_features_by_normalization(
+            self.normalization_action
         )
         saa = StackedAssociativeArray.from_dict_list(samples.actions, "action")
-        action_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization_action,
-            "action_norm",
-            False,
-            False,
-            False,
+        action_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_action_features
         )
         saa = StackedAssociativeArray.from_dict_list(
             samples.next_actions, "next_action"
         )
-        next_action_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization_action,
-            "next_action_norm",
-            False,
-            False,
-            False,
+        next_action_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_action_features
         )
         action_probabilities = torch.tensor(
             samples.action_probabilities, dtype=torch.float32
@@ -170,15 +151,8 @@ class GridworldContinuous(GridworldBase):
         pna_lens_blob = "pna_lens_blob"
         workspace.FeedBlob(pna_lens_blob, pnas_lengths.numpy())
 
-        possible_next_actions_matrix, _ = preprocessor.normalize_sparse_matrix(
-            saa.lengths,
-            saa.keys,
-            saa.values,
-            self.normalization_action,
-            "possible_next_action_norm",
-            False,
-            False,
-            False,
+        possible_next_actions_matrix, _ = sparse_to_dense(
+            saa.lengths, saa.keys, saa.values, sorted_action_features
         )
 
         state_pnas_tile_blob = C2.LengthsTile(next_state_matrix, pna_lens_blob)
@@ -192,14 +166,16 @@ class GridworldContinuous(GridworldBase):
         states_ndarray = workspace.FetchBlob(state_matrix)
         states_ndarray = state_preprocessor.forward(states_ndarray)
 
-        actions_ndarray = workspace.FetchBlob(action_matrix)
-        actions_ndarray = action_preprocessor.forward(actions_ndarray)
+        actions_ndarray = torch.from_numpy(workspace.FetchBlob(action_matrix))
+        if normalize_actions:
+            actions_ndarray = action_preprocessor.forward(actions_ndarray)
 
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
         next_states_ndarray = state_preprocessor.forward(next_states_ndarray)
 
-        next_actions_ndarray = workspace.FetchBlob(next_action_matrix)
-        next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray)
+        next_actions_ndarray = torch.from_numpy(workspace.FetchBlob(next_action_matrix))
+        if normalize_actions:
+            next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray)
 
         logged_possible_next_actions = action_preprocessor.forward(
             workspace.FetchBlob(possible_next_actions_matrix)
@@ -216,9 +192,6 @@ class GridworldContinuous(GridworldBase):
         possible_next_actions_ndarray = logged_possible_next_actions
         possible_next_actions_state_concat = logged_possible_next_state_actions
         time_diffs = torch.ones([len(samples.states), 1])
-        episode_values = torch.tensor(
-            samples.episode_values, dtype=torch.float32
-        ).reshape(-1, 1)
 
         tdps = []
         pnas_start = 0
@@ -240,9 +213,6 @@ class GridworldContinuous(GridworldBase):
                 next_actions=next_actions_ndarray[start:end],
                 possible_next_actions=None,
                 not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
-                episode_values=episode_values[start:end]
-                if episode_values is not None
-                else None,
                 time_diffs=time_diffs[start:end],
                 possible_next_actions_lengths=pnas_lengths[start:end],
                 possible_next_actions_state_concat=pnas_concat,

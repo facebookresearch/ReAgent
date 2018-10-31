@@ -1,11 +1,11 @@
 {
-  "training_data_path": "~/cartpole_training_data.json",
-  "state_norm_data_path": "~/state_features_norm.json",
-  "model_output_path": "~/",
+  "training_data_path": "training_data/cartpole_training_data.json",
+  "state_norm_data_path": "training_data/state_features_norm.json",
+  "model_output_path": "outputs/",
   "use_gpu": true,
   "use_all_avail_gpus": true,
   "norm_params": {
-    "output_dir": "~/",
+    "output_dir": "training_data/",
     "cols_to_norm": [
       "state_features"
     ],
@@ -15,11 +15,11 @@
     "0",
     "1"
   ],
-  "epochs": 1,
+  "epochs": 100,
   "rl": {
     "gamma": 0.99,
-    "target_update_rate": 0.2,
-    "reward_burnin": 1,
+    "target_update_rate": 0.15,
+    "reward_burnin": 40,
     "maxq_learning": 1,
     "epsilon": 0.2,
     "temperature": 0.35,
@@ -41,11 +41,12 @@
       "relu",
       "linear"
     ],
-    "minibatch_size": 512,
+    "minibatch_size": 1024,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
     "lr_decay": 0.999,
-    "warm_start_model_path": null
+    "warm_start_model_path": null,
+    "l2_decay": 0.001
   },
   "in_training_cpe": null
 }

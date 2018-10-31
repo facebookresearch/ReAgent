@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 
@@ -6,11 +7,9 @@ import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
 from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
-from ml.rl.preprocessing.preprocessor import (
-    PreprocesserAndForwardPassContainer,
-    Preprocessor,
-)
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
 
@@ -25,7 +24,6 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/string_single_categorical_features.values"
 class DQNPredictor(RLPredictor):
     def __init__(self, net, init_net, parameters, int_features):
         RLPredictor.__init__(self, net, init_net, parameters, int_features)
-        self.is_discrete = True
         self._output_blobs.extend(
             [
                 OUTPUT_SINGLE_CAT_KEYS_NAME,
@@ -58,12 +56,7 @@ class DQNPredictor(RLPredictor):
             trainer.q_network = trainer.q_network.module
 
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
-            PreprocesserAndForwardPassContainer(
-                Preprocessor(state_normalization_parameters, model_on_gpu),
-                trainer.q_network,
-            ),
-            input_dim,
-            model_on_gpu,
+            trainer.q_network, input_dim, model_on_gpu
         )
         qnet_input_blob, qnet_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
@@ -76,6 +69,8 @@ class DQNPredictor(RLPredictor):
 
         torch_init_net = core.Net(caffe2_netdef.init_net)
         torch_predict_net = core.Net(caffe2_netdef.predict_net)
+        logger.info("Generated ONNX predict net:")
+        logger.info(str(torch_predict_net.Proto()))
         # While converting to metanetdef, the external_input of predict_net
         # will be recomputed. Add the real output of init_net to parameters
         # to make sure they will be counted.
@@ -125,16 +120,23 @@ class DQNPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
         if state_normalization_parameters is not None:
-            preprocessor = PreprocessorNet(clip_anomalies=True)
-            state_normalized_dense_matrix, new_parameters = preprocessor.normalize_sparse_matrix(
+            sorted_feature_ids = sort_features_by_normalization(
+                state_normalization_parameters
+            )[0]
+            dense_matrix, new_parameters = sparse_to_dense(
                 input_feature_lengths,
                 input_feature_keys,
                 input_feature_values,
+                sorted_feature_ids,
+            )
+            parameters.extend(new_parameters)
+            preprocessor_net = PreprocessorNet(clip_anomalies=True)
+            state_normalized_dense_matrix, new_parameters = preprocessor_net.normalize_dense_matrix(
+                dense_matrix,
+                sorted_feature_ids,
                 state_normalization_parameters,
-                blobname_prefix="state_norm",
-                split_sparse_to_dense=False,
-                split_expensive_feature_groups=False,
-                normalize=False,
+                "state_norm_",
+                False,
             )
             parameters.extend(new_parameters)
         else:
