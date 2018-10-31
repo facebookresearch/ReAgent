@@ -394,6 +394,8 @@ class Evaluator(object):
         return float(np.mean(np.abs(logged_values - model_values_on_logged_actions)))
 
     def score_cpe(self, gamma):
+        # Evaluate last batch so can see final td loss and action distribution
+        self.evaluate_batch()
 
         if len(self.unshuffled_samples) == 0 or len(self.unshuffled_actions) == 0:
             return
