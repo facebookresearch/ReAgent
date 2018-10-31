@@ -5,7 +5,6 @@ import logging
 
 import numpy as np
 from caffe2.python import core, workspace
-from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
@@ -30,46 +29,6 @@ class GymPredictor(object):
 
 
 class GymDQNPredictor(GymPredictor):
-    def __init__(self, trainer, c2_device):
-        GymPredictor.__init__(self, trainer, c2_device)
-
-    def policy(self, states):
-        with core.DeviceScope(self.c2_device):
-            if isinstance(self.trainer, DiscreteActionTrainer):
-                workspace.FeedBlob("states", states)
-            else:
-                raise NotImplementedError("Invalid trainer passed to GymPredictor")
-            workspace.RunNetOnce(self.trainer.internal_policy_model.net)
-            policy_output_blob = self.trainer.internal_policy_output
-            q_scores = workspace.FetchBlob(policy_output_blob)
-            if isinstance(self.trainer, DiscreteActionTrainer):
-                assert q_scores.shape[0] == 1
-                q_scores = q_scores[0]
-            q_scores_softmax = Evaluator.softmax(
-                q_scores.reshape(1, -1), self.trainer.rl_temperature
-            )[0]
-            if np.isnan(q_scores_softmax).any() or np.max(q_scores_softmax) < 1e-3:
-                q_scores_softmax[:] = 1.0 / q_scores_softmax.shape[0]
-            policies = [
-                np.argmax(q_scores),
-                np.random.choice(q_scores.shape[0], p=q_scores_softmax),
-            ]
-            return policies
-
-    def predict(self, states):
-        with core.DeviceScope(self.c2_device):
-            if isinstance(self.trainer, DiscreteActionTrainer):
-                workspace.FeedBlob("states", states)
-            else:
-                raise NotImplementedError("Invalid trainer passed to GymPredictor")
-            workspace.RunNetOnce(self.trainer.internal_policy_model.net)
-            policy_output_blob = self.trainer.internal_policy_output
-            print(self.trainer.internal_policy_output)
-            q_scores = workspace.FetchBlob(policy_output_blob)
-            return q_scores
-
-
-class GymDQNPredictorPytorch(GymPredictor):
     def __init__(self, trainer):
         GymPredictor.__init__(self, trainer)
 

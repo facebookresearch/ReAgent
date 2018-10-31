@@ -10,11 +10,7 @@ import numpy as np
 import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
-from ml.rl.test.gym.gym_predictor import (
-    GymDDPGPredictor,
-    GymDQNPredictor,
-    GymDQNPredictorPytorch,
-)
+from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
@@ -34,7 +30,6 @@ from ml.rl.thrift.core.ttypes import (
     TrainingParameters,
 )
 from ml.rl.training.ddpg_trainer import DDPGTrainer
-from ml.rl.training.discrete_action_trainer import DiscreteActionTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_dataset import RLDataset
@@ -485,16 +480,15 @@ def _format_action_for_rl_dataset(action, env_type):
 
 
 def create_predictor(trainer, model_type, use_gpu):
-    c2_device = core.DeviceOption(caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU)
     if model_type == ModelType.CONTINUOUS_ACTION.value:
         predictor = GymDDPGPredictor(trainer)
     elif model_type in (
         ModelType.PYTORCH_DISCRETE_DQN.value,
         ModelType.PYTORCH_PARAMETRIC_DQN.value,
     ):
-        predictor = GymDQNPredictorPytorch(trainer)
+        predictor = GymDQNPredictor(trainer)
     else:
-        predictor = GymDQNPredictor(trainer, c2_device)
+        raise NotImplementedError()
     return predictor
 
 
