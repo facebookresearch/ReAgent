@@ -24,7 +24,7 @@ def sparse_to_dense(
     MISSING_SCALAR = C2.NextBlob("MISSING_SCALAR")
     missing_value = 0.0 if set_missing_value_to_zero else MISSING_VALUE
     workspace.FeedBlob(MISSING_SCALAR, np.array([missing_value], dtype=np.float32))
-    C2.net().GivenTensorFill([], [MISSING_SCALAR], shape=[], values=[MISSING_VALUE])
+    C2.net().GivenTensorFill([], [MISSING_SCALAR], shape=[], values=[missing_value])
 
     parameters: List[str] = [MISSING_SCALAR]
 
