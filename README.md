@@ -1,4 +1,4 @@
-![Alt text](logo/horizon_banner.png)
+![Banner](logo/horizon_banner.png)
 ### Applied Reinforcement Learning @ Facebook
 [![Build Status](https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master)](https://ci.pytorch.org/jenkins/job/horizon-master/)
 ---
@@ -20,3 +20,5 @@ Detailed instructions on how to use Horizon can be found [here](docs/usage.md).
 
 #### License
 Horizon is released under a BSD license.  Find out more about it [here](LICENSE).
+
+![Logo](logo/horizon_logo.png)
