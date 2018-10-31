@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import os
 import random
+import tempfile
 import unittest
 from copy import deepcopy
 
 import numpy as np
+import numpy.testing as npt
 import torch
 from ml.rl.models.actor import ActorWithPreprocessing, GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
@@ -171,8 +174,26 @@ class TestGridworldSAC(GridworldTestBase):
         # Make sure actor predictor works
         actor_predictor = self.get_actor_predictor(trainer, environment)
         # Just test that it doesn't blow up
-        actor_predictor.predict(evaluator.logged_states, None)
+        preds = actor_predictor.predict(evaluator.logged_states, None)
+        self._test_save_load_actor(preds, actor_predictor, evaluator.logged_states)
         # TODO: run predictor and check results
+
+    def _test_save_load_actor(self, before_preds, predictor, states, dbtype="minidb"):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmp_path = os.path.join(tmpdirname, "model")
+            predictor.save(tmp_path, dbtype)
+            new_predictor = type(predictor).load(tmp_path, dbtype)
+            after_preds = new_predictor.predict(states, None)
+        self._check_output_match(before_preds, after_preds)
+
+    def _check_output_match(self, a_preds, b_preds):
+        self.assertEqual(len(a_preds), len(b_preds))
+        self.assertEqual(a_preds[0].keys(), b_preds[0].keys())
+        keys = list(a_preds[0].keys())
+
+        a_array = [[r[k] for k in keys] for r in a_preds]
+        b_array = [[r[k] for k in keys] for r in b_preds]
+        npt.assert_allclose(a_array, b_array)
 
     def test_sac_trainer(self):
         self._test_sac_trainer()
