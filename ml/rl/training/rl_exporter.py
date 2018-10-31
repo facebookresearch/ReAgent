@@ -57,9 +57,13 @@ class ActorExporter(RLExporter):
         feature_extractor=None,
         output_transformer=None,
         state_preprocessor=None,
+        predictor_class=ActorPredictor,
+        **kwargs
     ):
         super(ActorExporter, self).__init__(dnn, feature_extractor, output_transformer)
         self.state_preprocessor = state_preprocessor
+        self.predictor_class = predictor_class
+        self.kwargs = kwargs
 
     def export(self):
         module_to_export = self.dnn.cpu_model()
@@ -71,4 +75,4 @@ class ActorExporter(RLExporter):
             feature_extractor=self.feature_extractor,
             output_transformer=self.output_transformer,
         )
-        return ActorPredictor(pem, ws)
+        return self.predictor_class(pem, ws, **self.kwargs)

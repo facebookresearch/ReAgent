@@ -37,7 +37,7 @@ from ml.rl.thrift.core.ttypes import (
     SACModelParameters,
     SACTrainingParameters,
 )
-from ml.rl.training.rl_exporter import ParametricDQNExporter
+from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
 from ml.rl.training.sac_trainer import SACTrainer
 
 
@@ -47,7 +47,7 @@ class TestGridworldSAC(GridworldTestBase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        super(self.__class__, self).setUp()
+        super(TestGridworldSAC, self).setUp()
 
     def get_sac_parameters(self, use_2_q_functions=False):
         return SACModelParameters(
@@ -140,12 +140,13 @@ class TestGridworldSAC(GridworldTestBase):
             environment.min_action_range.reshape(-1),
         )
 
-        def container(actor_network):
-            return ActorWithPreprocessing(
-                actor_network, Preprocessor(environment.normalization, False, True)
-            )
-
-        return trainer.actor_predictor(feature_extractor, output_transformer, container)
+        predictor = ActorExporter(
+            trainer.actor_network,
+            feature_extractor,
+            output_transformer,
+            Preprocessor(environment.normalization, False, True),
+        ).export()
+        return predictor
 
     def _test_sac_trainer(self, use_2_q_functions=False, use_gpu=False):
         environment = GridworldContinuous()

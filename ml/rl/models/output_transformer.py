@@ -186,10 +186,11 @@ class ActorOutputTransformer(OutputTransformerBase):
         self.serving_max_scale = np.array(serving_max_scale, dtype=np.float)
         self.serving_min_scale = np.array(serving_min_scale, dtype=np.float)
         self.training_max_scale = np.array(
-            training_max_scale or [1.0] * len(action_feature_ids), dtype=np.float
+            training_max_scale or [1.0 - 1e-6] * len(action_feature_ids), dtype=np.float
         )
         self.training_min_scale = np.array(
-            training_min_scale or [-1.0] * len(action_feature_ids), dtype=np.float
+            training_min_scale or [-1.0 + 1e-6] * len(action_feature_ids),
+            dtype=np.float,
         )
 
     def create_net(self, original_output):

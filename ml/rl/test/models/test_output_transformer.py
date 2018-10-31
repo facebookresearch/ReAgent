@@ -138,9 +138,9 @@ class ActorOutputTransformerTest(unittest.TestCase):
         keys = fetch_blob("output/float_features.keys")
         values = fetch_blob("output/float_features.values")
 
-        scaled_actions = (actions + np.ones(len(action_feature_ids))) / 2 * (
-            serving_max_scale - serving_min_scale
-        ) + serving_min_scale
+        scaled_actions = (actions + np.ones(len(action_feature_ids)) - 1e-6) / (
+            (1 - 1e-6) * 2
+        ) * (serving_max_scale - serving_min_scale) + serving_min_scale
 
         npt.assert_array_equal([len(action_feature_ids)] * N, lengths)
         npt.assert_array_equal(action_feature_ids * N, keys)
