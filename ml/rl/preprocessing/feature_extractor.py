@@ -62,9 +62,14 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         """
         pass
 
-    def create_const(self, init_net, name, value):
+    def create_const(self, init_net, name, value, dtype=core.DataType.FLOAT):
         blob = init_net.NextScopedBlob(name)
-        init_net.GivenTensorFill([], blob, shape=[], values=[value])
+        if not isinstance(value, list):
+            shape = []
+            value = [value]
+        else:
+            shape = [len(value)]
+        init_net.GivenTensorFill([], blob, shape=shape, values=value, dtype=dtype)
         init_net.AddExternalOutput(blob)
         return blob
 
