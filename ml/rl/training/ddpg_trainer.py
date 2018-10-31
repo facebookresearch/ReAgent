@@ -186,10 +186,10 @@ class DDPGTrainer(RLTrainer):
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
-        q_s1_a1 = self.critic.forward_split(states, actions)
+        q_s1_a1 = self.critic.forward([states, actions])
         next_actions = self.actor_target(next_states)
 
-        q_s2_a2 = self.critic_target.forward_split(next_states, next_actions)
+        q_s2_a2 = self.critic_target.forward([next_states, next_actions])
         filtered_q_s2_a2 = not_done_mask * q_s2_a2
 
         if self.use_seq_num_diff_as_time_diff:
@@ -211,7 +211,7 @@ class DDPGTrainer(RLTrainer):
         # Optimize the actor network subject to the following:
         # max mean(Q(s1, a1)) or min -mean(Q(s1, a1))
         loss_actor = -(
-            self.critic.forward_split(states.detach(), self.actor(states)).mean()
+            self.critic.forward([states.detach(), self.actor(states)]).mean()
         )
 
         # Zero out both the actor and critic gradients because we need
@@ -357,6 +357,9 @@ class CriticNet(nn.Module):
         valid pytorch activation names.
         :param state_action tensor of state & actions concatted
         """
+        if isinstance(state_action, list):
+            return self.forward_split(*state_action)
+
         state_dim = self.layers[0].in_features
         state = state_action[:, :state_dim]
         action = state_action[:, state_dim:]
