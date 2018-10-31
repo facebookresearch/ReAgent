@@ -2,8 +2,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+import random
 import unittest
 
+import numpy as np
 import torch
 from ml.rl.test.constant_reward.env import Env
 from ml.rl.thrift.core.ttypes import (
@@ -27,6 +29,9 @@ class TestConstantReward(unittest.TestCase):
         self.num_samples = 10000
         self.minibatch_size = 128
         self.epochs = 50
+        np.random.seed(0)
+        random.seed(0)
+        torch.manual_seed(0)
         super(self.__class__, self).setUp()
 
     def test_trainer_maxq(self):
@@ -61,18 +66,17 @@ class TestConstantReward(unittest.TestCase):
 
         logger.info("Preprocessing constant_reward MDPs..")
 
-        tdps = env.preprocess_samples_discrete(
-            states,
-            actions,
-            rewards,
-            next_states,
-            next_actions,
-            is_terminal,
-            possible_next_actions,
-            self.minibatch_size,
-        )
-
         for epoch in range(self.epochs):
+            tdps = env.preprocess_samples_discrete(
+                states,
+                actions,
+                rewards,
+                next_states,
+                next_actions,
+                is_terminal,
+                possible_next_actions,
+                self.minibatch_size,
+            )
             logger.info("Training.. " + str(epoch))
             for tdp in tdps:
                 maxq_trainer.train(tdp, None)
