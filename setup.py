@@ -25,6 +25,4 @@ setup(
     packages=find_packages(),
     install_requires=[],
     dependency_links=[],
-    setup_requires=["pytest-runner"],
-    tests_require=["pytest-xdist"],
 )
