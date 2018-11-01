@@ -165,7 +165,6 @@ class TestGridworldSAC(GridworldTestBase):
 
         exporter = self.get_critic_exporter(trainer, environment)
 
-        self.test_save_load = False
         self.tolerance_threshold = 0.2
         if use_gpu:
             self.run_pre_training_eval = False
