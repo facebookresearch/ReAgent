@@ -31,7 +31,7 @@ class TestGridworldDdpg(GridworldTestBase):
         return DDPGModelParameters(
             rl=RLParameters(
                 gamma=DISCOUNT,
-                target_update_rate=0.5,
+                target_update_rate=0.1,
                 reward_burnin=100,
                 maxq_learning=True,
             ),
