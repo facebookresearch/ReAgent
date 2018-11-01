@@ -7,6 +7,6 @@ pip uninstall -y horizon
 thrift --gen py --out . ml/rl/thrift/core.thrift
 
 # Installing from current directory, any update will be reflected system-wide
-conda install -r requirements.txt
+conda install --yes --file requirements.txt
 pip install -e .
 pytest
