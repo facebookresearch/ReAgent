@@ -150,9 +150,7 @@ def identify_parameter(
     ):
         mean = float(np.mean(values))
         values = values - mean
-        stddev = float(np.std(values, ddof=1))
-        if np.isclose(stddev, 0) or not np.isfinite(stddev):
-            stddev = 1
+        stddev = max(float(np.std(values, ddof=1)), 1)
         values /= stddev
 
     if feature_type == identify_types.ENUM:
