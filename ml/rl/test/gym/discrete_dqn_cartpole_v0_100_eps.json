@@ -8,7 +8,7 @@
     "target_update_rate": 0.2,
     "reward_burnin": 1,
     "maxq_learning": 1,
-    "epsilon": 0.5,
+    "epsilon": 1,
     "temperature": 0.35,
     "softmax_policy": 0
   },
