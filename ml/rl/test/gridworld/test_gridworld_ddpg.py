@@ -44,13 +44,13 @@ class TestGridworldDdpg(GridworldTestBase):
                 layers=[-1, 256, 128, -1],
                 activations=["relu", "relu", "tanh"],
                 learning_rate=0.05,
-                l2_decay=1.0,
+                l2_decay=10.0,
             ),
             critic_training=DDPGNetworkParameters(
                 layers=[-1, 256, 256, 128, -1],
                 activations=["relu", "relu", "relu", "linear"],
                 learning_rate=0.05,
-                l2_decay=0.01,
+                l2_decay=1.0,
             ),
         )
 
