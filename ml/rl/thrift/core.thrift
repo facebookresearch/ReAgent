@@ -148,6 +148,7 @@ struct SACModelParameters {
   4: FeedForwardParameters value_network,
   5: FeedForwardParameters actor_network,
   7: optional InTrainingCPEParameters in_training_cpe,
+  8: optional StateFeatureParameters state_feature_params,
 }
 
 struct KNNDQNModelParameters {
