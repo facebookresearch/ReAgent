@@ -25,5 +25,6 @@ setup(
     packages=find_packages(),
     install_requires=[],
     dependency_links=[],
-    test_suite="ml.rl.test",
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest-forked"],
 )
