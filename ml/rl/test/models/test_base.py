@@ -148,7 +148,7 @@ class TestBase(unittest.TestCase):
             npt.assert_array_equal(model_sum.numpy(), net_sum)
             npt.assert_array_equal(model_mul.numpy(), net_mul)
             npt.assert_array_equal(model_plus_one.numpy(), net_plus_one)
-            npt.assert_array_equal(model_linear.detach().numpy(), net_linear)
+            npt.assert_allclose(model_linear.detach().numpy(), net_linear, rtol=1e-4)
 
     def test_get_predictor_export_meta_and_workspace_full(self):
         model = Model()
