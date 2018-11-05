@@ -53,8 +53,10 @@ class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
 
 @contextlib.contextmanager
 def summary_writer_context(writer):
-    SummaryWriterContext.push(writer)
+    if writer is not None:
+        SummaryWriterContext.push(writer)
     try:
         yield
     finally:
-        SummaryWriterContext.pop()
+        if writer is not None:
+            SummaryWriterContext.pop()

@@ -14,6 +14,10 @@ class TestSummaryWriterContext(unittest.TestCase):
     def test_noop(self):
         self.assertIsNone(SummaryWriterContext.add_scalar("test", torch.ones(1)))
 
+    def test_with_none(self):
+        with summary_writer_context(None):
+            self.assertIsNone(SummaryWriterContext.add_scalar("test", torch.ones(1)))
+
     def test_writing(self):
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
