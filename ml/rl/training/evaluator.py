@@ -5,8 +5,8 @@ import hashlib
 import itertools
 import logging
 import math
-from collections import Counter
-from typing import List, NamedTuple, Optional
+from collections import Counter, defaultdict
+from typing import List, NamedTuple, Optional, Dict
 
 import numpy as np
 import scipy as sp
@@ -123,6 +123,10 @@ class Evaluator(object):
         self.reward_inverse_propensity_score: List[CPE_Estimate] = []
         self.reward_direct_method: List[CPE_Estimate] = []
         self.reward_doubly_robust: List[CPE_Estimate] = []
+        self.model_action_distr: Dict[str, List[float]] = defaultdict(list)
+        self.model_action_counts: Dict[str, List[int]] = defaultdict(list)
+        self.model_action_counts_cumulative: Dict[str, int] = defaultdict(int)
+        self.logged_action_counts: Dict[str, int] = defaultdict(int)
 
         self.evaluator_batch_size = evaluator_batch_size
 
@@ -207,20 +211,27 @@ class Evaluator(object):
             print_details = print_details + "TD LOSS: {0:.3f}\n".format(td_loss_mean)
 
         if logged_actions is not None and model_action_idxs is not None:
-            logged_action_counter = Counter(np.argmax(logged_actions, axis=1))
-            model_action_counter = Counter(model_action_idxs.reshape(-1))
+            logged_action_distr, logged_action_counts = self._get_batch_logged_actions(
+                [logged_actions]
+            )
+            model_action_distr, model_action_counts = self._get_batch_model_actions(
+                [model_action_idxs]
+            )
             print_details += "The distribution of logged actions : {}\n".format(
-                {
-                    action_name: logged_action_counter[i]
-                    for i, action_name in enumerate(self.action_names)
-                }
+                logged_action_counts
             )
             print_details += "The distribution of model actions : {}\n".format(
-                {
-                    action_name: model_action_counter[i]
-                    for i, action_name in enumerate(self.action_names)
-                }
+                model_action_counts
             )
+            for action, count in logged_action_counts.items():
+                self.logged_action_counts[action] += count
+
+            for action, count in model_action_counts.items():
+                self.model_action_counts[action].append(count)
+                self.model_action_counts_cumulative[action] += count
+
+            for action, val in model_action_distr.items():
+                self.model_action_distr[action].append(val)
 
         print_details += "Batch Evaluator Finished"
         for print_detail in print_details.split("\n"):
@@ -595,26 +606,57 @@ class Evaluator(object):
             self.mc_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
         )
 
-    def get_recent_logged_actions(self):
-        arr = self.logged_actions_batches
+    def _get_batch_logged_actions(self, arr):
         action_counter = Counter()
-        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+        for actions in arr:
             action_counter.update(Counter(np.argmax(actions, axis=1)))
         total_actions = 1.0 * sum(action_counter.values())
-        return {
-            action_name: (action_counter[i] / total_actions)
-            for i, action_name in enumerate(self.action_names)
-        }
+        return (
+            {
+                action_name: (action_counter[i] / total_actions)
+                for i, action_name in enumerate(self.action_names)
+            },
+            {
+                action_name: action_counter[i]
+                for i, action_name in enumerate(self.action_names)
+            },
+        )
 
-    def get_recent_model_actions(self):
-        arr = self.model_action_idxs_batches
+    def get_recent_logged_actions(self):
+        return self._get_batch_logged_actions(
+            self.logged_actions_batches[-Evaluator.RECENT_WINDOW_SIZE :]
+        )[0]
+
+    def _get_batch_model_actions(self, arr):
         action_counter = Counter()
-        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+        for actions in arr:
             action_counter.update(Counter(actions.reshape(-1)))
         total_actions = 1.0 * sum(action_counter.values())
+        return (
+            {
+                action_name: (action_counter[i] / total_actions)
+                for i, action_name in enumerate(self.action_names)
+            },
+            {
+                action_name: action_counter[i]
+                for i, action_name in enumerate(self.action_names)
+            },
+        )
+
+    def get_recent_model_actions(self):
+        return self._get_batch_model_actions(
+            self.model_action_idxs_batches[-Evaluator.RECENT_WINDOW_SIZE :]
+        )[0]
+
+    def get_logged_action_distribution(self):
+        total_actions = 1.0 * sum(self.logged_action_counts.values())
+        return {k: (v / total_actions) for k, v in self.logged_action_counts.items()}
+
+    def get_model_action_distribution(self):
+        total_actions = 1.0 * sum(self.model_action_counts_cumulative.values())
         return {
-            action_name: (action_counter[i] / total_actions)
-            for i, action_name in enumerate(self.action_names)
+            k: (v / total_actions)
+            for k, v in self.model_action_counts_cumulative.items()
         }
 
     def get_recent_reward_inverse_propensity_score(self):

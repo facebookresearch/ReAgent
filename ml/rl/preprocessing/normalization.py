@@ -55,6 +55,12 @@ class NumpyEncoder(json.JSONEncoder):
             return super(NumpyEncoder, self).default(obj)
 
 
+def no_op_feature():
+    return NormalizationParameters(
+        identify_types.CONTINUOUS, None, 0, 0, 1, None, None, None, None
+    )
+
+
 def identify_parameter(
     values,
     max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
@@ -87,7 +93,8 @@ def identify_parameter(
     min_value = np.min(values)
     max_value = np.max(values)
     if feature_type == identify_types.CONTINUOUS:
-        assert min_value < max_value, "Binary feature marked as continuous"
+        if min_value == max_value:
+            return no_op_feature()
         k2_original, p_original = stats.normaltest(values)
 
         # shift can be estimated but not in scipy
