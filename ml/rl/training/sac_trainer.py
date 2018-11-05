@@ -7,6 +7,7 @@ from typing import Optional
 import ml.rl.types as rlt
 import torch
 import torch.nn.functional as F
+from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
@@ -158,11 +159,13 @@ class SACTrainer(RLTrainer):
             q2_actor_value = self.q2_network(state_actor_action).q_value
             min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
 
-        actor_loss = torch.mean(
+        actor_loss = (
             self.entropy_temperature * actor_output.log_prob - min_q_actor_value
         )
+        # Do this in 2 steps so we can log histogram of actor loss
+        actor_loss_mean = actor_loss.mean()
         self.actor_network_optimizer.zero_grad()
-        actor_loss.backward()
+        actor_loss_mean.backward()
         self.actor_network_optimizer.step()
 
         if self.minibatch < self.reward_burnin:
@@ -171,6 +174,32 @@ class SACTrainer(RLTrainer):
         else:
             # Use the soft update rule to update both target networks
             self._soft_update(self.value_network, self.value_network_target, self.tau)
+
+        # Logging at the end to schedule all the cuda operations first
+        if (
+            self.tensorboard_logging_freq is not None
+            and self.minibatch % self.tensorboard_logging_freq == 0
+        ):
+            SummaryWriterContext.add_histogram("q1/logged_state_value", q1_value)
+            if self.q2_network:
+                SummaryWriterContext.add_histogram("q2/logged_state_value", q2_value)
+
+            SummaryWriterContext.add_histogram("log_prob_a", log_prob_a)
+            SummaryWriterContext.add_histogram("min_q/logged_state_value", min_q_value)
+            SummaryWriterContext.add_histogram("value_network/target", target_value)
+            SummaryWriterContext.add_histogram(
+                "q_network/next_state_value", next_state_value
+            )
+            SummaryWriterContext.add_histogram(
+                "q_network/target_q_value", target_q_value
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/min_q_actor_value", min_q_actor_value
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/action_log_prob", actor_output.log_prob
+            )
+            SummaryWriterContext.add_histogram("actor/loss", actor_loss)
 
         if evaluator is not None:
             cpe_stats = BatchStatsForCPE(
