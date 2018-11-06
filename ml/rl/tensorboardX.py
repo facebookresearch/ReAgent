@@ -33,11 +33,40 @@ class SummaryWriterContextMeta(type):
             return noop
 
         writer = cls._writer_stacks[-1]
-        return getattr(writer, func)
+
+        def call(*args, **kwargs):
+            if "global_step" not in kwargs:
+                kwargs["global_step"] = cls._global_step
+            return getattr(writer, func)(*args, **kwargs)
+
+        return call
 
 
 class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
     _writer_stacks = []
+    _global_step = 0
+    _custom_scalars = {}
+
+    @classmethod
+    def increase_global_step(cls):
+        cls._global_step += 1
+
+    @classmethod
+    def add_custom_scalars(cls, writer):
+        """
+        Call this once you are satisfied setting up custom scalar
+        """
+        writer.add_custom_scalars(cls._custom_scalars)
+
+    @classmethod
+    def add_custom_scalars_multilinechart(cls, tags, category=None, title=None):
+        assert category and title, "category & title must be set"
+        if category not in cls._custom_scalars:
+            cls._custom_scalars[category] = {}
+        assert (
+            title not in cls._custom_scalars[category]
+        ), "Title ({}) is already in category ({})".format(title, category)
+        cls._custom_scalars[category][title] = ["Multiline", tags]
 
     @classmethod
     def push(cls, writer):
@@ -53,8 +82,10 @@ class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
 
 @contextlib.contextmanager
 def summary_writer_context(writer):
-    SummaryWriterContext.push(writer)
+    if writer is not None:
+        SummaryWriterContext.push(writer)
     try:
         yield
     finally:
-        SummaryWriterContext.pop()
+        if writer is not None:
+            SummaryWriterContext.pop()
