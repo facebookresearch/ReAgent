@@ -1,5 +1,6 @@
 certifi==2018.8.24
 chardet==3.0.4
+cython==0.29
 future==0.16.0
 gym==0.10.5
 idna==2.7

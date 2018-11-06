@@ -82,6 +82,9 @@ ENV LC_ALL en_US.UTF-8
 ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
 ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
 
+# Install cython first to make sure new modules are compiled with the right version of cython
+RUN pip install cython==0.29
+
 ADD ./install_prereqs.sh install_prereqs.sh
 ADD ./requirements.txt requirements.txt
 RUN ./install_prereqs.sh
