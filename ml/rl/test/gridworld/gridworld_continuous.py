@@ -12,7 +12,10 @@ from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
 from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
-from ml.rl.test.utils import only_continuous_normalizer
+from ml.rl.test.utils import (
+    only_continuous_action_normalizer,
+    only_continuous_normalizer,
+)
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -23,6 +26,19 @@ class GridworldContinuous(GridworldBase):
     @property
     def normalization_action(self):
         return only_continuous_normalizer(
+            [
+                x
+                for x in list(
+                    range(self.num_states, self.num_states + self.num_actions)
+                )
+            ],
+            min_value=0,
+            max_value=1,
+        )
+
+    @property
+    def normalization_continuous_action(self):
+        return only_continuous_action_normalizer(
             [
                 x
                 for x in list(
