@@ -8,7 +8,7 @@ import time
 
 import numpy as np
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.thrift_handler import (
+from ml.rl.thrift_types import (
     DiscreteActionModelParameters,
     InTrainingCPEParameters,
     RainbowDQNParameters,

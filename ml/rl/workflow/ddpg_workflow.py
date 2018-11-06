@@ -6,7 +6,7 @@ import sys
 import time
 
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.thrift_handler import (
+from ml.rl.thrift_types import (
     DDPGModelParameters,
     DDPGNetworkParameters,
     DDPGTrainingParameters,

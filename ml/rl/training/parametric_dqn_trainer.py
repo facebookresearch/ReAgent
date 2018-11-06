@@ -15,7 +15,7 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.thrift_handler import (
+from ml.rl.thrift_types import (
     AdditionalFeatureTypes,
     ContinuousActionModelParameters,
 )

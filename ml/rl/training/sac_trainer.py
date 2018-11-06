@@ -8,7 +8,7 @@ import ml.rl.types as rlt
 import torch
 import torch.nn.functional as F
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.thrift_handler import SACModelParameters
+from ml.rl.thrift_types import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
