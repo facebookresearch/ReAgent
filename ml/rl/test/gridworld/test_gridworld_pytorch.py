@@ -12,7 +12,7 @@ from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.thrift_handler import (
     DiscreteActionModelParameters,
     InTrainingCPEParameters,
     RainbowDQNParameters,

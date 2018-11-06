@@ -14,7 +14,7 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.thrift_handler import (
     AdditionalFeatureTypes,
     DiscreteActionModelParameters,
 )

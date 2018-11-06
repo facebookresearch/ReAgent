@@ -18,7 +18,7 @@ from ml.rl.test.gym.open_ai_gym_environment import (
 )
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 from ml.rl.test.utils import write_lists_to_csv
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.thrift_handler import (
     CNNParameters,
     ContinuousActionModelParameters,
     DDPGModelParameters,

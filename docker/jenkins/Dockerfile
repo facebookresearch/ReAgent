@@ -42,27 +42,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Sometimes needed to avoid SSL CA issues.
 RUN update-ca-certificates
 
-# Need this stuffs to build thrif compiler
-RUN apt-get install -y --no-install-recommends \
-    automake \
-    bison \
-    flex \
-    g++ \
-    libboost-all-dev \
-    libevent-dev \
-    libssl-dev \
-    libtool \
-    make \
-    pkg-config
-
-RUN wget https://archive.apache.org/dist/thrift/0.11.0/thrift-0.11.0.tar.gz -O thrift-0.11.0.tar.gz && \
-    tar -xzf thrift-0.11.0.tar.gz && \
-    cd thrift-0.11.0 && \
-    ./bootstrap.sh && \
-    ./configure --without-java && \
-    make && \
-    make install
-
 # Install Java & maven.
 RUN apt-get install -y openjdk-8-jre && \
     apt-get install -y maven

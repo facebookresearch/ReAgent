@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
-from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
+from ml.rl.thrift_handler import AdditionalFeatureTypes
 
 
 logger = logging.getLogger(__name__)

@@ -15,7 +15,7 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
-from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
+from ml.rl.thrift_handler import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.rl_trainer_pytorch import (
