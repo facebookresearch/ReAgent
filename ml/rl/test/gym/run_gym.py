@@ -5,12 +5,21 @@ import argparse
 import json
 import logging
 import sys
+from copy import deepcopy
 
 import numpy as np
 import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
-from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
+from ml.rl.models.actor import GaussianFullyConnectedActor
+from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
+from ml.rl.preprocessing.normalization import get_num_output_features
+from ml.rl.test.gym.gym_predictor import (
+    GymDDPGPredictor,
+    GymDQNPredictor,
+    GymSACPredictor,
+)
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
@@ -25,14 +34,19 @@ from ml.rl.thrift.core.ttypes import (
     DDPGNetworkParameters,
     DDPGTrainingParameters,
     DiscreteActionModelParameters,
+    FeedForwardParameters,
+    OptimizerParameters,
     RainbowDQNParameters,
     RLParameters,
+    SACModelParameters,
+    SACTrainingParameters,
     TrainingParameters,
 )
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_dataset import RLDataset
+from ml.rl.training.sac_trainer import SACTrainer
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +70,11 @@ def get_possible_next_actions(gym_env, model_type, terminal):
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
         possible_next_actions = None
         possible_next_actions_lengths = 0
+    elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+        possible_next_actions = None
+        possible_next_actions_lengths = 0
+    else:
+        raise NotImplementedError()
     return possible_next_actions, possible_next_actions_lengths
 
 
@@ -466,10 +485,100 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             use_gpu,
         )
 
+    elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+        trainer_params = SACModelParameters(
+            rl=rl_parameters,
+            training=SACTrainingParameters(
+                minibatch_size=params["sac_training"]["minibatch_size"],
+                use_2_q_functions=params["sac_training"]["use_2_q_functions"],
+                q_network_optimizer=OptimizerParameters(
+                    **params["sac_training"]["q_network_optimizer"]
+                ),
+                value_network_optimizer=OptimizerParameters(
+                    **params["sac_training"]["value_network_optimizer"]
+                ),
+                actor_network_optimizer=OptimizerParameters(
+                    **params["sac_training"]["actor_network_optimizer"]
+                ),
+                entropy_temperature=params["sac_training"]["entropy_temperature"],
+            ),
+            q_network=FeedForwardParameters(**params["sac_q_training"]),
+            value_network=FeedForwardParameters(**params["sac_value_training"]),
+            actor_network=FeedForwardParameters(**params["sac_actor_training"]),
+        )
+        trainer = get_sac_trainer(env, trainer_params, use_gpu)
+
     else:
         raise NotImplementedError("Model of type {} not supported".format(model_type))
 
     return trainer
+
+
+def get_sac_trainer(env, parameters, use_gpu):
+    trainer_args, trainer_kwargs = _get_sac_trainer_params(env, parameters, use_gpu)
+    return SACTrainer(*trainer_args, **trainer_kwargs)
+
+
+def _get_sac_trainer_params(env, sac_model_params, use_gpu):
+    state_dim = get_num_output_features(env.normalization)
+    action_dim = get_num_output_features(env.normalization_action)
+    q1_network = FullyConnectedParametricDQN(
+        state_dim,
+        action_dim,
+        sac_model_params.q_network.layers,
+        sac_model_params.q_network.activations,
+    )
+    q2_network = None
+    if sac_model_params.training.use_2_q_functions:
+        q2_network = FullyConnectedParametricDQN(
+            state_dim,
+            action_dim,
+            sac_model_params.q_network.layers,
+            sac_model_params.q_network.activations,
+        )
+    value_network = FullyConnectedNetwork(
+        [state_dim] + sac_model_params.value_network.layers + [1],
+        sac_model_params.value_network.activations + ["linear"],
+    )
+    actor_network = GaussianFullyConnectedActor(
+        state_dim,
+        action_dim,
+        sac_model_params.actor_network.layers,
+        sac_model_params.actor_network.activations,
+    )
+    if use_gpu:
+        q1_network.cuda()
+        if q2_network:
+            q2_network.cuda()
+        value_network.cuda()
+        actor_network.cuda()
+    value_network_target = deepcopy(value_network)
+    min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
+    max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
+    action_range_low = env.action_space.low.astype(np.float32)
+    action_range_high = env.action_space.high.astype(np.float32)
+    min_action_range_tensor_serving = torch.from_numpy(action_range_low).unsqueeze(
+        dim=0
+    )
+    max_action_range_tensor_serving = torch.from_numpy(action_range_high).unsqueeze(
+        dim=0
+    )
+
+    trainer_args = [
+        q1_network,
+        value_network,
+        value_network_target,
+        actor_network,
+        sac_model_params,
+    ]
+    trainer_kwargs = {
+        "q2_network": q2_network,
+        "min_action_range_tensor_training": min_action_range_tensor_training,
+        "max_action_range_tensor_training": max_action_range_tensor_training,
+        "min_action_range_tensor_serving": min_action_range_tensor_serving,
+        "max_action_range_tensor_serving": max_action_range_tensor_serving,
+    }
+    return trainer_args, trainer_kwargs
 
 
 def _format_action_for_rl_dataset(action, env_type):
@@ -482,6 +591,8 @@ def _format_action_for_rl_dataset(action, env_type):
 def create_predictor(trainer, model_type, use_gpu):
     if model_type == ModelType.CONTINUOUS_ACTION.value:
         predictor = GymDDPGPredictor(trainer)
+    elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+        predictor = GymSACPredictor(trainer)
     elif model_type in (
         ModelType.PYTORCH_DISCRETE_DQN.value,
         ModelType.PYTORCH_PARAMETRIC_DQN.value,
