@@ -48,6 +48,11 @@ class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
     _custom_scalars = {}
 
     @classmethod
+    def _reset_globals(cls):
+        cls._global_step = 0
+        cls._custom_scalars = {}
+
+    @classmethod
     def increase_global_step(cls):
         cls._global_step += 1
 

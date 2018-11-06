@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 import torch
+from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.workflow import ddpg_workflow, dqn_workflow, parametric_dqn_workflow
 
@@ -14,6 +15,12 @@ curr_dir = os.path.dirname(__file__)
 
 
 class TestOSSWorkflows(unittest.TestCase):
+    def setUp(self):
+        SummaryWriterContext._reset_globals()
+
+    def tearDown(self):
+        SummaryWriterContext._reset_globals()
+
     def _test_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
         """Run DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
