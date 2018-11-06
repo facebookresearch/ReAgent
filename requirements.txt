@@ -15,7 +15,6 @@ requests==2.19.1
 scipy==1.1.0
 six==1.11.0
 tensorboardX==1.4
-thrift==0.11.0
 thriftpy==0.3.9
 typing==3.6.6
 typing-extensions==3.6.5
