@@ -172,3 +172,15 @@ struct OpenAIGymParameters {
   7: i32 num_train_batches = 1,
   8: i32 avg_over_num_episodes = 100
 }
+
+struct NormalizationParameters {
+  1: string feature_type,
+  2: optional double boxcox_lambda,
+  3: optional double boxcox_shift,
+  4: optional double mean,
+  5: optional double stddev,
+  6: optional list<i64> possible_values,  # Assume present for ENUM type
+  7: optional list<double> quantiles,  # Assume present for QUANTILE type and sorted
+  8: optional double min_value,
+  9: optional double max_value,
+}

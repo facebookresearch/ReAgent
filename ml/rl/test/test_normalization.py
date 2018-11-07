@@ -4,6 +4,7 @@
 import unittest
 
 import numpy as np
+import numpy.testing as npt
 import six
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2
@@ -226,7 +227,37 @@ class TestNormalization(unittest.TestCase):
 
         s = normalization.serialize(normalization_parameters)
         read_parameters = normalization.deserialize(s)
-        self.assertEqual(read_parameters, normalization_parameters)
+        # Unfortunately, Thrift serializatin seems to lose a bit of precision.
+        # Using `==` will be false.
+        self.assertEqual(read_parameters.keys(), normalization_parameters.keys())
+        for k in normalization_parameters:
+            self.assertEqual(
+                read_parameters[k].feature_type,
+                normalization_parameters[k].feature_type,
+            )
+            self.assertEqual(
+                read_parameters[k].possible_values,
+                normalization_parameters[k].possible_values,
+            )
+            for field in [
+                "boxcox_lambda",
+                "boxcox_shift",
+                "mean",
+                "stddev",
+                "quantiles",
+                "min_value",
+                "max_value",
+            ]:
+                if getattr(normalization_parameters[k], field) is None:
+                    self.assertEqual(
+                        getattr(read_parameters[k], field),
+                        getattr(normalization_parameters[k], field),
+                    )
+                else:
+                    npt.assert_allclose(
+                        getattr(read_parameters[k], field),
+                        getattr(normalization_parameters[k], field),
+                    )
 
     def preprocess_feature(self, feature, parameters):
         is_not_empty = 1 - np.isclose(feature, normalization.MISSING_VALUE)

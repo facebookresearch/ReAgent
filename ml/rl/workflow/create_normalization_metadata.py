@@ -14,6 +14,7 @@ from ml.rl.preprocessing.normalization import (
     DEFAULT_NUM_SAMPLES,
     DEFAULT_QUANTILE_K2_THRESHOLD,
     get_feature_norm_metadata,
+    serialize,
 )
 from ml.rl.workflow.helpers import parse_args
 from ml.rl.workflow.training_data_reader import JSONDataset
@@ -72,7 +73,7 @@ def get_norm_metadata(dataset, norm_params, norm_col):
     output = {}
     for feature, values in samples.items():
         output[feature] = get_feature_norm_metadata(feature, values, norm_params)
-    return output
+    return serialize(output)
 
 
 def check_samples_per_feature(samples_per_feature, num_samples):
