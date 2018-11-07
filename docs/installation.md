@@ -58,41 +58,45 @@ Now you can run the tests:
 python setup.py test
 ```
 
-### Linux (Ubuntu)
+### Anaconda
 
-Clone repo:
+First, install anaconda from here (make sure to pick the python 3 version): [Website](https://www.anaconda.com/)
+
+Switch to python 3.6 (3.7 has issues with tensorboard):
+```
+conda install python=3.6
+```
+
+Install OpenJDK and Maven:
+```
+conda install openjdk maven
+```
+
+Set JAVA_HOME to the location of your anaconda install
+```
+export JAVA_HOME=${HOME}/anaconda3
+```
+
+Install Spark (this installs to /usr/local/spark, but other directories are fine):
+```
+wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
+tar -xzf spark-2.3.1-bin-hadoop2.7.tgz
+mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
+export PATH=$PATH:/usr/local/spark/bin
+```
+
+Clone Horizon repo:
 ```
 git clone https://github.com/facebookresearch/Horizon.git
 cd Horizon/
 ```
 
-Our project uses Thrift to define configuration and Spark to transform training data into the right format.
-They require installing dependencies not managed by virtualenv. Here is the list of software needed to be installed on your system.
-- Thrift compiler version 0.11.0 or above. You will need to build from source.
-  See [1](https://thrift.apache.org/docs/install/debian), [2](https://thrift.apache.org/docs/BuildingFromSource).
-- OpenJDK 8
-- Maven
-
-To install them all, you can run `./install_compilers.sh`. After it finished, you will need to add this line to your `.bash_profile`
-
-```
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
-```
-
-Now, we recommend you to create virtualenv so that python dependencies can be contained in this project.
-
-```
-virtualenv -p python3 env
-. env/bin/activate
-```
-
-First, install dependencies:
-
+Install Horizon dependencies:
 ```
 pip install -r requirements.txt
 ```
 
-Then, install appropriate PyTorch 1.0 nightly build into the virtual environment:
+Then, install appropriate PyTorch 1.0 nightly build:
 ```
 # For CPU build
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
@@ -104,13 +108,7 @@ pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu90/torch
 pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu92/torch_nightly.html
 ```
 
-After that, you will need to generate the python code of the thrift config definition. If you changed the thrift later on, you will have to rerun this.
-
-```
-thrift --gen py --out . ml/rl/thrift/core.thrift
-```
-
-And now, you are ready for installation.
+And now, you are ready to install Horizon itself.
 
 ```
 pip install -e .
