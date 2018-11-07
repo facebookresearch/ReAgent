@@ -15,7 +15,7 @@ from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.thrift_types import (
     ContinuousActionModelParameters,
     FactorizationParameters,
     FeedForwardParameters,

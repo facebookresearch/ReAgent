@@ -93,3 +93,13 @@ class GymDDPGPredictor(GymPredictor):
 
     def policy(self, states, add_action_noise=False):
         return self.trainer.internal_prediction(states, add_action_noise)
+
+
+class GymSACPredictor(GymPredictor):
+    def __init__(self, trainer):
+        GymPredictor.__init__(self, trainer)
+
+    def policy(self, states):
+        actions = self.trainer.internal_prediction(states)
+        actions = actions.data.numpy()
+        return actions

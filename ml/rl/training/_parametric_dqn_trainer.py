@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from ml.rl.caffe_utils import arange_expand
-from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
+from ml.rl.thrift_types import ContinuousActionModelParameters
 from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 

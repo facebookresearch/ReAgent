@@ -5,13 +5,18 @@ import enum
 
 import gym
 import numpy as np
-from ml.rl.test.gym.gym_predictor import GymDDPGPredictor, GymDQNPredictor
+from ml.rl.test.gym.gym_predictor import (
+    GymDDPGPredictor,
+    GymDQNPredictor,
+    GymSACPredictor,
+)
 from ml.rl.test.utils import default_normalizer, only_continuous_normalizer
 from ml.rl.training.dqn_predictor import DQNPredictor
 
 
 class ModelType(enum.Enum):
     CONTINUOUS_ACTION = "continuous"
+    SOFT_ACTOR_CRITIC = "soft_actor_critic"
     PYTORCH_DISCRETE_DQN = "pytorch_discrete_dqn"
     PYTORCH_PARAMETRIC_DQN = "pytorch_parametric_dqn"
 
@@ -131,6 +136,10 @@ class OpenAIGymEnvironment:
             if test:
                 return predictor.policy(next_state)[0]
             return predictor.policy(next_state, add_action_noise=True)[0]
+        elif isinstance(predictor, GymSACPredictor):
+            if state_preprocessor:
+                next_state = state_preprocessor.forward(next_state)
+            return predictor.policy(next_state)[0]
         elif isinstance(predictor, DQNPredictor):
             # Use DQNPredictor directly - useful to test caffe2 predictor
             # assumes state preprocessor already part of predictor net.

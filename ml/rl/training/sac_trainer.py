@@ -5,14 +5,16 @@ import logging
 from typing import Optional
 
 import ml.rl.types as rlt
+import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.thrift.core.ttypes import SACModelParameters
+from ml.rl.tensorboardX import SummaryWriterContext
+from ml.rl.thrift_types import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
 from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
+from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
 
 
 logger = logging.getLogger(__name__)
@@ -33,10 +35,19 @@ class SACTrainer(RLTrainer):
         actor_network,
         parameters: SACModelParameters,
         q2_network=None,
+        min_action_range_tensor_training=None,
+        max_action_range_tensor_training=None,
+        min_action_range_tensor_serving=None,
+        max_action_range_tensor_serving=None,
     ) -> None:
         """
         Args:
-            action_serving_range: tuple of min and max value of action at serving time
+            The four args below are provided for integration with other
+            environments (e.g., Gym):
+            min_action_range_tensor_training / max_action_range_tensor_training:
+                min / max value of actions at training time
+            min_action_range_tensor_serving / max_action_range_tensor_serving:
+                min / max value of actions at serving time
         """
         self.minibatch_size = parameters.training.minibatch_size
         super(SACTrainer, self).__init__(
@@ -70,6 +81,11 @@ class SACTrainer(RLTrainer):
 
         self.entropy_temperature = parameters.training.entropy_temperature
 
+        self.min_action_range_tensor_training = min_action_range_tensor_training
+        self.max_action_range_tensor_training = max_action_range_tensor_training
+        self.min_action_range_tensor_serving = min_action_range_tensor_serving
+        self.max_action_range_tensor_serving = max_action_range_tensor_serving
+
     def train(self, training_batch, evaluator=None) -> None:
         """
         IMPORTANT: the input action here is assumed to be preprocessed to match the
@@ -86,6 +102,17 @@ class SACTrainer(RLTrainer):
         reward = learning_input.reward
         discount = torch.full_like(reward, self.gamma)
         not_done_mask = learning_input.not_terminal
+
+        if self._should_scale_action_in_train():
+            action = rlt.FeatureVector(
+                rescale_torch_tensor(
+                    action.float_features,
+                    new_min=self.min_action_range_tensor_training,
+                    new_max=self.max_action_range_tensor_training,
+                    prev_min=self.min_action_range_tensor_serving,
+                    prev_max=self.max_action_range_tensor_serving,
+                )
+            )
 
         current_state_action = rlt.StateAction(state=state, action=action)
 
@@ -158,11 +185,13 @@ class SACTrainer(RLTrainer):
             q2_actor_value = self.q2_network(state_actor_action).q_value
             min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
 
-        actor_loss = torch.mean(
+        actor_loss = (
             self.entropy_temperature * actor_output.log_prob - min_q_actor_value
         )
+        # Do this in 2 steps so we can log histogram of actor loss
+        actor_loss_mean = actor_loss.mean()
         self.actor_network_optimizer.zero_grad()
-        actor_loss.backward()
+        actor_loss_mean.backward()
         self.actor_network_optimizer.step()
 
         if self.minibatch < self.reward_burnin:
@@ -172,12 +201,48 @@ class SACTrainer(RLTrainer):
             # Use the soft update rule to update both target networks
             self._soft_update(self.value_network, self.value_network_target, self.tau)
 
+        # Logging at the end to schedule all the cuda operations first
+        if (
+            self.tensorboard_logging_freq is not None
+            and self.minibatch % self.tensorboard_logging_freq == 0
+        ):
+            SummaryWriterContext.add_histogram("q1/logged_state_value", q1_value)
+            if self.q2_network:
+                SummaryWriterContext.add_histogram("q2/logged_state_value", q2_value)
+
+            SummaryWriterContext.add_histogram("log_prob_a", log_prob_a)
+            SummaryWriterContext.add_histogram("min_q/logged_state_value", min_q_value)
+            SummaryWriterContext.add_histogram("value_network/target", target_value)
+            SummaryWriterContext.add_histogram(
+                "q_network/next_state_value", next_state_value
+            )
+            SummaryWriterContext.add_histogram(
+                "q_network/target_q_value", target_q_value
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/min_q_actor_value", min_q_actor_value
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/action_log_prob", actor_output.log_prob
+            )
+            SummaryWriterContext.add_histogram("actor/loss", actor_loss)
+
         if evaluator is not None:
             cpe_stats = BatchStatsForCPE(
                 td_loss=q1_loss.detach().cpu().numpy(),
                 model_values_on_logged_actions=q1_value.detach().cpu().numpy(),
             )
             evaluator.report(cpe_stats)
+
+    def _should_scale_action_in_train(self):
+        if (
+            self.min_action_range_tensor_training is not None
+            and self.max_action_range_tensor_training is not None
+            and self.min_action_range_tensor_serving is not None
+            and self.max_action_range_tensor_serving is not None
+        ):
+            return True
+        return False
 
     def actor_predictor(
         self, feature_extractor=None, output_trasnformer=None, net_container=None
@@ -203,3 +268,28 @@ class SACTrainer(RLTrainer):
         ).export()
         self.q1_network.train()
         return predictor
+
+    def internal_prediction(self, states):
+        """ Returns list of actions output from actor network
+        :param states states as list of states to produce actions for
+        """
+        self.actor_network.eval()
+        state_examples = torch.from_numpy(np.array(states)).type(self.dtype)
+        actions = self.actor_network(
+            rlt.StateInput(rlt.FeatureVector(float_features=state_examples))
+        )
+        # clamp actions to make sure actions are in the range
+        clamped_actions = torch.max(
+            torch.min(actions.action, self.max_action_range_tensor_training),
+            self.min_action_range_tensor_training,
+        )
+        rescaled_actions = rescale_torch_tensor(
+            clamped_actions,
+            new_min=self.min_action_range_tensor_serving,
+            new_max=self.max_action_range_tensor_serving,
+            prev_min=self.min_action_range_tensor_training,
+            prev_max=self.max_action_range_tensor_training,
+        )
+
+        self.actor_network.train()
+        return rescaled_actions

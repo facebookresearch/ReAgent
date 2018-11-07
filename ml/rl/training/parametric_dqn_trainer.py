@@ -15,10 +15,7 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.thrift.core.ttypes import (
-    AdditionalFeatureTypes,
-    ContinuousActionModelParameters,
-)
+from ml.rl.thrift_types import AdditionalFeatureTypes, ContinuousActionModelParameters
 from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.parametric_inner_product import ParametricInnerProduct

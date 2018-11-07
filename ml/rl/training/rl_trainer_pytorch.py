@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
-from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
+from ml.rl.thrift_types import AdditionalFeatureTypes
 
 
 logger = logging.getLogger(__name__)
@@ -37,6 +37,7 @@ class RLTrainer:
         self.tau = parameters.rl.target_update_rate
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
         self.gradient_handler = gradient_handler
+        self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
 
         if parameters.rl.q_network_loss == "mse":
             self.q_network_loss = getattr(F, "mse_loss")

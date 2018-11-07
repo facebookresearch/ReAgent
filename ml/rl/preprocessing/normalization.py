@@ -9,30 +9,15 @@ import numpy as np
 import six
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
+from ml.rl.thrift.core.ttypes import NormalizationParameters
 from scipy import stats
 from scipy.stats.mstats import mquantiles
+from thrift.protocol import TSimpleJSONProtocol
+from thrift.transport.TTransport import TMemoryBuffer
 
 
 logger = logging.getLogger(__name__)
 
-
-NormalizationParameters = namedtuple(
-    "NormalizationParameters",
-    [
-        "feature_type",
-        "boxcox_lambda",
-        "boxcox_shift",
-        "mean",
-        "stddev",
-        "possible_values",  # Assume present for ENUM type
-        "quantiles",  # Assume present for QUANTILE type and sorted
-        "min_value",
-        "max_value",
-    ],
-)
-NormalizationParameters.__new__.__defaults__ = (None,) * len(
-    NormalizationParameters._fields
-)
 
 BOX_COX_MAX_STDDEV = 1e8
 BOX_COX_MARGIN = 1e-4
@@ -55,6 +40,12 @@ class NumpyEncoder(json.JSONEncoder):
             return super(NumpyEncoder, self).default(obj)
 
 
+def no_op_feature():
+    return NormalizationParameters(
+        identify_types.CONTINUOUS, None, 0, 0, 1, None, None, None, None
+    )
+
+
 def identify_parameter(
     values,
     max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
@@ -68,9 +59,9 @@ def identify_parameter(
         feature_type = identify_types.identify_type(values, max_unique_enum_values)
 
     boxcox_lambda = None
-    boxcox_shift = 0
-    mean = 0
-    stddev = 1
+    boxcox_shift = 0.0
+    mean = 0.0
+    stddev = 1.0
     possible_values = None
     quantiles = None
     assert feature_type in [
@@ -87,7 +78,8 @@ def identify_parameter(
     min_value = np.min(values)
     max_value = np.max(values)
     if feature_type == identify_types.CONTINUOUS:
-        assert min_value < max_value, "Binary feature marked as continuous"
+        if min_value == max_value:
+            return no_op_feature()
         k2_original, p_original = stats.normaltest(values)
 
         # shift can be estimated but not in scipy
@@ -150,7 +142,7 @@ def identify_parameter(
     ):
         mean = float(np.mean(values))
         values = values - mean
-        stddev = max(float(np.std(values, ddof=1)), 1)
+        stddev = max(float(np.std(values, ddof=1)), 1.0)
         values /= stddev
 
     if feature_type == identify_types.ENUM:
@@ -202,7 +194,8 @@ def sort_features_by_normalization(normalization_parameters):
 def deserialize(parameters_json):
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
-        params = NormalizationParameters(**json.loads(feature_parameters))
+        params = NormalizationParameters()
+        params.readFromJson(feature_parameters)
         # Check for negative enum IDs
         if params.feature_type == identify_types.ENUM:
             for x in params.possible_values:
@@ -219,13 +212,16 @@ def deserialize(parameters_json):
 
 
 def serialize_one(feature_parameters):
-    return json.dumps(feature_parameters._asdict(), cls=NumpyEncoder)
+    trans = TMemoryBuffer()
+    proto = TSimpleJSONProtocol.TSimpleJSONProtocol(trans)
+    feature_parameters.write(proto)
+    return trans.getvalue().decode("utf-8").replace("\n", "")
 
 
 def serialize(parameters):
     parameters_json = {}
     for feature, feature_parameters in six.iteritems(parameters):
-        parameters_json[feature] = serialize_one(feature_parameters)
+        parameters_json[str(feature)] = serialize_one(feature_parameters)
     return parameters_json
 
 
@@ -256,8 +252,7 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
         norm_params["skip_quantiles"],
         feature_override,
     )
-    normalization_parameters_json = serialize_one(normalization_parameters)
     logger.info(
-        "Feature " + feature_name + " normalization: " + normalization_parameters_json
+        "Feature {} normalization: {}".format(feature_name, normalization_parameters)
     )
-    return normalization_parameters_json
+    return normalization_parameters

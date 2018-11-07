@@ -5,12 +5,13 @@ import hashlib
 import itertools
 import logging
 import math
-from collections import Counter
-from typing import List, NamedTuple, Optional
+from collections import Counter, defaultdict
+from typing import Dict, List, NamedTuple, Optional
 
 import numpy as np
 import scipy as sp
 import torch
+from ml.rl.tensorboardX import SummaryWriterContext
 from tensorboardX import SummaryWriter
 
 
@@ -123,6 +124,10 @@ class Evaluator(object):
         self.reward_inverse_propensity_score: List[CPE_Estimate] = []
         self.reward_direct_method: List[CPE_Estimate] = []
         self.reward_doubly_robust: List[CPE_Estimate] = []
+        self.model_action_distr: Dict[str, List[float]] = defaultdict(list)
+        self.model_action_counts: Dict[str, List[int]] = defaultdict(list)
+        self.model_action_counts_cumulative: Dict[str, int] = defaultdict(int)
+        self.logged_action_counts: Dict[str, int] = defaultdict(int)
 
         self.evaluator_batch_size = evaluator_batch_size
 
@@ -164,6 +169,38 @@ class Evaluator(object):
         self.unshuffled_terminals = np.array([])
         self.unshuffled_target_propensities = np.array([])
         self.unshuffled_estimated_q_values = np.array([])
+        self._add_custom_scalars(action_names)
+
+    def _add_custom_scalars(self, action_names):
+        if not action_names:
+            return
+
+        SummaryWriterContext.add_custom_scalars_multilinechart(
+            [
+                "propensities/model/{}/mean".format(action_name)
+                for action_name in action_names
+            ],
+            category="propensities",
+            title="model",
+        )
+        SummaryWriterContext.add_custom_scalars_multilinechart(
+            [
+                "propensities/logged/{}/mean".format(action_name)
+                for action_name in action_names
+            ],
+            category="propensities",
+            title="logged",
+        )
+        SummaryWriterContext.add_custom_scalars_multilinechart(
+            ["actions/logged/{}".format(action_name) for action_name in action_names],
+            category="actions",
+            title="logged",
+        )
+        SummaryWriterContext.add_custom_scalars_multilinechart(
+            ["actions/model/{}".format(action_name) for action_name in action_names],
+            category="actions",
+            title="model",
+        )
 
     def report(self, cpe_stats):
         for i, input_name in enumerate(cpe_stats._fields):
@@ -195,32 +232,102 @@ class Evaluator(object):
             else:
                 merged_inputs.append(None)
 
-        td_loss = merged_inputs[0]
-        logged_actions = merged_inputs[1]
-        model_action_idxs = merged_inputs[9]
+        (
+            td_loss,
+            logged_actions,
+            logged_propensities,
+            logged_rewards,
+            logged_values,
+            model_propensities,
+            model_rewards,
+            model_values,
+            model_values_on_logged_actions,
+            model_action_idxs,
+        ) = merged_inputs
 
         logger.info("Evaluating on {} batches".format(len(self.td_loss_batches)))
         print_details = "Evaluator:\n"
         if td_loss is not None:
+            SummaryWriterContext.add_histogram("td_loss", td_loss)
             td_loss_mean = float(np.mean(td_loss))
+            SummaryWriterContext.add_scalar("td_loss/mean", td_loss_mean)
             self.td_loss.append(td_loss_mean)
             print_details = print_details + "TD LOSS: {0:.3f}\n".format(td_loss_mean)
 
+        if logged_rewards is not None:
+            SummaryWriterContext.add_histogram("reward/logged", logged_rewards)
+            SummaryWriterContext.add_scalar("reward/logged/mean", logged_rewards.mean())
+
+        if model_rewards is not None:
+            SummaryWriterContext.add_histogram("reward/model", model_rewards)
+            SummaryWriterContext.add_scalar("reward/model/mean", model_rewards.mean())
+
+        if logged_values is not None:
+            SummaryWriterContext.add_histogram("value/logged", logged_values)
+            SummaryWriterContext.add_scalar("value/logged/mean", logged_values.mean())
+
+        if model_values is not None:
+            SummaryWriterContext.add_histogram("value/model", model_values)
+            SummaryWriterContext.add_scalar("value/model/mean", model_values.mean())
+
+        if model_values_on_logged_actions is not None:
+            SummaryWriterContext.add_histogram(
+                "value/model_logged_action", model_values_on_logged_actions
+            )
+
+        # TODO: log summary of logged propensities
+
+        if model_propensities is not None and self.action_names:
+            if len(model_propensities.shape) == 1:
+                SummaryWriterContext.add_histogram(
+                    "propensities/model", model_propensities
+                )
+                SummaryWriterContext.add_scalar(
+                    "propensities/model/mean", model_propensities.mean()
+                )
+            if len(model_propensities.shape) == 2:
+                for i, action_name in enumerate(self.action_names):
+                    SummaryWriterContext.add_histogram(
+                        "propensities/model/{}".format(action_name),
+                        model_propensities[:, i],
+                    )
+                    SummaryWriterContext.add_scalar(
+                        "propensities/model/{}/mean".format(action_name),
+                        model_propensities[:, i].mean(),
+                    )
+
         if logged_actions is not None and model_action_idxs is not None:
-            logged_action_counter = Counter(np.argmax(logged_actions, axis=1))
-            model_action_counter = Counter(model_action_idxs.reshape(-1))
+            logged_action_distr, logged_action_counts = self._get_batch_logged_actions(
+                [logged_actions]
+            )
+            model_action_distr, model_action_counts = self._get_batch_model_actions(
+                [model_action_idxs]
+            )
             print_details += "The distribution of logged actions : {}\n".format(
-                {
-                    action_name: logged_action_counter[i]
-                    for i, action_name in enumerate(self.action_names)
-                }
+                logged_action_counts
             )
             print_details += "The distribution of model actions : {}\n".format(
-                {
-                    action_name: model_action_counter[i]
-                    for i, action_name in enumerate(self.action_names)
-                }
+                model_action_counts
             )
+            for action, count in logged_action_counts.items():
+                self.logged_action_counts[action] += count
+
+            for action, count in model_action_counts.items():
+                self.model_action_counts[action].append(count)
+                self.model_action_counts_cumulative[action] += count
+
+            for action, val in model_action_distr.items():
+                self.model_action_distr[action].append(val)
+
+            # Log to tensorboard
+            for action_name, count in logged_action_counts.items():
+                SummaryWriterContext.add_scalar(
+                    "actions/logged/{}".format(action_name), count
+                )
+            for action_name, count in model_action_counts.items():
+                SummaryWriterContext.add_scalar(
+                    "actions/model/{}".format(action_name), count
+                )
 
         print_details += "Batch Evaluator Finished"
         for print_detail in print_details.split("\n"):
@@ -595,26 +702,57 @@ class Evaluator(object):
             self.mc_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
         )
 
-    def get_recent_logged_actions(self):
-        arr = self.logged_actions_batches
+    def _get_batch_logged_actions(self, arr):
         action_counter = Counter()
-        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+        for actions in arr:
             action_counter.update(Counter(np.argmax(actions, axis=1)))
         total_actions = 1.0 * sum(action_counter.values())
-        return {
-            action_name: (action_counter[i] / total_actions)
-            for i, action_name in enumerate(self.action_names)
-        }
+        return (
+            {
+                action_name: (action_counter[i] / total_actions)
+                for i, action_name in enumerate(self.action_names)
+            },
+            {
+                action_name: action_counter[i]
+                for i, action_name in enumerate(self.action_names)
+            },
+        )
 
-    def get_recent_model_actions(self):
-        arr = self.model_action_idxs_batches
+    def get_recent_logged_actions(self):
+        return self._get_batch_logged_actions(
+            self.logged_actions_batches[-Evaluator.RECENT_WINDOW_SIZE :]
+        )[0]
+
+    def _get_batch_model_actions(self, arr):
         action_counter = Counter()
-        for actions in arr[-Evaluator.RECENT_WINDOW_SIZE :]:
+        for actions in arr:
             action_counter.update(Counter(actions.reshape(-1)))
         total_actions = 1.0 * sum(action_counter.values())
+        return (
+            {
+                action_name: (action_counter[i] / total_actions)
+                for i, action_name in enumerate(self.action_names)
+            },
+            {
+                action_name: action_counter[i]
+                for i, action_name in enumerate(self.action_names)
+            },
+        )
+
+    def get_recent_model_actions(self):
+        return self._get_batch_model_actions(
+            self.model_action_idxs_batches[-Evaluator.RECENT_WINDOW_SIZE :]
+        )[0]
+
+    def get_logged_action_distribution(self):
+        total_actions = 1.0 * sum(self.logged_action_counts.values())
+        return {k: (v / total_actions) for k, v in self.logged_action_counts.items()}
+
+    def get_model_action_distribution(self):
+        total_actions = 1.0 * sum(self.model_action_counts_cumulative.values())
         return {
-            action_name: (action_counter[i] / total_actions)
-            for i, action_name in enumerate(self.action_names)
+            k: (v / total_actions)
+            for k, v in self.model_action_counts_cumulative.items()
         }
 
     def get_recent_reward_inverse_propensity_score(self):

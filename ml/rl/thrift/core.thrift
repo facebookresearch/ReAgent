@@ -16,6 +16,7 @@ struct RLParameters {
   9: bool use_seq_num_diff_as_time_diff = false,
   10: string q_network_loss = 'mse',
   11: bool set_missing_value_to_zero = false,
+  12: optional i32 tensorboard_logging_freq,
 }
 
 struct RainbowDQNParameters {
@@ -78,6 +79,11 @@ struct ActionBudget {
   5: i32 window_size = 16384,
 }
 
+struct StateFeatureParameters {
+  1: list<string> state_feature_names_override = [],
+  2: list<i32> state_feature_hashes_override = [],
+}
+
 struct DiscreteActionModelParameters {
   1: list<string> actions,
   2: RLParameters rl,
@@ -109,11 +115,6 @@ struct DDPGTrainingParameters {
   3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
   5: bool use_noisy_linear_layers = false,
-}
-
-struct StateFeatureParameters {
-  1: list<string> state_feature_names_override = [],
-  2: list<i32> state_feature_hashes_override = [],
 }
 
 struct DDPGModelParameters {
@@ -170,4 +171,16 @@ struct OpenAIGymParameters {
   6: i32 test_after_ts = 1,
   7: i32 num_train_batches = 1,
   8: i32 avg_over_num_episodes = 100
+}
+
+struct NormalizationParameters {
+  1: string feature_type,
+  2: optional double boxcox_lambda,
+  3: optional double boxcox_shift,
+  4: optional double mean,
+  5: optional double stddev,
+  6: optional list<i64> possible_values,  # Assume present for ENUM type
+  7: optional list<double> quantiles,  # Assume present for QUANTILE type and sorted
+  8: optional double min_value,
+  9: optional double max_value,
 }
