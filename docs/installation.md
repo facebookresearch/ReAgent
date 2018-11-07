@@ -1,6 +1,67 @@
 # Installation
 
-### Docker (recommended)
+### Anaconda
+
+First, install anaconda from here (make sure to pick the python 3 version): [Website](https://www.anaconda.com/).
+
+Next, we're going to add some channels that we need for certain software:
+
+```
+conda config --add channels conda-forge # For ONNX/tensorboardX
+conda config --add channels pytorch # For PyTorch
+```
+
+Clone and enter Horizon repo:
+```
+git clone https://github.com/facebookresearch/Horizon.git
+cd Horizon/
+```
+
+Install dependencies:
+```
+conda install `cat requirements.txt`
+```
+
+Set JAVA_HOME to the location of your anaconda install
+```
+export JAVA_HOME="$(dirname $(dirname -- `which conda`))"
+```
+
+Install Spark (the mv command may need to be done as root):
+```
+wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
+tar -xzf spark-2.3.1-bin-hadoop2.7.tgz
+mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
+```
+
+Add the spark bin directory to your path so your terminal can find `spark-submit`:
+```
+export PATH=$PATH:/usr/local/spark/bin
+```
+
+Install OpenAI Gym if you plan on following our [tutorial](usage.md):
+```
+pip install "gym[classic_control,box2d,atari]"
+```
+
+We use Apache Thrift to generate container classes and handle serialization to/from JSON.  To build our thrift classes:
+```
+thrift --gen py --out . ml/rl/thrift/core.thrift
+```
+
+And now, you are ready to install Horizon itself.  We use "-e" to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
+
+```
+pip install -e .
+```
+
+At this point, you should be able to run all unit tests:
+
+```
+python setup.py test
+```
+
+### Docker
 
 We have included a Dockerfile for the CPU-only build and CUDA build under the docker directory.
 The CUDA build will need [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) to run.
@@ -54,68 +115,6 @@ cd Horizon
 ```
 
 Now you can run the tests:
-```
-python setup.py test
-```
-
-### Anaconda
-
-First, install anaconda from here (make sure to pick the python 3 version): [Website](https://www.anaconda.com/)
-
-Switch to python 3.6 (3.7 has issues with tensorboard):
-```
-conda install python=3.6
-```
-
-Install OpenJDK and Maven:
-```
-conda install openjdk maven
-```
-
-Set JAVA_HOME to the location of your anaconda install
-```
-export JAVA_HOME=${HOME}/anaconda3
-```
-
-Install Spark (this installs to /usr/local/spark, but other directories are fine):
-```
-wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
-tar -xzf spark-2.3.1-bin-hadoop2.7.tgz
-mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
-export PATH=$PATH:/usr/local/spark/bin
-```
-
-Clone Horizon repo:
-```
-git clone https://github.com/facebookresearch/Horizon.git
-cd Horizon/
-```
-
-Install Horizon dependencies:
-```
-pip install -r requirements.txt
-```
-
-Then, install appropriate PyTorch 1.0 nightly build:
-```
-# For CPU build
-pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
-
-# For CUDA 9.0 build
-pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu90/torch_nightly.html
-
-# For CUDA 9.2 build
-pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu92/torch_nightly.html
-```
-
-And now, you are ready to install Horizon itself.
-
-```
-pip install -e .
-```
-
-At this point, you should be able to run all unit tests:
-
 ```
 python setup.py test
 ```

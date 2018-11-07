@@ -9,11 +9,6 @@ def readme():
         return f.read()
 
 
-def requirements():
-    with open("requirements.txt") as f:
-        return f.read()
-
-
 setup(
     name="horizon",
     version="0.1",

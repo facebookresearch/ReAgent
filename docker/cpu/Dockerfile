@@ -57,37 +57,16 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
 
-# Switch to python 3.6 (needed for tensorboard)
-RUN conda install python=3.6
+# Install dependencies
+ADD ../../requirements.txt requirements.txt
+RUN conda install `cat requirements.txt`
 
-# Install java and maven
-RUN conda install maven openjdk
 ENV JAVA_HOME ${HOME}/miniconda
 
 # Install Spark
 RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz && \
     tar -xzf spark-2.3.1-bin-hadoop2.7.tgz && \
     mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
-
-# Install Tensorflow (for Tensorboard)
-RUN pip install tensorflow
-
-# Needed to prevent UnicodeDecodeError: 'ascii' codec can't decode byte
-# when installing fairseq.
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-
-ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
-
-# Install cython first to make sure new modules are compiled with the right version of cython
-RUN pip install cython==0.29
-
-ADD ./install_prereqs.sh install_prereqs.sh
-ADD ./requirements.txt requirements.txt
-RUN ./install_prereqs.sh
-RUN rm install_prereqs.sh requirements.txt
 
 # Define default command.
 CMD ["bash"]
