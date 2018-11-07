@@ -15,10 +15,13 @@ pip uninstall -y torch || true
 pip uninstall -y torch || true
 pip uninstall -y torch_nightly || true
 pip uninstall -y torch_nightly || true
+conda uninstall -y torch_nightly || true
+conda uninstall -y torch_nightly || true
 
+# anaconda doesn't have gym & onnx is lacking behind
 pip install -r requirements.txt
 
-pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu90/torch_nightly.html
+conda install pytorch-nightly -c pytorch
 
 # Install NCCL2.
 wget "https://s3.amazonaws.com/pytorch/nccl_2.1.15-1%2Bcuda${TMP_CUDA_VERSION}.0_x86_64.txz"

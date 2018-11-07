@@ -12,8 +12,16 @@ from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_
 from ml.rl.thrift.core.ttypes import NormalizationParameters
 from scipy import stats
 from scipy.stats.mstats import mquantiles
-from thrift.protocol import TSimpleJSONProtocol
 from thrift.transport.TTransport import TMemoryBuffer
+
+
+# This is required to run the code internally and externally, sigh...
+try:
+    # Apache Thrift
+    from thrift.protocol.TJSONProtocol import TSimpleJSONProtocol
+except ImportError:
+    # Facebook Thrift
+    from thrift.protocol.TSimpleJSONProtocol import TSimpleJSONProtocol
 
 
 logger = logging.getLogger(__name__)
@@ -194,8 +202,8 @@ def sort_features_by_normalization(normalization_parameters):
 def deserialize(parameters_json):
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
-        params = NormalizationParameters()
-        params.readFromJson(feature_parameters)
+        # Note: This is OK since NormalizationParameters is flat.
+        params = NormalizationParameters(**json.loads(feature_parameters))
         # Check for negative enum IDs
         if params.feature_type == identify_types.ENUM:
             for x in params.possible_values:
@@ -213,7 +221,7 @@ def deserialize(parameters_json):
 
 def serialize_one(feature_parameters):
     trans = TMemoryBuffer()
-    proto = TSimpleJSONProtocol.TSimpleJSONProtocol(trans)
+    proto = TSimpleJSONProtocol(trans)
     feature_parameters.write(proto)
     return trans.getvalue().decode("utf-8").replace("\n", "")
 

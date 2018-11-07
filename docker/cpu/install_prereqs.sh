@@ -12,7 +12,9 @@ pip uninstall -y torch || true
 pip uninstall -y torch || true
 pip uninstall -y torch_nightly || true
 pip uninstall -y torch_nightly || true
+conda uninstall -y torch_nightly || true
+conda uninstall -y torch_nightly || true
 
 pip install -r requirements.txt
 
-pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+conda install pytorch-nightly-cpu -c pytorch
