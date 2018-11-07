@@ -3,27 +3,13 @@
 
 # Assuming that passing an argument means to use GPU
 gpu="$1"
-# shifting is needed to avoid error running pip below...
-shift
+
 set -e
 
-. ${HOME}/miniconda/bin/activate
 export LD_LIBRARY_PATH="${CONDA_PATH}/lib:${LD_LIBRARY_PATH}"
 
 # Toggles between CUDA 8 or 9. Needs to be kept in sync with Dockerfile
 TMP_CUDA_VERSION="9"
-
-# Uninstall previous versions of PyTorch. Doing this twice is intentional.
-# Error messages about torch not being installed are benign.
-pip uninstall -y torch || true
-pip uninstall -y torch || true
-pip uninstall -y torch_nightly || true
-pip uninstall -y torch_nightly || true
-conda uninstall -y torch_nightly || true
-conda uninstall -y torch_nightly || true
-
-# anaconda doesn't have gym & onnx is lacking behind
-pip install -r requirements.txt
 
 if [ -z "$gpu" ]; then
     conda install pytorch-nightly-cpu -c pytorch

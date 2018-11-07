@@ -1,11 +1,10 @@
-chardet==3.0.4
-pytorch-nightly
-onnx
-openjdk==8.0.144
 maven==3.5.0
 numpy==1.15.1
+openjdk==8.0.144
 pandas==0.23.4
+protobuf==3.6.1
 pytest-xdist==1.24.0
+pytorch-nightly
 scipy==1.1.0
 tensorboard==1.9.0
 tensorboardX==1.4
