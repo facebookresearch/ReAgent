@@ -19,13 +19,16 @@ pip uninstall -y torch || true
 pip uninstall -y torch || true
 pip uninstall -y torch_nightly || true
 pip uninstall -y torch_nightly || true
+conda uninstall -y torch_nightly || true
+conda uninstall -y torch_nightly || true
 
+# anaconda doesn't have gym & onnx is lacking behind
 pip install -r requirements.txt
 
 if [ -z "$gpu" ]; then
-    pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+    conda install pytorch-nightly-cpu -c pytorch
 else
-    pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu90/torch_nightly.html
+    conda install pytorch-nightly -c pytorch
 fi
 
 # Install NCCL2.

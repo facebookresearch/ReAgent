@@ -8,7 +8,7 @@ import unittest
 import numpy as np
 import torch
 from ml.rl.test.constant_reward.env import Env
-from ml.rl.thrift_types import (
+from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
     RLParameters,

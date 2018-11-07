@@ -68,8 +68,8 @@ RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2
     tar -xzf spark-2.3.1-bin-hadoop2.7.tgz && \
     mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
 
-# Install Tensorflow (for Tensorboard)
-RUN pip install tensorflow
+# Install Tensorboard
+RUN conda install tensorboard
 
 # Needed to prevent UnicodeDecodeError: 'ascii' codec can't decode byte
 # when installing fairseq.
@@ -84,7 +84,10 @@ ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
 ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
 
 # Install cython first to make sure new modules are compiled with the right version of cython
-RUN pip install cython==0.29
+RUN conda install cython==0.29
+
+# Install thrift compiler
+RUN conda install thrift-cpp
 
 ADD ./install_prereqs.sh install_prereqs.sh
 ADD ./requirements.txt requirements.txt
