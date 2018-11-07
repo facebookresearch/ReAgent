@@ -3,4 +3,4 @@
 
 set -e
 
-conda install openjdk maven
+conda install openjdk maven thrift-cpp
