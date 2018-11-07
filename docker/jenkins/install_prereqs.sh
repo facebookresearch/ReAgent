@@ -17,6 +17,8 @@ TMP_CUDA_VERSION="9"
 # Error messages about torch not being installed are benign.
 pip uninstall -y torch || true
 pip uninstall -y torch || true
+pip uninstall -y torch_nightly || true
+pip uninstall -y torch_nightly || true
 
 pip install -r requirements.txt
 

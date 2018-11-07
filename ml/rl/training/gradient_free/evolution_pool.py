@@ -8,7 +8,7 @@ import torch
 import torch.fb.rendezvous.zeus
 import torch.nn
 import torch.optim
-from ml.rl.thrift.core.ttypes import EvolutionParameters
+from ml.rl.thrift_types import EvolutionParameters
 
 
 logger = logging.getLogger(__name__)

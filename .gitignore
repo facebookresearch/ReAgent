@@ -1,3 +1,6 @@
+# Project files
+.vscode
+
 # Test data
 cartpole_discrete
 cartpole_discrete_timeline

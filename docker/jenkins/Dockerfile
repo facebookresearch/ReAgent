@@ -42,32 +42,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Sometimes needed to avoid SSL CA issues.
 RUN update-ca-certificates
 
-# Need this stuffs to build thrif compiler
-RUN apt-get install -y --no-install-recommends \
-    automake \
-    bison \
-    flex \
-    g++ \
-    libboost-all-dev \
-    libevent-dev \
-    libssl-dev \
-    libtool \
-    make \
-    pkg-config
-
-RUN wget https://archive.apache.org/dist/thrift/0.11.0/thrift-0.11.0.tar.gz -O thrift-0.11.0.tar.gz && \
-    tar -xzf thrift-0.11.0.tar.gz && \
-    cd thrift-0.11.0 && \
-    ./bootstrap.sh && \
-    ./configure --without-java && \
-    make && \
-    make install
-
-# Install Java & maven.
-RUN apt-get install -y openjdk-8-jre && \
-    apt-get install -y maven
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
-
 ENV HOME /home
 WORKDIR ${HOME}/
 
@@ -82,6 +56,21 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
 
+# Switch to python 3.6 (needed for tensorboard)
+RUN conda install python=3.6
+
+# Install java and maven
+RUN conda install maven openjdk
+ENV JAVA_HOME ${HOME}/miniconda
+
+# Install Spark
+RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz && \
+    tar -xzf spark-2.3.1-bin-hadoop2.7.tgz && \
+    mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
+
+# Install Tensorflow (for Tensorboard)
+RUN pip install tensorflow
+
 # Needed to prevent UnicodeDecodeError: 'ascii' codec can't decode byte
 # when installing fairseq.
 RUN locale-gen en_US.UTF-8
@@ -93,6 +82,9 @@ ENV LC_ALL en_US.UTF-8
 # be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
 ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
 ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
+
+# Install cython first to make sure new modules are compiled with the right version of cython
+RUN pip install cython==0.29
 
 ADD ./install_prereqs.sh install_prereqs.sh
 ADD ./requirements.txt requirements.txt

@@ -14,10 +14,7 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.thrift.core.ttypes import (
-    AdditionalFeatureTypes,
-    DiscreteActionModelParameters,
-)
+from ml.rl.thrift_types import AdditionalFeatureTypes, DiscreteActionModelParameters
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
 from ml.rl.training.rl_trainer_pytorch import (

@@ -79,6 +79,11 @@ struct ActionBudget {
   5: i32 window_size = 16384,
 }
 
+struct StateFeatureParameters {
+  1: list<string> state_feature_names_override = [],
+  2: list<i32> state_feature_hashes_override = [],
+}
+
 struct DiscreteActionModelParameters {
   1: list<string> actions,
   2: RLParameters rl,
@@ -110,11 +115,6 @@ struct DDPGTrainingParameters {
   3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
   5: bool use_noisy_linear_layers = false,
-}
-
-struct StateFeatureParameters {
-  1: list<string> state_feature_names_override = [],
-  2: list<i32> state_feature_hashes_override = [],
 }
 
 struct DDPGModelParameters {

@@ -10,6 +10,8 @@ export LD_LIBRARY_PATH="${CONDA_PATH}/lib:${LD_LIBRARY_PATH}"
 # Error messages about torch not being installed are benign.
 pip uninstall -y torch || true
 pip uninstall -y torch || true
+pip uninstall -y torch_nightly || true
+pip uninstall -y torch_nightly || true
 
 pip install -r requirements.txt
 
