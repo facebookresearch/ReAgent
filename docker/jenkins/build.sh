@@ -30,7 +30,7 @@ docker build \
   --build-arg "JENKINS_UID=${JENKINS_UID:-}" \
   --build-arg "JENKINS_GID=${JENKINS_GID:-}" \
   --build-arg "USE_GPU=${USE_GPU}" \
-  -f jenkins.Dockerfile
+  -f jenkins.Dockerfile \
   "$@" \
   .
 popd
