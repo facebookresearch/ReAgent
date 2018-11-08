@@ -12,7 +12,7 @@
 # Remove all untagged images:             sudo docker rmi $(sudo docker images -q --filter "dangling=true")
 
 # Available versions: https://hub.docker.com/r/nvidia/cuda/
-FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu18.04
+FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04
 
 SHELL ["/bin/bash", "-c"]
 
