@@ -10,7 +10,7 @@ def readme():
 
 
 def requirements():
-    with open("requirements.txt") as f:
+    with open("docker/requirements.txt") as f:
         return f.read()
 
 
