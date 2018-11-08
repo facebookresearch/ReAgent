@@ -79,16 +79,16 @@ ENV NCCL_CUDA_VERSION="9"
 # Install NCCL2.
 RUN wget "https://s3.amazonaws.com/pytorch/nccl_2.1.15-1%2Bcuda${NCCL_CUDA_VERSION}.0_x86_64.txz"
 ENV TMP_NCCL_VERSION "nccl_2.1.15-1+cuda${NCCL_CUDA_VERSION}.0_x86_64"
-RUN tar -xvf "${NCCL_CUDA_VERSION}.txz"
-ENV NCCL_ROOT_DIR "$(pwd)/${NCCL_CUDA_VERSION}"
+RUN tar -xvf "${TMP_NCCL_VERSION}.txz"
+ENV NCCL_ROOT_DIR "$(pwd)/${TMP_NCCL_VERSION}"
 ENV LD_LIBRARY_PATH "${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}"
-RUN rm "${NCCL_CUDA_VERSION}.txz"
+RUN rm "${TMP_NCCL_VERSION}.txz"
 
 # Add Jenkins user
 ARG JENKINS
 ARG JENKINS_UID
 ARG JENKINS_GID
-ADD ./add_jenkins_user.sh add_jenkins_user.sh
+ADD jenkins/add_jenkins_user.sh add_jenkins_user.sh
 RUN if [ -n "${JENKINS}" ]; then bash ./add_jenkins_user.sh ${JENKINS_UID} ${JENKINS_GID}; fi
 RUN rm add_jenkins_user.sh
 
