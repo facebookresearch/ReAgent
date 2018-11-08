@@ -22,6 +22,11 @@ Install dependencies:
 conda install `cat requirements.txt`
 ```
 
+Install ONNX using pip, which builds the latest version from source:
+```
+pip install onnx
+```
+
 Set JAVA_HOME to the location of your anaconda install
 ```
 export JAVA_HOME="$(dirname $(dirname -- `which conda`))"
@@ -69,18 +74,24 @@ The CUDA build will need [nvidia-docker](https://github.com/NVIDIA/nvidia-docker
 To build, clone repository and cd into the respective directory:
 ```
 git clone https://github.com/facebookresearch/Horizon.git
-cd Horizon/docker/cpu/
+cd Horizon/docker/
 ```
 
 On macOS you will need to increase the default memory allocation as the default of 2G is not enough. You can do this by clicking the whale icon in the task bar. We recommend using at least 8G of memory.
 
 On macOS, you can then build the image:
 ```
-docker build -t horizon:dev .
+docker build -f cpu.Dockerfile -t horizon:dev .
 ```
 On Linux you can build the image with specific memory allocations from command line:
 ```
-docker build -t horizon:dev --memory=8g --memory-swap=8g .
+docker build -f cpu.Dockerfile -t horizon:dev --memory=8g --memory-swap=8g .
+```
+
+To build with CUDA support, use the corresponding dockerfile:
+
+```
+docker build -f cuda.Dockerfile -t horizon:dev .
 ```
 
 Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume using the `-v` flag. We also add `-p` for port mapping so we can view Tensorboard visualizations locally.

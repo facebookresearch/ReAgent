@@ -42,26 +42,16 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 # (See https://stackoverflow.com/questions/33379393/docker-env-vs-run-export)
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
+ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
 RUN conda config --add channels pytorch # For PyTorch
 
-
 # Install dependencies
-RUN conda install maven==3.5.0 \
-numpy==1.15.1 \
-openjdk==8.0.144 \
-pandas==0.23.4 \
-protobuf==3.6.1 \
-pytest-xdist==1.24.0 \
-pytorch-nightly-cpu \
-scipy==1.1.0 \
-tensorboard==1.9.0 \
-tensorboardX==1.4 \
-thrift==0.11.0 \
-thrift-cpp==0.11.0 \
-typing==3.6.4
+ADD ./requirements.txt requirements.txt
+RUN conda install --file requirements.txt
+RUN rm requirements.txt
 
 # Build the latest onnx from source
 RUN pip install onnx

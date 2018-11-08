@@ -1,6 +1,11 @@
 # Usage
 
-Horizon is designed for large-scale, distributed recommendation/optimization tasks where we don't have access to a simulator.  In this environment, it's typically better to train offline on batches of data, and release new policies slowly over time.  Because the policy updates slowly and in batches, we use *off-policy* algorithms.  To test a new policy without deploying it, we rely on *counter-factual policy evaluation (CPE)*, a set of techniques for estimating a policy based on the actions of another policy.
+Horizon is designed for large-scale, distributed recommendation/optimization tasks where we don't
+have access to a simulator.  In this environment, it's typically better to train offline on batches
+of data, and release new policies slowly over time.  Because the policy updates slowly and in
+batches, we use *off-policy* algorithms.  To test a new policy without deploying it, we rely on
+*counter-factual policy evaluation (CPE)*, a set of techniques for estimating a policy based on the
+actions of another policy.
 
 Before we get started using Horizon as it is intended, let's begin with a traditional RL setup with a simulator where we can trivially evaluate new policies:
 
@@ -60,16 +65,16 @@ gzcat ml/rl/workflow/sample_datasets/discrete_action/cartpole_pre_timeline.json.
 
 The input data is a flat file containing a JSON object per-line separated by newlines (the first line is pretty-printed here for readability).  This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data is parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:
 
-| Column | Type | Description |
-|--------|------|-------------|
-mdp_id | string | A unique ID for the episode (e.g. an entire playthrough of a game)
-sequence_number | integer | Defines the ordering of states in an MDP (e.g. the timestamp of an event)
-state_features | `map<integer,float>` | A set of features describing the state.
-action | string | The name of the action chosen
-reward | float | The reward at this state/action
-possible_actions | `list<string>` | A list of all possible actions at this state.  Note that the action taken must be present in this list.
-action_probability | float | The probability of taking this action if the policy is stochastic, else `null`.  Note that we strongly encourage using a stochastic policy instead of choosing the best action at every timestep.  This exploration will improve the evaluation and ultimately result in better learned policies.
-ds | string | A unique ID for this dataset.
+| Column             | Type                 | Description                                                                                                                                                                                                                                                                                       |
+| ------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mdp_id             | string               | A unique ID for the episode (e.g. an entire playthrough of a game)                                                                                                                                                                                                                                |
+| sequence_number    | integer              | Defines the ordering of states in an MDP (e.g. the timestamp of an event)                                                                                                                                                                                                                         |
+| state_features     | `map<integer,float>` | A set of features describing the state.                                                                                                                                                                                                                                                           |
+| action             | string               | The name of the action chosen                                                                                                                                                                                                                                                                     |
+| reward             | float                | The reward at this state/action                                                                                                                                                                                                                                                                   |
+| possible_actions   | `list<string>`       | A list of all possible actions at this state.  Note that the action taken must be present in this list.                                                                                                                                                                                           |
+| action_probability | float                | The probability of taking this action if the policy is stochastic, else `null`.  Note that we strongly encourage using a stochastic policy instead of choosing the best action at every timestep.  This exploration will improve the evaluation and ultimately result in better learned policies. |
+| ds                 | string               | A unique ID for this dataset.                                                                                                                                                                                                                                                                     |
 
 Note that JSON does not support integer keys in objects so in our JSON format we replace the `map<integer,float>` with `map<string,float>`, but even in this case the keys must be strings of integers.
 

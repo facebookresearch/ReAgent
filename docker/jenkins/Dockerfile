@@ -43,25 +43,16 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 # (See https://stackoverflow.com/questions/33379393/docker-env-vs-run-export)
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
+ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
 RUN conda config --add channels pytorch # For PyTorch
 
 # Install dependencies
-RUN conda install maven==3.5.0 \
-numpy==1.15.1 \
-openjdk==8.0.144 \
-pandas==0.23.4 \
-protobuf==3.6.1 \
-pytest-xdist==1.24.0 \
-pytorch-nightly \
-scipy==1.1.0 \
-tensorboard==1.9.0 \
-tensorboardX==1.4 \
-thrift==0.11.0 \
-thrift-cpp==0.11.0 \
-typing==3.6.4
+ADD ./requirements.txt requirements.txt
+RUN conda install --file requirements.txt
+RUN rm requirements.txt
 
 # Build the latest onnx from source
 RUN pip install onnx
@@ -80,12 +71,18 @@ RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2
 # Reminder: this should be updated when switching between CUDA 8 or 9. Should
 # be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
 ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
-ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH ${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
 
-ADD ./install_prereqs.sh install_prereqs.sh
-ARG USE_GPU
-RUN ./install_prereqs.sh ${USE_GPU}
-RUN rm install_prereqs.sh
+# Toggles between CUDA 8 or 9. Needs to be kept in sync with Dockerfile
+ENV NCCL_CUDA_VERSION="9"
+
+# Install NCCL2.
+RUN wget "https://s3.amazonaws.com/pytorch/nccl_2.1.15-1%2Bcuda${NCCL_CUDA_VERSION}.0_x86_64.txz"
+ENV TMP_NCCL_VERSION "nccl_2.1.15-1+cuda${NCCL_CUDA_VERSION}.0_x86_64"
+RUN tar -xvf "${NCCL_CUDA_VERSION}.txz"
+ENV NCCL_ROOT_DIR "$(pwd)/${NCCL_CUDA_VERSION}"
+ENV LD_LIBRARY_PATH "${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}"
+RUN rm "${NCCL_CUDA_VERSION}.txz"
 
 # Add Jenkins user
 ARG JENKINS

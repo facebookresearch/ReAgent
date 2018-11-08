@@ -11,7 +11,7 @@
 # Remove all stopped Docker containers:   sudo docker rm $(sudo docker ps -a -q)
 # Remove all untagged images:             sudo docker rmi $(sudo docker images -q --filter "dangling=true")
 
-FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu18.04
+FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04
 
 SHELL ["/bin/bash", "-c"]
 
@@ -42,25 +42,16 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 # (See https://stackoverflow.com/questions/33379393/docker-env-vs-run-export)
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
+ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
 RUN conda config --add channels pytorch # For PyTorch
 
 # Install dependencies
-RUN conda install maven==3.5.0 \
-numpy==1.15.1 \
-openjdk==8.0.144 \
-pandas==0.23.4 \
-protobuf==3.6.1 \
-pytest-xdist==1.24.0 \
-pytorch-nightly \
-scipy==1.1.0 \
-tensorboard==1.9.0 \
-tensorboardX==1.4 \
-thrift==0.11.0 \
-thrift-cpp==0.11.0 \
-typing==3.6.4
+ADD ./requirements.txt requirements.txt
+RUN conda install --file requirements.txt
+RUN rm requirements.txt
 
 # Build the latest onnx from source
 RUN pip install onnx
@@ -75,6 +66,11 @@ ENV JAVA_HOME ${HOME}/miniconda
 RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz && \
     tar -xzf spark-2.3.1-bin-hadoop2.7.tgz && \
     mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
+
+# Reminder: this should be updated when switching between CUDA 8 or 9. Should
+# be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
+ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
+ENV LD_LIBRARY_PATH ${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
 
 # Define default command.
 CMD ["bash"]
