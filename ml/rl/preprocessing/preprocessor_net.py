@@ -10,7 +10,13 @@ from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import FEATURE_TYPES
-from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
+from ml.rl.preprocessing.normalization import (
+    EPS,
+    MAX_FEATURE_VALUE,
+    MIN_FEATURE_VALUE,
+    MISSING_VALUE,
+    NormalizationParameters,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -242,7 +248,7 @@ class PreprocessorNet:
             blob = C2.Sub(blob, means_blob, broadcast=1, axis=0)
             blob = C2.Div(blob, stddevs_blob, broadcast=1, axis=0)
             if self.clip_anomalies:
-                blob = C2.Clip(blob, min=-6.0, max=6.0)
+                blob = C2.Clip(blob, min=MIN_FEATURE_VALUE, max=MAX_FEATURE_VALUE)
         elif feature_type == identify_types.CONTINUOUS_ACTION:
             serving_min_value = np.array(
                 [norm.min_value for norm in normalization_parameters], dtype=np.float32
@@ -252,11 +258,11 @@ class PreprocessorNet:
             )
 
             training_min_value = (
-                np.ones(len(normalization_parameters), dtype=np.float32) * -1 + 1e-6
+                np.ones(len(normalization_parameters), dtype=np.float32) * -1 + EPS
             )
 
             scaling_factor = (
-                (np.ones(len(normalization_parameters), dtype=np.float32) - 1e-6)
+                (np.ones(len(normalization_parameters), dtype=np.float32) - EPS)
                 * 2
                 / (serving_max_value - serving_min_value)
             )
@@ -275,7 +281,7 @@ class PreprocessorNet:
             blob = C2.Mul(blob, scaling_factor_blob, broadcast=1, axis=1)
             blob = C2.Add(blob, training_min_blob, broadcast=1, axis=1)
             if self.clip_anomalies:
-                blob = C2.Clip(blob, min=-1 + 1e-6, max=1 - 1e-6)
+                blob = C2.Clip(blob, min=-1 + EPS, max=1 - EPS)
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 
