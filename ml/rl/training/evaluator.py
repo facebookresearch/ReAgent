@@ -152,6 +152,8 @@ class Evaluator(object):
         self.model_action_counts: Dict[str, List[int]] = defaultdict(list)
         self.model_action_counts_cumulative: Dict[str, int] = defaultdict(int)
         self.logged_action_counts: Dict[str, int] = defaultdict(int)
+        self.logged_action_q_value: List[float] = []
+        self.model_value: Dict[str, List[float]] = defaultdict(list)
 
         self.evaluator_batch_size = evaluator_batch_size
 
@@ -294,8 +296,14 @@ class Evaluator(object):
         if model_values is not None:
             SummaryWriterContext.add_histogram("value/model", model_values)
             SummaryWriterContext.add_scalar("value/model/mean", model_values.mean())
+            if self.action_names:
+                means = model_values.mean(axis=0)
+                for name, mean in zip(self.action_names, means):
+                    self.model_value[name].append(float(mean))
 
         if model_values_on_logged_actions is not None:
+            logged_action_model_value = float(np.mean(model_values_on_logged_actions))
+            self.logged_action_q_value.append(logged_action_model_value)
             SummaryWriterContext.add_histogram(
                 "value/model_logged_action", model_values_on_logged_actions
             )
