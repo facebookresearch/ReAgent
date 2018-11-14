@@ -12,8 +12,16 @@ from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_
 from ml.rl.thrift.core.ttypes import NormalizationParameters
 from scipy import stats
 from scipy.stats.mstats import mquantiles
-from thrift.protocol.TJSONProtocol import TSimpleJSONProtocol
 from thrift.transport.TTransport import TMemoryBuffer
+
+
+# This is required to run the code internally and externally, sigh...
+try:
+    # Apache Thrift
+    from thrift.protocol.TJSONProtocol import TSimpleJSONProtocol
+except ImportError:
+    # Facebook Thrift
+    from thrift.protocol.TSimpleJSONProtocol import TSimpleJSONProtocol
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +34,9 @@ DEFAULT_QUANTILE_K2_THRESHOLD = 1000.0
 MINIMUM_SAMPLES_TO_IDENTIFY = 20
 DEFAULT_MAX_QUANTILE_SIZE = 20
 DEFAULT_NUM_SAMPLES = 100000
+MAX_FEATURE_VALUE = 6.0
+MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
+EPS = 1e-6
 
 
 class NumpyEncoder(json.JSONEncoder):

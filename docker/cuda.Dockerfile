@@ -11,8 +11,7 @@
 # Remove all stopped Docker containers:   sudo docker rm $(sudo docker ps -a -q)
 # Remove all untagged images:             sudo docker rmi $(sudo docker images -q --filter "dangling=true")
 
-# Available versions: https://hub.docker.com/r/nvidia/cuda/
-FROM ubuntu:16.04
+FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04
 
 SHELL ["/bin/bash", "-c"]
 
@@ -21,23 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     cmake \
     git \
-    libgflags-dev \
-    libgoogle-glog-dev \
-    libgtest-dev \
-    libiomp-dev \
-    libleveldb-dev \
-    liblmdb-dev \
-    libopencv-dev \
-    libopenmpi-dev \
-    libprotobuf-dev \
-    libsnappy-dev \
-    locales \
-    openmpi-bin \
-    openmpi-doc \
-    protobuf-compiler \
     sudo \
     software-properties-common \
     vim \
+    emacs \
     wget
 
 # Sometimes needed to avoid SSL CA issues.
@@ -56,12 +42,24 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 # (See https://stackoverflow.com/questions/33379393/docker-env-vs-run-export)
 ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
+ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 
-# Switch to python 3.6 (needed for tensorboard)
-RUN conda install python=3.6
+# Set channels
+RUN conda config --add channels conda-forge # For ONNX/tensorboardX
+RUN conda config --add channels pytorch # For PyTorch
 
-# Install java and maven
-RUN conda install maven openjdk
+# Install dependencies
+ADD ./requirements.txt requirements.txt
+RUN conda install --file requirements.txt
+RUN rm requirements.txt
+
+# Build the latest onnx from source
+RUN pip install onnx
+
+# Install open ai gym
+RUN pip install "gym[classic_control,box2d,atari]"
+
+# Set JAVA_HOME for Spark
 ENV JAVA_HOME ${HOME}/miniconda
 
 # Install Spark
@@ -69,28 +67,21 @@ RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2
     tar -xzf spark-2.3.1-bin-hadoop2.7.tgz && \
     mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
 
-# Install Tensorboard
-RUN conda install tensorboard
+# Reminder: this should be updated when switching between CUDA 8 or 9. Should
+# be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
+ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
+ENV LD_LIBRARY_PATH ${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
 
-# Needed to prevent UnicodeDecodeError: 'ascii' codec can't decode byte
-# when installing fairseq.
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+# Toggles between CUDA 8 or 9. Needs to be kept in sync with Dockerfile
+ENV NCCL_CUDA_VERSION="9"
 
-ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
-
-# Install cython first to make sure new modules are compiled with the right version of cython
-RUN conda install cython==0.29
-
-# Install thrift compiler
-RUN conda install thrift-cpp
-
-ADD ./install_prereqs.sh install_prereqs.sh
-ADD ./requirements.txt requirements.txt
-RUN ./install_prereqs.sh
-RUN rm install_prereqs.sh requirements.txt
+# Install NCCL2.
+RUN wget "https://s3.amazonaws.com/pytorch/nccl_2.1.15-1%2Bcuda${NCCL_CUDA_VERSION}.0_x86_64.txz"
+ENV TMP_NCCL_VERSION "nccl_2.1.15-1+cuda${NCCL_CUDA_VERSION}.0_x86_64"
+RUN tar -xvf "${TMP_NCCL_VERSION}.txz"
+ENV NCCL_ROOT_DIR "$(pwd)/${TMP_NCCL_VERSION}"
+ENV LD_LIBRARY_PATH "${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}"
+RUN rm "${TMP_NCCL_VERSION}.txz"
 
 # Define default command.
 CMD ["bash"]

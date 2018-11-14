@@ -19,6 +19,30 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+def get_tensor(x, dtype=None):
+    """
+    Input:
+        - x: list or a sequence
+        - dtype: target data type of the elements in tensor [optional]
+                 It will be infered automatically if not provided.
+    Output:
+        Tensor given a list or a sequence.
+        If the input is None, it returns None
+        If the input is a tensor it returns the tensor.
+        If type is provides the output Tensor will have that type
+    """
+    if x is None:
+        return None
+
+    if not isinstance(x, torch.Tensor):
+        x = torch.tensor(x)
+
+    if dtype is not None:
+        x = x.type(dtype)
+
+    return x
+
+
 class BatchStatsForCPE(NamedTuple):
     td_loss: Optional[np.ndarray] = None
     logged_actions: Optional[np.ndarray] = None
@@ -119,8 +143,8 @@ class Evaluator(object):
         self.value_sequential_doubly_robust: List[CPE_Estimate] = []
         self.value_weighted_doubly_robust: List[CPE_Estimate] = []
         self.value_magic_doubly_robust: List[CPE_Estimate] = []
-        self.true_value_PE: List[float] = []
-        self.true_discounted_value_PE: List[float] = []
+        self.true_value_PE: List[torch.FloatTensor] = []
+        self.true_discounted_value_PE: List[torch.FloatTensor] = []
         self.reward_inverse_propensity_score: List[CPE_Estimate] = []
         self.reward_direct_method: List[CPE_Estimate] = []
         self.reward_doubly_robust: List[CPE_Estimate] = []
@@ -128,19 +152,21 @@ class Evaluator(object):
         self.model_action_counts: Dict[str, List[int]] = defaultdict(list)
         self.model_action_counts_cumulative: Dict[str, int] = defaultdict(int)
         self.logged_action_counts: Dict[str, int] = defaultdict(int)
+        self.logged_action_q_value: List[float] = []
+        self.model_value: Dict[str, List[float]] = defaultdict(list)
 
         self.evaluator_batch_size = evaluator_batch_size
 
-        self.td_loss_batches: List[np.ndarray] = []
-        self.logged_actions_batches: List[np.ndarray] = []
-        self.logged_propensities_batches: List[np.ndarray] = []
-        self.logged_rewards_batches: List[np.ndarray] = []
-        self.logged_values_batches: List[np.ndarray] = []
-        self.model_propensities_batches: List[np.ndarray] = []
-        self.model_rewards_batches: List[np.ndarray] = []
-        self.model_values_batches: List[np.ndarray] = []
-        self.model_values_on_logged_actions_batches: List[np.ndarray] = []
-        self.model_action_idxs_batches: List[np.ndarray] = []
+        self.td_loss_batches: List[torch.FloatTensor] = []
+        self.logged_actions_batches: List[torch.FloatTensor] = []
+        self.logged_propensities_batches: List[torch.FloatTensor] = []
+        self.logged_rewards_batches: List[torch.FloatTensor] = []
+        self.logged_values_batches: List[torch.FloatTensor] = []
+        self.model_propensities_batches: List[torch.FloatTensor] = []
+        self.model_rewards_batches: List[torch.FloatTensor] = []
+        self.model_values_batches: List[torch.FloatTensor] = []
+        self.model_values_on_logged_actions_batches: List[torch.FloatTensor] = []
+        self.model_action_idxs_batches: List[torch.FloatTensor] = []
 
         self.all_batches = [
             self.td_loss_batches,
@@ -163,12 +189,12 @@ class Evaluator(object):
         self.max_hash = 2 ** (self.hash_func().digest_size * 8)
 
         self.unshuffled_samples: List = []
-        self.unshuffled_actions = np.array([])
-        self.unshuffled_rewards = np.array([])
-        self.unshuffled_logged_propensities = np.array([])
-        self.unshuffled_terminals = np.array([])
-        self.unshuffled_target_propensities = np.array([])
-        self.unshuffled_estimated_q_values = np.array([])
+        self.unshuffled_actions: torch.tensor
+        self.unshuffled_rewards: torch.tensor
+        self.unshuffled_logged_propensities: torch.tensor
+        self.unshuffled_terminals: torch.tensor
+        self.unshuffled_target_propensities: torch.tensor
+        self.unshuffled_estimated_q_values: torch.tensor
         self._add_custom_scalars(action_names)
 
     def _add_custom_scalars(self, action_names):
@@ -243,13 +269,14 @@ class Evaluator(object):
             model_values,
             model_values_on_logged_actions,
             model_action_idxs,
-        ) = merged_inputs
+        ) = map(get_tensor, merged_inputs)
 
         logger.info("Evaluating on {} batches".format(len(self.td_loss_batches)))
         print_details = "Evaluator:\n"
+
         if td_loss is not None:
             SummaryWriterContext.add_histogram("td_loss", td_loss)
-            td_loss_mean = float(np.mean(td_loss))
+            td_loss_mean = float(td_loss.mean())
             SummaryWriterContext.add_scalar("td_loss/mean", td_loss_mean)
             self.td_loss.append(td_loss_mean)
             print_details = print_details + "TD LOSS: {0:.3f}\n".format(td_loss_mean)
@@ -269,8 +296,14 @@ class Evaluator(object):
         if model_values is not None:
             SummaryWriterContext.add_histogram("value/model", model_values)
             SummaryWriterContext.add_scalar("value/model/mean", model_values.mean())
+            if self.action_names:
+                means = model_values.mean(axis=0)
+                for name, mean in zip(self.action_names, means):
+                    self.model_value[name].append(float(mean))
 
         if model_values_on_logged_actions is not None:
+            logged_action_model_value = float(np.mean(model_values_on_logged_actions))
+            self.logged_action_q_value.append(logged_action_model_value)
             SummaryWriterContext.add_histogram(
                 "value/model_logged_action", model_values_on_logged_actions
             )
@@ -379,8 +412,9 @@ class Evaluator(object):
         possible_state_actions,
         pas_lens,
     ):
-        cum_pas_lens = np.zeros(len(pas_lens) + 1, dtype=np.int64)
-        cum_pas_lens[1:] = np.cumsum(pas_lens)
+        pas_lens = get_tensor(pas_lens)
+        cum_pas_lens = torch.zeros(len(pas_lens) + 1, dtype=torch.int64)
+        cum_pas_lens[1:] = torch.cumsum(pas_lens, dim=0)
 
         for i in range(len(mdp_ids)):
             mdp_id = mdp_ids[i]
@@ -415,10 +449,10 @@ class Evaluator(object):
                 self.unshuffled_samples[i].terminal = True
         self.unshuffled_samples[-1].terminal = True
 
-        self.unshuffled_rewards = np.array(
+        self.unshuffled_rewards = get_tensor(
             [x.reward for x in self.unshuffled_samples]
         ).reshape(-1, 1)
-        self.unshuffled_logged_propensities = np.array(
+        self.unshuffled_logged_propensities = get_tensor(
             [x.propensity for x in self.unshuffled_samples]
         ).reshape(-1, 1)
         self.unshuffled_terminals = (
@@ -428,7 +462,7 @@ class Evaluator(object):
         )
 
         if isinstance(self.unshuffled_samples[0], DiscreteActionSample):
-            unshuffled_states = torch.tensor(
+            unshuffled_states = get_tensor(
                 np.array([x.state for x in self.unshuffled_samples]),
                 dtype=torch.float32,
             ).type(self.model.dtype)
@@ -443,7 +477,7 @@ class Evaluator(object):
             )
 
         else:
-            unshuffled_possible_state_actions = torch.tensor(
+            unshuffled_possible_state_actions = get_tensor(
                 np.array(
                     [
                         sa
@@ -452,7 +486,7 @@ class Evaluator(object):
                     ]
                 )
             ).type(self.model.dtype)
-            pas_lens = torch.tensor(
+            pas_lens = get_tensor(
                 np.array(
                     [len(x.possible_state_actions) for x in self.unshuffled_samples]
                 ),
@@ -465,7 +499,7 @@ class Evaluator(object):
                 .cpu()
                 .numpy()
             )
-            unshuffled_logged_state_actions = torch.tensor(
+            unshuffled_logged_state_actions = get_tensor(
                 np.array([x.logged_state_action for x in self.unshuffled_samples]),
                 dtype=torch.float32,
             ).type(self.model.dtype)
@@ -596,7 +630,7 @@ class Evaluator(object):
             self.reward_doubly_robust.append(r_dr)
 
             logger.info(
-                "Reward Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}\n".format(
+                "Reward Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}".format(
                     r_ips.normalized, r_ips.raw
                 )
             )
@@ -646,6 +680,7 @@ class Evaluator(object):
             self.unshuffled_target_propensities,
             self.unshuffled_estimated_q_values,
         )
+
         self.value_sequential_doubly_robust.append(sequential_doubly_robust)
 
         logger.info(
@@ -705,8 +740,15 @@ class Evaluator(object):
     def _get_batch_logged_actions(self, arr):
         action_counter = Counter()
         for actions in arr:
-            action_counter.update(Counter(np.argmax(actions, axis=1)))
+            # torch.max() returns the element and the index.
+            # The latter is the argmax equivalent
+            _, argmax = torch.max(actions, dim=1)
+
+            # Counter object does not work well with Tensors, hence casting back to numpy
+            action_counter.update(Counter(argmax.numpy()))
+
         total_actions = 1.0 * sum(action_counter.values())
+
         return (
             {
                 action_name: (action_counter[i] / total_actions)
@@ -726,7 +768,7 @@ class Evaluator(object):
     def _get_batch_model_actions(self, arr):
         action_counter = Counter()
         for actions in arr:
-            action_counter.update(Counter(actions.reshape(-1)))
+            action_counter.update(Counter(actions.reshape(-1).numpy()))
         total_actions = 1.0 * sum(action_counter.values())
         return (
             {
@@ -800,6 +842,25 @@ class Evaluator(object):
         return CPE_Estimate(normalized=dr[0], raw=dr[1])
 
     @staticmethod
+    def calculate_recent_window_average_pytorch(tensor, window_size, num_entries):
+        """
+            Calculate the trailing window average of a tensor
+            Input:
+            - tensor: 1 dimensional pytorch tensor
+            - window_size: the length of the window size.
+            - num_entries: dimensions of the desired output. Used for empty tensors
+        """
+        if len(tensor) > 0:
+            begin = max(0, len(tensor) - window_size)
+            return tensor[begin:].mean(dim=0)
+        else:
+            logger.error("Not enough samples for evaluation.")
+            if num_entries == 1:
+                return float("nan")
+            else:
+                return [float("nan")] * num_entries
+
+    @staticmethod
     def calculate_recent_window_average(arr, window_size, num_entries):
         if len(arr) > 0:
             begin = max(0, len(arr) - window_size)
@@ -833,40 +894,52 @@ class Evaluator(object):
         # For details, visit https://arxiv.org/pdf/1612.01205.pdf
         num_examples = len(logged_actions)
 
+        # TODO: change the type of parameters below at source to avoid conversion
+        target_propensities = get_tensor(target_propensities, dtype=torch.FloatTensor)
+        estimated_values = get_tensor(estimated_values, dtype=torch.FloatTensor)
+        logged_rewards = get_tensor(logged_rewards, dtype=torch.FloatTensor)
+        logged_actions = get_tensor(logged_actions, dtype=torch.FloatTensor)
+        logged_propensities = get_tensor(logged_propensities, dtype=torch.FloatTensor)
+
         if estimated_values is None:
             # Fill with zero, equivalent to just doing IPS
-            estimated_values = np.zeros(target_propensities.shape)
-            direct_method_values = np.zeros([num_examples, 1], dtype=np.float32)
+            estimated_values = torch.zeros(target_propensities.shape).float()
+            direct_method_values = torch.zeros([num_examples, 1], dtype=torch.float32)
         else:
-            direct_method_values = np.sum(
-                target_propensities * estimated_values, axis=1, keepdims=True
+            direct_method_values = torch.sum(
+                target_propensities * estimated_values, dim=1, keepdim=True
             )
 
-        total_reward = np.sum(logged_rewards)
+        total_reward = torch.sum(logged_rewards)
 
-        target_propensity_for_action = np.sum(
-            target_propensities * logged_actions, axis=1, keepdims=True
+        target_propensity_for_action = torch.sum(
+            target_propensities * logged_actions, dim=1, keepdim=True
         )
-        importance_weight = target_propensity_for_action / logged_propensities
+
+        importance_weight = (target_propensity_for_action / logged_propensities).float()
+
         ips = importance_weight * logged_rewards
-        estimated_values_for_action = np.sum(
-            estimated_values * logged_actions, axis=1, keepdims=True
+
+        estimated_values_for_action = torch.sum(
+            estimated_values * logged_actions, dim=1, keepdim=True
         )
+
         doubly_robust = (
             importance_weight * (logged_rewards - estimated_values_for_action)
         ) + direct_method_values
 
         return (
             CPE_Estimate(
-                normalized=float(np.sum(ips) / total_reward), raw=float(np.mean(ips))
+                normalized=float(torch.sum(ips) / total_reward),
+                raw=float(torch.mean(ips)),
             ),
             CPE_Estimate(
-                normalized=float(np.sum(direct_method_values) / total_reward),
-                raw=float(np.mean(direct_method_values)),
+                normalized=float(torch.sum(direct_method_values) / total_reward),
+                raw=float(torch.mean(direct_method_values)),
             ),
             CPE_Estimate(
-                normalized=float(np.sum(doubly_robust) / total_reward),
-                raw=float(np.mean(doubly_robust)),
+                normalized=float(torch.sum(doubly_robust) / total_reward),
+                raw=float(torch.mean(doubly_robust)),
             ),
         )
 
@@ -884,18 +957,26 @@ class Evaluator(object):
         logged_rewards = logged_rewards.squeeze()
         logged_propensities = logged_propensities.squeeze()
 
+        # TODO: change the type of parameters below at source to avoid conversion
+        target_propensities = get_tensor(target_propensities, dtype=torch.FloatTensor)
+        estimated_q_values = get_tensor(estimated_q_values, dtype=torch.FloatTensor)
+        logged_actions = get_tensor(logged_actions, dtype=torch.FloatTensor)
+        logged_propensities = get_tensor(logged_propensities, dtype=torch.FloatTensor)
+
         num_examples = logged_actions.shape[0]
 
-        estimated_state_values = np.sum(
-            target_propensities * estimated_q_values, axis=1
-        )
-        estimated_q_values_for_logged_action = np.sum(
-            estimated_q_values * logged_actions, axis=1
+        estimated_state_values = torch.sum(
+            target_propensities * estimated_q_values, dim=1
         )
 
-        target_propensity_for_action = np.sum(
-            target_propensities * logged_actions, axis=1
+        estimated_q_values_for_logged_action = torch.sum(
+            estimated_q_values * logged_actions, dim=1
         )
+
+        target_propensity_for_action = torch.sum(
+            target_propensities * logged_actions, dim=1
+        )
+
         importance_weight = target_propensity_for_action / logged_propensities
 
         doubly_robusts = []

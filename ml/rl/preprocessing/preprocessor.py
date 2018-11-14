@@ -9,13 +9,15 @@ import torch
 import torch.nn as nn
 from ml.rl import types as rlt
 from ml.rl.preprocessing.identify_types import ENUM, FEATURE_TYPES
-from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
+from ml.rl.preprocessing.normalization import (
+    EPS,
+    MAX_FEATURE_VALUE,
+    MIN_FEATURE_VALUE,
+    MISSING_VALUE,
+    NormalizationParameters,
+)
 from torch.nn import Module, Parameter
 
-
-MAX_FEATURE_VALUE = 6
-MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
-EPS = 1e-6
 
 logger = logging.getLogger(__name__)
 
@@ -287,7 +289,7 @@ class Preprocessor(Module):
         if not self.clamp:
             return continuous_output
         else:
-            return torch.clamp(continuous_output, -3.0, 3.0)
+            return torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
 
     def _create_parameters_BOXCOX(
         self, begin_index: int, norm_params: List[NormalizationParameters]
