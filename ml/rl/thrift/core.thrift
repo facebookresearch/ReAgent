@@ -141,6 +141,7 @@ struct SACTrainingParameters {
   # alpha in the paper; controlling explore & exploit
   6: double entropy_temperature = 0.1,
   7: optional string warm_start_model_path,
+  8: bool logged_action_uniform_prior = true,
 }
 
 struct SACModelParameters {

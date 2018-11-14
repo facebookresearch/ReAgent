@@ -80,6 +80,9 @@ class SACTrainer(RLTrainer):
         )
 
         self.entropy_temperature = parameters.training.entropy_temperature
+        self.logged_action_uniform_prior = (
+            parameters.training.logged_action_uniform_prior
+        )
 
         # These ranges are only for Gym tests
         self.min_action_range_tensor_training = min_action_range_tensor_training
@@ -148,9 +151,16 @@ class SACTrainer(RLTrainer):
 
         state_value = self.value_network(state.float_features)  # .q_value
 
-        with torch.no_grad():
-            log_prob_a = self.actor_network.get_log_prob(state, action.float_features)
-            target_value = min_q_value - self.entropy_temperature * log_prob_a
+        if self.logged_action_uniform_prior:
+            log_prob_a = torch.zeros_like(min_q_value)
+            target_value = min_q_value
+        else:
+            with torch.no_grad():
+                log_prob_a = self.actor_network.get_log_prob(
+                    state, action.float_features
+                )
+                log_prob_a = log_prob_a.clamp(-20.0, 20.0)
+                target_value = min_q_value - self.entropy_temperature * log_prob_a
 
         value_loss = F.mse_loss(state_value, target_value)
         self.value_network_optimizer.zero_grad()
@@ -226,7 +236,6 @@ class SACTrainer(RLTrainer):
                 SummaryWriterContext.add_histogram("q2/logged_state_value", q2_value)
 
             SummaryWriterContext.add_histogram("log_prob_a", log_prob_a)
-            SummaryWriterContext.add_histogram("min_q/logged_state_value", min_q_value)
             SummaryWriterContext.add_histogram("value_network/target", target_value)
             SummaryWriterContext.add_histogram(
                 "q_network/next_state_value", next_state_value
@@ -245,7 +254,10 @@ class SACTrainer(RLTrainer):
         if evaluator is not None:
             cpe_stats = BatchStatsForCPE(
                 td_loss=q1_loss.detach().cpu().numpy(),
+                logged_rewards=reward.detach().cpu().numpy(),
                 model_values_on_logged_actions=q1_value.detach().cpu().numpy(),
+                model_propensities=actor_output.log_prob.exp().detach().cpu().numpy(),
+                model_values=min_q_actor_value.detach().cpu().numpy(),
             )
             evaluator.report(cpe_stats)
 

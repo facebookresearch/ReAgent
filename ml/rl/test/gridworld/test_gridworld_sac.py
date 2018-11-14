@@ -52,7 +52,9 @@ class TestGridworldSAC(GridworldTestBase):
         torch.manual_seed(0)
         super(TestGridworldSAC, self).setUp()
 
-    def get_sac_parameters(self, use_2_q_functions=False):
+    def get_sac_parameters(
+        self, use_2_q_functions=False, logged_action_uniform_prior=True
+    ):
         return SACModelParameters(
             rl=RLParameters(gamma=DISCOUNT, target_update_rate=0.5, reward_burnin=100),
             training=SACTrainingParameters(
@@ -61,6 +63,7 @@ class TestGridworldSAC(GridworldTestBase):
                 q_network_optimizer=OptimizerParameters(),
                 value_network_optimizer=OptimizerParameters(),
                 actor_network_optimizer=OptimizerParameters(),
+                logged_action_uniform_prior=logged_action_uniform_prior,
             ),
             q_network=FeedForwardParameters(
                 layers=[128, 64], activations=["relu", "relu"]
@@ -151,10 +154,10 @@ class TestGridworldSAC(GridworldTestBase):
         ).export()
         return predictor
 
-    def _test_sac_trainer(self, use_2_q_functions=False, use_gpu=False):
+    def _test_sac_trainer(self, use_gpu=False, **kwargs):
         environment = GridworldContinuous()
         trainer = self.get_sac_trainer(
-            environment, self.get_sac_parameters(use_2_q_functions), use_gpu
+            environment, self.get_sac_parameters(**kwargs), use_gpu
         )
         evaluator = GridworldContinuousEvaluator(
             environment,
@@ -207,3 +210,10 @@ class TestGridworldSAC(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_sac_trainer_gpu_use_2_q_functions(self):
         self._test_sac_trainer(use_2_q_functions=True, use_gpu=True)
+
+    def test_sac_trainer_model_propensity(self):
+        self._test_sac_trainer(logged_action_uniform_prior=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_sac_trainer_model_propensity_gpu(self):
+        self._test_sac_trainer(use_gpu=True, logged_action_uniform_prior=True)
