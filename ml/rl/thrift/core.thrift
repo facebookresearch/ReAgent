@@ -133,21 +133,25 @@ struct OptimizerParameters {
 }
 
 struct SACTrainingParameters {
-  1: i32 minibatch_size = 16384,
-  2: OptimizerParameters q_network_optimizer,
-  3: OptimizerParameters value_network_optimizer,
-  4: OptimizerParameters actor_network_optimizer,
-  5: bool use_2_q_functions,
+  1: i32 minibatch_size = 1024,
+  2: OptimizerParameters q_network_optimizer = {},
+  3: OptimizerParameters value_network_optimizer = {},
+  4: OptimizerParameters actor_network_optimizer = {},
+  5: bool use_2_q_functions = true,
   # alpha in the paper; controlling explore & exploit
   6: double entropy_temperature = 0.1,
 }
 
 struct SACModelParameters {
-  1: RLParameters rl,
-  2: SACTrainingParameters training,
-  3: FeedForwardParameters q_network,
-  4: FeedForwardParameters value_network,
-  5: FeedForwardParameters actor_network,
+  1: RLParameters rl = {
+    "reward_burnin": 100,
+    "maxq_learning": false,
+    "tensorboard_logging_freq": 100,
+  },
+  2: SACTrainingParameters training = {},
+  3: FeedForwardParameters q_network = {},
+  4: FeedForwardParameters value_network = {},
+  5: FeedForwardParameters actor_network = {},
   7: optional InTrainingCPEParameters in_training_cpe,
   8: optional StateFeatureParameters state_feature_params,
 }
