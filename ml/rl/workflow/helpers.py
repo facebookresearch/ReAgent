@@ -59,6 +59,14 @@ def save_model_to_file(model, path):
 
     :param model: one of (DQNTrainer, ParametricDQNTrainer, DDPGTrainer) object.
     """
+    path = os.path.expanduser(path)
+    try:
+        state = model.state_dict()
+        torch.save(state, path)
+        return
+    except NotImplementedError:
+        pass
+
     if isinstance(model, (DQNTrainer, ParametricDQNTrainer)):
         state = {
             "q_network": model.q_network.state_dict(),
@@ -77,19 +85,29 @@ def save_model_to_file(model, path):
         raise ("Model of type {} not a valid model".format(type(model)))
 
 
-def update_model_for_warm_start(model):
+def update_model_for_warm_start(model, path=None):
     """
     Load network parameters and optimizer parameters into trainer object
     to warm start it.
 
     :param model: one of (DQNTrainer, ParametricDQNTrainer, DDPGTrainer) object.
     """
-    if model.warm_start_model_path is None:
+    if path is None and getattr(model, "warm_start_model_path", None) is None:
         return model
 
-    path = os.path.expanduser(model.warm_start_model_path)
+    if path is None:
+        path = model.warm_start_model_path
+
+    path = os.path.expanduser(path)
     state = torch.load(path)
     logger.info("Found model warm start checkpoint at path {}".format(path))
+    model.reward_burnin = -1
+
+    try:
+        model.load_state_dict(state)
+        return model
+    except NotImplementedError:
+        pass
 
     if isinstance(model, (DQNTrainer, ParametricDQNTrainer)):
         model.q_network.load_state_dict(state["q_network"])
@@ -105,7 +123,6 @@ def update_model_for_warm_start(model):
     else:
         raise ("Model of type {} not a valid model".format(type(model)))
 
-    model.reward_burnin = -1
     return model
 
 

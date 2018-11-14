@@ -81,10 +81,25 @@ class SACTrainer(RLTrainer):
 
         self.entropy_temperature = parameters.training.entropy_temperature
 
+        # These ranges are only for Gym tests
         self.min_action_range_tensor_training = min_action_range_tensor_training
         self.max_action_range_tensor_training = max_action_range_tensor_training
         self.min_action_range_tensor_serving = min_action_range_tensor_serving
         self.max_action_range_tensor_serving = max_action_range_tensor_serving
+
+    def warm_start_components(self):
+        components = [
+            "q1_network",
+            "q1_network_optimizer",
+            "value_network",
+            "value_network_optimizer",
+            "value_network_target",
+            "actor_network",
+            "actor_network_optimizer",
+        ]
+        if self.q2_network:
+            components += ["q2_network", "q2_network_optimizer"]
+        return components
 
     def train(self, training_batch, evaluator=None) -> None:
         """

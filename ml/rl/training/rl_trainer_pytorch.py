@@ -95,6 +95,19 @@ class RLTrainer:
     def train(self, training_samples, evaluator=None) -> None:
         raise NotImplementedError()
 
+    def state_dict(self):
+        return {c: getattr(self, c).state_dict() for c in self.warm_start_components()}
+
+    def load_state_dict(self, state_dict):
+        for c in self.warm_start_components():
+            getattr(self, c).load_state_dict(state_dict[c])
+
+    def warm_start_components(self):
+        """
+        The trainer should specify what members to save and load
+        """
+        raise NotImplementedError
+
     def internal_prediction(self, input):
         """ Q-network forward pass method for internal domains.
         :param input input to network

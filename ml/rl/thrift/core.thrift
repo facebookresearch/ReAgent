@@ -140,6 +140,7 @@ struct SACTrainingParameters {
   5: bool use_2_q_functions = true,
   # alpha in the paper; controlling explore & exploit
   6: double entropy_temperature = 0.1,
+  7: optional string warm_start_model_path,
 }
 
 struct SACModelParameters {
