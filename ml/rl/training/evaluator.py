@@ -297,12 +297,12 @@ class Evaluator(object):
             SummaryWriterContext.add_histogram("value/model", model_values)
             SummaryWriterContext.add_scalar("value/model/mean", model_values.mean())
             if self.action_names:
-                means = model_values.mean(axis=0)
+                means = model_values.mean(dim=0)
                 for name, mean in zip(self.action_names, means):
                     self.model_value[name].append(float(mean))
 
         if model_values_on_logged_actions is not None:
-            logged_action_model_value = float(np.mean(model_values_on_logged_actions))
+            logged_action_model_value = model_values_on_logged_actions.mean().item()
             self.logged_action_q_value.append(logged_action_model_value)
             SummaryWriterContext.add_histogram(
                 "value/model_logged_action", model_values_on_logged_actions
