@@ -103,7 +103,8 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         """
         Override this in DataParallel models
         """
-        return self.cpu()
+        # This is not ideal but makes exporting simple
+        return deepcopy(self).cpu()
 
     def export_to_buffer(self) -> BytesIO:
         """

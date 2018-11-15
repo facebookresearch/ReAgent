@@ -169,8 +169,6 @@ class TestGridworldSAC(GridworldTestBase):
         exporter = self.get_critic_exporter(trainer, environment)
 
         self.tolerance_threshold = 0.2
-        if use_gpu:
-            self.run_pre_training_eval = False
         self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
         # Make sure actor predictor works

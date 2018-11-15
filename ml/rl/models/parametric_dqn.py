@@ -90,9 +90,7 @@ class _DataParallelFullyConnectedParametricDQN(ModelBase):
         )
 
     def cpu_model(self):
-        # TODO: This might have problem when this is called while training is still
-        # in progress
-        return self.fc_parametric_dqn.cpu()
+        return self.fc_parametric_dqn.cpu_model()
 
     def forward(self, input):
         cat_input = torch.cat(

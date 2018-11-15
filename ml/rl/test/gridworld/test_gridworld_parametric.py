@@ -158,9 +158,6 @@ class TestGridworldParametric(GridworldTestBase):
         )
 
         if modular:
-            # FIXME: the exporter should make a copy of the model; moving it to CPU inplace
-            if use_gpu:
-                self.run_pre_training_eval = False
             if use_all_avail_gpus:
                 self.tolerance_threshold = 0.11
             trainer, exporter = self.get_modular_sarsa_trainer_exporter(
