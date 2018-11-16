@@ -130,7 +130,7 @@ class DQNPredictor(RLPredictor):
                 sorted_feature_ids,
             )
             parameters.extend(new_parameters)
-            preprocessor_net = PreprocessorNet(clip_anomalies=True)
+            preprocessor_net = PreprocessorNet()
             state_normalized_dense_matrix, new_parameters = preprocessor_net.normalize_dense_matrix(
                 dense_matrix,
                 sorted_feature_ids,

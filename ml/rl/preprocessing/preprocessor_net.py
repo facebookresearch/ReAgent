@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class PreprocessorNet:
-    def __init__(self, clip_anomalies: bool) -> None:
-        self.clip_anomalies = clip_anomalies
+    def __init__(self) -> None:
+        pass
 
     def preprocess_blob(self, blob, normalization_parameters):
         """
@@ -247,8 +247,7 @@ class PreprocessorNet:
 
             blob = C2.Sub(blob, means_blob, broadcast=1, axis=0)
             blob = C2.Div(blob, stddevs_blob, broadcast=1, axis=0)
-            if self.clip_anomalies:
-                blob = C2.Clip(blob, min=MIN_FEATURE_VALUE, max=MAX_FEATURE_VALUE)
+            blob = C2.Clip(blob, min=MIN_FEATURE_VALUE, max=MAX_FEATURE_VALUE)
         elif feature_type == identify_types.CONTINUOUS_ACTION:
             serving_min_value = np.array(
                 [norm.min_value for norm in normalization_parameters], dtype=np.float32
@@ -280,8 +279,7 @@ class PreprocessorNet:
             blob = C2.Sub(blob, serving_min_blob, broadcast=1, axis=1)
             blob = C2.Mul(blob, scaling_factor_blob, broadcast=1, axis=1)
             blob = C2.Add(blob, training_min_blob, broadcast=1, axis=1)
-            if self.clip_anomalies:
-                blob = C2.Clip(blob, min=-1 + EPS, max=1 - EPS)
+            blob = C2.Clip(blob, min=-1 + EPS, max=1 - EPS)
         else:
             raise NotImplementedError("Invalid feature type: {}".format(feature_type))
 

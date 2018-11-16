@@ -246,7 +246,7 @@ class DDPGPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
-        preprocessor = PreprocessorNet(True)
+        preprocessor = PreprocessorNet()
         sorted_features, _ = sort_features_by_normalization(
             state_normalization_parameters
         )

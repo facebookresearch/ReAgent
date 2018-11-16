@@ -74,7 +74,7 @@ class TestNormalization(unittest.TestCase):
 
         norm_net = core.Net("net")
         C2.set_net(norm_net)
-        preprocessor = PreprocessorNet(False)
+        preprocessor = PreprocessorNet()
         input_matrix = np.zeros([10000, len(sorted_features)], dtype=np.float32)
         for i, feature in enumerate(sorted_features):
             input_matrix[:, i] = feature_value_map[feature]
@@ -189,7 +189,7 @@ class TestNormalization(unittest.TestCase):
         }
         norm_net = core.Net("net")
         C2.set_net(norm_net)
-        preprocessor = PreprocessorNet(False)
+        preprocessor = PreprocessorNet()
 
         inputs = np.zeros([4, 3], dtype=np.float32)
         feature_ids = [2, 1, 3]  # Sorted according to feature type
@@ -325,7 +325,7 @@ class TestNormalization(unittest.TestCase):
 
         net = core.Net("PreprocessingTestNet")
         C2.set_net(net)
-        preprocessor = PreprocessorNet(False)
+        preprocessor = PreprocessorNet()
         name_preprocessed_blob_map = {}
         for feature_name in feature_value_map:
             workspace.FeedBlob(str(feature_name), np.array([0], dtype=np.int32))

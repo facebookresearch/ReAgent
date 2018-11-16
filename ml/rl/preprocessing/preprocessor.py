@@ -34,7 +34,6 @@ class Preprocessor(Module):
         self.sorted_features, self.sorted_feature_boundaries = (
             self._sort_features_by_normalization()
         )
-        self.clamp = True  # Only set to false in unit tests
         self.typed_output = typed_output
 
         cuda_available = torch.cuda.is_available()
@@ -214,11 +213,7 @@ class Preprocessor(Module):
         input: torch.Tensor,
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
-        if self.clamp:
-            clamped_input = torch.clamp(input, 0.01, 0.99)
-        else:
-            # Still clamp to avoid MISSING_VALUE from causing NaN
-            clamped_input = torch.clamp(input, 1e-6)
+        clamped_input = torch.clamp(input, 0.01, 0.99)
         return self.negative_one_tensor * (
             ((self.one_tensor / clamped_input) - self.one_tensor).log()
         )
@@ -258,10 +253,7 @@ class Preprocessor(Module):
         continuous_action = (
             input - min_serving_value
         ) * scaling_factor + min_training_value
-        if not self.clamp:
-            return continuous_action
-        else:
-            return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)
+        return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)
 
     def _create_parameters_CONTINUOUS(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -286,10 +278,7 @@ class Preprocessor(Module):
         means = self._fetch_parameter(begin_index, "means")
         stddevs = self._fetch_parameter(begin_index, "stddevs")
         continuous_output = (input - means) / stddevs
-        if not self.clamp:
-            return continuous_output
-        else:
-            return torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+        return torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
 
     def _create_parameters_BOXCOX(
         self, begin_index: int, norm_params: List[NormalizationParameters]

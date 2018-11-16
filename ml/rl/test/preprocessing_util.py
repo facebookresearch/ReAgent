@@ -60,7 +60,7 @@ def read_data():
         (stats.norm.rvs(size=5000), stats.expon.rvs(size=5000))
     ).astype(np.float32)
     feature_value_map[PROBABILITY_FEATURE_ID] = np.clip(
-        stats.beta.rvs(a=2.0, b=2.0, size=10000).astype(np.float32), -4, 4
+        stats.beta.rvs(a=2.0, b=2.0, size=10000).astype(np.float32), 0.01, 0.99
     )
     feature_value_map[CONTINUOUS_ACTION_FEATURE_ID] = stats.norm.rvs(size=10000).astype(
         np.float32

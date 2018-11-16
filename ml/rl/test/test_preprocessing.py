@@ -77,7 +77,6 @@ class TestPreprocessing(unittest.TestCase):
 
         preprocessor = Preprocessor(normalization_parameters, False)
         sorted_features, _ = sort_features_by_normalization(normalization_parameters)
-        preprocessor.clamp = False
         input_matrix = np.zeros([10000, len(sorted_features)], dtype=np.float32)
         for i, feature in enumerate(sorted_features):
             input_matrix[:, i] = feature_value_map[feature]
@@ -189,7 +188,6 @@ class TestPreprocessing(unittest.TestCase):
             ),
         }
         preprocessor = Preprocessor(normalization_parameters, False)
-        preprocessor.clamp = False
 
         inputs = np.zeros([4, 3], dtype=np.float32)
         feature_ids = [2, 1, 3]  # Sorted according to feature type
@@ -400,7 +398,6 @@ class TestPreprocessing(unittest.TestCase):
             preprocessor = Preprocessor(
                 {feature_name: normalization_parameters[feature_name]}, False
             )
-            preprocessor.clamp = False
             feature_values_matrix = np.expand_dims(feature_values, -1)
             normalized_feature_values = preprocessor.forward(feature_values_matrix)
             name_preprocessed_blob_map[feature_name] = normalized_feature_values.numpy()
