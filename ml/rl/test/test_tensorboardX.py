@@ -25,7 +25,7 @@ class TestSummaryWriterContext(unittest.TestCase):
             with summary_writer_context(writer):
                 SummaryWriterContext.add_scalar("test", torch.ones(1))
             writer.add_scalar.assert_called_once_with(
-                "test", torch.ones(1), global_step=0
+                "test", torch.ones(1), global_step=1
             )
 
     def test_writing_stack(self):
@@ -39,10 +39,10 @@ class TestSummaryWriterContext(unittest.TestCase):
                     SummaryWriterContext.add_scalar("test2", torch.ones(1))
                 SummaryWriterContext.add_scalar("test1", torch.zeros(1))
             writer1.add_scalar.assert_called_once_with(
-                "test1", torch.zeros(1), global_step=0
+                "test1", torch.zeros(1), global_step=1
             )
             writer2.add_scalar.assert_called_once_with(
-                "test2", torch.ones(1), global_step=0
+                "test2", torch.ones(1), global_step=1
             )
 
     def test_global_step(self):
