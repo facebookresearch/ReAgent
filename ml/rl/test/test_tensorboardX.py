@@ -14,6 +14,9 @@ class TestSummaryWriterContext(unittest.TestCase):
     def setUp(self):
         SummaryWriterContext._reset_globals()
 
+    def tearDown(self):
+        SummaryWriterContext._reset_globals()
+
     def test_noop(self):
         self.assertIsNone(SummaryWriterContext.add_scalar("test", torch.ones(1)))
 
