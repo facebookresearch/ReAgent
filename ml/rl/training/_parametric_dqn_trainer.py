@@ -168,9 +168,12 @@ class _ParametricDQNTrainer(RLTrainer):
         reward_loss.backward()
         self.reward_network_optimizer.step()
 
+        self.loss_reporter.report(
+            td_loss=float(self.loss), reward_loss=float(reward_loss)
+        )
+
         if evaluator is not None:
             cpe_stats = BatchStatsForCPE(
-                td_loss=self.loss.cpu().numpy(),
-                model_values_on_logged_actions=self.all_action_scores.cpu().numpy(),
+                model_values_on_logged_actions=self.all_action_scores
             )
             evaluator.report(cpe_stats)

@@ -251,13 +251,14 @@ class SACTrainer(RLTrainer):
             )
             SummaryWriterContext.add_histogram("actor/loss", actor_loss)
 
+        self.loss_reporter.report(td_loss=float(q1_loss), reward_loss=None)
+
         if evaluator is not None:
             cpe_stats = BatchStatsForCPE(
-                td_loss=q1_loss.detach().cpu().numpy(),
-                logged_rewards=reward.detach().cpu().numpy(),
-                model_values_on_logged_actions=q1_value.detach().cpu().numpy(),
-                model_propensities=actor_output.log_prob.exp().detach().cpu().numpy(),
-                model_values=min_q_actor_value.detach().cpu().numpy(),
+                logged_rewards=reward.detach(),
+                model_values_on_logged_actions=q1_value.detach(),
+                model_propensities=actor_output.log_prob.exp().detach(),
+                model_values=min_q_actor_value.detach(),
             )
             evaluator.report(cpe_stats)
 

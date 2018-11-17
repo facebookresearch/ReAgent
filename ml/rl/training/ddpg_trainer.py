@@ -229,8 +229,12 @@ class DDPGTrainer(RLTrainer):
             self._soft_update(self.actor, self.actor_target, self.tau)
             self._soft_update(self.critic, self.critic_target, self.tau)
 
+        self.loss_reporter.report(td_loss=float(loss_critic_for_eval), reward_loss=None)
+
         if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(td_loss=loss_critic_for_eval.cpu().numpy())
+            cpe_stats = BatchStatsForCPE(
+                model_values_on_logged_actions=critic_predictions.detach()
+            )
             evaluator.report(cpe_stats)
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:

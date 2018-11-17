@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
+from ml.rl.training.loss_reporter import LossReporter
 
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,8 @@ class RLTrainer:
             self.use_gpu = False
             self.dtype = torch.FloatTensor
             self.dtypelong = torch.LongTensor
+
+        self.loss_reporter = LossReporter()
 
     def _set_optimizer(self, optimizer_name):
         self.optimizer_func = self._get_optimizer_func(optimizer_name)

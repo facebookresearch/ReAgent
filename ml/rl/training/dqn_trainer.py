@@ -267,26 +267,29 @@ class DQNTrainer(RLTrainer):
         reward_loss.backward()
         self.reward_network_optimizer.step()
 
+        self.loss_reporter.report(
+            td_loss=float(self.loss), reward_loss=float(reward_loss)
+        )
+
         training_metadata = {}
         if evaluator is not None:
 
-            model_propensities = Evaluator.softmax(
-                self.all_action_scores.cpu().numpy(), self.rl_temperature
+            model_propensities = torch.from_numpy(
+                Evaluator.softmax(
+                    self.all_action_scores.cpu().numpy(), self.rl_temperature
+                )
             )
 
             cpe_stats = BatchStatsForCPE(
-                td_loss=self.loss.cpu().numpy(),
-                logged_actions=training_samples.actions.cpu().numpy(),
-                logged_propensities=training_samples.propensities.cpu().numpy(),
-                logged_rewards=rewards.cpu().numpy(),
+                logged_actions=training_samples.actions,
+                logged_propensities=training_samples.propensities,
+                logged_rewards=rewards,
                 logged_values=None,  # Compute at end of each epoch for CPE
                 model_propensities=model_propensities,
-                model_rewards=self.reward_estimates.cpu().numpy(),
-                model_values=self.all_action_scores.cpu().numpy(),
+                model_rewards=self.reward_estimates,
+                model_values=self.all_action_scores,
                 model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
-                model_action_idxs=self.all_action_scores.argmax(dim=1, keepdim=True)
-                .cpu()
-                .numpy(),
+                model_action_idxs=self.all_action_scores.argmax(dim=1, keepdim=True),
             )
             evaluator.report(cpe_stats)
             training_metadata["model_rewards"] = self.reward_estimates.cpu().numpy()

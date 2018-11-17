@@ -44,16 +44,15 @@ def get_tensor(x, dtype=None):
 
 
 class BatchStatsForCPE(NamedTuple):
-    td_loss: Optional[np.ndarray] = None
-    logged_actions: Optional[np.ndarray] = None
-    logged_propensities: Optional[np.ndarray] = None
-    logged_rewards: Optional[np.ndarray] = None
-    logged_values: Optional[np.ndarray] = None
-    model_propensities: Optional[np.ndarray] = None
-    model_rewards: Optional[np.ndarray] = None
-    model_values: Optional[np.ndarray] = None
-    model_values_on_logged_actions: Optional[np.ndarray] = None
-    model_action_idxs: Optional[np.ndarray] = None
+    model_values_on_logged_actions: torch.Tensor
+    logged_actions: Optional[torch.Tensor] = None
+    logged_propensities: Optional[torch.Tensor] = None
+    logged_rewards: Optional[torch.Tensor] = None
+    logged_values: Optional[torch.Tensor] = None
+    model_propensities: Optional[torch.Tensor] = None
+    model_rewards: Optional[torch.Tensor] = None
+    model_values: Optional[torch.Tensor] = None
+    model_action_idxs: Optional[torch.Tensor] = None
 
 
 class CPE_Estimate(NamedTuple):
@@ -135,7 +134,6 @@ class Evaluator(object):
     ) -> None:
         self.action_names = action_names
         self.mc_loss: List[float] = []
-        self.td_loss: List[float] = []
         self.reward_loss: List[float] = []
         self.value_inverse_propensity_score: List[CPE_Estimate] = []
         self.value_direct_method: List[CPE_Estimate] = []
@@ -157,7 +155,6 @@ class Evaluator(object):
 
         self.evaluator_batch_size = evaluator_batch_size
 
-        self.td_loss_batches: List[torch.FloatTensor] = []
         self.logged_actions_batches: List[torch.FloatTensor] = []
         self.logged_propensities_batches: List[torch.FloatTensor] = []
         self.logged_rewards_batches: List[torch.FloatTensor] = []
@@ -169,7 +166,6 @@ class Evaluator(object):
         self.model_action_idxs_batches: List[torch.FloatTensor] = []
 
         self.all_batches = [
-            self.td_loss_batches,
             self.logged_actions_batches,
             self.logged_propensities_batches,
             self.logged_rewards_batches,
@@ -228,7 +224,7 @@ class Evaluator(object):
             title="model",
         )
 
-    def report(self, cpe_stats):
+    def report(self, cpe_stats: BatchStatsForCPE) -> None:
         for i, input_name in enumerate(cpe_stats._fields):
             input = getattr(cpe_stats, input_name, None)
             if input is None:
@@ -238,9 +234,16 @@ class Evaluator(object):
                     input_name
                 )
             else:
+                if len(input.shape) == 0:
+                    # Make 2-D
+                    input = input.reshape(1, 1)
+                assert len(input.shape) == 2, str(input.shape)
                 self.all_batches[i].append(input)
 
-        if len(self.td_loss_batches) >= self.evaluator_batch_size:
+        if (
+            len(self.model_values_on_logged_actions_batches)
+            >= self.evaluator_batch_size
+        ):
             self.evaluate_batch()
             self.clear_evaluation_containers()
             # Save last batch for end of training eval on last batch
@@ -254,12 +257,13 @@ class Evaluator(object):
         merged_inputs = []
         for batch in self.all_batches:
             if len(batch) > 0:
-                merged_inputs.append(np.vstack(batch))
+                for x in batch:
+                    assert len(x.shape) == 2, "invalid shape: " + str(x.shape)
+                merged_inputs.append(torch.cat(batch, dim=0))
             else:
                 merged_inputs.append(None)
 
         (
-            td_loss,
             logged_actions,
             logged_propensities,
             logged_rewards,
@@ -269,17 +273,14 @@ class Evaluator(object):
             model_values,
             model_values_on_logged_actions,
             model_action_idxs,
-        ) = map(get_tensor, merged_inputs)
+        ) = merged_inputs
 
-        logger.info("Evaluating on {} batches".format(len(self.td_loss_batches)))
+        logger.info(
+            "Evaluating on {} batches".format(
+                len(self.model_values_on_logged_actions_batches)
+            )
+        )
         print_details = "Evaluator:\n"
-
-        if td_loss is not None:
-            SummaryWriterContext.add_histogram("td_loss", td_loss)
-            td_loss_mean = float(td_loss.mean())
-            SummaryWriterContext.add_scalar("td_loss/mean", td_loss_mean)
-            self.td_loss.append(td_loss_mean)
-            print_details = print_details + "TD LOSS: {0:.3f}\n".format(td_loss_mean)
 
         if logged_rewards is not None:
             SummaryWriterContext.add_histogram("reward/logged", logged_rewards)
@@ -726,11 +727,6 @@ class Evaluator(object):
         )
 
         logger.info("CPE Evaluator Finished")
-
-    def get_recent_td_loss(self):
-        return Evaluator.calculate_recent_window_average(
-            self.td_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
-        )
 
     def get_recent_mc_loss(self):
         return Evaluator.calculate_recent_window_average(
@@ -1323,7 +1319,6 @@ class Evaluator(object):
             return x
 
         for name, value in [
-            ("Training/td_loss", self.get_recent_td_loss()),
             ("Training/mc_loss", self.get_recent_mc_loss()),
             (
                 "Reward_CPE/Direct Method Reward",
