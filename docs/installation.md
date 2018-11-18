@@ -19,7 +19,7 @@ cd Horizon/
 
 Install dependencies:
 ```
-conda install `cat requirements.txt`
+conda install --file docker/requirements.txt
 ```
 
 Install ONNX using pip, which builds the latest version from source:
