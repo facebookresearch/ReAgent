@@ -136,7 +136,7 @@ class DQNPredictor(RLPredictor):
                 sorted_feature_ids,
                 state_normalization_parameters,
                 "state_norm_",
-                False,
+                True,
             )
             parameters.extend(new_parameters)
         else:

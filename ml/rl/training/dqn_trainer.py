@@ -69,7 +69,9 @@ class DQNTrainer(RLTrainer):
 
         if parameters.rainbow.dueling_architecture:
             self.q_network = DuelingQNetwork(
-                parameters.training.layers, parameters.training.activations
+                parameters.training.layers,
+                parameters.training.activations,
+                use_batch_norm=parameters.training.use_batch_norm,
             )
         else:
             if parameters.training.cnn_parameters is None:
@@ -77,6 +79,8 @@ class DQNTrainer(RLTrainer):
                     parameters.training.layers,
                     parameters.training.activations,
                     use_noisy_linear_layers=parameters.training.use_noisy_linear_layers,
+                    min_std=parameters.training.weight_init_min_std,
+                    use_batch_norm=parameters.training.use_batch_norm,
                 )
             else:
                 self.q_network = ConvolutionalNetwork(
@@ -84,6 +88,8 @@ class DQNTrainer(RLTrainer):
                     parameters.training.layers,
                     parameters.training.activations,
                     use_noisy_linear_layers=parameters.training.use_noisy_linear_layers,
+                    min_std=parameters.training.weight_init_min_std,
+                    use_batch_norm=parameters.training.use_batch_norm,
                 )
 
         self.q_network_target = deepcopy(self.q_network)

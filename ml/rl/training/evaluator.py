@@ -152,6 +152,7 @@ class Evaluator(object):
         self.logged_action_counts: Dict[str, int] = defaultdict(int)
         self.logged_action_q_value: List[float] = []
         self.model_value: Dict[str, List[float]] = defaultdict(list)
+        self.model_value_std: Dict[str, List[float]] = defaultdict(list)
 
         self.evaluator_batch_size = evaluator_batch_size
 
@@ -299,8 +300,10 @@ class Evaluator(object):
             SummaryWriterContext.add_scalar("value/model/mean", model_values.mean())
             if self.action_names:
                 means = model_values.mean(dim=0)
-                for name, mean in zip(self.action_names, means):
+                stdevs = model_values.std(dim=0)
+                for name, mean, stdev in zip(self.action_names, means, stdevs):
                     self.model_value[name].append(float(mean))
+                    self.model_value_std[name].append(float(stdev))
 
         if model_values_on_logged_actions is not None:
             logged_action_model_value = model_values_on_logged_actions.mean().item()

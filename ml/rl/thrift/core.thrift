@@ -59,6 +59,8 @@ struct TrainingParameters {
   11: optional FactorizationParameters factorization_parameters,
   12: double l2_decay = 0.01,
   13: bool use_noisy_linear_layers = false,
+  14: double weight_init_min_std = 0.0,
+  15: bool use_batch_norm = false,
 }
 
 struct InTrainingCPEParameters {
@@ -93,6 +95,8 @@ struct DiscreteActionModelParameters {
   6: optional InTrainingCPEParameters in_training_cpe,
   7: optional StateFeatureParameters state_feature_params,
   8: optional list<double> target_action_distribution,
+  9: bool cpe_enabled = true,
+  10: i32 evaluator_batch_size = 100,
 }
 
 struct ContinuousActionModelParameters {
