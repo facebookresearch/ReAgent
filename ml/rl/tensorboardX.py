@@ -19,8 +19,12 @@ Usage:
 """
 
 import contextlib
+import logging
 
 from tensorboardX import SummaryWriter
+
+
+logger = logging.getLogger(__name__)
 
 
 class SummaryWriterContextMeta(type):
@@ -37,7 +41,17 @@ class SummaryWriterContextMeta(type):
         def call(*args, **kwargs):
             if "global_step" not in kwargs:
                 kwargs["global_step"] = cls._global_step
-            return getattr(writer, func)(*args, **kwargs)
+            try:
+                return getattr(writer, func)(*args, **kwargs)
+            except Exception as e:
+                if hasattr(writer, "exceptions_to_ignore") and isinstance(
+                    e, writer.exceptions_to_ignore
+                ):
+                    logger.warn("Ignoring exception: {}".format(e))
+                    if hasattr(writer, "exception_logging_func"):
+                        writer.exception_logging_func(e)
+                    return
+                raise
 
         return call
 
