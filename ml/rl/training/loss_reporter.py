@@ -28,7 +28,7 @@ class LossReporter:
     def num_batches(self):
         return len(self.td_loss)
 
-    def report(self, td_loss: float, reward_loss: Optional[float]):
+    def report(self, td_loss: float, reward_loss: Optional[float] = None):
         self.incoming_td_loss.append(td_loss)
         if reward_loss is not None:
             self.incoming_reward_loss.append(reward_loss)
