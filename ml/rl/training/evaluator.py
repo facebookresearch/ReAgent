@@ -44,15 +44,17 @@ def get_tensor(x, dtype=None):
 
 
 class BatchStatsForCPE(NamedTuple):
-    model_values_on_logged_actions: torch.Tensor
-    logged_actions: Optional[torch.Tensor] = None
-    logged_propensities: Optional[torch.Tensor] = None
-    logged_rewards: Optional[torch.Tensor] = None
-    logged_values: Optional[torch.Tensor] = None
-    model_propensities: Optional[torch.Tensor] = None
-    model_rewards: Optional[torch.Tensor] = None
-    model_values: Optional[torch.Tensor] = None
-    model_action_idxs: Optional[torch.Tensor] = None
+    td_loss: Optional[np.ndarray] = None
+    logged_actions: Optional[np.ndarray] = None
+    logged_propensities: Optional[np.ndarray] = None
+    logged_rewards: Optional[np.ndarray] = None
+    logged_values: Optional[np.ndarray] = None
+    model_propensities: Optional[np.ndarray] = None
+    model_rewards: Optional[np.ndarray] = None
+    model_values: Optional[np.ndarray] = None
+    model_values_on_logged_actions: Optional[np.ndarray] = None
+    model_action_idxs: Optional[np.ndarray] = None
+    metrics: Optional[np.ndarray] = None
 
 
 class CPE_Estimate(NamedTuple):
@@ -70,6 +72,8 @@ class DiscreteActionSample:
         "propensity",
         "terminal",
         "model_reward",
+        "metrics",
+        "metric_to_score",
     ]
 
     def __init__(
@@ -82,6 +86,8 @@ class DiscreteActionSample:
         propensity,
         terminal,
         model_reward,
+        metrics,
+        metric_to_score=None,
     ):
         self.mdp_id = mdp_id
         self.sequence_number = sequence_number
@@ -91,6 +97,8 @@ class DiscreteActionSample:
         self.propensity = propensity
         self.terminal = terminal
         self.model_reward = model_reward
+        self.metrics = metrics
+        self.metric_to_score = metric_to_score
 
 
 class ParametricActionSample:
@@ -102,6 +110,8 @@ class ParametricActionSample:
         "propensity",
         "terminal",
         "possible_state_actions",
+        "metrics",
+        "metric_to_score",
     ]
 
     def __init__(
@@ -113,6 +123,8 @@ class ParametricActionSample:
         propensity,
         terminal,
         possible_state_actions,
+        metrics,
+        metric_to_score=None,
     ):
         self.mdp_id = mdp_id
         self.sequence_number = sequence_number
@@ -121,6 +133,14 @@ class ParametricActionSample:
         self.propensity = propensity
         self.terminal = terminal
         self.possible_state_actions = possible_state_actions
+        self.metrics = metrics
+        self.metric_to_score = metric_to_score
+
+
+def get_metrics_to_score(metric_reward_values):
+    if metric_reward_values is None:
+        return []
+    return sorted([*metric_reward_values.keys()])
 
 
 class Evaluator(object):
@@ -130,10 +150,18 @@ class Evaluator(object):
     RECENT_WINDOW_SIZE = 100
 
     def __init__(
-        self, action_names, evaluator_batch_size, gamma, model, mdp_sampled_rate
+        self,
+        action_names,
+        evaluator_batch_size,
+        gamma,
+        model,
+        mdp_sampled_rate,
+        metrics_to_score=None,
     ) -> None:
         self.action_names = action_names
+        self.metrics_to_score = metrics_to_score
         self.mc_loss: List[float] = []
+        self.td_loss: List[float] = []
         self.reward_loss: List[float] = []
         self.value_inverse_propensity_score: List[CPE_Estimate] = []
         self.value_direct_method: List[CPE_Estimate] = []
@@ -156,6 +184,7 @@ class Evaluator(object):
 
         self.evaluator_batch_size = evaluator_batch_size
 
+        self.td_loss_batches: List[torch.FloatTensor] = []
         self.logged_actions_batches: List[torch.FloatTensor] = []
         self.logged_propensities_batches: List[torch.FloatTensor] = []
         self.logged_rewards_batches: List[torch.FloatTensor] = []
@@ -165,8 +194,13 @@ class Evaluator(object):
         self.model_values_batches: List[torch.FloatTensor] = []
         self.model_values_on_logged_actions_batches: List[torch.FloatTensor] = []
         self.model_action_idxs_batches: List[torch.FloatTensor] = []
+        self.metrics: List[torch.FloatTensor] = []
+        self.metric_cpe_scores: Dict[str, Dict[str, float]] = defaultdict(
+            lambda: defaultdict(float)
+        )
 
         self.all_batches = [
+            self.td_loss_batches,
             self.logged_actions_batches,
             self.logged_propensities_batches,
             self.logged_rewards_batches,
@@ -176,6 +210,7 @@ class Evaluator(object):
             self.model_values_batches,
             self.model_values_on_logged_actions_batches,
             self.model_action_idxs_batches,
+            self.metrics,
         ]
 
         self.gamma = gamma
@@ -191,7 +226,9 @@ class Evaluator(object):
         self.unshuffled_logged_propensities: torch.tensor
         self.unshuffled_terminals: torch.tensor
         self.unshuffled_target_propensities: torch.tensor
+        self.unshuffled_target_metric_propensities: torch.tensor
         self.unshuffled_estimated_q_values: torch.tensor
+        self.unshuffled_estimated_metric_q_values: torch.tensor
         self._add_custom_scalars(action_names)
 
     def _add_custom_scalars(self, action_names):
@@ -225,7 +262,7 @@ class Evaluator(object):
             title="model",
         )
 
-    def report(self, cpe_stats: BatchStatsForCPE) -> None:
+    def report(self, cpe_stats):
         for i, input_name in enumerate(cpe_stats._fields):
             input = getattr(cpe_stats, input_name, None)
             if input is None:
@@ -235,16 +272,9 @@ class Evaluator(object):
                     input_name
                 )
             else:
-                if len(input.shape) == 0:
-                    # Make 2-D
-                    input = input.reshape(1, 1)
-                assert len(input.shape) == 2, str(input.shape)
                 self.all_batches[i].append(input)
 
-        if (
-            len(self.model_values_on_logged_actions_batches)
-            >= self.evaluator_batch_size
-        ):
+        if len(self.td_loss_batches) >= self.evaluator_batch_size:
             self.evaluate_batch()
             self.clear_evaluation_containers()
             # Save last batch for end of training eval on last batch
@@ -258,13 +288,12 @@ class Evaluator(object):
         merged_inputs = []
         for batch in self.all_batches:
             if len(batch) > 0:
-                for x in batch:
-                    assert len(x.shape) == 2, "invalid shape: " + str(x.shape)
-                merged_inputs.append(torch.cat(batch, dim=0))
+                merged_inputs.append(np.vstack(batch))
             else:
                 merged_inputs.append(None)
 
         (
+            td_loss,
             logged_actions,
             logged_propensities,
             logged_rewards,
@@ -274,14 +303,18 @@ class Evaluator(object):
             model_values,
             model_values_on_logged_actions,
             model_action_idxs,
-        ) = merged_inputs
+            metrics,
+        ) = map(get_tensor, merged_inputs)
 
-        logger.info(
-            "Evaluating on {} batches".format(
-                len(self.model_values_on_logged_actions_batches)
-            )
-        )
+        logger.info("Evaluating on {} batches".format(len(self.td_loss_batches)))
         print_details = "Evaluator:\n"
+
+        if td_loss is not None:
+            SummaryWriterContext.add_histogram("td_loss", td_loss)
+            td_loss_mean = float(td_loss.mean())
+            SummaryWriterContext.add_scalar("td_loss/mean", td_loss_mean)
+            self.td_loss.append(td_loss_mean)
+            print_details = print_details + "TD LOSS: {0:.3f}\n".format(td_loss_mean)
 
         if logged_rewards is not None:
             SummaryWriterContext.add_histogram("reward/logged", logged_rewards)
@@ -388,6 +421,7 @@ class Evaluator(object):
         logged_propensities,
         logged_terminals,
         model_rewards,
+        metrics,
     ):
         for i in range(len(mdp_ids)):
             mdp_id = mdp_ids[i]
@@ -402,6 +436,7 @@ class Evaluator(object):
                         propensity=logged_propensities[i],
                         terminal=logged_terminals[i],
                         model_reward=model_rewards[i],
+                        metrics=metrics[i],
                     )
                 )
 
@@ -415,6 +450,7 @@ class Evaluator(object):
         logged_terminals,
         possible_state_actions,
         pas_lens,
+        metrics,
     ):
         pas_lens = get_tensor(pas_lens)
         cum_pas_lens = torch.zeros(len(pas_lens) + 1, dtype=torch.int64)
@@ -434,6 +470,7 @@ class Evaluator(object):
                         possible_state_actions=possible_state_actions[
                             cum_pas_lens[i] : cum_pas_lens[i + 1]
                         ],
+                        metrics=metrics[i],
                     )
                 )
 
@@ -465,6 +502,8 @@ class Evaluator(object):
             .reshape(-1, 1)
         )
 
+        self.unshuffled_metrics = np.array([x.metrics for x in self.unshuffled_samples])
+
         if isinstance(self.unshuffled_samples[0], DiscreteActionSample):
             unshuffled_states = get_tensor(
                 np.array([x.state for x in self.unshuffled_samples]),
@@ -472,6 +511,9 @@ class Evaluator(object):
             ).type(self.model.dtype)
             self.unshuffled_estimated_q_values = (
                 self.model.calculate_q_values(unshuffled_states).cpu().numpy()
+            )
+            self.unshuffled_estimated_metric_q_values = (
+                self.model.calculate_metric_q_values(unshuffled_states).cpu().numpy()
             )
             self.unshuffled_actions = np.array(
                 [x.action for x in self.unshuffled_samples]
@@ -534,6 +576,7 @@ class Evaluator(object):
         self.unshuffled_terminals = np.array([])
         self.unshuffled_target_propensities = np.array([])
         self.unshuffled_estimated_q_values = np.array([])
+        self.unshuffled_estimated_metric_q_values = np.array([])
 
     def get_mc_loss(self, logged_values, model_values_on_logged_actions):
         return float(np.mean(np.abs(logged_values - model_values_on_logged_actions)))
@@ -551,56 +594,47 @@ class Evaluator(object):
             )
         )
 
-        assert len(self.unshuffled_actions.shape) == 2, "Invalid number of dimensions"
-        assert len(self.unshuffled_rewards.shape) == 2, "Invalid number of dimensions"
-        assert len(self.unshuffled_terminals.shape) == 2, "Invalid number of dimensions"
-        assert (
-            len(self.unshuffled_logged_propensities.shape) == 2
-        ), "Invalid number of dimensions"
-        assert (
-            len(self.unshuffled_target_propensities.shape) == 2
-        ), "Invalid number of dimensions"
-        assert (
-            len(self.unshuffled_estimated_q_values.shape) == 2
-        ), "Invalid number of dimensions"
-        assert (
-            len(self.unshuffled_logged_propensities.shape) == 2
-        ), "Invalid number of dimensions"
+        if self.action_names and self.metrics_to_score:
+            # Discrete action CPE w/ metrics to score
+            for i, metric in enumerate(self.metrics_to_score):
+                logger.info(
+                    "--------- Running CPE on metric: {} ---------".format(metric)
+                )
+                num_actions = len(self.action_names)
+                logged_metric_value = np.expand_dims(
+                    self.unshuffled_metrics[:, i], axis=1
+                )
+                low_idx = i * num_actions
+                high_idx = low_idx + num_actions
+                model_estimated_value = self.unshuffled_model_rewards[
+                    :, low_idx:high_idx
+                ]
+                estimated_q_values = self.unshuffled_estimated_metric_q_values[
+                    :, low_idx:high_idx
+                ]
+                target_propensities = Evaluator.softmax(
+                    estimated_q_values, self.model.rl_temperature
+                )
+                self.score_cpe_metric(
+                    metric,
+                    logged_metric_value,
+                    model_estimated_value,
+                    estimated_q_values,
+                    target_propensities,
+                    gamma,
+                )
+        else:
+            # TODO: Implement metric CPE for parametric action
+            self.score_cpe_metric(
+                "reward",
+                self.unshuffled_rewards,
+                self.unshuffled_model_rewards,
+                self.unshuffled_estimated_q_values,
+                self.unshuffled_target_propensities,
+                gamma,
+            )
 
-        assert (
-            self.unshuffled_actions.shape[0] == self.unshuffled_rewards.shape[0]
-        ), "Mismatched minibatch size"
-        assert (
-            self.unshuffled_actions.shape[0] == self.unshuffled_terminals.shape[0]
-        ), "Mismatched minibatch size"
-        assert (
-            self.unshuffled_actions.shape[0]
-            == self.unshuffled_logged_propensities.shape[0]
-        ), "Mismatched minibatch size"
-        assert (
-            self.unshuffled_actions.shape[0]
-            == self.unshuffled_target_propensities.shape[0]
-        ), "Mismatched minibatch size"
-        assert (
-            self.unshuffled_actions.shape[0]
-            == self.unshuffled_estimated_q_values.shape[0]
-        ), "Mismatched minibatch size"
-
-        # [N,1]
-        assert self.unshuffled_rewards.shape[1] == 1
-        assert self.unshuffled_terminals.shape[1] == 1
-        assert self.unshuffled_logged_propensities.shape[1] == 1
-
-        # [N, Max_Num_Possible_actions]
-        assert (
-            self.unshuffled_target_propensities.shape[1]
-            == self.unshuffled_estimated_q_values.shape[1]
-        )
-        assert (
-            self.unshuffled_target_propensities.shape[1]
-            == self.unshuffled_actions.shape[1]
-        )
-
+        # Compute MC Loss on Aggregate Reward
         logged_values = Evaluator.compute_episode_value_from_samples(
             self.unshuffled_samples, gamma
         )
@@ -610,12 +644,67 @@ class Evaluator(object):
         mc_loss = self.get_mc_loss(logged_values, model_values_on_logged_actions)
         self.mc_loss.append(mc_loss)
         logger.info("MC Loss : {0:.3f}".format(mc_loss))
+        logger.info("CPE Evaluator Finished")
+
+    def score_cpe_metric(
+        self,
+        metric_name,
+        real_metric_array,
+        model_est_metric_array,
+        estimated_q_values,
+        target_propensities,
+        gamma,
+    ):
+        assert len(self.unshuffled_actions.shape) == 2, "Invalid number of dimensions"
+        assert len(real_metric_array.shape) == 2, "Invalid number of dimensions"
+        assert len(self.unshuffled_terminals.shape) == 2, "Invalid number of dimensions"
+        assert (
+            len(self.unshuffled_logged_propensities.shape) == 2
+        ), "Invalid number of dimensions"
+        assert len(target_propensities.shape) == 2, "Invalid number of dimensions"
+        assert len(estimated_q_values.shape) == 2, "Invalid number of dimensions"
+        assert (
+            len(self.unshuffled_logged_propensities.shape) == 2
+        ), "Invalid number of dimensions"
+
+        assert (
+            self.unshuffled_actions.shape[0] == real_metric_array.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0] == self.unshuffled_terminals.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0]
+            == self.unshuffled_logged_propensities.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0] == target_propensities.shape[0]
+        ), "Mismatched minibatch size"
+        assert (
+            self.unshuffled_actions.shape[0] == estimated_q_values.shape[0]
+        ), "Mismatched minibatch size"
+        # [N,1]
+        assert real_metric_array.shape[1] == 1
+        assert self.unshuffled_terminals.shape[1] == 1
+        assert self.unshuffled_logged_propensities.shape[1] == 1
+
+        # [N, Max_Num_Possible_actions]
+        assert target_propensities.shape[1] == estimated_q_values.shape[1]
+        assert target_propensities.shape[1] == self.unshuffled_actions.shape[1]
+
+        # Set metrics to score in samples
+        for i in range(len(self.unshuffled_samples)):
+            self.unshuffled_samples[i].metric_to_score = real_metric_array[i]
+
+        logged_values = Evaluator.compute_episode_value_from_samples(
+            self.unshuffled_samples, gamma
+        )
 
         if (
             self.unshuffled_actions is not None
-            and self.unshuffled_target_propensities is not None
-            and self.unshuffled_estimated_q_values is not None
-            and self.unshuffled_model_rewards is not None
+            and target_propensities is not None
+            and estimated_q_values is not None
+            and model_est_metric_array is not None
         ):
 
             if self.unshuffled_logged_propensities is None:
@@ -624,10 +713,10 @@ class Evaluator(object):
 
             r_ips, r_dm, r_dr = self.doubly_robust_one_step_policy_estimation(
                 self.unshuffled_actions,
-                self.unshuffled_rewards,
+                real_metric_array,
                 self.unshuffled_logged_propensities,
-                self.unshuffled_target_propensities,
-                self.unshuffled_model_rewards,
+                target_propensities,
+                model_est_metric_array,
             )
             self.reward_inverse_propensity_score.append(r_ips)
             self.reward_direct_method.append(r_dm)
@@ -638,11 +727,13 @@ class Evaluator(object):
                     r_ips.normalized, r_ips.raw
                 )
             )
+
             logger.info(
                 "Reward Direct Method : normalized {0:.3f} raw {1:.3f}".format(
                     r_dm.normalized, r_dm.raw
                 )
             )
+
             logger.info(
                 "Reward Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
                     r_dr.normalized, r_dr.raw
@@ -653,12 +744,23 @@ class Evaluator(object):
                 self.unshuffled_actions,
                 logged_values,
                 self.unshuffled_logged_propensities,
-                self.unshuffled_target_propensities,
-                self.unshuffled_estimated_q_values,
+                target_propensities,
+                estimated_q_values,
             )
-            self.value_inverse_propensity_score.append(v_ips)
-            self.value_direct_method.append(v_dm)
-            self.value_doubly_robust.append(v_dr)
+
+            if metric_name == "reward":
+                self.value_inverse_propensity_score.append(v_ips)
+                self.value_direct_method.append(v_dm)
+                self.value_doubly_robust.append(v_dr)
+            else:
+                # Normalized
+                self.metric_cpe_scores[metric_name]["value_ips_norm"] = v_ips.normalized
+                self.metric_cpe_scores[metric_name]["value_dm_norm"] = v_dm.normalized
+                self.metric_cpe_scores[metric_name]["value_dr_norm"] = v_dr.normalized
+                # Raw
+                self.metric_cpe_scores[metric_name]["value_ips_raw"] = v_ips.raw
+                self.metric_cpe_scores[metric_name]["value_dm_raw"] = v_dm.raw
+                self.metric_cpe_scores[metric_name]["value_dr_raw"] = v_dr.raw
 
             logger.info(
                 "Value Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}".format(
@@ -678,58 +780,79 @@ class Evaluator(object):
 
         sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
             self.unshuffled_actions,
-            self.unshuffled_rewards,
+            real_metric_array,
             self.unshuffled_terminals,
             self.unshuffled_logged_propensities,
-            self.unshuffled_target_propensities,
-            self.unshuffled_estimated_q_values,
+            target_propensities,
+            estimated_q_values,
         )
-
-        self.value_sequential_doubly_robust.append(sequential_doubly_robust)
-
-        logger.info(
-            "Value Sequential Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
-                sequential_doubly_robust.normalized, sequential_doubly_robust.raw
-            )
-        )
-
         weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
             self.unshuffled_actions,
-            self.unshuffled_rewards,
+            real_metric_array,
             self.unshuffled_terminals,
             self.unshuffled_logged_propensities,
-            self.unshuffled_target_propensities,
-            self.unshuffled_estimated_q_values,
+            target_propensities,
+            estimated_q_values,
             num_j_steps=1,
             whether_self_normalize_importance_weights=True,
         )
-        self.value_weighted_doubly_robust.append(weighted_doubly_robust)
+        magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
+            self.unshuffled_actions,
+            real_metric_array,
+            self.unshuffled_terminals,
+            self.unshuffled_logged_propensities,
+            target_propensities,
+            estimated_q_values,
+            num_j_steps=Evaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
+            whether_self_normalize_importance_weights=True,
+        )
+
+        if metric_name == "reward":
+            self.value_sequential_doubly_robust.append(sequential_doubly_robust)
+            self.value_magic_doubly_robust.append(magic_doubly_robust)
+            self.value_weighted_doubly_robust.append(weighted_doubly_robust)
+        else:
+            # Normaized
+            self.metric_cpe_scores[metric_name][
+                "value_weight_dr_norm"
+            ] = weighted_doubly_robust.normalized
+            self.metric_cpe_scores[metric_name][
+                "value_seq_dr_norm"
+            ] = sequential_doubly_robust.normalized
+            self.metric_cpe_scores[metric_name][
+                "value_magic_dr_norm"
+            ] = magic_doubly_robust.normalized
+            # Raw
+            self.metric_cpe_scores[metric_name][
+                "value_weight_dr_raw"
+            ] = weighted_doubly_robust.raw
+            self.metric_cpe_scores[metric_name][
+                "value_seq_dr_raw"
+            ] = sequential_doubly_robust.raw
+            self.metric_cpe_scores[metric_name][
+                "value_magic_dr_raw"
+            ] = magic_doubly_robust.raw
 
         logger.info(
             "Value Weighted Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
                 weighted_doubly_robust.normalized, weighted_doubly_robust.raw
             )
         )
-
-        magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
-            self.unshuffled_actions,
-            self.unshuffled_rewards,
-            self.unshuffled_terminals,
-            self.unshuffled_logged_propensities,
-            self.unshuffled_target_propensities,
-            self.unshuffled_estimated_q_values,
-            num_j_steps=Evaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
-            whether_self_normalize_importance_weights=True,
+        logger.info(
+            "Value Sequential Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
+                sequential_doubly_robust.normalized, sequential_doubly_robust.raw
+            )
         )
-        self.value_magic_doubly_robust.append(magic_doubly_robust)
-
         logger.info(
             "Value Magic Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
                 magic_doubly_robust.normalized, magic_doubly_robust.raw
             )
         )
 
-        logger.info("CPE Evaluator Finished")
+    def get_recent_td_loss(self):
+        return Evaluator.calculate_recent_window_average(
+            self.td_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
+        )
 
     def get_recent_mc_loss(self):
         return Evaluator.calculate_recent_window_average(
@@ -1002,8 +1125,6 @@ class Evaluator(object):
                     episode_values.append(episode_value)
                 last_episode_end = episode_end
             i += 1
-
-        assert len(episode_values) > 0, "Did not find any episode values"
 
         doubly_robusts = np.array(doubly_robusts)
         episode_values = np.array(episode_values)
@@ -1322,6 +1443,7 @@ class Evaluator(object):
             return x
 
         for name, value in [
+            ("Training/td_loss", self.get_recent_td_loss()),
             ("Training/mc_loss", self.get_recent_mc_loss()),
             (
                 "Reward_CPE/Direct Method Reward",
@@ -1380,7 +1502,7 @@ class Evaluator(object):
             curr_mdp = samples[i]
             if i == 0:
                 # First entry in list, add reward undiscounted
-                timeline[i] += samples[i].reward
+                timeline[i] += samples[i].metric_to_score
             else:
                 prev_mdp_id = i
                 while prev_mdp_id >= 0:
@@ -1388,7 +1510,9 @@ class Evaluator(object):
                     if prev_mdp.mdp_id == curr_mdp.mdp_id:
                         time_diff = curr_mdp.sequence_number - prev_mdp.sequence_number
                         assert time_diff >= 0, "MDP should be sorted."
-                        timeline[prev_mdp_id] += curr_mdp.reward * (gamma ** time_diff)
+                        timeline[prev_mdp_id] += curr_mdp.metric_to_score * (
+                            gamma ** time_diff
+                        )
                         prev_mdp_id -= 1
                     else:
                         break

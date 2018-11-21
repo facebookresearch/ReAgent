@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class MockSample(NamedTuple):
     mdp_id: str
     sequence_number: int
-    reward: float
+    metric_to_score: float
 
 
 class TestEvaluator(unittest.TestCase):

@@ -40,6 +40,7 @@ class ParametricDQNTrainer(RLTrainer):
         action_normalization_parameters: Dict[int, NormalizationParameters],
         use_gpu: bool = False,
         additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
+        metrics_to_score=None,
         gradient_handler=None,
         use_all_avail_gpus: bool = False,
     ) -> None:
@@ -85,7 +86,12 @@ class ParametricDQNTrainer(RLTrainer):
             ] = self.num_action_features
 
         RLTrainer.__init__(
-            self, parameters, use_gpu, additional_feature_types, gradient_handler
+            self,
+            parameters,
+            use_gpu,
+            additional_feature_types,
+            metrics_to_score,
+            gradient_handler,
         )
 
         self.q_network = self._get_model(
@@ -318,7 +324,7 @@ class ParametricDQNTrainer(RLTrainer):
 
         if evaluator is not None:
             cpe_stats = BatchStatsForCPE(
-                model_values_on_logged_actions=all_action_scores
+                model_values_on_logged_actions=all_action_scores.cpu().numpy()
             )
             evaluator.report(cpe_stats)
 

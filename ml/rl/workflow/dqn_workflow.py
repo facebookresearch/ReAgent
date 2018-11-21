@@ -102,6 +102,7 @@ def train_network(params):
             trainer_params.rl.gamma,
             trainer,
             trainer_params.in_training_cpe.mdp_sampled_rate,
+            metrics_to_score=trainer.metrics_to_score,
         )
     else:
         evaluator = Evaluator(
@@ -110,6 +111,7 @@ def train_network(params):
             trainer_params.rl.gamma,
             trainer,
             float(DEFAULT_NUM_SAMPLES_FOR_CPE) / len(dataset),
+            metrics_to_score=trainer.metrics_to_score,
         )
 
     start_time = time.time()
@@ -134,6 +136,7 @@ def train_network(params):
                     tdp.not_terminals.cpu().numpy().astype(np.bool)
                 ),
                 model_rewards=training_metadata["model_rewards"],
+                metrics=tdp.rewards.cpu().numpy(),  # Dummy until metrics CPE ported to open source
             )
 
         cpe_start_time = time.time()

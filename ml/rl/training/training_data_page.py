@@ -26,6 +26,7 @@ class TrainingDataPage(object):
         "not_terminals",
         "time_diffs",
         "possible_next_actions_state_concat",
+        "metrics",
     ]
 
     def __init__(
@@ -46,6 +47,7 @@ class TrainingDataPage(object):
         time_diffs: Optional[torch.Tensor] = None,
         possible_next_actions_lengths: Optional[torch.Tensor] = None,
         possible_next_actions_state_concat: Optional[torch.Tensor] = None,
+        metrics: Optional[torch.Tensor] = None,
     ) -> None:
         """
         Creates a TrainingDataPage object.
@@ -69,6 +71,7 @@ class TrainingDataPage(object):
         self.time_diffs = time_diffs
         self.possible_next_actions_lengths = possible_next_actions_lengths
         self.possible_next_actions_state_concat = possible_next_actions_state_concat
+        self.metrics = metrics
 
     def as_parametric_sarsa_training_batch(self):
         return rlt.TrainingBatch(

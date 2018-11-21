@@ -26,7 +26,12 @@ class RLTrainer:
     FINGERPRINT = 12345
 
     def __init__(
-        self, parameters, use_gpu, additional_feature_types, gradient_handler=None
+        self,
+        parameters,
+        use_gpu,
+        additional_feature_types,
+        metrics_to_score=None,
+        gradient_handler=None,
     ):
         self.minibatch = 0
         self.parameters = parameters
@@ -50,6 +55,11 @@ class RLTrainer:
                     parameters.rl.q_network_loss
                 )
             )
+
+        if metrics_to_score:
+            self.metrics_to_score = metrics_to_score + ["reward"]
+        else:
+            self.metrics_to_score = ["reward"]
 
         cuda_available = torch.cuda.is_available()
         logger.info("CUDA availability: {}".format(cuda_available))

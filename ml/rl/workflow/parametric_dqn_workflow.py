@@ -97,6 +97,7 @@ def train_network(params):
             trainer_params.rl.gamma,
             trainer,
             trainer_params.in_training_cpe.mdp_sampled_rate,
+            metrics_to_score=trainer.metrics_to_score,
         )
     else:
         evaluator = Evaluator(
@@ -105,6 +106,7 @@ def train_network(params):
             trainer_params.rl.gamma,
             trainer,
             float(DEFAULT_NUM_SAMPLES_FOR_CPE) / len(dataset),
+            metrics_to_score=trainer.metrics_to_score,
         )
 
     start_time = time.time()
@@ -131,6 +133,7 @@ def train_network(params):
                 logged_terminals=(1.0 - tdp.not_terminals),
                 possible_state_actions=tdp.state_pas_concat.cpu().numpy(),
                 pas_lens=tdp.possible_actions_lengths.cpu().numpy(),
+                metrics=tdp.rewards.cpu().numpy(),  # Dummy until Parametric CPE on metrics implemented
             )
 
         cpe_start_time = time.time()
