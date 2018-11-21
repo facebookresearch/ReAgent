@@ -52,11 +52,14 @@ class DQNPredictor(RLPredictor):
 
         input_dim = trainer.num_features
 
-        if isinstance(trainer.q_network, DataParallel):
-            trainer.q_network = trainer.q_network.module
+        q_network = (
+            trainer.q_network.module
+            if isinstance(trainer.q_network, DataParallel)
+            else trainer.q_network
+        )
 
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
-            trainer.q_network, input_dim, model_on_gpu
+            q_network, input_dim, model_on_gpu
         )
         qnet_input_blob, qnet_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer

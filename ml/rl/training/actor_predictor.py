@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+from typing import Dict, List, Optional
 
 import numpy as np
 from caffe2.python import core
@@ -32,7 +33,11 @@ class ActorPredictor(RLPredictor):
             self.ws.CreateNet(self._predict_net)
         return self._predict_net
 
-    def predict(self, float_state_features, int_state_features):
+    def predict(
+        self,
+        float_state_features: List[Dict[int, float]],
+        int_state_features: Optional[List[Dict[int, int]]],
+    ) -> List[Dict[str, float]]:
         assert not int_state_features, "Not implemented"
         self.ws.FeedBlob(
             "input/float_features.lengths",
@@ -66,13 +71,15 @@ class ActorPredictor(RLPredictor):
             ), "Number of lengths is not consistent: {}".format(output_lengths)
             result = {}
             for x in range(length):
-                result[output_keys[cursor + x]] = output_values[cursor + x]
+                result[str(output_keys[cursor + x])] = output_values[cursor + x]
             results.append(result)
             cursor += length
 
         return results
 
-    def actor_prediction(self, float_state_features):
+    def actor_prediction(
+        self, float_state_features: List[Dict[int, float]]
+    ) -> List[Dict[str, float]]:
         return self.predict(float_state_features, int_state_features=None)
 
     def save(self, db_path, db_type):

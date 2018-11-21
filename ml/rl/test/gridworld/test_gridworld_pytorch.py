@@ -29,7 +29,7 @@ class TestGridworld(GridworldTestBase):
         random.seed(0)
         torch.manual_seed(0)
         self.minibatch_size = 512
-        super(self.__class__, self).setUp()
+        super(TestGridworld, self).setUp()
 
     def get_sarsa_trainer(
         self, environment, dueling, use_gpu=False, use_all_avail_gpus=False
