@@ -100,6 +100,8 @@ class DQNTrainer(RLTrainer):
                 )
 
         self.q_network_target = deepcopy(self.q_network)
+        self.q_network._name = "training"
+        self.q_network_target._name = "target"
         self._set_optimizer(parameters.training.optimizer)
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(),
