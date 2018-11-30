@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 from ml.rl.models.fully_connected_network import gaussian_fill_w_gain
+from ml.rl.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ class DuelingQNetwork(nn.Module):
             gaussian_fill_w_gain(self.layers[i].weight, self.activations[i], layers[i])
             init.constant_(self.layers[i].bias, 0)
 
+        self.parametric_action = action_dim > 0
         # Split last layer into a value & advantage stream
         self.advantage = nn.Sequential(
             nn.Linear(int(layers[-2] + action_dim), int(layers[-2] / 2)),
@@ -56,6 +58,7 @@ class DuelingQNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(int(layers[-2] / 2), 1),
         )
+        self._name = "unnamed"
 
     def forward(self, input) -> torch.FloatTensor:
         state_dim = self.layers[0].in_features
@@ -72,5 +75,46 @@ class DuelingQNetwork(nn.Module):
 
         value = self.value(x)
         x = torch.cat((x, action), dim=1)
-        advantage = self.advantage(x)
-        return value + advantage - advantage.mean()
+        raw_advantage = self.advantage(x)
+        if self.parametric_action:
+            advantage = raw_advantage
+        else:
+            advantage = raw_advantage - raw_advantage.mean(dim=1, keepdim=True)
+
+        q_value = value + advantage
+
+        if SummaryWriterContext._global_step % 1000 == 0:
+            SummaryWriterContext.add_histogram(
+                "dueling_network/{}/value".format(self._name), value.detach().cpu()
+            )
+            SummaryWriterContext.add_scalar(
+                "dueling_network/{}/mean_value".format(self._name),
+                value.detach().mean().cpu(),
+            )
+            SummaryWriterContext.add_histogram(
+                "dueling_network/{}/q_value".format(self._name), q_value.detach().cpu()
+            )
+            SummaryWriterContext.add_scalar(
+                "dueling_network/{}/mean_q_value".format(self._name),
+                q_value.detach().mean().cpu(),
+            )
+            SummaryWriterContext.add_histogram(
+                "dueling_network/{}/raw_advantage".format(self._name),
+                raw_advantage.detach().cpu(),
+            )
+            SummaryWriterContext.add_scalar(
+                "dueling_network/{}/mean_raw_advantage".format(self._name),
+                raw_advantage.detach().mean().cpu(),
+            )
+            if not self.parametric_action:
+                for i in range(advantage.shape[1]):
+                    a = advantage.detach()[:, i]
+                    SummaryWriterContext.add_histogram(
+                        "dueling_network/{}/advatage/{}".format(self._name, i), a.cpu()
+                    )
+                    SummaryWriterContext.add_scalar(
+                        "dueling_network/{}/mean_advatage/{}".format(self._name, i),
+                        a.mean().cpu(),
+                    )
+
+        return q_value
