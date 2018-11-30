@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 
+from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 
@@ -15,6 +16,10 @@ class GridworldTestBase(unittest.TestCase):
         self.num_epochs = 5
         self.tolerance_threshold = 0.1
         self.run_pre_training_eval = True
+        SummaryWriterContext._reset_globals()
+
+    def tearDown(self):
+        SummaryWriterContext._reset_globals()
 
     def evaluate_gridworld(
         self, environment, evaluator, trainer, exporter, use_gpu, one_hot_action=True
