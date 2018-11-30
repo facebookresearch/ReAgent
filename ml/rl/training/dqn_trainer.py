@@ -19,7 +19,7 @@ from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
 )
 from ml.rl.training.dqn_predictor import DQNPredictor
-from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
+from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
     RLTrainer,
@@ -65,6 +65,7 @@ class DQNTrainer(RLTrainer):
             additional_feature_types,
             metrics_to_score,
             gradient_handler,
+            actions=self._actions,
         )
 
         self.reward_boosts = torch.zeros([1, len(self._actions)]).type(self.dtype)
@@ -113,9 +114,9 @@ class DQNTrainer(RLTrainer):
             num_output_nodes = self.num_actions
 
         reward_network_layers[-1] = num_output_nodes
-        self.reward_idx_offsets = torch.range(
-            0, num_output_nodes - self.num_actions, self.num_actions
-        ).type(self.dtype)
+        self.reward_idx_offsets = torch.arange(
+            0, num_output_nodes, self.num_actions
+        ).type(self.dtypelong)
         logger.info(
             "Reward network for CPE will have {} output nodes.".format(num_output_nodes)
         )
@@ -194,7 +195,7 @@ class DQNTrainer(RLTrainer):
             # Use q_values from target network for max_q action from online q_network
             # to decouble selection & scoring, preventing overestimation of q-values
             q_values = torch.gather(q_values_target, 1, max_indicies)
-            return q_values, max_indicies.type(self.dtype)
+            return q_values, max_indicies
         else:
             q_values = self.q_network_target(states).detach()
             # Set q-values of impossible actions to a very large negative number.
@@ -202,7 +203,7 @@ class DQNTrainer(RLTrainer):
             impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
             q_values += impossible_action_penalty
             max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
-            return max_q_values, max_indicies.type(self.dtype)
+            return max_q_values, max_indicies
 
     def get_next_action_q_values(self, states, next_actions):
         """
@@ -214,14 +215,9 @@ class DQNTrainer(RLTrainer):
         q_values = self.q_network_target(states).detach()
         # Max-q action indexes used in CPE
         max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
-        return (
-            torch.sum(q_values * next_actions, dim=1, keepdim=True),
-            max_indicies.type(self.dtype),
-        )
+        return (torch.sum(q_values * next_actions, dim=1, keepdim=True), max_indicies)
 
-    def train(
-        self, training_samples: TrainingDataPage, evaluator: Optional[Evaluator] = None
-    ):
+    def train(self, training_samples: TrainingDataPage):
 
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
@@ -324,10 +320,9 @@ class DQNTrainer(RLTrainer):
 
         ######### Train separate reward network for CPE evaluation #############
         reward_estimates = self.reward_network(states)
-        logged_action_idxs = actions.argmax(dim=1, keepdim=True).type(self.dtype)
-        self.reward_estimates = reward_estimates.detach()
+        logged_action_idxs = actions.argmax(dim=1, keepdim=True)
         reward_estimates_for_logged_actions = reward_estimates.gather(
-            1, (self.reward_idx_offsets + logged_action_idxs).type(self.dtypelong)
+            1, self.reward_idx_offsets + logged_action_idxs
         )
         reward_loss = F.mse_loss(
             reward_estimates_for_logged_actions, metrics_reward_concat_real_vals
@@ -335,17 +330,14 @@ class DQNTrainer(RLTrainer):
         self.reward_network_optimizer.zero_grad()
         reward_loss.backward()
         self.reward_network_optimizer.step()
-        self.loss_reporter.report(
-            td_loss=float(self.loss.cpu()), reward_loss=float(reward_loss.cpu())
-        )
 
         ######### Train separate q-network for CPE evaluation #############
         metric_q_values = self.q_network_cpe(states).gather(
-            1, (self.reward_idx_offsets + logged_action_idxs).type(self.dtypelong)
+            1, self.reward_idx_offsets + logged_action_idxs
         )
         metric_target_q_values = self.q_network_cpe_target(states).detach()
         max_q_values_metrics = metric_target_q_values.gather(
-            1, (self.reward_idx_offsets + max_q_action_idxs).type(self.dtypelong)
+            1, self.reward_idx_offsets + max_q_action_idxs
         )
         filtered_max_q_values_metrics = max_q_values_metrics * not_done_mask
         if self.minibatch < self.reward_burnin:
@@ -368,38 +360,31 @@ class DQNTrainer(RLTrainer):
             # Use the soft update rule to update target network
             self._soft_update(self.q_network_cpe, self.q_network_cpe_target, self.tau)
 
+        model_propensities = torch.from_numpy(
+            Evaluator.softmax(self.all_action_scores.cpu().numpy(), self.rl_temperature)
+        )
+        self.loss_reporter.report(
+            td_loss=self.loss,
+            reward_loss=reward_loss,
+            logged_actions=logged_action_idxs,
+            logged_propensities=training_samples.propensities,
+            logged_rewards=rewards,
+            logged_values=None,  # Compute at end of each epoch for CPE
+            model_propensities=model_propensities,
+            model_rewards=reward_estimates[
+                :,
+                torch.arange(
+                    self.reward_idx_offsets[0],
+                    self.reward_idx_offsets[0] + self.num_actions,
+                ),
+            ],
+            model_values=self.all_action_scores,
+            model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
+            model_action_idxs=self.all_action_scores.argmax(dim=1, keepdim=True),
+        )
+
         training_metadata = {}
-        if evaluator is not None:
-
-            model_propensities = torch.from_numpy(
-                Evaluator.softmax(
-                    self.all_action_scores.cpu().numpy(), self.rl_temperature
-                )
-            )
-
-            if training_samples.metrics is None:
-                # If no metrics, use rewards tensor
-                metrics = rewards.cpu().numpy()
-            else:
-                metrics = training_samples.metrics.cpu().numpy()
-
-            cpe_stats = BatchStatsForCPE(
-                logged_actions=training_samples.actions.cpu().numpy(),
-                logged_propensities=training_samples.propensities.cpu().numpy(),
-                logged_rewards=rewards.cpu().numpy(),
-                logged_values=None,  # Compute at end of each epoch for CPE
-                model_propensities=model_propensities.cpu().numpy(),
-                model_rewards=self.reward_estimates.cpu().numpy(),
-                model_values=self.all_action_scores.cpu().numpy(),
-                model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
-                model_action_idxs=self.all_action_scores.argmax(dim=1, keepdim=True)
-                .cpu()
-                .numpy(),
-                metrics=metrics,
-            )
-            evaluator.report(cpe_stats)
-            training_metadata["model_rewards"] = self.reward_estimates.cpu().numpy()
-
+        training_metadata["model_rewards"] = reward_estimates.detach().cpu().numpy()
         return training_metadata
 
     def predictor(self) -> DQNPredictor:

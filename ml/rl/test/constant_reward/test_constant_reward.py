@@ -79,7 +79,7 @@ class TestConstantReward(unittest.TestCase):
             )
             logger.info("Training.. " + str(epoch))
             for tdp in tdps:
-                maxq_trainer.train(tdp, None)
+                maxq_trainer.train(tdp)
             logger.info(
                 " ".join(
                     [

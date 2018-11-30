@@ -17,7 +17,6 @@ from ml.rl.preprocessing.normalization import (
 )
 from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
-from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
     RLTrainer,
@@ -141,7 +140,7 @@ class DDPGTrainer(RLTrainer):
                 self.critic = nn.DataParallel(self.critic)
                 self.critic_target = nn.DataParallel(self.critic_target)
 
-    def train(self, training_samples: TrainingDataPage, evaluator=None) -> None:
+    def train(self, training_samples: TrainingDataPage) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert (
@@ -229,13 +228,10 @@ class DDPGTrainer(RLTrainer):
             self._soft_update(self.actor, self.actor_target, self.tau)
             self._soft_update(self.critic, self.critic_target, self.tau)
 
-        self.loss_reporter.report(td_loss=float(loss_critic_for_eval), reward_loss=None)
-
-        if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(
-                model_values_on_logged_actions=critic_predictions.detach()
-            )
-            evaluator.report(cpe_stats)
+        self.loss_reporter.report(
+            td_loss=loss_critic_for_eval,
+            model_values_on_logged_actions=critic_predictions,
+        )
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:
         """ Returns list of actions output from actor network

@@ -98,7 +98,6 @@ def train_network(params):
     if trainer_params.in_training_cpe is not None:
         evaluator = Evaluator(
             trainer_params.actions,
-            10,
             trainer_params.rl.gamma,
             trainer,
             trainer_params.in_training_cpe.mdp_sampled_rate,
@@ -107,7 +106,6 @@ def train_network(params):
     else:
         evaluator = Evaluator(
             trainer_params.actions,
-            10,
             trainer_params.rl.gamma,
             trainer,
             float(DEFAULT_NUM_SAMPLES_FOR_CPE) / len(dataset),
@@ -123,7 +121,7 @@ def train_network(params):
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
 
             tdp.set_type(trainer.dtype)
-            training_metadata = trainer.train(tdp, evaluator)
+            training_metadata = trainer.train(tdp)
 
             evaluator.collect_discrete_action_samples(
                 mdp_ids=tdp.mdp_ids,

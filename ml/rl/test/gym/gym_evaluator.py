@@ -26,7 +26,7 @@ class GymEvaluator(Evaluator):
 
     def __init__(self, env, gamma, use_int_features: bool = False) -> None:
         # TODO: incorporate int features
-        super(GymEvaluator, self).__init__(None, 1, gamma, None, 1.0)
+        super(GymEvaluator, self).__init__(None, gamma, None, 1.0)
 
         self._env = env
         if self._env.action_type == EnvType.CONTINUOUS_ACTION:
@@ -52,6 +52,8 @@ class GymEvaluator(Evaluator):
         )
         for i, action in enumerate(self.logged_actions):
             self.logged_actions_one_hot[i, action] = 1.0
+
+        self.reward_loss: List[float] = []
 
     def _generate_samples(
         self, num_episodes, epsilon

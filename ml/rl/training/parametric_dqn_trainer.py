@@ -19,7 +19,6 @@ from ml.rl.thrift.core.ttypes import (
     AdditionalFeatureTypes,
     ContinuousActionModelParameters,
 )
-from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.parametric_inner_product import ParametricInnerProduct
 from ml.rl.training.rl_trainer_pytorch import (
@@ -223,7 +222,7 @@ class ParametricDQNTrainer(RLTrainer):
     def get_next_action_q_values(self, state_action_pairs):
         return self.q_network_target(state_action_pairs)
 
-    def train(self, training_samples: TrainingDataPage, evaluator=None) -> None:
+    def train(self, training_samples: TrainingDataPage) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert (
@@ -319,14 +318,10 @@ class ParametricDQNTrainer(RLTrainer):
         self.reward_network_optimizer.step()
 
         self.loss_reporter.report(
-            td_loss=float(self.loss), reward_loss=float(reward_loss)
+            td_loss=self.loss,
+            reward_loss=reward_loss,
+            model_values_on_logged_actions=all_action_scores,
         )
-
-        if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(
-                model_values_on_logged_actions=all_action_scores.cpu().numpy()
-            )
-            evaluator.report(cpe_stats)
 
     def predictor(self) -> ParametricDQNPredictor:
         """Builds a ParametricDQNPredictor."""

@@ -3,6 +3,7 @@
 
 import logging
 import math
+from typing import List, Optional
 
 import numpy as np
 import torch
@@ -32,6 +33,7 @@ class RLTrainer:
         additional_feature_types,
         metrics_to_score=None,
         gradient_handler=None,
+        actions: Optional[List[str]] = None,
     ):
         self.minibatch = 0
         self.parameters = parameters
@@ -74,7 +76,7 @@ class RLTrainer:
             self.dtype = torch.FloatTensor
             self.dtypelong = torch.LongTensor
 
-        self.loss_reporter = LossReporter()
+        self.loss_reporter = LossReporter(actions)
 
     def _set_optimizer(self, optimizer_name):
         self.optimizer_func = self._get_optimizer_func(optimizer_name)

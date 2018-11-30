@@ -43,19 +43,6 @@ def get_tensor(x, dtype=None):
     return x
 
 
-class BatchStatsForCPE(NamedTuple):
-    logged_actions: Optional[np.ndarray] = None
-    logged_propensities: Optional[np.ndarray] = None
-    logged_rewards: Optional[np.ndarray] = None
-    logged_values: Optional[np.ndarray] = None
-    model_propensities: Optional[np.ndarray] = None
-    model_rewards: Optional[np.ndarray] = None
-    model_values: Optional[np.ndarray] = None
-    model_values_on_logged_actions: Optional[np.ndarray] = None
-    model_action_idxs: Optional[np.ndarray] = None
-    metrics: Optional[np.ndarray] = None
-
-
 class CPE_Estimate(NamedTuple):
     normalized: float
     raw: float
@@ -149,18 +136,11 @@ class Evaluator(object):
     RECENT_WINDOW_SIZE = 100
 
     def __init__(
-        self,
-        action_names,
-        evaluator_batch_size,
-        gamma,
-        model,
-        mdp_sampled_rate,
-        metrics_to_score=None,
+        self, action_names, gamma, model, mdp_sampled_rate, metrics_to_score=None
     ) -> None:
         self.action_names = action_names
         self.metrics_to_score = metrics_to_score
         self.mc_loss: List[float] = []
-        self.reward_loss: List[float] = []
         self.value_inverse_propensity_score: List[CPE_Estimate] = []
         self.value_direct_method: List[CPE_Estimate] = []
         self.value_doubly_robust: List[CPE_Estimate] = []
@@ -172,42 +152,10 @@ class Evaluator(object):
         self.reward_inverse_propensity_score: List[CPE_Estimate] = []
         self.reward_direct_method: List[CPE_Estimate] = []
         self.reward_doubly_robust: List[CPE_Estimate] = []
-        self.model_action_distr: Dict[str, List[float]] = defaultdict(list)
-        self.model_action_counts: Dict[str, List[int]] = defaultdict(list)
-        self.model_action_counts_cumulative: Dict[str, int] = defaultdict(int)
-        self.logged_action_counts: Dict[str, int] = defaultdict(int)
-        self.logged_action_q_value: List[float] = []
-        self.model_value: Dict[str, List[float]] = defaultdict(list)
-        self.model_value_std: Dict[str, List[float]] = defaultdict(list)
 
-        self.evaluator_batch_size = evaluator_batch_size
-
-        self.logged_actions_batches: List[torch.FloatTensor] = []
-        self.logged_propensities_batches: List[torch.FloatTensor] = []
-        self.logged_rewards_batches: List[torch.FloatTensor] = []
-        self.logged_values_batches: List[torch.FloatTensor] = []
-        self.model_propensities_batches: List[torch.FloatTensor] = []
-        self.model_rewards_batches: List[torch.FloatTensor] = []
-        self.model_values_batches: List[torch.FloatTensor] = []
-        self.model_values_on_logged_actions_batches: List[torch.FloatTensor] = []
-        self.model_action_idxs_batches: List[torch.FloatTensor] = []
-        self.metrics: List[torch.FloatTensor] = []
         self.metric_cpe_scores: Dict[str, Dict[str, float]] = defaultdict(
             lambda: defaultdict(float)
         )
-
-        self.all_batches = [
-            self.logged_actions_batches,
-            self.logged_propensities_batches,
-            self.logged_rewards_batches,
-            self.logged_values_batches,
-            self.model_propensities_batches,
-            self.model_rewards_batches,
-            self.model_values_batches,
-            self.model_values_on_logged_actions_batches,
-            self.model_action_idxs_batches,
-            self.metrics,
-        ]
 
         self.gamma = gamma
         self.model = model
@@ -225,171 +173,6 @@ class Evaluator(object):
         self.unshuffled_target_metric_propensities: torch.tensor
         self.unshuffled_estimated_q_values: torch.tensor
         self.unshuffled_estimated_metric_q_values: torch.tensor
-        self._add_custom_scalars(action_names)
-
-    def _add_custom_scalars(self, action_names):
-        if not action_names:
-            return
-
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            [
-                "propensities/model/{}/mean".format(action_name)
-                for action_name in action_names
-            ],
-            category="propensities",
-            title="model",
-        )
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            [
-                "propensities/logged/{}/mean".format(action_name)
-                for action_name in action_names
-            ],
-            category="propensities",
-            title="logged",
-        )
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            ["actions/logged/{}".format(action_name) for action_name in action_names],
-            category="actions",
-            title="logged",
-        )
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            ["actions/model/{}".format(action_name) for action_name in action_names],
-            category="actions",
-            title="model",
-        )
-
-    def report(self, cpe_stats):
-        for i, input_name in enumerate(cpe_stats._fields):
-            input = getattr(cpe_stats, input_name, None)
-            if input is None:
-                assert (
-                    len(self.all_batches[i]) == 0
-                ), "{} missing in a batch.  Either omit completely or fill every time".format(
-                    input_name
-                )
-            else:
-                self.all_batches[i].append(input)
-
-        if len(self.logged_rewards_batches) >= self.evaluator_batch_size:
-            self.evaluate_batch()
-            self.clear_evaluation_containers()
-            # Save last batch for end of training eval on last batch
-            self.last_batch = cpe_stats
-
-    def clear_evaluation_containers(self):
-        for batch in self.all_batches:
-            batch.clear()
-
-    def evaluate_batch(self):
-        merged_inputs = []
-        for batch in self.all_batches:
-            if len(batch) > 0:
-                merged_inputs.append(np.vstack(batch))
-            else:
-                merged_inputs.append(None)
-
-        (
-            logged_actions,
-            logged_propensities,
-            logged_rewards,
-            logged_values,
-            model_propensities,
-            model_rewards,
-            model_values,
-            model_values_on_logged_actions,
-            model_action_idxs,
-            metrics,
-        ) = map(get_tensor, merged_inputs)
-
-        logger.info("Evaluating on {} batches".format(len(self.logged_rewards_batches)))
-        print_details = "Evaluator:\n"
-
-        if logged_rewards is not None:
-            SummaryWriterContext.add_histogram("reward/logged", logged_rewards)
-            SummaryWriterContext.add_scalar("reward/logged/mean", logged_rewards.mean())
-
-        if model_rewards is not None:
-            SummaryWriterContext.add_histogram("reward/model", model_rewards)
-            SummaryWriterContext.add_scalar("reward/model/mean", model_rewards.mean())
-
-        if logged_values is not None:
-            SummaryWriterContext.add_histogram("value/logged", logged_values)
-            SummaryWriterContext.add_scalar("value/logged/mean", logged_values.mean())
-
-        if model_values is not None:
-            SummaryWriterContext.add_histogram("value/model", model_values)
-            SummaryWriterContext.add_scalar("value/model/mean", model_values.mean())
-            if self.action_names:
-                means = model_values.mean(dim=0)
-                stdevs = model_values.std(dim=0)
-                for name, mean, stdev in zip(self.action_names, means, stdevs):
-                    self.model_value[name].append(float(mean))
-                    self.model_value_std[name].append(float(stdev))
-
-        if model_values_on_logged_actions is not None:
-            logged_action_model_value = model_values_on_logged_actions.mean().item()
-            self.logged_action_q_value.append(logged_action_model_value)
-            SummaryWriterContext.add_histogram(
-                "value/model_logged_action", model_values_on_logged_actions
-            )
-
-        # TODO: log summary of logged propensities
-
-        if model_propensities is not None and self.action_names:
-            if len(model_propensities.shape) == 1:
-                SummaryWriterContext.add_histogram(
-                    "propensities/model", model_propensities
-                )
-                SummaryWriterContext.add_scalar(
-                    "propensities/model/mean", model_propensities.mean()
-                )
-            if len(model_propensities.shape) == 2:
-                for i, action_name in enumerate(self.action_names):
-                    SummaryWriterContext.add_histogram(
-                        "propensities/model/{}".format(action_name),
-                        model_propensities[:, i],
-                    )
-                    SummaryWriterContext.add_scalar(
-                        "propensities/model/{}/mean".format(action_name),
-                        model_propensities[:, i].mean(),
-                    )
-
-        if logged_actions is not None and model_action_idxs is not None:
-            logged_action_distr, logged_action_counts = self._get_batch_logged_actions(
-                [logged_actions]
-            )
-            model_action_distr, model_action_counts = self._get_batch_model_actions(
-                [model_action_idxs]
-            )
-            print_details += "The distribution of logged actions : {}\n".format(
-                logged_action_counts
-            )
-            print_details += "The distribution of model actions : {}\n".format(
-                model_action_counts
-            )
-            for action, count in logged_action_counts.items():
-                self.logged_action_counts[action] += count
-
-            for action, count in model_action_counts.items():
-                self.model_action_counts[action].append(count)
-                self.model_action_counts_cumulative[action] += count
-
-            for action, val in model_action_distr.items():
-                self.model_action_distr[action].append(val)
-
-            # Log to tensorboard
-            for action_name, count in logged_action_counts.items():
-                SummaryWriterContext.add_scalar(
-                    "actions/logged/{}".format(action_name), count
-                )
-            for action_name, count in model_action_counts.items():
-                SummaryWriterContext.add_scalar(
-                    "actions/model/{}".format(action_name), count
-                )
-
-        print_details += "Batch Evaluator Finished"
-        for print_detail in print_details.split("\n"):
-            logger.info(print_detail)
 
     def mdp_id_to_probability(self, mdp_id):
         """
@@ -570,9 +353,6 @@ class Evaluator(object):
         return float(np.mean(np.abs(logged_values - model_values_on_logged_actions)))
 
     def score_cpe(self, gamma):
-        # Evaluate last batch so can see final td loss and action distribution
-        self.evaluate_batch()
-
         if len(self.unshuffled_samples) == 0 or len(self.unshuffled_actions) == 0:
             return
 
@@ -841,66 +621,6 @@ class Evaluator(object):
         return Evaluator.calculate_recent_window_average(
             self.mc_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
         )
-
-    def _get_batch_logged_actions(self, arr):
-        action_counter = Counter()
-        for actions in arr:
-            # torch.max() returns the element and the index.
-            # The latter is the argmax equivalent
-            _, argmax = torch.max(actions, dim=1)
-
-            # Counter object does not work well with Tensors, hence casting back to numpy
-            action_counter.update(Counter(argmax.numpy()))
-
-        total_actions = 1.0 * sum(action_counter.values())
-
-        return (
-            {
-                action_name: (action_counter[i] / total_actions)
-                for i, action_name in enumerate(self.action_names)
-            },
-            {
-                action_name: action_counter[i]
-                for i, action_name in enumerate(self.action_names)
-            },
-        )
-
-    def get_recent_logged_actions(self):
-        return self._get_batch_logged_actions(
-            self.logged_actions_batches[-Evaluator.RECENT_WINDOW_SIZE :]
-        )[0]
-
-    def _get_batch_model_actions(self, arr):
-        action_counter = Counter()
-        for actions in arr:
-            action_counter.update(Counter(actions.reshape(-1).numpy()))
-        total_actions = 1.0 * sum(action_counter.values())
-        return (
-            {
-                action_name: (action_counter[i] / total_actions)
-                for i, action_name in enumerate(self.action_names)
-            },
-            {
-                action_name: action_counter[i]
-                for i, action_name in enumerate(self.action_names)
-            },
-        )
-
-    def get_recent_model_actions(self):
-        return self._get_batch_model_actions(
-            self.model_action_idxs_batches[-Evaluator.RECENT_WINDOW_SIZE :]
-        )[0]
-
-    def get_logged_action_distribution(self):
-        total_actions = 1.0 * sum(self.logged_action_counts.values())
-        return {k: (v / total_actions) for k, v in self.logged_action_counts.items()}
-
-    def get_model_action_distribution(self):
-        total_actions = 1.0 * sum(self.model_action_counts_cumulative.values())
-        return {
-            k: (v / total_actions)
-            for k, v in self.model_action_counts_cumulative.items()
-        }
 
     def get_recent_reward_inverse_propensity_score(self):
         ips = Evaluator.calculate_recent_window_average(

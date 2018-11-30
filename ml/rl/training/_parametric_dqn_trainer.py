@@ -9,7 +9,6 @@ import torch
 import torch.nn.functional as F
 from ml.rl.caffe_utils import arange_expand
 from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
-from ml.rl.training.evaluator import BatchStatsForCPE
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
 
@@ -102,7 +101,7 @@ class _ParametricDQNTrainer(RLTrainer):
             rlt.StateAction(state=state, action=action)
         ).q_value
 
-    def train(self, training_batch, evaluator=None) -> None:
+    def train(self, training_batch) -> None:
         if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
             training_batch = training_batch.as_parametric_sarsa_training_batch()
 
@@ -169,11 +168,7 @@ class _ParametricDQNTrainer(RLTrainer):
         self.reward_network_optimizer.step()
 
         self.loss_reporter.report(
-            td_loss=float(self.loss), reward_loss=float(reward_loss)
+            td_loss=self.loss,
+            reward_loss=reward_loss,
+            model_values_on_logged_actions=self.all_action_scores,
         )
-
-        if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(
-                model_values_on_logged_actions=self.all_action_scores
-            )
-            evaluator.report(cpe_stats)

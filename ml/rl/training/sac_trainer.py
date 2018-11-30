@@ -12,7 +12,6 @@ from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
-from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
 from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
 from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
 
@@ -104,7 +103,7 @@ class SACTrainer(RLTrainer):
             components += ["q2_network", "q2_network_optimizer"]
         return components
 
-    def train(self, training_batch, evaluator=None) -> None:
+    def train(self, training_batch) -> None:
         """
         IMPORTANT: the input action here is assumed to be preprocessed to match the
         range of the output of the actor.
@@ -251,16 +250,14 @@ class SACTrainer(RLTrainer):
             )
             SummaryWriterContext.add_histogram("actor/loss", actor_loss)
 
-        self.loss_reporter.report(td_loss=float(q1_loss), reward_loss=None)
-
-        if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(
-                logged_rewards=reward.detach(),
-                model_values_on_logged_actions=q1_value.detach(),
-                model_propensities=actor_output.log_prob.exp().detach(),
-                model_values=min_q_actor_value.detach(),
-            )
-            evaluator.report(cpe_stats)
+        self.loss_reporter.report(
+            td_loss=q1_loss,
+            reward_loss=None,
+            logged_rewards=reward,
+            model_values_on_logged_actions=q1_value,
+            model_propensities=actor_output.log_prob.exp(),
+            model_values=min_q_actor_value,
+        )
 
     def _should_scale_action_in_train(self):
         if (
