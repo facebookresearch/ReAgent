@@ -16,6 +16,7 @@ from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger.setLevel(logging.INFO)
 
 
