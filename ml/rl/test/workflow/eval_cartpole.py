@@ -9,6 +9,7 @@ from ml.rl.training.dqn_predictor import DQNPredictor
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger.setLevel(logging.INFO)
 
 ENV = "CartPole-v0"
