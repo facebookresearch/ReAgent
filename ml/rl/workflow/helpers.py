@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import time
+import sys
 
 import torch
 from ml.rl.training.ddpg_trainer import DDPGTrainer
@@ -14,6 +15,7 @@ from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger.setLevel(logging.INFO)
 
 
