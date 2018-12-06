@@ -205,6 +205,13 @@ class PytorchCaffe2Converter(object):
         training = pytorch_net.training
         pytorch_net.train(False)
 
+        for name, p in pytorch_net.named_parameters():
+            inf_count = torch.isinf(p).sum().item()
+            nan_count = torch.isnan(p).sum().item()
+            assert inf_count + nan_count == 0, "{} has {} inf and {} nan".format(
+                name, inf_count, nan_count
+            )
+
         if float_input:
             dtype = torch.cuda.FloatTensor if model_on_gpu else torch.FloatTensor
             dummy_input = torch.randn(1, input_dim).type(dtype)

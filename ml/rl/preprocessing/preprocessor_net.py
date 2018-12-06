@@ -383,6 +383,7 @@ class PreprocessorNet:
             concatenated_input_blob, concatenated_input_blob_dim = C2.Concat(
                 *normalized_input_blobs, axis=1
             )
+            concatenated_input_blob = C2.NanCheck(concatenated_input_blob)
         return concatenated_input_blob, parameters
 
     def _get_type_boundaries(
