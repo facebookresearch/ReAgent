@@ -202,6 +202,9 @@ class PytorchCaffe2Converter(object):
         """Traces a pytorch net and outputs a python buffer object
         holding net."""
 
+        training = pytorch_net.training
+        pytorch_net.train(False)
+
         if float_input:
             dtype = torch.cuda.FloatTensor if model_on_gpu else torch.FloatTensor
             dummy_input = torch.randn(1, input_dim).type(dtype)
@@ -210,7 +213,10 @@ class PytorchCaffe2Converter(object):
             dummy_input = torch.randint(low=0, high=1, size=(1, input_dim)).type(dtype)
 
         write_buffer = BytesIO()
-        torch.onnx.export(pytorch_net, dummy_input, write_buffer)
+        try:
+            torch.onnx.export(pytorch_net, dummy_input, write_buffer)
+        finally:
+            pytorch_net.train(training)
         return write_buffer
 
     @staticmethod
