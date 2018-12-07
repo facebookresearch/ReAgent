@@ -40,6 +40,7 @@ class DQNPredictor(RLPredictor):
         state_normalization_parameters,
         int_features=False,
         model_on_gpu=False,
+        set_missing_value_to_zero=False,
     ):
         """Export caffe2 preprocessor net and pytorch DQN forward pass as one
         caffe2 net.
@@ -131,6 +132,7 @@ class DQNPredictor(RLPredictor):
                 input_feature_keys,
                 input_feature_values,
                 sorted_feature_ids,
+                set_missing_value_to_zero=set_missing_value_to_zero,
             )
             parameters.extend(new_parameters)
             preprocessor_net = PreprocessorNet()

@@ -389,7 +389,7 @@ class DQNTrainer(RLTrainer):
         training_metadata["model_rewards"] = reward_estimates.detach().cpu().numpy()
         return training_metadata
 
-    def predictor(self) -> DQNPredictor:
+    def predictor(self, set_missing_value_to_zero=False) -> DQNPredictor:
         """Builds a DQNPredictor."""
         return DQNPredictor.export(
             self,
@@ -397,6 +397,7 @@ class DQNTrainer(RLTrainer):
             self.state_normalization_parameters,
             self._additional_feature_types.int_features,
             self.use_gpu,
+            set_missing_value_to_zero=set_missing_value_to_zero,
         )
 
     def export(self) -> DQNPredictor:
