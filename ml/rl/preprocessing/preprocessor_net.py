@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 
 import caffe2.proto.caffe2_pb2 as caffe2_pb2
 import numpy as np
-from caffe2.python import core, workspace
+from caffe2.python import core, schema, workspace
 from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import FEATURE_TYPES
@@ -38,14 +38,6 @@ class PreprocessorNet:
 
         parameters: List[str] = []
 
-        ZERO = self._store_parameter(
-            parameters, "ZERO", np.array([0], dtype=np.float32)
-        )
-        ONE = self._store_parameter(parameters, "ONE", np.array([1], dtype=np.float32))
-        NEGATIVE_ONE = self._store_parameter(
-            parameters, "NEGATIVE_ONE", np.array([-1], dtype=np.float32)
-        )
-
         MISSING_U = self._store_parameter(
             parameters, "MISSING_U", np.array([MISSING_VALUE + 1e-4], dtype=np.float32)
         )
@@ -70,11 +62,20 @@ class PreprocessorNet:
             TOLERANCE = self._store_parameter(
                 parameters, "TOLERANCE", np.array(1e-3, dtype=np.float32)
             )
+            ZERO = self._store_parameter(
+                parameters, "ZERO", np.array([0], dtype=np.float32)
+            )
             is_gt_zero = C2.GT(blob, C2.Add(ZERO, TOLERANCE, broadcast=1), broadcast=1)
             is_lt_zero = C2.LT(blob, C2.Sub(ZERO, TOLERANCE, broadcast=1), broadcast=1)
             bool_blob = C2.Or(is_gt_zero, is_lt_zero)
             blob = C2.Cast(bool_blob, to=caffe2_pb2.TensorProto.FLOAT)
         elif feature_type == identify_types.PROBABILITY:
+            ONE = self._store_parameter(
+                parameters, "ONE", np.array([1], dtype=np.float32)
+            )
+            NEGATIVE_ONE = self._store_parameter(
+                parameters, "NEGATIVE_ONE", np.array([-1], dtype=np.float32)
+            )
             clipped = C2.Clip(blob, min=0.01, max=0.99)
             blob = C2.Mul(
                 C2.Log(C2.Sub(C2.Pow(clipped, exponent=-1.0), ONE, broadcast=1)),
@@ -290,8 +291,18 @@ class PreprocessorNet:
 
     def _store_parameter(self, parameters, name, value):
         c2_name = C2.NextBlob(name)
-        workspace.FeedBlob(c2_name, value)
-        parameters.append(c2_name)
+        if C2.init_net():
+            C2.init_net().GivenTensorFill(
+                [],
+                c2_name,
+                shape=value.shape,
+                values=value.flatten(),
+                dtype=schema.data_type_for_dtype(value.dtype),
+            )
+            C2.init_net().AddExternalOutput(c2_name)
+        else:
+            workspace.FeedBlob(c2_name, value)
+            parameters.append(c2_name)
         return c2_name
 
     def normalize_dense_matrix(

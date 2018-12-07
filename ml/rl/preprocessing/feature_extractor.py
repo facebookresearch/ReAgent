@@ -7,12 +7,14 @@ from typing import Dict, NamedTuple, Optional
 import ml.rl.types as mt
 import torch
 from caffe2.python import core, schema
+from ml.rl.caffe_utils import C2
 
 from .normalization import (
     MISSING_VALUE,
     NormalizationParameters,
     sort_features_by_normalization,
 )
+from .preprocessor_net import PreprocessorNet
 
 
 """
@@ -114,7 +116,10 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             Dict[int, NormalizationParameters]
         ] = None,
         max_q_learning: bool = True,
+        normalize: bool = True,
     ) -> None:
+        self.state_normalization_parameters = state_normalization_parameters
+        self.action_normalization_parameters = action_normalization_parameters
         self.sorted_state_features, _ = sort_features_by_normalization(
             state_normalization_parameters
         )
@@ -125,6 +130,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         else:
             self.sorted_action_features = None
         self.max_q_learning = max_q_learning
+        self.normalize = normalize
 
     def extract(self, ws, input_record, extract_record):
         def fetch(b):
@@ -253,6 +259,39 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 missing_scalar,
             )
 
+        if self.normalize:
+            C2.set_net_and_init_net(net, init_net)
+            state, _ = PreprocessorNet().normalize_dense_matrix(
+                state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="state",
+                split_expensive_feature_groups=True,
+            )
+            next_state, _ = PreprocessorNet().normalize_dense_matrix(
+                next_state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="next_state",
+                split_expensive_feature_groups=True,
+            )
+            if self.sorted_action_features:
+                action, _ = PreprocessorNet().normalize_dense_matrix(
+                    action,
+                    self.sorted_action_features,
+                    self.action_normalization_parameters,
+                    blobname_prefix="action",
+                    split_expensive_feature_groups=True,
+                )
+                next_action, _ = PreprocessorNet().normalize_dense_matrix(
+                    next_action,
+                    self.sorted_action_features,
+                    self.action_normalization_parameters,
+                    blobname_prefix="next_action",
+                    split_expensive_feature_groups=True,
+                )
+            C2.set_net_and_init_net(None, None)
+
         next_action_output = (
             schema.List(
                 next_action, lengths_blob=input_record.possible_next_actions.lengths
@@ -293,7 +332,10 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
         action_normalization_parameters: Optional[
             Dict[int, NormalizationParameters]
         ] = None,
+        normalize: bool = True,
     ) -> None:
+        self.state_normalization_parameters = state_normalization_parameters
+        self.action_normalization_parameters = action_normalization_parameters
         self.sorted_state_features, _ = sort_features_by_normalization(
             state_normalization_parameters
         )
@@ -303,6 +345,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             )
         else:
             self.sorted_action_features = None
+        self.normalize = normalize
 
     def extract(self, ws, input_record, extract_record):
         def fetch(b):
@@ -342,8 +385,6 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             missing_scalar,
         )
 
-        output_record = schema.Struct(("state", state))
-
         if self.sorted_action_features:
             action = self.extract_float_features(
                 net,
@@ -352,6 +393,28 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                 self.sorted_action_features,
                 missing_scalar,
             )
+
+        if self.normalize:
+            C2.set_net_and_init_net(net, init_net)
+            state, _ = PreprocessorNet().normalize_dense_matrix(
+                state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="state",
+                split_expensive_feature_groups=True,
+            )
+            if self.sorted_action_features:
+                action, _ = PreprocessorNet().normalize_dense_matrix(
+                    action,
+                    self.sorted_action_features,
+                    self.action_normalization_parameters,
+                    blobname_prefix="action",
+                    split_expensive_feature_groups=True,
+                )
+            C2.set_net_and_init_net(None, None)
+
+        output_record = schema.Struct(("state", state))
+        if self.sorted_action_features:
             output_record += schema.Struct(("action", action))
 
         net.set_output_record(output_record)

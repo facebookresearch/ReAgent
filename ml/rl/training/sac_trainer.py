@@ -269,31 +269,6 @@ class SACTrainer(RLTrainer):
             return True
         return False
 
-    def actor_predictor(
-        self, feature_extractor=None, output_trasnformer=None, net_container=None
-    ) -> ActorPredictor:
-        actor_network = self.actor_network.cpu_model()
-        if net_container is not None:
-            actor_network = net_container(actor_network)
-        predictor = ActorExporter(
-            actor_network, feature_extractor, output_trasnformer
-        ).export()
-        self.actor_network.train()
-        return predictor
-
-    def critic_predictor(
-        self, feature_extractor=None, output_trasnformer=None, net_container=None
-    ) -> _ParametricDQNPredictor:
-        # TODO: We should combine the two Q functions
-        q_network = self.q1_network.cpu_model()
-        if net_container is not None:
-            q_network = net_container(q_network)
-        predictor = ParametricDQNExporter(
-            q_network, feature_extractor, output_trasnformer
-        ).export()
-        self.q1_network.train()
-        return predictor
-
     def internal_prediction(self, states):
         """ Returns list of actions output from actor network
         :param states states as list of states to produce actions for

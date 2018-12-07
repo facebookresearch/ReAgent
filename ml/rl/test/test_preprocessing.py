@@ -26,27 +26,11 @@ from ml.rl.test.preprocessing_util import (
     id_to_type,
     read_data,
 )
-from scipy import special, stats
+from ml.rl.test.utils import NumpyFeatureProcessor
+from scipy import special
 
 
 class TestPreprocessing(unittest.TestCase):
-    def _value_to_quantile(self, original_value, quantiles):
-        if original_value <= quantiles[0]:
-            return 0.0
-        if original_value >= quantiles[-1]:
-            return 1.0
-        n_quantiles = float(len(quantiles) - 1)
-        right = np.searchsorted(quantiles, original_value)
-        left = right - 1
-        interpolated = (
-            left
-            + (
-                (original_value - quantiles[left])
-                / ((quantiles[right] + 1e-6) - quantiles[left])
-            )
-        ) / n_quantiles
-        return interpolated
-
     def _feature_type_override(self, feature_id):
         """
         This should only be used to test CONTINUOUS_ACTION
@@ -135,7 +119,7 @@ class TestPreprocessing(unittest.TestCase):
             elif feature_type == identify_types.QUANTILE:
                 for i, feature in enumerate(v[0]):
                     original_feature = feature_value_map[k][i]
-                    expected = self._value_to_quantile(
+                    expected = NumpyFeatureProcessor.value_to_quantile(
                         original_feature, normalization_parameters[k].quantiles
                     )
                     self.assertAlmostEqual(feature, expected, 2)
@@ -251,61 +235,6 @@ class TestPreprocessing(unittest.TestCase):
                         getattr(normalization_parameters[k], field),
                     )
 
-    def preprocess_feature(self, feature, parameters):
-        is_not_empty = 1 - np.isclose(feature, normalization.MISSING_VALUE)
-        if parameters.feature_type == identify_types.BINARY:
-            # Binary features are always 1 unless they are 0
-            return ((feature != 0) * is_not_empty).astype(np.float32)
-        if parameters.boxcox_lambda is not None:
-            feature = stats.boxcox(
-                np.maximum(
-                    feature + parameters.boxcox_shift, normalization.BOX_COX_MARGIN
-                ),
-                parameters.boxcox_lambda,
-            )
-        # No *= to ensure consistent out-of-place operation.
-        if parameters.feature_type == identify_types.PROBABILITY:
-            feature = special.logit(np.clip(feature, 1e-6, 1.0))
-        elif parameters.feature_type == identify_types.QUANTILE:
-            transformed_feature = np.zeros_like(feature)
-            for i in six.moves.range(feature.shape[0]):
-                transformed_feature[i] = self._value_to_quantile(
-                    feature[i], parameters.quantiles
-                )
-            feature = transformed_feature
-        elif parameters.feature_type == identify_types.ENUM:
-            possible_values = parameters.possible_values
-            mapping = {}
-            for i, possible_value in enumerate(possible_values):
-                mapping[possible_value] = i
-            output_feature = np.zeros((len(feature), len(possible_values)))
-            for i, val in enumerate(feature):
-                if abs(val - MISSING_VALUE) < 1e-2:
-                    continue
-                output_feature[i][mapping[val]] = 1.0
-            return output_feature
-        elif parameters.feature_type == identify_types.CONTINUOUS_ACTION:
-            min_value = parameters.min_value
-            max_value = parameters.max_value
-            feature = (
-                (feature - min_value) * ((1 - 1e-6) * 2 / (max_value - min_value))
-                - 1
-                + 1e-6
-            )
-        else:
-            feature = feature - parameters.mean
-            feature /= parameters.stddev
-        feature *= is_not_empty
-        return feature
-
-    def preprocess(self, features, parameters):
-        result = {}
-        for feature_name in features:
-            result[feature_name] = self.preprocess_feature(
-                features[feature_name], parameters[feature_name]
-            )
-        return result
-
     def test_preprocessing_network_onnx(self):
         feature_value_map = read_data()
 
@@ -402,7 +331,9 @@ class TestPreprocessing(unittest.TestCase):
             normalized_feature_values = preprocessor.forward(feature_values_matrix)
             name_preprocessed_blob_map[feature_name] = normalized_feature_values.numpy()
 
-        test_features = self.preprocess(feature_value_map, normalization_parameters)
+        test_features = NumpyFeatureProcessor.preprocess(
+            feature_value_map, normalization_parameters
+        )
 
         for feature_name in feature_value_map:
             normalized_features = name_preprocessed_blob_map[feature_name]
