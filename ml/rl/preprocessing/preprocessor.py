@@ -368,11 +368,6 @@ class Preprocessor(Module):
         )
         self._create_parameter(
             begin_index,
-            "max_num_boundaries_3d",
-            torch.Tensor(1, 1, max_num_quantile_boundaries).type(self.dtype),
-        )
-        self._create_parameter(
-            begin_index,
             "quantile_boundary_mask",
             torch.ones([1, F, B]).type(self.dtype),
         )
