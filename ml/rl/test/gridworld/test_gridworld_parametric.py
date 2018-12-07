@@ -10,7 +10,6 @@ from ml.rl.models.output_transformer import ParametricActionOutputTransformer
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
@@ -128,21 +127,13 @@ class TestGridworldParametric(GridworldTestBase):
         trainer = _ParametricDQNTrainer(
             q_network, q_network_target, reward_network, parameters
         )
-        state_preprocessor = Preprocessor(environment.normalization, False, True)
-        action_preprocessor = Preprocessor(
-            environment.normalization_action, False, True
-        )
         feature_extractor = PredictorFeatureExtractor(
             state_normalization_parameters=environment.normalization,
             action_normalization_parameters=environment.normalization_action,
         )
         output_transformer = ParametricActionOutputTransformer()
         exporter = ParametricDQNExporter(
-            q_network,
-            feature_extractor,
-            output_transformer,
-            state_preprocessor,
-            action_preprocessor,
+            q_network, feature_extractor, output_transformer
         )
         return (trainer, exporter)
 

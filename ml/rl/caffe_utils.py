@@ -54,20 +54,33 @@ class C2Meta(type):
 
 class C2(metaclass=C2Meta):
     _net: Optional[Any] = None
+    _init_net: Optional[Any] = None
     _model: Optional[Any] = None
 
     @staticmethod
     def set_net(net):
         C2._model = None
         C2._net = net
+        C2._init_net = None
+
+    @staticmethod
+    def set_net_and_init_net(net, init_net):
+        C2._model = None
+        C2._net = net
+        C2._init_net = init_net
 
     @staticmethod
     def net():
         return C2._net
 
     @staticmethod
+    def init_net():
+        return C2._init_net
+
+    @staticmethod
     def set_model(model):
         C2._model = model
+        C2._init_net = None
         if model is None:
             C2._net = None
         else:

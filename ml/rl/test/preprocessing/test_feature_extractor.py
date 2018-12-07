@@ -14,13 +14,14 @@ from ml.rl.preprocessing.feature_extractor import (
 )
 from ml.rl.preprocessing.identify_types import CONTINUOUS, PROBABILITY
 from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
+from ml.rl.test.utils import NumpyFeatureProcessor
 
 
 class FeatureExtractorTestBase(unittest.TestCase):
     def get_state_normalization_parameters(self):
         return {
             i: NormalizationParameters(
-                feature_type=PROBABILITY if i % 2 else CONTINUOUS
+                feature_type=PROBABILITY if i % 2 else CONTINUOUS, mean=0, stddev=1
             )
             for i in range(1, 5)
         }
@@ -29,7 +30,7 @@ class FeatureExtractorTestBase(unittest.TestCase):
         # Sorted order: 12, 11, 13
         return {
             i: NormalizationParameters(
-                feature_type=CONTINUOUS if i % 2 else PROBABILITY
+                feature_type=CONTINUOUS if i % 2 else PROBABILITY, mean=0, stddev=1
             )
             for i in range(11, 14)
         }
@@ -43,9 +44,9 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field.values()), values)
         return lengths, keys, values
 
-    def expected_state_features(self):
+    def expected_state_features(self, normalize):
         # Feature order: 1, 3, 2, 4
-        return np.array(
+        dense = np.array(
             [
                 [1, MISSING_VALUE, 0, MISSING_VALUE],
                 [MISSING_VALUE, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
@@ -53,6 +54,11 @@ class FeatureExtractorTestBase(unittest.TestCase):
             ],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [1, 3, 2, 4], self.get_state_normalization_parameters()
+            )
+        return dense
 
     def setup_next_state_features(self, ws, field):
         lengths = np.array([2, 2, 4], dtype=np.int32)
@@ -63,9 +69,9 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field.values()), values)
         return lengths, keys, values
 
-    def expected_next_state_features(self):
+    def expected_next_state_features(self, normalize):
         # Feature order: 1, 3, 2, 4
-        return np.array(
+        dense = np.array(
             [
                 [11, MISSING_VALUE, 10, MISSING_VALUE],
                 [13, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
@@ -73,11 +79,16 @@ class FeatureExtractorTestBase(unittest.TestCase):
             ],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [1, 3, 2, 4], self.get_state_normalization_parameters()
+            )
+        return dense
 
-    def expected_tiled_next_state_features(self):
+    def expected_tiled_next_state_features(self, normalize):
         # NOTE: this depends on lengths of possible next action
         # Feature order: 1, 3, 2, 4
-        return np.array(
+        dense = np.array(
             [
                 [11, MISSING_VALUE, 10, MISSING_VALUE],
                 [13, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
@@ -85,6 +96,11 @@ class FeatureExtractorTestBase(unittest.TestCase):
             ],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [1, 3, 2, 4], self.get_state_normalization_parameters()
+            )
+        return dense
 
     def setup_action(self, ws, field):
         action = np.array([3, 2, 1], dtype=np.int64)
@@ -112,12 +128,17 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field.values()), values)
         return lengths, keys, values
 
-    def expected_action_features(self):
+    def expected_action_features(self, normalize):
         # Feature order: 12, 11, 13
-        return np.array(
+        dense = np.array(
             [[21, 20, MISSING_VALUE], [24, 23, 25], [27, MISSING_VALUE, 26]],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [12, 11, 13], self.get_action_normalization_parameters()
+            )
+        return dense
 
     def setup_next_action_features(self, ws, field):
         lengths = np.array([4, 2, 2], dtype=np.int32)
@@ -128,12 +149,17 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field.values()), values)
         return lengths, keys, values
 
-    def expected_next_action_features(self):
+    def expected_next_action_features(self, normalize):
         # Feature order: 12, 11, 13
-        return np.array(
+        dense = np.array(
             [[31, 30, 33], [34, MISSING_VALUE, 35], [MISSING_VALUE, 36, 37]],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [12, 11, 13], self.get_action_normalization_parameters()
+            )
+        return dense
 
     def setup_possible_next_actions_features(self, ws, field):
         lengths = np.array([1, 2, 0], dtype=np.int32)
@@ -146,9 +172,9 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field["values"].values()), values)
         return lengths, values_lengths, keys, values
 
-    def expected_possible_next_actions_features(self):
+    def expected_possible_next_actions_features(self, normalize):
         # Feature order: 12, 11, 13
-        return np.array(
+        dense = np.array(
             [
                 [MISSING_VALUE, 40, MISSING_VALUE],
                 [41, MISSING_VALUE, MISSING_VALUE],
@@ -156,6 +182,11 @@ class FeatureExtractorTestBase(unittest.TestCase):
             ],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [12, 11, 13], self.get_action_normalization_parameters()
+            )
+        return dense
 
     def setup_reward(self, ws, field):
         reward = np.array([0.5, 0.6, 0.7], dtype=np.float32)
@@ -212,9 +243,16 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         return extra_data
 
     def test_extract_max_q_discrete_action(self):
+        self._test_extract_max_q_discrete_action(normalize=False)
+
+    def test_extract_max_q_discrete_action_normalize(self):
+        self._test_extract_max_q_discrete_action(normalize=True)
+
+    def _test_extract_max_q_discrete_action(self, normalize):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             max_q_learning=True,
+            normalize=normalize,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -243,17 +281,28 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_array_equal(
             possible_next_actions[1], o.possible_next_actions.actions.numpy()
         )
-        npt.assert_array_equal(
-            self.expected_state_features(), o.state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            o.state.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_next_state_features(), o.next_state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_next_state_features(normalize),
+            o.next_state.float_features.numpy(),
+            rtol=1e-6,
         )
 
     def test_extract_sarsa_discrete_action(self):
+        self._test_extract_sarsa_discrete_action(normalize=False)
+
+    def test_extract_sarsa_discrete_action_normalize(self):
+        self._test_extract_sarsa_discrete_action(normalize=True)
+
+    def _test_extract_sarsa_discrete_action(self, normalize):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             max_q_learning=False,
+            normalize=normalize,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -275,18 +324,29 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_array_equal(action, o.action.numpy())
         npt.assert_array_equal(next_action, o.next_action.numpy())
-        npt.assert_array_equal(
-            self.expected_state_features(), o.state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            o.state.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_next_state_features(), o.next_state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_next_state_features(normalize),
+            o.next_state.float_features.numpy(),
+            rtol=1e-6,
         )
 
     def test_extract_max_q_parametric_action(self):
+        self._test_extract_max_q_parametric_action(normalize=False)
+
+    def test_extract_max_q_parametric_action_normalize(self):
+        self._test_extract_max_q_parametric_action(normalize=True)
+
+    def _test_extract_max_q_parametric_action(self, normalize):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             action_normalization_parameters=self.get_action_normalization_parameters(),
             max_q_learning=True,
+            normalize=normalize,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -308,29 +368,42 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
         )
-        npt.assert_array_equal(
-            self.expected_action_features(), o.action.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_action_features(normalize),
+            o.action.float_features.numpy(),
+            rtol=1e-6,
         )
         npt.assert_array_equal(
             possible_next_actions[0], o.possible_next_actions.lengths.numpy()
         )
-        npt.assert_array_equal(
-            self.expected_possible_next_actions_features(),
+        npt.assert_allclose(
+            self.expected_possible_next_actions_features(normalize),
             o.possible_next_actions.actions.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_state_features(), o.state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            o.state.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_tiled_next_state_features(),
+        npt.assert_allclose(
+            self.expected_tiled_next_state_features(normalize),
             o.tiled_next_state.float_features.numpy(),
+            rtol=1e-6,
         )
 
     def test_extract_sarsa_parametric_action(self):
+        self._test_extract_sarsa_parametric_action(normalize=False)
+
+    def test_extract_sarsa_parametric_action_normalize(self):
+        self._test_extract_sarsa_parametric_action(normalize=True)
+
+    def _test_extract_sarsa_parametric_action(self, normalize):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             action_normalization_parameters=self.get_action_normalization_parameters(),
             max_q_learning=False,
+            normalize=normalize,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -350,17 +423,25 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
         )
-        npt.assert_array_equal(
-            self.expected_action_features(), o.action.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_action_features(normalize),
+            o.action.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_next_action_features(), o.next_action.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_next_action_features(normalize),
+            o.next_action.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_state_features(), o.state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            o.state.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_next_state_features(), o.next_state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_next_state_features(normalize),
+            o.next_state.float_features.numpy(),
+            rtol=1e-6,
         )
 
     def test_create_net_max_q_discrete_action(self):
@@ -406,10 +487,17 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
 
     def test_create_net_max_q_parametric_action(self):
+        self._test_create_net_max_q_parametric_action(normalize=False)
+
+    def test_create_net_max_q_parametric_action_normalize(self):
+        self._test_create_net_max_q_parametric_action(normalize=True)
+
+    def _test_create_net_max_q_parametric_action(self, normalize):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             action_normalization_parameters=self.get_action_normalization_parameters(),
             max_q_learning=True,
+            normalize=normalize,
         )
         expected_input_record = schema.Struct(
             ("state_features", map_schema()),
@@ -428,10 +516,17 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
 
     def test_create_net_sarsa_parametric_action(self):
+        self._test_create_net_sarsa_parametric_action(normalize=False)
+
+    def test_create_net_sarsa_parametric_action_normalize(self):
+        self._test_create_net_sarsa_parametric_action(normalize=True)
+
+    def _test_create_net_sarsa_parametric_action(self, normalize):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             action_normalization_parameters=self.get_action_normalization_parameters(),
             max_q_learning=False,
+            normalize=normalize,
         )
         expected_input_record = schema.Struct(
             ("state_features", map_schema()),
@@ -465,9 +560,9 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         ws.feed_blob(str(field.values()), values)
         return lengths, keys, values
 
-    def expected_state_features(self):
+    def expected_state_features(self, normalize):
         # Feature order: 1, 3, 2, 4
-        return np.array(
+        dense = np.array(
             [
                 [1, MISSING_VALUE, 0, MISSING_VALUE],
                 [MISSING_VALUE, MISSING_VALUE, MISSING_VALUE, MISSING_VALUE],
@@ -475,17 +570,34 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
             ],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [1, 3, 2, 4], self.get_state_normalization_parameters()
+            )
+        return dense
 
-    def expected_action_features(self):
+    def expected_action_features(self, normalize):
         # Feature order: 12, 11, 13
-        return np.array(
+        dense = np.array(
             [[21, 20, MISSING_VALUE], [24, 23, 25], [27, MISSING_VALUE, 26]],
             dtype=np.float32,
         )
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [12, 11, 13], self.get_action_normalization_parameters()
+            )
+        return dense
 
     def test_extract_no_action(self):
+        self._test_extract_no_action(normalize=False)
+
+    def test_extract_no_action_normalize(self):
+        self._test_extract_no_action(normalize=True)
+
+    def _test_extract_no_action(self, normalize):
         extractor = PredictorFeatureExtractor(
-            state_normalization_parameters=self.get_state_normalization_parameters()
+            state_normalization_parameters=self.get_state_normalization_parameters(),
+            normalize=normalize,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -494,14 +606,23 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
-        npt.assert_array_equal(
-            self.expected_state_features(), res.state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            res.state.float_features.numpy(),
+            rtol=1e-6,
         )
 
     def test_extract_parametric_action(self):
+        self._test_extract_parametric_action(normalize=False)
+
+    def test_extract_parametric_action_normalize(self):
+        self._test_extract_parametric_action(normalize=True)
+
+    def _test_extract_parametric_action(self, normalize):
         extractor = PredictorFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             action_normalization_parameters=self.get_action_normalization_parameters(),
+            normalize=normalize,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -510,16 +631,27 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
-        npt.assert_array_equal(
-            self.expected_action_features(), res.action.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_action_features(normalize),
+            res.action.float_features.numpy(),
+            rtol=1e-6,
         )
-        npt.assert_array_equal(
-            self.expected_state_features(), res.state.float_features.numpy()
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            res.state.float_features.numpy(),
+            rtol=1e-6,
         )
 
     def test_create_net_sarsa_no_action(self):
+        self._test_create_net_sarsa_no_action(normalize=False)
+
+    def test_create_net_sarsa_no_action_normalize(self):
+        self._test_create_net_sarsa_no_action(normalize=True)
+
+    def _test_create_net_sarsa_no_action(self, normalize):
         extractor = PredictorFeatureExtractor(
-            state_normalization_parameters=self.get_state_normalization_parameters()
+            state_normalization_parameters=self.get_state_normalization_parameters(),
+            normalize=normalize,
         )
         expected_input_record = schema.Struct(("float_features", map_schema()))
         expected_output_record = schema.Struct(("state", schema.Scalar()))
@@ -528,9 +660,16 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         )
 
     def test_create_net_parametric_action(self):
+        self._test_create_net_parametric_action(normalize=False)
+
+    def test_create_net_parametric_action_normalize(self):
+        self._test_create_net_parametric_action(normalize=True)
+
+    def _test_create_net_parametric_action(self, normalize):
         extractor = PredictorFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             action_normalization_parameters=self.get_action_normalization_parameters(),
+            normalize=normalize,
         )
         expected_input_record = schema.Struct(("float_features", map_schema()))
         expected_output_record = schema.Struct(

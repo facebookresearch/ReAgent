@@ -25,7 +25,6 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
-from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import (
@@ -128,11 +127,7 @@ class TestGridworldSAC(GridworldTestBase):
         output_transformer = ParametricActionOutputTransformer()
 
         return ParametricDQNExporter(
-            trainer.q1_network,
-            feature_extractor,
-            output_transformer,
-            Preprocessor(environment.normalization, False, True),
-            Preprocessor(environment.normalization_action, False, True),
+            trainer.q1_network, feature_extractor, output_transformer
         )
 
     def get_actor_predictor(self, trainer, environment):
@@ -147,10 +142,7 @@ class TestGridworldSAC(GridworldTestBase):
         )
 
         predictor = ActorExporter(
-            trainer.actor_network,
-            feature_extractor,
-            output_transformer,
-            Preprocessor(environment.normalization, False, True),
+            trainer.actor_network, feature_extractor, output_transformer
         ).export()
         return predictor
 
