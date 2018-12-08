@@ -41,7 +41,7 @@ class TestConstantReward(unittest.TestCase):
             actions=env.actions,
             rl=RLParameters(
                 gamma=0.99,
-                target_update_rate=1.0,
+                target_update_rate=0.9,
                 reward_burnin=100,
                 maxq_learning=True,
             ),
@@ -52,7 +52,7 @@ class TestConstantReward(unittest.TestCase):
                 layers=self.layers,
                 activations=self.activations,
                 minibatch_size=self.minibatch_size,
-                learning_rate=1.0,
+                learning_rate=0.25,
                 optimizer="ADAM",
             ),
         )

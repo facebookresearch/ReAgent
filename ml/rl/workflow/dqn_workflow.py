@@ -128,10 +128,11 @@ def train_network(params):
                 sequence_numbers=tdp.sequence_numbers.cpu().numpy(),
                 states=tdp.states.cpu().numpy(),
                 logged_actions=tdp.actions.cpu().numpy(),
+                logged_possible_actions_mask=tdp.possible_actions_mask.cpu().numpy(),
                 logged_rewards=tdp.rewards.cpu().numpy(),
                 logged_propensities=tdp.propensities.cpu().numpy(),
                 logged_terminals=np.invert(
-                    tdp.not_terminals.cpu().numpy().astype(np.bool)
+                    tdp.not_terminal.cpu().numpy().astype(np.bool)
                 ),
                 model_rewards=training_metadata["model_rewards"],
                 metrics=tdp.rewards.cpu().numpy(),  # Dummy until metrics CPE ported to open source

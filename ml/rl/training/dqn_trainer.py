@@ -3,7 +3,7 @@
 
 import logging
 from copy import deepcopy
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -19,6 +19,7 @@ from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
 )
 from ml.rl.training.dqn_predictor import DQNPredictor
+from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
@@ -30,7 +31,7 @@ from ml.rl.training.training_data_page import TrainingDataPage
 logger = logging.getLogger(__name__)
 
 
-class DQNTrainer(RLTrainer):
+class DQNTrainer(DQNTrainerBase):
     def __init__(
         self,
         parameters: DiscreteActionModelParameters,
@@ -175,37 +176,11 @@ class DQNTrainer(RLTrainer):
     def calculate_metric_q_values(self, states):
         return self.q_network_cpe(states).detach()
 
-    def get_max_q_values(self, states, possible_actions, double_q_learning):
-        """
-        Used in Q-learning update.
-        :param states: Numpy array with shape (batch_size, state_dim). Each row
-            contains a representation of a state.
-        :param possible_actions: Numpy array with shape (batch_size, action_dim).
-            possible_next_actions[i][j] = 1 iff the agent can take action j from
-            state i.
-        :param double_q_learning: bool to use double q-learning
-        """
-        if double_q_learning:
-            q_values = self.q_network(states).detach()
-            q_values_target = self.q_network_target(states).detach()
-            # Set q-values of impossible actions to a very large negative number.
-            inverse_pna = 1 - possible_actions
-            impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
-            q_values += impossible_action_penalty
-            # Select max_q action after scoring with online network
-            max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
-            # Use q_values from target network for max_q action from online q_network
-            # to decouble selection & scoring, preventing overestimation of q-values
-            q_values = torch.gather(q_values_target, 1, max_indicies)
-            return q_values, max_indicies
-        else:
-            q_values = self.q_network_target(states).detach()
-            # Set q-values of impossible actions to a very large negative number.
-            inverse_pna = 1 - possible_actions
-            impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
-            q_values += impossible_action_penalty
-            max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
-            return max_q_values, max_indicies
+    def get_detached_q_values(self, states) -> Tuple[torch.Tensor, torch.Tensor]:
+        with torch.no_grad():
+            q_values = self.q_network(states)
+            q_values_target = self.q_network_target(states)
+        return q_values, q_values_target
 
     def get_next_action_q_values(self, states, next_actions):
         """
@@ -236,13 +211,16 @@ class DQNTrainer(RLTrainer):
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)
             assert (
-                training_samples.not_terminals.shape == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.not_terminals.shape)
-            if training_samples.possible_next_actions is not None:
+                training_samples.not_terminal.shape == training_samples.rewards.shape
+            ), "Invalid shape: " + str(training_samples.not_terminal.shape)
+            if training_samples.possible_next_actions_mask is not None:
                 assert (
-                    training_samples.possible_next_actions.shape
+                    training_samples.possible_next_actions_mask.shape
                     == training_samples.actions.shape
-                ), "Invalid shape: " + str(training_samples.possible_next_actions.shape)
+                ), (
+                    "Invalid shape: "
+                    + str(training_samples.possible_next_actions_mask.shape)
+                )
             if training_samples.propensities is not None:
                 assert (
                     training_samples.propensities.shape
@@ -263,26 +241,30 @@ class DQNTrainer(RLTrainer):
         states = training_samples.states.detach().requires_grad_(True)
         actions = training_samples.actions
         rewards = boosted_rewards
-        next_states = training_samples.next_states
         discount_tensor = torch.full(
             training_samples.time_diffs.shape, self.gamma
         ).type(self.dtype)
-        not_done_mask = training_samples.not_terminals
+        not_done_mask = training_samples.not_terminal
 
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(training_samples.time_diffs)
 
+        all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
+            training_samples.next_states
+        )
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
-            possible_next_actions = training_samples.possible_next_actions
             next_q_values, max_q_action_idxs = self.get_max_q_values(
-                next_states, possible_next_actions, self.double_q_learning
+                all_next_q_values,
+                all_next_q_values_target,
+                training_samples.possible_next_actions_mask,
             )
         else:
             # SARSA
-            next_actions = training_samples.next_actions
-            next_q_values, max_q_action_idxs = self.get_next_action_q_values(
-                next_states, next_actions
+            next_q_values, max_q_action_idxs = self.get_max_q_values(
+                all_next_q_values,
+                all_next_q_values_target,
+                training_samples.next_actions,
             )
 
         filtered_next_q_vals = next_q_values * not_done_mask

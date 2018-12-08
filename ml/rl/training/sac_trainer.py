@@ -174,7 +174,7 @@ class SACTrainer(RLTrainer):
         with torch.no_grad():
             next_state_value = (
                 self.value_network_target(learning_input.next_state.float_features)
-                * not_done_mask
+                * not_done_mask.float()
             )
 
             if self.minibatch < self.reward_burnin:

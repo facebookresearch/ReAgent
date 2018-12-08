@@ -156,8 +156,8 @@ class DDPGTrainer(RLTrainer):
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)
             assert (
-                training_samples.not_terminals.shape == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.not_terminals.shape)
+                training_samples.not_terminal.shape == training_samples.rewards.shape
+            ), "Invalid shape: " + str(training_samples.not_terminal.shape)
             if self.use_seq_num_diff_as_time_diff:
                 assert (
                     training_samples.time_diffs.shape == training_samples.rewards.shape
@@ -181,7 +181,7 @@ class DDPGTrainer(RLTrainer):
         discount_tensor = torch.tensor(np.full(rewards.shape, self.gamma)).type(
             self.dtype
         )
-        not_done_mask = training_samples.not_terminals
+        not_done_mask = training_samples.not_terminal
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2

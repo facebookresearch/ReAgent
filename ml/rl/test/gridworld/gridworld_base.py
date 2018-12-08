@@ -52,10 +52,10 @@ class Samples(object):
         mdp_ids: List[str],
         sequence_numbers: List[int],
         states: List[Dict[int, float]],
-        actions: List[str],
+        actions,  # List[str] if discrete or Dict[str,float] if parametric
         action_probabilities: List[float],
         rewards: List[float],
-        possible_actions: List[List[str]],
+        possible_actions,  # List[str] if discrete or List[Dict[str,float]] if parametric
         next_states: List[Dict[int, float]],
         next_actions: List[str],
         terminals: List[bool],
@@ -561,7 +561,7 @@ class GridworldBase(object):
                 np.max(possible_next_action_strings == action, axis=1).astype(np.int64)
             )
         terminals = torch.tensor(samples.terminals, dtype=torch.int32).reshape(-1, 1)
-        not_terminals = 1 - terminals
+        not_terminal = 1 - terminals
         logger.info("Converting RT to Torch...")
 
         time_diffs = torch.ones([len(samples.states), 1])
@@ -589,9 +589,9 @@ class GridworldBase(object):
                 propensities=action_probabilities[start:end],
                 rewards=rewards[start:end],
                 next_states=next_states_ndarray[start:end],
-                not_terminals=not_terminals[start:end],
+                not_terminal=not_terminal[start:end],
                 next_actions=next_actions_one_hot[start:end],
-                possible_next_actions=possible_next_actions_mask[start:end],
+                possible_next_actions_mask=possible_next_actions_mask[start:end],
                 time_diffs=time_diffs[start:end],
             )
             tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)

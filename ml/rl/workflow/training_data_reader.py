@@ -112,7 +112,7 @@ def pandas_sparse_to_dense(feature_name_list, batch):
     for col in feature_name_list:
         if col not in state_features_df.columns:
             state_features_df[col] = normalization.MISSING_VALUE
-    return state_features_df[feature_name_list].values
+    return torch.from_numpy(state_features_df[feature_name_list].values).float()
 
 
 def preprocess_batch_for_training(
@@ -148,52 +148,102 @@ def preprocess_batch_for_training(
         )
         sorted_action_features_str = [str(x) for x in sorted_action_features]
         actions = pandas_sparse_to_dense(sorted_action_features_str, batch["action"])
-        actions = action_preprocessor.forward(actions)
 
         if "possible_next_actions" not in batch.keys():
-            # DDPG
-            not_terminals = torch.from_numpy(
+            # DDPG / SAC
+            not_terminal = torch.from_numpy(
                 np.array(batch["next_action"], dtype=np.bool).astype(np.float32)
             ).reshape(-1, 1)
-            pnas, pnas_lens, possible_next_state_actions = None, None, None
-            pas, pas_lens, possible_state_actions = None, None, None
+            pnas, pnas_mask, possible_next_state_actions = None, None, None
+            pas, pas_mask, possible_state_actions = None, None, None
+            next_actions = None
         else:
             # Parametric DQN
-            pnas_lens = np.array([len(l) for l in batch["possible_next_actions"]])
-            flat_pnas = list(
-                itertools.chain.from_iterable(batch["possible_next_actions"])
+            actions = action_preprocessor.forward(actions)
+            next_actions = pandas_sparse_to_dense(
+                sorted_action_features_str, batch["next_action"]
             )
-            not_terminals = torch.from_numpy(
-                (pnas_lens > 0).astype(np.float32)
+            next_actions = action_preprocessor.forward(next_actions)
+
+            max_action_size = max(len(pna) for pna in batch["possible_next_actions"])
+
+            pas_mask = torch.Tensor(
+                [
+                    ([1] * len(l) + [0] * (max_action_size - len(l)))
+                    for l in batch["possible_actions"]
+                ]
+            )
+            flat_pas = []
+            for pa in enumerate(batch["possible_actions"]):
+                for single_pa in enumerate(pa):
+                    flat_pas.append(single_pa)
+                for _ in range(max_action_size - len(pa)):
+                    flat_pas.append({})
+
+            pnas_mask = torch.Tensor(
+                [
+                    ([1] * len(l) + [0] * (max_action_size - len(l)))
+                    for l in batch["possible_next_actions"]
+                ]
+            )
+            flat_pnas = []
+            for pna in enumerate(batch["possible_next_actions"]):
+                for single_pna in enumerate(pna):
+                    flat_pnas.append(single_pna)
+                for _ in range(max_action_size - len(pna)):
+                    flat_pnas.append({})
+
+            not_terminal = torch.from_numpy(
+                np.array(
+                    [len(pna) > 0 for pna in batch["possible_next_actions"]]
+                ).astype(np.float32)
             ).reshape(-1, 1)
             pnas = pandas_sparse_to_dense(sorted_action_features_str, flat_pnas)
             pnas = action_preprocessor.forward(pnas)
-            tiled_next_state_features_dense = torch.from_numpy(
-                np.repeat(next_state_features_dense.cpu().numpy(), pnas_lens, axis=0)
-            )
-            pnas_lens = torch.from_numpy(pnas_lens)
+            tiled_next_state_features_dense = next_state_features_dense.repeat(
+                1, max_action_size
+            ).reshape(-1, next_state_features_dense.shape[1])
+
             possible_next_state_actions = torch.cat(
                 (tiled_next_state_features_dense, pnas.cpu()), dim=1
             )
-            pas_lens = np.array([len(l) for l in batch["possible_actions"]])
-            flat_pas = list(itertools.chain.from_iterable(batch["possible_actions"]))
+
+            pas_mask = torch.Tensor(
+                [
+                    ([1] * len(l) + [0] * (max_action_size - len(l)))
+                    for l in batch["possible_actions"]
+                ]
+            )
+            flat_pas = []
+            for pa in batch["possible_actions"]:
+                flat_pas.extend(pa)
+                for _ in range(max_action_size - len(pa)):
+                    flat_pas.append({})
             pas = pandas_sparse_to_dense(sorted_action_features_str, flat_pas)
             pas = action_preprocessor.forward(pas)
-            tiled_state_features_dense = torch.from_numpy(
-                np.repeat(state_features_dense.cpu().numpy(), pas_lens, axis=0)
-            )
-            pas_lens = torch.from_numpy(pas_lens)
+
+            tiled_state_features_dense = state_features_dense.repeat(
+                1, max_action_size
+            ).reshape(-1, state_features_dense.shape[1])
+
             possible_state_actions = torch.cat(
                 (tiled_state_features_dense, pas.cpu()), dim=1
             )
     else:
         actions = read_actions(action_names, batch["action"])
-        pnas = np.array(batch["possible_next_actions"], dtype=np.float32)
-        not_terminals = np.max(pnas, 1).astype(np.float32).reshape(-1, 1)
-        pnas = torch.from_numpy(pnas)
-        not_terminals = torch.from_numpy(not_terminals)
-        pnas_lens, possible_next_state_actions = None, None
-        pas, pas_lens, possible_state_actions = None, None, None
+        next_actions = read_actions(action_names, batch["next_action"])
+
+        pas_mask = torch.from_numpy(
+            np.array(batch["possible_next_actions"], dtype=np.float32)
+        )
+
+        pnas_mask = np.array(batch["possible_next_actions"], dtype=np.float32)
+        not_terminal = np.max(pnas_mask, 1).astype(np.float32).reshape(-1, 1)
+        pnas_mask = torch.from_numpy(pnas_mask)
+        not_terminal = torch.from_numpy(not_terminal)
+        pnas, possible_next_state_actions = None, None
+        pas, possible_state_actions = None, None
+
     if "action_probability" in batch:
         propensities = torch.tensor(
             batch["action_probability"], dtype=torch.float32
@@ -209,12 +259,13 @@ def preprocess_batch_for_training(
         propensities=propensities,
         rewards=rewards,
         possible_actions=pas,
-        possible_actions_lengths=pas_lens,
+        possible_actions_mask=pas_mask,
         next_states=next_state_features_dense,
+        next_actions=next_actions,
         possible_next_actions=pnas,
-        possible_next_actions_lengths=pnas_lens,
-        not_terminals=not_terminals,
+        possible_next_actions_mask=pnas_mask,
+        not_terminal=not_terminal,
         time_diffs=time_diffs,
-        state_pas_concat=possible_state_actions,
+        possible_actions_state_concat=possible_state_actions,
         possible_next_actions_state_concat=possible_next_state_actions,
     )

@@ -295,29 +295,3 @@ class PytorchCaffe2Converter(object):
             remapped_init_net,
             remapped_predict_net,
         )
-
-
-def arange_expand(lens_array):
-    """
-    Converts lens array to flattened array with each lens value expanded
-    using only vectorized operations.
-
-    Example:
-        lens_array: [0, 2, 1, 0, 2]
-        returns: [0, 1, 0, 0, 1]
-    """
-    lens_array = lens_array.long()
-    # Return empty np array if all 0s
-    if lens_array.sum() == 0:
-        return torch.tensor([]).type(lens_array.type())
-    # Keep values that need to be expaned
-    counts = lens_array[lens_array != 0]
-    # Record indexes in final array where ranges start over
-    counts_tmp = counts[:-1]
-    reset_index = torch.cumsum(counts_tmp, dim=0)
-    # Init final array with 1s
-    incr = torch.ones([counts.sum()]).type(counts_tmp.type())
-    # First value in output array is always 0
-    incr[0] = 0
-    incr[reset_index] = 1 - counts_tmp
-    return incr.cumsum(dim=0)

@@ -114,7 +114,7 @@ class Env(object):
             *merged
         )
 
-        not_terminals = np.logical_not(terminals).reshape(-1, 1)
+        not_terminal = np.logical_not(terminals).reshape(-1, 1)
         time_diffs = torch.ones([len(states), 1], dtype=torch.float32)
 
         tdps = []
@@ -139,8 +139,8 @@ class Env(object):
                     possible_next_actions=torch.tensor(
                         possible_next_actions[start:end], dtype=torch.float32
                     ),
-                    not_terminals=torch.tensor(
-                        not_terminals[start:end].astype(np.float32), dtype=torch.float32
+                    not_terminal=torch.tensor(
+                        not_terminal[start:end].astype(np.float32), dtype=torch.float32
                     ),
                     time_diffs=time_diffs[start:end],
                 )
