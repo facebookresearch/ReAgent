@@ -123,14 +123,13 @@ def train_network(params):
             evaluator.collect_parametric_action_samples(
                 mdp_ids=tdp.mdp_ids,
                 sequence_numbers=tdp.sequence_numbers.cpu().numpy(),
-                logged_state_actions=np.concatenate(
-                    (tdp.states.cpu().numpy(), tdp.actions.cpu().numpy()), axis=1
-                ),
+                logged_actions=tdp.actions.cpu().numpy(),
+                logged_possible_actions_mask=tdp.possible_actions_mask.cpu().numpy(),
                 logged_rewards=tdp.rewards.cpu().numpy(),
                 logged_propensities=tdp.propensities.cpu().numpy(),
-                logged_terminals=(1.0 - tdp.not_terminals),
-                possible_state_actions=tdp.state_pas_concat.cpu().numpy(),
-                pas_lens=tdp.possible_actions_lengths.cpu().numpy(),
+                logged_terminals=(1.0 - tdp.not_terminal),
+                possible_state_actions=tdp.possible_actions_state_concat.cpu().numpy(),
+                num_possible_actions=tdp.possible_actions_mask.shape[1],
                 metrics=tdp.rewards.cpu().numpy(),  # Dummy until Parametric CPE on metrics implemented
             )
 

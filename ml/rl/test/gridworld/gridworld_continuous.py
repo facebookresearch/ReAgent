@@ -3,7 +3,7 @@
 
 
 import logging
-from typing import List
+from typing import Dict, List
 
 import torch
 from caffe2.python import core, workspace
@@ -156,22 +156,21 @@ class GridworldContinuous(GridworldBase):
         ).reshape(-1, 1)
         rewards = torch.tensor(samples.rewards, dtype=torch.float32).reshape(-1, 1)
 
-        pnas_lengths_list = []
-        pnas_flat: List[List[str]] = []
-        for pnas in samples.possible_next_actions:
-            pnas_lengths_list.append(len(pnas))
-            pnas_flat.extend(pnas)
-        saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
+        max_action_size = 4
 
-        pnas_lengths = torch.tensor(pnas_lengths_list, dtype=torch.int32)
-        pna_lens_blob = "pna_lens_blob"
-        workspace.FeedBlob(pna_lens_blob, pnas_lengths.numpy())
+        pnas_mask_list: List[List[int]] = []
+        pnas_flat: List[Dict[str, float]] = []
+        for pnas in samples.possible_next_actions:
+            pnas_mask_list.append([1] * len(pnas) + [0] * (max_action_size - len(pnas)))
+            pnas_flat.extend(pnas)
+            for _ in range(max_action_size - len(pnas)):
+                pnas_flat.append({})  # Filler
+        saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
+        pnas_mask = torch.Tensor(pnas_mask_list)
 
         possible_next_actions_matrix, _ = sparse_to_dense(
             saa.lengths, saa.keys, saa.values, sorted_action_features
         )
-
-        state_pnas_tile_blob = C2.LengthsTile(next_state_matrix, pna_lens_blob)
 
         workspace.RunNetOnce(net)
 
@@ -189,6 +188,10 @@ class GridworldContinuous(GridworldBase):
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
         next_states_ndarray = state_preprocessor.forward(next_states_ndarray)
 
+        state_pnas_tile = next_states_ndarray.repeat(1, max_action_size).reshape(
+            -1, next_states_ndarray.shape[1]
+        )
+
         next_actions_ndarray = torch.from_numpy(workspace.FetchBlob(next_action_matrix))
         if normalize_actions:
             next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray)
@@ -197,16 +200,17 @@ class GridworldContinuous(GridworldBase):
             workspace.FetchBlob(possible_next_actions_matrix)
         )
 
-        state_pnas_tile = state_preprocessor.forward(
-            workspace.FetchBlob(state_pnas_tile_blob)
+        assert state_pnas_tile.shape[0] == logged_possible_next_actions.shape[0], (
+            "Invalid shapes: "
+            + str(state_pnas_tile.shape)
+            + " != "
+            + str(logged_possible_next_actions.shape)
         )
         logged_possible_next_state_actions = torch.cat(
             (state_pnas_tile, logged_possible_next_actions), dim=1
         )
 
         logger.info("Reward Timeline to Torch...")
-        possible_next_actions_ndarray = logged_possible_next_actions
-        possible_next_actions_state_concat = logged_possible_next_state_actions
         time_diffs = torch.ones([len(samples.states), 1])
 
         tdps = []
@@ -216,10 +220,7 @@ class GridworldContinuous(GridworldBase):
             end = start + minibatch_size
             if end > states_ndarray.shape[0]:
                 break
-            pnas_end = pnas_start + torch.sum(pnas_lengths[start:end])
-            pnas = possible_next_actions_ndarray[pnas_start:pnas_end]
-            pnas_concat = possible_next_actions_state_concat[pnas_start:pnas_end]
-            pnas_start = pnas_end
+            pnas_end = pnas_start + (minibatch_size * max_action_size)
             tdp = TrainingDataPage(
                 states=states_ndarray[start:end],
                 actions=actions_ndarray[start:end],
@@ -228,11 +229,14 @@ class GridworldContinuous(GridworldBase):
                 next_states=next_states_ndarray[start:end],
                 next_actions=next_actions_ndarray[start:end],
                 possible_next_actions=None,
-                not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
+                not_terminal=(pnas_mask[start:end, :].sum(dim=1, keepdim=True) > 0),
                 time_diffs=time_diffs[start:end],
-                possible_next_actions_lengths=pnas_lengths[start:end],
-                possible_next_actions_state_concat=pnas_concat,
+                possible_next_actions_mask=pnas_mask[start:end, :],
+                possible_next_actions_state_concat=logged_possible_next_state_actions[
+                    pnas_start:pnas_end, :
+                ],
             )
+            pnas_start = pnas_end
             tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
             tdps.append(tdp)
         return tdps

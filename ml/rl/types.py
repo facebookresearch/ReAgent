@@ -49,7 +49,9 @@ class ActorOutput(NamedTuple):
     log_prob: Optional[ValueType] = None
 
 
-Action = Union[DiscreteAction, ParametricAction]
+Action = Union[
+    DiscreteAction, ParametricAction
+]  # One-hot vector for discrete action DQN and feature vector for everyone else
 
 State = FeatureVector
 
@@ -67,22 +69,16 @@ class StateAction(NamedTuple):
     action: Action
 
 
-class PossibleActions(NamedTuple):
-    lengths: ValueType
-    actions: Action
-
-
-class StatePossibleActions(NamedTuple):
-    state: State
-    possible_actions: PossibleActions
-
-
 class MaxQLearningInput(NamedTuple):
     state: State
     action: Action
+    next_action: Action
     next_state: Optional[State]  # Available in case of discrete action
     tiled_next_state: Optional[State]  # Available in case of parametric action
-    possible_next_actions: PossibleActions
+    possible_actions: Optional[Action]
+    possible_actions_mask: ValueType
+    possible_next_actions: Optional[Action]
+    possible_next_actions_mask: ValueType
     reward: ValueType
     not_terminal: ValueType
 

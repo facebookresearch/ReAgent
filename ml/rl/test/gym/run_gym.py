@@ -54,28 +54,26 @@ logger = logging.getLogger(__name__)
 USE_CPU = -1
 
 
-def get_possible_next_actions(gym_env, model_type, terminal):
+def get_possible_actions(gym_env, model_type, terminal):
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
-        possible_next_actions = [
+        possible_next_actions = None
+        possible_next_actions_mask = [
             0 if terminal else 1 for __ in range(gym_env.action_dim)
         ]
-        possible_next_actions_lengths = gym_env.action_dim
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
-        if terminal:
-            possible_next_actions = np.array([])
-            possible_next_actions_lengths = 0
-        else:
-            possible_next_actions = np.eye(gym_env.action_dim)
-            possible_next_actions_lengths = gym_env.action_dim
+        possible_next_actions = np.eye(gym_env.action_dim)
+        possible_next_actions_mask = [
+            0 if terminal else 1 for __ in range(gym_env.action_dim)
+        ]
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
         possible_next_actions = None
-        possible_next_actions_lengths = 0
+        possible_next_actions_mask = None
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
         possible_next_actions = None
-        possible_next_actions_lengths = 0
+        possible_next_actions_mask = None
     else:
         raise NotImplementedError()
-    return possible_next_actions, possible_next_actions_lengths
+    return possible_next_actions, possible_next_actions_mask
 
 
 def train_sgd(
@@ -163,9 +161,7 @@ def train_gym_online_rl(
             action = next_action
 
             # Get possible actions
-            possible_actions, _ = get_possible_next_actions(
-                gym_env, model_type, terminal
-            )
+            possible_actions, _ = get_possible_actions(gym_env, model_type, terminal)
 
             if render:
                 gym_env.env.render()
@@ -186,11 +182,14 @@ def train_gym_online_rl(
             )
             reward_sum += reward
 
+            (possible_actions, possible_actions_mask) = get_possible_actions(
+                gym_env, model_type, False
+            )
+
             # Get possible next actions
-            (
-                possible_next_actions,
-                possible_next_actions_lengths,
-            ) = get_possible_next_actions(gym_env, model_type, terminal)
+            (possible_next_actions, possible_next_actions_mask) = get_possible_actions(
+                gym_env, model_type, terminal
+            )
 
             replay_buffer.insert_into_memory(
                 np.float32(state),
@@ -200,8 +199,10 @@ def train_gym_online_rl(
                 next_action,
                 terminal,
                 possible_next_actions,
-                possible_next_actions_lengths,
+                possible_next_actions_mask,
                 1,
+                possible_actions,
+                possible_actions_mask,
             )
 
             if save_timesteps_to_dataset and i >= start_saving_from_episode:

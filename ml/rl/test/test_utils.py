@@ -5,7 +5,6 @@ import unittest
 
 import numpy as np
 import torch
-from ml.rl.caffe_utils import arange_expand
 from ml.rl.training.rl_trainer_pytorch import rescale_torch_tensor
 
 
@@ -38,16 +37,3 @@ class TestUtils(unittest.TestCase):
 
         comparison_tensor = torch.eq(original_tensor, reconstructed_original_tensor)
         self.assertTrue(torch.sum(comparison_tensor), rows * cols)
-
-    def test_arange_expand(self):
-        np.testing.assert_equal(arange_expand(torch.tensor([0, 1])), np.array([0]))
-        np.testing.assert_equal(arange_expand(torch.tensor([1, 1])), np.array([0, 0]))
-        np.testing.assert_equal(
-            arange_expand(torch.tensor([2, 2])), np.array([0, 1, 0, 1])
-        )
-        np.testing.assert_equal(
-            arange_expand(torch.tensor([2, 0, 2])), np.array([0, 1, 0, 1])
-        )
-        np.testing.assert_equal(
-            arange_expand(torch.tensor([4, 2])), np.array([0, 1, 2, 3, 0, 1])
-        )

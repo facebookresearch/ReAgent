@@ -56,6 +56,7 @@ class DiscreteActionSample:
         "sequence_number",
         "state",
         "action",
+        "possible_actions_mask",
         "reward",
         "propensity",
         "terminal",
@@ -70,6 +71,7 @@ class DiscreteActionSample:
         sequence_number,
         state,
         action,
+        possible_actions_mask,
         reward,
         propensity,
         terminal,
@@ -81,6 +83,7 @@ class DiscreteActionSample:
         self.sequence_number = sequence_number
         self.state = state
         self.action = action
+        self.possible_actions_mask = possible_actions_mask
         self.reward = reward
         self.propensity = propensity
         self.terminal = terminal
@@ -93,11 +96,12 @@ class ParametricActionSample:
     __slots__ = [
         "mdp_id",
         "sequence_number",
-        "logged_state_action",
+        "action",
         "reward",
         "propensity",
         "terminal",
         "possible_state_actions",
+        "possible_actions_mask",
         "metrics",
         "metric_to_score",
     ]
@@ -106,21 +110,23 @@ class ParametricActionSample:
         self,
         mdp_id,
         sequence_number,
-        logged_state_action,
+        action,
         reward,
         propensity,
         terminal,
         possible_state_actions,
+        possible_actions_mask,
         metrics,
         metric_to_score=None,
     ):
         self.mdp_id = mdp_id
         self.sequence_number = sequence_number
-        self.logged_state_action = logged_state_action
+        self.action = action
         self.reward = reward
         self.propensity = propensity
         self.terminal = terminal
         self.possible_state_actions = possible_state_actions
+        self.possible_actions_mask = possible_actions_mask
         self.metrics = metrics
         self.metric_to_score = metric_to_score
 
@@ -168,6 +174,7 @@ class Evaluator(object):
 
         self.unshuffled_samples: List = []
         self.unshuffled_actions: torch.tensor
+        self.unshuffled_possible_actions_mask: torch.tensor
         self.unshuffled_rewards: torch.tensor
         self.unshuffled_logged_propensities: torch.tensor
         self.unshuffled_terminals: torch.tensor
@@ -190,6 +197,7 @@ class Evaluator(object):
         sequence_numbers,
         states,
         logged_actions,
+        logged_possible_actions_mask,
         logged_rewards,
         logged_propensities,
         logged_terminals,
@@ -205,6 +213,7 @@ class Evaluator(object):
                         sequence_number=sequence_numbers[i],
                         state=states[i],
                         action=logged_actions[i],
+                        possible_actions_mask=logged_possible_actions_mask[i],
                         reward=logged_rewards[i],
                         propensity=logged_propensities[i],
                         terminal=logged_terminals[i],
@@ -217,18 +226,15 @@ class Evaluator(object):
         self,
         mdp_ids,
         sequence_numbers,
-        logged_state_actions,
+        logged_actions,
+        logged_possible_actions_mask,
         logged_rewards,
         logged_propensities,
         logged_terminals,
         possible_state_actions,
-        pas_lens,
+        num_possible_actions,
         metrics,
     ):
-        pas_lens = get_tensor(pas_lens)
-        cum_pas_lens = torch.zeros(len(pas_lens) + 1, dtype=torch.int64)
-        cum_pas_lens[1:] = torch.cumsum(pas_lens, dim=0)
-
         for i in range(len(mdp_ids)):
             mdp_id = mdp_ids[i]
             if self.mdp_id_to_probability(mdp_id) < self.mdp_sampled_rate:
@@ -236,12 +242,15 @@ class Evaluator(object):
                     ParametricActionSample(
                         mdp_id=mdp_id,
                         sequence_number=sequence_numbers[i],
-                        logged_state_action=logged_state_actions[i],
+                        action=logged_actions[i],
+                        possible_actions_mask=logged_possible_actions_mask[i],
                         reward=logged_rewards[i],
                         propensity=logged_propensities[i],
                         terminal=logged_terminals[i],
                         possible_state_actions=possible_state_actions[
-                            cum_pas_lens[i] : cum_pas_lens[i + 1]
+                            (i * num_possible_actions) : (
+                                (i + 1) * num_possible_actions
+                            )
                         ],
                         metrics=metrics[i],
                     )
@@ -276,6 +285,10 @@ class Evaluator(object):
         )
 
         self.unshuffled_metrics = np.array([x.metrics for x in self.unshuffled_samples])
+        self.unshuffled_actions = np.array([x.action for x in self.unshuffled_samples])
+        self.unshuffled_possible_actions_mask = np.array(
+            [x.possible_actions_mask for x in self.unshuffled_samples]
+        )
 
         if isinstance(self.unshuffled_samples[0], DiscreteActionSample):
             unshuffled_states = get_tensor(
@@ -288,14 +301,14 @@ class Evaluator(object):
             self.unshuffled_estimated_metric_q_values = (
                 self.model.calculate_metric_q_values(unshuffled_states).cpu().numpy()
             )
-            self.unshuffled_actions = np.array(
-                [x.action for x in self.unshuffled_samples]
-            )
             self.unshuffled_model_rewards = np.array(
                 [x.model_reward for x in self.unshuffled_samples]
             )
 
         else:
+            num_possible_actions = len(
+                self.unshuffled_samples[0].possible_state_actions
+            )
             unshuffled_possible_state_actions = get_tensor(
                 np.array(
                     [
@@ -305,45 +318,24 @@ class Evaluator(object):
                     ]
                 )
             ).type(self.model.dtype)
-            pas_lens = get_tensor(
-                np.array(
-                    [len(x.possible_state_actions) for x in self.unshuffled_samples]
-                ),
-                dtype=torch.int64,
-            ).type(self.model.dtypelong)
             self.unshuffled_estimated_q_values = (
-                self.model.calculate_q_values(
-                    unshuffled_possible_state_actions, pas_lens
-                )
+                self.model.get_detached_q_values(unshuffled_possible_state_actions)[0]
+                .reshape(len(self.unshuffled_samples), num_possible_actions)
                 .cpu()
                 .numpy()
             )
-            unshuffled_logged_state_actions = get_tensor(
-                np.array([x.logged_state_action for x in self.unshuffled_samples]),
-                dtype=torch.float32,
-            ).type(self.model.dtype)
-            q_value_for_logged_state_action = (
-                self.model.calculate_q_values(
-                    unshuffled_logged_state_actions,
-                    torch.ones([unshuffled_logged_state_actions.shape[0]]).type(
-                        self.model.dtypelong
-                    ),
-                )
-                .cpu()
-                .numpy()
-            )
-            self.unshuffled_actions = (
-                q_value_for_logged_state_action == self.unshuffled_estimated_q_values
-            ).astype(np.int64)
             self.unshuffled_model_rewards = None
 
-        self.unshuffled_target_propensities = Evaluator.softmax(
-            self.unshuffled_estimated_q_values, self.model.rl_temperature
+        self.unshuffled_target_propensities = Evaluator.masked_softmax(
+            self.unshuffled_estimated_q_values,
+            self.unshuffled_possible_actions_mask,
+            self.model.rl_temperature,
         )
 
     def clear_collected_samples(self):
         self.unshuffled_samples.clear()
         self.unshuffled_actions = np.array([])
+        self.unshuffled_possible_actions_mask = np.array([])
         self.unshuffled_rewards = np.array([])
         self.unshuffled_logged_propensities = np.array([])
         self.unshuffled_terminals = np.array([])
@@ -382,8 +374,10 @@ class Evaluator(object):
                 estimated_q_values = self.unshuffled_estimated_metric_q_values[
                     :, low_idx:high_idx
                 ]
-                target_propensities = Evaluator.softmax(
-                    estimated_q_values, self.model.rl_temperature
+                target_propensities = Evaluator.masked_softmax(
+                    estimated_q_values,
+                    self.unshuffled_possible_actions_mask,
+                    self.model.rl_temperature,
                 )
                 self.score_cpe_metric(
                     metric,
@@ -1179,6 +1173,16 @@ class Evaluator(object):
             ),
         ]:
             writer.add_scalar(name, none_to_zero(value), epoch)
+
+    @staticmethod
+    def masked_softmax(x, mask, temperature):
+        """Compute softmax values for each sets of scores in x."""
+        x = x / temperature
+        mask_min_x = x - ((1.0 - mask) * 1e20)
+        x -= np.max(mask_min_x, axis=1, keepdims=True)
+        e_x = np.exp(x)
+        e_x *= mask
+        return e_x / e_x.sum(axis=1, keepdims=True)
 
     @staticmethod
     def softmax(x, temperature):
