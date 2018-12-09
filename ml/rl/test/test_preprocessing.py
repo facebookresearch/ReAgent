@@ -45,7 +45,7 @@ class TestPreprocessing(unittest.TestCase):
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values, 10, feature_type=self._feature_type_override(name)
+                name, values, 10, feature_type=self._feature_type_override(name)
             )
         for k, v in normalization_parameters.items():
             if id_to_type(k) == CONTINUOUS:
@@ -197,7 +197,7 @@ class TestPreprocessing(unittest.TestCase):
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values, feature_type=self._feature_type_override(name)
+                name, values, feature_type=self._feature_type_override(name)
             )
             values[0] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
 
@@ -240,7 +240,9 @@ class TestPreprocessing(unittest.TestCase):
 
         for feature_name, feature_values in feature_value_map.items():
             normalization_parameters = normalization.identify_parameter(
-                feature_values, feature_type=self._feature_type_override(feature_name)
+                feature_name,
+                feature_values,
+                feature_type=self._feature_type_override(feature_name),
             )
             feature_values[
                 0
@@ -318,7 +320,9 @@ class TestPreprocessing(unittest.TestCase):
 
         for feature_name, feature_values in feature_value_map.items():
             normalization_parameters[feature_name] = normalization.identify_parameter(
-                feature_values, feature_type=self._feature_type_override(feature_name)
+                feature_name,
+                feature_values,
+                feature_type=self._feature_type_override(feature_name),
             )
             feature_values[
                 0
@@ -377,6 +381,6 @@ class TestPreprocessing(unittest.TestCase):
 
         # And ask for a binary anyways
         parameter = normalization.identify_parameter(
-            probability_values, feature_type=identify_types.BINARY
+            "_", probability_values, feature_type=identify_types.BINARY
         )
         self.assertEqual(parameter.feature_type, "BINARY")

@@ -58,6 +58,7 @@ def no_op_feature():
 
 
 def identify_parameter(
+    feature_name,
     values,
     max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
     quantile_size=DEFAULT_MAX_QUANTILE_SIZE,
@@ -154,6 +155,9 @@ def identify_parameter(
         mean = float(np.mean(values))
         values = values - mean
         stddev = max(float(np.std(values, ddof=1)), 1.0)
+        assert np.isfinite(stddev), "Std. dev not finite for feature {}".format(
+            feature_name
+        )
         values /= stddev
 
     if feature_type == identify_types.ENUM:
@@ -255,6 +259,7 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
         np.any(np.isnan(feature_values))
     ), "Feature values contain nan (are there nulls in the feature values?)"
     normalization_parameters = identify_parameter(
+        feature_name,
         feature_values,
         norm_params["max_unique_enum_values"],
         norm_params["quantile_size"],

@@ -286,7 +286,7 @@ class PreprocessorNet:
 
         zeros = C2.ConstantFill(blob, value=0.0)
         output_blob = C2.Where(is_empty, zeros, blob)
-
+        output_blob = C2.NanCheck(output_blob)
         return output_blob, parameters
 
     def _store_parameter(self, parameters, name, value):
@@ -394,7 +394,6 @@ class PreprocessorNet:
             concatenated_input_blob, concatenated_input_blob_dim = C2.Concat(
                 *normalized_input_blobs, axis=1
             )
-            concatenated_input_blob = C2.NanCheck(concatenated_input_blob)
         return concatenated_input_blob, parameters
 
     def _get_type_boundaries(
