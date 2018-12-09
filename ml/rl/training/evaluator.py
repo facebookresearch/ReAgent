@@ -181,6 +181,21 @@ class Evaluator(object):
         self.unshuffled_estimated_q_values: torch.tensor
         self.unshuffled_estimated_metric_q_values: torch.tensor
 
+    def compute_values_for_mdp(
+        self, sequence_numbers: torch.Tensor, rewards: torch.Tensor
+    ) -> torch.Tensor:
+        values = rewards.clone()
+
+        for x in range(len(values) - 2, -1, -1):
+            values[x, 0] += values[x + 1, 0] * math.pow(
+                self.gamma, float(sequence_numbers[x + 1, 0] - sequence_numbers[x, 0])
+            )
+
+        return values
+
+    def evaluate_post_training(self, batch):
+        return None
+
     def mdp_id_to_probability(self, mdp_id):
         """
         Return a reproducible random float in the interval [0, 1) for the mdp_id.
@@ -456,7 +471,12 @@ class Evaluator(object):
 
         # Set metrics to score in samples
         for i in range(len(self.unshuffled_samples)):
-            self.unshuffled_samples[i].metric_to_score = real_metric_array[i]
+            if isinstance(real_metric_array[i], torch.Tensor):
+                self.unshuffled_samples[i].metric_to_score = (
+                    real_metric_array[i].cpu().numpy()
+                )
+            else:
+                self.unshuffled_samples[i].metric_to_score = real_metric_array[i]
 
         logged_values = Evaluator.compute_episode_value_from_samples(
             self.unshuffled_samples, gamma
