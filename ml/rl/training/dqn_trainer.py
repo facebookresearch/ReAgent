@@ -231,11 +231,9 @@ class DQNTrainer(DQNTrainerBase):
                     training_samples.metrics.shape[0] == self.minibatch_size
                 ), "Invalid shape: " + str(training_samples.metrics.shape)
 
-        # Apply reward boost if specified
-        reward_boosts = torch.sum(
-            training_samples.actions.float() * self.reward_boosts, dim=1, keepdim=True
+        boosted_rewards = self.boost_rewards(
+            training_samples.rewards, training_samples.actions
         )
-        boosted_rewards = training_samples.rewards + reward_boosts
 
         self.minibatch += 1
         states = training_samples.states.detach().requires_grad_(True)
@@ -370,6 +368,15 @@ class DQNTrainer(DQNTrainerBase):
         training_metadata = {}
         training_metadata["model_rewards"] = reward_estimates.detach().cpu().numpy()
         return training_metadata
+
+    def boost_rewards(
+        self, rewards: torch.Tensor, actions: torch.Tensor
+    ) -> torch.Tensor:
+        # Apply reward boost if specified
+        reward_boosts = torch.sum(
+            actions.float() * self.reward_boosts, dim=1, keepdim=True
+        )
+        return rewards + reward_boosts
 
     def predictor(self, set_missing_value_to_zero=False) -> DQNPredictor:
         """Builds a DQNPredictor."""
