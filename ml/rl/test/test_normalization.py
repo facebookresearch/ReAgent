@@ -41,7 +41,7 @@ class TestNormalization(unittest.TestCase):
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values, 10, feature_type=self._feature_type_override(name)
+                name, values, 10, feature_type=self._feature_type_override(name)
             )
         for k, v in normalization_parameters.items():
             if id_to_type(k) == CONTINUOUS:
@@ -206,7 +206,7 @@ class TestNormalization(unittest.TestCase):
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values, feature_type=self._feature_type_override(name)
+                name, values, feature_type=self._feature_type_override(name)
             )
 
         s = normalization.serialize(normalization_parameters)
@@ -249,7 +249,7 @@ class TestNormalization(unittest.TestCase):
         normalization_parameters = {}
         for name, values in feature_value_map.items():
             normalization_parameters[name] = normalization.identify_parameter(
-                values, feature_type=self._feature_type_override(name)
+                name, values, feature_type=self._feature_type_override(name)
             )
         test_features = NumpyFeatureProcessor.preprocess(
             feature_value_map, normalization_parameters
@@ -317,6 +317,6 @@ class TestNormalization(unittest.TestCase):
 
         # And ask for a binary anyways
         parameter = normalization.identify_parameter(
-            probability_values, feature_type=identify_types.BINARY
+            "_", probability_values, feature_type=identify_types.BINARY
         )
         self.assertEqual(parameter.feature_type, "BINARY")
