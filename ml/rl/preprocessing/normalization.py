@@ -155,9 +155,9 @@ def identify_parameter(
         mean = float(np.mean(values))
         values = values - mean
         stddev = max(float(np.std(values, ddof=1)), 1.0)
-        assert np.isfinite(stddev), "Std. dev not finite for feature {}".format(
-            feature_name
-        )
+        if not np.isfinite(stddev):
+            logger.info("Std. dev not finite for feature {}".format(feature_name))
+            return None
         values /= stddev
 
     if feature_type == identify_types.ENUM:
