@@ -33,7 +33,6 @@ from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 DEFAULT_NUM_SAMPLES_FOR_CPE = 5000
 
@@ -159,5 +158,6 @@ def train_network(params):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     params = parse_args(sys.argv)
     train_network(params)
