@@ -28,7 +28,6 @@ from ml.rl.workflow.training_data_reader import (
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 def train_network(params):
@@ -111,5 +110,6 @@ def train_network(params):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     params = parse_args(sys.argv)
     train_network(params)
