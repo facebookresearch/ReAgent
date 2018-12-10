@@ -136,7 +136,7 @@ class Env(object):
                     next_actions=torch.tensor(
                         next_actions[start:end], dtype=torch.float32
                     ),
-                    possible_next_actions=torch.tensor(
+                    possible_next_actions_mask=torch.tensor(
                         possible_next_actions[start:end], dtype=torch.float32
                     ),
                     not_terminal=torch.tensor(
