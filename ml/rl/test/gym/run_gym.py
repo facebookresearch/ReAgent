@@ -604,6 +604,7 @@ def create_predictor(trainer, model_type, use_gpu):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     args = sys.argv
     if len(args) not in [3, 5, 7, 9, 11]:
         raise Exception(
