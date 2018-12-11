@@ -160,6 +160,8 @@ class ParametricDQNTrainer(DQNTrainerBase):
     def train(self, training_samples: TrainingDataPage) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
+            max_num_actions = training_samples.possible_next_actions_mask.shape[1]
+
             assert (
                 training_samples.states.shape[0] == self.minibatch_size
             ), "Invalid shape: " + str(training_samples.states.shape)
@@ -179,35 +181,21 @@ class ParametricDQNTrainer(DQNTrainerBase):
             ), "Invalid shape: " + str(
                 training_samples.possible_next_actions_mask.shape
             )
-            assert (
-                training_samples.possible_next_actions_mask.shape
-                == training_samples.actions.shape
-            ), (
+            assert training_samples.actions.shape[1] == self.num_action_features, (
                 "Invalid shape: "
-                + str(training_samples.possible_next_actions_mask.shape)
+                + str(training_samples.actions.shape[1])
                 + " != "
-                + str(training_samples.actions.shape)
+                + str(self.num_action_features)
             )
 
             assert (
                 training_samples.possible_next_actions_state_concat.shape[0]
-                == training_samples.possible_next_actions_mask.shape[0]
-                * training_samples.possible_next_actions_mask.shape[1]
+                == self.minibatch_size * max_num_actions
             ), (
                 "Invalid shape: "
                 + str(training_samples.possible_next_actions_state_concat.shape)
                 + " != "
-                + str(training_samples.possible_next_actions_mask.shape)
-            )
-            assert (
-                training_samples.possible_next_actions_state_concat.shape[0]
-                == training_samples.next_actions.shape[0]
-                * training_samples.next_actions.shape[1]
-            ), (
-                "Invalid shape: "
-                + str(training_samples.possible_next_actions_state_concat.shape)
-                + " != "
-                + str(training_samples.next_actions.shape)
+                + str(self.minibatch_size * max_num_actions)
             )
 
         self.minibatch += 1
