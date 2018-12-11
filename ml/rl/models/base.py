@@ -263,8 +263,6 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
                 input_blobs,
                 predict_net.Proto().external_output,
                 shapes=shapes,
-                net_type="async_scheduling",
-                num_workers=8,
             ),
             ws,
         )
