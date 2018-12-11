@@ -87,8 +87,8 @@ def train_network(params):
         use_all_avail_gpus=params["use_all_avail_gpus"],
     )
     trainer = update_model_for_warm_start(trainer)
-    state_preprocessor = Preprocessor(state_normalization, params["use_gpu"])
-    action_preprocessor = Preprocessor(action_normalization, params["use_gpu"])
+    state_preprocessor = Preprocessor(state_normalization, False)
+    action_preprocessor = Preprocessor(action_normalization, False)
 
     if trainer_params.in_training_cpe is not None:
         evaluator = Evaluator(
