@@ -151,8 +151,6 @@ class RLPredictor:
             self._input_blobs,
             self._output_blobs,
             extra_init_net=self._init_net,
-            net_type="async_scheduling",
-            num_workers=8,
         )
 
     def save(self, db_path, db_type):
