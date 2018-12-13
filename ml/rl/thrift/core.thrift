@@ -17,6 +17,8 @@ struct RLParameters {
   10: string q_network_loss = 'mse',
   11: bool set_missing_value_to_zero = false,
   12: optional i32 tensorboard_logging_freq,
+  13: double predictor_atol_check = 0.0,
+  14: double predictor_rtol_check = 1e-5,
 }
 
 struct RainbowDQNParameters {
