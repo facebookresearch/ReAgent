@@ -5,12 +5,12 @@
     "addTerminalStateRow": false,
     "actionDiscrete": true,
     "inputTableName": "cartpole_discrete",
-    "outputTableName": "cartpole_discrete_timeline",
+    "outputTableName": "cartpole_discrete_training",
+    "evalTableName": "cartpole_discrete_eval",
     "numOutputShards": 1
   },
   "query": {
-    "tableSample": 0.5,
-    "maxQLearning": true,
+    "tableSample": 10,
     "actions": [
       "0",
       "1"

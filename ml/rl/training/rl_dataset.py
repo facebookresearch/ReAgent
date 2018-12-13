@@ -63,23 +63,38 @@ class RLDataset:
         idx_bump = max(int_state_feature_keys) + 1
         if isinstance(action, list):
             # Parametric or continuous action domain
-            action = {str(i + idx_bump): v for i, v in enumerate(action)}
+            action = {str(k + idx_bump): v for k, v in enumerate(action)}
+            for k,v in list(action.items()):
+              if v == 0:
+                del action[k]
 
-        if isinstance(possible_actions, list):
-            if len(possible_actions) == 0:
-                pass
-            elif isinstance(possible_actions[0], int):
-                # Discrete action domain
-                possible_actions = [
-                    str(idx) for idx, val in enumerate(possible_actions) if val == 1
-                ]
-            elif isinstance(possible_actions[0], dict):
-                # Parametric or continuous action domain
-                action = {str(i + idx_bump): v for i, v in enumerate(action)}
-                possible_actions = [
-                    {str(k + idx_bump): v for v, k in enumerate(action)}
-                    for action in possible_actions
-                ]
+        if possible_actions is None:
+          # Continuous action
+          pass
+        elif len(possible_actions) == 0:
+          # Parametric action with no possible actions
+          pass
+        elif isinstance(possible_actions[0], int):
+            # Discrete action domain
+            possible_actions = [
+                str(idx) for idx, val in enumerate(possible_actions) if val == 1
+            ]
+        elif isinstance(possible_actions[0], list):
+            # Parametric action
+            if terminal:
+              possible_actions = []
+            else:
+              possible_actions = [
+                  {str(k + idx_bump): v for k, v in enumerate(action)}
+                  for action in possible_actions
+              ]
+              for a in possible_actions:
+                for k,v in list(a.items()):
+                  if v == 0:
+                    del a[k]
+        else:
+          print(possible_actions)
+          raise NotImplementedError()
 
         self.rows.append(
             {

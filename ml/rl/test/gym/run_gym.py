@@ -149,7 +149,7 @@ def train_gym_online_rl(
     for i in range(num_episodes):
         terminal = False
         next_state = gym_env.transform_state(gym_env.env.reset())
-        next_action = gym_env.policy(predictor, next_state, False)
+        next_action, next_action_probability = gym_env.policy(predictor, next_state, False)
         reward_sum = 0
         ep_timesteps = 0
 
@@ -159,6 +159,7 @@ def train_gym_online_rl(
         while not terminal:
             state = next_state
             action = next_action
+            action_probability = next_action_probability
 
             # Get possible actions
             possible_actions, _ = get_possible_actions(gym_env, model_type, terminal)
@@ -166,19 +167,18 @@ def train_gym_online_rl(
             if render:
                 gym_env.env.render()
 
-            action_to_log = _format_action_for_rl_dataset(action, gym_env.action_type)
+            action_to_log, gym_action = _format_action_for_log_and_gym(action, gym_env.action_type, model_type)
             if gym_env.action_type == EnvType.DISCRETE_ACTION:
-                next_state, reward, terminal, _ = gym_env.env.step(int(action_to_log))
+                next_state, reward, terminal, _ = gym_env.env.step(gym_action)
             else:
-                next_state, reward, terminal, _ = gym_env.env.step(action)
-                action_to_log = action.tolist()
+                next_state, reward, terminal, _ = gym_env.env.step(gym_action)
             next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
             total_timesteps += 1
-            next_action = gym_env.policy(predictor, next_state, False)
-            next_action_to_log = _format_action_for_rl_dataset(
-                next_action, gym_env.action_type
+            next_action, next_action_probability = gym_env.policy(predictor, next_state, False)
+            next_action_to_log, _ = _format_action_for_log_and_gym(
+                next_action, gym_env.action_type, model_type
             )
             reward_sum += reward
 
@@ -213,9 +213,9 @@ def train_gym_online_rl(
                     action_to_log,
                     reward,
                     terminal,
-                    possible_actions,
+                    possible_actions.tolist() if possible_actions is not None else possible_actions_mask,
                     1,
-                    1.0,
+                    action_probability,
                 )
 
             # Training loop
@@ -264,9 +264,9 @@ def train_gym_online_rl(
                 next_action_to_log,
                 0.0,
                 terminal,
-                possible_next_actions,
+                possible_next_actions.tolist() if possible_next_actions is not None else possible_next_actions_mask,
                 1,
-                1.0,
+                next_action_probability,
             )
 
         # Always eval on last episode if previous eval loop didn't return.
@@ -582,11 +582,14 @@ def _get_sac_trainer_params(env, sac_model_params, use_gpu):
     return trainer_args, trainer_kwargs
 
 
-def _format_action_for_rl_dataset(action, env_type):
+def _format_action_for_log_and_gym(action, env_type, model_type):
     if env_type == EnvType.DISCRETE_ACTION:
         action_index = np.argmax(action)
-        return str(action_index)
-    return action.tolist()
+        if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
+          return str(action_index), int(action_index)
+        else:
+          return action.tolist(), int(action_index)
+    return action.tolist(), action.tolist()
 
 
 def create_predictor(trainer, model_type, use_gpu):

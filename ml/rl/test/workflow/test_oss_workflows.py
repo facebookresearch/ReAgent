@@ -27,7 +27,7 @@ class TestOSSWorkflows(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/discrete_action/cartpole_training_data.json"
+                    curr_dir, "test_data/discrete_action/cartpole_training.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/discrete_action/cartpole_norm.json"
@@ -64,7 +64,7 @@ class TestOSSWorkflows(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/parametric_action/cartpole_training_data.json"
+                    curr_dir, "test_data/parametric_action/cartpole_training.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/parametric_action/state_features_norm.json"
@@ -107,7 +107,7 @@ class TestOSSWorkflows(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/continuous_action/pendulum_training_data.json"
+                    curr_dir, "test_data/continuous_action/pendulum_training.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/continuous_action/state_features_norm.json"

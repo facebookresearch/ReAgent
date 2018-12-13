@@ -37,9 +37,10 @@ First we need to generate the data required to train our RL models. For this exa
 ```
 mkdir cartpole_discrete
 
-python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0_100_eps.json -f cartpole_discrete/training_data.json
+python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0.json -f cartpole_discrete/training_data.json
 ```
-Alternatively, to skip generating the Gym data, you can use the pre-generated data found in `ml/rl/workflow/sample_datasets`.  Let's look at one row of data to see the expected input format:
+
+Let's look at one row of data to see the expected input format:
 
 ```
 gzcat ml/rl/workflow/sample_datasets/discrete_action/cartpole_pre_timeline.json.gz | head -n1 | python -m json.tool
