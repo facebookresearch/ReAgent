@@ -228,7 +228,6 @@ class GridworldContinuous(GridworldBase):
                 rewards=rewards[start:end],
                 next_states=next_states_ndarray[start:end],
                 next_actions=next_actions_ndarray[start:end],
-                possible_next_actions=None,
                 not_terminal=(pnas_mask[start:end, :].sum(dim=1, keepdim=True) > 0),
                 time_diffs=time_diffs[start:end],
                 possible_next_actions_mask=pnas_mask[start:end, :],

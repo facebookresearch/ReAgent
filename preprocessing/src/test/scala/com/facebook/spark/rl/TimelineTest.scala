@@ -23,6 +23,7 @@ class TimelineTest extends PipelineTester {
                                        true,
                                        "some_rl_input",
                                        "some_rl_timeline",
+                                       null,
                                        1)
 
     // Create fake input data

@@ -229,7 +229,8 @@ class DDPGTrainer(RLTrainer):
             self._soft_update(self.critic, self.critic_target, self.tau)
 
         self.loss_reporter.report(
-            td_loss=loss_critic_for_eval,
+            td_loss=float(loss_critic_for_eval),
+            reward_loss=None,
             model_values_on_logged_actions=critic_predictions,
         )
 

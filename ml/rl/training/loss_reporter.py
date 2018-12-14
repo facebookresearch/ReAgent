@@ -2,11 +2,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+import math
 from typing import List, NamedTuple, Optional
 
+import numpy as np
 import torch
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.training.evaluator import Evaluator
+from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -153,6 +155,8 @@ class StatsByAction(object):
 
 
 class LossReporter(object):
+    RECENT_WINDOW_SIZE = 100
+
     def __init__(self, action_names: Optional[List[str]] = None):
         assert action_names is None or len(action_names) > 0
         self.action_names: List[str] = action_names or []
@@ -272,13 +276,13 @@ class LossReporter(object):
         return self.td_loss[n:]
 
     def get_recent_td_loss(self):
-        return Evaluator.calculate_recent_window_average(
-            self.td_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
+        return LossReporter.calculate_recent_window_average(
+            self.td_loss, LossReporter.RECENT_WINDOW_SIZE, num_entries=1
         )
 
     def get_recent_reward_loss(self):
-        return Evaluator.calculate_recent_window_average(
-            self.reward_loss, Evaluator.RECENT_WINDOW_SIZE, num_entries=1
+        return LossReporter.calculate_recent_window_average(
+            self.reward_loss, LossReporter.RECENT_WINDOW_SIZE, num_entries=1
         )
 
     def get_logged_action_distribution(self):
@@ -291,3 +295,27 @@ class LossReporter(object):
             k: (v / total_actions)
             for k, v in self.model_action_counts_cumulative.items()
         }
+
+    def log_to_tensorboard(self, writer: SummaryWriter, epoch: int) -> None:
+        def none_to_zero(x: Optional[float]) -> float:
+            if x is None or math.isnan(x):
+                return 0.0
+            return x
+
+        for name, value in [
+            ("Training/td_loss", self.get_recent_td_loss()),
+            ("Training/reward_loss", self.get_recent_reward_loss()),
+        ]:
+            writer.add_scalar(name, none_to_zero(value), epoch)
+
+    @staticmethod
+    def calculate_recent_window_average(arr, window_size, num_entries):
+        if len(arr) > 0:
+            begin = max(0, len(arr) - window_size)
+            return np.mean(np.array(arr[begin:]), axis=0)
+        else:
+            logger.error("Not enough samples for evaluation.")
+            if num_entries == 1:
+                return float("nan")
+            else:
+                return [float("nan")] * num_entries

@@ -6,6 +6,7 @@
     "actionDiscrete": false,
     "inputTableName": "cartpole_parametric",
     "outputTableName": "cartpole_parametric_training_data",
+    "evalTableName": "cartpole_parametric_eval_data",
     "numOutputShards": 1
   },
   "query": {

@@ -75,7 +75,7 @@ class _ParametricDQNTrainer(DQNTrainerBase):
                 learning_input.tiled_next_state, learning_input.possible_next_actions
             )
             # Compute max a' Q(s', a') over all possible actions using target network
-            next_q_values, _ = self.get_max_q_values(
+            next_q_values, _ = self.get_max_q_values_with_target(
                 all_next_q_values.q_value,
                 all_next_q_values_target.q_value,
                 learning_input.possible_next_actions_mask.float(),

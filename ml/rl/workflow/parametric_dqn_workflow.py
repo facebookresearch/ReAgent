@@ -6,6 +6,8 @@ import sys
 import time
 
 import numpy as np
+from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
+from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
@@ -14,7 +16,6 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
@@ -64,6 +65,9 @@ def train_network(params):
 
     dataset = JSONDataset(
         params["training_data_path"], batch_size=training_parameters.minibatch_size
+    )
+    eval_dataset = JSONDataset(
+        params["eval_data_path"], batch_size=training_parameters.minibatch_size
     )
     state_normalization = read_norm_file(params["state_norm_data_path"])
     action_normalization = read_norm_file(params["action_norm_data_path"])
@@ -120,23 +124,23 @@ def train_network(params):
             tdp.set_type(trainer.dtype)
             trainer.train(tdp)
 
-            evaluator.collect_parametric_action_samples(
-                mdp_ids=tdp.mdp_ids,
-                sequence_numbers=tdp.sequence_numbers.cpu().numpy(),
-                logged_actions=tdp.actions.cpu().numpy(),
-                logged_possible_actions_mask=tdp.possible_actions_mask.cpu().numpy(),
-                logged_rewards=tdp.rewards.cpu().numpy(),
-                logged_propensities=tdp.propensities.cpu().numpy(),
-                logged_terminals=(1.0 - tdp.not_terminal),
-                possible_state_actions=tdp.possible_actions_state_concat.cpu().numpy(),
-                num_possible_actions=tdp.possible_actions_mask.shape[1],
-                metrics=tdp.rewards.cpu().numpy(),  # Dummy until Parametric CPE on metrics implemented
+        eval_dataset.reset_iterator()
+        accumulated_edp = None
+        for batch_idx in range(num_batches):
+            batch = eval_dataset.read_batch(batch_idx)
+            tdp = preprocess_batch_for_training(
+                state_preprocessor, batch, action_preprocessor=action_preprocessor
             )
+            edp = EvaluationDataPage.create_from_tdp(tdp, trainer)
+            if accumulated_edp is None:
+                accumulated_edp = edp
+            else:
+                accumulated_edp = accumulated_edp.append(edp)
+        accumulated_edp = accumulated_edp.compute_values(trainer.gamma)
 
         cpe_start_time = time.time()
-        evaluator.recover_samples_to_be_unshuffled()
-        evaluator.score_cpe(trainer_params.rl.gamma)
-        evaluator.clear_collected_samples()
+        details = evaluator.evaluate_post_training(accumulated_edp)
+        details.log()
         logger.info(
             "CPE evaluation took {} seconds.".format(time.time() - cpe_start_time)
         )

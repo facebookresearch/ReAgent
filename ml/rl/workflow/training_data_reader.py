@@ -136,8 +136,10 @@ def preprocess_batch_for_training(
     state_features_dense = state_preprocessor.forward(state_features_dense)
     next_state_features_dense = state_preprocessor.forward(next_state_features_dense)
 
-    mdp_ids = np.array(batch["mdp_id"])
-    sequence_numbers = torch.tensor(batch["sequence_number"], dtype=torch.int32)
+    mdp_ids = np.array(batch["mdp_id"]).reshape(-1, 1)
+    sequence_numbers = torch.tensor(
+        batch["sequence_number"], dtype=torch.int32
+    ).reshape(-1, 1)
     rewards = torch.tensor(batch["reward"], dtype=torch.float32).reshape(-1, 1)
     time_diffs = torch.tensor(batch["time_diff"], dtype=torch.int32).reshape(-1, 1)
 
@@ -258,11 +260,9 @@ def preprocess_batch_for_training(
         actions=actions,
         propensities=propensities,
         rewards=rewards,
-        possible_actions=pas,
         possible_actions_mask=pas_mask,
         next_states=next_state_features_dense,
         next_actions=next_actions,
-        possible_next_actions=pnas,
         possible_next_actions_mask=pnas_mask,
         not_terminal=not_terminal,
         time_diffs=time_diffs,

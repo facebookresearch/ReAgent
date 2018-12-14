@@ -251,7 +251,7 @@ class SACTrainer(RLTrainer):
             SummaryWriterContext.add_histogram("actor/loss", actor_loss)
 
         self.loss_reporter.report(
-            td_loss=q1_loss,
+            td_loss=float(q1_loss),
             reward_loss=None,
             logged_rewards=reward,
             model_values_on_logged_actions=q1_value,

@@ -6,6 +6,7 @@
     "actionDiscrete": false,
     "inputTableName": "pendulum",
     "outputTableName": "pendulum_training_data",
+    "evalTableName": "pendulum_eval",
     "numOutputShards": 1
   },
   "query": {

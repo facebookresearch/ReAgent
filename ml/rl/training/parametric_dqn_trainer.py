@@ -218,7 +218,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
                 training_samples.possible_next_actions_state_concat
             )
             # Compute max a' Q(s', a') over all possible actions using target network
-            next_q_values, _ = self.get_max_q_values(
+            next_q_values, _ = self.get_max_q_values_with_target(
                 all_next_q_values,
                 all_next_q_values_target,
                 training_samples.possible_next_actions_mask,

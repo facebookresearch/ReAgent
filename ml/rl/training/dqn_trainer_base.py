@@ -11,7 +11,30 @@ logger = logging.getLogger(__name__)
 
 
 class DQNTrainerBase(RLTrainer):
-    def get_max_q_values(self, q_values, q_values_target, possible_actions_mask):
+    def get_max_q_values(self, q_values, possible_actions_mask):
+        """
+        Used in Q-learning update.
+        :param states: Numpy array with shape (batch_size, state_dim). Each row
+            contains a representation of a state.
+        :param possible_actions_mask: Numpy array with shape (batch_size, action_dim).
+            possible_actions[i][j] = 1 iff the agent can take action j from
+            state i.
+        :param double_q_learning: bool to use double q-learning
+        """
+
+        # The parametric DQN can create flattened q values so we reshape here.
+        q_values = q_values.reshape(possible_actions_mask.shape)
+
+        # Set q-values of impossible actions to a very large negative number.
+        inverse_pna = 1 - possible_actions_mask
+        impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
+        q_values = q_values + impossible_action_penalty
+        max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
+        return max_q_values, max_indicies
+
+    def get_max_q_values_with_target(
+        self, q_values, q_values_target, possible_actions_mask
+    ):
         """
         Used in Q-learning update.
         :param states: Numpy array with shape (batch_size, state_dim). Each row
@@ -38,9 +61,4 @@ class DQNTrainerBase(RLTrainer):
             q_values = torch.gather(q_values_target, 1, max_indicies)
             return q_values, max_indicies
         else:
-            # Set q-values of impossible actions to a very large negative number.
-            inverse_pna = 1 - possible_actions_mask
-            impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
-            q_values = q_values + impossible_action_penalty
-            max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
-            return max_q_values, max_indicies
+            return self.get_max_q_values(q_values, possible_actions_mask)
