@@ -7,6 +7,8 @@ import sys
 import time
 
 import numpy as np
+from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
+from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
@@ -16,7 +18,6 @@ from ml.rl.thrift.core.ttypes import (
     TrainingParameters,
 )
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.evaluator import Evaluator
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
     minibatch_size_multiplier,
@@ -72,6 +73,9 @@ def train_network(params):
     dataset = JSONDataset(
         params["training_data_path"], batch_size=training_parameters.minibatch_size
     )
+    eval_dataset = JSONDataset(
+        params["eval_data_path"], batch_size=training_parameters.minibatch_size
+    )
     state_normalization = read_norm_file(params["state_norm_data_path"])
 
     num_batches = int(len(dataset) / training_parameters.minibatch_size)
@@ -120,29 +124,23 @@ def train_network(params):
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
 
             tdp.set_type(trainer.dtype)
-            training_metadata = trainer.train(tdp)
+            trainer.train(tdp)
 
-            evaluator.collect_discrete_action_samples(
-                mdp_ids=tdp.mdp_ids,
-                sequence_numbers=tdp.sequence_numbers.cpu().numpy(),
-                states=tdp.states.cpu().numpy(),
-                logged_actions=tdp.actions.cpu().numpy(),
-                logged_possible_actions_mask=tdp.possible_actions_mask.cpu().numpy(),
-                logged_rewards=tdp.rewards.cpu().numpy(),
-                logged_propensities=tdp.propensities.cpu().numpy(),
-                logged_terminals=np.invert(
-                    tdp.not_terminal.cpu().numpy().astype(np.bool)
-                ),
-                model_rewards=training_metadata["model_rewards"],
-                metrics=tdp.rewards.cpu().numpy(),  # Dummy until metrics CPE ported to open source
-            )
+        eval_dataset.reset_iterator()
+        accumulated_edp = None
+        for batch_idx in range(num_batches):
+            batch = eval_dataset.read_batch(batch_idx)
+            tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
+            edp = EvaluationDataPage.create_from_tdp(tdp, trainer)
+            if accumulated_edp is None:
+                accumulated_edp = edp
+            else:
+                accumulated_edp = accumulated_edp.append(edp)
+        accumulated_edp = accumulated_edp.compute_values(trainer.gamma)
 
         cpe_start_time = time.time()
-        evaluator.recover_samples_to_be_unshuffled()
-        evaluator.score_cpe(trainer_params.rl.gamma)
-        if writer is not None:
-            evaluator.log_to_tensorboard(writer, epoch)
-        evaluator.clear_collected_samples()
+        details = evaluator.evaluate_post_training(accumulated_edp)
+        details.log()
         logger.info(
             "CPE evaluation took {} seconds.".format(time.time() - cpe_start_time)
         )

@@ -7,6 +7,7 @@ from typing import Dict, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
+from ml.rl.caffe_utils import masked_softmax, softmax
 from ml.rl.models.convolutional_network import ConvolutionalNetwork
 from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
@@ -20,7 +21,6 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
-from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.rl_trainer_pytorch import (
     DEFAULT_ADDITIONAL_FEATURE_TYPES,
     RLTrainer,
@@ -252,14 +252,14 @@ class DQNTrainer(DQNTrainerBase):
         )
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
-            next_q_values, max_q_action_idxs = self.get_max_q_values(
+            next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
                 all_next_q_values,
                 all_next_q_values_target,
                 training_samples.possible_next_actions_mask,
             )
         else:
             # SARSA
-            next_q_values, max_q_action_idxs = self.get_max_q_values(
+            next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
                 all_next_q_values,
                 all_next_q_values_target,
                 training_samples.next_actions,
@@ -297,7 +297,7 @@ class DQNTrainer(DQNTrainerBase):
             metrics_reward_concat_real_vals = training_samples.rewards
         else:
             metrics_reward_concat_real_vals = torch.cat(
-                (training_samples.metrics, training_samples.rewards), dim=1
+                (training_samples.rewards, training_samples.metrics), dim=1
             )
 
         ######### Train separate reward network for CPE evaluation #############
@@ -342,9 +342,12 @@ class DQNTrainer(DQNTrainerBase):
             # Use the soft update rule to update target network
             self._soft_update(self.q_network_cpe, self.q_network_cpe_target, self.tau)
 
-        model_propensities = torch.from_numpy(
-            Evaluator.softmax(self.all_action_scores.cpu().numpy(), self.rl_temperature)
+        model_propensities = masked_softmax(
+            self.all_action_scores,
+            training_samples.possible_actions_mask,
+            self.rl_temperature,
         )
+
         self.loss_reporter.report(
             td_loss=self.loss,
             reward_loss=reward_loss,
@@ -362,7 +365,9 @@ class DQNTrainer(DQNTrainerBase):
             ],
             model_values=self.all_action_scores,
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
-            model_action_idxs=self.all_action_scores.argmax(dim=1, keepdim=True),
+            model_action_idxs=self.get_max_q_values(
+                self.all_action_scores, training_samples.possible_actions_mask
+            )[1],
         )
 
         training_metadata = {}

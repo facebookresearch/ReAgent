@@ -6,6 +6,7 @@
     "actionDiscrete": true,
     "inputTableName": "cartpole_discrete",
     "outputTableName": "cartpole_discrete_timeline",
+    "evalTableName": "cartpole_discrete_timeline_eval",
     "numOutputShards": 1
   },
   "query": {

@@ -1,5 +1,6 @@
 {
   "training_data_path": "~/cartpole_training_data.json",
+  "eval_data_path": "~/cartpole_eval_data.json",
   "state_norm_data_path": "~/state_features_norm.json",
   "action_norm_data_path": "~/action_norm.json",
   "model_output_path": "~/",

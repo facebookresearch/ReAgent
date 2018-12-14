@@ -104,7 +104,6 @@ class OpenAIGymMemoryPool:
             rewards=torch.tensor(cols[2], dtype=torch.float32).reshape(-1, 1),
             next_states=next_states,
             next_actions=next_actions,
-            possible_next_actions=possible_next_actions,
             not_terminal=torch.from_numpy(
                 np.logical_not(np.array(cols[5]), dtype=np.bool).astype(np.int32)
             ).reshape(-1, 1),

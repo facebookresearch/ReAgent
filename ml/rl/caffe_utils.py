@@ -295,3 +295,19 @@ class PytorchCaffe2Converter(object):
             remapped_init_net,
             remapped_predict_net,
         )
+
+
+def softmax(x, temperature):
+    """Compute softmax values for each sets of scores in x."""
+    x = x / temperature
+    return torch.nn.functional.softmax(x, dim=1)
+
+
+def masked_softmax(x, mask, temperature):
+    """Compute softmax values for each sets of scores in x."""
+    x = x / temperature
+    mask_min_x = x - ((1.0 - mask) * 1e20)
+    x -= torch.max(mask_min_x, dim=1, keepdim=True)[0]
+    e_x = torch.exp(x)
+    e_x *= mask
+    return e_x / e_x.sum(dim=1, keepdim=True)

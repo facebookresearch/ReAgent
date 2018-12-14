@@ -6,7 +6,9 @@ from typing import List
 
 import numpy as np
 import numpy.testing as npt
-from ml.rl.training.evaluator import Evaluator
+import torch
+from ml.rl.caffe_utils import softmax
+from ml.rl.evaluation.evaluator import Evaluator
 
 
 logger = logging.getLogger(__name__)
@@ -23,6 +25,7 @@ class GridworldEvaluator(Evaluator):
         )
 
         self._env = env
+        self.mc_loss: List[float] = []
 
         if assume_optimal_policy:
             samples = env.generate_samples(10000, 0.25, gamma)
@@ -161,118 +164,6 @@ class GridworldEvaluator(Evaluator):
 
         logger.info("EVAL ERROR: {0:.3f}".format(error_mean))
         self.mc_loss.append(error_mean)
-
-        target_propensities = Evaluator.softmax(
-            prediction, GridworldEvaluator.SOFTMAX_TEMPERATURE
-        )
-
-        reward_inverse_propensity_score, reward_direct_method, reward_doubly_robust = self.doubly_robust_one_step_policy_estimation(
-            self.logged_actions_one_hot,
-            self.logged_rewards,
-            self.logged_propensities,
-            target_propensities,
-            self.estimated_reward_values,
-        )
-        self.reward_inverse_propensity_score.append(reward_inverse_propensity_score)
-        self.reward_direct_method.append(reward_direct_method)
-        self.reward_doubly_robust.append(reward_doubly_robust)
-
-        logger.info(
-            "Reward Inverse Propensity Score              : normalized {0:.3f} raw {1:.3f}".format(
-                reward_inverse_propensity_score.normalized,
-                reward_inverse_propensity_score.raw,
-            )
-        )
-        logger.info(
-            "Reward Direct Method                         : normalized {0:.3f} raw {1:.3f}".format(
-                reward_direct_method.normalized, reward_direct_method.raw
-            )
-        )
-        logger.info(
-            "Reward Doubly Robust P.E.                    : normalized {0:.3f} raw {1:.3f}".format(
-                reward_doubly_robust.normalized, reward_doubly_robust.raw
-            )
-        )
-
-        value_inverse_propensity_score, value_direct_method, value_doubly_robust = self.doubly_robust_one_step_policy_estimation(
-            self.logged_actions_one_hot,
-            self.logged_values,
-            self.logged_propensities,
-            target_propensities,
-            self.estimated_ltv_values,
-        )
-        self.value_inverse_propensity_score.append(value_inverse_propensity_score)
-        self.value_direct_method.append(value_direct_method)
-        self.value_doubly_robust.append(value_doubly_robust)
-
-        logger.info(
-            "Value Inverse Propensity Score               : normalized {0:.3f} raw {1:.3f}".format(
-                value_inverse_propensity_score.normalized,
-                value_inverse_propensity_score.raw,
-            )
-        )
-        logger.info(
-            "Value Direct Method                          : normalized {0:.3f} raw {1:.3f}".format(
-                value_direct_method.normalized, value_direct_method.raw
-            )
-        )
-        logger.info(
-            "Value One-Step Doubly Robust P.E.            : normalized {0:.3f} raw {1:.3f}".format(
-                value_doubly_robust.normalized, value_doubly_robust.raw
-            )
-        )
-
-        sequential_doubly_robust = self.doubly_robust_sequential_policy_estimation(
-            self.logged_actions_one_hot,
-            self.logged_rewards,
-            self.logged_terminals,
-            self.logged_propensities,
-            target_propensities,
-            self.estimated_ltv_values,
-        )
-        self.value_sequential_doubly_robust.append(sequential_doubly_robust)
-
-        logger.info(
-            "Value Sequential Doubly Robust P.E.          : normalized {0:.3f} raw {1:.3f}".format(
-                sequential_doubly_robust.normalized, sequential_doubly_robust.raw
-            )
-        )
-
-        weighted_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
-            self.logged_actions_one_hot,
-            self.logged_rewards,
-            self.logged_terminals,
-            self.logged_propensities,
-            target_propensities,
-            self.estimated_ltv_values,
-            num_j_steps=1,
-            whether_self_normalize_importance_weights=True,
-        )
-        self.value_weighted_doubly_robust.append(weighted_doubly_robust)
-
-        logger.info(
-            "Value Weighted Sequential Doubly Robust P.E. : noramlized {0:.3f} raw {1:.3f}".format(
-                weighted_doubly_robust.normalized, weighted_doubly_robust.raw
-            )
-        )
-
-        magic_doubly_robust = self.weighted_doubly_robust_sequential_policy_estimation(
-            self.logged_actions_one_hot,
-            self.logged_rewards,
-            self.logged_terminals,
-            self.logged_propensities,
-            target_propensities,
-            self.estimated_ltv_values,
-            num_j_steps=GridworldEvaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
-            whether_self_normalize_importance_weights=True,
-        )
-        self.value_magic_doubly_robust.append(magic_doubly_robust)
-
-        logger.info(
-            "Value Magic Doubly Robust P.E.               : normalized {0:.3f} raw {1:.3f}".format(
-                magic_doubly_robust.normalized, magic_doubly_robust.raw
-            )
-        )
 
 
 class GridworldContinuousEvaluator(GridworldEvaluator):

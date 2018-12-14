@@ -549,6 +549,15 @@ class GridworldBase(object):
                 np.array(samples.next_actions).reshape(-1, 1) == np.array(self.ACTIONS)
             ).astype(np.int64)
         )
+        logger.info("Converting PA to Torch...")
+        possible_action_strings = np.array(
+            list(itertools.zip_longest(*samples.possible_actions, fillvalue=""))
+        ).T
+        possible_actions_mask = torch.zeros([len(samples.actions), len(self.ACTIONS)])
+        for i, action in enumerate(self.ACTIONS):
+            possible_actions_mask[:, i] = torch.tensor(
+                np.max(possible_action_strings == action, axis=1).astype(np.int64)
+            )
         logger.info("Converting PNA to Torch...")
         possible_next_action_strings = np.array(
             list(itertools.zip_longest(*samples.possible_next_actions, fillvalue=""))
@@ -591,6 +600,7 @@ class GridworldBase(object):
                 next_states=next_states_ndarray[start:end],
                 not_terminal=not_terminal[start:end],
                 next_actions=next_actions_one_hot[start:end],
+                possible_actions_mask=possible_actions_mask[start:end],
                 possible_next_actions_mask=possible_next_actions_mask[start:end],
                 time_diffs=time_diffs[start:end],
             )

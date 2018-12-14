@@ -11,6 +11,7 @@ case class TimelineConfiguration(startDs: String,
                                  actionDiscrete: Boolean,
                                  inputTableName: String,
                                  outputTableName: String,
+                                 evalTableName: String,
                                  numOutputShards: Int)
 
 /**

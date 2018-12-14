@@ -28,13 +28,7 @@ class GridworldTestBase(unittest.TestCase):
             predictor = exporter.export()
 
             evaluator.evaluate(predictor)
-            print(
-                "Pre-Training eval: ",
-                evaluator.mc_loss[-1],
-                evaluator.reward_doubly_robust[-1]
-                if len(evaluator.reward_doubly_robust) > 0
-                else "None",
-            )
+            print("Pre-Training eval: ", evaluator.mc_loss[-1])
             self.assertGreater(evaluator.mc_loss[-1], 0.09)
 
         for _ in range(self.num_epochs):
@@ -73,13 +67,7 @@ class GridworldTestBase(unittest.TestCase):
         predictor = exporter.export()
         predictorClass = predictor.__class__
         evaluator.evaluate(predictor)
-        print(
-            "Post-Training eval: ",
-            evaluator.mc_loss[-1],
-            evaluator.reward_doubly_robust[-1]
-            if len(evaluator.reward_doubly_robust) > 0
-            else "None",
-        )
+        print("Post-Training eval: ", evaluator.mc_loss[-1])
         if self.check_tolerance:
             self.assertLess(evaluator.mc_loss[-1], self.tolerance_threshold)
 
@@ -89,11 +77,5 @@ class GridworldTestBase(unittest.TestCase):
                 predictor.save(tmp_path, "minidb")
                 new_predictor = predictorClass.load(tmp_path, "minidb", False)
                 evaluator.evaluate(new_predictor)
-                print(
-                    "Post-ONNX eval: ",
-                    evaluator.mc_loss[-1],
-                    evaluator.reward_doubly_robust[-1]
-                    if len(evaluator.reward_doubly_robust) > 0
-                    else "None",
-                )
+                print("Post-ONNX eval: ", evaluator.mc_loss[-1])
                 self.assertLess(evaluator.mc_loss[-1], self.tolerance_threshold)
