@@ -54,6 +54,5 @@
     ],
     "learning_rate": 0.001,
     "l2_decay": 0.01
-  },
-  "in_training_cpe": null
+  }
 }
