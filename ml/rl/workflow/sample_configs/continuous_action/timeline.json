@@ -5,11 +5,11 @@
     "addTerminalStateRow": false,
     "actionDiscrete": false,
     "inputTableName": "pendulum",
-    "outputTableName": "pendulum_training_data",
+    "outputTableName": "pendulum_training",
     "evalTableName": "pendulum_eval",
     "numOutputShards": 1
   },
   "query": {
-    "tableSample": 0.5
+    "tableSample": 5
   }
 }

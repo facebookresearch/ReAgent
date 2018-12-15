@@ -66,9 +66,7 @@ def train_network(params):
     dataset = JSONDataset(
         params["training_data_path"], batch_size=training_parameters.minibatch_size
     )
-    eval_dataset = JSONDataset(
-        params["eval_data_path"], batch_size=training_parameters.minibatch_size
-    )
+    eval_dataset = JSONDataset(params["eval_data_path"], batch_size=16)
     state_normalization = read_norm_file(params["state_norm_data_path"])
 
     num_batches = int(len(dataset) / training_parameters.minibatch_size)
@@ -111,8 +109,10 @@ def train_network(params):
 
         eval_dataset.reset_iterator()
         accumulated_edp = None
-        for batch_idx in range(num_batches):
+        while True:
             batch = eval_dataset.read_batch(batch_idx)
+            if batch is None:
+                break
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
             edp = EvaluationDataPage.create_from_tdp(tdp, trainer)
             if accumulated_edp is None:

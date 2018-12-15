@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import bz2
 import gzip
 import itertools
 import json
@@ -77,6 +78,10 @@ class JSONDataset:
         lines = 0
         if self.file_type == "gz":
             with gzip.open(self.path) as f:
+                for _ in f:
+                    lines += 1
+        elif self.file_type == "bz2":
+            with bz2.open(self.path) as f:
                 for _ in f:
                     lines += 1
         else:
@@ -233,16 +238,17 @@ def preprocess_batch_for_training(
             )
     else:
         actions = read_actions(action_names, batch["action"])
-        next_actions = read_actions(action_names, batch["next_action"])
-
         pas_mask = torch.from_numpy(
-            np.array(batch["possible_next_actions"], dtype=np.float32)
+            np.array(batch["possible_actions"], dtype=np.float32)
         )
 
+        next_actions = read_actions(action_names, batch["next_action"])
         pnas_mask = np.array(batch["possible_next_actions"], dtype=np.float32)
-        not_terminal = np.max(pnas_mask, 1).astype(np.float32).reshape(-1, 1)
+        not_terminal = torch.from_numpy(
+            np.max(pnas_mask, 1).astype(np.float32).reshape(-1, 1)
+        ).float()
         pnas_mask = torch.from_numpy(pnas_mask)
-        not_terminal = torch.from_numpy(not_terminal)
+
         pnas, possible_next_state_actions = None, None
         pas, possible_state_actions = None, None
 
