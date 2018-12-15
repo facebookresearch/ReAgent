@@ -22,17 +22,15 @@ class TestOSSWorkflows(unittest.TestCase):
         SummaryWriterContext._reset_globals()
 
     def _test_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
-        # TODO: Re-enable this test in D13445814
-        return
         """Run DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/discrete_action/cartpole_training_data.json"
+                    curr_dir, "test_data/discrete_action/cartpole_training.json.bz2"
                 ),
                 "eval_data_path": os.path.join(
-                    curr_dir, "test_data/discrete_action/cartpole_eval_data.json"
+                    curr_dir, "test_data/discrete_action/cartpole_eval.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/discrete_action/cartpole_norm.json"
@@ -41,10 +39,10 @@ class TestOSSWorkflows(unittest.TestCase):
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
                 "actions": ["0", "1"],
-                "epochs": 5,
+                "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "training": {"minibatch_size": 16},
+                "training": {"minibatch_size": 1024},
             }
             predictor = dqn_workflow.train_network(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
@@ -63,17 +61,15 @@ class TestOSSWorkflows(unittest.TestCase):
         self._test_dqn_workflow(use_gpu=True, use_all_avail_gpus=True)
 
     def _test_parametric_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
-        # TODO: Re-enable this test in D13445814
-        return
         """Run Parametric DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/parametric_action/cartpole_training_data.json"
+                    curr_dir, "test_data/parametric_action/cartpole_training.json.bz2"
                 ),
                 "eval_data_path": os.path.join(
-                    curr_dir, "test_data/parametric_action/cartpole_eval_data.json"
+                    curr_dir, "test_data/parametric_action/cartpole_eval.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/parametric_action/state_features_norm.json"
@@ -84,10 +80,10 @@ class TestOSSWorkflows(unittest.TestCase):
                 "model_output_path": tmpdirname,
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
-                "epochs": 5,
+                "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "training": {"minibatch_size": 16},
+                "training": {"minibatch_size": 1024},
             }
             predictor = parametric_dqn_workflow.train_network(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
@@ -110,17 +106,15 @@ class TestOSSWorkflows(unittest.TestCase):
         self._test_parametric_dqn_workflow(use_gpu=True, use_all_avail_gpus=True)
 
     def _test_ddpg_workflow(self, use_gpu=False, use_all_avail_gpus=False):
-        # TODO: Re-enable this test in D13445814
-        return
         """Run DDPG workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/continuous_action/pendulum_training_data.json"
+                    curr_dir, "test_data/continuous_action/pendulum_training.json.bz2"
                 ),
                 "eval_data_path": os.path.join(
-                    curr_dir, "test_data/continuous_action/pendulum_eval_data.json"
+                    curr_dir, "test_data/continuous_action/pendulum_eval.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/continuous_action/state_features_norm.json"
@@ -131,10 +125,10 @@ class TestOSSWorkflows(unittest.TestCase):
                 "model_output_path": tmpdirname,
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
-                "epochs": 5,
+                "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "shared_training": {"minibatch_size": 16},
+                "shared_training": {"minibatch_size": 1024},
                 "actor_training": {},
                 "critic_training": {},
             }

@@ -116,11 +116,14 @@ class OpenAIGymEnvironment:
         # Add a dimension since this expects a batch of examples
         next_state = np.expand_dims(next_state.astype(np.float32), axis=0)
         action = np.zeros([self.action_dim], dtype=np.float32)
+        action_probability = 1.0
 
         if isinstance(predictor, GymDQNPredictor):
             if not test and np.random.rand() < self.epsilon:
                 action_idx = np.random.randint(self.action_dim)
+                action_probability = self.epsilon
             else:
+                action_probability = 1.0 - self.epsilon
                 if state_preprocessor:
                     next_state = state_preprocessor.forward(next_state)
                 if self.softmax_policy:
@@ -129,17 +132,20 @@ class OpenAIGymEnvironment:
                     action_idx = predictor.policy(next_state)[0]
 
             action[action_idx] = 1.0
-            return action
+            return action, action_probability
         elif isinstance(predictor, GymDDPGPredictor):
             if state_preprocessor:
                 next_state = state_preprocessor.forward(next_state)
             if test:
-                return predictor.policy(next_state)[0]
-            return predictor.policy(next_state, add_action_noise=True)[0]
+                return predictor.policy(next_state)[0], action_probability
+            return (
+                predictor.policy(next_state, add_action_noise=True)[0],
+                action_probability,
+            )
         elif isinstance(predictor, GymSACPredictor):
             if state_preprocessor:
                 next_state = state_preprocessor.forward(next_state)
-            return predictor.policy(next_state)[0]
+            return predictor.policy(next_state)[0], action_probability
         elif isinstance(predictor, DQNPredictor):
             # Use DQNPredictor directly - useful to test caffe2 predictor
             # assumes state preprocessor already part of predictor net.
@@ -147,7 +153,7 @@ class OpenAIGymEnvironment:
             q_values = predictor.predict(sparse_next_states)
             action_idx = max(q_values[0], key=q_values[0].get)
             action[int(action_idx)] = 1.0
-            return action
+            return action, action_probability
         else:
             raise NotImplementedError("Unknown predictor type")
 
@@ -209,7 +215,7 @@ class OpenAIGymEnvironment:
         """
         terminal = False
         next_state = self.transform_state(self.env.reset())
-        next_action = self.policy(predictor, next_state, test, state_preprocessor)
+        next_action, _ = self.policy(predictor, next_state, test, state_preprocessor)
         reward_sum = 0
         discounted_reward_sum = 0
         num_steps_taken = 0
@@ -227,7 +233,9 @@ class OpenAIGymEnvironment:
 
             next_state = self.transform_state(next_state)
             num_steps_taken += 1
-            next_action = self.policy(predictor, next_state, test, state_preprocessor)
+            next_action, _ = self.policy(
+                predictor, next_state, test, state_preprocessor
+            )
             reward_sum += reward
             discounted_reward_sum += reward * self.gamma ** (num_steps_taken - 1)
 

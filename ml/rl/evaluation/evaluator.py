@@ -71,7 +71,11 @@ class Evaluator(object):
 
         self.score_cpe("Reward", edp, cpe_details.reward_estimates)
 
-        if self.metrics_to_score is not None:
+        if (
+            self.metrics_to_score is not None
+            and edp.logged_metrics is not None
+            and self.action_names is not None
+        ):
             for i, metric in enumerate(self.metrics_to_score):
                 logger.info(
                     "--------- Running CPE on metric: {} ---------".format(metric)

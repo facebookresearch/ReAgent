@@ -5,11 +5,11 @@
     "addTerminalStateRow": false,
     "actionDiscrete": false,
     "inputTableName": "cartpole_parametric",
-    "outputTableName": "cartpole_parametric_training_data",
-    "evalTableName": "cartpole_parametric_eval_data",
+    "outputTableName": "cartpole_parametric_training",
+    "evalTableName": "cartpole_parametric_eval",
     "numOutputShards": 1
   },
   "query": {
-    "tableSample": 0.5
+    "tableSample": 15
   }
 }

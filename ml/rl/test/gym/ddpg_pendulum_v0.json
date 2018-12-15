@@ -6,11 +6,11 @@
   "rl": {
     "gamma": 0.99,
     "epsilon": 0,
-    "target_update_rate": 0.001,
+    "target_update_rate": 0.01,
     "softmax_policy": 0
   },
   "shared_training": {
-    "minibatch_size": 64,
+    "minibatch_size": 1024,
     "final_layer_init": 0.003,
     "optimizer": "ADAM"
   },
@@ -26,7 +26,7 @@
       "relu",
       "tanh"
     ],
-    "learning_rate": 0.0001
+    "learning_rate": 0.001
   },
   "critic_training": {
     "layers": [
@@ -44,7 +44,7 @@
     "l2_decay": 0.01
   },
   "run_details": {
-    "num_episodes": 1000,
+    "num_episodes": 200,
     "max_steps": 1000,
     "train_every_ts": 1,
     "train_after_ts": 1,

@@ -40,6 +40,7 @@ class Env(object):
         List[np.ndarray],
         List[bool],
         List[np.ndarray],
+        List[np.ndarray],
     ]:
 
         states: List[np.ndarray] = []
@@ -48,6 +49,7 @@ class Env(object):
         next_states: List[np.ndarray] = []
         next_actions: List[np.ndarray] = []
         terminals: List[bool] = []
+        possible_actions: List[np.ndarray] = []
         possible_next_actions: List[np.ndarray] = []
 
         state = self.np_random.uniform(low=-1, high=-1, size=(self.state_dims))
@@ -67,6 +69,7 @@ class Env(object):
 
             states.append(state)
             actions.append(action)
+            possible_actions.append(np.ones(self.action_dims))
             rewards.append(self.const_reward)  # constant reward
             next_states.append(next_state)
             next_actions.append(next_action)
@@ -83,6 +86,7 @@ class Env(object):
             next_states,
             next_actions,
             terminals,
+            possible_actions,
             possible_next_actions,
         )
 
@@ -94,6 +98,7 @@ class Env(object):
         next_states: List[np.ndarray],
         next_actions: List[np.ndarray],
         terminals: List[bool],
+        possible_actions: List[np.ndarray],
         possible_next_actions: List[np.ndarray],
         minibatch_size: int,
     ) -> List[TrainingDataPage]:
@@ -106,11 +111,12 @@ class Env(object):
                 next_states,
                 next_actions,
                 terminals,
+                possible_actions,
                 possible_next_actions,
             )
         )
         self.np_random.shuffle(merged)
-        states, actions, rewards, next_states, next_actions, terminals, possible_next_actions = zip(
+        states, actions, rewards, next_states, next_actions, terminals, possible_actions, possible_next_actions = zip(
             *merged
         )
 
@@ -135,6 +141,9 @@ class Env(object):
                     ),
                     next_actions=torch.tensor(
                         next_actions[start:end], dtype=torch.float32
+                    ),
+                    possible_actions_mask=torch.tensor(
+                        possible_actions[start:end], dtype=torch.float32
                     ),
                     possible_next_actions_mask=torch.tensor(
                         possible_next_actions[start:end], dtype=torch.float32
