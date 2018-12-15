@@ -5,14 +5,15 @@ import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.udf
 
-case class TimelineConfiguration(startDs: String,
-                                 endDs: String,
-                                 addTerminalStateRow: Boolean,
-                                 actionDiscrete: Boolean,
-                                 inputTableName: String,
-                                 outputTableName: String,
-                                 evalTableName: String,
-                                 numOutputShards: Int)
+case class MultiStepTimelineConfiguration(startDs: String,
+                                          endDs: String,
+                                          addTerminalStateRow: Boolean,
+                                          actionDiscrete: Boolean,
+                                          inputTableName: String,
+                                          outputTableName: String,
+                                          evalTableName: String,
+                                          numOutputShards: Int,
+                                          steps: Int)
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
@@ -60,6 +61,9 @@ case class TimelineConfiguration(startDs: String,
   * A list of actions that were possible at the current step.
   * This is optional but enables Q-Learning and improves model accuracy.
   *
+  * metrics ( MAP<STRING, DOUBLE> )
+  * The features used to calculate the reward at the current step
+  *
   * This operator will generate output table with the following columns:
   * mdp_id ( STRING ). A unique ID for the MDP chain that
   * this training example is a part of.
@@ -73,12 +77,13 @@ case class TimelineConfiguration(startDs: String,
   *
   * action_probability (DOUBLE). The probability that this action was taken.
   *
-  * reward ( DOUBLE ). The reward at the current step.
+  * reward ( ARRAY<DOUBLE> ). The rewards of consecutive n steps, starting at the current step.
   *
-  * next_state_features ( MAP<STRING,DOUBLE> ). The features of the subsequent
-  * step that are action-independent.
+  * next_state_features ( ARRAY<MAP<STRING,DOUBLE>> ). The features of the subsequent n
+  * steps that are action-independent.
   *
-  * next_action (STRING OR MAP<STRING, DOUBLE> ). The action taken at the next step
+  * next_action (ARRAY<STRING> OR ARRAY<MAP<STRING, DOUBLE>> ). The action taken at
+  * each of the next n steps
   *
   * sequence_number ( BIGINT ).
   * A number representing the location of the state in the MDP before
@@ -92,32 +97,42 @@ case class TimelineConfiguration(startDs: String,
   * sequence_number_ordinal (mdp_id + sequence_number_ordinal makes
   * a unique key).
   *
-  * time_diff ( BIGINT ).
-  * A number representing the number of states between the current
-  * state and next state. If the input table is sub-sampled
+  * time_diff ( ARRAY<BIGINT> ).
+  * A list of numbers each representing the number of states between the current
+  * state and one of the next n state. If the input table is sub-sampled
   * states will be missing. This column allows us to know how many
   * states are missing which can be used to adjust the discount factor.
   *
   * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> )
   * A list of actions that were possible at the current step.
   *
-  * possible_next_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> )
-  * A list of actions that were possible at the next step.
+  * possible_next_actions ( ARRAY<ARRAY<STRING>> OR ARRAY<ARRAY<MAP<STRING,DOUBLE>>> )
+  * A list of actions that were possible at each of the next n steps.
   *
+  * metrics (ARRAY<MAP<STRING, DOUBLE>>)
+  * The features that are used to calculate the reward at consecutive n steps,
+  * starting at the current step
   */
-object Timeline {
+object MultiStepTimeline {
 
   private val log = LoggerFactory.getLogger(this.getClass.getName)
-  def run(sqlContext: SQLContext, config: TimelineConfiguration): Unit = {
+  def run(sqlContext: SQLContext, config: MultiStepTimelineConfiguration): Unit = {
     var terminalJoin = "";
     if (config.addTerminalStateRow) {
       terminalJoin = "LEFT OUTER";
     }
+    var sortActionMethod = "UDF_SORT_STRING";
+    var sortPossibleActionMethod = "UDF_SORT_ARRAY_STRING";
+    if (!config.actionDiscrete) {
+      sortActionMethod = "UDF_SORT_MAP";
+      sortPossibleActionMethod = "UDF_SORT_ARRAY_MAP";
+    }
 
-    Timeline.validateOrDestroyTrainingTable(sqlContext,
-                                            config.outputTableName,
-                                            config.actionDiscrete)
-    Timeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
+    MultiStepTimeline.validateOrDestroyTrainingTable(sqlContext,
+                                                     config.outputTableName,
+                                                     config.actionDiscrete)
+    MultiStepTimeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
+    MultiStepTimeline.registerUDFs(sqlContext)
 
     val sqlCommand = s"""
       WITH deduped as (
@@ -151,33 +166,100 @@ object Timeline {
               row_number() over (partition by mdp_id order by mdp_id, sequence_number) as sequence_number_ordinal
               FROM deduped
       ),
-      sarsa_unshuffled AS (
+      ordinal_join AS (
           SELECT
               first_sa.mdp_id AS mdp_id,
               first_sa.state_features AS state_features,
               first_sa.action AS action,
               first_sa.action_probability as action_probability,
               first_sa.reward AS reward,
+              second_sa.reward AS next_reward,
               second_sa.state_features AS next_state_features,
               second_sa.action AS next_action,
               first_sa.sequence_number AS sequence_number,
               first_sa.sequence_number_ordinal AS sequence_number_ordinal,
-              second_sa.sequence_number - first_sa.sequence_number AS time_diff,
+              CAST(second_sa.sequence_number - first_sa.sequence_number AS BIGINT) AS time_diff,
               first_sa.possible_actions AS possible_actions,
               second_sa.possible_actions AS possible_next_actions,
-              first_sa.metrics as metrics
+              first_sa.metrics AS metrics,
+              second_sa.metrics AS next_metrics
+              FROM
+                  ordinal first_sa
+                  ${terminalJoin} JOIN ordinal second_sa
+                  ON first_sa.mdp_id = second_sa.mdp_id
+                  AND (first_sa.sequence_number_ordinal + 1) <= second_sa.sequence_number_ordinal
+                  AND (first_sa.sequence_number_ordinal + ${config.steps}) >= second_sa.sequence_number_ordinal
+      ),
+      ordinal_join_time_diff AS (
+          SELECT
+              mdp_id AS mdp_id,
+              state_features AS state_features,
+              action AS action,
+              action_probability as action_probability,
+              reward AS reward,
+              MAP(time_diff, next_reward) AS next_reward,
+              MAP(time_diff, next_state_features) AS next_state_features,
+              MAP(time_diff, next_action) AS next_action,
+              sequence_number AS sequence_number,
+              sequence_number_ordinal AS sequence_number_ordinal,
+              time_diff AS time_diff,
+              possible_actions AS possible_actions,
+              MAP(time_diff, possible_next_actions) AS possible_next_actions,
+              metrics AS metrics,
+              MAP(time_diff, next_metrics) AS next_metrics
+              FROM
+                  ordinal_join
+      ),
+      sarsa_unshuffled_multi_step AS (
+          SELECT
+              mdp_id AS mdp_id,
+              FIRST(state_features) AS state_features,
+              FIRST(action) AS action,
+              FIRST(action_probability) as action_probability,
+              UDF_PREPEND_DOUBLE(
+                FIRST(reward),
+                UDF_DROP_LAST_DOUBLE(UDF_SORT_DOUBLE(COLLECT_LIST(next_reward)))
+              ) AS reward,
+              UDF_SORT_MAP(
+                COLLECT_LIST(next_state_features)
+              ) AS next_state_features,
+              ${sortActionMethod}(
+                COLLECT_LIST(next_action)
+              ) AS next_action,
+              sequence_number AS sequence_number,
+              sequence_number_ordinal AS sequence_number_ordinal,
+              SORT_ARRAY(
+                COLLECT_LIST(time_diff)
+              ) AS time_diff,
+              FIRST(possible_actions) AS possible_actions,
+              ${sortPossibleActionMethod}(
+                COLLECT_LIST(possible_next_actions)
+              ) AS possible_next_actions,
+              UDF_PREPEND_MAP(
+                FIRST(metrics),
+                UDF_DROP_LAST_MAP(UDF_SORT_MAP(COLLECT_LIST(next_metrics)))
+              ) AS metrics
           FROM
-              ordinal first_sa
-              ${terminalJoin} JOIN ordinal second_sa
-              ON first_sa.mdp_id = second_sa.mdp_id
-              AND (first_sa.sequence_number_ordinal + 1) = second_sa.sequence_number_ordinal
+              ordinal_join_time_diff
+          GROUP BY mdp_id, sequence_number, sequence_number_ordinal
       )
       INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
-      SELECT ${Constants.TRAINING_DATA_COLUMN_NAMES
-                          .slice(1, Constants.TRAINING_DATA_COLUMN_NAMES.length)
-                          .mkString(",")}
+      SELECT
+          mdp_id,
+          state_features,
+          action,
+          action_probability,
+          reward ARRAY,
+          next_state_features,
+          next_action,
+          sequence_number,
+          sequence_number_ordinal,
+          time_diff,
+          possible_actions,
+          possible_next_actions,
+          metrics
       FROM
-          sarsa_unshuffled
+          sarsa_unshuffled_multi_step
           DISTRIBUTE BY -1 - PMOD(HASH(mdp_id, sequence_number_ordinal), 10007)
           SORT BY -1 - PMOD(HASH(mdp_id, sequence_number_ordinal), 10007)
     """.stripMargin
@@ -190,22 +272,19 @@ object Timeline {
                                      tableName: String,
                                      actionDiscrete: Boolean): Unit =
     try {
-      val checkOutputTableCommand = s"""
-      DESCRIBE ${tableName}
-      """
-      val df = sqlContext.sql(checkOutputTableCommand);
       // Validate the schema and destroy the output table if it doesn't match
       var validTable = Helper.outputTableIsValid(sqlContext, tableName, actionDiscrete)
       if (!validTable) {
         val dropTableCommand = s"""
-        DROP TABLE ${tableName}
-        """
+         DROP TABLE ${tableName}
+         """
         sqlContext.sql(dropTableCommand);
       }
     } catch {
       case e: org.apache.spark.sql.catalyst.analysis.NoSuchTableException => {}
       case e: Throwable                                                   => log.error(e.toString())
     }
+
   def createTrainingTable(sqlContext: SQLContext,
                           tableName: String,
                           actionDiscrete: Boolean): Unit = {
@@ -217,24 +296,38 @@ object Timeline {
     }
 
     val sqlCommand = s"""
-CREATE TABLE IF NOT EXISTS ${tableName} (
-    mdp_id STRING,
-    state_features MAP < STRING,
-    DOUBLE >,
-    action ${actionType},
-    action_probability DOUBLE,
-    reward DOUBLE,
-    next_state_features MAP < STRING,
-    DOUBLE >,
-    next_action ${actionType},
-    sequence_number BIGINT,
-    sequence_number_ordinal BIGINT,
-    time_diff BIGINT,
-    possible_actions ${possibleActionType},
-    possible_next_actions ${possibleActionType},
-    metrics MAP< STRING, DOUBLE>
-) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
-""".stripMargin
+      CREATE TABLE IF NOT EXISTS ${tableName} (
+          mdp_id STRING,
+          state_features MAP <STRING, DOUBLE>,
+          action ${actionType},
+          action_probability DOUBLE,
+          reward ARRAY<DOUBLE>,
+          next_state_features ARRAY<MAP<STRING,DOUBLE>>,
+          next_action ARRAY<${actionType}>,
+          sequence_number BIGINT,
+          sequence_number_ordinal BIGINT,
+          time_diff ARRAY<BIGINT>,
+          possible_actions ${possibleActionType},
+          possible_next_actions ARRAY<${possibleActionType}>,
+          metrics ARRAY<MAP<STRING, DOUBLE>>
+      ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
+    """.stripMargin
+    log.info("Create query: ")
+    log.info(sqlCommand)
     sqlContext.sql(sqlCommand);
+  }
+
+  def registerUDFs(sqlContext: SQLContext): Unit = {
+    sqlContext.udf.register("UDF_PREPEND_DOUBLE", Udfs.prepend[Double] _)
+    sqlContext.udf.register("UDF_PREPEND_MAP", Udfs.prepend[Map[String, Double]] _)
+
+    sqlContext.udf.register("UDF_SORT_DOUBLE", Udfs.sort_list_of_map[Double] _)
+    sqlContext.udf.register("UDF_SORT_STRING", Udfs.sort_list_of_map[String] _)
+    sqlContext.udf.register("UDF_SORT_MAP", Udfs.sort_list_of_map[Map[String, Double]] _)
+    sqlContext.udf.register("UDF_SORT_ARRAY_STRING", Udfs.sort_list_of_map[Seq[String]] _)
+    sqlContext.udf.register("UDF_SORT_ARRAY_MAP", Udfs.sort_list_of_map[Seq[Map[String, Double]]] _)
+
+    sqlContext.udf.register("UDF_DROP_LAST_DOUBLE", Udfs.drop_last[Double] _)
+    sqlContext.udf.register("UDF_DROP_LAST_MAP", Udfs.drop_last[Map[String, Double]] _)
   }
 }
