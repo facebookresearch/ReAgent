@@ -245,7 +245,8 @@ class DQNTrainer(DQNTrainerBase):
         not_done_mask = training_samples.not_terminal
 
         if self.use_seq_num_diff_as_time_diff:
-            discount_tensor = discount_tensor.pow(training_samples.time_diffs)
+            time_diff = training_samples.time_diffs / self.time_diff_unit_length
+            discount_tensor = discount_tensor.pow(time_diff)
 
         all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
             training_samples.next_states
