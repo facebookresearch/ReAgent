@@ -14,7 +14,6 @@ from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
-    InTrainingCPEParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -72,7 +71,6 @@ class TestGridworld(GridworldTestBase):
                 rainbow=RainbowDQNParameters(
                     double_q_learning=True, dueling_architecture=dueling
                 ),
-                in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
             ),
             environment.normalization,
             use_gpu=use_gpu,

@@ -65,10 +65,6 @@ struct TrainingParameters {
   15: bool use_batch_norm = false,
 }
 
-struct InTrainingCPEParameters {
-  1: double mdp_sampled_rate,
-}
-
 struct EvolutionParameters {
   1: i32 population_size = 1000,
   2: double mutation_power = 0.1,
@@ -94,18 +90,16 @@ struct DiscreteActionModelParameters {
   3: TrainingParameters training,
   4: ActionBudget action_budget,
   5: RainbowDQNParameters rainbow,
-  6: optional InTrainingCPEParameters in_training_cpe,
   7: optional StateFeatureParameters state_feature_params,
   8: optional list<double> target_action_distribution,
-  9: bool cpe_enabled = true,
-  10: i32 evaluator_batch_size = 100,
+  # Some fields were removed; the next number to use is 11
 }
 
 struct ContinuousActionModelParameters {
   1: RLParameters rl,
   2: TrainingParameters training,
   4: RainbowDQNParameters rainbow,
-  5: optional InTrainingCPEParameters in_training_cpe,
+  # Some fields were removed; the next number to use is 6
 }
 
 struct DDPGNetworkParameters {
@@ -160,7 +154,6 @@ struct SACModelParameters {
   3: FeedForwardParameters q_network = {},
   4: FeedForwardParameters value_network = {},
   5: FeedForwardParameters actor_network = {},
-  7: optional InTrainingCPEParameters in_training_cpe,
   8: optional StateFeatureParameters state_feature_params,
 }
 

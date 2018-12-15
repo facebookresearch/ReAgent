@@ -11,7 +11,6 @@ from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
-    InTrainingCPEParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -49,18 +48,9 @@ def train_network(params):
     rl_parameters = RLParameters(**params["rl"])
     training_parameters = TrainingParameters(**params["training"])
     rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
-    if params["in_training_cpe"] is not None:
-        in_training_cpe_parameters = InTrainingCPEParameters(
-            **params["in_training_cpe"]
-        )
-    else:
-        in_training_cpe_parameters = None
 
     trainer_params = ContinuousActionModelParameters(
-        rl=rl_parameters,
-        training=training_parameters,
-        rainbow=rainbow_parameters,
-        in_training_cpe=in_training_cpe_parameters,
+        rl=rl_parameters, training=training_parameters, rainbow=rainbow_parameters
     )
 
     dataset = JSONDataset(
@@ -94,22 +84,12 @@ def train_network(params):
     state_preprocessor = Preprocessor(state_normalization, False)
     action_preprocessor = Preprocessor(action_normalization, False)
 
-    if trainer_params.in_training_cpe is not None:
-        evaluator = Evaluator(
-            None,
-            trainer_params.rl.gamma,
-            trainer,
-            trainer_params.in_training_cpe.mdp_sampled_rate,
-            metrics_to_score=trainer.metrics_to_score,
-        )
-    else:
-        evaluator = Evaluator(
-            None,
-            trainer_params.rl.gamma,
-            trainer,
-            float(DEFAULT_NUM_SAMPLES_FOR_CPE) / len(dataset),
-            metrics_to_score=trainer.metrics_to_score,
-        )
+    evaluator = Evaluator(
+        None,
+        trainer_params.rl.gamma,
+        trainer,
+        metrics_to_score=trainer.metrics_to_score,
+    )
 
     start_time = time.time()
     for epoch in range(params["epochs"]):

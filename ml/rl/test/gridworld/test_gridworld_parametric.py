@@ -18,7 +18,6 @@ from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
     FactorizationParameters,
     FeedForwardParameters,
-    InTrainingCPEParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -54,7 +53,6 @@ class TestGridworldParametric(GridworldTestBase):
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
-            in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_parameters_factorized(self):
@@ -84,7 +82,6 @@ class TestGridworldParametric(GridworldTestBase):
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
-            in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_trainer_exporter(

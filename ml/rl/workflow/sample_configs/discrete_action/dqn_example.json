@@ -49,6 +49,5 @@
     "warm_start_model_path": null,
     "l2_decay": 0,
     "use_noisy_linear_layers": false
-  },
-  "in_training_cpe": null
+  }
 }

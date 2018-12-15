@@ -53,15 +53,12 @@ def get_metrics_to_score(metric_reward_values):
 class Evaluator(object):
     NUM_J_STEPS_FOR_MAGIC_ESTIMATOR = 25
 
-    def __init__(
-        self, action_names, gamma, model, mdp_sampled_rate, metrics_to_score=None
-    ) -> None:
+    def __init__(self, action_names, gamma, model, metrics_to_score=None) -> None:
         self.action_names = action_names
         self.metrics_to_score = metrics_to_score
 
         self.gamma = gamma
         self.model = model
-        self.mdp_sampled_rate = mdp_sampled_rate
 
         self.doubly_robust_estimator = DoublyRobustEstimator()
         self.sequential_doubly_robust_estimator = SequentialDoublyRobustEstimator(gamma)
