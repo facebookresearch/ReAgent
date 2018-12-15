@@ -44,6 +44,7 @@ class RLTrainer:
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
+        self.time_diff_unit_length = parameters.rl.time_diff_unit_length
         self.gradient_handler = gradient_handler
         self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
 

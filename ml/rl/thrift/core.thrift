@@ -19,6 +19,7 @@ struct RLParameters {
   12: optional i32 tensorboard_logging_freq,
   13: double predictor_atol_check = 0.0,
   14: double predictor_rtol_check = 1e-5,
+  15: double time_diff_unit_length = 1.0,
 }
 
 struct RainbowDQNParameters {
