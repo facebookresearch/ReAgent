@@ -241,6 +241,11 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field()), not_terminal)
         return not_terminal
 
+    def setup_step(self, ws, field):
+        step = np.array([1, 2, 3], dtype=np.int32)
+        ws.feed_blob(str(field()), step)
+        return step
+
     def create_ws_and_net(self, extractor):
         net, init_net = extractor.create_net()
         ws = workspace.Workspace()
@@ -277,7 +282,9 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         return net.input_record() + schema.NewRecord(
             net,
             schema.Struct(
-                ("reward", schema.Scalar()), ("action_probability", schema.Scalar())
+                ("reward", schema.Scalar()),
+                ("action_probability", schema.Scalar()),
+                ("step", schema.Scalar()),
             ),
         )
 
@@ -302,6 +309,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             include_possible_actions=True,
             normalize=normalize,
             max_num_actions=2,
+            multi_steps=3,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -318,6 +326,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
+        step = self.setup_step(ws, input_record.step)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
@@ -325,6 +334,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
+        npt.assert_array_equal(step.reshape(-1, 1), o.step.numpy())
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),

@@ -47,6 +47,7 @@ class RLTrainer:
         self.time_diff_unit_length = parameters.rl.time_diff_unit_length
         self.gradient_handler = gradient_handler
         self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
+        self.multi_steps = parameters.rl.multi_steps
 
         if parameters.rl.q_network_loss == "mse":
             self.q_network_loss = getattr(F, "mse_loss")
