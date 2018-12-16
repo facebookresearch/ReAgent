@@ -63,7 +63,10 @@ class _ParametricDQNTrainer(DQNTrainerBase):
         self.minibatch += 1
 
         reward = learning_input.reward
-        discount_tensor = torch.full_like(reward, self.gamma)
+        if self.multi_steps is not None:
+            discount_tensor = torch.pow(self.gamma, learning_input.step.float())
+        else:
+            discount_tensor = torch.full_like(reward, self.gamma)
         not_done_mask = learning_input.not_terminal
 
         if self.use_seq_num_diff_as_time_diff:

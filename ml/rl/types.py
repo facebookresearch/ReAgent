@@ -81,6 +81,7 @@ class MaxQLearningInput(NamedTuple):
     possible_next_actions_mask: ValueType
     reward: ValueType
     not_terminal: ValueType
+    step: Optional[ValueType]
 
 
 class SARSAInput(NamedTuple):
@@ -90,6 +91,7 @@ class SARSAInput(NamedTuple):
     next_action: Action
     reward: ValueType
     not_terminal: ValueType
+    step: Optional[ValueType]
 
 
 class ExtraData(NamedTuple):

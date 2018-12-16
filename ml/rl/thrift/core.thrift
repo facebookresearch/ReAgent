@@ -20,6 +20,7 @@ struct RLParameters {
   13: double predictor_atol_check = 0.0,
   14: double predictor_rtol_check = 1e-5,
   15: double time_diff_unit_length = 1.0,
+  16: optional i32 multi_steps,
 }
 
 struct RainbowDQNParameters {

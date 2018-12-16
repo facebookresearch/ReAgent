@@ -102,6 +102,7 @@ class InputColumn(object):
     POSSIBLE_NEXT_ACTIONS = "possible_next_actions"
     POSSIBLE_NEXT_ACTIONS_MASK = "possible_next_actions_mask"
     NOT_TERMINAL = "not_terminal"
+    STEP = "step"
 
 
 class TrainingFeatureExtractor(FeatureExtractorBase):
@@ -122,6 +123,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         include_possible_actions: bool = True,
         normalize: bool = True,
         max_num_actions: int = None,
+        multi_steps: Optional[int] = None,
     ) -> None:
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
@@ -137,6 +139,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         self.include_possible_actions = include_possible_actions
         self.normalize = normalize
         self.max_num_actions = max_num_actions
+        self.multi_steps = multi_steps
 
     def extract(self, ws, input_record, extract_record):
         def fetch(b):
@@ -162,9 +165,17 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
         action = fetch_action(extract_record.action)
         next_action = fetch_action(extract_record.next_action)
+        if self.multi_steps is not None:
+            step = fetch(input_record.step).reshape(-1, 1)
+        else:
+            step = None
+        reward = fetch(input_record.reward).reshape(-1, 1)
+        # is_terminal should be filled by preprocessor
+        not_terminal = fetch(input_record.not_terminal).reshape(-1, 1)
 
         if self.include_possible_actions:
-            assert self.max_num_actions, "Missing max_num_actions"
+            # TODO: this will need to be more complicated to support sparse features
+            assert self.max_num_actions is not None, "Missing max_num_actions"
             possible_actions_mask = fetch(extract_record.possible_actions_mask).reshape(
                 -1, self.max_num_actions
             )
@@ -179,24 +190,14 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 possible_next_actions = fetch_possible_actions(
                     extract_record.possible_next_actions
                 )
-            else:
-                possible_actions = None
-                possible_next_actions = None
-
-        reward = fetch(input_record.reward).reshape(-1, 1)
-        not_terminal = fetch(input_record.not_terminal).reshape(-1, 1)
-
-        # is_terminal should be filled by preprocessor
-        if self.include_possible_actions:
-            if self.sorted_action_features is not None:
-                # TODO: this will need to be more complicated to support sparse features
-                assert self.max_num_actions is not None, "Missing max_num_actions"
                 tiled_next_state = mt.FeatureVector(
                     float_features=next_state.float_features.repeat(
                         1, self.max_num_actions
                     ).reshape(-1, next_state.float_features.shape[1])
                 )
             else:
+                possible_actions = None
+                possible_next_actions = None
                 tiled_next_state = None
 
             training_input = mt.MaxQLearningInput(
@@ -211,6 +212,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 next_action=next_action,
                 reward=reward,
                 not_terminal=not_terminal,
+                step=step,
             )
         else:
             training_input = mt.SARSAInput(
@@ -220,6 +222,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 next_action=next_action,
                 reward=reward,
                 not_terminal=not_terminal,
+                step=step,
             )
 
         # TODO: stuff other fields in here
