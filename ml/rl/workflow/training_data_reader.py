@@ -20,56 +20,31 @@ class JSONDataset:
     def __init__(self, path, batch_size=None, converter=None):
         self.path = os.path.expanduser(path)
         self.file_type = path.split(".")[-1]
-        self.read_data_in_chunks = self._get_chunked_reading_setting()
         self.batch_size = batch_size
         self.len = self.line_count()
-        if self.read_data_in_chunks:
-            # Do not read entire dataset into memory
-            self.reset_iterator()
-        else:
-            # Read entire dataset into memory
-            self.data = pd.read_json(self.path, lines=True)
+        self.reset_iterator()
 
     def reset_iterator(self):
-        if self.read_data_in_chunks:
-            self.data_iterator = pd.read_json(
-                self.path, lines=True, chunksize=self.batch_size
-            )
+        self.data_iterator = pd.read_json(
+            self.path, lines=True, chunksize=self.batch_size
+        )
 
-    def _get_chunked_reading_setting(self):
-        """FB internal is currently pinned to Pandas 0.20.3 which does
-        not support chunked reading from JSON files. This is a hacky
-        work around to enable chunked reading for open source."""
-        self._pd_version_int = int("".join(pd.__version__.split(".")))
-        self._min_pd_version_for_chunking = 210
-        return self._pd_version_int >= self._min_pd_version_for_chunking
-
-    def read_batch(self, index, astype="dict"):
+    def read_batch(self, astype="dict"):
         assert (
             self.batch_size is not None
         ), "Batch size must be provided to read data in batches."
 
-        starting_row = index * self.batch_size
-        ending_row = starting_row + self.batch_size
-        if self.read_data_in_chunks:
-            try:
-                x = next(self.data_iterator)
-            except StopIteration:
-                # No more data to read
-                return None
-            if astype == "dict":
-                return x.to_dict(orient="list")
-            return x
-        else:
-            if astype == "dict":
-                return self.data[starting_row:ending_row].to_dict(orient="list")
-            return self.data[starting_row:ending_row]
+        try:
+            x = next(self.data_iterator)
+        except StopIteration:
+            # No more data to read
+            return None
+        if astype == "dict":
+            return x.to_dict(orient="list")
+        return x
 
     def read_all(self):
-        if self.read_data_in_chunks:
-            return pd.read_json(self.path, lines=True)
-        else:
-            return self.data
+        return pd.read_json(self.path, lines=True)
 
     def __len__(self):
         return self.len

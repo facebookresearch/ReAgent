@@ -92,9 +92,13 @@ def train_network(params):
     start_time = time.time()
     for epoch in range(params["epochs"]):
         dataset.reset_iterator()
-        for batch_idx in range(num_batches):
+        batch_idx = -1
+        while True:
+            batch_idx += 1
             report_training_status(batch_idx, num_batches, epoch, params["epochs"])
-            batch = dataset.read_batch(batch_idx)
+            batch = dataset.read_batch()
+            if batch is None:
+                break
             tdp = preprocess_batch_for_training(
                 state_preprocessor, batch, action_preprocessor=action_preprocessor
             )
@@ -105,7 +109,7 @@ def train_network(params):
         eval_dataset.reset_iterator()
         accumulated_edp = None
         while True:
-            batch = eval_dataset.read_batch(batch_idx)
+            batch = eval_dataset.read_batch()
             if batch is None:
                 break
             tdp = preprocess_batch_for_training(
