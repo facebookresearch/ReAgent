@@ -45,8 +45,8 @@ def create_norm_table(params):
 
 
 def get_norm_metadata(dataset, norm_params, norm_col):
-    batch_idx, done = 0, False
-    batch = dataset.read_batch(batch_idx, astype="df")
+    done = False
+    batch = dataset.read_batch(astype="df")
     samples_per_feature, samples = defaultdict(int), defaultdict(list)
 
     while not done:
@@ -67,8 +67,7 @@ def get_norm_metadata(dataset, norm_params, norm_col):
         if done:
             logger.info("Collected sufficient sample size for all features. Breaking.")
 
-        batch_idx += 1
-        batch = dataset.read_batch(batch_idx, astype="df")
+        batch = dataset.read_batch(astype="df")
 
     output = {}
     for feature, values in samples.items():
