@@ -42,7 +42,7 @@ class TestOSSWorkflows(unittest.TestCase):
                 "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "training": {"minibatch_size": 1024},
+                "training": {"minibatch_size": 128},
             }
             predictor = dqn_workflow.train_network(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
@@ -83,7 +83,7 @@ class TestOSSWorkflows(unittest.TestCase):
                 "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "training": {"minibatch_size": 1024},
+                "training": {"minibatch_size": 128},
             }
             predictor = parametric_dqn_workflow.train_network(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
@@ -128,7 +128,7 @@ class TestOSSWorkflows(unittest.TestCase):
                 "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "shared_training": {"minibatch_size": 1024},
+                "shared_training": {"minibatch_size": 128},
                 "actor_training": {},
                 "critic_training": {},
             }

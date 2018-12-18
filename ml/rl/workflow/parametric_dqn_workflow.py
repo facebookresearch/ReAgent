@@ -102,7 +102,6 @@ def train_network(params):
             tdp = preprocess_batch_for_training(
                 state_preprocessor, batch, action_preprocessor=action_preprocessor
             )
-
             tdp.set_type(trainer.dtype)
             trainer.train(tdp)
 
@@ -115,6 +114,7 @@ def train_network(params):
             tdp = preprocess_batch_for_training(
                 state_preprocessor, batch, action_preprocessor=action_preprocessor
             )
+            tdp.set_type(trainer.dtype)
             edp = EvaluationDataPage.create_from_tdp(tdp, trainer)
             if accumulated_edp is None:
                 accumulated_edp = edp

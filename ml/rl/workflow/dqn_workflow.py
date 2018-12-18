@@ -118,6 +118,7 @@ def train_network(params):
             if batch is None:
                 break
             tdp = preprocess_batch_for_training(preprocessor, batch, action_names)
+            tdp.set_type(trainer.dtype)
             edp = EvaluationDataPage.create_from_tdp(tdp, trainer)
             if accumulated_edp is None:
                 accumulated_edp = edp
