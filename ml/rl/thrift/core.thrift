@@ -18,7 +18,7 @@ struct RLParameters {
   11: bool set_missing_value_to_zero = false,
   12: optional i32 tensorboard_logging_freq,
   13: double predictor_atol_check = 0.0,
-  14: double predictor_rtol_check = 1e-5,
+  14: double predictor_rtol_check = 5e-5,
   15: double time_diff_unit_length = 1.0,
   16: optional i32 multi_steps,
 }
