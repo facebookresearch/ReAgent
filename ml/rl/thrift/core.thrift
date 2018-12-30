@@ -21,6 +21,9 @@ struct RLParameters {
   14: double predictor_rtol_check = 5e-5,
   15: double time_diff_unit_length = 1.0,
   16: optional i32 multi_steps,
+  # for pytorch discrete model, specify the max number of prediction change
+  # allowed during conversions between model frameworks in ratio
+  17: optional double ratio_different_predictions_tolerance,
 }
 
 struct RainbowDQNParameters {
