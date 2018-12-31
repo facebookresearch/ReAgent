@@ -48,6 +48,7 @@ class RLTrainer:
         self.gradient_handler = gradient_handler
         self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
         self.multi_steps = parameters.rl.multi_steps
+        self.calc_cpe_in_training = parameters.evaluation.calc_cpe_in_training
 
         if parameters.rl.q_network_loss == "mse":
             self.q_network_loss = getattr(F, "mse_loss")

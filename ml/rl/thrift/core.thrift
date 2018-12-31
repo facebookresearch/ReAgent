@@ -70,6 +70,10 @@ struct TrainingParameters {
   15: bool use_batch_norm = false,
 }
 
+struct EvaluationParameters {
+  1: bool calc_cpe_in_training = true,
+}
+
 struct EvolutionParameters {
   1: i32 population_size = 1000,
   2: double mutation_power = 0.1,
@@ -98,6 +102,7 @@ struct DiscreteActionModelParameters {
   7: optional StateFeatureParameters state_feature_params,
   8: optional list<double> target_action_distribution,
   # Some fields were removed; the next number to use is 11
+  11: EvaluationParameters evaluation = {},
 }
 
 struct ContinuousActionModelParameters {
@@ -105,6 +110,7 @@ struct ContinuousActionModelParameters {
   2: TrainingParameters training,
   4: RainbowDQNParameters rainbow,
   # Some fields were removed; the next number to use is 6
+  6: EvaluationParameters evaluation = {},
 }
 
 struct DDPGNetworkParameters {
@@ -129,6 +135,7 @@ struct DDPGModelParameters {
   4: DDPGNetworkParameters critic_training,
   5: optional map<i64, list<double>> action_rescale_map = {},
   6: optional StateFeatureParameters state_feature_params,
+  7: EvaluationParameters evaluation = {},
 }
 
 struct OptimizerParameters {
@@ -160,6 +167,7 @@ struct SACModelParameters {
   4: FeedForwardParameters value_network = {},
   5: FeedForwardParameters actor_network = {},
   8: optional StateFeatureParameters state_feature_params,
+  9: EvaluationParameters evaluation = {},
 }
 
 struct KNNDQNModelParameters {
@@ -170,6 +178,7 @@ struct KNNDQNModelParameters {
   5: i64 num_actions,
   6: i32 action_dim,
   7: i64 k,
+  8: EvaluationParameters evaluation = {},
 }
 
 struct OpenAIGymParameters {

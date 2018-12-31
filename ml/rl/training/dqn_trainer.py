@@ -110,6 +110,20 @@ class DQNTrainer(DQNTrainerBase):
             weight_decay=parameters.training.l2_decay,
         )
 
+        self._init_cpe_networks(parameters, use_all_avail_gpus)
+
+        if self.use_gpu:
+            self.q_network.cuda()
+            self.q_network_target.cuda()
+
+            if use_all_avail_gpus:
+                self.q_network = torch.nn.DataParallel(self.q_network)
+                self.q_network_target = torch.nn.DataParallel(self.q_network_target)
+
+    def _init_cpe_networks(self, parameters, use_all_avail_gpus):
+        if not self.calc_cpe_in_training:
+            return
+
         reward_network_layers = deepcopy(parameters.training.layers)
         if self.metrics_to_score:
             num_output_nodes = len(self.metrics_to_score) * self.num_actions
@@ -149,17 +163,11 @@ class DQNTrainer(DQNTrainerBase):
         self.reward_network_optimizer = self.optimizer_func(
             self.reward_network.parameters(), lr=parameters.training.learning_rate
         )
-
         if self.use_gpu:
-            self.q_network.cuda()
-            self.q_network_target.cuda()
             self.reward_network.cuda()
             self.q_network_cpe.cuda()
             self.q_network_cpe_target.cuda()
-
             if use_all_avail_gpus:
-                self.q_network = torch.nn.DataParallel(self.q_network)
-                self.q_network_target = torch.nn.DataParallel(self.q_network_target)
                 self.reward_network = torch.nn.DataParallel(self.reward_network)
                 self.q_network_cpe = torch.nn.DataParallel(self.q_network_cpe)
                 self.q_network_cpe_target = torch.nn.DataParallel(
@@ -294,6 +302,44 @@ class DQNTrainer(DQNTrainerBase):
             # Use the soft update rule to update target network
             self._soft_update(self.q_network, self.q_network_target, self.tau)
 
+        logged_action_idxs = actions.argmax(dim=1, keepdim=True)
+        reward_loss, model_rewards, model_propensities = self.calculate_cpes(
+            training_samples,
+            states,
+            logged_action_idxs,
+            max_q_action_idxs,
+            discount_tensor,
+            not_done_mask,
+        )
+
+        self.loss_reporter.report(
+            td_loss=self.loss,
+            reward_loss=reward_loss,
+            logged_actions=logged_action_idxs,
+            logged_propensities=training_samples.propensities,
+            logged_rewards=rewards,
+            logged_values=None,  # Compute at end of each epoch for CPE
+            model_propensities=model_propensities,
+            model_rewards=model_rewards,
+            model_values=self.all_action_scores,
+            model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
+            model_action_idxs=self.get_max_q_values(
+                self.all_action_scores, training_samples.possible_actions_mask
+            )[1],
+        )
+
+    def calculate_cpes(
+        self,
+        training_samples,
+        states,
+        logged_action_idxs,
+        max_q_action_idxs,
+        discount_tensor,
+        not_done_mask,
+    ):
+        if not self.calc_cpe_in_training:
+            return None, None, None
+
         if training_samples.metrics is None:
             metrics_reward_concat_real_vals = training_samples.rewards
         else:
@@ -303,7 +349,6 @@ class DQNTrainer(DQNTrainerBase):
 
         ######### Train separate reward network for CPE evaluation #############
         reward_estimates = self.reward_network(states)
-        logged_action_idxs = actions.argmax(dim=1, keepdim=True)
         reward_estimates_for_logged_actions = reward_estimates.gather(
             1, self.reward_idx_offsets + logged_action_idxs
         )
@@ -348,32 +393,14 @@ class DQNTrainer(DQNTrainerBase):
             training_samples.possible_actions_mask,
             self.rl_temperature,
         )
-
-        self.loss_reporter.report(
-            td_loss=self.loss,
-            reward_loss=reward_loss,
-            logged_actions=logged_action_idxs,
-            logged_propensities=training_samples.propensities,
-            logged_rewards=rewards,
-            logged_values=None,  # Compute at end of each epoch for CPE
-            model_propensities=model_propensities,
-            model_rewards=reward_estimates[
-                :,
-                torch.arange(
-                    self.reward_idx_offsets[0],
-                    self.reward_idx_offsets[0] + self.num_actions,
-                ),
-            ],
-            model_values=self.all_action_scores,
-            model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
-            model_action_idxs=self.get_max_q_values(
-                self.all_action_scores, training_samples.possible_actions_mask
-            )[1],
-        )
-
-        training_metadata = {}
-        training_metadata["model_rewards"] = reward_estimates.detach().cpu().numpy()
-        return training_metadata
+        model_rewards = reward_estimates[
+            :,
+            torch.arange(
+                self.reward_idx_offsets[0],
+                self.reward_idx_offsets[0] + self.num_actions,
+            ),
+        ]
+        return reward_loss, model_rewards, model_propensities
 
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor

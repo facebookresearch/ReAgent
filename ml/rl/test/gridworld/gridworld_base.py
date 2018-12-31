@@ -7,7 +7,7 @@ import itertools
 import logging
 import random
 from functools import partial
-from typing import (
+from typing import (  # noqa
     Deque,
     Dict,
     Generic,
@@ -576,7 +576,7 @@ class GridworldBase(object):
 
             state = next_state
 
-        samples = MultiStepSamples(
+        samples = MultiStepSamples(  # noqa
             mdp_ids=mdp_ids,
             sequence_numbers=sequence_numbers,
             states=states,
@@ -590,7 +590,7 @@ class GridworldBase(object):
             possible_next_actions=possible_next_actions,
         )
         if return_single_step_samples:
-            samples = samples.to_single_step()
+            return samples.to_single_step()
         return samples
 
     def preprocess_samples_discrete(
