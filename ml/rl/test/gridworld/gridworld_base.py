@@ -7,7 +7,19 @@ import itertools
 import logging
 import random
 from functools import partial
-from typing import Dict, List, Tuple
+from typing import (
+    Deque,
+    Dict,
+    Generic,
+    GenericMeta,
+    List,
+    NamedTuple,
+    NamedTupleMeta,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 import torch
@@ -32,78 +44,61 @@ S = 2  # Starting position
 G = 3  # Goal position
 
 
-class Samples(object):
-    __slots__ = [
-        "mdp_ids",
-        "sequence_numbers",
-        "states",
-        "actions",
-        "action_probabilities",
-        "rewards",
-        "possible_actions",
-        "next_states",
-        "next_actions",
-        "terminals",
-        "possible_next_actions",
-    ]
+FEATURES = Dict[int, float]
+ACTION = TypeVar("ACTION", str, FEATURES)
 
-    def __init__(
-        self,
-        mdp_ids: List[str],
-        sequence_numbers: List[int],
-        states: List[Dict[int, float]],
-        actions,  # List[str] if discrete or Dict[str,float] if parametric
-        action_probabilities: List[float],
-        rewards: List[float],
-        possible_actions,  # List[str] if discrete or List[Dict[str,float]] if parametric
-        next_states: List[Dict[int, float]],
-        next_actions: List[str],
-        terminals: List[bool],
-        possible_next_actions: List[List[str]],
-    ) -> None:
-        self.mdp_ids = mdp_ids
-        self.sequence_numbers = sequence_numbers
-        self.states = states
-        self.actions = actions
-        self.action_probabilities = action_probabilities
-        self.rewards = rewards
-        self.possible_actions = possible_actions
-        self.next_states = next_states
-        self.next_actions = next_actions
-        self.terminals = terminals
-        self.possible_next_actions = possible_next_actions
 
-    def shuffle(self):
-        # Shuffle
-        merged = list(
-            zip(
-                self.mdp_ids,
-                self.sequence_numbers,
-                self.states,
-                self.actions,
-                self.action_probabilities,
-                self.rewards,
-                self.possible_actions,
-                self.next_states,
-                self.next_actions,
-                self.terminals,
-                self.possible_next_actions,
-            )
+class NamedTupleGenericMeta(NamedTupleMeta, GenericMeta):
+    pass
+
+
+class Samples(NamedTuple, Generic[ACTION], metaclass=NamedTupleGenericMeta):
+    mdp_ids: List[str]
+    sequence_numbers: List[int]
+    states: List[FEATURES]
+    actions: List[ACTION]
+    action_probabilities: List[float]
+    rewards: List[float]
+    possible_actions: List[List[ACTION]]
+    next_states: List[FEATURES]
+    next_actions: List[ACTION]
+    terminals: List[bool]
+    possible_next_actions: List[List[ACTION]]
+
+
+class MultiStepSamples(NamedTuple, Generic[ACTION], metaclass=NamedTupleGenericMeta):
+    mdp_ids: List[str]
+    sequence_numbers: List[int]
+    states: List[FEATURES]
+    actions: List[ACTION]
+    action_probabilities: List[float]
+    rewards: List[List[float]]
+    possible_actions: List[List[ACTION]]
+    next_states: List[List[FEATURES]]
+    next_actions: List[List[ACTION]]
+    terminals: List[List[bool]]
+    possible_next_actions: List[List[List[ACTION]]]
+
+    def to_single_step(self) -> Samples:
+        return Samples(
+            mdp_ids=self.mdp_ids,
+            sequence_numbers=self.sequence_numbers,
+            states=self.states,
+            actions=self.actions,
+            action_probabilities=self.action_probabilities,
+            rewards=[r[0] for r in self.rewards],
+            possible_actions=self.possible_actions,
+            next_states=[ns[0] for ns in self.next_states],
+            next_actions=[na[0] for na in self.next_actions],
+            terminals=[t[0] for t in self.terminals],
+            possible_next_actions=[pna[0] for pna in self.possible_next_actions],
         )
-        random.shuffle(merged)
-        (
-            self.mdp_ids,
-            self.sequence_numbers,
-            self.states,
-            self.actions,
-            self.action_probabilities,
-            self.rewards,
-            self.possible_actions,
-            self.next_states,
-            self.next_actions,
-            self.terminals,
-            self.possible_next_actions,
-        ) = zip(*merged)
+
+
+def shuffle_samples(samples):
+    merged = list(zip(*[getattr(samples, f) for f in samples._fields]))
+    random.shuffle(merged)
+    return type(samples)(**dict(zip(samples._fields, zip(*merged))))
 
 
 class GridworldBase(object):
@@ -415,21 +410,48 @@ class GridworldBase(object):
             results.append(self.reward(next_state))
         return np.array(results).reshape(-1, 1)
 
+    @staticmethod
+    def set_if_in_range(index, limit, container, value):
+        if index >= limit:
+            return
+        container[index] = value
+
     def generate_samples_discrete(
-        self, num_transitions, epsilon, discount_factor
-    ) -> Samples:
+        self,
+        num_transitions,
+        epsilon,
+        discount_factor,
+        multi_steps: Optional[int] = None,
+    ) -> Union[Samples, MultiStepSamples]:
+        """ Generate samples:
+            [
+             s_t,
+             (a_t, a_{t+1}, ..., a_{t+steps}),
+             (r_t, r_{t+1}, ..., r_{t+steps}),
+             (s_{t+1}, s_{t+2}, ..., s_{t+steps+1})
+            ]
+        """
+        return_single_step_samples = False
+        if multi_steps is None:
+            return_single_step_samples = True
+            multi_steps = 1
+
         # Initialize lists
-        states: List[Dict[int, float]] = [{}] * num_transitions
+        states: List[Dict[int, float]] = [{} for _ in range(num_transitions)]
         actions: List[str] = [""] * num_transitions
-        action_probabilities = [0.0] * num_transitions
-        rewards = [0.0] * num_transitions
-        next_states: List[Dict[int, float]] = [{}] * num_transitions
-        next_actions: List[str] = [""] * num_transitions
-        terminals = [False] * num_transitions
+        action_probabilities: List[float] = [0.0] * num_transitions
+        rewards: List[List[float]] = [[] for _ in range(num_transitions)]
+        next_states: List[List[Dict[int, float]]] = [
+            [{}] for _ in range(num_transitions)
+        ]
+        next_actions: List[List[str]] = [[] for _ in range(num_transitions)]
+        terminals: List[List[bool]] = [[] for _ in range(num_transitions)]
         mdp_ids = [""] * num_transitions
         sequence_numbers = [0] * num_transitions
-        possible_actions: List[List[str]] = [[]] * num_transitions
-        possible_next_actions: List[List[str]] = [[]] * num_transitions
+        possible_actions: List[List[str]] = [[] for _ in range(num_transitions)]
+        possible_next_actions: List[List[List[str]]] = [
+            [[]] for _ in range(num_transitions)
+        ]
 
         state: int = -1
         terminal = True
@@ -439,6 +461,19 @@ class GridworldBase(object):
         mdp_id = -1
         sequence_number = 0
 
+        state_deque: Deque[int] = collections.deque(maxlen=multi_steps)
+        action_deque: Deque[str] = collections.deque(maxlen=multi_steps)
+        action_probability_deque: Deque[float] = collections.deque(maxlen=multi_steps)
+        reward_deque: Deque[float] = collections.deque(maxlen=multi_steps)
+        next_state_deque: Deque[int] = collections.deque(maxlen=multi_steps)
+        next_action_deque: Deque[str] = collections.deque(maxlen=multi_steps)
+        terminal_deque: Deque[bool] = collections.deque(maxlen=multi_steps)
+        sequence_number_deque: Deque[int] = collections.deque(maxlen=multi_steps)
+        possible_action_deque: Deque[List[str]] = collections.deque(maxlen=multi_steps)
+        possible_next_action_deque: Deque[List[str]] = collections.deque(
+            maxlen=multi_steps
+        )
+
         # We run until we finish the episode that completes N transitions, but
         # we may have to go beyond N to reach the end of that episode
         while not terminal or transition < num_transitions:
@@ -447,6 +482,16 @@ class GridworldBase(object):
                 terminal = False
                 mdp_id += 1
                 sequence_number = 0
+                state_deque.clear()
+                action_deque.clear()
+                action_probability_deque.clear()
+                reward_deque.clear()
+                next_state_deque.clear()
+                next_action_deque.clear()
+                terminal_deque.clear()
+                sequence_number_deque.clear()
+                possible_action_deque.clear()
+                possible_next_action_deque.clear()
                 action, action_probability = self.sample_policy(state, epsilon)
             else:
                 action = next_action
@@ -460,35 +505,78 @@ class GridworldBase(object):
                 next_state, epsilon
             )
 
+            state_deque.append(state)
+            action_deque.append(action)
+            action_probability_deque.append(action_probability)
+            reward_deque.append(reward)
+            next_state_deque.append(next_state)
+            next_action_deque.append(next_action)
+            terminal_deque.append(terminal)
+            sequence_number_deque.append(sequence_number)
+            possible_action_deque.append(possible_action)
+            possible_next_action_deque.append(possible_next_action)
+
             # We want exactly N data points, but we need to wait until the
-            # episode is over so we can get the episode values.  This function
+            # episode is over so we can get the episode values. `set_if_in_range`
             # will set episode values if they are in the range [0,N) and ignore
             # otherwise.
-            def set_if_in_range(l, i, v):
-                if i >= num_transitions:
-                    return
-                l[i] = v
-
-            def add_if_in_range(l, i, v):
-                if i >= num_transitions:
-                    return
-                l[i] += v
-
-            set_if_in_range(mdp_ids, transition, str(mdp_id))
-            set_if_in_range(sequence_numbers, transition, sequence_number)
-            set_if_in_range(states, transition, {int(state): 1.0})
-            set_if_in_range(actions, transition, action)
-            set_if_in_range(action_probabilities, transition, action_probability)
-            set_if_in_range(rewards, transition, reward)
-            set_if_in_range(possible_actions, transition, possible_action)
-            set_if_in_range(next_states, transition, {int(next_state): 1.0})
-            set_if_in_range(next_actions, transition, next_action)
-            set_if_in_range(terminals, transition, terminal)
-            set_if_in_range(possible_next_actions, transition, possible_next_action)
+            if not terminal and len(state_deque) == multi_steps:
+                set_if_in_range = partial(
+                    self.set_if_in_range, transition, num_transitions
+                )
+                set_if_in_range(states, {int(state_deque[0]): 1.0})
+                set_if_in_range(actions, action_deque[0])
+                set_if_in_range(action_probabilities, action_probability_deque[0])
+                set_if_in_range(rewards, list(reward_deque))
+                set_if_in_range(
+                    next_states,
+                    [{int(next_state): 1.0} for next_state in list(next_state_deque)],
+                )
+                set_if_in_range(next_actions, list(next_action_deque))
+                set_if_in_range(terminals, list(terminal_deque))
+                set_if_in_range(mdp_ids, str(mdp_id))
+                set_if_in_range(sequence_numbers, sequence_number_deque[0])
+                set_if_in_range(possible_actions, possible_action_deque[0])
+                set_if_in_range(possible_next_actions, list(possible_next_action_deque))
+                transition += 1
+            # collect samples at the end of the episode. The steps between state
+            # and next_state can be less than or equal to `multi_steps`
+            if terminal:
+                for _ in range(len(state_deque)):
+                    set_if_in_range = partial(
+                        self.set_if_in_range, transition, num_transitions
+                    )
+                    set_if_in_range(states, {int(state_deque.popleft()): 1.0})
+                    set_if_in_range(actions, action_deque.popleft())
+                    set_if_in_range(
+                        action_probabilities, action_probability_deque.popleft()
+                    )
+                    set_if_in_range(rewards, list(reward_deque))
+                    set_if_in_range(
+                        next_states,
+                        [
+                            {int(next_state): 1.0}
+                            for next_state in list(next_state_deque)
+                        ],
+                    )
+                    set_if_in_range(next_actions, list(next_action_deque))
+                    set_if_in_range(terminals, list(terminal_deque))
+                    set_if_in_range(mdp_ids, str(mdp_id))
+                    set_if_in_range(sequence_numbers, sequence_number_deque.popleft())
+                    set_if_in_range(possible_actions, possible_action_deque.popleft())
+                    set_if_in_range(
+                        possible_next_actions, list(possible_next_action_deque)
+                    )
+                    reward_deque.popleft()
+                    next_state_deque.popleft()
+                    next_action_deque.popleft()
+                    terminal_deque.popleft()
+                    possible_next_action_deque.popleft()
+                    transition += 1
 
             state = next_state
-            transition += 1
-        return Samples(
+
+        samples = MultiStepSamples(
             mdp_ids=mdp_ids,
             sequence_numbers=sequence_numbers,
             states=states,
@@ -501,6 +589,9 @@ class GridworldBase(object):
             terminals=terminals,
             possible_next_actions=possible_next_actions,
         )
+        if return_single_step_samples:
+            samples = samples.to_single_step()
+        return samples
 
     def preprocess_samples_discrete(
         self,
@@ -510,7 +601,7 @@ class GridworldBase(object):
         use_gpu: bool = False,
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
-        samples.shuffle()
+        samples = shuffle_samples(samples)
         logger.info("Preprocessing...")
 
         if self.sparse_to_dense_net is None:

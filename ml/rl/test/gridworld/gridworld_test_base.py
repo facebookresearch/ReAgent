@@ -44,7 +44,7 @@ class GridworldTestBase(unittest.TestCase):
                     rewards_update.append(
                         reward - trainer.parameters.rl.reward_boost.get(action, 0.0)
                     )
-                samples.rewards = rewards_update
+                samples = samples._replace(rewards=rewards_update)
 
             tdps = environment.preprocess_samples(
                 samples,

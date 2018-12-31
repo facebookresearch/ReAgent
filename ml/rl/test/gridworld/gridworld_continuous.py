@@ -3,7 +3,7 @@
 
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch
 from caffe2.python import core, workspace
@@ -11,7 +11,7 @@ from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
-from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
+from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples, shuffle_samples
 from ml.rl.test.utils import (
     only_continuous_action_normalizer,
     only_continuous_normalizer,
@@ -75,15 +75,17 @@ class GridworldContinuous(GridworldBase):
     def features_to_state(self, state):
         return list(state.keys())[0]
 
-    def generate_samples(self, num_transitions, epsilon, discount_factor) -> Samples:
+    def generate_samples(
+        self,
+        num_transitions,
+        epsilon,
+        discount_factor,
+        multi_steps: Optional[int] = None,
+    ) -> Samples:
         samples = self.generate_samples_discrete(
-            num_transitions, epsilon, discount_factor
+            num_transitions, epsilon, discount_factor, multi_steps
         )
         continuous_actions = [self.action_to_features(a) for a in samples.actions]
-        continuous_next_actions = [
-            self.action_to_features(a) if a is not "" else {}
-            for a in samples.next_actions
-        ]
         continuous_possible_actions = []
         for possible_action in samples.possible_actions:
             continuous_possible_actions.append(
@@ -92,14 +94,36 @@ class GridworldContinuous(GridworldBase):
                     for a in possible_action
                 ]
             )
-        continuous_possible_next_actions = []
-        for possible_next_action in samples.possible_next_actions:
-            continuous_possible_next_actions.append(
-                [
-                    self.action_to_features(a) if a is not None else {}
-                    for a in possible_next_action
-                ]
-            )
+
+        if multi_steps is not None:
+            continuous_next_actions = [
+                [self.action_to_features(a) if a is not "" else {} for a in next_action]
+                for next_action in samples.next_actions
+            ]
+            continuous_possible_next_actions = []
+            for possible_next_actions in samples.possible_next_actions:
+                continuous_possible_next_actions.append(
+                    [
+                        [
+                            self.action_to_features(a) if a is not None else {}
+                            for a in pna
+                        ]
+                        for pna in possible_next_actions
+                    ]
+                )
+        else:
+            continuous_next_actions = [
+                self.action_to_features(a) if a is not "" else {}
+                for a in samples.next_actions
+            ]
+            continuous_possible_next_actions = []
+            for possible_next_action in samples.possible_next_actions:
+                continuous_possible_next_actions.append(
+                    [
+                        self.action_to_features(a) if a is not None else {}
+                        for a in possible_next_action
+                    ]
+                )
 
         return Samples(
             mdp_ids=samples.mdp_ids,
@@ -124,7 +148,7 @@ class GridworldContinuous(GridworldBase):
         normalize_actions: bool = True,
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
-        samples.shuffle()
+        samples = shuffle_samples(samples)
 
         logger.info("Sparse2Dense...")
         net = core.Net("gridworld_preprocessing")
