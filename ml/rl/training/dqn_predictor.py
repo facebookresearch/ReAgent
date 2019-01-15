@@ -71,6 +71,10 @@ class DQNPredictor(RLPredictor):
         for blob_str in parameters:
             workspace.FeedBlob(blob_str, torch_workspace.FetchBlob(blob_str))
 
+        # Remove the input blob from parameters since it's not a real
+        #     input (will be calculated by preprocessor)
+        parameters.remove(qnet_input_blob)
+
         torch_init_net = core.Net(caffe2_netdef.init_net)
         torch_predict_net = core.Net(caffe2_netdef.predict_net)
         logger.info("Generated ONNX predict net:")
