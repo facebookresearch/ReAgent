@@ -68,6 +68,7 @@ struct TrainingParameters {
   13: bool use_noisy_linear_layers = false,
   14: double weight_init_min_std = 0.0,
   15: bool use_batch_norm = false,
+  16: optional double clip_grad_norm,
 }
 
 struct EvaluationParameters {

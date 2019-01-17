@@ -109,6 +109,7 @@ class DQNTrainer(DQNTrainerBase):
             lr=parameters.training.learning_rate,
             weight_decay=parameters.training.l2_decay,
         )
+        self.clip_grad_norm = parameters.training.clip_grad_norm
 
         self._init_cpe_networks(parameters, use_all_avail_gpus)
 
@@ -293,6 +294,10 @@ class DQNTrainer(DQNTrainerBase):
         loss.backward()
         if self.gradient_handler:
             self.gradient_handler(self.q_network.parameters())
+        if self.clip_grad_norm is not None:
+            torch.nn.utils.clip_grad_norm_(
+                self.q_network.parameters(), self.clip_grad_norm
+            )
         self.q_network_optimizer.step()
 
         if self.minibatch < self.reward_burnin:

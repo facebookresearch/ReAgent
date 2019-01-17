@@ -31,7 +31,12 @@ class TestGridworld(GridworldTestBase):
         super(TestGridworld, self).setUp()
 
     def get_sarsa_trainer(
-        self, environment, dueling, use_gpu=False, use_all_avail_gpus=False
+        self,
+        environment,
+        dueling,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
     ):
         return self.get_sarsa_trainer_reward_boost(
             environment,
@@ -39,6 +44,7 @@ class TestGridworld(GridworldTestBase):
             dueling,
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
+            clip_grad_norm=clip_grad_norm,
         )
 
     def get_sarsa_trainer_reward_boost(
@@ -48,6 +54,7 @@ class TestGridworld(GridworldTestBase):
         dueling,
         use_gpu=False,
         use_all_avail_gpus=False,
+        clip_grad_norm=None,
     ):
         rl_parameters = RLParameters(
             gamma=DISCOUNT,
@@ -62,6 +69,7 @@ class TestGridworld(GridworldTestBase):
             minibatch_size=self.minibatch_size,
             learning_rate=0.05,
             optimizer="ADAM",
+            clip_grad_norm=None,
         )
         return DQNTrainer(
             DiscreteActionModelParameters(
@@ -77,50 +85,56 @@ class TestGridworld(GridworldTestBase):
             use_all_avail_gpus=use_all_avail_gpus,
         )
 
-    def _test_evaluator_ground_truth_no_dueling(
-        self, use_gpu=False, use_all_avail_gpus=False
+    def _test_evaluator_ground_truth(
+        self,
+        dueling=False,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
     ):
         environment = Gridworld()
         trainer = self.get_sarsa_trainer(
-            environment, False, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
+            environment, dueling, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
         )
         evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
         self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
 
     def test_evaluator_ground_truth_no_dueling(self):
-        self._test_evaluator_ground_truth_no_dueling()
+        self._test_evaluator_ground_truth()
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_no_dueling_gpu(self):
-        self._test_evaluator_ground_truth_no_dueling(use_gpu=True)
+        self._test_evaluator_ground_truth(use_gpu=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_no_dueling_all_gpus(self):
-        self._test_evaluator_ground_truth_no_dueling(
-            use_gpu=True, use_all_avail_gpus=True
-        )
-
-    def _test_evaluator_ground_truth_dueling(
-        self, use_gpu=False, use_all_avail_gpus=False
-    ):
-        environment = Gridworld()
-
-        trainer = self.get_sarsa_trainer(
-            environment, True, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
-        )
-        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
-        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
+        self._test_evaluator_ground_truth(use_gpu=True, use_all_avail_gpus=True)
 
     def test_evaluator_ground_truth_dueling(self):
-        self._test_evaluator_ground_truth_dueling()
+        self._test_evaluator_ground_truth(dueling=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_dueling_gpu(self):
-        self._test_evaluator_ground_truth_dueling(use_gpu=True)
+        self._test_evaluator_ground_truth(dueling=True, use_gpu=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_dueling_all_gpus(self):
-        self._test_evaluator_ground_truth_dueling(use_gpu=True, use_all_avail_gpus=True)
+        self._test_evaluator_ground_truth(
+            dueling=True, use_gpu=True, use_all_avail_gpus=True
+        )
+
+    def test_evaluator_ground_truth_no_dueling_clip_grad_norm(self):
+        self._test_evaluator_ground_truth(clip_grad_norm=1.0)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_no_dueling_gpu_clip_grad_norm(self):
+        self._test_evaluator_ground_truth(use_gpu=True, clip_grad_norm=1.0)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_no_dueling_all_gpus_clip_grad_norm(self):
+        self._test_evaluator_ground_truth(
+            use_gpu=True, use_all_avail_gpus=True, clip_grad_norm=1.0
+        )
 
     def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
         environment = Gridworld()
