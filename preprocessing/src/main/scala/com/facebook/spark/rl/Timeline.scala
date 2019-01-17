@@ -3,6 +3,7 @@ package com.facebook.spark.rl
 
 import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
+import org.apache.spark.sql.functions.coalesce
 import org.apache.spark.sql.functions.udf
 
 case class TimelineConfiguration(startDs: String,
@@ -162,7 +163,7 @@ object Timeline {
               second_sa.action AS next_action,
               first_sa.sequence_number AS sequence_number,
               first_sa.sequence_number_ordinal AS sequence_number_ordinal,
-              second_sa.sequence_number - first_sa.sequence_number AS time_diff,
+              COALESCE(second_sa.sequence_number - first_sa.sequence_number, 0) AS time_diff,
               first_sa.possible_actions AS possible_actions,
               second_sa.possible_actions AS possible_next_actions,
               first_sa.metrics as metrics
@@ -172,7 +173,6 @@ object Timeline {
               ON first_sa.mdp_id = second_sa.mdp_id
               AND (first_sa.sequence_number_ordinal + 1) = second_sa.sequence_number_ordinal
       )
-      INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
       SELECT ${Constants.TRAINING_DATA_COLUMN_NAMES
                           .slice(1, Constants.TRAINING_DATA_COLUMN_NAMES.length)
                           .mkString(",")}
@@ -183,7 +183,36 @@ object Timeline {
     """.stripMargin
     log.info("Executing query: ")
     log.info(sqlCommand)
-    sqlContext.sql(sqlCommand)
+    var df = sqlContext.sql(sqlCommand)
+
+    // Handle nulls in output present when terminal states are present
+    val nextAction = df("next_action")
+    val possibleNextActions = df("possible_next_actions")
+
+    val map_ = udf(() => Map.empty[String, Double])
+    val array_ = udf(() => Array.empty[String])
+    val string_ = udf(() => "''")
+    val arrayOfMaps_ = udf(() => Array.empty[Map[String, Double]])
+
+    df = df.withColumn("next_state_features", coalesce(df("next_state_features"), map_()))
+    if (config.actionDiscrete) {
+      df = df
+        .withColumn("next_action", coalesce(nextAction, string_()))
+        .withColumn("possible_next_actions", coalesce(possibleNextActions, array_()))
+    } else {
+      df = df
+        .withColumn("next_action", coalesce(nextAction, map_()))
+        .withColumn("possible_next_actions", coalesce(possibleNextActions, arrayOfMaps_()))
+    }
+
+    val finalTableName = "finalTable"
+    df.createOrReplaceTempView(finalTableName)
+
+    val insertCommand = s"""
+      INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
+      SELECT * FROM ${finalTableName}
+    """.stripMargin
+    sqlContext.sql(insertCommand)
   }
 
   def validateOrDestroyTrainingTable(sqlContext: SQLContext,
