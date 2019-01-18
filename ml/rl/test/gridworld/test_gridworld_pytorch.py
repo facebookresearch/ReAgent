@@ -69,7 +69,7 @@ class TestGridworld(GridworldTestBase):
             minibatch_size=self.minibatch_size,
             learning_rate=0.05,
             optimizer="ADAM",
-            clip_grad_norm=None,
+            clip_grad_norm=clip_grad_norm,
         )
         return DQNTrainer(
             DiscreteActionModelParameters(
@@ -94,7 +94,11 @@ class TestGridworld(GridworldTestBase):
     ):
         environment = Gridworld()
         trainer = self.get_sarsa_trainer(
-            environment, dueling, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
+            environment,
+            dueling,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
+            clip_grad_norm=clip_grad_norm,
         )
         evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
         self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
