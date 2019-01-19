@@ -120,8 +120,8 @@ class GridworldBase(object):
         ]
     )
 
-    width = 5
-    height = 5
+    width = grid.shape[1]
+    height = grid.shape[0]
     STATES = list(range(width * height))
 
     USING_ONLY_VALID_ACTION = True
@@ -133,6 +133,7 @@ class GridworldBase(object):
         self._optimal_policy = self._compute_optimal()
         self._optimal_actions = self._compute_optimal_actions()
         self.sparse_to_dense_net = None
+        self._true_q_values = collections.defaultdict(dict)
 
     @property
     def normalization(self):
@@ -172,8 +173,9 @@ class GridworldBase(object):
                     if bfs_next not in working_set:
                         queue.appendleft(bfs_next)
                         working_set.add(bfs_next)
-        print("OPTIMAL ACTIONS")
+        print("OPTIMAL ACTIONS:")
         print(optimal_actions)
+        print()
         return optimal_actions
 
     def _add_optimal_action(self, optimal_actions, pos, action):
@@ -202,8 +204,9 @@ class GridworldBase(object):
                 if not self.is_terminal(next_state) and self.grid[next_state_pos] != W:
                     policy[next_state_pos] = self.invert_action(action)
                     queue.appendleft(self._pos(next_state))
-        print("OPTIMAL POLICY")
+        print("OPTIMAL POLICY (NON UNIQUE):")
         print(policy)
+        print()
         return policy
 
     def invert_action(self, action: str) -> str:
@@ -382,14 +385,27 @@ class GridworldBase(object):
         return np.array([self.reward(s) for s in range(self.size)])
 
     def true_q_values(self, discount, assume_optimal_policy):
+        if (
+            self._true_q_values.get(discount) is not None
+            and self._true_q_values.get(discount).get(assume_optimal_policy) is not None
+        ):
+            return self._true_q_values[discount][assume_optimal_policy]
+
         R = self.reward_vector()
         T = self.q_transition_matrix(assume_optimal_policy)
-        return np.linalg.solve(np.eye(self.size, self.size) - (discount * T), R)
+        self._true_q_values[discount][assume_optimal_policy] = np.linalg.solve(
+            np.eye(self.size, self.size) - (discount * T), R
+        )
+        print("TRUE STATE VALUES ASSUMING OPTIMAL = {}:".format(assume_optimal_policy))
+        print(
+            self._true_q_values[discount][assume_optimal_policy].reshape(
+                self.height, self.width
+            )
+        )
+        return self._true_q_values[discount][assume_optimal_policy]
 
     def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):
         true_q_values = self.true_q_values(DISCOUNT, assume_optimal_policy)
-        print("TRUE VALUES ASSUMING OPTIMAL: ", assume_optimal_policy)
-        print(true_q_values.reshape(5, 5))
         results = []
         for x in range(len(states)):
             int_state = int(list(states[x].keys())[0])

@@ -8,7 +8,7 @@ from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 
 
 class ParametricDQNWithPreprocessing(ModelBase):
-    def __init__(self, q_network, state_preprocessor, action_preprocessor):
+    def __init__(self, q_network, state_preprocessor, action_preprocessor=None):
         super(ParametricDQNWithPreprocessing, self).__init__()
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor

@@ -112,7 +112,7 @@ class GridworldEvaluator(Evaluator):
         # Print out scores using all states
         all_states = []
         for x in self._env.STATES:
-            all_states.append({x: 1.0})
+            all_states.append(self._env.state_to_features(x))
         if self.use_int_features:
             all_states_float, all_states_int = self._split_int_and_float_features(
                 all_states
@@ -135,10 +135,9 @@ class GridworldEvaluator(Evaluator):
         self.evaluate_predictions(prediction, all_states_prediction)
 
     def evaluate_predictions(self, prediction, all_states_prediction):
-        print(all_states_prediction[:, 0].reshape(5, 5), "\n")
-        print(all_states_prediction[:, 1].reshape(5, 5), "\n")
-        print(all_states_prediction[:, 2].reshape(5, 5), "\n")
-        print(all_states_prediction[:, 3].reshape(5, 5), "\n")
+        for i, a in enumerate(self._env.ACTIONS):
+            print("Predicted Q-values for all states and action={}".format(a))
+            print(all_states_prediction[:, i].reshape(5, 5), "\n")
 
         error_sum = 0.0
         num_error_prints = 0
@@ -149,12 +148,13 @@ class GridworldEvaluator(Evaluator):
             error = abs(logged_value - target_value)
             if num_error_prints < 10 and error > 0.2:
                 print(
-                    "GOT THIS STATE WRONG: ",
-                    x,
-                    self._env._pos(list(self.logged_states[x].keys())[0]),
-                    self.logged_actions[x],
-                    logged_value,
-                    target_value,
+                    "GOT {}-th STATE (POS: {}) and ACTION {} WRONG. Logged Q-Value: {}, Predicted Q-Value: {}".format(
+                        x,
+                        self._env._pos(list(self.logged_states[x].keys())[0]),
+                        self.logged_actions[x],
+                        logged_value,
+                        target_value,
+                    )
                 )
                 num_error_prints += 1
                 if num_error_prints == 10:

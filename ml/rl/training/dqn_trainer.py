@@ -7,7 +7,7 @@ from typing import Dict, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
-from ml.rl.caffe_utils import masked_softmax, softmax
+from ml.rl.caffe_utils import masked_softmax
 from ml.rl.models.convolutional_network import ConvolutionalNetwork
 from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork

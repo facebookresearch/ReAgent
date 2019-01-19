@@ -9,12 +9,12 @@ from ml.rl.training.sandboxed_predictor import SandboxedRLPredictor
 logger = logging.getLogger(__name__)
 
 
-class _ParametricDQNPredictor(SandboxedRLPredictor):
-    def predict(self, float_state_features, int_state_features, actions):
+class _DQNPredictor(SandboxedRLPredictor):
+    def predict(self, float_state_features, int_state_features=None):
         assert not int_state_features, "Not implemented"
 
         float_examples = []
         for i in range(len(float_state_features)):
-            float_examples.append({**float_state_features[i], **actions[i]})
+            float_examples.append({**float_state_features[i]})
 
-        return super(_ParametricDQNPredictor, self).predict(float_examples)
+        return super(_DQNPredictor, self).predict(float_examples)

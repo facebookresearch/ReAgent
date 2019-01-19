@@ -5,6 +5,7 @@ import logging
 
 from ml.rl.models.actor import ActorWithPreprocessing
 from ml.rl.models.parametric_dqn import ParametricDQNWithPreprocessing
+from ml.rl.training._dqn_predictor import _DQNPredictor
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
 
@@ -22,7 +23,45 @@ class RLExporter:
         raise NotImplementedError()
 
 
-class ParametricDQNExporter(RLExporter):
+class SandboxedRLExporter(RLExporter):
+    def __init__(
+        self,
+        dnn,
+        predictor_class,
+        preprocessing_class,
+        feature_extractor=None,
+        output_transformer=None,
+        state_preprocessor=None,
+        action_preprocessor=None,
+        **kwargs,
+    ):
+        super(SandboxedRLExporter, self).__init__(
+            dnn, feature_extractor, output_transformer
+        )
+        self.state_preprocessor = state_preprocessor
+        self.action_preprocessor = action_preprocessor
+        self.predictor_class = predictor_class
+        self.preprocessing_class = preprocessing_class
+        self.kwargs = kwargs
+
+    def export(self):
+        module_to_export = self.dnn.cpu_model()
+        if self.action_preprocessor:
+            module_to_export = self.preprocessing_class(
+                module_to_export, self.state_preprocessor, self.action_preprocessor
+            )
+        elif self.state_preprocessor:
+            module_to_export = self.preprocessing_class(
+                module_to_export, self.state_preprocessor
+            )
+        pem, ws = module_to_export.get_predictor_export_meta_and_workspace(
+            feature_extractor=self.feature_extractor,
+            output_transformer=self.output_transformer,
+        )
+        return self.predictor_class(pem, ws, **self.kwargs)
+
+
+class ParametricDQNExporter(SandboxedRLExporter):
     def __init__(
         self,
         dnn,
@@ -32,25 +71,40 @@ class ParametricDQNExporter(RLExporter):
         action_preprocessor=None,
     ):
         super(ParametricDQNExporter, self).__init__(
-            dnn, feature_extractor, output_transformer
+            dnn,
+            _ParametricDQNPredictor,
+            ParametricDQNWithPreprocessing,
+            feature_extractor,
+            output_transformer,
+            state_preprocessor,
+            action_preprocessor,
         )
-        self.state_preprocessor = state_preprocessor
-        self.action_preprocessor = action_preprocessor
 
-    def export(self):
-        module_to_export = self.dnn.cpu_model()
-        if self.state_preprocessor is not None or self.action_preprocessor is not None:
-            module_to_export = ParametricDQNWithPreprocessing(
-                module_to_export, self.state_preprocessor, self.action_preprocessor
-            )
-        pem, ws = module_to_export.get_predictor_export_meta_and_workspace(
-            feature_extractor=self.feature_extractor,
-            output_transformer=self.output_transformer,
+
+class DQNExporter(SandboxedRLExporter):
+    def __init__(
+        self,
+        dnn,
+        feature_extractor=None,
+        output_transformer=None,
+        state_preprocessor=None,
+        predictor_class=_DQNPredictor,
+        preprocessing_class=None,
+        **kwargs,
+    ):
+        super(DQNExporter, self).__init__(
+            dnn,
+            predictor_class,
+            preprocessing_class,
+            feature_extractor,
+            output_transformer,
+            state_preprocessor,
+            action_preprocessor=None,
+            **kwargs,
         )
-        return _ParametricDQNPredictor(pem, ws)
 
 
-class ActorExporter(RLExporter):
+class ActorExporter(SandboxedRLExporter):
     def __init__(
         self,
         dnn,
@@ -58,21 +112,15 @@ class ActorExporter(RLExporter):
         output_transformer=None,
         state_preprocessor=None,
         predictor_class=ActorPredictor,
-        **kwargs
+        **kwargs,
     ):
-        super(ActorExporter, self).__init__(dnn, feature_extractor, output_transformer)
-        self.state_preprocessor = state_preprocessor
-        self.predictor_class = predictor_class
-        self.kwargs = kwargs
-
-    def export(self):
-        module_to_export = self.dnn.cpu_model()
-        if self.state_preprocessor:
-            module_to_export = ActorWithPreprocessing(
-                module_to_export, self.state_preprocessor
-            )
-        pem, ws = module_to_export.get_predictor_export_meta_and_workspace(
-            feature_extractor=self.feature_extractor,
-            output_transformer=self.output_transformer,
+        super(ActorExporter, self).__init__(
+            dnn,
+            predictor_class,
+            ActorWithPreprocessing,
+            feature_extractor,
+            output_transformer,
+            state_preprocessor,
+            action_preprocessor=None,
+            **kwargs,
         )
-        return self.predictor_class(pem, ws, **self.kwargs)

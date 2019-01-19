@@ -21,7 +21,6 @@ class DQNTrainerBase(RLTrainer):
             state i.
         :param double_q_learning: bool to use double q-learning
         """
-
         # The parametric DQN can create flattened q values so we reshape here.
         q_values = q_values.reshape(possible_actions_mask.shape)
 
@@ -44,12 +43,11 @@ class DQNTrainerBase(RLTrainer):
             state i.
         :param double_q_learning: bool to use double q-learning
         """
-
         # The parametric DQN can create flattened q values so we reshape here.
         q_values = q_values.reshape(possible_actions_mask.shape)
-        q_values_target = q_values_target.reshape(possible_actions_mask.shape)
 
         if self.double_q_learning:
+            q_values_target = q_values_target.reshape(possible_actions_mask.shape)
             # Set q-values of impossible actions to a very large negative number.
             inverse_pna = 1 - possible_actions_mask
             impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna

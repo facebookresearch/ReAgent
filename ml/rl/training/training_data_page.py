@@ -84,6 +84,20 @@ class TrainingDataPage(object):
             extras=rlt.ExtraData(),
         )
 
+    def as_discrete_sarsa_training_batch(self):
+        return rlt.TrainingBatch(
+            training_input=rlt.SARSAInput(
+                state=rlt.FeatureVector(float_features=self.states),
+                action=self.actions,
+                next_state=rlt.FeatureVector(float_features=self.next_states),
+                next_action=self.next_actions,
+                reward=self.rewards,
+                not_terminal=self.not_terminal,
+                step=self.step,
+            ),
+            extras=rlt.ExtraData(),
+        )
+
     def size(self) -> int:
         if self.states:
             return len(self.states)
