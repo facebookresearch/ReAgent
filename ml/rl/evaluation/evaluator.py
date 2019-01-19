@@ -88,6 +88,23 @@ class Evaluator(object):
                     metric, metric_reward_edp, cpe_details.metric_estimates[metric]
                 )
 
+        if self.action_names is not None:
+            value_means = edp.model_values.mean(dim=0)
+            cpe_details.q_value_means = {
+                action: float(value_means[i])
+                for i, action in enumerate(self.action_names)
+            }
+            value_stds = edp.model_values.std(dim=0)
+            cpe_details.q_value_stds = {
+                action: float(value_stds[i])
+                for i, action in enumerate(self.action_names)
+            }
+            max_q_idxs = edp.model_values.argmax(dim=1)
+            cpe_details.action_distribution = {
+                action: float((max_q_idxs == i).sum()) / max_q_idxs.shape[0]
+                for i, action in enumerate(self.action_names)
+            }
+
         # Compute MC Loss on Aggregate Reward
         cpe_details.mc_loss = float(
             torch.mean(torch.abs(edp.logged_values - edp.model_values))
