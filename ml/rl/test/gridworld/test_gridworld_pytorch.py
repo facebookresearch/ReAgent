@@ -167,7 +167,9 @@ class TestGridworld(GridworldTestBase):
                 reward_network = reward_network.get_data_parallel_model()
 
         q_network_target = q_network.get_target_network()
-        trainer = _DQNTrainer(q_network, q_network_target, reward_network, parameters)
+        trainer = _DQNTrainer(
+            q_network, q_network_target, reward_network, parameters, use_gpu
+        )
         return trainer
 
     def get_modular_sarsa_trainer_exporter(

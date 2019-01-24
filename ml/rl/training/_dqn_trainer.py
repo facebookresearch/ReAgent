@@ -22,6 +22,7 @@ class _DQNTrainer(DQNTrainerBase):
         q_network_target,
         reward_network,
         parameters: DiscreteActionModelParameters,
+        use_gpu=False,
     ) -> None:
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
@@ -30,7 +31,7 @@ class _DQNTrainer(DQNTrainerBase):
         DQNTrainerBase.__init__(
             self,
             parameters,
-            use_gpu=False,
+            use_gpu=use_gpu,
             additional_feature_types=None,
             gradient_handler=None,
         )
