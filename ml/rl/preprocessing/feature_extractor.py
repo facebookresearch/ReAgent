@@ -103,6 +103,7 @@ class InputColumn(object):
     POSSIBLE_NEXT_ACTIONS_MASK = "possible_next_actions_mask"
     NOT_TERMINAL = "not_terminal"
     STEP = "step"
+    TIME_DIFF = "time_diff"
 
 
 class TrainingFeatureExtractor(FeatureExtractorBase):
@@ -170,8 +171,10 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         else:
             step = None
         reward = fetch(input_record.reward).reshape(-1, 1)
+
         # is_terminal should be filled by preprocessor
         not_terminal = fetch(input_record.not_terminal).reshape(-1, 1)
+        time_diff = fetch(input_record.time_diff).reshape(-1, 1)
 
         if self.include_possible_actions:
             # TODO: this will need to be more complicated to support sparse features
@@ -213,6 +216,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 reward=reward,
                 not_terminal=not_terminal,
                 step=step,
+                time_diff=time_diff,
             )
         else:
             training_input = mt.SARSAInput(
@@ -223,6 +227,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 reward=reward,
                 not_terminal=not_terminal,
                 step=step,
+                time_diff=time_diff,
             )
 
         # TODO: stuff other fields in here
@@ -245,6 +250,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             (InputColumn.ACTION, action_schema),
             (InputColumn.NEXT_ACTION, action_schema),
             (InputColumn.NOT_TERMINAL, schema.Scalar()),
+            (InputColumn.TIME_DIFF, schema.Scalar()),
         )
         if self.include_possible_actions:
             input_schema += schema.Struct(
@@ -362,6 +368,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             (InputColumn.ACTION, action),
             (InputColumn.NEXT_ACTION, next_action),
             (InputColumn.NOT_TERMINAL, input_record[InputColumn.NOT_TERMINAL]),
+            (InputColumn.TIME_DIFF, input_record[InputColumn.TIME_DIFF]),
         )
 
         if self.include_possible_actions:

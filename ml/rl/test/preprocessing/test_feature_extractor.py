@@ -246,6 +246,11 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field()), step)
         return step
 
+    def setup_time_diff(self, ws, field):
+        time_diff = np.array([1, 1, 1], dtype=np.int32)
+        ws.feed_blob(str(field()), time_diff)
+        return time_diff
+
     def create_ws_and_net(self, extractor):
         net, init_net = extractor.create_net()
         ws = workspace.Workspace()
@@ -326,6 +331,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
+        time_diff = self.setup_time_diff(ws, input_record.time_diff)
         step = self.setup_step(ws, input_record.step)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
@@ -333,6 +339,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
         npt.assert_array_equal(step.reshape(-1, 1), o.step.numpy())
         npt.assert_array_equal(
@@ -381,12 +388,14 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         next_action = self.setup_next_action(ws, input_record.next_action)
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
+        time_diff = self.setup_time_diff(ws, input_record.time_diff)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
@@ -438,12 +447,14 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
+        time_diff = self.setup_time_diff(ws, input_record.time_diff)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
@@ -504,12 +515,14 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         self.setup_next_action_features(ws, input_record.next_action)
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
+        time_diff = self.setup_time_diff(ws, input_record.time_diff)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
+        npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
@@ -550,6 +563,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("not_terminal", schema.Scalar()),
             ("possible_actions_mask", schema.List(schema.Scalar())),
             ("possible_next_actions_mask", schema.List(schema.Scalar())),
+            ("time_diff", schema.Scalar()),
         )
         expected_output_record = schema.Struct(
             ("state_features", schema.Scalar()),
@@ -559,6 +573,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("not_terminal", schema.Scalar()),
             ("possible_actions_mask", schema.Scalar()),
             ("possible_next_actions_mask", schema.Scalar()),
+            ("time_diff", schema.Scalar()),
         )
         self.check_create_net_spec(
             extractor, expected_input_record, expected_output_record
@@ -576,6 +591,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("action", schema.Scalar()),
             ("next_action", schema.Scalar()),
             ("not_terminal", schema.Scalar()),
+            ("time_diff", schema.Scalar()),
         )
         expected_output_record = schema.Struct(
             ("state_features", schema.Scalar()),
@@ -583,6 +599,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("action", schema.Scalar()),
             ("next_action", schema.Scalar()),
             ("not_terminal", schema.Scalar()),
+            ("time_diff", schema.Scalar()),
         )
         self.check_create_net_spec(
             extractor, expected_input_record, expected_output_record
@@ -612,6 +629,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("possible_actions_mask", schema.List(schema.Scalar())),
             ("possible_next_actions", schema.List(map_schema())),
             ("possible_next_actions_mask", schema.List(schema.Scalar())),
+            ("time_diff", schema.Scalar()),
         )
         expected_output_record = schema.Struct(
             ("state_features", schema.Scalar()),
@@ -623,6 +641,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("possible_actions_mask", schema.Scalar()),
             ("possible_next_actions", schema.Scalar()),
             ("possible_next_actions_mask", schema.Scalar()),
+            ("time_diff", schema.Scalar()),
         )
         self.check_create_net_spec(
             extractor, expected_input_record, expected_output_record
@@ -648,6 +667,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("action", map_schema()),
             ("next_action", map_schema()),
             ("not_terminal", schema.Scalar()),
+            ("time_diff", schema.Scalar()),
         )
         expected_output_record = schema.Struct(
             ("state_features", schema.Scalar()),
@@ -655,6 +675,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             ("action", schema.Scalar()),
             ("next_action", schema.Scalar()),
             ("not_terminal", schema.Scalar()),
+            ("time_diff", schema.Scalar()),
         )
         self.check_create_net_spec(
             extractor, expected_input_record, expected_output_record

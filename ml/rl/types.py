@@ -82,6 +82,7 @@ class MaxQLearningInput(NamedTuple):
     reward: ValueType
     not_terminal: ValueType
     step: Optional[ValueType]
+    time_diff: ValueType
 
 
 class SARSAInput(NamedTuple):
@@ -92,6 +93,7 @@ class SARSAInput(NamedTuple):
     reward: ValueType
     not_terminal: ValueType
     step: Optional[ValueType]
+    time_diff: ValueType
 
 
 class ExtraData(NamedTuple):

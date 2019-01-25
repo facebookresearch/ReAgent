@@ -80,6 +80,7 @@ class TrainingDataPage(object):
                 reward=self.rewards,
                 not_terminal=self.not_terminal,
                 step=self.step,
+                time_diff=self.time_diffs,
             ),
             extras=rlt.ExtraData(),
         )
@@ -94,6 +95,7 @@ class TrainingDataPage(object):
                 reward=self.rewards,
                 not_terminal=self.not_terminal,
                 step=self.step,
+                time_diff=self.time_diffs,
             ),
             extras=rlt.ExtraData(),
         )

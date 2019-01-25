@@ -18,7 +18,7 @@ class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
 
     def __init__(
-        self, env, assume_optimal_policy: bool, gamma, use_int_features: bool
+        self, env, assume_optimal_policy: bool, gamma, use_int_features: bool = None
     ) -> None:
         super(GridworldEvaluator, self).__init__(
             None, gamma, None, metrics_to_score=["reward"]
@@ -168,26 +168,11 @@ class GridworldEvaluator(Evaluator):
 
 class GridworldContinuousEvaluator(GridworldEvaluator):
     def evaluate(self, predictor):
-        # Test feeding float features & int features
-        if self.use_int_features:
-            float_features, int_features = self._split_int_and_float_features(
-                self.logged_states
-            )
-            # Since all gridworld features are float types, swap these so
-            # all inputs are now int_features for testing purpose
-            float_features, int_features = int_features, float_features
-            prediction_single_action = predictor.predict(
-                float_state_features=float_features,
-                int_state_features=int_features,
-                actions=self.logged_actions,
-            )
-        # Test only feeding float features
-        else:
-            prediction_single_action = predictor.predict(
-                float_state_features=self.logged_states,
-                int_state_features=None,
-                actions=self.logged_actions,
-            )
+        prediction_single_action = predictor.predict(
+            float_state_features=self.logged_states,
+            int_state_features=None,
+            actions=self.logged_actions,
+        )
 
         # Convert action string to integer
         prediction = np.zeros(
@@ -207,17 +192,8 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
             for y in self._env.ACTIONS:
                 all_states.append(self._env.state_to_features(x))
                 all_actions.append(self._env.action_to_features(y))
-        if self.use_int_features:
-            all_states_float, all_states_int = self._split_int_and_float_features(
-                all_states
-            )
-            all_states_prediction_string = predictor.predict(
-                all_states_float, all_states_int, all_actions
-            )
-        else:
-            all_states_prediction_string = predictor.predict(
-                all_states, None, all_actions
-            )
+
+        all_states_prediction_string = predictor.predict(all_states, None, all_actions)
         all_states_prediction = np.zeros(
             [len(self._env.STATES), len(self._env.ACTIONS)], dtype=np.float32
         )

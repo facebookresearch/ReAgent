@@ -72,8 +72,11 @@ class _ParametricDQNTrainer(DQNTrainerBase):
         not_done_mask = learning_input.not_terminal
 
         if self.use_seq_num_diff_as_time_diff:
-            # TODO: Implement this in another diff
-            raise NotImplementedError
+            if self.multi_steps is not None:
+                # TODO: Implement this in another diff
+                pass
+            else:
+                discount_tensor = discount_tensor.pow(learning_input.time_diff.float())
 
         if self.maxq_learning:
             all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
