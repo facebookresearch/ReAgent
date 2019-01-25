@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-from typing import Dict, List
+from typing import List
 
 from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -24,7 +24,12 @@ class Gridworld(GridworldBase):
         minibatch_size: int,
         one_hot_action: bool = True,
         use_gpu: bool = False,
+        do_shuffle: bool = True,
     ) -> List[TrainingDataPage]:
         return self.preprocess_samples_discrete(
-            samples, minibatch_size, one_hot_action, use_gpu=use_gpu
+            samples,
+            minibatch_size,
+            one_hot_action,
+            use_gpu=use_gpu,
+            do_shuffle=do_shuffle,
         )

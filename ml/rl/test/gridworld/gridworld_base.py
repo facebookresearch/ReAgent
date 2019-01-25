@@ -134,6 +134,7 @@ class GridworldBase(object):
         self._optimal_actions = self._compute_optimal_actions()
         self.sparse_to_dense_net = None
         self._true_q_values = collections.defaultdict(dict)
+        self._true_q_epsilon_values = collections.defaultdict(dict)
 
     @property
     def normalization(self):
@@ -283,6 +284,33 @@ class GridworldBase(object):
         y, x = self._pos(state)
         return self._optimal_policy[y, x]
 
+    def policy_probabilities(self, state, epsilon):
+        """Returns the probabilities of the epsilon-greedy version of the optimal
+        policy for a given state.
+        """
+        probabilities = np.zeros(len(self.ACTIONS))
+        state = int(list(state.keys())[0])
+        possible_actions = self.possible_actions(state)
+        if len(possible_actions) == 0:
+            return probabilities
+        optimal_action = self.optimal_policy(state)
+        for action in possible_actions:
+            if action == optimal_action:
+                action_probability = (1.0 - epsilon) + epsilon / len(possible_actions)
+            else:
+                action_probability = epsilon / len(possible_actions)
+            probabilities[self.action_to_index(action)] = action_probability
+        return probabilities
+
+    def policy_probabilities_for_sample(self, states, epsilon):
+        """Returns the probabilities of the epsilon-greedy version of the optimal
+        policy for a vector of states.
+        """
+        results = []
+        for x in range(len(states)):
+            results.append(self.policy_probabilities(states[x], epsilon))
+        return np.array(results)
+
     def sample_policy(self, state, epsilon) -> Tuple[str, float]:
         possible_actions = self.possible_actions(state)
         if len(possible_actions) == 0:
@@ -359,7 +387,7 @@ class GridworldBase(object):
             possible_actions.append("D")
         return possible_actions
 
-    def q_transition_matrix(self, assume_optimal_policy):
+    def q_transition_matrix(self, assume_optimal_policy, epsilon=0.0):
         T = np.zeros((self.size, self.size))
         for state in range(self.size):
             if not self.is_terminal(state):
@@ -374,8 +402,9 @@ class GridworldBase(object):
                     )
                     if assume_optimal_policy:
                         if action != self.optimal_policy(state):
-                            continue
-                        action_probability = 1.0
+                            action_probability = epsilon / len(poss_a)
+                        else:
+                            action_probability = (1.0 - epsilon) + epsilon / len(poss_a)
                     else:
                         action_probability = fraction
                     T[state, :] += action_probability * transition_probabilities
@@ -404,6 +433,26 @@ class GridworldBase(object):
         )
         return self._true_q_values[discount][assume_optimal_policy]
 
+    def true_q_epsilon_values(self, discount, epsilon):
+        if (
+            self._true_q_epsilon_values.get(discount) is not None
+            and self._true_q_epsilon_values.get(discount).get(epsilon) is not None
+        ):
+            return self._true_q_epsilon_values[discount][epsilon]
+
+        R = self.reward_vector()
+        T = self.q_transition_matrix(True, epsilon)
+        self._true_q_epsilon_values[discount][epsilon] = np.linalg.solve(
+            np.eye(self.size, self.size) - (discount * T), R
+        )
+        print("TRUE STATE VALUES FOR OPTIMAL WITH EPSILON = {}:".format(epsilon))
+        print(
+            self._true_q_epsilon_values[discount][epsilon].reshape(
+                self.height, self.width
+            )
+        )
+        return self._true_q_epsilon_values[discount][epsilon]
+
     def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):
         true_q_values = self.true_q_values(DISCOUNT, assume_optimal_policy)
         results = []
@@ -418,13 +467,54 @@ class GridworldBase(object):
                 )
         return np.array(results).reshape(-1, 1)
 
+    def true_epsilon_values_for_sample(self, states, actions, epsilon):
+        true_q_epsilon_values = self.true_q_epsilon_values(DISCOUNT, epsilon)
+        results = []
+        for x in range(len(states)):
+            int_state = int(list(states[x].keys())[0])
+            next_state = self.move_on_index_limit(int_state, actions[x])
+            if self.is_terminal(next_state):
+                results.append(self.reward(next_state))
+            else:
+                results.append(
+                    self.reward(next_state)
+                    + (DISCOUNT * true_q_epsilon_values[next_state])
+                )
+        return np.array(results).reshape(-1, 1)
+
+    def true_epsilon_values_all_actions_for_sample(self, states, epsilon):
+        """Returns the true values of the epsilon-greedy optimal policy for
+         *all actions* for each state in 'states.'
+        """
+        results = np.zeros((len(states), len(self.ACTIONS)))
+        for x in range(len(self.ACTIONS)):
+            action = self.ACTIONS[x]
+            actions_vec = [action for _ in range(len(states))]
+            results[:, x] = self.true_epsilon_values_for_sample(
+                states, actions_vec, epsilon
+            )[:, 0]
+        return results
+
     def true_rewards_for_sample(self, states, actions):
+        """Returns the true rewards for each state/action pair in states/actions.
+        """
         results = []
         for x in range(len(states)):
             int_state = int(list(states[x].keys())[0])
             next_state = self.move_on_index_limit(int_state, actions[x])
             results.append(self.reward(next_state))
         return np.array(results).reshape(-1, 1)
+
+    def true_rewards_all_actions_for_sample(self, states):
+        """Returns the true rewards for for *all actions* of
+        each state in 'states.'
+        """
+        results = np.zeros((len(states), len(self.ACTIONS)))
+        for x in range(len(self.ACTIONS)):
+            action = self.ACTIONS[x]
+            actions_vec = [action for _ in range(len(states))]
+            results[:, x] = self.true_rewards_for_sample(states, actions_vec)[:, 0]
+        return results
 
     @staticmethod
     def set_if_in_range(index, limit, container, value):
@@ -615,9 +705,13 @@ class GridworldBase(object):
         minibatch_size: int,
         one_hot_action: bool = True,
         use_gpu: bool = False,
+        do_shuffle: bool = True,
     ) -> List[TrainingDataPage]:
-        logger.info("Shuffling...")
-        samples = shuffle_samples(samples)
+
+        if do_shuffle:
+            logger.info("Shuffling...")
+            samples = shuffle_samples(samples)
+
         logger.info("Preprocessing...")
 
         if self.sparse_to_dense_net is None:
