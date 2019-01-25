@@ -49,15 +49,12 @@ class _ParametricDQNTrainer(DQNTrainerBase):
 
     def get_detached_q_values(
         self, state, action
-    ) -> Tuple[rlt.SingleQValue, Optional[rlt.SingleQValue]]:
+    ) -> Tuple[rlt.SingleQValue, rlt.SingleQValue]:
         """ Gets the q values from the model and target networks """
         with torch.no_grad():
             input = rlt.StateAction(state=state, action=action)
             q_values = self.q_network(input)
-            if self.double_q_learning:
-                q_values_target = self.q_network_target(input)
-            else:
-                q_values_target = None
+            q_values_target = self.q_network_target(input)
         return q_values, q_values_target
 
     def train(self, training_batch) -> None:
@@ -85,14 +82,12 @@ class _ParametricDQNTrainer(DQNTrainerBase):
             # Compute max a' Q(s', a') over all possible actions using target network
             next_q_values, _ = self.get_max_q_values_with_target(
                 all_next_q_values.q_value,
-                all_next_q_values_target.q_value  # noqa
-                if self.double_q_learning
-                else None,
+                all_next_q_values_target.q_value,
                 learning_input.possible_next_actions_mask.float(),
             )
         else:
-            # SARSA
-            next_q_values, _ = self.get_detached_q_values(
+            # SARSA (Use the target network)
+            _, next_q_values = self.get_detached_q_values(
                 learning_input.next_state, learning_input.next_action
             )
             next_q_values = next_q_values.q_value

@@ -63,10 +63,7 @@ class _DQNTrainer(DQNTrainerBase):
         with torch.no_grad():
             input = rlt.StateInput(state=state)
             q_values = self.q_network(input)
-            if self.double_q_learning:
-                q_values_target = self.q_network_target(input)
-            else:
-                q_values_target = None
+            q_values_target = self.q_network_target(input)
         return q_values, q_values_target
 
     def train(self, training_batch):
@@ -100,14 +97,14 @@ class _DQNTrainer(DQNTrainerBase):
             # Compute max a' Q(s', a') over all possible actions using target network
             next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
                 all_next_q_values.q_values,
-                all_next_q_values_target.q_values if self.double_q_learning else None,
+                all_next_q_values_target.q_values,
                 learning_input.possible_next_actions_mask.float(),
             )
         else:
             # SARSA
             next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
                 all_next_q_values.q_values,
-                all_next_q_values_target.q_values if self.double_q_learning else None,
+                all_next_q_values_target.q_values,
                 learning_input.next_action,
             )
 
