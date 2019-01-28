@@ -63,25 +63,36 @@ class CpeEstimateSet:
             )
         )
 
-    def log_to_tensorboard(self, writer: SummaryWriter, epoch: int) -> None:
+    def log_to_tensorboard(
+        self, metric_name: str, writer: SummaryWriter, epoch: int
+    ) -> None:
         def none_to_zero(x: Optional[float]) -> float:
             if x is None or math.isnan(x):
                 return 0.0
             return x
 
         for name, value in [
-            ("Reward_CPE/Direct Method Reward", self.direct_method.normalized),
-            ("Reward_CPE/IPS Reward", self.inverse_propensity.normalized),
-            ("Reward_CPE/Doubly Robust Reward", self.doubly_robust.normalized),
             (
-                "Value_CPE/Sequential Doubly Robust",
+                "CPE/{}/Direct Method Reward".format(metric_name),
+                self.direct_method.normalized,
+            ),
+            (
+                "CPE/{}/IPS Reward".format(metric_name),
+                self.inverse_propensity.normalized,
+            ),
+            (
+                "CPE/{}/Doubly Robust Reward".format(metric_name),
+                self.doubly_robust.normalized,
+            ),
+            (
+                "CPE/{}/Sequential Doubly Robust".format(metric_name),
                 self.sequential_doubly_robust.normalized,
             ),
             (
-                "Value_CPE/Weighted Doubly Robust",
+                "CPE/{}/Weighted Sequential Doubly Robust".format(metric_name),
                 self.weighted_doubly_robust.normalized,
             ),
-            ("Value_CPE/MAGIC Estimator", self.magic.normalized),
+            ("CPE/{}/MAGIC".format(metric_name), self.magic.normalized),
         ]:
             writer.add_scalar(name, none_to_zero(value), epoch)
 
@@ -105,3 +116,8 @@ class CpeDetails:
             logger.info("-----------------")
             self.metric_estimates[metric].log()
             logger.info("-----------------")
+
+    def log_to_tensorboard(self, writer: SummaryWriter, epoch: int) -> None:
+        self.reward_estimates.log_to_tensorboard("Reward", writer, epoch)
+        for metric_name, estimate_set in self.metric_estimates.items():
+            estimate_set.log_to_tensorboard(metric_name, writer, epoch)

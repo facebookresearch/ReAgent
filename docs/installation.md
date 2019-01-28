@@ -30,13 +30,15 @@ pip install onnx
 Set JAVA_HOME to the location of your anaconda install
 ```
 export JAVA_HOME="$(dirname $(dirname -- `which conda`))"
+
+echo $JAVA_HOME # Should see something like "/home/jjg/miniconda3"
 ```
 
 Install Spark (the mv command may need to be done as root):
 ```
-wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
-tar -xzf spark-2.3.1-bin-hadoop2.7.tgz
-mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
+wget https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
+tar -xzf spark-2.4.0-bin-hadoop2.7.tgz
+mv spark-2.4.0-bin-hadoop2.7 /usr/local/spark
 ```
 
 Add the spark bin directory to your path so your terminal can find `spark-submit`:
@@ -63,7 +65,7 @@ pip install -e .
 At this point, you should be able to run all unit tests:
 
 ```
-python setup.py test
+pytest
 ```
 
 ### Docker

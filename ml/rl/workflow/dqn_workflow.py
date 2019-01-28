@@ -129,6 +129,7 @@ def train_network(params):
         cpe_start_time = time.time()
         details = evaluator.evaluate_post_training(accumulated_edp)
         details.log()
+        details.log_to_tensorboard(writer, epoch)
         logger.info(
             "CPE evaluation took {} seconds.".format(time.time() - cpe_start_time)
         )
