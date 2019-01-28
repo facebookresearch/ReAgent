@@ -5,6 +5,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 import time
 
 import torch
@@ -15,7 +16,6 @@ from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def minibatch_size_multiplier(use_gpu, use_all_avail_gpus):
