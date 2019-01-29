@@ -277,6 +277,18 @@ class EvaluationDataPage(NamedTuple):
                 new_edp[x] = None
         return EvaluationDataPage(**new_edp)
 
+    def sort(self):
+        idxs = []
+        for i, (mdp_id, seq_num) in enumerate(zip(self.mdp_id, self.sequence_number)):
+            idxs.append((mdp_id, int(seq_num), i))
+        sorted_idxs = [i for _mdp_id, _seq_num, i in sorted(idxs)]
+        new_edp = {}
+        for x in EvaluationDataPage._fields:
+            t = getattr(self, x)
+            new_edp[x] = t[sorted_idxs] if t is not None else None
+
+        return EvaluationDataPage(**new_edp)
+
     def compute_values(self, gamma: float):
         logged_values = EvaluationDataPage.compute_values_for_mdps(
             self.logged_rewards, self.mdp_id, self.sequence_number, gamma
@@ -360,6 +372,25 @@ class EvaluationDataPage(NamedTuple):
             assert minibatch_size == self.logged_metrics_values.shape[0]
             assert minibatch_size == self.model_metrics.shape[0]
             assert minibatch_size == self.model_metrics_values.shape[0]
+
+        flatten_mdp_id = self.mdp_id.reshape(-1)
+        unique_mdp_ids = set(flatten_mdp_id)
+        prev_mdp_id, prev_seq_num = None, None
+        mdp_count = 0
+        for mdp_id, seq_num in zip(flatten_mdp_id, self.sequence_number):
+            if prev_mdp_id is None or mdp_id != prev_mdp_id:
+                mdp_count += 1
+                prev_mdp_id = mdp_id
+            else:
+                assert (
+                    seq_num > prev_seq_num
+                ), "Sequence number must be in increasing order"
+
+            prev_seq_num = seq_num
+
+        assert len(unique_mdp_ids) == mdp_count, "MDPs are broken up. {} vs {}".format(
+            len(unique_mdp_ids), mdp_count
+        )
 
     def set_metric_as_reward(self, i: int, num_actions: int):
         assert self.logged_metrics is not None, "metrics must not be none"
