@@ -22,8 +22,8 @@ class TimelineTest extends PipelineTester {
                                                 "2018-01-01",
                                                 false,
                                                 action_discrete,
-                                                "some_rl_input",
-                                                "some_rl_timeline",
+                                                "some_rl_input_1",
+                                                "some_rl_timeline_1",
                                                 null,
                                                 1,
                                                 1)
@@ -131,8 +131,8 @@ class TimelineTest extends PipelineTester {
                                                 "2018-01-01",
                                                 false,
                                                 action_discrete,
-                                                "some_rl_input",
-                                                "some_rl_timeline",
+                                                "some_rl_input_2",
+                                                "some_rl_timeline_2",
                                                 null,
                                                 1,
                                                 3)
@@ -306,8 +306,8 @@ class TimelineTest extends PipelineTester {
                                                 "2018-01-01",
                                                 false,
                                                 action_discrete,
-                                                "some_rl_input",
-                                                "some_rl_timeline",
+                                                "some_rl_input_3",
+                                                "some_rl_timeline_3",
                                                 null,
                                                 1,
                                                 2)
@@ -457,8 +457,8 @@ class TimelineTest extends PipelineTester {
                                        "2018-01-01",
                                        false,
                                        action_discrete,
-                                       "some_rl_input",
-                                       "some_rl_timeline",
+                                       "some_rl_input_4",
+                                       "some_rl_timeline_4",
                                        null,
                                        1)
 
