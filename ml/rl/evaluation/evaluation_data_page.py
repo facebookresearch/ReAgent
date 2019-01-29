@@ -349,6 +349,7 @@ class EvaluationDataPage(NamedTuple):
             assert self.model_metrics_values.shape[1] == num_metrics * num_actions
 
         minibatch_size = self.logged_propensities.shape[0]
+        logger.info("EvaluationDataPage minibatch size: {}".format(minibatch_size))
         assert minibatch_size == self.logged_rewards.shape[0]
         assert minibatch_size == self.logged_values.shape[0]
         assert minibatch_size == self.model_propensities.shape[0]
