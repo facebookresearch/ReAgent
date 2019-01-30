@@ -21,14 +21,15 @@ class RLDataset:
     def load(self):
         """Load samples from a gzipped json file."""
         with gzip.open(self.file_path) as f:
-            self.rows = json.load(f)
+            for line in f:
+                self.rows.append(json.loads(line))
 
     def save(self):
         """Save samples as a JSON file."""
-        data = self.rows
-
         with open(self.file_path, "w") as f:
-            json.dump(data, f)
+            for data in self.rows:
+                json.dump(data, f)
+                f.write("\n")
 
     def insert(
         self,
