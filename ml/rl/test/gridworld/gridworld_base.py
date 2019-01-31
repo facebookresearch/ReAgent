@@ -682,6 +682,11 @@ class GridworldBase(object):
 
             state = next_state
 
+        # Format terminals in same way we ask clients to log terminals (in RL dex)
+        for i, next_action in enumerate(next_actions):
+            if next_action == [""]:
+                next_states[i] = [{}]
+
         samples = MultiStepSamples(  # noqa
             mdp_ids=mdp_ids,
             sequence_numbers=sequence_numbers,
