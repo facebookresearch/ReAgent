@@ -32,7 +32,7 @@ case class MultiStepTimelineConfiguration(startDs: String,
   * action_discrete: boolean, specify the action representation,
   * either 'discrete' or 'parametric'
   * True means discrete using  'String' as action,
-  * False means parametric, using Map<String, DOUBLE>'
+  * False means parametric, using Map<BIGINT, DOUBLE>'
   *
   * add_terminal_state_row: boolean, if True assumes the final row
   * in each MDP corresponds to the terminal state and keeps it in output
@@ -41,10 +41,10 @@ case class MultiStepTimelineConfiguration(startDs: String,
   * mdp_id ( STRING ). A unique ID for the MDP chain that
   * this training example is a part of.
   *
-  * state_features ( MAP<STRING,DOUBLE> ). The features of the current step
+  * state_features ( MAP<BIGINT,DOUBLE> ). The features of the current step
   * that are independent on the action.
   *
-  * action ( STRING OR MAP<STRING,DOUBLE> ). The action taken at the current step.
+  * action ( STRING OR MAP<BIGINT,DOUBLE> ). The action taken at the current step.
   * A string if the action is discrete or
   * a set of features if the action is parametric.
   *
@@ -57,7 +57,7 @@ case class MultiStepTimelineConfiguration(startDs: String,
   * There should be at most one row with the same mdp_id + sequence_number
   * (mdp_id + sequence_number makes a unique key).
   *
-  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> ).
+  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<BIGINT,DOUBLE>> ).
   * A list of actions that were possible at the current step.
   * This is optional but enables Q-Learning and improves model accuracy.
   *
@@ -68,10 +68,10 @@ case class MultiStepTimelineConfiguration(startDs: String,
   * mdp_id ( STRING ). A unique ID for the MDP chain that
   * this training example is a part of.
   *
-  * state_features ( MAP<STRING,DOUBLE> ). The features of the current step
+  * state_features ( MAP<BIGINT,DOUBLE> ). The features of the current step
   * that are independent on the action.
   *
-  * action ( STRING OR MAP<STRING,DOUBLE> ). The action taken at the current step.
+  * action ( STRING OR MAP<BIGINT,DOUBLE> ). The action taken at the current step.
   * A string if the action is discrete or
   * a set of features if the action is parametric.
   *
@@ -79,10 +79,10 @@ case class MultiStepTimelineConfiguration(startDs: String,
   *
   * reward ( ARRAY<DOUBLE> ). The rewards of consecutive n steps, starting at the current step.
   *
-  * next_state_features ( ARRAY<MAP<STRING,DOUBLE>> ). The features of the subsequent n
+  * next_state_features ( ARRAY<MAP<BIGINT,DOUBLE>> ). The features of the subsequent n
   * steps that are action-independent.
   *
-  * next_action (ARRAY<STRING> OR ARRAY<MAP<STRING, DOUBLE>> ). The action taken at
+  * next_action (ARRAY<STRING> OR ARRAY<MAP<BIGINT, DOUBLE>> ). The action taken at
   * each of the next n steps
   *
   * sequence_number ( BIGINT ).
@@ -103,10 +103,10 @@ case class MultiStepTimelineConfiguration(startDs: String,
   * states will be missing. This column allows us to know how many
   * states are missing which can be used to adjust the discount factor.
   *
-  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> )
+  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<BIGINT,DOUBLE>> )
   * A list of actions that were possible at the current step.
   *
-  * possible_next_actions ( ARRAY<ARRAY<STRING>> OR ARRAY<ARRAY<MAP<STRING,DOUBLE>>> )
+  * possible_next_actions ( ARRAY<ARRAY<STRING>> OR ARRAY<ARRAY<MAP<BIGINT,DOUBLE>>> )
   * A list of actions that were possible at each of the next n steps.
   *
   * metrics (ARRAY<MAP<STRING, DOUBLE>>)
@@ -121,8 +121,8 @@ object MultiStepTimeline {
     if (config.addTerminalStateRow) {
       terminalJoin = "LEFT OUTER";
     }
-    var sortActionMethod = "UDF_SORT_STRING";
-    var sortPossibleActionMethod = "UDF_SORT_ARRAY_STRING";
+    var sortActionMethod = "UDF_SORT_ID";
+    var sortPossibleActionMethod = "UDF_SORT_ARRAY_ID";
     if (!config.actionDiscrete) {
       sortActionMethod = "UDF_SORT_MAP";
       sortPossibleActionMethod = "UDF_SORT_ARRAY_MAP";
@@ -235,9 +235,9 @@ object MultiStepTimeline {
               ${sortPossibleActionMethod}(
                 COLLECT_LIST(possible_next_actions)
               ) AS possible_next_actions,
-              UDF_PREPEND_MAP(
+              UDF_PREPEND_MAP_STRING(
                 FIRST(metrics),
-                UDF_DROP_LAST_MAP(UDF_SORT_MAP(COLLECT_LIST(next_metrics)))
+                UDF_DROP_LAST_MAP_STRING(UDF_SORT_MAP_STRING(COLLECT_LIST(next_metrics)))
               ) AS metrics
           FROM
               ordinal_join_time_diff
@@ -249,7 +249,7 @@ object MultiStepTimeline {
           state_features,
           action,
           action_probability,
-          reward ARRAY,
+          reward,
           next_state_features,
           next_action,
           sequence_number,
@@ -260,8 +260,7 @@ object MultiStepTimeline {
           metrics
       FROM
           sarsa_unshuffled_multi_step
-          DISTRIBUTE BY -1 - PMOD(HASH(mdp_id, sequence_number_ordinal), 10007)
-          SORT BY -1 - PMOD(HASH(mdp_id, sequence_number_ordinal), 10007)
+          CLUSTER BY HASH(mdp_id, sequence_number)
     """.stripMargin
     log.info("Executing query: ")
     log.info(sqlCommand)
@@ -291,18 +290,18 @@ object MultiStepTimeline {
     var actionType = "STRING";
     var possibleActionType = "ARRAY<STRING>";
     if (!actionDiscrete) {
-      actionType = "MAP<STRING, DOUBLE>"
-      possibleActionType = "ARRAY<MAP<STRING,DOUBLE>>"
+      actionType = "MAP<BIGINT, DOUBLE>"
+      possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
     }
 
     val sqlCommand = s"""
       CREATE TABLE IF NOT EXISTS ${tableName} (
           mdp_id STRING,
-          state_features MAP <STRING, DOUBLE>,
+          state_features MAP <BIGINT, DOUBLE>,
           action ${actionType},
           action_probability DOUBLE,
           reward ARRAY<DOUBLE>,
-          next_state_features ARRAY<MAP<STRING,DOUBLE>>,
+          next_state_features ARRAY<MAP<BIGINT,DOUBLE>>,
           next_action ARRAY<${actionType}>,
           sequence_number BIGINT,
           sequence_number_ordinal BIGINT,
@@ -319,15 +318,18 @@ object MultiStepTimeline {
 
   def registerUDFs(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("UDF_PREPEND_DOUBLE", Udfs.prepend[Double] _)
-    sqlContext.udf.register("UDF_PREPEND_MAP", Udfs.prepend[Map[String, Double]] _)
+    sqlContext.udf.register("UDF_PREPEND_MAP", Udfs.prepend[Map[Long, Double]] _)
+    sqlContext.udf.register("UDF_PREPEND_MAP_STRING", Udfs.prepend[Map[String, Double]] _)
 
     sqlContext.udf.register("UDF_SORT_DOUBLE", Udfs.sort_list_of_map[Double] _)
-    sqlContext.udf.register("UDF_SORT_STRING", Udfs.sort_list_of_map[String] _)
-    sqlContext.udf.register("UDF_SORT_MAP", Udfs.sort_list_of_map[Map[String, Double]] _)
-    sqlContext.udf.register("UDF_SORT_ARRAY_STRING", Udfs.sort_list_of_map[Seq[String]] _)
-    sqlContext.udf.register("UDF_SORT_ARRAY_MAP", Udfs.sort_list_of_map[Seq[Map[String, Double]]] _)
+    sqlContext.udf.register("UDF_SORT_ID", Udfs.sort_list_of_map[String] _)
+    sqlContext.udf.register("UDF_SORT_MAP", Udfs.sort_list_of_map[Map[Long, Double]] _)
+    sqlContext.udf.register("UDF_SORT_MAP_STRING", Udfs.sort_list_of_map[Map[String, Double]] _)
+    sqlContext.udf.register("UDF_SORT_ARRAY_ID", Udfs.sort_list_of_map[Seq[String]] _)
+    sqlContext.udf.register("UDF_SORT_ARRAY_MAP", Udfs.sort_list_of_map[Seq[Map[Long, Double]]] _)
 
     sqlContext.udf.register("UDF_DROP_LAST_DOUBLE", Udfs.drop_last[Double] _)
-    sqlContext.udf.register("UDF_DROP_LAST_MAP", Udfs.drop_last[Map[String, Double]] _)
+    sqlContext.udf.register("UDF_DROP_LAST_MAP", Udfs.drop_last[Map[Long, Double]] _)
+    sqlContext.udf.register("UDF_DROP_LAST_MAP_STRING", Udfs.drop_last[Map[String, Double]] _)
   }
 }

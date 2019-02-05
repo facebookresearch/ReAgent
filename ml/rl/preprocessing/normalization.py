@@ -236,12 +236,12 @@ def serialize_one(feature_parameters):
 def serialize(parameters):
     parameters_json = {}
     for feature, feature_parameters in six.iteritems(parameters):
-        parameters_json[str(feature)] = serialize_one(feature_parameters)
+        parameters_json[feature] = serialize_one(feature_parameters)
     return parameters_json
 
 
 def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
-    logger.info("Got feature: " + feature_name)
+    logger.info("Got feature: {}".format(feature_name))
     num_features = len(feature_value_list)
     if num_features < MINIMUM_SAMPLES_TO_IDENTIFY:
         return None

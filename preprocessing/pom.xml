@@ -1,125 +1,266 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
-  <groupId>rl</groupId>
-  <artifactId>rl-preprocessing</artifactId>
-  <version>1.1</version>
-  <packaging>jar</packaging>
-
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+    >
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <groupId>
+    rl
+  </groupId>
+  <artifactId>
+    rl-preprocessing
+  </artifactId>
+  <version>
+    1.1
+  </version>
+  <packaging>
+    jar
+  </packaging>
   <organization>
-    <name>Facebook, Inc.</name>
-    <url>https://www.facebook.com/</url>
+    <name>
+      Facebook, Inc.
+    </name>
+    <url>
+      https://www.facebook.com/
+    </url>
   </organization>
-
   <properties>
-    <hadoop.deps.scope>provided</hadoop.deps.scope>
-    <hive.deps.scope>provided</hive.deps.scope>
-    <parquet.deps.scope>provided</parquet.deps.scope>
-
-    <scala.version>2.11.7</scala.version>
-    <scala.binary.version>2.11</scala.binary.version>
-    <spark.version>2.4.0</spark.version>
+    <hadoop.deps.scope>
+      provided
+    </hadoop.deps.scope>
+    <hive.deps.scope>
+      provided
+    </hive.deps.scope>
+    <parquet.deps.scope>
+      provided
+    </parquet.deps.scope>
+    <scala.version>
+      2.11.7
+    </scala.version>
+    <scala.binary.version>
+      2.11
+    </scala.binary.version>
+    <spark.version>
+      2.3.2
+    </spark.version>
   </properties>
-
   <dependencies>
     <dependency>
-      <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${scala.binary.version}</artifactId>
-      <version>2.2.6</version>
-      <scope>test</scope>
+      <groupId>
+        org.scalatest
+      </groupId>
+      <artifactId>
+        scalatest_${scala.binary.version}
+      </artifactId>
+      <version>
+        2.2.6
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>1.10.19</version>
-      <scope>test</scope>
+      <groupId>
+        org.mockito
+      </groupId>
+      <artifactId>
+        mockito-core
+      </artifactId>
+      <version>
+        1.10.19
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.scalacheck</groupId>
-      <artifactId>scalacheck_${scala.binary.version}</artifactId>
-      <version>1.13.5</version>
-      <scope>test</scope>
+      <groupId>
+        org.scalacheck
+      </groupId>
+      <artifactId>
+        scalacheck_${scala.binary.version}
+      </artifactId>
+      <version>
+        1.13.5
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_${scala.binary.version}</artifactId>
-      <version>${spark.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-hive_${scala.binary.version}</artifactId>
-      <version>${spark.version}</version>
-      <scope>provided</scope>
+      <groupId>
+        junit
+      </groupId>
+      <artifactId>
+        junit
+      </artifactId>
+      <version>
+        4.12
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-sql-kafka-0-10_${scala.binary.version}</artifactId>
-      <version>${spark.version}</version>
-      <scope>provided</scope>
+      <groupId>
+        org.apache.spark
+      </groupId>
+      <artifactId>
+        spark-core_${scala.binary.version}
+      </artifactId>
+      <version>
+        ${spark.version}
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
-      <version>3.4.1</version>
-      <scope>provided</scope>
+      <groupId>
+        org.apache.spark
+      </groupId>
+      <artifactId>
+        spark-hive_${scala.binary.version}
+      </artifactId>
+      <version>
+        ${spark.version}
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-      <scope>provided</scope>
+      <groupId>
+        org.apache.spark
+      </groupId>
+      <artifactId>
+        spark-sql-kafka-0-10_${scala.binary.version}
+      </artifactId>
+      <version>
+        ${spark.version}
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.github.scopt</groupId>
-      <artifactId>scopt_${scala.binary.version}</artifactId>
-      <version>3.7.0</version>
+      <groupId>
+        org.apache.commons
+      </groupId>
+      <artifactId>
+        commons-math3
+      </artifactId>
+      <version>
+        3.4.1
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
-
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>14.0.1</version>
-      <scope>provided</scope>
+      <groupId>
+        org.scala-lang
+      </groupId>
+      <artifactId>
+        scala-library
+      </artifactId>
+      <version>
+        ${scala.version}
+      </version>
+      <scope>
+        provided
+      </scope>
+    </dependency>
+    <dependency>
+      <groupId>
+        com.github.scopt
+      </groupId>
+      <artifactId>
+        scopt_${scala.binary.version}
+      </artifactId>
+      <version>
+        3.7.0
+      </version>
+    </dependency>
+    <dependency>
+      <groupId>
+        com.google.guava
+      </groupId>
+      <artifactId>
+        guava
+      </artifactId>
+      <version>
+        14.0.1
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
   </dependencies>
   <build>
-    <outputDirectory>target/scala-${scala.binary.version}/classes</outputDirectory>
-    <testOutputDirectory>target/scala-${scala.binary.version}/test-classes</testOutputDirectory>
-    <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
+    <outputDirectory>
+      target/scala-${scala.binary.version}/classes
+    </outputDirectory>
+    <testOutputDirectory>
+      target/scala-${scala.binary.version}/test-classes
+    </testOutputDirectory>
+    <sourceDirectory>
+      src/main/scala
+    </sourceDirectory>
+    <testSourceDirectory>
+      src/test/scala
+    </testSourceDirectory>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>2.8.2</version>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-deploy-plugin
+        </artifactId>
+        <version>
+          2.8.2
+        </version>
         <configuration>
-          <skip>${deploy.skip.nexus}</skip>
+          <skip>
+            ${deploy.skip.nexus}
+          </skip>
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.0.0</version>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-shade-plugin
+        </artifactId>
+        <version>
+          3.0.0
+        </version>
         <executions>
           <execution>
-            <phase>package</phase>
+            <phase>
+              package
+            </phase>
             <goals>
-              <goal>shade</goal>
+              <goal>
+                shade
+              </goal>
             </goals>
             <configuration>
-              <shadedArtifactAttached>false</shadedArtifactAttached>
-              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <shadedArtifactAttached>
+                false
+              </shadedArtifactAttached>
+              <createDependencyReducedPom>
+                true
+              </createDependencyReducedPom>
               <artifactSet>
                 <includes>
-                  <include>*:*</include>
+                  <include>
+                    *:*
+                  </include>
                 </includes>
               </artifactSet>
               <relocations>
@@ -131,59 +272,107 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>net.alchim31.maven</groupId>
-        <artifactId>scala-maven-plugin</artifactId>
-        <version>3.2.2</version>
+        <groupId>
+          net.alchim31.maven
+        </groupId>
+        <artifactId>
+          scala-maven-plugin
+        </artifactId>
+        <version>
+          3.2.2
+        </version>
         <executions>
           <execution>
-            <id>eclipse-add-source</id>
+            <id>
+              eclipse-add-source
+            </id>
             <goals>
-              <goal>add-source</goal>
+              <goal>
+                add-source
+              </goal>
             </goals>
           </execution>
           <execution>
-            <id>scala-compile-first</id>
+            <id>
+              scala-compile-first
+            </id>
             <goals>
-              <goal>compile</goal>
+              <goal>
+                compile
+              </goal>
             </goals>
           </execution>
           <execution>
-            <id>scala-test-compile-first</id>
+            <id>
+              scala-test-compile-first
+            </id>
             <goals>
-              <goal>testCompile</goal>
+              <goal>
+                testCompile
+              </goal>
             </goals>
           </execution>
         </executions>
         <configuration>
-          <scalaVersion>${scala.version}</scalaVersion>
+          <scalaVersion>
+            ${scala.version}
+          </scalaVersion>
           <excludes>
-            <exclude>**/fb/**</exclude>
+            <exclude>
+              **/fb/**
+            </exclude>
           </excludes>
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.7</version>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-surefire-plugin
+        </artifactId>
+        <version>
+          2.7
+        </version>
         <configuration>
-          <skipTests>true</skipTests>
+          <skipTests>
+            true
+          </skipTests>
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.scalatest</groupId>
-        <artifactId>scalatest-maven-plugin</artifactId>
-        <version>1.0</version>
+        <groupId>
+          org.scalatest
+        </groupId>
+        <artifactId>
+          scalatest-maven-plugin
+        </artifactId>
+        <version>
+          1.0
+        </version>
         <configuration>
-          <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-          <junitxml>.</junitxml>
-          <filereports>WDF_TestSuite.txt</filereports>
-          <skipTests>false</skipTests>
+          <reportsDirectory>
+            ${project.build.directory}/surefire-reports
+          </reportsDirectory>
+          <junitxml>
+            .
+          </junitxml>
+          <filereports>
+            WDF_TestSuite.txt
+          </filereports>
+          <skipTests>
+            false
+          </skipTests>
         </configuration>
         <executions>
           <execution>
-            <id>test</id>
+            <id>
+              test
+            </id>
             <goals>
-              <goal>test</goal>
+              <goal>
+                test
+              </goal>
             </goals>
           </execution>
         </executions>

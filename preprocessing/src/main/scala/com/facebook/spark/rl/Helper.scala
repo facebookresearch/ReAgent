@@ -20,8 +20,8 @@ object Helper {
     var actionType = "string";
     var possibleActionType = "array<string>";
     if (!actionDiscrete) {
-      actionType = "map<string,double>"
-      possibleActionType = "array<map<string,double>>"
+      actionType = "map<bigint,double>"
+      possibleActionType = "array<map<bigint,double>>"
     }
     val describeTableCommand = s"""
       DESCRIBE ${tableName}

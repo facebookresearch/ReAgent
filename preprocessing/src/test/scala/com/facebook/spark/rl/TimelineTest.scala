@@ -42,7 +42,7 @@ class TimelineTest extends PipelineTester {
            1.0,
            "action1",
            0.8,
-           Map("s1" -> 1.0),
+           Map(1L -> 1.0),
            List("action1", "action2"),
            Map("Widgets" -> 10.0)), // First state
           ("2018-01-01",
@@ -51,7 +51,7 @@ class TimelineTest extends PipelineTester {
            0.2,
            "action2",
            0.7,
-           Map("s2" -> 1.0),
+           Map(2L -> 1.0),
            List(),
            Map("Widgets" -> 20.0)) // Second state
         ))
@@ -104,11 +104,11 @@ class TimelineTest extends PipelineTester {
     val firstRow = df.head
     assert(firstRow.getAs[String](0) == "2018-01-01")
     assert(firstRow.getAs[String](1) == "mdp1")
-    assert(firstRow.getAs[Map[String, Double]](2) == Map("s1" -> 1.0))
+    assert(firstRow.getAs[Map[Long, Double]](2) == Map(1L -> 1.0))
     assert(firstRow.getAs[String](3) == "action1")
     assert(firstRow.getAs[Double](4) == 0.8)
     assert(firstRow.getAs[Seq[Double]](5) === List(1.0))
-    assert(firstRow.getAs[Seq[Map[String, Double]]](6) == List(Map("s2" -> 1.0)))
+    assert(firstRow.getAs[Seq[Map[Long, Double]]](6) == List(Map(2L -> 1.0)))
     assert(firstRow.getAs[Seq[String]](7) == List("action2"))
     assert(firstRow.getAs[Long](8) == 1)
     assert(firstRow.getAs[Long](9) == 1)
@@ -151,7 +151,7 @@ class TimelineTest extends PipelineTester {
            1.0,
            "action1",
            0.8,
-           Map("s1" -> 1.0),
+           Map(1L -> 1.0),
            List("action1", "action2"),
            Map("Widgets" -> 10.0)), // First state
           ("2018-01-01",
@@ -160,7 +160,7 @@ class TimelineTest extends PipelineTester {
            0.2,
            "action2",
            0.7,
-           Map("s2" -> 1.0),
+           Map(2L -> 1.0),
            List("action2", "action3"),
            Map("Widgets" -> 20.0)), // Second state
           ("2018-01-01",
@@ -169,7 +169,7 @@ class TimelineTest extends PipelineTester {
            0.9,
            "action3",
            0.6,
-           Map("s3" -> 1.0),
+           Map(3L -> 1.0),
            List("action3", "action4"),
            Map("Widgets" -> 30.0)), // Third state
           ("2018-01-01",
@@ -178,7 +178,7 @@ class TimelineTest extends PipelineTester {
            0.4,
            "action4",
            0.5,
-           Map("s4" -> 1.0),
+           Map(4L -> 1.0),
            List("action4", "action1", "action2", "action3"),
            Map("Widgets" -> 40.0)) // Fourth state
         ))
@@ -231,13 +231,13 @@ class TimelineTest extends PipelineTester {
     val firstRec = df.where($"sequence_number_ordinal" === 1).head()
     assert(firstRec.getAs[String](0) == "2018-01-01")
     assert(firstRec.getAs[String](1) == "mdp1")
-    assert(firstRec.getAs[Map[String, Double]](2) == Map("s1" -> 1.0))
+    assert(firstRec.getAs[Map[Long, Double]](2) == Map(1L -> 1.0))
     assert(firstRec.getAs[String](3) == "action1")
     assert(firstRec.getAs[Double](4) == 0.8)
     assert(firstRec.getAs[Seq[Double]](5) == List(1.0, 0.2, 0.9))
     assert(
-      firstRec.getAs[Seq[Map[String, Double]]](6) ==
-        List(Map("s2" -> 1.0), Map("s3" -> 1.0), Map("s4" -> 1.0)))
+      firstRec.getAs[Seq[Map[Long, Double]]](6) ==
+        List(Map(2L -> 1.0), Map(3L -> 1.0), Map(4L -> 1.0)))
     assert(firstRec.getAs[Seq[String]](7) == List("action2", "action3", "action4"))
     assert(firstRec.getAs[Long](8) == 1)
     assert(firstRec.getAs[Long](9) == 1)
@@ -255,13 +255,13 @@ class TimelineTest extends PipelineTester {
     val secondRec = df.where($"sequence_number_ordinal" === 2).head()
     assert(secondRec.getAs[String](0) == "2018-01-01")
     assert(secondRec.getAs[String](1) == "mdp1")
-    assert(secondRec.getAs[Map[String, Double]](2) == Map("s2" -> 1.0))
+    assert(secondRec.getAs[Map[Long, Double]](2) == Map(2L -> 1.0))
     assert(secondRec.getAs[String](3) == "action2")
     assert(secondRec.getAs[Double](4) == 0.7)
     assert(secondRec.getAs[Seq[Double]](5) == List(0.2, 0.9))
     assert(
-      secondRec.getAs[Seq[Map[String, Double]]](6) ==
-        List(Map("s3" -> 1.0), Map("s4" -> 1.0)))
+      secondRec.getAs[Seq[Map[Long, Double]]](6) ==
+        List(Map(3L -> 1.0), Map(4L -> 1.0)))
     assert(secondRec.getAs[Seq[String]](7) == List("action3", "action4"))
     assert(secondRec.getAs[Long](8) == 11)
     assert(secondRec.getAs[Long](9) == 2)
@@ -277,13 +277,13 @@ class TimelineTest extends PipelineTester {
     val thirdRec = df.where($"sequence_number_ordinal" === 3).head()
     assert(thirdRec.getAs[String](0) == "2018-01-01")
     assert(thirdRec.getAs[String](1) == "mdp1")
-    assert(thirdRec.getAs[Map[String, Double]](2) == Map("s3" -> 1.0))
+    assert(thirdRec.getAs[Map[Long, Double]](2) == Map(3L -> 1.0))
     assert(thirdRec.getAs[String](3) == "action3")
     assert(thirdRec.getAs[Double](4) == 0.6)
     assert(thirdRec.getAs[Seq[Double]](5) == List(0.9))
     assert(
-      thirdRec.getAs[Seq[Map[String, Double]]](6) ==
-        List(Map("s4" -> 1.0)))
+      thirdRec.getAs[Seq[Map[Long, Double]]](6) ==
+        List(Map(4L -> 1.0)))
     assert(thirdRec.getAs[Seq[String]](7) == List("action4"))
     assert(thirdRec.getAs[Long](8) == 12)
     assert(thirdRec.getAs[Long](9) == 3)
@@ -324,28 +324,28 @@ class TimelineTest extends PipelineTester {
            "mdp1",
            1,
            1.0,
-           Map("a1" -> 0.3, "a2" -> 0.5),
+           Map(1001L -> 0.3, 1002L -> 0.5),
            0.8,
-           Map("s1" -> 1.0),
-           List(Map("a1" -> 0.3, "a2" -> 0.5), Map("a1" -> 0.6, "a2" -> 0.2)),
+           Map(1L -> 1.0),
+           List(Map(1001L -> 0.3, 1002L -> 0.5), Map(1001L -> 0.6, 1002L -> 0.2)),
            Map("Widgets" -> 10.0)), // First state
           ("2018-01-01",
            "mdp1",
            11,
            0.2,
-           Map("a1" -> 0.1, "a2" -> 0.9),
+           Map(1001L -> 0.1, 1002L -> 0.9),
            0.7,
-           Map("s2" -> 1.0),
-           List(Map("a1" -> 0.1, "a2" -> 0.9), Map("a1" -> 0.8, "a2" -> 0.2)),
+           Map(2L -> 1.0),
+           List(Map(1001L -> 0.1, 1002L -> 0.9), Map(1001L -> 0.8, 1002L -> 0.2)),
            Map("Widgets" -> 20.0)), // Second state
           ("2018-01-01",
            "mdp1",
            12,
            0.9,
-           Map("a1" -> 0.8, "a2" -> 0.2),
+           Map(1001L -> 0.8, 1002L -> 0.2),
            0.6,
-           Map("s3" -> 1.0),
-           List(Map("a1" -> 0.8, "a2" -> 0.2), Map("a1" -> 0.3, "a2" -> 0.3)),
+           Map(3L -> 1.0),
+           List(Map(1001L -> 0.8, 1002L -> 0.2), Map(1001L -> 0.3, 1002L -> 0.3)),
            Map("Widgets" -> 30.0)) // Third state
         ))
       .toDF("ds",
@@ -397,27 +397,27 @@ class TimelineTest extends PipelineTester {
     val firstRec = df.where($"sequence_number_ordinal" === 1).head()
     assert(firstRec.getAs[String](0) == "2018-01-01")
     assert(firstRec.getAs[String](1) == "mdp1")
-    assert(firstRec.getAs[Map[String, Double]](2) == Map("s1" -> 1.0))
-    assert(firstRec.getAs[Map[String, Double]](3) == Map("a1" -> 0.3, "a2" -> 0.5))
+    assert(firstRec.getAs[Map[Long, Double]](2) == Map(1L -> 1.0))
+    assert(firstRec.getAs[Map[Long, Double]](3) == Map(1001L -> 0.3, 1002L -> 0.5))
     assert(firstRec.getAs[Double](4) == 0.8)
     assert(firstRec.getAs[Seq[Double]](5) == List(1.0, 0.2))
     assert(
-      firstRec.getAs[Seq[Map[String, Double]]](6) ==
-        List(Map("s2" -> 1.0), Map("s3" -> 1.0)))
+      firstRec.getAs[Seq[Map[Long, Double]]](6) ==
+        List(Map(2L -> 1.0), Map(3L -> 1.0)))
     assert(
-      firstRec.getAs[Seq[Map[String, Double]]](7) ==
-        List(Map("a1" -> 0.1, "a2" -> 0.9), Map("a1" -> 0.8, "a2" -> 0.2)))
+      firstRec.getAs[Seq[Map[Long, Double]]](7) ==
+        List(Map(1001L -> 0.1, 1002L -> 0.9), Map(1001L -> 0.8, 1002L -> 0.2)))
     assert(firstRec.getAs[Long](8) == 1)
     assert(firstRec.getAs[Long](9) == 1)
     assert(firstRec.getAs[Seq[Long]](10) == List(10, 11))
     assert(
-      firstRec.getAs[Seq[Map[String, Double]]](11) == List(Map("a1" -> 0.3, "a2" -> 0.5),
-                                                           Map("a1" -> 0.6, "a2" -> 0.2)))
+      firstRec.getAs[Seq[Map[Long, Double]]](11) == List(Map(1001L -> 0.3, 1002L -> 0.5),
+                                                         Map(1001L -> 0.6, 1002L -> 0.2)))
     assert(
-      firstRec.getAs[Seq[Seq[Map[String, Double]]]](12) ==
+      firstRec.getAs[Seq[Seq[Map[Long, Double]]]](12) ==
         List(
-          List(Map("a1" -> 0.1, "a2" -> 0.9), Map("a1" -> 0.8, "a2" -> 0.2)),
-          List(Map("a1" -> 0.8, "a2" -> 0.2), Map("a1" -> 0.3, "a2" -> 0.3))
+          List(Map(1001L -> 0.1, 1002L -> 0.9), Map(1001L -> 0.8, 1002L -> 0.2)),
+          List(Map(1001L -> 0.8, 1002L -> 0.2), Map(1001L -> 0.3, 1002L -> 0.3))
         ))
     assert(
       firstRec.getAs[Seq[Map[String, Double]]](13) ==
@@ -426,21 +426,21 @@ class TimelineTest extends PipelineTester {
     val secondRec = df.where($"sequence_number_ordinal" === 2).head()
     assert(secondRec.getAs[String](0) == "2018-01-01")
     assert(secondRec.getAs[String](1) == "mdp1")
-    assert(secondRec.getAs[Map[String, Double]](2) == Map("s2" -> 1.0))
-    assert(secondRec.getAs[Map[String, Double]](3) == Map("a1" -> 0.1, "a2" -> 0.9))
+    assert(secondRec.getAs[Map[Long, Double]](2) == Map(2L -> 1.0))
+    assert(secondRec.getAs[Map[Long, Double]](3) == Map(1001L -> 0.1, 1002L -> 0.9))
     assert(secondRec.getAs[Double](4) == 0.7)
     assert(secondRec.getAs[Seq[Double]](5) == List(0.2))
-    assert(secondRec.getAs[Seq[Map[String, Double]]](6) == List(Map("s3" -> 1.0)))
-    assert(secondRec.getAs[Seq[Map[String, Double]]](7) == List(Map("a1" -> 0.8, "a2" -> 0.2)))
+    assert(secondRec.getAs[Seq[Map[Long, Double]]](6) == List(Map(3L -> 1.0)))
+    assert(secondRec.getAs[Seq[Map[Long, Double]]](7) == List(Map(1001L -> 0.8, 1002L -> 0.2)))
     assert(secondRec.getAs[Long](8) == 11)
     assert(secondRec.getAs[Long](9) == 2)
     assert(secondRec.getAs[Seq[Long]](10) == List(1))
     assert(
-      secondRec.getAs[Seq[Map[String, Double]]](11) == List(Map("a1" -> 0.1, "a2" -> 0.9),
-                                                            Map("a1" -> 0.8, "a2" -> 0.2)))
+      secondRec.getAs[Seq[Map[Long, Double]]](11) == List(Map(1001L -> 0.1, 1002L -> 0.9),
+                                                          Map(1001L -> 0.8, 1002L -> 0.2)))
     assert(
-      secondRec.getAs[Seq[Seq[Map[String, Double]]]](12) ==
-        List(List(Map("a1" -> 0.8, "a2" -> 0.2), Map("a1" -> 0.3, "a2" -> 0.3))))
+      secondRec.getAs[Seq[Seq[Map[Long, Double]]]](12) ==
+        List(List(Map(1001L -> 0.8, 1002L -> 0.2), Map(1001L -> 0.3, 1002L -> 0.3))))
     assert(
       secondRec.getAs[Seq[Map[String, Double]]](13) ==
         List(Map("Widgets" -> 20.0)))
@@ -477,7 +477,7 @@ class TimelineTest extends PipelineTester {
            1.0,
            "action1",
            0.8,
-           Map("s1" -> 1.0),
+           Map(1L -> 1.0),
            List("action1", "action2"),
            Map("Widgets" -> 10.0)), // First state
           ("2018-01-01",
@@ -486,7 +486,7 @@ class TimelineTest extends PipelineTester {
            0.2,
            "action2",
            0.7,
-           Map("s2" -> 1.0),
+           Map(2L -> 1.0),
            List(),
            Map("Widgets" -> 20.0)) // Second state
         ))
@@ -529,11 +529,11 @@ class TimelineTest extends PipelineTester {
     val firstRow = df.head
     assert(firstRow.getAs[String](0) == "2018-01-01")
     assert(firstRow.getAs[String](1) == "mdp1")
-    assert(firstRow.getAs[Map[String, Double]](2) == Map("s1" -> 1.0))
+    assert(firstRow.getAs[Map[Long, Double]](2) == Map(1L -> 1.0))
     assert(firstRow.getAs[String](3) == "action1")
     assert(firstRow.getAs[Double](4) == 0.8)
     assert(firstRow.getAs[Double](5) === 1.0)
-    assert(firstRow.getAs[Map[String, Double]](6) == Map("s2" -> 1.0))
+    assert(firstRow.getAs[Map[Long, Double]](6) == Map(2L -> 1.0))
     assert(firstRow.getAs[String](7) == "action2")
     assert(firstRow.getAs[Long](8) == 1)
     assert(firstRow.getAs[Long](9) == 1)
