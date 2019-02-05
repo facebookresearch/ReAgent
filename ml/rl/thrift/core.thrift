@@ -112,6 +112,7 @@ struct ContinuousActionModelParameters {
   4: RainbowDQNParameters rainbow,
   # Some fields were removed; the next number to use is 6
   6: EvaluationParameters evaluation = {},
+  7: optional StateFeatureParameters state_feature_params,
 }
 
 struct DDPGNetworkParameters {
