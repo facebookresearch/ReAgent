@@ -524,9 +524,9 @@ class GridworldBase(object):
 
     def generate_samples_discrete(
         self,
-        num_transitions,
-        epsilon,
-        discount_factor,
+        num_transitions: int,
+        epsilon: float,
+        discount_factor: float,
         multi_steps: Optional[int] = None,
     ) -> Union[Samples, MultiStepSamples]:
         """ Generate samples:
@@ -536,6 +536,12 @@ class GridworldBase(object):
              (r_t, r_{t+1}, ..., r_{t+steps}),
              (s_{t+1}, s_{t+2}, ..., s_{t+steps+1})
             ]
+        :param num_transitions: How many transitions to collect
+        :param epsilon: The fraction of time a random action is sampled
+            instead of the optimal action
+        :param multi_steps: An integer, if provided, decides how many steps of
+            transitions contained in each sample. Only used if you want to train
+            multi-step RL.
         """
         return_single_step_samples = False
         if multi_steps is None:
@@ -683,9 +689,10 @@ class GridworldBase(object):
             state = next_state
 
         # Format terminals in same way we ask clients to log terminals (in RL dex)
-        for i, next_action in enumerate(next_actions):
-            if next_action == [""]:
-                next_states[i] = [{}]
+        for i, nas in enumerate(next_actions):
+            for j, na in enumerate(nas):
+                if na == "":
+                    next_states[i][j] = {}  # noqa
 
         samples = MultiStepSamples(  # noqa
             mdp_ids=mdp_ids,

@@ -1,12 +1,12 @@
 {
   "env": "Pendulum-v0",
   "model_type": "continuous",
-  "max_replay_memory_size": 10000,
+  "max_replay_memory_size": 100000,
   "use_gpu": true,
   "rl": {
     "gamma": 0.99,
     "epsilon": 0,
-    "target_update_rate": 0.01,
+    "target_update_rate": 0.1,
     "softmax_policy": 0
   },
   "shared_training": {
@@ -26,7 +26,7 @@
       "relu",
       "tanh"
     ],
-    "learning_rate": 0.001
+    "learning_rate": 0.01
   },
   "critic_training": {
     "layers": [
@@ -40,7 +40,7 @@
       "relu",
       "linear"
     ],
-    "learning_rate": 0.001,
+    "learning_rate": 0.01,
     "l2_decay": 0.01
   },
   "run_details": {
@@ -51,6 +51,7 @@
     "test_every_ts": 2000,
     "test_after_ts": 1,
     "num_train_batches": 1,
-    "avg_over_num_episodes": 100
+    "avg_over_num_episodes": 100,
+    "offline_train_epochs": 20
   }
 }

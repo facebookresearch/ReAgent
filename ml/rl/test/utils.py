@@ -96,6 +96,16 @@ def default_normalizer(feats, min_value=None, max_value=None):
 
 
 def only_continuous_normalizer(feats, min_value=None, max_value=None):
+    assert type(min_value) == type(max_value) and type(min_value) in (
+        int,
+        float,
+        list,
+        np.ndarray,
+        type(None),
+    )
+    if type(min_value) in [int, float, type(None)]:
+        min_value = [min_value] * len(feats)
+        max_value = [max_value] * len(feats)
     normalization = collections.OrderedDict(
         [
             (
@@ -108,8 +118,8 @@ def only_continuous_normalizer(feats, min_value=None, max_value=None):
                     stddev=1,
                     possible_values=None,
                     quantiles=None,
-                    min_value=min_value,
-                    max_value=max_value,
+                    min_value=min_value[i],
+                    max_value=max_value[i],
                 ),
             )
             for i in range(len(feats))

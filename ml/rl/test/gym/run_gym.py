@@ -79,6 +79,7 @@ def get_possible_actions(gym_env, model_type, terminal):
 def train_sgd(
     c2_device,
     gym_env,
+    offline_train,
     replay_buffer,
     model_type,
     trainer,
@@ -96,28 +97,153 @@ def train_sgd(
     render=False,
     save_timesteps_to_dataset=None,
     start_saving_from_episode=0,
+    offline_train_epochs=3,
 ):
-    return train_gym_online_rl(
-        c2_device,
-        gym_env,
-        replay_buffer,
-        model_type,
-        trainer,
-        predictor,
-        test_run_name,
-        score_bar,
-        num_episodes,
-        max_steps,
-        train_every_ts,
-        train_after_ts,
-        test_every_ts,
-        test_after_ts,
-        num_train_batches,
-        avg_over_num_episodes,
-        render,
-        save_timesteps_to_dataset,
-        start_saving_from_episode,
+    if offline_train:
+        return train_gym_offline_rl(
+            c2_device,
+            gym_env,
+            replay_buffer,
+            model_type,
+            trainer,
+            predictor,
+            test_run_name,
+            score_bar,
+            max_steps,
+            avg_over_num_episodes,
+            offline_train_epochs,
+        )
+    else:
+        return train_gym_online_rl(
+            c2_device,
+            gym_env,
+            replay_buffer,
+            model_type,
+            trainer,
+            predictor,
+            test_run_name,
+            score_bar,
+            num_episodes,
+            max_steps,
+            train_every_ts,
+            train_after_ts,
+            test_every_ts,
+            test_after_ts,
+            num_train_batches,
+            avg_over_num_episodes,
+            render,
+            save_timesteps_to_dataset,
+            start_saving_from_episode,
+        )
+
+
+def train_gym_offline_rl(
+    c2_device,
+    gym_env,
+    replay_buffer,
+    model_type,
+    trainer,
+    predictor,
+    test_run_name,
+    score_bar,
+    max_steps,
+    avg_over_num_episodes,
+    offline_train_epochs,
+):
+    """
+    Train on transitions collected by a random policy then learn RL off policy.
+    """
+
+    def dict_to_np(d, np_size, key_offset):
+        x = np.zeros(np_size, dtype=np.float32)
+        for key in d:
+            x[key - key_offset] = d[key]
+        return x
+
+    samples = gym_env.generate_random_samples(
+        replay_buffer.max_replay_memory_size, True
     )
+    for i in range(len(samples.mdp_ids)):
+        state = dict_to_np(samples.states[i], gym_env.state_dim, 0)
+        action = dict_to_np(samples.actions[i], gym_env.action_dim, gym_env.state_dim)
+        reward = np.float32(samples.rewards[i])
+        next_state = dict_to_np(samples.next_states[i], gym_env.state_dim, 0)
+        next_action = dict_to_np(
+            samples.next_actions[i], gym_env.action_dim, gym_env.state_dim
+        )
+        terminal = samples.terminals[i]
+        (possible_actions, possible_actions_mask) = get_possible_actions(
+            gym_env, model_type, False
+        )
+        (possible_next_actions, possible_next_actions_mask) = get_possible_actions(
+            gym_env, model_type, samples.terminals[i]
+        )
+        replay_buffer.insert_into_memory(
+            state,
+            action,
+            reward,
+            next_state,
+            next_action,
+            terminal,
+            possible_next_actions,
+            possible_next_actions_mask,
+            1,
+            possible_actions,
+            possible_actions_mask,
+        )
+
+    memory_size = min(replay_buffer.memory_num, replay_buffer.max_replay_memory_size)
+    num_batch_per_epoch = memory_size // trainer.minibatch_size
+    logger.info(
+        "Collect {} offline transitions.\n"
+        "Training will take {} epochs, with each epoch having {} mini-batches"
+        " and each mini-batch having {} samples".format(
+            memory_size,
+            offline_train_epochs,
+            num_batch_per_epoch,
+            trainer.minibatch_size,
+        )
+    )
+
+    avg_reward_history, timestep_history = [], []
+
+    # Offline training
+    for i_epoch in range(offline_train_epochs):
+        avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
+            avg_over_num_episodes, predictor, test=True
+        )
+        avg_reward_history.append(avg_rewards)
+        # FIXME: needs to get average timesteps from run_ep_n_times
+        timestep_history.append(-1)
+        logger.info(
+            "Achieved an average reward score of {} over {} evaluations"
+            " after epoch {}.".format(avg_rewards, avg_over_num_episodes, i_epoch)
+        )
+        if score_bar is not None and avg_rewards > score_bar:
+            logger.info(
+                "Avg. reward history for {}: {}".format(
+                    test_run_name, avg_reward_history
+                )
+            )
+            return avg_reward_history, timestep_history, trainer, predictor
+
+        for _ in range(num_batch_per_epoch):
+            samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
+            samples.set_type(trainer.dtype)
+            trainer.train(samples)
+
+        batch_td_loss = np.mean(
+            [stat.td_loss for stat in trainer.loss_reporter.incoming_stats]
+        )
+        trainer.loss_reporter.flush()
+        logger.info(
+            "Average td loss: {} in epoch {}".format(batch_td_loss, i_epoch + 1)
+        )
+
+    logger.info(
+        "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
+    )
+    return avg_reward_history, timestep_history, trainer, predictor
 
 
 def train_gym_online_rl(
@@ -344,6 +470,11 @@ def main(args):
         type=str,
         default=None,
     )
+    parser.add_argument(
+        "--offline_train",
+        action="store_true",
+        help="If set, collect data using a random policy then train RL offline.",
+    )
     args = parser.parse_args(args)
 
     if args.log_level not in ("debug", "info", "warning", "error", "critical"):
@@ -356,7 +487,12 @@ def main(args):
 
     dataset = RLDataset(args.file_path) if args.file_path else None
     reward_history, timestep_history, trainer, predictor = run_gym(
-        params, args.score_bar, args.gpu_id, dataset, args.start_saving_from_episode
+        params,
+        args.offline_train,
+        args.score_bar,
+        args.gpu_id,
+        dataset,
+        args.start_saving_from_episode,
     )
     if dataset:
         dataset.save()
@@ -367,6 +503,7 @@ def main(args):
 
 def run_gym(
     params,
+    offline_train,
     score_bar,
     gpu_id,
     save_timesteps_to_dataset=None,
@@ -377,11 +514,13 @@ def run_gym(
     rl_parameters = RLParameters(**params["rl"])
 
     env_type = params["env"]
+    if offline_train:
+        # take random actions during data collection
+        epsilon = 1.0
+    else:
+        epsilon = rl_parameters.epsilon
     env = OpenAIGymEnvironment(
-        env_type,
-        rl_parameters.epsilon,
-        rl_parameters.softmax_policy,
-        rl_parameters.gamma,
+        env_type, epsilon, rl_parameters.softmax_policy, rl_parameters.gamma
     )
     replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
     model_type = params["model_type"]
@@ -396,6 +535,7 @@ def run_gym(
     return train_sgd(
         c2_device,
         env,
+        offline_train,
         replay_buffer,
         model_type,
         trainer,
@@ -620,9 +760,4 @@ def create_predictor(trainer, model_type, use_gpu):
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     args = sys.argv
-    if len(args) not in [3, 5, 7, 9, 11]:
-        raise Exception(
-            "Usage: python run_gym.py -p <parameters_file>"
-            + " [-s <score_bar>] [-g <gpu_id>] [-l <log_level>] [-f <filename>]"
-        )
     main(args[1:])

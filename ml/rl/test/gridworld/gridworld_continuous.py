@@ -3,7 +3,7 @@
 
 
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import torch
 from caffe2.python import core, workspace
@@ -11,7 +11,12 @@ from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
-from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples, shuffle_samples
+from ml.rl.test.gridworld.gridworld_base import (
+    GridworldBase,
+    MultiStepSamples,
+    Samples,
+    shuffle_samples,
+)
 from ml.rl.test.utils import (
     only_continuous_action_normalizer,
     only_continuous_normalizer,
@@ -26,12 +31,7 @@ class GridworldContinuous(GridworldBase):
     @property
     def normalization_action(self):
         return only_continuous_normalizer(
-            [
-                x
-                for x in list(
-                    range(self.num_states, self.num_states + self.num_actions)
-                )
-            ],
+            list(range(self.num_states, self.num_states + self.num_actions)),
             min_value=0,
             max_value=1,
         )
@@ -39,12 +39,7 @@ class GridworldContinuous(GridworldBase):
     @property
     def normalization_continuous_action(self):
         return only_continuous_action_normalizer(
-            [
-                x
-                for x in list(
-                    range(self.num_states, self.num_states + self.num_actions)
-                )
-            ],
+            list(range(self.num_states, self.num_states + self.num_actions)),
             min_value=0,
             max_value=1,
         )
@@ -81,7 +76,7 @@ class GridworldContinuous(GridworldBase):
         epsilon,
         discount_factor,
         multi_steps: Optional[int] = None,
-    ) -> Samples:
+    ) -> Union[Samples, MultiStepSamples]:
         samples = self.generate_samples_discrete(
             num_transitions, epsilon, discount_factor, multi_steps
         )
@@ -125,17 +120,10 @@ class GridworldContinuous(GridworldBase):
                     ]
                 )
 
-        return Samples(
-            mdp_ids=samples.mdp_ids,
-            sequence_numbers=samples.sequence_numbers,
-            states=samples.states,
+        return samples._replace(
             actions=continuous_actions,
-            action_probabilities=samples.action_probabilities,
-            rewards=samples.rewards,
             possible_actions=continuous_possible_actions,
-            next_states=samples.next_states,
             next_actions=continuous_next_actions,
-            terminals=samples.terminals,
             possible_next_actions=continuous_possible_next_actions,
         )
 

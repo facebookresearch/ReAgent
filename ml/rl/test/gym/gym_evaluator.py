@@ -2,16 +2,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
-import torch
-from ml.rl.caffe_utils import softmax
-from ml.rl.evaluation.cpe import CpeDetails
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.test.gym.gym_predictor import GymPredictor
 from ml.rl.test.gym.open_ai_gym_environment import EnvType
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.training.rl_predictor_pytorch import RLPredictor
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +33,7 @@ class GymEvaluator(Evaluator):
         self._env = env
         self.mc_loss: List[float] = []
         if self._env.action_type == EnvType.CONTINUOUS_ACTION:
-            raise NotImplementedError()
+            return
 
         (
             logged_mdp_ids,
@@ -142,7 +140,22 @@ class GymEvaluator(Evaluator):
             terminals,
         )
 
-    def evaluate(self, predictor) -> CpeDetails:
+    def evaluate_on_episodes(
+        self, num_episodes, predictor: Union[RLPredictor, GymPredictor, None]
+    ):
+        """
+        Simulate real episodes and evaluate average rewards and
+        discounted rewards
+
+        :param num_episodes: number of episodes to simulate
+        :param predictor: the policy to be used to run episodes. If it is None,
+            use a random policy
+        """
+        return self._env.run_ep_n_times(num_episodes, predictor, test=True)
+
+    def evaluate_reward_value(self, predictor):
+        if self._env.action_type == EnvType.CONTINUOUS_ACTION:
+            raise NotImplementedError()
         # test only float features
         predictions = predictor.predict(self.logged_states).astype(np.float32)
         estimated_reward_values = predictor.estimate_reward(self.logged_states)
