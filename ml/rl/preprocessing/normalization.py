@@ -4,6 +4,7 @@
 import json
 import logging
 from collections import namedtuple
+from typing import Dict
 
 import numpy as np
 import six
@@ -206,7 +207,7 @@ def sort_features_by_normalization(normalization_parameters):
     return sorted_features, feature_starts
 
 
-def deserialize(parameters_json):
+def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
         # Note: This is OK since NormalizationParameters is flat.

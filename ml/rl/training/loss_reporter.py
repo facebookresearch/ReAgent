@@ -296,7 +296,7 @@ class LossReporter(object):
             for k, v in self.model_action_counts_cumulative.items()
         }
 
-    def log_to_tensorboard(self, writer: SummaryWriter, epoch: int) -> None:
+    def log_to_tensorboard(self, epoch: int) -> None:
         def none_to_zero(x: Optional[float]) -> float:
             if x is None or math.isnan(x):
                 return 0.0
@@ -306,7 +306,7 @@ class LossReporter(object):
             ("Training/td_loss", self.get_recent_td_loss()),
             ("Training/reward_loss", self.get_recent_reward_loss()),
         ]:
-            writer.add_scalar(name, none_to_zero(value), epoch)
+            SummaryWriterContext.add_scalar(name, none_to_zero(value), epoch)
 
     @staticmethod
     def calculate_recent_window_average(arr, window_size, num_entries):

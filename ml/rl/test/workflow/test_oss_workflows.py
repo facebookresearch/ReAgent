@@ -44,7 +44,7 @@ class TestOSSWorkflows(unittest.TestCase):
                 "rainbow": {},
                 "training": {"minibatch_size": 128},
             }
-            predictor = dqn_workflow.train_network(params)
+            predictor = dqn_workflow.main(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             q_values = predictor.predict(test_float_state_features)
         assert len(q_values[0].keys()) == 2
@@ -85,7 +85,7 @@ class TestOSSWorkflows(unittest.TestCase):
                 "rainbow": {},
                 "training": {"minibatch_size": 128},
             }
-            predictor = parametric_dqn_workflow.train_network(params)
+            predictor = parametric_dqn_workflow.main(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             test_int_state_features = [{}]
             test_action_features = [{"4": 0.0, "5": 1.0}]
@@ -132,7 +132,7 @@ class TestOSSWorkflows(unittest.TestCase):
                 "actor_training": {},
                 "critic_training": {},
             }
-            predictor = ddpg_workflow.train_network(params)
+            predictor = ddpg_workflow.main(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             test_int_state_features = [{}]
             action = predictor.actor_prediction(

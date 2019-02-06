@@ -5,7 +5,7 @@ import logging
 import math
 from typing import Dict, NamedTuple, Optional
 
-from tensorboardX import SummaryWriter
+from ml.rl.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)
@@ -63,9 +63,7 @@ class CpeEstimateSet:
             )
         )
 
-    def log_to_tensorboard(
-        self, metric_name: str, writer: SummaryWriter, epoch: int
-    ) -> None:
+    def log_to_tensorboard(self, metric_name: str) -> None:
         def none_to_zero(x: Optional[float]) -> float:
             if x is None or math.isnan(x):
                 return 0.0
@@ -94,7 +92,7 @@ class CpeEstimateSet:
             ),
             ("CPE/{}/MAGIC".format(metric_name), self.magic.normalized),
         ]:
-            writer.add_scalar(name, none_to_zero(value), epoch)
+            SummaryWriterContext.add_scalar(name, none_to_zero(value))
 
 
 class CpeDetails:
@@ -117,7 +115,7 @@ class CpeDetails:
             self.metric_estimates[metric].log()
             logger.info("-----------------")
 
-    def log_to_tensorboard(self, writer: SummaryWriter, epoch: int) -> None:
-        self.reward_estimates.log_to_tensorboard("Reward", writer, epoch)
+    def log_to_tensorboard(self) -> None:
+        self.reward_estimates.log_to_tensorboard("Reward")
         for metric_name, estimate_set in self.metric_estimates.items():
-            estimate_set.log_to_tensorboard(metric_name, writer, epoch)
+            estimate_set.log_to_tensorboard(metric_name)
