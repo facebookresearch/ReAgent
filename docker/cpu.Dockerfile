@@ -63,9 +63,9 @@ RUN pip install "gym[classic_control,box2d,atari]"
 ENV JAVA_HOME ${HOME}/miniconda
 
 # Install Spark
-RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz && \
-    tar -xzf spark-2.3.1-bin-hadoop2.7.tgz && \
-    mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark
+RUN wget https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz && \
+    tar -xzf spark-2.4.0-bin-hadoop2.7.tgz && \
+    mv spark-2.4.0-bin-hadoop2.7 /usr/local/spark
 
 # Define default command.
 CMD ["bash"]
