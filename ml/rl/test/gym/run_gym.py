@@ -161,7 +161,9 @@ def train_gym_offline_rl(
         return x
 
     samples = gym_env.generate_random_samples(
-        replay_buffer.max_replay_memory_size, True
+        num_transitions=replay_buffer.max_replay_memory_size,
+        use_continuous_action=True,
+        max_step=max_steps,
     )
     for i in range(len(samples.mdp_ids)):
         state = dict_to_np(samples.states[i], gym_env.state_dim, 0)

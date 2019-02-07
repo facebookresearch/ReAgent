@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-from typing import List
+from typing import List, Optional
 
 from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -12,11 +12,19 @@ class Gridworld(GridworldBase):
     def state_to_features(self, state):
         return {state: 1.0}
 
-    def generate_samples(self, num_transitions, epsilon, discount_factor) -> Samples:
-        samples = self.generate_samples_discrete(
-            num_transitions, epsilon, discount_factor
+    def generate_samples(
+        self,
+        num_transitions,
+        epsilon,
+        discount_factor,
+        multi_steps: Optional[int] = None,
+    ) -> Samples:
+        return self.generate_random_samples(
+            num_transitions,
+            use_continuous_action=False,
+            epsilon=epsilon,
+            multi_steps=multi_steps,
         )
-        return samples
 
     def preprocess_samples(
         self,

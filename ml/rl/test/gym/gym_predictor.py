@@ -5,9 +5,7 @@ import logging
 
 import numpy as np
 import torch
-from caffe2.python import core, workspace
 from ml.rl.caffe_utils import softmax
-from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
