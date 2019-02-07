@@ -3,14 +3,14 @@
 
 import logging
 import math
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Union
 
+import ml.rl.types as mt
 import numpy as np
 import torch
 from ml.rl.caffe_utils import masked_softmax
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
-from ml.rl.types import TrainingBatch
 
 
 logger = logging.getLogger(__name__)
@@ -48,24 +48,25 @@ class EvaluationDataPage(NamedTuple):
             tdp.actions,
             tdp.propensities,
             tdp.rewards,
-            tdp.possible_actions_state_concat,
             tdp.possible_actions_mask,
-            tdp.metrics,
+            max_num_actions=tdp.max_num_actions,
+            metrics=tdp.metrics,
         )
 
     @classmethod
-    def create_from_training_batch(cls, tdp: TrainingBatch, trainer: RLTrainer):
+    def create_from_training_batch(cls, tdb: mt.TrainingBatch, trainer: RLTrainer):
         return EvaluationDataPage.create_from_tensors(
             trainer,
-            tdp.mdp_ids,
-            tdp.sequence_numbers,
-            tdp.states,
-            tdp.actions,
-            tdp.propensities,
-            tdp.rewards,
-            tdp.possible_actions_state_concat,
-            tdp.possible_actions_mask,
-            tdp.metrics,
+            tdb.extras.mdp_id,
+            tdb.extras.sequence_number,
+            tdb.training_input.state,
+            tdb.training_input.action,
+            tdb.extras.action_probability,
+            tdb.training_input.reward,
+            tdb.training_input.possible_actions_mask,
+            tdb.training_input.possible_actions,
+            tdb.extras.max_num_actions,
+            metrics=None,  # TODO add metrics to conduct CPE on metrics
         )
 
     @classmethod
@@ -74,12 +75,13 @@ class EvaluationDataPage(NamedTuple):
         trainer: RLTrainer,
         mdp_ids: np.ndarray,
         sequence_numbers: torch.Tensor,
-        states: torch.Tensor,
-        actions: torch.Tensor,
+        states: Union[mt.State, torch.Tensor],
+        actions: Union[mt.Action, torch.Tensor],
         propensities: torch.Tensor,
         rewards: torch.Tensor,
-        possible_actions_state_concat: Optional[torch.Tensor],
         possible_actions_mask: torch.Tensor,
+        possible_actions: Optional[mt.FeatureVector] = None,
+        max_num_actions: Optional[int] = None,
         metrics: Optional[torch.Tensor] = None,
     ):
         with torch.no_grad():
@@ -89,12 +91,21 @@ class EvaluationDataPage(NamedTuple):
             trainer.q_network.train(False)
             trainer.reward_network.train(False)
 
-            if possible_actions_state_concat is not None:
-                state_action_pairs = torch.cat((states, actions), dim=1)
+            if max_num_actions:
+                # Parametric model CPE
+                state_action_pairs = mt.StateAction(state=states, action=actions)
+                tiled_state = mt.FeatureVector(
+                    states.float_features.repeat(1, max_num_actions).reshape(
+                        -1, states.float_features.shape[1]
+                    )
+                )
+                # Get Q-value of action taken
+                possible_actions_state_concat = mt.StateAction(
+                    state=tiled_state, action=possible_actions
+                )
 
                 # Parametric actions
-                rewards = rewards
-                model_values = trainer.q_network(possible_actions_state_concat)
+                model_values = trainer.q_network(possible_actions_state_concat).q_value
                 assert (
                     model_values.shape[0] * model_values.shape[1]
                     == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
@@ -106,7 +117,9 @@ class EvaluationDataPage(NamedTuple):
                 )
                 model_values = model_values.reshape(possible_actions_mask.shape)
 
-                model_rewards = trainer.reward_network(possible_actions_state_concat)
+                model_rewards = trainer.reward_network(
+                    possible_actions_state_concat
+                ).q_value
                 assert (
                     model_rewards.shape[0] * model_rewards.shape[1]
                     == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
@@ -118,10 +131,12 @@ class EvaluationDataPage(NamedTuple):
                 )
                 model_rewards = model_rewards.reshape(possible_actions_mask.shape)
 
-                model_values_for_logged_action = trainer.q_network(state_action_pairs)
+                model_values_for_logged_action = trainer.q_network(
+                    state_action_pairs
+                ).q_value
                 model_rewards_for_logged_action = trainer.reward_network(
                     state_action_pairs
-                )
+                ).q_value
 
                 action_mask = (
                     torch.abs(model_values - model_values_for_logged_action) < 1e-3
@@ -253,7 +268,6 @@ class EvaluationDataPage(NamedTuple):
                 # Will compute later
                 logged_values=None,
                 logged_metrics_values=None,
-                possible_actions_state_concat=possible_actions_state_concat,
                 possible_actions_mask=possible_actions_mask,
             )
 

@@ -5,6 +5,7 @@ import abc
 from typing import Dict, NamedTuple, Optional
 
 import ml.rl.types as mt
+import numpy as np
 import torch
 from caffe2.python import core, schema
 from ml.rl.caffe_utils import C2
@@ -104,6 +105,8 @@ class InputColumn(object):
     NOT_TERMINAL = "not_terminal"
     STEP = "step"
     TIME_DIFF = "time_diff"
+    MDP_ID = "mdp_id"
+    SEQUENCE_NUMBER = "sequence_number"
 
 
 class TrainingFeatureExtractor(FeatureExtractorBase):
@@ -143,9 +146,14 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         self.multi_steps = multi_steps
 
     def extract(self, ws, input_record, extract_record):
-        def fetch(b):
+        def fetch(b, to_torch=True):
             data = ws.fetch_blob(str(b()))
-            return torch.tensor(data)
+            if not isinstance(data, np.ndarray):
+                # Blob uninitialized, return None and handle downstream
+                return None
+            if to_torch:
+                return torch.tensor(data)
+            return data
 
         def fetch_action(b):
             if self.sorted_action_features is None:
@@ -166,6 +174,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
         action = fetch_action(extract_record.action)
         next_action = fetch_action(extract_record.next_action)
+        max_num_actions = None
         if self.multi_steps is not None:
             step = fetch(input_record.step).reshape(-1, 1)
         else:
@@ -179,8 +188,10 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         if self.include_possible_actions:
             # TODO: this will need to be more complicated to support sparse features
             assert self.max_num_actions is not None, "Missing max_num_actions"
-            possible_actions_mask = fetch(extract_record.possible_actions_mask).reshape(
-                -1, self.max_num_actions
+            possible_actions_mask = (
+                fetch(extract_record.possible_actions_mask)
+                .reshape(-1, self.max_num_actions)
+                .type(torch.FloatTensor)
             )
             possible_next_actions_mask = fetch(
                 extract_record.possible_next_actions_mask
@@ -198,6 +209,8 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                         1, self.max_num_actions
                     ).reshape(-1, next_state.float_features.shape[1])
                 )
+                max_num_actions = self.max_num_actions
+
             else:
                 possible_actions = None
                 possible_next_actions = None
@@ -230,9 +243,17 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 time_diff=time_diff,
             )
 
+        mdp_id = fetch(input_record.mdp_id, to_torch=False)
+        sequence_number = fetch(input_record.sequence_number)
+
         # TODO: stuff other fields in here
         extras = mt.ExtraData(
-            action_probability=fetch(input_record.action_probability).reshape(-1, 1)
+            action_probability=fetch(input_record.action_probability).reshape(-1, 1),
+            sequence_number=sequence_number.reshape(-1, 1)
+            if sequence_number is not None
+            else None,
+            mdp_id=mdp_id.reshape(-1, 1) if mdp_id is not None else None,
+            max_num_actions=max_num_actions,
         )
 
         return mt.TrainingBatch(training_input=training_input, extras=extras)

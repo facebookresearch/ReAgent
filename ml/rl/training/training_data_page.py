@@ -26,6 +26,7 @@ class TrainingDataPage(object):
         "time_diffs",
         "metrics",
         "step",
+        "max_num_actions",
     ]
 
     def __init__(
@@ -46,6 +47,7 @@ class TrainingDataPage(object):
         time_diffs: Optional[torch.Tensor] = None,
         metrics: Optional[torch.Tensor] = None,
         step: Optional[torch.Tensor] = None,
+        max_num_actions: Optional[int] = None,
     ) -> None:
         """
         Creates a TrainingDataPage object.
@@ -69,6 +71,7 @@ class TrainingDataPage(object):
         self.possible_next_actions_state_concat = possible_next_actions_state_concat
         self.metrics = metrics
         self.step = step
+        self.max_num_actions = max_num_actions
 
     def as_parametric_sarsa_training_batch(self):
         return rlt.TrainingBatch(
@@ -108,7 +111,7 @@ class TrainingDataPage(object):
     def set_type(self, dtype):
         # TODO: Clean this up in a future diff.  Figure out which should be long/float
         for x in TrainingDataPage.__slots__:
-            if x in ("mdp_ids", "sequence_numbers"):
+            if x in ("mdp_ids", "sequence_numbers", "max_num_actions"):
                 continue  # Torch does not support tensors of strings
             t = getattr(self, x)
             if t is not None:

@@ -97,7 +97,10 @@ class SARSAInput(NamedTuple):
 
 
 class ExtraData(NamedTuple):
+    mdp_id: Optional[ValueType] = None
+    sequence_number: Optional[ValueType] = None
     action_probability: Optional[ValueType] = None
+    max_num_actions: Optional[int] = None
 
 
 class TrainingBatch(NamedTuple):

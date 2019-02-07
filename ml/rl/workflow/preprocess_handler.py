@@ -213,6 +213,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
             time_diffs=tdp.time_diffs,
             possible_actions_state_concat=possible_state_actions,
             possible_next_actions_state_concat=possible_next_state_actions,
+            max_num_actions=max_action_size,
         )
 
 

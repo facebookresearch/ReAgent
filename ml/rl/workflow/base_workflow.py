@@ -74,8 +74,8 @@ class BaseWorkflow:
                 batch_preprocessor=preprocess,
             )
 
-            if hasattr(self.trainer, "reward_network"):
-                # TODO: Add CPE support to DDPG/SAC
+            if hasattr(self.trainer, "q_network_cpe"):
+                # TODO: Add CPE support to DDPG/SAC, Parametric DQN (once moved to modular)
                 eval_dataset.reset_iterator()
                 data_streamer = DataStreamer(
                     eval_dataset, pin_memory=self.trainer.use_gpu

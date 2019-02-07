@@ -7,6 +7,8 @@ from typing import List
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
+from ml.rl.training._dqn_trainer import _DQNTrainer
+from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.types import TrainingBatch
 
@@ -21,11 +23,17 @@ class PageHandler:
     def finish(self) -> None:
         raise NotImplementedError()
 
+    def set_epoch(self, epoch) -> None:
+        raise NotImplementedError()
+
 
 class TrainingPageHandler(PageHandler):
     def __init__(self, trainer):
         self.accumulated_tdp = None
         self.trainer = trainer
+
+    def set_epoch(self, epoch) -> None:
+        self.epoch = epoch
 
     def handle(self, tdp: TrainingDataPage) -> None:
         SummaryWriterContext.increase_global_step()
@@ -43,15 +51,20 @@ class EvaluationPageHandler(PageHandler):
         self.reporter = reporter
         self.results: List[CpeDetails] = []
 
+    def set_epoch(self, epoch) -> None:
+        self.epoch = epoch
+
     def handle(self, tdp: TrainingDataPage) -> None:
         if not self.trainer.calc_cpe_in_training:
             return
         if isinstance(tdp, TrainingDataPage):
             edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
         elif isinstance(tdp, TrainingBatch):
-            # TODO: TrainingBatch needs mdp_id, sequence_number, and other fields
-            # edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
-            edp = None
+            if isinstance(self.trainer, (_DQNTrainer, SACTrainer)):
+                # TODO: Implement CPE for modular DQNTrainer & continuous algos
+                edp = None
+            else:
+                edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
         if self.evaluation_data is None:
             self.evaluation_data = edp
         else:

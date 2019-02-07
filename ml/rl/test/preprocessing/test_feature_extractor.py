@@ -251,6 +251,16 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field()), time_diff)
         return time_diff
 
+    def setup_mdp_id(self, ws, field):
+        mdp_id = np.array(["1", "2", "3"], dtype=np.string_)
+        ws.feed_blob(str(field()), mdp_id)
+        return mdp_id
+
+    def setup_seq_num(self, ws, field):
+        seq_num = np.array([1, 1, 2], dtype=np.int32)
+        ws.feed_blob(str(field()), seq_num)
+        return seq_num
+
     def create_ws_and_net(self, extractor):
         net, init_net = extractor.create_net()
         ws = workspace.Workspace()
@@ -290,6 +300,8 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
                 ("reward", schema.Scalar()),
                 ("action_probability", schema.Scalar()),
                 ("step", schema.Scalar()),
+                ("mdp_id", schema.Scalar()),
+                ("sequence_number", schema.Scalar()),
             ),
         )
 
@@ -332,16 +344,23 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         time_diff = self.setup_time_diff(ws, input_record.time_diff)
+        mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
+        sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
         step = self.setup_step(ws, input_record.step)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
+        e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
         npt.assert_array_equal(step.reshape(-1, 1), o.step.numpy())
+        npt.assert_array_equal(
+            sequence_number.reshape(-1, 1), e.sequence_number.numpy()
+        )
+        npt.assert_array_equal(mdp_id.reshape(-1, 1), e.mdp_id)
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
@@ -389,14 +408,21 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         time_diff = self.setup_time_diff(ws, input_record.time_diff)
+        mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
+        sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
+        e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
+        npt.assert_array_equal(
+            sequence_number.reshape(-1, 1), e.sequence_number.numpy()
+        )
+        npt.assert_array_equal(mdp_id.reshape(-1, 1), e.mdp_id)
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
@@ -448,14 +474,21 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         time_diff = self.setup_time_diff(ws, input_record.time_diff)
+        mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
+        sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
+        e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
+        npt.assert_array_equal(
+            sequence_number.reshape(-1, 1), e.sequence_number.numpy()
+        )
+        npt.assert_array_equal(mdp_id.reshape(-1, 1), e.mdp_id)
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
@@ -516,14 +549,21 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         time_diff = self.setup_time_diff(ws, input_record.time_diff)
+        mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
+        sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
         res = extractor.extract(ws, input_record, net.output_record())
         o = res.training_input
+        e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
+        npt.assert_array_equal(
+            sequence_number.reshape(-1, 1), e.sequence_number.numpy()
+        )
+        npt.assert_array_equal(mdp_id.reshape(-1, 1), e.mdp_id)
         npt.assert_array_equal(
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
