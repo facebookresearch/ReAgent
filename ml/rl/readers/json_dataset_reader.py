@@ -3,22 +3,40 @@
 
 import bz2
 import gzip
-import json
+import math
 import os
-from typing import Dict
+from collections import OrderedDict
+from typing import Optional
 
 import pandas as pd
-from ml.rl.preprocessing import normalization
-from ml.rl.thrift.core.ttypes import NormalizationParameters
+from ml.rl.readers.base import ReaderBase, ReaderIter
 
 
-class JSONDataset:
+class JSONDatasetReaderIter(ReaderIter):
+    def __init__(self, reader):
+        self.reader = reader
+        self.batch_read = 0
+        self.total_batches = (
+            reader.len // reader.batch_size
+            if reader.drop_small
+            else int(math.ceil(reader.len / reader.batch_size))
+        )
+
+    def read_batch(self) -> Optional[OrderedDict]:
+        if self.batch_read == self.total_batches:
+            return None
+        ret = OrderedDict(self.reader.read_batch())
+        self.batch_read += 1
+        return ret
+
+
+class JSONDatasetReader(ReaderBase):
     """Create the reader for a JSON training dataset."""
 
     def __init__(self, path, batch_size=None, converter=None):
+        super(JSONDatasetReader, self).__init__(batch_size=batch_size)
         self.path = os.path.expanduser(path)
         self.file_type = path.split(".")[-1]
-        self.batch_size = batch_size
         self.len = self.line_count()
         self.reset_iterator()
 
@@ -27,7 +45,7 @@ class JSONDataset:
             self.path, lines=True, chunksize=self.batch_size
         )
 
-    def read_batch(self, astype="dict"):
+    def read_batch(self):
         assert (
             self.batch_size is not None
         ), "Batch size must be provided to read data in batches."
@@ -37,12 +55,10 @@ class JSONDataset:
         except StopIteration:
             # No more data to read
             return None
-        if astype == "dict":
-            return x.to_dict(orient="list")
-        return x
+        return x.to_dict(orient="list")
 
     def read_all(self):
-        return pd.read_json(self.path, lines=True)
+        return pd.read_json(self.path, lines=True).to_dict(orient="list")
 
     def __len__(self):
         return self.len
@@ -63,13 +79,5 @@ class JSONDataset:
                     lines += 1
         return lines
 
-
-def read_norm_file(path) -> Dict[int, NormalizationParameters]:
-    path = os.path.expanduser(path)
-    if path.split(".")[-1] == "gz":
-        with gzip.open(path) as f:
-            norm_json = json.load(f)
-    else:
-        with open(path) as f:
-            norm_json = json.load(f)
-    return normalization.deserialize(norm_json)
+    def __iter__(self):
+        return JSONDatasetReaderIter(self)

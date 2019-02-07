@@ -25,21 +25,6 @@ def minibatch_size_multiplier(use_gpu, use_all_avail_gpus):
     return 1
 
 
-def report_training_status(batch_num, num_batches, epoch_num, num_epochs):
-    percent_complete = (
-        (batch_num + epoch_num * num_batches) / (num_batches * num_epochs) * 100
-    )
-    logger.info(
-        "On batch {} of {} and epoch {} of {} ({}% complete)".format(
-            batch_num + 1,
-            num_batches,
-            epoch_num + 1,
-            num_epochs,
-            round(percent_complete),
-        )
-    )
-
-
 def parse_args(args):
     if len(args) != 3:
         raise Exception("Usage: python <file.py> -p <parameters_file>")

@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import gzip
+import json
 import logging
+import os
 import time
+from typing import Dict
 
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
+from ml.rl.preprocessing import normalization
+from ml.rl.readers.data_streamer import DataStreamer
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.workflow.helpers import report_training_status
+from ml.rl.thrift.core.ttypes import NormalizationParameters
+from ml.rl.workflow.page_handler import (
+    EvaluationPageHandler,
+    TrainingPageHandler,
+    feed_pages,
+)
 from ml.rl.workflow.preprocess_handler import PreprocessHandler
 
 
@@ -22,6 +32,17 @@ class BaseWorkflow:
         self.evaluator = evaluator
         self.minibatch_size = minibatch_size
 
+    @staticmethod
+    def read_norm_file(path) -> Dict[int, NormalizationParameters]:
+        path = os.path.expanduser(path)
+        if path.split(".")[-1] == "gz":
+            with gzip.open(path) as f:
+                norm_json = json.load(f)
+        else:
+            with open(path) as f:
+                norm_json = json.load(f)
+        return normalization.deserialize(norm_json)
+
     def train_network(self, train_dataset, eval_dataset, epochs: int):
         num_batches = int(len(train_dataset) / self.minibatch_size)
         logger.info(
@@ -34,48 +55,50 @@ class BaseWorkflow:
         start_time = time.time()
         for epoch in range(epochs):
             train_dataset.reset_iterator()
-            batch_idx = -1
-            while True:
-                batch_idx += 1
-                report_training_status(batch_idx, num_batches, epoch, epochs)
-                batch = train_dataset.read_batch()
-                if batch is None:
-                    break
-                tdp = self.preprocess_handler.preprocess(batch)
+            data_streamer = DataStreamer(train_dataset, pin_memory=self.trainer.use_gpu)
+            preprocess_handler = self.preprocess_handler
+            dtype = self.trainer.dtype
 
-                tdp.set_type(self.trainer.dtype)
-                self.trainer.train(tdp)
+            def preprocess(batch):
+                tdp = preprocess_handler.preprocess(batch)
+                tdp.set_type(dtype)
+                return tdp
+
+            feed_pages(
+                data_streamer,
+                len(train_dataset),
+                epoch,
+                self.minibatch_size,
+                self.trainer.use_gpu,
+                TrainingPageHandler(self.trainer),
+                batch_preprocessor=preprocess,
+            )
 
             if hasattr(self.trainer, "reward_network"):
                 # TODO: Add CPE support to DDPG/SAC
                 eval_dataset.reset_iterator()
-                accumulated_edp = None
-                while True:
-                    batch = eval_dataset.read_batch()
-                    if batch is None:
-                        break
-                    tdp = self.preprocess_handler.preprocess(batch)
-                    tdp.set_type(self.trainer.dtype)
-                    edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
-                    if accumulated_edp is None:
-                        accumulated_edp = edp
-                    else:
-                        accumulated_edp = accumulated_edp.append(edp)
-                assert accumulated_edp is not None, "Eval dataset was empty!"
-                accumulated_edp = accumulated_edp.compute_values(self.trainer.gamma)
-
-                cpe_start_time = time.time()
-                details = self.evaluator.evaluate_post_training(accumulated_edp)
-                details.log()
-                details.log_to_tensorboard()
-                SummaryWriterContext.increase_global_step()
-                logger.info(
-                    "CPE evaluation took {} seconds.".format(
-                        time.time() - cpe_start_time
-                    )
+                data_streamer = DataStreamer(
+                    eval_dataset, pin_memory=self.trainer.use_gpu
                 )
+                eval_page_handler = EvaluationPageHandler(
+                    self.trainer, self.evaluator, self
+                )
+                feed_pages(
+                    data_streamer,
+                    len(eval_dataset),
+                    epoch,
+                    self.minibatch_size,
+                    self.trainer.use_gpu,
+                    eval_page_handler,
+                    batch_preprocessor=preprocess,
+                )
+
+                SummaryWriterContext.increase_global_step()
 
         through_put = (len(train_dataset) * epochs) / (time.time() - start_time)
         logger.info(
             "Training finished. Processed ~{} examples / s.".format(round(through_put))
         )
+
+    def report(self, evaluation_details):
+        evaluation_details.log_to_tensorboard()

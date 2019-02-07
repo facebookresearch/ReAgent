@@ -7,6 +7,7 @@ from typing import Dict
 
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.readers.json_dataset_reader import JSONDatasetReader
 from ml.rl.tensorboardX import summary_writer_context
 from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
@@ -25,7 +26,6 @@ from ml.rl.workflow.helpers import (
     update_model_for_warm_start,
 )
 from ml.rl.workflow.preprocess_handler import ContinuousPreprocessHandler
-from ml.rl.workflow.training_data_reader import JSONDataset, read_norm_file
 from tensorboardX import SummaryWriter
 
 
@@ -100,8 +100,8 @@ def main(params):
         critic_training=critic_parameters,
     )
 
-    state_normalization = read_norm_file(params["state_norm_data_path"])
-    action_normalization = read_norm_file(params["action_norm_data_path"])
+    state_normalization = BaseWorkflow.read_norm_file(params["state_norm_data_path"])
+    action_normalization = BaseWorkflow.read_norm_file(params["action_norm_data_path"])
 
     writer = SummaryWriter(log_dir=params["model_output_path"])
     logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
@@ -114,10 +114,10 @@ def main(params):
         params["use_all_avail_gpus"],
     )
 
-    train_dataset = JSONDataset(
+    train_dataset = JSONDatasetReader(
         params["training_data_path"], batch_size=training_parameters.minibatch_size
     )
-    eval_dataset = JSONDataset(params["eval_data_path"], batch_size=16)
+    eval_dataset = JSONDatasetReader(params["eval_data_path"], batch_size=16)
 
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))

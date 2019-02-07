@@ -16,8 +16,8 @@ from ml.rl.preprocessing.normalization import (
     get_feature_norm_metadata,
     serialize,
 )
+from ml.rl.readers.json_dataset_reader import JSONDatasetReader
 from ml.rl.workflow.helpers import parse_args
-from ml.rl.workflow.training_data_reader import JSONDataset
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def create_norm_table(params):
     logger.info("Generating norm table based on {}".format(training_data_path))
 
     norm_params = get_norm_params(params["norm_params"])
-    dataset = JSONDataset(
+    dataset = JSONDatasetReader(
         params["training_data_path"], batch_size=NORMALIZATION_BATCH_READ_SIZE
     )
 
@@ -45,7 +45,7 @@ def create_norm_table(params):
 
 def get_norm_metadata(dataset, norm_params, norm_col):
     done = False
-    batch = dataset.read_batch(astype="df")
+    batch = dataset.read_batch()
     samples_per_feature, samples = defaultdict(int), defaultdict(list)
 
     while not done:
