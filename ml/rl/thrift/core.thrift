@@ -7,7 +7,7 @@ struct AdditionalFeatureTypes {
 struct RLParameters {
   1: double gamma = 0.9,
   2: double epsilon = 0.1,
-  3: double target_update_rate = 0.01,
+  3: double target_update_rate = 0.001,
   4: i32 reward_burnin = 1,
   5: bool maxq_learning = true,
   6: map<string, double> reward_boost,
@@ -28,7 +28,7 @@ struct RLParameters {
 
 struct RainbowDQNParameters {
   1: bool double_q_learning = true,
-  2: bool dueling_architecture = false,
+  2: bool dueling_architecture = true,
 }
 
 struct CNNParameters {
@@ -53,11 +53,11 @@ struct FactorizationParameters {
 }
 
 struct TrainingParameters {
-  1: i32 minibatch_size = 16384,
-  2: double learning_rate = 0.01,
+  1: i32 minibatch_size = 4096,
+  2: double learning_rate = 0.001,
   3: string optimizer = 'ADAM',
-  4: list<i32> layers = [-1, 512, 256, 128, 1],
-  5: list<string> activations = ['relu', 'relu', 'relu', 'linear'],
+  4: list<i32> layers = [-1, 256, 128, 1],
+  5: list<string> activations = ['relu', 'relu', 'linear'],
   6: string lr_policy = 'fixed',
   7: double lr_decay = 0.999,
   8: double dropout_ratio = 0.0,
@@ -116,14 +116,14 @@ struct ContinuousActionModelParameters {
 }
 
 struct DDPGNetworkParameters {
-  1: list<i32> layers = [-1, 512, 256, 128, 1],
-  2: list<string> activations = ['relu', 'relu', 'relu', 'tanh'],
+  1: list<i32> layers = [-1, 256, 128, 1],
+  2: list<string> activations = ['relu', 'relu', 'tanh'],
   3: double l2_decay = 0.01,
   4: double learning_rate = 0.001,
 }
 
 struct DDPGTrainingParameters {
-  1: i32 minibatch_size = 128,
+  1: i32 minibatch_size = 2048,
   2: double final_layer_init = 0.003,
   3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
@@ -142,7 +142,7 @@ struct DDPGModelParameters {
 
 struct OptimizerParameters {
   1: string optimizer = 'ADAM',
-  2: double learning_rate = 0.01,
+  2: double learning_rate = 0.001,
   3: double l2_decay = 0.01,
 }
 
