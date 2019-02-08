@@ -252,16 +252,20 @@ class Environment:
             action_deque.append(processed_action)
             action_probability_deque.append(action_probability)
             reward_deque.append(reward)
-            # Format terminals in same way we ask clients to log terminals (in RL dex)
-            next_processed_state: FEATURES = {}
-            if not terminal:
-                next_processed_state = self._process_state(next_state)
-            next_state_deque.append(next_processed_state)
-            next_action_deque.append(next_processed_action)
             terminal_deque.append(terminal)
             sequence_number_deque.append(sequence_number)
             possible_action_deque.append(possible_action)
             possible_next_action_deque.append(possible_next_action)
+            # Format terminals in same way we ask clients to log terminals (in RL dex)
+            next_processed_state: FEATURES = self._process_state(next_state)
+            if terminal:
+                next_processed_state = {}
+                if type(next_processed_action) is str:
+                    next_processed_action = ""
+                else:
+                    next_processed_action = {}
+            next_state_deque.append(next_processed_state)
+            next_action_deque.append(next_processed_action)
 
             # We want exactly N data points, but we need to wait until the
             # episode is over so we can get the episode values. `set_if_in_range`

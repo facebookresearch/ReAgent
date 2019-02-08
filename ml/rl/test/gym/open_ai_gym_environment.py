@@ -158,7 +158,9 @@ class OpenAIGymEnvironment(Environment):
             and self.action_type == EnvType.DISCRETE_ACTION
             and np.random.rand() < self.epsilon
         ):
-            raw_action, _, action_probability = self.sample_policy(None, False)
+            raw_action, _, action_probability = self.sample_policy(
+                state=None, use_continuous_action=False
+            )
             if self.action_type == EnvType.DISCRETE_ACTION:
                 action = np.zeros([self.action_dim], dtype=np.float32)
                 action[raw_action] = 1
