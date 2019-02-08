@@ -542,4 +542,93 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Seq[String]](12) == List())
     assert(firstRow.getAs[Map[String, Double]](13) == Map("Widgets" -> 10.0))
   }
+
+  test("filter-outliers") {
+    val action_discrete: Boolean = true
+    val sqlCtx = sqlContext
+    import sqlCtx.implicits._
+    val sparkContext = sqlCtx.sparkContext
+
+    // Setup configuration
+    val config = TimelineConfiguration("2018-01-01",
+                                       "2018-01-01",
+                                       false,
+                                       action_discrete,
+                                       "some_rl_input_5",
+                                       "some_rl_timeline_5",
+                                       null,
+                                       1,
+                                       Some(0.95f),
+                                       "fb_approx_percentile")
+
+    // destroy previous schema
+    Timeline.validateOrDestroyTrainingTable(sqlContext,
+                                            s"${config.outputTableName}",
+                                            action_discrete)
+
+    // Create fake input data
+    val rl_input = sparkContext
+      .parallelize(
+        for (mdp_id <- 1 to 100; mdp_length = if (mdp_id <= 95) 2 else 100;
+             seq_id <- 1 to mdp_length)
+          yield
+            if (mdp_id == 1 && seq_id == 1)
+              ("2018-01-01",
+               "mdp1",
+               1,
+               1.0,
+               "action1",
+               0.8,
+               Map(1L -> 1.0),
+               List("action1", "action2"),
+               Map("Widgets" -> 10.0)) // First state
+            else
+              ("2018-01-01",
+               s"mdp${mdp_id}",
+               seq_id,
+               0.2,
+               s"action${(seq_id + 1) % 2 + 1}",
+               0.7,
+               Map(2L -> 1.0),
+               List("action1", "action2"),
+               Map("Widgets" -> 20.0)) // The other states
+      )
+      .toDF("ds",
+            "mdp_id",
+            "sequence_number",
+            "reward",
+            "action",
+            "action_probability",
+            "state_features",
+            "possible_actions",
+            "metrics")
+    rl_input.createOrReplaceTempView(config.inputTableName)
+
+    // Create a mis-specified output table that will be deleted
+    val bad_output = sparkContext
+      .parallelize(
+        List(
+          ("2018-01-01"), // First state
+          ("2018-01-01") // Second state
+        ))
+      .toDF("ds")
+    bad_output.createOrReplaceTempView(config.outputTableName)
+
+    // Run the pipeline
+    Timeline.run(sqlContext, config)
+
+    // Ensure that the table is valid
+    assert(
+      Helper.outputTableIsValid(sqlContext, s"${config.outputTableName}", action_discrete)
+    )
+
+    // Query the results
+    val df =
+      sqlCtx.sql(s"""SELECT ${Constants.TRAINING_DATA_COLUMN_NAMES
+        .mkString(",")} from ${config.outputTableName}""")
+
+    df.show()
+    assert(df.count() == 95)
+  }
+
 }

@@ -1,6 +1,8 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.rl
 
+import scala.math.abs
+
 import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.coalesce
@@ -13,7 +15,9 @@ case class TimelineConfiguration(startDs: String,
                                  inputTableName: String,
                                  outputTableName: String,
                                  evalTableName: String,
-                                 numOutputShards: Int)
+                                 numOutputShards: Int,
+                                 outlierEpisodeLengthPercentile: Option[Float] = None,
+                                 percentileFunction: String = "percentile_approx")
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
@@ -120,7 +124,44 @@ object Timeline {
                                             config.actionDiscrete)
     Timeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
 
+    val sourceTable = Timeline.mdpLengthThreshold(sqlContext, config) match {
+      case Some(threshold) => s"""
+      WITH a AS (${Timeline.getEpisodeLengthStatement(config)}),
+      b AS (SELECT mdp_id FROM a WHERE mdp_length < ${threshold}),
+      source_table AS (
+          SELECT
+              c.mdp_id,
+              c.state_features,
+              c.action,
+              c.action_probability,
+              c.reward,
+              c.sequence_number,
+              c.possible_actions,
+              c.metrics
+          FROM b JOIN ${config.inputTableName} c
+          WHERE b.mdp_id = c.mdp_id
+            AND c.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+      )
+      """.stripMargin
+      case None            => s"""
+      WITH source_table AS (
+          SELECT
+              mdp_id,
+              state_features,
+              action,
+              action_probability,
+              reward,
+              sequence_number,
+              possible_actions,
+              metrics
+          FROM ${config.inputTableName}
+          WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+      )
+      """.stripMargin
+    }
+
     val sqlCommand = s"""
+    ${sourceTable}
     SELECT
         mdp_id,
         state_features,
@@ -165,19 +206,7 @@ object Timeline {
                 sequence_number
         ) AS possible_next_actions,
         metrics
-    FROM (
-        SELECT
-        mdp_id,
-        state_features,
-        action,
-        action_probability,
-        reward,
-        sequence_number,
-        possible_actions,
-        metrics
-        FROM ${config.inputTableName}
-        WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-    )
+    FROM source_table
     ${filterTerminal}
     CLUSTER BY HASH(mdp_id, sequence_number)
     """.stripMargin
@@ -215,6 +244,48 @@ object Timeline {
     """.stripMargin
     sqlContext.sql(insertCommand)
   }
+
+  def getEpisodeLengthStatement(config: TimelineConfiguration): String = s"""
+      SELECT mdp_id, COUNT(1) mdp_length
+      FROM ${config.inputTableName}
+      WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+      GROUP BY 1
+  """
+
+  def mdpLengthThreshold(sqlContext: SQLContext, config: TimelineConfiguration): Option[Int] =
+    config.outlierEpisodeLengthPercentile match {
+      case Some(percentile) => {
+        val episodeLengthStatement = Timeline.getEpisodeLengthStatement(config)
+        val df = sqlContext.sql(s"""
+            WITH a AS (${episodeLengthStatement}),
+            b AS (
+                SELECT CAST(${config.percentileFunction}(mdp_length, ${percentile}) AS INT) pct FROM a
+            ),
+            c AS (
+                SELECT
+                    count(1) as mdp_count,
+                    count(IF(a.mdp_length >= b.pct, 1, NULL)) as outlier_count
+                FROM a, b
+            )
+            SELECT b.pct, c.mdp_count, c.outlier_count
+            FROM b, c
+        """)
+        val res = df.first
+        val pct_val = res.getAs[Int]("pct")
+        val mdp_count = res.getAs[Long]("mdp_count")
+        val outlier_count = res.getAs[Long]("outlier_count")
+        log.info(s"Threshold: ${pct_val}; mdp count: ${mdp_count}; outlier_count: ${outlier_count}")
+        val outlier_percent = outlier_count.toFloat / mdp_count
+        val expected_outlier_percent = 1.0 - percentile
+        if (abs(outlier_percent - expected_outlier_percent) / expected_outlier_percent > 0.1) {
+          log.warn(
+            s"Outlier percent mismatch; expected: ${expected_outlier_percent}; got ${outlier_percent}")
+          None
+        } else
+          Some(pct_val)
+      }
+      case None => None
+    }
 
   def validateOrDestroyTrainingTable(sqlContext: SQLContext,
                                      tableName: String,
