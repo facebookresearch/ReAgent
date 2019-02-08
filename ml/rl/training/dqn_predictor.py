@@ -6,10 +6,10 @@ import logging
 import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
-from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.caffe_utils import C2, PytorchCaffe2Converter, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
-from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
 
@@ -131,11 +131,12 @@ class DQNPredictor(RLPredictor):
             sorted_feature_ids = sort_features_by_normalization(
                 state_normalization_parameters
             )[0]
-            dense_matrix, new_parameters = sparse_to_dense(
-                input_feature_lengths,
-                input_feature_keys,
-                input_feature_values,
+            sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
+            dense_matrix, new_parameters = sparse_to_dense_processor(
                 sorted_feature_ids,
+                StackedAssociativeArray(
+                    input_feature_lengths, input_feature_keys, input_feature_values
+                ),
                 set_missing_value_to_zero=set_missing_value_to_zero,
             )
             parameters.extend(new_parameters)

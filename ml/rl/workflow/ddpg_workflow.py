@@ -7,6 +7,7 @@ from typing import Dict
 
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
 from ml.rl.tensorboardX import summary_writer_context
 from ml.rl.thrift.core.ttypes import (
@@ -25,7 +26,10 @@ from ml.rl.workflow.helpers import (
     parse_args,
     update_model_for_warm_start,
 )
-from ml.rl.workflow.preprocess_handler import ContinuousPreprocessHandler
+from ml.rl.workflow.preprocess_handler import (
+    ContinuousPreprocessHandler,
+    PreprocessHandler,
+)
 from tensorboardX import SummaryWriter
 
 
@@ -36,6 +40,7 @@ class ContinuousWorkflow(BaseWorkflow):
     def __init__(
         self,
         model_params: ContinuousActionModelParameters,
+        preprocess_handler: PreprocessHandler,
         state_normalization: Dict[int, NormalizationParameters],
         action_normalization: Dict[int, NormalizationParameters],
         use_gpu: bool,
@@ -61,10 +66,6 @@ class ContinuousWorkflow(BaseWorkflow):
         trainer = update_model_for_warm_start(trainer)
         assert type(trainer) == DDPGTrainer, "Warm started wrong model type: " + str(
             type(trainer)
-        )
-        preprocess_handler = ContinuousPreprocessHandler(
-            Preprocessor(state_normalization, False),
-            Preprocessor(action_normalization, False),
         )
 
         evaluator = Evaluator(
@@ -106,8 +107,15 @@ def main(params):
     writer = SummaryWriter(log_dir=params["model_output_path"])
     logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
 
+    preprocess_handler = ContinuousPreprocessHandler(
+        Preprocessor(state_normalization, False),
+        Preprocessor(action_normalization, False),
+        PandasSparseToDenseProcessor(),
+    )
+
     workflow = ContinuousWorkflow(
         model_params,
+        preprocess_handler,
         state_normalization,
         action_normalization,
         params["use_gpu"],

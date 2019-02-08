@@ -10,7 +10,7 @@ from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
 from ml.rl.test.environment.environment import (
     MultiStepSamples,
     Samples,
@@ -98,28 +98,21 @@ class GridworldContinuous(GridworldBase):
         logger.info("Sparse2Dense...")
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
+        sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
         saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
         sorted_state_features, _ = sort_features_by_normalization(self.normalization)
-        state_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_state_features
-        )
+        state_matrix, _ = sparse_to_dense_processor(sorted_state_features, saa)
         saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_state_features
-        )
+        next_state_matrix, _ = sparse_to_dense_processor(sorted_state_features, saa)
         sorted_action_features, _ = sort_features_by_normalization(
             self.normalization_action
         )
         saa = StackedAssociativeArray.from_dict_list(samples.actions, "action")
-        action_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_action_features
-        )
+        action_matrix, _ = sparse_to_dense_processor(sorted_action_features, saa)
         saa = StackedAssociativeArray.from_dict_list(
             samples.next_actions, "next_action"
         )
-        next_action_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_action_features
-        )
+        next_action_matrix, _ = sparse_to_dense_processor(sorted_action_features, saa)
         action_probabilities = torch.tensor(
             samples.action_probabilities, dtype=torch.float32
         ).reshape(-1, 1)
@@ -137,8 +130,8 @@ class GridworldContinuous(GridworldBase):
         saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
         pnas_mask = torch.Tensor(pnas_mask_list)
 
-        possible_next_actions_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_action_features
+        possible_next_actions_matrix, _ = sparse_to_dense_processor(
+            sorted_action_features, saa
         )
 
         workspace.RunNetOnce(net)

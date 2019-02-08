@@ -26,7 +26,7 @@ from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
 from ml.rl.test.environment.environment import (
     ACTION,
     Environment,
@@ -505,21 +505,18 @@ class GridworldBase(Environment):
             samples = shuffle_samples(samples)
 
         logger.info("Preprocessing...")
+        sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
 
         if self.sparse_to_dense_net is None:
             self.sparse_to_dense_net = core.Net("gridworld_sparse_to_dense")
             C2.set_net(self.sparse_to_dense_net)
             saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
             sorted_features, _ = sort_features_by_normalization(self.normalization)
-            self.state_matrix, _ = sparse_to_dense(
-                saa.lengths, saa.keys, saa.values, sorted_features
-            )
+            self.state_matrix, _ = sparse_to_dense_processor(sorted_features, saa)
             saa = StackedAssociativeArray.from_dict_list(
                 samples.next_states, "next_states"
             )
-            self.next_state_matrix, _ = sparse_to_dense(
-                saa.lengths, saa.keys, saa.values, sorted_features
-            )
+            self.next_state_matrix, _ = sparse_to_dense_processor(sorted_features, saa)
             C2.set_net(None)
         else:
             StackedAssociativeArray.from_dict_list(samples.states, "states")

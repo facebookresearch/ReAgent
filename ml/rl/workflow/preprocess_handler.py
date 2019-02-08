@@ -4,15 +4,17 @@
 from typing import Dict, List
 
 import numpy as np
-import pandas as pd
 import torch
-from ml.rl.preprocessing import normalization
+from ml.rl.preprocessing.sparse_to_dense import SparseToDenseProcessor
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
 class PreprocessHandler:
-    def __init__(self, state_preprocessor):
+    def __init__(
+        self, state_preprocessor, sparse_to_dense_processor: SparseToDenseProcessor
+    ):
         self.state_preprocessor = state_preprocessor
+        self.sparse_to_dense_processor = sparse_to_dense_processor
 
     def preprocess(self, batch) -> TrainingDataPage:
         # Preprocess state features
@@ -20,10 +22,10 @@ class PreprocessHandler:
             self.state_preprocessor._sort_features_by_normalization()
         )
         sorted_state_features_str = [str(x) for x in sorted_state_features]
-        state_features_dense = PreprocessHandler.pandas_sparse_to_dense(
+        state_features_dense = self.sparse_to_dense_processor(
             sorted_state_features_str, batch["state_features"]
         )
-        next_state_features_dense = PreprocessHandler.pandas_sparse_to_dense(
+        next_state_features_dense = self.sparse_to_dense_processor(
             sorted_state_features_str, batch["next_state_features"]
         )
 
@@ -55,19 +57,17 @@ class PreprocessHandler:
             time_diffs=time_diffs,
         )
 
-    @staticmethod
-    def pandas_sparse_to_dense(feature_name_list, batch):
-        state_features_df = pd.DataFrame(batch).fillna(normalization.MISSING_VALUE)
-        # Add columns identified by normalization, but not present in batch
-        for col in feature_name_list:
-            if col not in state_features_df.columns:
-                state_features_df[col] = normalization.MISSING_VALUE
-        return torch.from_numpy(state_features_df[feature_name_list].values).float()
-
 
 class DqnPreprocessHandler(PreprocessHandler):
-    def __init__(self, state_preprocessor, action_names: List[str]):
-        super(DqnPreprocessHandler, self).__init__(state_preprocessor)
+    def __init__(
+        self,
+        state_preprocessor,
+        action_names: List[str],
+        sparse_to_dense_processor: SparseToDenseProcessor,
+    ):
+        super(DqnPreprocessHandler, self).__init__(
+            state_preprocessor, sparse_to_dense_processor
+        )
         self.action_names = action_names
 
     def read_actions(self, actions):
@@ -114,8 +114,15 @@ class DqnPreprocessHandler(PreprocessHandler):
 
 
 class ParametricDqnPreprocessHandler(PreprocessHandler):
-    def __init__(self, state_preprocessor, action_preprocessor):
-        super(ParametricDqnPreprocessHandler, self).__init__(state_preprocessor)
+    def __init__(
+        self,
+        state_preprocessor,
+        action_preprocessor,
+        sparse_to_dense_processor: SparseToDenseProcessor,
+    ):
+        super(ParametricDqnPreprocessHandler, self).__init__(
+            state_preprocessor, sparse_to_dense_processor
+        )
         self.action_preprocessor = action_preprocessor
 
     def preprocess(self, batch) -> TrainingDataPage:
@@ -126,12 +133,12 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
             self.action_preprocessor._sort_features_by_normalization()
         )
         sorted_action_features_str = [str(x) for x in sorted_action_features]
-        actions = PreprocessHandler.pandas_sparse_to_dense(
+        actions = self.sparse_to_dense_processor(
             sorted_action_features_str, batch["action"]
         )
 
         actions = self.action_preprocessor.forward(actions)
-        next_actions = PreprocessHandler.pandas_sparse_to_dense(
+        next_actions = self.sparse_to_dense_processor(
             sorted_action_features_str, batch["next_action"]
         )
         next_actions = self.action_preprocessor.forward(next_actions)
@@ -162,9 +169,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
                 np.float32
             )
         ).reshape(-1, 1)
-        pnas = PreprocessHandler.pandas_sparse_to_dense(
-            sorted_action_features_str, flat_pnas
-        )
+        pnas = self.sparse_to_dense_processor(sorted_action_features_str, flat_pnas)
         pnas = self.action_preprocessor.forward(pnas)
         tiled_next_state_features_dense = tdp.next_states.repeat(
             1, max_action_size
@@ -185,9 +190,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
             flat_pas.extend(pa)
             for _ in range(max_action_size - len(pa)):
                 flat_pas.append({})
-        pas = PreprocessHandler.pandas_sparse_to_dense(
-            sorted_action_features_str, flat_pas
-        )
+        pas = self.sparse_to_dense_processor(sorted_action_features_str, flat_pas)
         pas = self.action_preprocessor.forward(pas)
 
         tiled_state_features_dense = tdp.states.repeat(1, max_action_size).reshape(
@@ -218,8 +221,15 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
 
 
 class ContinuousPreprocessHandler(PreprocessHandler):
-    def __init__(self, state_preprocessor, action_preprocessor):
-        super(ContinuousPreprocessHandler, self).__init__(state_preprocessor)
+    def __init__(
+        self,
+        state_preprocessor,
+        action_preprocessor,
+        sparse_to_dense_processor: SparseToDenseProcessor,
+    ):
+        super(ContinuousPreprocessHandler, self).__init__(
+            state_preprocessor, sparse_to_dense_processor
+        )
         self.action_preprocessor = action_preprocessor
 
     def preprocess(self, batch) -> TrainingDataPage:
@@ -229,7 +239,7 @@ class ContinuousPreprocessHandler(PreprocessHandler):
             self.action_preprocessor._sort_features_by_normalization()
         )
         sorted_action_features_str = [str(x) for x in sorted_action_features]
-        actions = PreprocessHandler.pandas_sparse_to_dense(
+        actions = self.sparse_to_dense_processor(
             sorted_action_features_str, batch["action"]
         )
 

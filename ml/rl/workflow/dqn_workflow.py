@@ -8,6 +8,7 @@ from typing import Dict
 import numpy as np
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
 from ml.rl.tensorboardX import summary_writer_context
 from ml.rl.thrift.core.ttypes import (
@@ -25,7 +26,7 @@ from ml.rl.workflow.helpers import (
     parse_args,
     update_model_for_warm_start,
 )
-from ml.rl.workflow.preprocess_handler import DqnPreprocessHandler
+from ml.rl.workflow.preprocess_handler import DqnPreprocessHandler, PreprocessHandler
 from tensorboardX import SummaryWriter
 
 
@@ -36,6 +37,7 @@ class DqnWorkflow(BaseWorkflow):
     def __init__(
         self,
         model_params: DiscreteActionModelParameters,
+        preprocess_handler: PreprocessHandler,
         state_normalization: Dict[int, NormalizationParameters],
         use_gpu: bool,
         use_all_avail_gpus: bool,
@@ -53,9 +55,6 @@ class DqnWorkflow(BaseWorkflow):
         trainer = update_model_for_warm_start(trainer)
         assert type(trainer) == DQNTrainer, "Warm started wrong model type: " + str(
             type(trainer)
-        )
-        preprocess_handler = DqnPreprocessHandler(
-            Preprocessor(state_normalization, False), np.array(model_params.actions)
         )
 
         evaluator = Evaluator(
@@ -91,8 +90,15 @@ def main(params):
     writer = SummaryWriter(log_dir=params["model_output_path"])
     logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
 
+    preprocess_handler = DqnPreprocessHandler(
+        Preprocessor(state_normalization, False),
+        np.array(model_params.actions),
+        PandasSparseToDenseProcessor(),
+    )
+
     workflow = DqnWorkflow(
         model_params,
+        preprocess_handler,
         state_normalization,
         params["use_gpu"],
         params["use_all_avail_gpus"],

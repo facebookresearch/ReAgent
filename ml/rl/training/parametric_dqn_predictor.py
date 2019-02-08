@@ -6,10 +6,10 @@ import logging
 import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
-from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.caffe_utils import C2, PytorchCaffe2Converter, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
-from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
 
@@ -145,14 +145,15 @@ class ParametricDQNPredictor(RLPredictor):
             C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
         preprocessor = PreprocessorNet()
+        sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
         sorted_state_features, _ = sort_features_by_normalization(
             state_normalization_parameters
         )
-        state_dense_matrix, new_parameters = sparse_to_dense(
-            input_feature_lengths,
-            input_feature_keys,
-            input_feature_values,
+        state_dense_matrix, new_parameters = sparse_to_dense_processor(
             sorted_state_features,
+            StackedAssociativeArray(
+                input_feature_lengths, input_feature_keys, input_feature_values
+            ),
         )
         parameters.extend(new_parameters)
         state_normalized_dense_matrix, new_parameters = preprocessor.normalize_dense_matrix(
@@ -167,11 +168,11 @@ class ParametricDQNPredictor(RLPredictor):
         sorted_action_features, _ = sort_features_by_normalization(
             action_normalization_parameters
         )
-        action_dense_matrix, new_parameters = sparse_to_dense(
-            input_feature_lengths,
-            input_feature_keys,
-            input_feature_values,
+        action_dense_matrix, new_parameters = sparse_to_dense_processor(
             sorted_action_features,
+            StackedAssociativeArray(
+                input_feature_lengths, input_feature_keys, input_feature_values
+            ),
         )
         parameters.extend(new_parameters)
         if normalize_actions:
