@@ -558,7 +558,7 @@ class TimelineTest extends PipelineTester {
                                        "some_rl_timeline_5",
                                        null,
                                        1,
-                                       Some(0.95f),
+                                       Some(0.95),
                                        "fb_approx_percentile")
 
     // destroy previous schema

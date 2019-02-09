@@ -16,7 +16,7 @@ case class TimelineConfiguration(startDs: String,
                                  outputTableName: String,
                                  evalTableName: String,
                                  numOutputShards: Int,
-                                 outlierEpisodeLengthPercentile: Option[Float] = None,
+                                 outlierEpisodeLengthPercentile: Option[Double] = None,
                                  percentileFunction: String = "percentile_approx")
 
 /**
@@ -275,7 +275,7 @@ object Timeline {
         val mdp_count = res.getAs[Long]("mdp_count")
         val outlier_count = res.getAs[Long]("outlier_count")
         log.info(s"Threshold: ${pct_val}; mdp count: ${mdp_count}; outlier_count: ${outlier_count}")
-        val outlier_percent = outlier_count.toFloat / mdp_count
+        val outlier_percent = outlier_count.toDouble / mdp_count
         val expected_outlier_percent = 1.0 - percentile
         if (abs(outlier_percent - expected_outlier_percent) / expected_outlier_percent > 0.1) {
           log.warn(
