@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class _DQNPredictor(SandboxedRLPredictor):
-    def predict(self, float_state_features, int_state_features=None):
-        assert not int_state_features, "Not implemented"
+    def predict(self, float_state_features):
 
         float_examples = []
         for i in range(len(float_state_features)):

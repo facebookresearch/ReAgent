@@ -152,10 +152,7 @@ class TestGridworldSAC(GridworldTestBase):
             environment, self.get_sac_parameters(**kwargs), use_gpu
         )
         evaluator = GridworldContinuousEvaluator(
-            environment,
-            assume_optimal_policy=False,
-            gamma=DISCOUNT,
-            use_int_features=False,
+            environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
         exporter = self.get_critic_exporter(trainer, environment)
@@ -166,7 +163,7 @@ class TestGridworldSAC(GridworldTestBase):
         # Make sure actor predictor works
         actor_predictor = self.get_actor_predictor(trainer, environment)
         # Just test that it doesn't blow up
-        preds = actor_predictor.predict(evaluator.logged_states, None)
+        preds = actor_predictor.predict(evaluator.logged_states)
         self._test_save_load_actor(preds, actor_predictor, evaluator.logged_states)
         # TODO: run predictor and check results
 
@@ -175,7 +172,7 @@ class TestGridworldSAC(GridworldTestBase):
             tmp_path = os.path.join(tmpdirname, "model")
             predictor.save(tmp_path, dbtype)
             new_predictor = type(predictor).load(tmp_path, dbtype)
-            after_preds = new_predictor.predict(states, None)
+            after_preds = new_predictor.predict(states)
         self._check_output_match(before_preds, after_preds)
 
     def _check_output_match(self, a_preds, b_preds):

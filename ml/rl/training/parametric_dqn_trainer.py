@@ -13,17 +13,11 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.thrift.core.ttypes import (
-    AdditionalFeatureTypes,
-    ContinuousActionModelParameters,
-)
+from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.parametric_inner_product import ParametricInnerProduct
-from ml.rl.training.rl_trainer_pytorch import (
-    DEFAULT_ADDITIONAL_FEATURE_TYPES,
-    RLTrainer,
-)
+from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -37,7 +31,6 @@ class ParametricDQNTrainer(DQNTrainerBase):
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
         use_gpu: bool = False,
-        additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
         metrics_to_score=None,
         gradient_handler=None,
         use_all_avail_gpus: bool = False,
@@ -84,12 +77,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
             ] = self.num_action_features
 
         RLTrainer.__init__(
-            self,
-            parameters,
-            use_gpu,
-            additional_feature_types,
-            metrics_to_score,
-            gradient_handler,
+            self, parameters, use_gpu, metrics_to_score, gradient_handler
         )
 
         self.q_network = self._get_model(
@@ -290,7 +278,6 @@ class ParametricDQNTrainer(DQNTrainerBase):
             self,
             self.state_normalization_parameters,
             self.action_normalization_parameters,
-            self._additional_feature_types.int_features,
             self.use_gpu,
         )
 

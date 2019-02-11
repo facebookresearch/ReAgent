@@ -208,7 +208,7 @@ class TestGridworld(GridworldTestBase):
         modular=False,
     ):
         environment = Gridworld()
-        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
+        evaluator = GridworldEvaluator(environment, False, DISCOUNT)
         if modular:
             trainer, exporter = self.get_modular_sarsa_trainer_exporter(
                 environment, {}, dueling, use_gpu, use_all_avail_gpus, clip_grad_norm
@@ -296,10 +296,7 @@ class TestGridworld(GridworldTestBase):
                 environment, reward_boost, False, use_gpu, use_all_avail_gpus
             )
         evaluator = GridworldEvaluator(
-            env=environment,
-            assume_optimal_policy=False,
-            gamma=DISCOUNT,
-            use_int_features=False,
+            env=environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
         self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
@@ -364,7 +361,7 @@ class TestGridworld(GridworldTestBase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmp_path = os.path.join(tmpdirname, "model")
             predictor.save(tmp_path, "minidb")
-            new_predictor = DQNPredictor.load(tmp_path, "minidb", False)
+            new_predictor = DQNPredictor.load(tmp_path, "minidb")
 
         post_export_q_values = new_predictor.predict([samples.states[0]])
 

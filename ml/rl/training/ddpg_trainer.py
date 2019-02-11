@@ -15,13 +15,8 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
-from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
-from ml.rl.training.rl_trainer_pytorch import (
-    DEFAULT_ADDITIONAL_FEATURE_TYPES,
-    RLTrainer,
-    rescale_torch_tensor,
-)
+from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
 from ml.rl.training.training_data_page import TrainingDataPage
 from torch.autograd import Variable
 
@@ -35,7 +30,6 @@ class DDPGTrainer(RLTrainer):
         min_action_range_tensor_serving: torch.Tensor,
         max_action_range_tensor_serving: torch.Tensor,
         use_gpu: bool = False,
-        additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
         use_all_avail_gpus: bool = False,
     ) -> None:
 
@@ -113,7 +107,7 @@ class DDPGTrainer(RLTrainer):
             + str(overlapping_features)
         )
 
-        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
+        RLTrainer.__init__(self, parameters, use_gpu, None)
 
         self.min_action_range_tensor_training = self.min_action_range_tensor_training.type(
             self.dtype
@@ -269,14 +263,12 @@ class DDPGTrainer(RLTrainer):
                 sort_features_by_normalization(self.action_normalization_parameters)[0],
                 self.min_action_range_tensor_serving,
                 self.max_action_range_tensor_serving,
-                self._additional_feature_types.int_features,
                 self.use_gpu,
             )
         return DDPGPredictor.export_critic(
             self,
             self.state_normalization_parameters,
             self.action_normalization_parameters,
-            self._additional_feature_types.int_features,
             self.use_gpu,
         )
 

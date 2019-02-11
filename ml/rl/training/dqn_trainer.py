@@ -15,16 +15,10 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.thrift.core.ttypes import (
-    AdditionalFeatureTypes,
-    DiscreteActionModelParameters,
-)
+from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
-from ml.rl.training.rl_trainer_pytorch import (
-    DEFAULT_ADDITIONAL_FEATURE_TYPES,
-    RLTrainer,
-)
+from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -37,7 +31,6 @@ class DQNTrainer(DQNTrainerBase):
         parameters: DiscreteActionModelParameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         use_gpu: bool = False,
-        additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
         metrics_to_score=None,
         gradient_handler=None,
         use_all_avail_gpus: bool = False,
@@ -63,7 +56,6 @@ class DQNTrainer(DQNTrainerBase):
             self,
             parameters,
             use_gpu,
-            additional_feature_types,
             metrics_to_score,
             gradient_handler,
             actions=self._actions,
@@ -422,7 +414,6 @@ class DQNTrainer(DQNTrainerBase):
             self,
             self._actions,
             self.state_normalization_parameters,
-            self._additional_feature_types.int_features,
             self.use_gpu,
             set_missing_value_to_zero=set_missing_value_to_zero,
         )

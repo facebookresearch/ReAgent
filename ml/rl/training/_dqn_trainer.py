@@ -29,11 +29,7 @@ class _DQNTrainer(DQNTrainerBase):
         self._actions = parameters.actions if parameters.actions is not None else []
 
         DQNTrainerBase.__init__(
-            self,
-            parameters,
-            use_gpu=use_gpu,
-            additional_feature_types=None,
-            gradient_handler=None,
+            self, parameters, use_gpu=use_gpu, gradient_handler=None
         )
 
         self.q_network = q_network

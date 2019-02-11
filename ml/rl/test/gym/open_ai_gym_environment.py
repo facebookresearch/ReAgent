@@ -218,7 +218,7 @@ class OpenAIGymEnvironment(Environment):
             sparse_actions = [
                 {str(i + self.state_dim): 1} for i in range(self.action_dim)
             ]
-            q_values = predictor.predict(sparse_next_states, None, sparse_actions)
+            q_values = predictor.predict(sparse_next_states, sparse_actions)
             q_values = np.fromiter(map(lambda x: x["Q"], q_values), np.float).reshape(
                 self.action_dim
             )

@@ -19,11 +19,8 @@ logger = logging.getLogger(__name__)
 
 class ActorPredictor(SandboxedRLPredictor):
     def predict(
-        self,
-        float_state_features: List[Dict[int, float]],
-        int_state_features: Optional[List[Dict[int, int]]],
+        self, float_state_features: List[Dict[int, float]]
     ) -> List[Dict[str, float]]:
-        assert not int_state_features, "Not implemented"
         self.ws.FeedBlob(
             "input/float_features.lengths",
             np.array([len(e) for e in float_state_features], dtype=np.int32),
@@ -65,4 +62,4 @@ class ActorPredictor(SandboxedRLPredictor):
     def actor_prediction(
         self, float_state_features: List[Dict[int, float]]
     ) -> List[Dict[str, float]]:
-        return self.predict(float_state_features, int_state_features=None)
+        return self.predict(float_state_features)

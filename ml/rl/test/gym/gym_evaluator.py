@@ -26,7 +26,7 @@ class GymEvaluator(Evaluator):
         "logged_terminals" "_env",
     ]
 
-    def __init__(self, env, gamma, use_int_features: bool = False) -> None:
+    def __init__(self, env, gamma) -> None:
         # TODO: incorporate int features
         super(GymEvaluator, self).__init__(None, gamma, None, 1.0)
 

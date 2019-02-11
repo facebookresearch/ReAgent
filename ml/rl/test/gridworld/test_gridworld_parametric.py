@@ -139,10 +139,7 @@ class TestGridworldParametric(GridworldTestBase):
     ):
         environment = GridworldContinuous()
         evaluator = GridworldContinuousEvaluator(
-            environment,
-            assume_optimal_policy=False,
-            gamma=DISCOUNT,
-            use_int_features=False,
+            environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
         if modular:
@@ -190,7 +187,7 @@ class TestGridworldParametric(GridworldTestBase):
             use_gpu,
             use_all_avail_gpus,
         )
-        evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT, False)
+        evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT)
         self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
     def test_trainer_sarsa_factorized(self):

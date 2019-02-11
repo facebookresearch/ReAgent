@@ -15,7 +15,7 @@ AVG_OVER_NUM_EPS = 100
 
 
 def main(model_path):
-    predictor = DQNPredictor.load(model_path, "minidb", int_features=False)
+    predictor = DQNPredictor.load(model_path, "minidb")
 
     env = OpenAIGymEnvironment(gymenv=ENV)
 

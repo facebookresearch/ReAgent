@@ -1,9 +1,5 @@
 namespace py ml.rl.thrift.core
 
-struct AdditionalFeatureTypes {
-  1: bool int_features = false
-}
-
 struct RLParameters {
   1: double gamma = 0.9,
   2: double epsilon = 0.1,
@@ -81,14 +77,6 @@ struct EvolutionParameters {
   3: double learning_rate = 0.01,
 }
 
-struct ActionBudget {
-  1: string limited_action,
-  2: double action_limit,
-  3: double quantile_update_rate = 0.01,
-  4: i32 quantile_update_frequency = 10,
-  5: i32 window_size = 16384,
-}
-
 struct StateFeatureParameters {
   1: list<string> state_feature_names_override = [],
   2: list<i32> state_feature_hashes_override = [],
@@ -98,7 +86,6 @@ struct DiscreteActionModelParameters {
   1: list<string> actions,
   2: RLParameters rl,
   3: TrainingParameters training,
-  4: ActionBudget action_budget,
   5: RainbowDQNParameters rainbow,
   7: optional StateFeatureParameters state_feature_params,
   8: optional list<double> target_action_distribution,

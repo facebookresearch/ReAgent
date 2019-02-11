@@ -75,7 +75,7 @@ class GridworldTestBase(unittest.TestCase):
             with tempfile.TemporaryDirectory() as tmpdirname:
                 tmp_path = os.path.join(tmpdirname, "model")
                 predictor.save(tmp_path, "minidb")
-                new_predictor = predictorClass.load(tmp_path, "minidb", False)
+                new_predictor = predictorClass.load(tmp_path, "minidb")
                 evaluator.evaluate(new_predictor)
                 print("Post-ONNX eval: ", evaluator.mc_loss[-1])
                 self.assertLess(evaluator.mc_loss[-1], self.tolerance_threshold)

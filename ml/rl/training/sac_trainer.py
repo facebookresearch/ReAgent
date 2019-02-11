@@ -50,10 +50,7 @@ class SACTrainer(RLTrainer):
         """
         self.minibatch_size = parameters.training.minibatch_size
         super(SACTrainer, self).__init__(
-            parameters,
-            use_gpu=False,
-            additional_feature_types=None,
-            gradient_handler=None,
+            parameters, use_gpu=False, gradient_handler=None
         )
 
         self.q1_network = q1_network

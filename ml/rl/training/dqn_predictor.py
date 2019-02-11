@@ -22,8 +22,8 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/string_single_categorical_features.values"
 
 
 class DQNPredictor(RLPredictor):
-    def __init__(self, net, init_net, parameters, int_features):
-        RLPredictor.__init__(self, net, init_net, parameters, int_features)
+    def __init__(self, net, init_net, parameters):
+        RLPredictor.__init__(self, net, init_net, parameters)
         self._output_blobs.extend(
             [
                 OUTPUT_SINGLE_CAT_KEYS_NAME,
@@ -38,7 +38,6 @@ class DQNPredictor(RLPredictor):
         trainer,
         actions,
         state_normalization_parameters,
-        int_features=False,
         model_on_gpu=False,
         set_missing_value_to_zero=False,
     ):
@@ -47,7 +46,6 @@ class DQNPredictor(RLPredictor):
 
         :param trainer DQNTrainer
         :param state_normalization_parameters state NormalizationParameters
-        :param int_features boolean indicating if int features blob will be present
         :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
         """
 
@@ -100,32 +98,9 @@ class DQNPredictor(RLPredictor):
         input_feature_keys = "input_feature_keys"
         input_feature_values = "input_feature_values"
 
-        if int_features:
-            workspace.FeedBlob(
-                "input/int_features.lengths", np.zeros(1, dtype=np.int32)
-            )
-            workspace.FeedBlob("input/int_features.keys", np.zeros(1, dtype=np.int64))
-            workspace.FeedBlob("input/int_features.values", np.zeros(1, dtype=np.int32))
-            C2.net().Cast(
-                ["input/int_features.values"],
-                ["input/int_features.values_float"],
-                dtype=caffe2_pb2.TensorProto.FLOAT,
-            )
-            C2.net().MergeMultiScalarFeatureTensors(
-                [
-                    "input/float_features.lengths",
-                    "input/float_features.keys",
-                    "input/float_features.values",
-                    "input/int_features.lengths",
-                    "input/int_features.keys",
-                    "input/int_features.values_float",
-                ],
-                [input_feature_lengths, input_feature_keys, input_feature_values],
-            )
-        else:
-            C2.net().Copy(["input/float_features.lengths"], [input_feature_lengths])
-            C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
-            C2.net().Copy(["input/float_features.values"], [input_feature_values])
+        C2.net().Copy(["input/float_features.lengths"], [input_feature_lengths])
+        C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
+        C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
         if state_normalization_parameters is not None:
             sorted_feature_ids = sort_features_by_normalization(
@@ -220,4 +195,4 @@ class DQNPredictor(RLPredictor):
         C2.net().FlattenToVec([output_key_tile], [OUTPUT_SINGLE_CAT_KEYS_NAME])
 
         workspace.CreateNet(net)
-        return DQNPredictor(net, torch_init_net, parameters, int_features)
+        return DQNPredictor(net, torch_init_net, parameters)

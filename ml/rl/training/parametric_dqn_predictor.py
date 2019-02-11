@@ -22,8 +22,8 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/int_single_categorical_features.values"
 
 
 class ParametricDQNPredictor(RLPredictor):
-    def __init__(self, net, init_net, parameters, int_features):
-        RLPredictor.__init__(self, net, init_net, parameters, int_features)
+    def __init__(self, net, init_net, parameters):
+        RLPredictor.__init__(self, net, init_net, parameters)
         self._output_blobs.extend(
             [
                 OUTPUT_SINGLE_CAT_KEYS_NAME,
@@ -32,19 +32,16 @@ class ParametricDQNPredictor(RLPredictor):
             ]
         )
 
-    def predict(self, float_state_features, int_state_features, actions):
+    def predict(self, float_state_features, actions):
         """ Returns values for each state/action pair.
 
         :param float_state_features states as list of feature -> float value dict
-        :param int_state_features states as list of feature -> int value dict
         :param actions actions as list of feature -> value dict
         """
         float_examples = []
         for i in range(len(float_state_features)):
             float_examples.append({**float_state_features[i], **actions[i]})
-        if int_state_features is None:
-            return RLPredictor.predict(self, float_examples)
-        return RLPredictor.predict(self, float_examples, int_state_features)
+        return RLPredictor.predict(self, float_examples)
 
     @classmethod
     def export(
@@ -52,7 +49,6 @@ class ParametricDQNPredictor(RLPredictor):
         trainer,
         state_normalization_parameters,
         action_normalization_parameters,
-        int_features=False,
         model_on_gpu=False,
         normalize_actions=True,
     ):
@@ -62,7 +58,6 @@ class ParametricDQNPredictor(RLPredictor):
         :param trainer ParametricDQNTrainer
         :param state_normalization_parameters state NormalizationParameters
         :param action_normalization_parameters action NormalizationParameters
-        :param int_features boolean indicating if int features blob will be present
         :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
         """
 
@@ -117,32 +112,9 @@ class ParametricDQNPredictor(RLPredictor):
         input_feature_keys = "input_feature_keys"
         input_feature_values = "input_feature_values"
 
-        if int_features:
-            workspace.FeedBlob(
-                "input/int_features.lengths", np.zeros(1, dtype=np.int32)
-            )
-            workspace.FeedBlob("input/int_features.keys", np.zeros(1, dtype=np.int64))
-            workspace.FeedBlob("input/int_features.values", np.zeros(1, dtype=np.int32))
-            C2.net().Cast(
-                ["input/int_features.values"],
-                ["input/int_features.values_float"],
-                dtype=caffe2_pb2.TensorProto.FLOAT,
-            )
-            C2.net().MergeMultiScalarFeatureTensors(
-                [
-                    "input/float_features.lengths",
-                    "input/float_features.keys",
-                    "input/float_features.values",
-                    "input/int_features.lengths",
-                    "input/int_features.keys",
-                    "input/int_features.values_float",
-                ],
-                [input_feature_lengths, input_feature_keys, input_feature_values],
-            )
-        else:
-            C2.net().Copy(["input/float_features.lengths"], [input_feature_lengths])
-            C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
-            C2.net().Copy(["input/float_features.values"], [input_feature_values])
+        C2.net().Copy(["input/float_features.lengths"], [input_feature_lengths])
+        C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
+        C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
         preprocessor = PreprocessorNet()
         sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
@@ -267,4 +239,4 @@ class ParametricDQNPredictor(RLPredictor):
         C2.net().FlattenToVec([output_key_tile], [output_keys])
 
         workspace.CreateNet(net)
-        return ParametricDQNPredictor(net, torch_init_net, parameters, int_features)
+        return ParametricDQNPredictor(net, torch_init_net, parameters)

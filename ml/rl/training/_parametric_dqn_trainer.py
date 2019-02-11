@@ -25,13 +25,7 @@ class _ParametricDQNTrainer(DQNTrainerBase):
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
 
-        DQNTrainerBase.__init__(
-            self,
-            parameters,
-            use_gpu=False,
-            additional_feature_types=None,
-            gradient_handler=None,
-        )
+        DQNTrainerBase.__init__(self, parameters, use_gpu=False, gradient_handler=None)
 
         self.q_network = q_network
         self.q_network_target = q_network_target

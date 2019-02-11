@@ -17,9 +17,7 @@ logger = logging.getLogger(__name__)
 class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
 
-    def __init__(
-        self, env, assume_optimal_policy: bool, gamma, use_int_features: bool = None
-    ) -> None:
+    def __init__(self, env, assume_optimal_policy: bool, gamma) -> None:
         super(GridworldEvaluator, self).__init__(
             None, gamma, None, metrics_to_score=["reward"]
         )
@@ -72,34 +70,17 @@ class GridworldEvaluator(Evaluator):
                 [self._env.index_to_action(action)] * len(self.logged_states),
             ).flatten()
 
-        self.use_int_features = use_int_features
-
     def _split_int_and_float_features(self, features):
-        float_features, int_features = [], []
+        float_features = []
         for example in features:
-            float_dict, int_dict = {}, {}
+            float_dict = {}
             for k, v in example.items():
-                if isinstance(v, int):
-                    int_dict[k] = v
-                else:
-                    float_dict[k] = v
+                float_dict[k] = v
             float_features.append(float_dict)
-            int_features.append(int_dict)
-        return float_features, int_features
+        return float_features
 
     def evaluate(self, predictor):
-        # Test feeding float features & int features
-        if self.use_int_features:
-            float_features, int_features = self._split_int_and_float_features(
-                self.logged_states
-            )
-            # Since all gridworld features are float types, swap these so
-            # all inputs are now int_features for testing purpose
-            float_features, int_features = int_features, float_features
-            prediction_string = predictor.predict(float_features, int_features)
-        # Test only feeding float features
-        else:
-            prediction_string = predictor.predict(self.logged_states)
+        prediction_string = predictor.predict(self.logged_states)
 
         # Convert action string to integer
         prediction = np.zeros(
@@ -113,15 +94,7 @@ class GridworldEvaluator(Evaluator):
         all_states = []
         for x in self._env.STATES:
             all_states.append(self._env.state_to_features(x))
-        if self.use_int_features:
-            all_states_float, all_states_int = self._split_int_and_float_features(
-                all_states
-            )
-            all_states_prediction_string = predictor.predict(
-                all_states_float, all_states_int
-            )
-        else:
-            all_states_prediction_string = predictor.predict(all_states)
+        all_states_prediction_string = predictor.predict(all_states)
         all_states_prediction = np.zeros(
             [len(all_states_prediction_string), len(self._env.ACTIONS)],
             dtype=np.float32,
@@ -169,9 +142,7 @@ class GridworldEvaluator(Evaluator):
 class GridworldContinuousEvaluator(GridworldEvaluator):
     def evaluate(self, predictor):
         prediction_single_action = predictor.predict(
-            float_state_features=self.logged_states,
-            int_state_features=None,
-            actions=self.logged_actions,
+            float_state_features=self.logged_states, actions=self.logged_actions
         )
 
         # Convert action string to integer
@@ -193,7 +164,7 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
                 all_states.append(self._env.state_to_features(x))
                 all_actions.append(self._env.action_to_features(y))
 
-        all_states_prediction_string = predictor.predict(all_states, None, all_actions)
+        all_states_prediction_string = predictor.predict(all_states, all_actions)
         all_states_prediction = np.zeros(
             [len(self._env.STATES), len(self._env.ACTIONS)], dtype=np.float32
         )
@@ -208,7 +179,7 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
 class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
     def __init__(self, env, gamma) -> None:
         super(GridworldDDPGEvaluator, self).__init__(
-            env, assume_optimal_policy=True, gamma=gamma, use_int_features=False
+            env, assume_optimal_policy=True, gamma=gamma
         )
         self.optimal_policy_samples = self._env.generate_samples(100, 0.0, self.gamma)
 
