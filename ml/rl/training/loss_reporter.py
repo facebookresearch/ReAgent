@@ -19,6 +19,7 @@ LOSS_REPORT_INTERVAL = 100
 class BatchStats(NamedTuple):
     td_loss: Optional[torch.Tensor] = None
     reward_loss: Optional[torch.Tensor] = None
+    imitator_loss: Optional[torch.Tensor] = None
     logged_actions: Optional[torch.Tensor] = None
     logged_propensities: Optional[torch.Tensor] = None
     logged_rewards: Optional[torch.Tensor] = None
@@ -45,6 +46,7 @@ class BatchStats(NamedTuple):
 
         for field, log_key in [
             ("td_loss", "td_loss"),
+            ("imitator_loss", "imitator_loss"),
             ("reward_loss", "reward_loss"),
             ("logged_propensities", "propensities/logged"),
             ("logged_rewards", "reward/logged"),
@@ -163,6 +165,7 @@ class LossReporter(object):
 
         self.td_loss: List[float] = []
         self.reward_loss: List[float] = []
+        self.imitator_loss: List[float] = []
         self.logged_action_q_value: List[float] = []
         self.logged_action_counts = {action: 0 for action in self.action_names}
         self.model_values = StatsByAction(self.action_names)
@@ -220,6 +223,13 @@ class LossReporter(object):
             self.reward_loss.append(reward_loss_mean)
             print_details = print_details + "REWARD LOSS: {0:.3f}\n".format(
                 reward_loss_mean
+            )
+
+        if batch_stats.imitator_loss is not None:
+            imitator_loss_mean = float(batch_stats.imitator_loss.mean())
+            self.imitator_loss.append(imitator_loss_mean)
+            print_details = print_details + "IMITATOR LOSS: {0:.3f}\n".format(
+                imitator_loss_mean
             )
 
         if batch_stats.model_values is not None and self.action_names:
@@ -285,6 +295,11 @@ class LossReporter(object):
             self.reward_loss, LossReporter.RECENT_WINDOW_SIZE, num_entries=1
         )
 
+    def get_recent_imitator_loss(self):
+        return LossReporter.calculate_recent_window_average(
+            self.imitator_loss, LossReporter.RECENT_WINDOW_SIZE, num_entries=1
+        )
+
     def get_logged_action_distribution(self):
         total_actions = 1.0 * sum(self.logged_action_counts.values())
         return {k: (v / total_actions) for k, v in self.logged_action_counts.items()}
@@ -305,6 +320,7 @@ class LossReporter(object):
         for name, value in [
             ("Training/td_loss", self.get_recent_td_loss()),
             ("Training/reward_loss", self.get_recent_reward_loss()),
+            ("Training/imitator_loss", self.get_recent_imitator_loss()),
         ]:
             SummaryWriterContext.add_scalar(name, none_to_zero(value), epoch)
 

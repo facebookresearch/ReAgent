@@ -25,6 +25,10 @@ struct RLParameters {
 struct RainbowDQNParameters {
   1: bool double_q_learning = true,
   2: bool dueling_architecture = true,
+  # Batch constrained q-learning (bcq) is not technically a Rainbow addition,
+  # but an augmentation to DQN so putting here.
+  3: bool bcq = false,
+  4: double bcq_drop_probability = 0.05,
 }
 
 struct CNNParameters {

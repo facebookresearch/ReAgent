@@ -7,7 +7,7 @@ from typing import Dict, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
-from ml.rl.caffe_utils import masked_softmax
+from ml.rl.caffe_utils import masked_softmax, softmax
 from ml.rl.models.convolutional_network import ConvolutionalNetwork
 from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
@@ -37,6 +37,8 @@ class DQNTrainer(DQNTrainerBase):
     ) -> None:
 
         self.double_q_learning = parameters.rainbow.double_q_learning
+        self.bcq = parameters.rainbow.bcq
+        self.bcq_drop_probability = parameters.rainbow.bcq_drop_probability
         self.warm_start_model_path = parameters.training.warm_start_model_path
         self.minibatch_size = parameters.training.minibatch_size
         self._actions = parameters.actions if parameters.actions is not None else []
@@ -104,6 +106,7 @@ class DQNTrainer(DQNTrainerBase):
         self.clip_grad_norm = parameters.training.clip_grad_norm
 
         self._init_cpe_networks(parameters, use_all_avail_gpus)
+        self._init_bcq_network(parameters, use_all_avail_gpus)
 
         if self.use_gpu:
             self.q_network.cuda()
@@ -112,6 +115,26 @@ class DQNTrainer(DQNTrainerBase):
             if use_all_avail_gpus:
                 self.q_network = torch.nn.DataParallel(self.q_network)
                 self.q_network_target = torch.nn.DataParallel(self.q_network_target)
+
+    def _init_bcq_network(self, parameters, use_all_avail_gpus):
+        # Batch constrained q-learning
+        if not parameters.rainbow.bcq:
+            return
+
+        self.bcq_imitator = FullyConnectedNetwork(
+            parameters.training.layers,
+            parameters.training.activations,
+            min_std=parameters.training.weight_init_min_std,
+            use_batch_norm=parameters.training.use_batch_norm,
+        )
+        self.bcq_imitator_optimizer = self.optimizer_func(
+            self.bcq_imitator.parameters(),
+            lr=parameters.training.learning_rate,
+            weight_decay=parameters.training.l2_decay,
+        )
+
+        if self.use_gpu:
+            self.bcq_imitator.cuda()
 
     def _init_cpe_networks(self, parameters, use_all_avail_gpus):
         if not self.calc_cpe_in_training:
@@ -252,6 +275,15 @@ class DQNTrainer(DQNTrainerBase):
         all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
             training_samples.next_states
         )
+
+        if self.bcq:
+            # Batch constrained q-learning
+            on_policy_actions = self.bcq_imitator(training_samples.next_states)
+            on_policy_action_probs = softmax(on_policy_actions, temperature=1)
+            action_on_policy = (
+                on_policy_action_probs >= self.bcq_drop_probability
+            ).float()
+            training_samples.possible_next_actions_mask *= action_on_policy
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
             next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
@@ -299,6 +331,17 @@ class DQNTrainer(DQNTrainerBase):
             # Use the soft update rule to update target network
             self._soft_update(self.q_network, self.q_network_target, self.tau)
 
+        bcq_loss = None
+        if self.bcq:
+            # Batch constrained q-learning
+            action_preds = self.bcq_imitator(states)
+            imitator_loss = torch.nn.CrossEntropyLoss()
+            # Classification label is index of action with value 1
+            bcq_loss = imitator_loss(action_preds, torch.max(actions, dim=1)[1])
+            self.bcq_imitator_optimizer.zero_grad()
+            bcq_loss.backward()
+            self.bcq_imitator_optimizer.step()
+
         logged_action_idxs = actions.argmax(dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self.calculate_cpes(
             training_samples,
@@ -311,6 +354,7 @@ class DQNTrainer(DQNTrainerBase):
 
         self.loss_reporter.report(
             td_loss=self.loss,
+            imitator_loss=bcq_loss,
             reward_loss=reward_loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_samples.propensities,

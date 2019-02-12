@@ -239,7 +239,7 @@ def train_gym_offline_rl(
         )
         trainer.loss_reporter.flush()
         logger.info(
-            "Average td loss: {} in epoch {}".format(batch_td_loss, i_epoch + 1)
+            "Average TD loss: {} in epoch {}".format(batch_td_loss, i_epoch + 1)
         )
 
     logger.info(
