@@ -88,6 +88,21 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             )
         return float_features
 
+    def read_actions_to_mask(
+        self, net, name, num_actions, action, action_size_plus_one
+    ):
+        with core.NameScope(name):
+            action_blob_one_hot = net.OneHot(
+                [action(), action_size_plus_one], ["action_blob_one_hot"]
+            )
+            action_blob_one_hot_sliced = net.Slice(
+                [action_blob_one_hot],
+                ["action_blob_one_hot_sliced"],
+                starts=[0, 0],
+                ends=[-1, num_actions],
+            )
+        return action_blob_one_hot_sliced
+
 
 def map_schema():
     return schema.Map(schema.Scalar(), schema.Scalar())
@@ -332,8 +347,26 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                     missing_scalar,
                 )
         else:
-            action = input_record[InputColumn.ACTION]
-            next_action = input_record[InputColumn.NEXT_ACTION]
+            action_size_plus_one = self.create_const(
+                init_net,
+                "action_size_plus_one",
+                self.max_num_actions + 1,
+                dtype=core.DataType.INT64,
+            )
+            action = self.read_actions_to_mask(
+                net,
+                InputColumn.ACTION,
+                self.max_num_actions,
+                input_record[InputColumn.ACTION],
+                action_size_plus_one,
+            )
+            next_action = self.read_actions_to_mask(
+                net,
+                InputColumn.NEXT_ACTION,
+                self.max_num_actions,
+                input_record[InputColumn.NEXT_ACTION],
+                action_size_plus_one,
+            )
 
         if self.normalize:
             C2.set_net_and_init_net(net, init_net)

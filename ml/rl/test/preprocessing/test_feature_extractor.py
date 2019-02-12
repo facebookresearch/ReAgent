@@ -321,11 +321,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         self._test_extract_max_q_discrete_action(normalize=True)
 
     def _test_extract_max_q_discrete_action(self, normalize):
+        num_actions = 2
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             include_possible_actions=True,
             normalize=normalize,
-            max_num_actions=2,
+            max_num_actions=num_actions,
             multi_steps=3,
         )
         # Setup
@@ -365,8 +366,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
         )
-        npt.assert_array_equal(action, o.action.numpy())
-        npt.assert_array_equal(next_action, o.next_action.numpy())
+        npt.assert_array_equal(
+            action.reshape(-1, 1) == np.arange(num_actions), o.action.numpy()
+        )
+        npt.assert_array_equal(
+            next_action.reshape(-1, 1) == np.arange(num_actions), o.next_action.numpy()
+        )
         npt.assert_array_equal(
             possible_actions_mask[1], o.possible_actions_mask.numpy().flatten()
         )
@@ -392,11 +397,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         self._test_extract_sarsa_discrete_action(normalize=True)
 
     def _test_extract_sarsa_discrete_action(self, normalize):
+        num_actions = 2
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             include_possible_actions=False,
             normalize=normalize,
-            max_num_actions=2,
+            max_num_actions=num_actions,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -427,8 +433,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             extra_data.action_probability.reshape(-1, 1),
             res.extras.action_probability.numpy(),
         )
-        npt.assert_array_equal(action, o.action.numpy())
-        npt.assert_array_equal(next_action, o.next_action.numpy())
+        npt.assert_array_equal(
+            action.reshape(-1, 1) == np.arange(num_actions), o.action.numpy()
+        )
+        npt.assert_array_equal(
+            next_action.reshape(-1, 1) == np.arange(num_actions), o.next_action.numpy()
+        )
         npt.assert_allclose(
             self.expected_state_features(normalize),
             o.state.float_features.numpy(),
