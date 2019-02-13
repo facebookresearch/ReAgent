@@ -9,6 +9,7 @@ import sys
 import time
 
 import torch
+from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.training._dqn_trainer import _DQNTrainer
 from ml.rl.training._parametric_dqn_trainer import _ParametricDQNTrainer
 from ml.rl.training.ddpg_trainer import DDPGTrainer
@@ -101,9 +102,21 @@ def update_model_for_warm_start(model, path=None):
     if isinstance(
         model, (_DQNTrainer, DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)
     ):
-        model.q_network.load_state_dict(state["q_network"])
-        model.q_network_target.load_state_dict(state["q_network"])
-        model.q_network_optimizer.load_state_dict(state["optimizer"])
+        try:
+            model.q_network.load_state_dict(state["q_network"])
+            model.q_network_target.load_state_dict(state["q_network"])
+            model.q_network_optimizer.load_state_dict(state["optimizer"])
+        except Exception:
+            if not isinstance(model.q_network, FullyConnectedDQN):
+                raise
+            # If it's FullyConnectedDQN, we try to load FullyConnectedNetwork into it
+            # by adding "fc." prefix
+            state["q_network"] = type(state["q_network"])(
+                ("fc.{}".format(k), v) for k, v in state["q_network"].items()
+            )
+            model.q_network.load_state_dict(state["q_network"])
+            model.q_network_target.load_state_dict(state["q_network"])
+            model.q_network_optimizer.load_state_dict(state["optimizer"])
     elif isinstance(model, DDPGTrainer):
         model.actor.load_state_dict(state["actor"])
         model.actor_target.load_state_dict(state["actor"])
