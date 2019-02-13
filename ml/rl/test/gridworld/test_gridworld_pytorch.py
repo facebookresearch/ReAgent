@@ -159,16 +159,31 @@ class TestGridworld(GridworldTestBase):
             sizes=parameters.training.layers[1:-1],
             activations=parameters.training.activations[:-1],
         )
+        q_network_cpe = FullyConnectedDQN(
+            state_dim=get_num_output_features(environment.normalization),
+            action_dim=len(environment.ACTIONS),
+            sizes=parameters.training.layers[1:-1],
+            activations=parameters.training.activations[:-1],
+        )
         if use_gpu:
             q_network = q_network.cuda()
             reward_network = reward_network.cuda()
+            q_network_cpe = q_network_cpe.cuda()
             if use_all_avail_gpus:
                 q_network = q_network.get_data_parallel_model()
                 reward_network = reward_network.get_data_parallel_model()
+                q_network_cpe = q_network_cpe.get_data_parallel_model()
 
         q_network_target = q_network.get_target_network()
+        q_network_cpe_target = q_network_cpe.get_target_network()
         trainer = _DQNTrainer(
-            q_network, q_network_target, reward_network, parameters, use_gpu
+            q_network,
+            q_network_target,
+            reward_network,
+            parameters,
+            use_gpu,
+            q_network_cpe=q_network_cpe,
+            q_network_cpe_target=q_network_cpe_target,
         )
         return trainer
 

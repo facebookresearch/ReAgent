@@ -100,7 +100,7 @@ class TrainingDataPage(object):
                 step=self.step,
                 time_diff=self.time_diffs,
             ),
-            extras=rlt.ExtraData(),
+            extras=rlt.ExtraData(action_probability=self.propensities),
         )
 
     def size(self) -> int:

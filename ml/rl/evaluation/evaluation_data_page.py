@@ -66,7 +66,7 @@ class EvaluationDataPage(NamedTuple):
             tdb.training_input.possible_actions_mask,
             tdb.training_input.possible_actions,
             tdb.extras.max_num_actions,
-            metrics=None,  # TODO add metrics to conduct CPE on metrics
+            metrics=tdb.extras.metrics,
         )
 
     @classmethod
@@ -172,7 +172,14 @@ class EvaluationDataPage(NamedTuple):
                     model_values * action_mask, dim=1, keepdim=True
                 )
 
+                if isinstance(states, mt.State):
+                    states = mt.StateInput(state=states)
+
                 rewards_and_metric_rewards = trainer.reward_network(states)
+
+                # In case we reuse the modular for Q-network
+                if hasattr(rewards_and_metric_rewards, "q_values"):
+                    rewards_and_metric_rewards = rewards_and_metric_rewards.q_values
 
                 num_actions = trainer.num_actions
 
@@ -202,9 +209,11 @@ class EvaluationDataPage(NamedTuple):
                     model_metrics_for_logged_action = None
                     model_metrics_values_for_logged_action = None
                 else:
-                    model_metrics_values = trainer.q_network_cpe(states)[
-                        :, num_actions:
-                    ]
+                    model_metrics_values = trainer.q_network_cpe(states)
+                    # Backward compatility
+                    if hasattr(model_metrics_values, "q_values"):
+                        model_metrics_values = model_metrics_values.q_values
+                    model_metrics_values = model_metrics_values[:, num_actions:]
                     assert model_metrics_values.shape[1] == num_actions * num_metrics, (
                         "Invalid shape: "
                         + str(model_metrics_values.shape[1])

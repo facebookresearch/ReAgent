@@ -194,12 +194,6 @@ class DQNTrainer(DQNTrainerBase):
     def num_actions(self) -> int:
         return len(self._actions)
 
-    def calculate_q_values(self, states):
-        return self.q_network(states).detach()
-
-    def calculate_metric_q_values(self, states):
-        return self.q_network_cpe(states).detach()
-
     def get_detached_q_values(self, states) -> Tuple[torch.Tensor, torch.Tensor]:
         with torch.no_grad():
             q_values = self.q_network(states)
@@ -444,15 +438,6 @@ class DQNTrainer(DQNTrainerBase):
             ),
         ]
         return reward_loss, model_rewards, model_propensities
-
-    def boost_rewards(
-        self, rewards: torch.Tensor, actions: torch.Tensor
-    ) -> torch.Tensor:
-        # Apply reward boost if specified
-        reward_boosts = torch.sum(
-            actions.float() * self.reward_boosts, dim=1, keepdim=True
-        )
-        return rewards + reward_boosts
 
     def predictor(self, set_missing_value_to_zero=False) -> DQNPredictor:
         """Builds a DQNPredictor."""

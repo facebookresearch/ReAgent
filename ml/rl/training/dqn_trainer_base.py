@@ -62,3 +62,12 @@ class DQNTrainerBase(RLTrainer):
             return max_q_values_target, max_indicies
         else:
             return self.get_max_q_values(q_values_target, possible_actions_mask)
+
+    def boost_rewards(
+        self, rewards: torch.Tensor, actions: torch.Tensor
+    ) -> torch.Tensor:
+        # Apply reward boost if specified
+        reward_boosts = torch.sum(
+            actions.float() * self.reward_boosts, dim=1, keepdim=True
+        )
+        return rewards + reward_boosts

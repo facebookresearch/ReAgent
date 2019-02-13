@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
-from typing import Dict, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 import ml.rl.types as mt
 import numpy as np
@@ -122,6 +122,7 @@ class InputColumn(object):
     TIME_DIFF = "time_diff"
     MDP_ID = "mdp_id"
     SEQUENCE_NUMBER = "sequence_number"
+    METRICS = "metrics"
 
 
 class TrainingFeatureExtractor(FeatureExtractorBase):
@@ -143,6 +144,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         normalize: bool = True,
         max_num_actions: int = None,
         multi_steps: Optional[int] = None,
+        metrics_to_score: Optional[List[str]] = None,
     ) -> None:
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
@@ -159,6 +161,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         self.normalize = normalize
         self.max_num_actions = max_num_actions
         self.multi_steps = multi_steps
+        self.metrics_to_score = metrics_to_score
 
     def extract(self, ws, input_record, extract_record):
         def fetch(b, to_torch=True):
@@ -261,6 +264,8 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         mdp_id = fetch(input_record.mdp_id, to_torch=False)
         sequence_number = fetch(input_record.sequence_number)
 
+        metrics = fetch(extract_record.metrics) if self.metrics_to_score else None
+
         # TODO: stuff other fields in here
         extras = mt.ExtraData(
             action_probability=fetch(input_record.action_probability).reshape(-1, 1),
@@ -269,6 +274,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             else None,
             mdp_id=mdp_id.reshape(-1, 1) if mdp_id is not None else None,
             max_num_actions=max_num_actions,
+            metrics=metrics,
         )
 
         return mt.TrainingBatch(training_input=training_input, extras=extras)
@@ -298,6 +304,9 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                     (InputColumn.POSSIBLE_ACTIONS, schema.List(map_schema())),
                     (InputColumn.POSSIBLE_NEXT_ACTIONS, schema.List(map_schema())),
                 )
+
+        if self.metrics_to_score:
+            input_schema += schema.Struct((InputColumn.METRICS, map_schema()))
 
         input_record = net.set_input_record(input_schema)
 
@@ -416,6 +425,17 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                     )
             C2.set_net_and_init_net(None, None)
 
+        if self.metrics_to_score:
+            metrics_to_score_idxs = list(range(len(self.metrics_to_score)))
+            missing_metric = self.create_const(init_net, "MISSING_METRIC", 0.0)
+            metrics = self.extract_float_features(
+                net,
+                InputColumn.METRICS,
+                input_record[InputColumn.METRICS],
+                metrics_to_score_idxs,
+                missing_metric,
+            )
+
         output_schema = schema.Struct(
             (InputColumn.STATE_FEATURES, state),
             (InputColumn.NEXT_STATE_FEATURES, next_state),
@@ -443,6 +463,9 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                     (InputColumn.POSSIBLE_ACTIONS, possible_action_features),
                     (InputColumn.POSSIBLE_NEXT_ACTIONS, possible_next_action_features),
                 )
+
+        if self.metrics_to_score:
+            output_schema += schema.Struct((InputColumn.METRICS, metrics))
 
         net.set_output_record(output_schema)
         return FeatureExtractorNet(net, init_net)

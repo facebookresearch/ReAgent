@@ -101,6 +101,7 @@ class ExtraData(NamedTuple):
     sequence_number: Optional[ValueType] = None
     action_probability: Optional[ValueType] = None
     max_num_actions: Optional[int] = None
+    metrics: Optional[ValueType] = None
 
 
 class TrainingBatch(NamedTuple):

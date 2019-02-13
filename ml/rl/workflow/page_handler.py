@@ -60,8 +60,8 @@ class EvaluationPageHandler(PageHandler):
         if isinstance(tdp, TrainingDataPage):
             edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
         elif isinstance(tdp, TrainingBatch):
-            if isinstance(self.trainer, (_DQNTrainer, SACTrainer)):
-                # TODO: Implement CPE for modular DQNTrainer & continuous algos
+            if isinstance(self.trainer, SACTrainer):
+                # TODO: Implement CPE for continuous algos
                 edp = None
             else:
                 edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)

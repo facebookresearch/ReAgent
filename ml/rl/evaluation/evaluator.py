@@ -3,6 +3,7 @@
 
 import logging
 from collections import Counter
+from typing import Dict, List, Optional
 
 import torch
 from ml.rl.evaluation.cpe import CpeDetails, CpeEstimateSet
@@ -44,7 +45,7 @@ def get_tensor(x, dtype=None):
     return x
 
 
-def get_metrics_to_score(metric_reward_values):
+def get_metrics_to_score(metric_reward_values: Optional[Dict[str, float]]) -> List[str]:
     if metric_reward_values is None:
         return []
     return sorted([*metric_reward_values.keys()])
