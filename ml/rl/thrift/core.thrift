@@ -28,7 +28,8 @@ struct RainbowDQNParameters {
   # Batch constrained q-learning (bcq) is not technically a Rainbow addition,
   # but an augmentation to DQN so putting here.
   3: bool bcq = false,
-  4: double bcq_drop_probability = 0.05,
+  # 0 = max q-learning, 1 = imitation learning
+  4: double bcq_drop_threshold = 0.1,
 }
 
 struct CNNParameters {

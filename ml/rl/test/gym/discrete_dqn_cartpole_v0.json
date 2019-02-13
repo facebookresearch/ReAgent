@@ -17,17 +17,8 @@
     "dueling_architecture": false
   },
   "training": {
-    "layers": [
-      -1,
-      128,
-      64,
-      -1
-    ],
-    "activations": [
-      "relu",
-      "relu",
-      "linear"
-    ],
+    "layers": [-1, 128, 64, -1],
+    "activations": ["relu", "relu", "linear"],
     "minibatch_size": 1024,
     "learning_rate": 0.001,
     "optimizer": "ADAM",

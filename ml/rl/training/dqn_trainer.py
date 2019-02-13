@@ -38,7 +38,7 @@ class DQNTrainer(DQNTrainerBase):
 
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.bcq = parameters.rainbow.bcq
-        self.bcq_drop_probability = parameters.rainbow.bcq_drop_probability
+        self.bcq_drop_threshold = parameters.rainbow.bcq_drop_threshold
         self.warm_start_model_path = parameters.training.warm_start_model_path
         self.minibatch_size = parameters.training.minibatch_size
         self._actions = parameters.actions if parameters.actions is not None else []
@@ -280,9 +280,11 @@ class DQNTrainer(DQNTrainerBase):
             # Batch constrained q-learning
             on_policy_actions = self.bcq_imitator(training_samples.next_states)
             on_policy_action_probs = softmax(on_policy_actions, temperature=1)
-            action_on_policy = (
-                on_policy_action_probs >= self.bcq_drop_probability
-            ).float()
+            filter_values = (
+                on_policy_action_probs
+                / on_policy_action_probs.max(keepdim=True, dim=1)[0]
+            )
+            action_on_policy = (filter_values >= self.bcq_drop_threshold).float()
             training_samples.possible_next_actions_mask *= action_on_policy
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
