@@ -8,6 +8,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+from ml.rl import types as rlt
+from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import gaussian_fill_w_gain
 from ml.rl.tensorboardX import SummaryWriterContext
 
@@ -15,7 +17,7 @@ from ml.rl.tensorboardX import SummaryWriterContext
 logger = logging.getLogger(__name__)
 
 
-class DuelingQNetwork(nn.Module):
+class DuelingQNetwork(ModelBase):
     def __init__(self, layers, activations, use_batch_norm=False, action_dim=0) -> None:
         """
         Dueling Q-Network Architecture: https://arxiv.org/abs/1511.06581
@@ -40,6 +42,9 @@ class DuelingQNetwork(nn.Module):
         ), """Last shared layer in dueling architecture should be
         divisible by 2."""
 
+        self.state_dim = layers[0]
+        self.action_dim = action_dim
+
         for i, layer in enumerate(layers[1:-1]):
             self.layers.append(nn.Linear(layers[i], layer))
             self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
@@ -60,10 +65,33 @@ class DuelingQNetwork(nn.Module):
         )
         self._name = "unnamed"
 
+    def input_prototype(self):
+        if self.parametric_action:
+            return rlt.StateAction(
+                state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim)),
+                action=rlt.FeatureVector(
+                    float_features=torch.randn(1, self.action_dim)
+                ),
+            )
+        else:
+            return rlt.StateInput(
+                state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
+            )
+
     def forward(self, input) -> torch.FloatTensor:
-        state_dim = self.layers[0].in_features
-        state = input[:, :state_dim]
-        action = input[:, state_dim:]
+        output_tensor = False
+        if isinstance(input, torch.Tensor):
+            # Maintaining backward compatibility for a bit
+            state_dim = self.layers[0].in_features
+            state = input[:, :state_dim]
+            action = input[:, state_dim:]
+            output_tensor = True
+        elif self.parametric_action:
+            state = input.state.float_features
+            action = input.action.float_features
+        else:
+            state = input.state.float_features
+            action = None
 
         x = state
         for i, activation in enumerate(self.activations[:-1]):
@@ -74,7 +102,8 @@ class DuelingQNetwork(nn.Module):
             x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
 
         value = self.value(x)
-        x = torch.cat((x, action), dim=1)
+        if action is not None:
+            x = torch.cat((x, action), dim=1)
         raw_advantage = self.advantage(x)
         if self.parametric_action:
             advantage = raw_advantage
@@ -117,4 +146,9 @@ class DuelingQNetwork(nn.Module):
                         a.mean().cpu(),
                     )
 
-        return q_value
+        if output_tensor:
+            return q_value
+        elif self.parametric_action:
+            return rlt.SingleQValue(q_value=q_value)
+        else:
+            return rlt.AllActionQValues(q_values=q_value)
