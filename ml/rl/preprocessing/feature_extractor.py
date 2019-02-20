@@ -193,10 +193,9 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         action = fetch_action(extract_record.action)
         next_action = fetch_action(extract_record.next_action)
         max_num_actions = None
+        step = None
         if self.multi_steps is not None:
             step = fetch(input_record.step).reshape(-1, 1)
-        else:
-            step = None
         reward = fetch(input_record.reward).reshape(-1, 1)
 
         # is_terminal should be filled by preprocessor

@@ -54,6 +54,13 @@ logger = logging.getLogger(__name__)
 USE_CPU = -1
 
 
+def dict_to_np(d, np_size, key_offset):
+    x = np.zeros(np_size, dtype=np.float32)
+    for key in d:
+        x[key - key_offset] = d[key]
+    return x
+
+
 def get_possible_actions(gym_env, model_type, terminal):
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
         possible_next_actions = None
@@ -153,13 +160,6 @@ def train_gym_offline_rl(
     """
     Train on transitions collected by a random policy then learn RL off policy.
     """
-
-    def dict_to_np(d, np_size, key_offset):
-        x = np.zeros(np_size, dtype=np.float32)
-        for key in d:
-            x[key - key_offset] = d[key]
-        return x
-
     samples = gym_env.generate_random_samples(
         num_transitions=replay_buffer.max_replay_memory_size,
         use_continuous_action=True,

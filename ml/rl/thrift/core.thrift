@@ -183,7 +183,8 @@ struct OpenAIGymParameters {
   5: i32 test_every_ts = 2000,
   6: i32 test_after_ts = 1,
   7: i32 num_train_batches = 1,
-  8: i32 avg_over_num_episodes = 100
+  8: i32 avg_over_num_episodes = 100,
+  9: i32 offline_train_epochs = 30
 }
 
 struct NormalizationParameters {
@@ -196,4 +197,12 @@ struct NormalizationParameters {
   7: optional list<double> quantiles,  # Assume present for QUANTILE type and sorted
   8: optional double min_value,
   9: optional double max_value,
+}
+
+struct MDNRNNParameters {
+  1: i32 hidden_size = 64,
+  2: i32 num_hidden_layers = 2,
+  3: i32 minibatch_size = 16,
+  4: double learning_rate = 0.001,
+  5: i32 num_gaussians = 5
 }

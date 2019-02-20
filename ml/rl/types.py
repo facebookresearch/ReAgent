@@ -96,6 +96,14 @@ class SARSAInput(NamedTuple):
     time_diff: ValueType
 
 
+class MemoryNetworkInput(NamedTuple):
+    state: State
+    action: Action
+    next_state: ValueType
+    reward: ValueType
+    not_terminal: ValueType
+
+
 class ExtraData(NamedTuple):
     mdp_id: Optional[ValueType] = None
     sequence_number: Optional[ValueType] = None
@@ -105,7 +113,7 @@ class ExtraData(NamedTuple):
 
 
 class TrainingBatch(NamedTuple):
-    training_input: Union[MaxQLearningInput, SARSAInput]
+    training_input: Union[MaxQLearningInput, SARSAInput, MemoryNetworkInput]
     extras: Any
 
 
@@ -123,3 +131,13 @@ class CappedContinuousAction(NamedTuple):
     """
 
     action: ValueType
+
+
+class MemoryNetworkOutput(NamedTuple):
+    mus: ValueType
+    sigmas: ValueType
+    logpi: ValueType
+    reward: ValueType
+    not_terminal: ValueType
+    next_lstm_hidden: ValueType
+    next_lstm_cell: ValueType

@@ -256,15 +256,21 @@ class Environment:
             sequence_number_deque.append(sequence_number)
             possible_action_deque.append(possible_action)
             possible_next_action_deque.append(possible_next_action)
-            # Format terminals in same way we ask clients to log terminals (in RL dex)
+
             next_processed_state: FEATURES = self._process_state(next_state)
+            next_state_deque.append(next_processed_state)
+
+            # Format terminals in same way we ask clients to log terminals (in RL dex)
+            # i.e., setting next action empty if the episode terminates
             if terminal:
-                next_processed_state = {}
+                # We need to keep next state even at the terminal state
+                # first, fblearner/flow/projects/rl/core/data_fetcher.py decides
+                # terminal signals by looking at next action, not next state
+                # second, next state will be used for world model building
                 if type(next_processed_action) is str:
                     next_processed_action = ""
                 else:
                     next_processed_action = {}
-            next_state_deque.append(next_processed_state)
             next_action_deque.append(next_processed_action)
 
             # We want exactly N data points, but we need to wait until the
@@ -318,7 +324,7 @@ class Environment:
 
             state = next_state
 
-        samples = MultiStepSamples(  # noqa
+        samples = MultiStepSamples(
             mdp_ids=mdp_ids,
             sequence_numbers=sequence_numbers,
             states=states,
