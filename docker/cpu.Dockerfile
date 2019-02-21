@@ -53,9 +53,6 @@ ADD ./requirements.txt requirements.txt
 RUN conda install --file requirements.txt
 RUN rm requirements.txt
 
-# Build the latest onnx from source
-RUN pip install onnx
-
 # Install open ai gym
 RUN pip install "gym[classic_control,box2d,atari]"
 
