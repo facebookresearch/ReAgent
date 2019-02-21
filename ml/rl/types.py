@@ -49,7 +49,9 @@ class ActorOutput(NamedTuple):
     log_prob: Optional[ValueType] = None
 
 
-Action = Union[DiscreteAction, ParametricAction]
+Action = Union[
+    DiscreteAction, ParametricAction
+]  # One-hot vector for discrete action DQN and feature vector for everyone else
 
 State = FeatureVector
 
@@ -67,24 +69,20 @@ class StateAction(NamedTuple):
     action: Action
 
 
-class PossibleActions(NamedTuple):
-    lengths: ValueType
-    actions: Action
-
-
-class StatePossibleActions(NamedTuple):
-    state: State
-    possible_actions: PossibleActions
-
-
 class MaxQLearningInput(NamedTuple):
     state: State
     action: Action
+    next_action: Action
     next_state: Optional[State]  # Available in case of discrete action
     tiled_next_state: Optional[State]  # Available in case of parametric action
-    possible_next_actions: PossibleActions
+    possible_actions: Optional[Action]
+    possible_actions_mask: ValueType
+    possible_next_actions: Optional[Action]
+    possible_next_actions_mask: ValueType
     reward: ValueType
     not_terminal: ValueType
+    step: Optional[ValueType]
+    time_diff: ValueType
 
 
 class SARSAInput(NamedTuple):
@@ -94,14 +92,28 @@ class SARSAInput(NamedTuple):
     next_action: Action
     reward: ValueType
     not_terminal: ValueType
+    step: Optional[ValueType]
+    time_diff: ValueType
+
+
+class MemoryNetworkInput(NamedTuple):
+    state: State
+    action: Action
+    next_state: ValueType
+    reward: ValueType
+    not_terminal: ValueType
 
 
 class ExtraData(NamedTuple):
+    mdp_id: Optional[ValueType] = None
+    sequence_number: Optional[ValueType] = None
     action_probability: Optional[ValueType] = None
+    max_num_actions: Optional[int] = None
+    metrics: Optional[ValueType] = None
 
 
 class TrainingBatch(NamedTuple):
-    training_input: Union[MaxQLearningInput, SARSAInput]
+    training_input: Union[MaxQLearningInput, SARSAInput, MemoryNetworkInput]
     extras: Any
 
 
@@ -119,3 +131,13 @@ class CappedContinuousAction(NamedTuple):
     """
 
     action: ValueType
+
+
+class MemoryNetworkOutput(NamedTuple):
+    mus: ValueType
+    sigmas: ValueType
+    logpi: ValueType
+    reward: ValueType
+    not_terminal: ValueType
+    next_lstm_hidden: ValueType
+    next_lstm_cell: ValueType

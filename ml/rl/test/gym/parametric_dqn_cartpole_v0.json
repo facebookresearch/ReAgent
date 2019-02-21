@@ -5,12 +5,12 @@
   "use_gpu": true,
   "rl": {
     "gamma": 0.99,
-    "target_update_rate": 0.2,
+    "target_update_rate": 0.1,
     "reward_burnin": 1,
     "maxq_learning": 1,
-    "epsilon": 0,
+    "epsilon": 0.05,
     "temperature": 0.35,
-    "softmax_policy": 1
+    "softmax_policy": 0
   },
   "rainbow": {
     "double_q_learning": false,
@@ -28,13 +28,13 @@
       "relu",
       "linear"
     ],
-    "minibatch_size": 64,
+    "minibatch_size": 1024,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
     "lr_decay": 0.999
   },
   "run_details": {
-    "num_episodes": 5001,
+    "num_episodes": 200,
     "max_steps": 200,
     "train_every_ts": 1,
     "train_after_ts": 1,

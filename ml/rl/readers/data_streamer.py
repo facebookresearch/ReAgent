@@ -10,17 +10,16 @@ from typing import NamedTuple
 
 import torch
 import torch.multiprocessing as multiprocessing
-from torch._C import (
-    _remove_worker_pids,
-    _set_worker_signal_handlers,
-    _update_worker_pids,
-)
+import torch.utils.data._utils
 from torch._six import string_classes
-from torch.utils.data.dataloader import (
-    ExceptionWrapper,
-    ManagerWatchdog,
+from torch.utils.data._utils import ExceptionWrapper
+from torch.utils.data._utils.signal_handling import (
+    _remove_worker_pids,
     _set_SIGCHLD_handler,
+    _set_worker_pids,
+    _set_worker_signal_handlers,
 )
+from torch.utils.data._utils.worker import ManagerWatchdog
 
 
 MANAGER_STATUS_CHECK_INTERVAL = 5.0
@@ -224,7 +223,7 @@ class _DataStreamerIter(object):
             else:
                 self.data_queue = self.worker_result_queue
 
-            _update_worker_pids(id(self), tuple(w.pid for w in self.workers))
+            _set_worker_pids(id(self), tuple(w.pid for w in self.workers))
             _set_SIGCHLD_handler()
             self.worker_pids_set = True
 

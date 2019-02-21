@@ -3,15 +3,20 @@
 
 
 import logging
-from typing import List
+from typing import Dict, List, Optional, Union
 
 import torch
 from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
-from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
+from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
+from ml.rl.test.environment.environment import (
+    MultiStepSamples,
+    Samples,
+    shuffle_samples,
+)
+from ml.rl.test.gridworld.gridworld_base import GridworldBase
 from ml.rl.test.utils import (
     only_continuous_action_normalizer,
     only_continuous_normalizer,
@@ -26,12 +31,7 @@ class GridworldContinuous(GridworldBase):
     @property
     def normalization_action(self):
         return only_continuous_normalizer(
-            [
-                x
-                for x in list(
-                    range(self.num_states, self.num_states + self.num_actions)
-                )
-            ],
+            list(range(self.num_states, self.num_states + self.num_actions)),
             min_value=0,
             max_value=1,
         )
@@ -39,12 +39,7 @@ class GridworldContinuous(GridworldBase):
     @property
     def normalization_continuous_action(self):
         return only_continuous_action_normalizer(
-            [
-                x
-                for x in list(
-                    range(self.num_states, self.num_states + self.num_actions)
-                )
-            ],
+            list(range(self.num_states, self.num_states + self.num_actions)),
             min_value=0,
             max_value=1,
         )
@@ -75,44 +70,18 @@ class GridworldContinuous(GridworldBase):
     def features_to_state(self, state):
         return list(state.keys())[0]
 
-    def generate_samples(self, num_transitions, epsilon, discount_factor) -> Samples:
-        samples = self.generate_samples_discrete(
-            num_transitions, epsilon, discount_factor
-        )
-        continuous_actions = [self.action_to_features(a) for a in samples.actions]
-        continuous_next_actions = [
-            self.action_to_features(a) if a is not "" else {}
-            for a in samples.next_actions
-        ]
-        continuous_possible_actions = []
-        for possible_action in samples.possible_actions:
-            continuous_possible_actions.append(
-                [
-                    self.action_to_features(a) if a is not None else {}
-                    for a in possible_action
-                ]
-            )
-        continuous_possible_next_actions = []
-        for possible_next_action in samples.possible_next_actions:
-            continuous_possible_next_actions.append(
-                [
-                    self.action_to_features(a) if a is not None else {}
-                    for a in possible_next_action
-                ]
-            )
-
-        return Samples(
-            mdp_ids=samples.mdp_ids,
-            sequence_numbers=samples.sequence_numbers,
-            states=samples.states,
-            actions=continuous_actions,
-            action_probabilities=samples.action_probabilities,
-            rewards=samples.rewards,
-            possible_actions=continuous_possible_actions,
-            next_states=samples.next_states,
-            next_actions=continuous_next_actions,
-            terminals=samples.terminals,
-            possible_next_actions=continuous_possible_next_actions,
+    def generate_samples(
+        self,
+        num_transitions,
+        epsilon,
+        discount_factor,
+        multi_steps: Optional[int] = None,
+    ) -> Union[Samples, MultiStepSamples]:
+        return self.generate_random_samples(
+            num_transitions,
+            use_continuous_action=True,
+            epsilon=epsilon,
+            multi_steps=multi_steps,
         )
 
     def preprocess_samples(
@@ -124,54 +93,46 @@ class GridworldContinuous(GridworldBase):
         normalize_actions: bool = True,
     ) -> List[TrainingDataPage]:
         logger.info("Shuffling...")
-        samples.shuffle()
+        samples = shuffle_samples(samples)
 
         logger.info("Sparse2Dense...")
         net = core.Net("gridworld_preprocessing")
         C2.set_net(net)
+        sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
         saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
         sorted_state_features, _ = sort_features_by_normalization(self.normalization)
-        state_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_state_features
-        )
+        state_matrix, _ = sparse_to_dense_processor(sorted_state_features, saa)
         saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_state_features
-        )
+        next_state_matrix, _ = sparse_to_dense_processor(sorted_state_features, saa)
         sorted_action_features, _ = sort_features_by_normalization(
             self.normalization_action
         )
         saa = StackedAssociativeArray.from_dict_list(samples.actions, "action")
-        action_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_action_features
-        )
+        action_matrix, _ = sparse_to_dense_processor(sorted_action_features, saa)
         saa = StackedAssociativeArray.from_dict_list(
             samples.next_actions, "next_action"
         )
-        next_action_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_action_features
-        )
+        next_action_matrix, _ = sparse_to_dense_processor(sorted_action_features, saa)
         action_probabilities = torch.tensor(
             samples.action_probabilities, dtype=torch.float32
         ).reshape(-1, 1)
         rewards = torch.tensor(samples.rewards, dtype=torch.float32).reshape(-1, 1)
 
-        pnas_lengths_list = []
-        pnas_flat: List[List[str]] = []
+        max_action_size = 4
+
+        pnas_mask_list: List[List[int]] = []
+        pnas_flat: List[Dict[str, float]] = []
         for pnas in samples.possible_next_actions:
-            pnas_lengths_list.append(len(pnas))
+            pnas_mask_list.append([1] * len(pnas) + [0] * (max_action_size - len(pnas)))
             pnas_flat.extend(pnas)
+            for _ in range(max_action_size - len(pnas)):
+                pnas_flat.append({})  # Filler
         saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
+        pnas_mask = torch.Tensor(pnas_mask_list)
 
-        pnas_lengths = torch.tensor(pnas_lengths_list, dtype=torch.int32)
-        pna_lens_blob = "pna_lens_blob"
-        workspace.FeedBlob(pna_lens_blob, pnas_lengths.numpy())
-
-        possible_next_actions_matrix, _ = sparse_to_dense(
-            saa.lengths, saa.keys, saa.values, sorted_action_features
+        possible_next_actions_matrix, _ = sparse_to_dense_processor(
+            sorted_action_features, saa
         )
-
-        state_pnas_tile_blob = C2.LengthsTile(next_state_matrix, pna_lens_blob)
 
         workspace.RunNetOnce(net)
 
@@ -189,6 +150,10 @@ class GridworldContinuous(GridworldBase):
         next_states_ndarray = workspace.FetchBlob(next_state_matrix)
         next_states_ndarray = state_preprocessor.forward(next_states_ndarray)
 
+        state_pnas_tile = next_states_ndarray.repeat(1, max_action_size).reshape(
+            -1, next_states_ndarray.shape[1]
+        )
+
         next_actions_ndarray = torch.from_numpy(workspace.FetchBlob(next_action_matrix))
         if normalize_actions:
             next_actions_ndarray = action_preprocessor.forward(next_actions_ndarray)
@@ -197,16 +162,17 @@ class GridworldContinuous(GridworldBase):
             workspace.FetchBlob(possible_next_actions_matrix)
         )
 
-        state_pnas_tile = state_preprocessor.forward(
-            workspace.FetchBlob(state_pnas_tile_blob)
+        assert state_pnas_tile.shape[0] == logged_possible_next_actions.shape[0], (
+            "Invalid shapes: "
+            + str(state_pnas_tile.shape)
+            + " != "
+            + str(logged_possible_next_actions.shape)
         )
         logged_possible_next_state_actions = torch.cat(
             (state_pnas_tile, logged_possible_next_actions), dim=1
         )
 
         logger.info("Reward Timeline to Torch...")
-        possible_next_actions_ndarray = logged_possible_next_actions
-        possible_next_actions_state_concat = logged_possible_next_state_actions
         time_diffs = torch.ones([len(samples.states), 1])
 
         tdps = []
@@ -216,10 +182,7 @@ class GridworldContinuous(GridworldBase):
             end = start + minibatch_size
             if end > states_ndarray.shape[0]:
                 break
-            pnas_end = pnas_start + torch.sum(pnas_lengths[start:end])
-            pnas = possible_next_actions_ndarray[pnas_start:pnas_end]
-            pnas_concat = possible_next_actions_state_concat[pnas_start:pnas_end]
-            pnas_start = pnas_end
+            pnas_end = pnas_start + (minibatch_size * max_action_size)
             tdp = TrainingDataPage(
                 states=states_ndarray[start:end],
                 actions=actions_ndarray[start:end],
@@ -227,12 +190,14 @@ class GridworldContinuous(GridworldBase):
                 rewards=rewards[start:end],
                 next_states=next_states_ndarray[start:end],
                 next_actions=next_actions_ndarray[start:end],
-                possible_next_actions=None,
-                not_terminals=(pnas_lengths[start:end] > 0).reshape(-1, 1),
+                not_terminal=(pnas_mask[start:end, :].sum(dim=1, keepdim=True) > 0),
                 time_diffs=time_diffs[start:end],
-                possible_next_actions_lengths=pnas_lengths[start:end],
-                possible_next_actions_state_concat=pnas_concat,
+                possible_next_actions_mask=pnas_mask[start:end, :],
+                possible_next_actions_state_concat=logged_possible_next_state_actions[
+                    pnas_start:pnas_end, :
+                ],
             )
+            pnas_start = pnas_end
             tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
             tdps.append(tdp)
         return tdps

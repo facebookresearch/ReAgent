@@ -3,38 +3,87 @@
 
 import logging
 import sys
-import time
+from typing import Dict
 
+from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
+from ml.rl.readers.json_dataset_reader import JSONDatasetReader
+from ml.rl.tensorboardX import summary_writer_context
 from ml.rl.thrift.core.ttypes import (
+    ContinuousActionModelParameters,
     DDPGModelParameters,
     DDPGNetworkParameters,
     DDPGTrainingParameters,
+    NormalizationParameters,
     RLParameters,
 )
 from ml.rl.training.ddpg_trainer import DDPGTrainer, construct_action_scale_tensor
+from ml.rl.workflow.base_workflow import BaseWorkflow
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
     minibatch_size_multiplier,
     parse_args,
-    report_training_status,
     update_model_for_warm_start,
 )
-from ml.rl.workflow.training_data_reader import (
-    JSONDataset,
-    preprocess_batch_for_training,
-    read_norm_file,
+from ml.rl.workflow.preprocess_handler import (
+    ContinuousPreprocessHandler,
+    PreprocessHandler,
 )
+from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-def train_network(params):
-    logger.info("Running Parametric DQN workflow with params:")
-    logger.info(params)
+class ContinuousWorkflow(BaseWorkflow):
+    def __init__(
+        self,
+        model_params: ContinuousActionModelParameters,
+        preprocess_handler: PreprocessHandler,
+        state_normalization: Dict[int, NormalizationParameters],
+        action_normalization: Dict[int, NormalizationParameters],
+        use_gpu: bool,
+        use_all_avail_gpus: bool,
+    ):
+        logger.info("Running continuous workflow with params:")
+        logger.info(model_params)
+        model_params = model_params
 
+        min_action_range_tensor_serving, max_action_range_tensor_serving = construct_action_scale_tensor(
+            action_normalization, model_params.action_rescale_map
+        )
+
+        trainer = DDPGTrainer(
+            model_params,
+            state_normalization,
+            action_normalization,
+            min_action_range_tensor_serving,
+            max_action_range_tensor_serving,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
+        )
+        trainer = update_model_for_warm_start(trainer)
+        assert type(trainer) == DDPGTrainer, "Warm started wrong model type: " + str(
+            type(trainer)
+        )
+
+        evaluator = Evaluator(
+            None,
+            model_params.rl.gamma,
+            trainer,
+            metrics_to_score=trainer.metrics_to_score,
+        )
+
+        super(ContinuousWorkflow, self).__init__(
+            preprocess_handler,
+            trainer,
+            evaluator,
+            model_params.shared_training.minibatch_size,
+        )
+
+
+def main(params):
     # Set minibatch size based on # of devices being used to train
     params["shared_training"]["minibatch_size"] *= minibatch_size_multiplier(
         params["use_gpu"], params["use_all_avail_gpus"]
@@ -45,67 +94,47 @@ def train_network(params):
     actor_parameters = DDPGNetworkParameters(**params["actor_training"])
     critic_parameters = DDPGNetworkParameters(**params["critic_training"])
 
-    trainer_params = DDPGModelParameters(
+    model_params = DDPGModelParameters(
         rl=rl_parameters,
         shared_training=training_parameters,
         actor_training=actor_parameters,
         critic_training=critic_parameters,
     )
 
-    dataset = JSONDataset(
-        params["training_data_path"], batch_size=training_parameters.minibatch_size
-    )
-    state_normalization = read_norm_file(params["state_norm_data_path"])
-    action_normalization = read_norm_file(params["action_norm_data_path"])
+    state_normalization = BaseWorkflow.read_norm_file(params["state_norm_data_path"])
+    action_normalization = BaseWorkflow.read_norm_file(params["action_norm_data_path"])
 
-    num_batches = int(len(dataset) / training_parameters.minibatch_size)
-    logger.info(
-        "Read in batch data set {} of size {} examples. Data split "
-        "into {} batches of size {}.".format(
-            params["training_data_path"],
-            len(dataset),
-            num_batches,
-            training_parameters.minibatch_size,
-        )
+    writer = SummaryWriter(log_dir=params["model_output_path"])
+    logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
+
+    preprocess_handler = ContinuousPreprocessHandler(
+        Preprocessor(state_normalization, False),
+        Preprocessor(action_normalization, False),
+        PandasSparseToDenseProcessor(),
     )
 
-    min_action_range_tensor_serving, max_action_range_tensor_serving = construct_action_scale_tensor(
-        action_normalization, trainer_params.action_rescale_map
-    )
-
-    trainer = DDPGTrainer(
-        trainer_params,
+    workflow = ContinuousWorkflow(
+        model_params,
+        preprocess_handler,
         state_normalization,
         action_normalization,
-        min_action_range_tensor_serving,
-        max_action_range_tensor_serving,
-        use_gpu=params["use_gpu"],
-        use_all_avail_gpus=params["use_all_avail_gpus"],
-    )
-    trainer = update_model_for_warm_start(trainer)
-    state_preprocessor = Preprocessor(state_normalization, params["use_gpu"])
-    action_preprocessor = Preprocessor(action_normalization, params["use_gpu"])
-
-    start_time = time.time()
-    for epoch in range(params["epochs"]):
-        dataset.reset_iterator()
-        for batch_idx in range(num_batches):
-            report_training_status(batch_idx, num_batches, epoch, params["epochs"])
-            batch = dataset.read_batch(batch_idx)
-            tdp = preprocess_batch_for_training(
-                state_preprocessor, batch, action_preprocessor=action_preprocessor
-            )
-            tdp.set_type(trainer.dtype)
-            trainer.train(tdp)
-
-    through_put = (len(dataset) * params["epochs"]) / (time.time() - start_time)
-    logger.info(
-        "Training finished. Processed ~{} examples / s.".format(round(through_put))
+        params["use_gpu"],
+        params["use_all_avail_gpus"],
     )
 
-    return export_trainer_and_predictor(trainer, params["model_output_path"])
+    train_dataset = JSONDatasetReader(
+        params["training_data_path"], batch_size=training_parameters.minibatch_size
+    )
+    eval_dataset = JSONDatasetReader(params["eval_data_path"], batch_size=16)
+
+    with summary_writer_context(writer):
+        workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
+    return export_trainer_and_predictor(
+        workflow.trainer, params["model_output_path"]
+    )  # noqa
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     params = parse_args(sys.argv)
-    train_network(params)
+    main(params)

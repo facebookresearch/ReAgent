@@ -3,18 +3,17 @@
 
 import logging
 import math
+from typing import List, Optional
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
-from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
+from ml.rl.training.loss_reporter import LossReporter
 
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_ADDITIONAL_FEATURE_TYPES = AdditionalFeatureTypes(int_features=False)
 
 
 class RLTrainer:
@@ -25,19 +24,26 @@ class RLTrainer:
     FINGERPRINT = 12345
 
     def __init__(
-        self, parameters, use_gpu, additional_feature_types, gradient_handler=None
+        self,
+        parameters,
+        use_gpu,
+        metrics_to_score=None,
+        gradient_handler=None,
+        actions: Optional[List[str]] = None,
     ):
         self.minibatch = 0
         self.parameters = parameters
         self.reward_burnin = parameters.rl.reward_burnin
-        self._additional_feature_types = additional_feature_types
         self.rl_temperature = parameters.rl.temperature
         self.maxq_learning = parameters.rl.maxq_learning
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
+        self.time_diff_unit_length = parameters.rl.time_diff_unit_length
         self.gradient_handler = gradient_handler
         self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
+        self.multi_steps = parameters.rl.multi_steps
+        self.calc_cpe_in_training = parameters.evaluation.calc_cpe_in_training
 
         if parameters.rl.q_network_loss == "mse":
             self.q_network_loss = getattr(F, "mse_loss")
@@ -49,6 +55,11 @@ class RLTrainer:
                     parameters.rl.q_network_loss
                 )
             )
+
+        if metrics_to_score:
+            self.metrics_to_score = metrics_to_score + ["reward"]
+        else:
+            self.metrics_to_score = ["reward"]
 
         cuda_available = torch.cuda.is_available()
         logger.info("CUDA availability: {}".format(cuda_available))
@@ -62,6 +73,8 @@ class RLTrainer:
             self.use_gpu = False
             self.dtype = torch.FloatTensor
             self.dtypelong = torch.LongTensor
+
+        self.loss_reporter = LossReporter(actions)
 
     def _set_optimizer(self, optimizer_name):
         self.optimizer_func = self._get_optimizer_func(optimizer_name)

@@ -12,7 +12,6 @@ from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
-from ml.rl.training.evaluator import BatchStatsForCPE, Evaluator
 from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
 from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
 
@@ -51,10 +50,7 @@ class SACTrainer(RLTrainer):
         """
         self.minibatch_size = parameters.training.minibatch_size
         super(SACTrainer, self).__init__(
-            parameters,
-            use_gpu=False,
-            additional_feature_types=None,
-            gradient_handler=None,
+            parameters, use_gpu=False, gradient_handler=None
         )
 
         self.q1_network = q1_network
@@ -104,7 +100,7 @@ class SACTrainer(RLTrainer):
             components += ["q2_network", "q2_network_optimizer"]
         return components
 
-    def train(self, training_batch, evaluator=None) -> None:
+    def train(self, training_batch) -> None:
         """
         IMPORTANT: the input action here is assumed to be preprocessed to match the
         range of the output of the actor.
@@ -175,7 +171,7 @@ class SACTrainer(RLTrainer):
         with torch.no_grad():
             next_state_value = (
                 self.value_network_target(learning_input.next_state.float_features)
-                * not_done_mask
+                * not_done_mask.float()
             )
 
             if self.minibatch < self.reward_burnin:
@@ -251,15 +247,14 @@ class SACTrainer(RLTrainer):
             )
             SummaryWriterContext.add_histogram("actor/loss", actor_loss)
 
-        if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(
-                td_loss=q1_loss.detach().cpu().numpy(),
-                logged_rewards=reward.detach().cpu().numpy(),
-                model_values_on_logged_actions=q1_value.detach().cpu().numpy(),
-                model_propensities=actor_output.log_prob.exp().detach().cpu().numpy(),
-                model_values=min_q_actor_value.detach().cpu().numpy(),
-            )
-            evaluator.report(cpe_stats)
+        self.loss_reporter.report(
+            td_loss=float(q1_loss),
+            reward_loss=None,
+            logged_rewards=reward,
+            model_values_on_logged_actions=q1_value,
+            model_propensities=actor_output.log_prob.exp(),
+            model_values=min_q_actor_value,
+        )
 
     def _should_scale_action_in_train(self):
         if (
@@ -270,31 +265,6 @@ class SACTrainer(RLTrainer):
         ):
             return True
         return False
-
-    def actor_predictor(
-        self, feature_extractor=None, output_trasnformer=None, net_container=None
-    ) -> ActorPredictor:
-        actor_network = self.actor_network.cpu_model()
-        if net_container is not None:
-            actor_network = net_container(actor_network)
-        predictor = ActorExporter(
-            actor_network, feature_extractor, output_trasnformer
-        ).export()
-        self.actor_network.train()
-        return predictor
-
-    def critic_predictor(
-        self, feature_extractor=None, output_trasnformer=None, net_container=None
-    ) -> _ParametricDQNPredictor:
-        # TODO: We should combine the two Q functions
-        q_network = self.q1_network.cpu_model()
-        if net_container is not None:
-            q_network = net_container(q_network)
-        predictor = ParametricDQNExporter(
-            q_network, feature_extractor, output_trasnformer
-        ).export()
-        self.q1_network.train()
-        return predictor
 
     def internal_prediction(self, states):
         """ Returns list of actions output from actor network

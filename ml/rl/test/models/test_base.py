@@ -101,6 +101,7 @@ class TestBase(unittest.TestCase):
         extractor = PredictorFeatureExtractor(
             state_normalization_parameters=state_normalization_parameters,
             action_normalization_parameters=action_normalization_parameters,
+            normalize=False,
         )
 
         pem, ws = model.get_predictor_export_meta_and_workspace(
@@ -163,6 +164,7 @@ class TestBase(unittest.TestCase):
         extractor = PredictorFeatureExtractor(
             state_normalization_parameters=state_normalization_parameters,
             action_normalization_parameters=action_normalization_parameters,
+            normalize=False,
         )
         output_transformer = TestOutputTransformer()
 

@@ -103,7 +103,8 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         """
         Override this in DataParallel models
         """
-        return self.cpu()
+        # This is not ideal but makes exporting simple
+        return deepcopy(self).cpu()
 
     def export_to_buffer(self) -> BytesIO:
         """
@@ -262,8 +263,6 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
                 input_blobs,
                 predict_net.Proto().external_output,
                 shapes=shapes,
-                net_type="async_scheduling",
-                num_workers=8,
             ),
             ws,
         )

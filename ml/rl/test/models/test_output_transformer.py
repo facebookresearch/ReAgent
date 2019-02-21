@@ -144,4 +144,4 @@ class ActorOutputTransformerTest(unittest.TestCase):
 
         npt.assert_array_equal([len(action_feature_ids)] * N, lengths)
         npt.assert_array_equal(action_feature_ids * N, keys)
-        npt.assert_array_almost_equal(scaled_actions.reshape(-1), values)
+        npt.assert_array_almost_equal(scaled_actions.reshape(-1), values, decimal=3)

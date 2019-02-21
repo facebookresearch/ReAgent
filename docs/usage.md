@@ -37,12 +37,14 @@ First we need to generate the data required to train our RL models. For this exa
 ```
 mkdir cartpole_discrete
 
-python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0_100_eps.json -f cartpole_discrete/training_data.json
+python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0.json -f cartpole_discrete/training_data.json
 ```
-Alternatively, to skip generating the Gym data, you can use the pre-generated data found in `ml/rl/workflow/sample_datasets`.  Let's look at one row of data to see the expected input format:
+
+Let's look at one row of data to see the expected input format:
 
 ```
-gzcat ml/rl/workflow/sample_datasets/discrete_action/cartpole_pre_timeline.json.gz | head -n1 | python -m json.tool
+cat cartpole_discrete/training_data.json | head -n1 | python -m json.tool
+
 {
     "mdp_id": "10",
     "sequence_number": 0,
@@ -102,8 +104,10 @@ Now that we are ready, let's run our spark job on our local machine.  This will 
   --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
   "`cat ml/rl/workflow/sample_configs/discrete_action/timeline.json`"
 
-# Look at the first row of each output file
-head -n1 cartpole_discrete_timeline/part*
+# Look at the first row of training & eval
+head -n1 cartpole_discrete_training/part*
+
+head -n1 cartpole_discrete_eval/part*
 ```
 
 There are many output files.  The reason for this is that Spark expects many input & output files: otherwise it wouldn't be able to efficiently run on many machines and output data in parallel.  For this tutorial, we will merge all of this data into a single file, but in a production use-case we would be streaming data from HDFS during training.
@@ -111,10 +115,11 @@ There are many output files.  The reason for this is that Spark expects many inp
 ```
 # Merge output data to single file
 mkdir training_data
-mv cartpole_discrete_timeline/part* training_data/cartpole_training_data.json
+cat cartpole_discrete_training/part* > training_data/cartpole_discrete_timeline.json
+cat cartpole_discrete_eval/part* > training_data/cartpole_discrete_timeline_eval.json
 
 # Remove the output data folder
-rm -Rf cartpole_discrete_timeline
+rm -Rf cartpole_discrete_training cartpole_discrete_eval
 ```
 
 Now that all of our data has been grouped into consecutive pairs, we can run the normalization pipeline.
@@ -141,7 +146,7 @@ Note that, even in the OpenAI Gym case, we aren't running the gym at this step. 
 ##### Step 5 - Evaluate the Model
 Now that we have trained a new policy on the offline `Cartpole-v0` data, we can try it out to see how it does:
 ```
-python ml/rl/test/workflow/eval_cartpole.py -m outputs/predictor_<number>.c2
+python ml/rl/test/workflow/eval_cartpole.py -m outputs/predictor*
 ```
 
 

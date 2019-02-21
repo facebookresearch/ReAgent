@@ -4,9 +4,9 @@
 import logging
 
 import numpy as np
-from caffe2.python import core, workspace
+import torch
+from ml.rl.caffe_utils import softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
@@ -47,9 +47,9 @@ class GymDQNPredictor(GymPredictor):
         if isinstance(self.trainer, DQNTrainer):
             assert q_scores.shape[0] == 1
             q_scores = q_scores[0]
-        q_scores_softmax = Evaluator.softmax(
-            q_scores.reshape(1, -1), self.trainer.rl_temperature
-        )[0]
+        q_scores_softmax = softmax(
+            torch.from_numpy(q_scores.reshape(1, -1)), self.trainer.rl_temperature
+        ).numpy()[0]
         if np.isnan(q_scores_softmax).any() or np.max(q_scores_softmax) < 1e-3:
             q_scores_softmax[:] = 1.0 / q_scores_softmax.shape[0]
         policies = [

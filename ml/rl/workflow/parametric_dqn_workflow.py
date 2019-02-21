@@ -3,43 +3,78 @@
 
 import logging
 import sys
-import time
+from typing import Dict
 
-import numpy as np
+from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
+from ml.rl.readers.json_dataset_reader import JSONDatasetReader
+from ml.rl.tensorboardX import summary_writer_context
 from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
-    InTrainingCPEParameters,
+    NormalizationParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.training.evaluator import Evaluator
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.workflow.base_workflow import BaseWorkflow
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
     minibatch_size_multiplier,
     parse_args,
-    report_training_status,
     update_model_for_warm_start,
 )
-from ml.rl.workflow.training_data_reader import (
-    JSONDataset,
-    preprocess_batch_for_training,
-    read_norm_file,
+from ml.rl.workflow.preprocess_handler import (
+    ParametricDqnPreprocessHandler,
+    PreprocessHandler,
 )
+from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-DEFAULT_NUM_SAMPLES_FOR_CPE = 500
+
+class ParametricDqnWorkflow(BaseWorkflow):
+    def __init__(
+        self,
+        model_params: ContinuousActionModelParameters,
+        preprocess_handler: PreprocessHandler,
+        state_normalization: Dict[int, NormalizationParameters],
+        action_normalization: Dict[int, NormalizationParameters],
+        use_gpu: bool,
+        use_all_avail_gpus: bool,
+    ):
+        logger.info("Running Parametric DQN workflow with params:")
+        logger.info(model_params)
+        model_params = model_params
+
+        trainer = ParametricDQNTrainer(
+            model_params,
+            state_normalization,
+            action_normalization,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
+        )
+        trainer = update_model_for_warm_start(trainer)
+        assert (
+            type(trainer) == ParametricDQNTrainer
+        ), "Warm started wrong model type: " + str(type(trainer))
+
+        evaluator = Evaluator(
+            None,
+            model_params.rl.gamma,
+            trainer,
+            metrics_to_score=trainer.metrics_to_score,
+        )
+
+        super(ParametricDqnWorkflow, self).__init__(
+            preprocess_handler, trainer, evaluator, model_params.training.minibatch_size
+        )
 
 
-def train_network(params):
-    logger.info("Running Parametric DQN workflow with params:")
-    logger.info(params)
-
+def main(params):
     # Set minibatch size based on # of devices being used to train
     params["training"]["minibatch_size"] *= minibatch_size_multiplier(
         params["use_gpu"], params["use_all_avail_gpus"]
@@ -48,107 +83,44 @@ def train_network(params):
     rl_parameters = RLParameters(**params["rl"])
     training_parameters = TrainingParameters(**params["training"])
     rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
-    if params["in_training_cpe"] is not None:
-        in_training_cpe_parameters = InTrainingCPEParameters(
-            **params["in_training_cpe"]
-        )
-    else:
-        in_training_cpe_parameters = None
 
-    trainer_params = ContinuousActionModelParameters(
-        rl=rl_parameters,
-        training=training_parameters,
-        rainbow=rainbow_parameters,
-        in_training_cpe=in_training_cpe_parameters,
+    model_params = ContinuousActionModelParameters(
+        rl=rl_parameters, training=training_parameters, rainbow=rainbow_parameters
+    )
+    state_normalization = BaseWorkflow.read_norm_file(params["state_norm_data_path"])
+    action_normalization = BaseWorkflow.read_norm_file(params["action_norm_data_path"])
+
+    writer = SummaryWriter(log_dir=params["model_output_path"])
+    logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
+
+    preprocess_handler = ParametricDqnPreprocessHandler(
+        Preprocessor(state_normalization, False),
+        Preprocessor(action_normalization, False),
+        PandasSparseToDenseProcessor(),
     )
 
-    dataset = JSONDataset(
-        params["training_data_path"], batch_size=training_parameters.minibatch_size
-    )
-    state_normalization = read_norm_file(params["state_norm_data_path"])
-    action_normalization = read_norm_file(params["action_norm_data_path"])
-
-    num_batches = int(len(dataset) / training_parameters.minibatch_size)
-    logger.info(
-        "Read in batch data set {} of size {} examples. Data split "
-        "into {} batches of size {}.".format(
-            params["training_data_path"],
-            len(dataset),
-            num_batches,
-            training_parameters.minibatch_size,
-        )
-    )
-
-    trainer = ParametricDQNTrainer(
-        trainer_params,
+    workflow = ParametricDqnWorkflow(
+        model_params,
+        preprocess_handler,
         state_normalization,
         action_normalization,
-        use_gpu=params["use_gpu"],
-        use_all_avail_gpus=params["use_all_avail_gpus"],
-    )
-    trainer = update_model_for_warm_start(trainer)
-    state_preprocessor = Preprocessor(state_normalization, params["use_gpu"])
-    action_preprocessor = Preprocessor(action_normalization, params["use_gpu"])
-
-    if trainer_params.in_training_cpe is not None:
-        evaluator = Evaluator(
-            None,
-            100,
-            trainer_params.rl.gamma,
-            trainer,
-            trainer_params.in_training_cpe.mdp_sampled_rate,
-        )
-    else:
-        evaluator = Evaluator(
-            None,
-            100,
-            trainer_params.rl.gamma,
-            trainer,
-            float(DEFAULT_NUM_SAMPLES_FOR_CPE) / len(dataset),
-        )
-
-    start_time = time.time()
-    for epoch in range(params["epochs"]):
-        dataset.reset_iterator()
-        for batch_idx in range(num_batches):
-            report_training_status(batch_idx, num_batches, epoch, params["epochs"])
-            batch = dataset.read_batch(batch_idx)
-            tdp = preprocess_batch_for_training(
-                state_preprocessor, batch, action_preprocessor=action_preprocessor
-            )
-
-            tdp.set_type(trainer.dtype)
-            trainer.train(tdp, evaluator)
-
-            evaluator.collect_parametric_action_samples(
-                mdp_ids=tdp.mdp_ids,
-                sequence_numbers=tdp.sequence_numbers.cpu().numpy(),
-                logged_state_actions=np.concatenate(
-                    (tdp.states.cpu().numpy(), tdp.actions.cpu().numpy()), axis=1
-                ),
-                logged_rewards=tdp.rewards.cpu().numpy(),
-                logged_propensities=tdp.propensities.cpu().numpy(),
-                logged_terminals=(1.0 - tdp.not_terminals),
-                possible_state_actions=tdp.state_pas_concat.cpu().numpy(),
-                pas_lens=tdp.possible_actions_lengths.cpu().numpy(),
-            )
-
-        cpe_start_time = time.time()
-        evaluator.recover_samples_to_be_unshuffled()
-        evaluator.score_cpe(trainer_params.rl.gamma)
-        evaluator.clear_collected_samples()
-        logger.info(
-            "CPE evaluation took {} seconds.".format(time.time() - cpe_start_time)
-        )
-
-    through_put = (len(dataset) * params["epochs"]) / (time.time() - start_time)
-    logger.info(
-        "Training finished. Processed ~{} examples / s.".format(round(through_put))
+        params["use_gpu"],
+        params["use_all_avail_gpus"],
     )
 
-    return export_trainer_and_predictor(trainer, params["model_output_path"])
+    train_dataset = JSONDatasetReader(
+        params["training_data_path"], batch_size=training_parameters.minibatch_size
+    )
+    eval_dataset = JSONDatasetReader(params["eval_data_path"], batch_size=16)
+
+    with summary_writer_context(writer):
+        workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
+    return export_trainer_and_predictor(
+        workflow.trainer, params["model_output_path"]
+    )  # noqa
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     params = parse_args(sys.argv)
-    train_network(params)
+    main(params)

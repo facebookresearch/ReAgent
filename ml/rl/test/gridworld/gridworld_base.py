@@ -6,8 +6,19 @@ import collections
 import itertools
 import logging
 import random
-from functools import partial
-from typing import Dict, List, Tuple
+from typing import (  # noqa
+    Deque,
+    Dict,
+    Generic,
+    GenericMeta,
+    List,
+    NamedTuple,
+    NamedTupleMeta,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 import torch
@@ -15,7 +26,13 @@ from caffe2.python import core, workspace
 from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
+from ml.rl.test.environment.environment import (
+    ACTION,
+    Environment,
+    Samples,
+    shuffle_samples,
+)
 from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -32,81 +49,7 @@ S = 2  # Starting position
 G = 3  # Goal position
 
 
-class Samples(object):
-    __slots__ = [
-        "mdp_ids",
-        "sequence_numbers",
-        "states",
-        "actions",
-        "action_probabilities",
-        "rewards",
-        "possible_actions",
-        "next_states",
-        "next_actions",
-        "terminals",
-        "possible_next_actions",
-    ]
-
-    def __init__(
-        self,
-        mdp_ids: List[str],
-        sequence_numbers: List[int],
-        states: List[Dict[int, float]],
-        actions: List[str],
-        action_probabilities: List[float],
-        rewards: List[float],
-        possible_actions: List[List[str]],
-        next_states: List[Dict[int, float]],
-        next_actions: List[str],
-        terminals: List[bool],
-        possible_next_actions: List[List[str]],
-    ) -> None:
-        self.mdp_ids = mdp_ids
-        self.sequence_numbers = sequence_numbers
-        self.states = states
-        self.actions = actions
-        self.action_probabilities = action_probabilities
-        self.rewards = rewards
-        self.possible_actions = possible_actions
-        self.next_states = next_states
-        self.next_actions = next_actions
-        self.terminals = terminals
-        self.possible_next_actions = possible_next_actions
-
-    def shuffle(self):
-        # Shuffle
-        merged = list(
-            zip(
-                self.mdp_ids,
-                self.sequence_numbers,
-                self.states,
-                self.actions,
-                self.action_probabilities,
-                self.rewards,
-                self.possible_actions,
-                self.next_states,
-                self.next_actions,
-                self.terminals,
-                self.possible_next_actions,
-            )
-        )
-        random.shuffle(merged)
-        (
-            self.mdp_ids,
-            self.sequence_numbers,
-            self.states,
-            self.actions,
-            self.action_probabilities,
-            self.rewards,
-            self.possible_actions,
-            self.next_states,
-            self.next_actions,
-            self.terminals,
-            self.possible_next_actions,
-        ) = zip(*merged)
-
-
-class GridworldBase(object):
+class GridworldBase(Environment):
     """Implements a simple grid world, a domain often used as a very simple
     to solve benchmark for reinforcement learning algorithms, also see:
     https://people.eecs.berkeley.edu/~pabbeel/cs287-fa09/lecture-notes/lecture11-6pp.pdf
@@ -125,8 +68,8 @@ class GridworldBase(object):
         ]
     )
 
-    width = 5
-    height = 5
+    width = grid.shape[1]
+    height = grid.shape[0]
     STATES = list(range(width * height))
 
     USING_ONLY_VALID_ACTION = True
@@ -138,6 +81,8 @@ class GridworldBase(object):
         self._optimal_policy = self._compute_optimal()
         self._optimal_actions = self._compute_optimal_actions()
         self.sparse_to_dense_net = None
+        self._true_q_values = collections.defaultdict(dict)
+        self._true_q_epsilon_values = collections.defaultdict(dict)
 
     @property
     def normalization(self):
@@ -177,8 +122,9 @@ class GridworldBase(object):
                     if bfs_next not in working_set:
                         queue.appendleft(bfs_next)
                         working_set.add(bfs_next)
-        print("OPTIMAL ACTIONS")
+        print("OPTIMAL ACTIONS:")
         print(optimal_actions)
+        print()
         return optimal_actions
 
     def _add_optimal_action(self, optimal_actions, pos, action):
@@ -207,8 +153,9 @@ class GridworldBase(object):
                 if not self.is_terminal(next_state) and self.grid[next_state_pos] != W:
                     policy[next_state_pos] = self.invert_action(action)
                     queue.appendleft(self._pos(next_state))
-        print("OPTIMAL POLICY")
+        print("OPTIMAL POLICY (NON UNIQUE):")
         print(policy)
+        print()
         return policy
 
     def invert_action(self, action: str) -> str:
@@ -275,20 +222,62 @@ class GridworldBase(object):
         p = self.transition_probabilities(state, action)
         return int(np.random.choice(self.size, p=p))
 
-    def step(self, action: str) -> Tuple[int, float, bool, List[str]]:
+    def step(self, action) -> Tuple[int, float, bool, object]:
         self._state = self._no_cheat_step(self._state, action)
         reward = self.reward(self._state)
-        possible_next_action = self.possible_actions(self._state)
-        return self._state, reward, self.is_terminal(self._state), possible_next_action
+        # make results similar to OpenAI gym
+        info = None
+        return self._state, reward, self.is_terminal(self._state), info
+
+    def _process_state(self, state):
+        processed_state = {state: 1.0}
+        return processed_state
 
     def optimal_policy(self, state):
         y, x = self._pos(state)
         return self._optimal_policy[y, x]
 
-    def sample_policy(self, state, epsilon) -> Tuple[str, float]:
+    def policy_probabilities(self, state, epsilon):
+        """Returns the probabilities of the epsilon-greedy version of the optimal
+        policy for a given state.
+        """
+        probabilities = np.zeros(len(self.ACTIONS))
+        state = int(list(state.keys())[0])
         possible_actions = self.possible_actions(state)
         if len(possible_actions) == 0:
-            return "", 1.0
+            return probabilities
+        optimal_action = self.optimal_policy(state)
+        for action in possible_actions:
+            if action == optimal_action:
+                action_probability = (1.0 - epsilon) + epsilon / len(possible_actions)
+            else:
+                action_probability = epsilon / len(possible_actions)
+            probabilities[self.action_to_index(action)] = action_probability
+        return probabilities
+
+    def policy_probabilities_for_sample(self, states, epsilon):
+        """Returns the probabilities of the epsilon-greedy version of the optimal
+        policy for a vector of states.
+        """
+        results = []
+        for x in range(len(states)):
+            results.append(self.policy_probabilities(states[x], epsilon))
+        return np.array(results)
+
+    def sample_policy(
+        self, state, use_continuous_action, epsilon
+    ) -> Tuple[str, ACTION, float]:
+        """
+        Sample an action following epsilon-greedy
+        Return the raw action which can be fed into env.step(), the processed
+            action which can be uploaded to Hive, and action probability
+        """
+        possible_actions = self.possible_actions(state)
+        if len(possible_actions) == 0:
+            if use_continuous_action:
+                return "", {}, 1.0
+            return "", "", 1.0
+
         optimal_action = self.optimal_policy(state)
         if np.random.rand() < epsilon:
             action = np.random.choice(possible_actions)
@@ -298,7 +287,11 @@ class GridworldBase(object):
             action_probability = (1.0 - epsilon) + epsilon / len(possible_actions)
         else:
             action_probability = epsilon / len(possible_actions)
-        return action, action_probability
+        if use_continuous_action:
+            processed_action = self.action_to_features(action)
+        else:
+            processed_action = action
+        return action, processed_action, action_probability
 
     @property
     def num_actions(self):
@@ -344,8 +337,14 @@ class GridworldBase(object):
         y, x = self.move_on_pos_limit(y, x, act)
         return self._index((y, x))
 
-    def possible_actions(self, state, ignore_terminal=False):
-        possible_actions = []
+    def possible_actions(
+        self,
+        state,
+        ignore_terminal=False,
+        use_continuous_action: bool = False,
+        **kwargs,
+    ) -> List[ACTION]:
+        possible_actions: List[ACTION] = []
         if not ignore_terminal and self.is_terminal(state):
             return possible_actions
         # else: #Q learning is better with true possible_next_actions
@@ -359,9 +358,11 @@ class GridworldBase(object):
             possible_actions.append("U")
         if y + 1 <= self.height - 1:
             possible_actions.append("D")
+        if use_continuous_action:
+            return [self.action_to_features(pa) for pa in possible_actions]
         return possible_actions
 
-    def q_transition_matrix(self, assume_optimal_policy):
+    def q_transition_matrix(self, assume_optimal_policy, epsilon=0.0):
         T = np.zeros((self.size, self.size))
         for state in range(self.size):
             if not self.is_terminal(state):
@@ -376,8 +377,9 @@ class GridworldBase(object):
                     )
                     if assume_optimal_policy:
                         if action != self.optimal_policy(state):
-                            continue
-                        action_probability = 1.0
+                            action_probability = epsilon / len(poss_a)
+                        else:
+                            action_probability = (1.0 - epsilon) + epsilon / len(poss_a)
                     else:
                         action_probability = fraction
                     T[state, :] += action_probability * transition_probabilities
@@ -387,14 +389,47 @@ class GridworldBase(object):
         return np.array([self.reward(s) for s in range(self.size)])
 
     def true_q_values(self, discount, assume_optimal_policy):
+        if (
+            self._true_q_values.get(discount) is not None
+            and self._true_q_values.get(discount).get(assume_optimal_policy) is not None
+        ):
+            return self._true_q_values[discount][assume_optimal_policy]
+
         R = self.reward_vector()
         T = self.q_transition_matrix(assume_optimal_policy)
-        return np.linalg.solve(np.eye(self.size, self.size) - (discount * T), R)
+        self._true_q_values[discount][assume_optimal_policy] = np.linalg.solve(
+            np.eye(self.size, self.size) - (discount * T), R
+        )
+        print("TRUE STATE VALUES ASSUMING OPTIMAL = {}:".format(assume_optimal_policy))
+        print(
+            self._true_q_values[discount][assume_optimal_policy].reshape(
+                self.height, self.width
+            )
+        )
+        return self._true_q_values[discount][assume_optimal_policy]
+
+    def true_q_epsilon_values(self, discount, epsilon):
+        if (
+            self._true_q_epsilon_values.get(discount) is not None
+            and self._true_q_epsilon_values.get(discount).get(epsilon) is not None
+        ):
+            return self._true_q_epsilon_values[discount][epsilon]
+
+        R = self.reward_vector()
+        T = self.q_transition_matrix(True, epsilon)
+        self._true_q_epsilon_values[discount][epsilon] = np.linalg.solve(
+            np.eye(self.size, self.size) - (discount * T), R
+        )
+        print("TRUE STATE VALUES FOR OPTIMAL WITH EPSILON = {}:".format(epsilon))
+        print(
+            self._true_q_epsilon_values[discount][epsilon].reshape(
+                self.height, self.width
+            )
+        )
+        return self._true_q_epsilon_values[discount][epsilon]
 
     def true_values_for_sample(self, states, actions, assume_optimal_policy: bool):
         true_q_values = self.true_q_values(DISCOUNT, assume_optimal_policy)
-        print("TRUE VALUES ASSUMING OPTIMAL: ", assume_optimal_policy)
-        print(true_q_values.reshape(5, 5))
         results = []
         for x in range(len(states)):
             int_state = int(list(states[x].keys())[0])
@@ -407,7 +442,37 @@ class GridworldBase(object):
                 )
         return np.array(results).reshape(-1, 1)
 
+    def true_epsilon_values_for_sample(self, states, actions, epsilon):
+        true_q_epsilon_values = self.true_q_epsilon_values(DISCOUNT, epsilon)
+        results = []
+        for x in range(len(states)):
+            int_state = int(list(states[x].keys())[0])
+            next_state = self.move_on_index_limit(int_state, actions[x])
+            if self.is_terminal(next_state):
+                results.append(self.reward(next_state))
+            else:
+                results.append(
+                    self.reward(next_state)
+                    + (DISCOUNT * true_q_epsilon_values[next_state])
+                )
+        return np.array(results).reshape(-1, 1)
+
+    def true_epsilon_values_all_actions_for_sample(self, states, epsilon):
+        """Returns the true values of the epsilon-greedy optimal policy for
+         *all actions* for each state in 'states.'
+        """
+        results = np.zeros((len(states), len(self.ACTIONS)))
+        for x in range(len(self.ACTIONS)):
+            action = self.ACTIONS[x]
+            actions_vec = [action for _ in range(len(states))]
+            results[:, x] = self.true_epsilon_values_for_sample(
+                states, actions_vec, epsilon
+            )[:, 0]
+        return results
+
     def true_rewards_for_sample(self, states, actions):
+        """Returns the true rewards for each state/action pair in states/actions.
+        """
         results = []
         for x in range(len(states)):
             int_state = int(list(states[x].keys())[0])
@@ -415,92 +480,16 @@ class GridworldBase(object):
             results.append(self.reward(next_state))
         return np.array(results).reshape(-1, 1)
 
-    def generate_samples_discrete(
-        self, num_transitions, epsilon, discount_factor
-    ) -> Samples:
-        # Initialize lists
-        states: List[Dict[int, float]] = [{}] * num_transitions
-        actions: List[str] = [""] * num_transitions
-        action_probabilities = [0.0] * num_transitions
-        rewards = [0.0] * num_transitions
-        next_states: List[Dict[int, float]] = [{}] * num_transitions
-        next_actions: List[str] = [""] * num_transitions
-        terminals = [False] * num_transitions
-        mdp_ids = [""] * num_transitions
-        sequence_numbers = [0] * num_transitions
-        possible_actions: List[List[str]] = [[]] * num_transitions
-        possible_next_actions: List[List[str]] = [[]] * num_transitions
-
-        state: int = -1
-        terminal = True
-        next_action = ""
-        next_action_probability = 1.0
-        transition = 0
-        mdp_id = -1
-        sequence_number = 0
-
-        # We run until we finish the episode that completes N transitions, but
-        # we may have to go beyond N to reach the end of that episode
-        while not terminal or transition < num_transitions:
-            if terminal:
-                state = self.reset()
-                terminal = False
-                mdp_id += 1
-                sequence_number = 0
-                action, action_probability = self.sample_policy(state, epsilon)
-            else:
-                action = next_action
-                action_probability = next_action_probability
-                sequence_number += 1
-
-            possible_action = self.possible_actions(state)
-
-            next_state, reward, terminal, possible_next_action = self.step(action)
-            next_action, next_action_probability = self.sample_policy(
-                next_state, epsilon
-            )
-
-            # We want exactly N data points, but we need to wait until the
-            # episode is over so we can get the episode values.  This function
-            # will set episode values if they are in the range [0,N) and ignore
-            # otherwise.
-            def set_if_in_range(l, i, v):
-                if i >= num_transitions:
-                    return
-                l[i] = v
-
-            def add_if_in_range(l, i, v):
-                if i >= num_transitions:
-                    return
-                l[i] += v
-
-            set_if_in_range(mdp_ids, transition, str(mdp_id))
-            set_if_in_range(sequence_numbers, transition, sequence_number)
-            set_if_in_range(states, transition, {int(state): 1.0})
-            set_if_in_range(actions, transition, action)
-            set_if_in_range(action_probabilities, transition, action_probability)
-            set_if_in_range(rewards, transition, reward)
-            set_if_in_range(possible_actions, transition, possible_action)
-            set_if_in_range(next_states, transition, {int(next_state): 1.0})
-            set_if_in_range(next_actions, transition, next_action)
-            set_if_in_range(terminals, transition, terminal)
-            set_if_in_range(possible_next_actions, transition, possible_next_action)
-
-            state = next_state
-            transition += 1
-        return Samples(
-            mdp_ids=mdp_ids,
-            sequence_numbers=sequence_numbers,
-            states=states,
-            actions=actions,
-            action_probabilities=action_probabilities,
-            rewards=rewards,
-            possible_actions=possible_actions,
-            next_states=next_states,
-            next_actions=next_actions,
-            terminals=terminals,
-            possible_next_actions=possible_next_actions,
-        )
+    def true_rewards_all_actions_for_sample(self, states):
+        """Returns the true rewards for for *all actions* of
+        each state in 'states.'
+        """
+        results = np.zeros((len(states), len(self.ACTIONS)))
+        for x in range(len(self.ACTIONS)):
+            action = self.ACTIONS[x]
+            actions_vec = [action for _ in range(len(states))]
+            results[:, x] = self.true_rewards_for_sample(states, actions_vec)[:, 0]
+        return results
 
     def preprocess_samples_discrete(
         self,
@@ -508,25 +497,26 @@ class GridworldBase(object):
         minibatch_size: int,
         one_hot_action: bool = True,
         use_gpu: bool = False,
+        do_shuffle: bool = True,
     ) -> List[TrainingDataPage]:
-        logger.info("Shuffling...")
-        samples.shuffle()
+
+        if do_shuffle:
+            logger.info("Shuffling...")
+            samples = shuffle_samples(samples)
+
         logger.info("Preprocessing...")
+        sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
 
         if self.sparse_to_dense_net is None:
             self.sparse_to_dense_net = core.Net("gridworld_sparse_to_dense")
             C2.set_net(self.sparse_to_dense_net)
             saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
             sorted_features, _ = sort_features_by_normalization(self.normalization)
-            self.state_matrix, _ = sparse_to_dense(
-                saa.lengths, saa.keys, saa.values, sorted_features
-            )
+            self.state_matrix, _ = sparse_to_dense_processor(sorted_features, saa)
             saa = StackedAssociativeArray.from_dict_list(
                 samples.next_states, "next_states"
             )
-            self.next_state_matrix, _ = sparse_to_dense(
-                saa.lengths, saa.keys, saa.values, sorted_features
-            )
+            self.next_state_matrix, _ = sparse_to_dense_processor(sorted_features, saa)
             C2.set_net(None)
         else:
             StackedAssociativeArray.from_dict_list(samples.states, "states")
@@ -549,6 +539,15 @@ class GridworldBase(object):
                 np.array(samples.next_actions).reshape(-1, 1) == np.array(self.ACTIONS)
             ).astype(np.int64)
         )
+        logger.info("Converting PA to Torch...")
+        possible_action_strings = np.array(
+            list(itertools.zip_longest(*samples.possible_actions, fillvalue=""))
+        ).T
+        possible_actions_mask = torch.zeros([len(samples.actions), len(self.ACTIONS)])
+        for i, action in enumerate(self.ACTIONS):
+            possible_actions_mask[:, i] = torch.tensor(
+                np.max(possible_action_strings == action, axis=1).astype(np.int64)
+            )
         logger.info("Converting PNA to Torch...")
         possible_next_action_strings = np.array(
             list(itertools.zip_longest(*samples.possible_next_actions, fillvalue=""))
@@ -561,7 +560,7 @@ class GridworldBase(object):
                 np.max(possible_next_action_strings == action, axis=1).astype(np.int64)
             )
         terminals = torch.tensor(samples.terminals, dtype=torch.int32).reshape(-1, 1)
-        not_terminals = 1 - terminals
+        not_terminal = 1 - terminals
         logger.info("Converting RT to Torch...")
 
         time_diffs = torch.ones([len(samples.states), 1])
@@ -589,9 +588,10 @@ class GridworldBase(object):
                 propensities=action_probabilities[start:end],
                 rewards=rewards[start:end],
                 next_states=next_states_ndarray[start:end],
-                not_terminals=not_terminals[start:end],
+                not_terminal=not_terminal[start:end],
                 next_actions=next_actions_one_hot[start:end],
-                possible_next_actions=possible_next_actions_mask[start:end],
+                possible_actions_mask=possible_actions_mask[start:end],
+                possible_next_actions_mask=possible_next_actions_mask[start:end],
                 time_diffs=time_diffs[start:end],
             )
             tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)

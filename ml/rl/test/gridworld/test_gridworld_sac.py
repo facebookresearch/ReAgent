@@ -25,7 +25,6 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
-from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import (
@@ -128,11 +127,7 @@ class TestGridworldSAC(GridworldTestBase):
         output_transformer = ParametricActionOutputTransformer()
 
         return ParametricDQNExporter(
-            trainer.q1_network,
-            feature_extractor,
-            output_transformer,
-            Preprocessor(environment.normalization, False, True),
-            Preprocessor(environment.normalization_action, False, True),
+            trainer.q1_network, feature_extractor, output_transformer
         )
 
     def get_actor_predictor(self, trainer, environment):
@@ -147,10 +142,7 @@ class TestGridworldSAC(GridworldTestBase):
         )
 
         predictor = ActorExporter(
-            trainer.actor_network,
-            feature_extractor,
-            output_transformer,
-            Preprocessor(environment.normalization, False, True),
+            trainer.actor_network, feature_extractor, output_transformer
         ).export()
         return predictor
 
@@ -160,23 +152,18 @@ class TestGridworldSAC(GridworldTestBase):
             environment, self.get_sac_parameters(**kwargs), use_gpu
         )
         evaluator = GridworldContinuousEvaluator(
-            environment,
-            assume_optimal_policy=False,
-            gamma=DISCOUNT,
-            use_int_features=False,
+            environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
         exporter = self.get_critic_exporter(trainer, environment)
 
         self.tolerance_threshold = 0.2
-        if use_gpu:
-            self.run_pre_training_eval = False
         self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
         # Make sure actor predictor works
         actor_predictor = self.get_actor_predictor(trainer, environment)
         # Just test that it doesn't blow up
-        preds = actor_predictor.predict(evaluator.logged_states, None)
+        preds = actor_predictor.predict(evaluator.logged_states)
         self._test_save_load_actor(preds, actor_predictor, evaluator.logged_states)
         # TODO: run predictor and check results
 
@@ -185,7 +172,7 @@ class TestGridworldSAC(GridworldTestBase):
             tmp_path = os.path.join(tmpdirname, "model")
             predictor.save(tmp_path, dbtype)
             new_predictor = type(predictor).load(tmp_path, dbtype)
-            after_preds = new_predictor.predict(states, None)
+            after_preds = new_predictor.predict(states)
         self._check_output_match(before_preds, after_preds)
 
     def _check_output_match(self, a_preds, b_preds):

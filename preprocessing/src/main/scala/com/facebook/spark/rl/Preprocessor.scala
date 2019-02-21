@@ -10,9 +10,7 @@ import org.apache.spark.sql.functions.udf
 
 case class Configuration(timeline: TimelineConfiguration, query: QueryConfiguration)
 
-case class QueryConfiguration(tableSample: Double = 1.0,
-                              maxQLearning: Boolean = true,
-                              actions: Array[String] = Array())
+case class QueryConfiguration(tableSample: Double = 1.0, actions: Array[String] = Array())
 
 object Preprocessor {
 
@@ -64,7 +62,7 @@ object Preprocessor {
     }
 
     val sqlCommand = query.concat(
-      s" FROM ${timelineConfig.outputTableName} where rand() <= ${queryConfig.tableSample}")
+      s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'train')) % 10000 <= CAST(${queryConfig.tableSample} * 100 AS INTEGER)")
 
     log.info("Executing query: ")
     log.info(sqlCommand)
@@ -77,6 +75,24 @@ object Preprocessor {
       .repartition(timelineConfig.numOutputShards)
       .write
       .json(timelineConfig.outputTableName)
+
+    // Write the eval table
+    val evalSqlCommand =
+      query.concat(
+        s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'eval')) % 10000 <= CAST(${queryConfig.tableSample / 10.0} * 100 AS INTEGER) ORDER BY mdp_id, sequence_number")
+
+    log.info("Executing query: ")
+    log.info(evalSqlCommand)
+
+    // Query the results
+    val evalOutputDf = sparkSession.sql(evalSqlCommand)
+
+    evalOutputDf.show()
+    evalOutputDf
+      .repartition(timelineConfig.numOutputShards)
+      .write
+      .json(timelineConfig.evalTableName)
+
     sparkSession.stop()
   }
 }

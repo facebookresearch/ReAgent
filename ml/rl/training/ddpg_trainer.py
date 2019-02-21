@@ -15,14 +15,8 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
-from ml.rl.thrift.core.ttypes import AdditionalFeatureTypes
 from ml.rl.training.ddpg_predictor import DDPGPredictor
-from ml.rl.training.evaluator import BatchStatsForCPE
-from ml.rl.training.rl_trainer_pytorch import (
-    DEFAULT_ADDITIONAL_FEATURE_TYPES,
-    RLTrainer,
-    rescale_torch_tensor,
-)
+from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
 from ml.rl.training.training_data_page import TrainingDataPage
 from torch.autograd import Variable
 
@@ -36,7 +30,6 @@ class DDPGTrainer(RLTrainer):
         min_action_range_tensor_serving: torch.Tensor,
         max_action_range_tensor_serving: torch.Tensor,
         use_gpu: bool = False,
-        additional_feature_types: AdditionalFeatureTypes = DEFAULT_ADDITIONAL_FEATURE_TYPES,
         use_all_avail_gpus: bool = False,
     ) -> None:
 
@@ -114,7 +107,7 @@ class DDPGTrainer(RLTrainer):
             + str(overlapping_features)
         )
 
-        RLTrainer.__init__(self, parameters, use_gpu, additional_feature_types, None)
+        RLTrainer.__init__(self, parameters, use_gpu, None)
 
         self.min_action_range_tensor_training = self.min_action_range_tensor_training.type(
             self.dtype
@@ -141,7 +134,7 @@ class DDPGTrainer(RLTrainer):
                 self.critic = nn.DataParallel(self.critic)
                 self.critic_target = nn.DataParallel(self.critic_target)
 
-    def train(self, training_samples: TrainingDataPage, evaluator=None) -> None:
+    def train(self, training_samples: TrainingDataPage) -> None:
         if self.minibatch == 0:
             # Assume that the tensors are the right shape after the first minibatch
             assert (
@@ -157,8 +150,8 @@ class DDPGTrainer(RLTrainer):
                 training_samples.next_states.shape == training_samples.states.shape
             ), "Invalid shape: " + str(training_samples.next_states.shape)
             assert (
-                training_samples.not_terminals.shape == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.not_terminals.shape)
+                training_samples.not_terminal.shape == training_samples.rewards.shape
+            ), "Invalid shape: " + str(training_samples.not_terminal.shape)
             if self.use_seq_num_diff_as_time_diff:
                 assert (
                     training_samples.time_diffs.shape == training_samples.rewards.shape
@@ -182,7 +175,7 @@ class DDPGTrainer(RLTrainer):
         discount_tensor = torch.tensor(np.full(rewards.shape, self.gamma)).type(
             self.dtype
         )
-        not_done_mask = training_samples.not_terminals
+        not_done_mask = training_samples.not_terminal
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
@@ -229,9 +222,11 @@ class DDPGTrainer(RLTrainer):
             self._soft_update(self.actor, self.actor_target, self.tau)
             self._soft_update(self.critic, self.critic_target, self.tau)
 
-        if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(td_loss=loss_critic_for_eval.cpu().numpy())
-            evaluator.report(cpe_stats)
+        self.loss_reporter.report(
+            td_loss=float(loss_critic_for_eval),
+            reward_loss=None,
+            model_values_on_logged_actions=critic_predictions,
+        )
 
     def internal_prediction(self, states, noisy=False) -> np.ndarray:
         """ Returns list of actions output from actor network
@@ -268,14 +263,12 @@ class DDPGTrainer(RLTrainer):
                 sort_features_by_normalization(self.action_normalization_parameters)[0],
                 self.min_action_range_tensor_serving,
                 self.max_action_range_tensor_serving,
-                self._additional_feature_types.int_features,
                 self.use_gpu,
             )
         return DDPGPredictor.export_critic(
             self,
             self.state_normalization_parameters,
             self.action_normalization_parameters,
-            self._additional_feature_types.int_features,
             self.use_gpu,
         )
 

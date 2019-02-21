@@ -16,16 +16,17 @@ class TrainingDataPage(object):
         "actions",
         "propensities",
         "rewards",
-        "possible_actions",
-        "possible_actions_lengths",
-        "state_pas_concat",
+        "possible_actions_state_concat",
+        "possible_actions_mask",
         "next_states",
         "next_actions",
-        "possible_next_actions",
-        "possible_next_actions_lengths",
-        "not_terminals",
-        "time_diffs",
         "possible_next_actions_state_concat",
+        "possible_next_actions_mask",
+        "not_terminal",
+        "time_diffs",
+        "metrics",
+        "step",
+        "max_num_actions",
     ]
 
     def __init__(
@@ -36,21 +37,22 @@ class TrainingDataPage(object):
         actions: Optional[torch.Tensor] = None,
         propensities: Optional[torch.Tensor] = None,
         rewards: Optional[torch.Tensor] = None,
-        possible_actions: Optional[torch.Tensor] = None,
-        possible_actions_lengths: Optional[torch.Tensor] = None,
-        state_pas_concat: Optional[torch.Tensor] = None,
+        possible_actions_mask: Optional[torch.Tensor] = None,
+        possible_actions_state_concat: Optional[torch.Tensor] = None,
         next_states: Optional[torch.Tensor] = None,
         next_actions: Optional[torch.Tensor] = None,
-        possible_next_actions: Optional[torch.Tensor] = None,
-        not_terminals: Optional[torch.Tensor] = None,
-        time_diffs: Optional[torch.Tensor] = None,
-        possible_next_actions_lengths: Optional[torch.Tensor] = None,
+        possible_next_actions_mask: Optional[torch.Tensor] = None,
         possible_next_actions_state_concat: Optional[torch.Tensor] = None,
+        not_terminal: Optional[torch.Tensor] = None,
+        time_diffs: Optional[torch.Tensor] = None,
+        metrics: Optional[torch.Tensor] = None,
+        step: Optional[torch.Tensor] = None,
+        max_num_actions: Optional[int] = None,
     ) -> None:
         """
         Creates a TrainingDataPage object.
 
-        In the case where `not_terminals` can be determined by next_actions or
+        In the case where `not_terminal` can be determined by next_actions or
         possible_next_actions, feel free to omit it.
         """
         self.mdp_ids = mdp_ids
@@ -59,16 +61,17 @@ class TrainingDataPage(object):
         self.actions = actions
         self.propensities = propensities
         self.rewards = rewards
-        self.possible_actions = possible_actions
-        self.possible_actions_lengths = possible_actions_lengths
-        self.state_pas_concat = state_pas_concat
+        self.possible_actions_mask = possible_actions_mask
+        self.possible_actions_state_concat = possible_actions_state_concat
         self.next_states = next_states
         self.next_actions = next_actions
-        self.possible_next_actions = possible_next_actions
-        self.not_terminals = not_terminals
+        self.not_terminal = not_terminal
         self.time_diffs = time_diffs
-        self.possible_next_actions_lengths = possible_next_actions_lengths
+        self.possible_next_actions_mask = possible_next_actions_mask
         self.possible_next_actions_state_concat = possible_next_actions_state_concat
+        self.metrics = metrics
+        self.step = step
+        self.max_num_actions = max_num_actions
 
     def as_parametric_sarsa_training_batch(self):
         return rlt.TrainingBatch(
@@ -78,9 +81,26 @@ class TrainingDataPage(object):
                 next_state=rlt.FeatureVector(float_features=self.next_states),
                 next_action=rlt.FeatureVector(float_features=self.next_actions),
                 reward=self.rewards,
-                not_terminal=self.not_terminals,
+                not_terminal=self.not_terminal,
+                step=self.step,
+                time_diff=self.time_diffs,
             ),
             extras=rlt.ExtraData(),
+        )
+
+    def as_discrete_sarsa_training_batch(self):
+        return rlt.TrainingBatch(
+            training_input=rlt.SARSAInput(
+                state=rlt.FeatureVector(float_features=self.states),
+                action=self.actions,
+                next_state=rlt.FeatureVector(float_features=self.next_states),
+                next_action=self.next_actions,
+                reward=self.rewards,
+                not_terminal=self.not_terminal,
+                step=self.step,
+                time_diff=self.time_diffs,
+            ),
+            extras=rlt.ExtraData(action_probability=self.propensities),
         )
 
     def size(self) -> int:
@@ -91,7 +111,7 @@ class TrainingDataPage(object):
     def set_type(self, dtype):
         # TODO: Clean this up in a future diff.  Figure out which should be long/float
         for x in TrainingDataPage.__slots__:
-            if x in ("mdp_ids", "sequence_numbers"):
+            if x in ("mdp_ids", "sequence_numbers", "max_num_actions"):
                 continue  # Torch does not support tensors of strings
             t = getattr(self, x)
             if t is not None:

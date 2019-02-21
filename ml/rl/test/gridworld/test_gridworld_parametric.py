@@ -10,7 +10,6 @@ from ml.rl.models.output_transformer import ParametricActionOutputTransformer
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
@@ -19,7 +18,6 @@ from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
     FactorizationParameters,
     FeedForwardParameters,
-    InTrainingCPEParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -55,7 +53,6 @@ class TestGridworldParametric(GridworldTestBase):
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
-            in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_parameters_factorized(self):
@@ -85,7 +82,6 @@ class TestGridworldParametric(GridworldTestBase):
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
-            in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
         )
 
     def get_sarsa_trainer_exporter(
@@ -128,21 +124,13 @@ class TestGridworldParametric(GridworldTestBase):
         trainer = _ParametricDQNTrainer(
             q_network, q_network_target, reward_network, parameters
         )
-        state_preprocessor = Preprocessor(environment.normalization, False, True)
-        action_preprocessor = Preprocessor(
-            environment.normalization_action, False, True
-        )
         feature_extractor = PredictorFeatureExtractor(
             state_normalization_parameters=environment.normalization,
             action_normalization_parameters=environment.normalization_action,
         )
         output_transformer = ParametricActionOutputTransformer()
         exporter = ParametricDQNExporter(
-            q_network,
-            feature_extractor,
-            output_transformer,
-            state_preprocessor,
-            action_preprocessor,
+            q_network, feature_extractor, output_transformer
         )
         return (trainer, exporter)
 
@@ -151,16 +139,10 @@ class TestGridworldParametric(GridworldTestBase):
     ):
         environment = GridworldContinuous()
         evaluator = GridworldContinuousEvaluator(
-            environment,
-            assume_optimal_policy=False,
-            gamma=DISCOUNT,
-            use_int_features=False,
+            environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
         if modular:
-            # FIXME: the exporter should make a copy of the model; moving it to CPU inplace
-            if use_gpu:
-                self.run_pre_training_eval = False
             if use_all_avail_gpus:
                 self.tolerance_threshold = 0.11
             trainer, exporter = self.get_modular_sarsa_trainer_exporter(
@@ -205,7 +187,7 @@ class TestGridworldParametric(GridworldTestBase):
             use_gpu,
             use_all_avail_gpus,
         )
-        evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT, False)
+        evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT)
         self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
     def test_trainer_sarsa_factorized(self):

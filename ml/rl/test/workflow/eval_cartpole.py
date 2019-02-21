@@ -9,14 +9,13 @@ from ml.rl.training.dqn_predictor import DQNPredictor
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 ENV = "CartPole-v0"
 AVG_OVER_NUM_EPS = 100
 
 
 def main(model_path):
-    predictor = DQNPredictor.load(model_path, "minidb", int_features=False)
+    predictor = DQNPredictor.load(model_path, "minidb")
 
     env = OpenAIGymEnvironment(gymenv=ENV)
 
@@ -42,5 +41,6 @@ def parse_args(args):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     model_path = parse_args(sys.argv)
     main(model_path)

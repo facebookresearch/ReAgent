@@ -1,8 +1,11 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 package com.facebook.spark.rl
 
+import scala.math.abs
+
 import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
+import org.apache.spark.sql.functions.coalesce
 import org.apache.spark.sql.functions.udf
 
 case class TimelineConfiguration(startDs: String,
@@ -11,7 +14,10 @@ case class TimelineConfiguration(startDs: String,
                                  actionDiscrete: Boolean,
                                  inputTableName: String,
                                  outputTableName: String,
-                                 numOutputShards: Int)
+                                 evalTableName: String,
+                                 numOutputShards: Int,
+                                 outlierEpisodeLengthPercentile: Option[Double] = None,
+                                 percentileFunction: String = "percentile_approx")
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
@@ -30,7 +36,7 @@ case class TimelineConfiguration(startDs: String,
   * action_discrete: boolean, specify the action representation,
   * either 'discrete' or 'parametric'
   * True means discrete using  'String' as action,
-  * False means parametric, using Map<String, DOUBLE>'
+  * False means parametric, using Map<BIGINT, DOUBLE>'
   *
   * add_terminal_state_row: boolean, if True assumes the final row
   * in each MDP corresponds to the terminal state and keeps it in output
@@ -39,10 +45,10 @@ case class TimelineConfiguration(startDs: String,
   * mdp_id ( STRING ). A unique ID for the MDP chain that
   * this training example is a part of.
   *
-  * state_features ( MAP<STRING,DOUBLE> ). The features of the current step
+  * state_features ( MAP<BIGINT,DOUBLE> ). The features of the current step
   * that are independent on the action.
   *
-  * action ( STRING OR MAP<STRING,DOUBLE> ). The action taken at the current step.
+  * action ( STRING OR MAP<BIGINT,DOUBLE> ). The action taken at the current step.
   * A string if the action is discrete or
   * a set of features if the action is parametric.
   *
@@ -55,7 +61,7 @@ case class TimelineConfiguration(startDs: String,
   * There should be at most one row with the same mdp_id + sequence_number
   * (mdp_id + sequence_number makes a unique key).
   *
-  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> ).
+  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<BIGINT,DOUBLE>> ).
   * A list of actions that were possible at the current step.
   * This is optional but enables Q-Learning and improves model accuracy.
   *
@@ -63,10 +69,10 @@ case class TimelineConfiguration(startDs: String,
   * mdp_id ( STRING ). A unique ID for the MDP chain that
   * this training example is a part of.
   *
-  * state_features ( MAP<STRING,DOUBLE> ). The features of the current step
+  * state_features ( MAP<BIGINT,DOUBLE> ). The features of the current step
   * that are independent on the action.
   *
-  * action ( STRING OR MAP<STRING,DOUBLE> ). The action taken at the current step.
+  * action ( STRING OR MAP<BIGINT,DOUBLE> ). The action taken at the current step.
   * A string if the action is discrete or
   * a set of features if the action is parametric.
   *
@@ -74,10 +80,10 @@ case class TimelineConfiguration(startDs: String,
   *
   * reward ( DOUBLE ). The reward at the current step.
   *
-  * next_state_features ( MAP<STRING,DOUBLE> ). The features of the subsequent
+  * next_state_features ( MAP<BIGINT,DOUBLE> ). The features of the subsequent
   * step that are action-independent.
   *
-  * next_action (STRING OR MAP<STRING, DOUBLE> ). The action taken at the next step
+  * next_action (STRING OR MAP<BIGINT, DOUBLE> ). The action taken at the next step
   *
   * sequence_number ( BIGINT ).
   * A number representing the location of the state in the MDP before
@@ -97,10 +103,10 @@ case class TimelineConfiguration(startDs: String,
   * states will be missing. This column allows us to know how many
   * states are missing which can be used to adjust the discount factor.
   *
-  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> )
+  * possible_actions ( ARRAY<STRING> OR ARRAY<MAP<BIGINT,DOUBLE>> )
   * A list of actions that were possible at the current step.
   *
-  * possible_next_actions ( ARRAY<STRING> OR ARRAY<MAP<STRING,DOUBLE>> )
+  * possible_next_actions ( ARRAY<STRING> OR ARRAY<MAP<BIGINT,DOUBLE>> )
   * A list of actions that were possible at the next step.
   *
   */
@@ -108,9 +114,9 @@ object Timeline {
 
   private val log = LoggerFactory.getLogger(this.getClass.getName)
   def run(sqlContext: SQLContext, config: TimelineConfiguration): Unit = {
-    var terminalJoin = "";
+    var filterTerminal = "HAVING next_state_features IS NOT NULL";
     if (config.addTerminalStateRow) {
-      terminalJoin = "LEFT OUTER";
+      filterTerminal = "";
     }
 
     Timeline.validateOrDestroyTrainingTable(sqlContext,
@@ -118,98 +124,177 @@ object Timeline {
                                             config.actionDiscrete)
     Timeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
 
-    val sqlCommand = s"""
-      WITH deduped as (
+    config.outlierEpisodeLengthPercentile.foreach { percentile =>
+      sqlContext.sql(s"""
+          SELECT mdp_id, COUNT(1) mdp_length
+          FROM ${config.inputTableName}
+          WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+          GROUP BY 1
+      """).createOrReplaceTempView("episode_length")
+    }
+
+    val sourceTable = Timeline.mdpLengthThreshold(sqlContext, config) match {
+      case Some(threshold) => s"""
+      WITH a AS (SELECT mdp_id FROM episode_length WHERE mdp_length < ${threshold}),
+      source_table AS (
           SELECT
-              mdp_id as mdp_id,
-              FIRST(state_features) as state_features,
-              FIRST(action) as action,
-              FIRST(action_probability) as action_probability,
-              FIRST(reward) as reward,
-              FIRST(possible_actions) as possible_actions,
-              FIRST(metrics) as metrics,
-              FIRST(ds) as ds,
-              sequence_number as sequence_number
-              FROM (
-                  SELECT * FROM ${config.inputTableName}
-                  WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-              ) dummy
-              GROUP BY mdp_id, sequence_number
-      ),
-      ordinal as (
-          SELECT
-              mdp_id as mdp_id,
-              state_features as state_features,
-              action as action,
-              action_probability as action_probability,
-              reward as reward,
-              possible_actions as possible_actions,
-              metrics as metrics,
-              ds as ds,
-              sequence_number as sequence_number,
-              row_number() over (partition by mdp_id order by mdp_id, sequence_number) as sequence_number_ordinal
-              FROM deduped
-      ),
-      sarsa_unshuffled AS (
-          SELECT
-              first_sa.mdp_id AS mdp_id,
-              first_sa.state_features AS state_features,
-              first_sa.action AS action,
-              first_sa.action_probability as action_probability,
-              first_sa.reward AS reward,
-              second_sa.state_features AS next_state_features,
-              second_sa.action AS next_action,
-              first_sa.sequence_number AS sequence_number,
-              first_sa.sequence_number_ordinal AS sequence_number_ordinal,
-              second_sa.sequence_number - first_sa.sequence_number AS time_diff,
-              first_sa.possible_actions AS possible_actions,
-              second_sa.possible_actions AS possible_next_actions,
-              first_sa.metrics as metrics
-          FROM
-              ordinal first_sa
-              ${terminalJoin} JOIN ordinal second_sa
-              ON first_sa.mdp_id = second_sa.mdp_id
-              AND (first_sa.sequence_number_ordinal + 1) = second_sa.sequence_number_ordinal
+              b.mdp_id,
+              b.state_features,
+              b.action,
+              b.action_probability,
+              b.reward,
+              b.sequence_number,
+              b.possible_actions,
+              b.metrics
+          FROM ${config.inputTableName} b JOIN a
+          WHERE a.mdp_id = b.mdp_id
+            AND b.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
       )
-      INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
-      SELECT ${Constants.TRAINING_DATA_COLUMN_NAMES
-                          .slice(1, Constants.TRAINING_DATA_COLUMN_NAMES.length)
-                          .mkString(",")}
-      FROM
-          sarsa_unshuffled
-          DISTRIBUTE BY -1 - PMOD(HASH(mdp_id, sequence_number_ordinal), 10007)
-          SORT BY -1 - PMOD(HASH(mdp_id, sequence_number_ordinal), 10007)
+      """.stripMargin
+      case None            => s"""
+      WITH source_table AS (
+          SELECT
+              mdp_id,
+              state_features,
+              action,
+              action_probability,
+              reward,
+              sequence_number,
+              possible_actions,
+              metrics
+          FROM ${config.inputTableName}
+          WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+      )
+      """.stripMargin
+    }
+
+    val sqlCommand = s"""
+    ${sourceTable}
+    SELECT
+        mdp_id,
+        state_features,
+        action,
+        action_probability,
+        reward,
+        LEAD(state_features) OVER (
+            PARTITION BY
+                mdp_id
+            ORDER BY
+                mdp_id,
+                sequence_number
+        ) AS next_state_features,
+        LEAD(action) OVER (
+            PARTITION BY
+                mdp_id
+            ORDER BY
+                mdp_id,
+                sequence_number
+        ) AS next_action,
+        sequence_number,
+        ROW_NUMBER() OVER (
+            PARTITION BY
+                mdp_id
+            ORDER BY
+                mdp_id,
+                sequence_number
+        ) AS sequence_number_ordinal,
+        COALESCE(LEAD(sequence_number) OVER (
+            PARTITION BY
+                mdp_id
+            ORDER BY
+                mdp_id,
+                sequence_number
+        ), sequence_number) - sequence_number AS time_diff,
+        possible_actions,
+        LEAD(possible_actions) OVER (
+            PARTITION BY
+                mdp_id
+            ORDER BY
+                mdp_id,
+                sequence_number
+        ) AS possible_next_actions,
+        metrics
+    FROM source_table
+    ${filterTerminal}
+    CLUSTER BY HASH(mdp_id, sequence_number)
     """.stripMargin
     log.info("Executing query: ")
     log.info(sqlCommand)
-    sqlContext.sql(sqlCommand)
+    var df = sqlContext.sql(sqlCommand)
+    log.info("Done with query")
+
+    // Handle nulls in output present when terminal states are present
+    val nextAction = df("next_action")
+    val possibleNextActions = df("possible_next_actions")
+
+    val map_ = udf(() => Map.empty[Long, Double])
+    val array_ = udf(() => Array.empty[String])
+    val string_ = udf(() => "")
+    val arrayOfMaps_ = udf(() => Array.empty[Map[Long, Double]])
+
+    df = df.withColumn("next_state_features", coalesce(df("next_state_features"), map_()))
+    if (config.actionDiscrete) {
+      df = df
+        .withColumn("next_action", coalesce(nextAction, string_()))
+        .withColumn("possible_next_actions", coalesce(possibleNextActions, array_()))
+    } else {
+      df = df
+        .withColumn("next_action", coalesce(nextAction, map_()))
+        .withColumn("possible_next_actions", coalesce(possibleNextActions, arrayOfMaps_()))
+    }
+
+    val finalTableName = "finalTable"
+    df.createOrReplaceTempView(finalTableName)
+
+    val insertCommand = s"""
+      INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
+      SELECT * FROM ${finalTableName}
+    """.stripMargin
+    sqlContext.sql(insertCommand)
   }
 
-  def outputTableIsValid(sqlContext: SQLContext, tableName: String): Boolean = {
-    val checkOutputTableCommand = s"""
-    SELECT * FROM ${tableName} LIMIT 1
-    """
-    val checkOutputDf = sqlContext.sql(checkOutputTableCommand)
-    return checkOutputDf.columns.size == Constants.TRAINING_DATA_COLUMN_NAMES.length
-  }
+  def mdpLengthThreshold(sqlContext: SQLContext, config: TimelineConfiguration): Option[Int] =
+    config.outlierEpisodeLengthPercentile.flatMap { percentile =>
+      {
+        val df = sqlContext.sql(s"""
+            WITH a AS (
+                SELECT CAST(${config.percentileFunction}(mdp_length, ${percentile}) AS INT) pct FROM episode_length
+            ),
+            b AS (
+                SELECT
+                    count(1) as mdp_count,
+                    count(IF(episode_length.mdp_length >= a.pct, 1, NULL)) as outlier_count
+                FROM episode_length, a
+            )
+            SELECT a.pct, b.mdp_count, b.outlier_count
+            FROM a, b
+        """)
+        val res = df.first
+        val pct_val = res.getAs[Int]("pct")
+        val mdp_count = res.getAs[Long]("mdp_count")
+        val outlier_count = res.getAs[Long]("outlier_count")
+        log.info(s"Threshold: ${pct_val}; mdp count: ${mdp_count}; outlier_count: ${outlier_count}")
+        val outlier_percent = outlier_count.toDouble / mdp_count
+        val expected_outlier_percent = 1.0 - percentile
+        if (abs(outlier_percent - expected_outlier_percent) / expected_outlier_percent > 0.1) {
+          log.warn(
+            s"Outlier percent mismatch; expected: ${expected_outlier_percent}; got ${outlier_percent}")
+          None
+        } else
+          Some(pct_val)
+      }
+    }
 
   def validateOrDestroyTrainingTable(sqlContext: SQLContext,
                                      tableName: String,
-                                     actionDiscrete: Boolean): Unit = {
-    var actionType = "STRING";
-    var possibleActionType = "ARRAY<STRING>";
-    if (!actionDiscrete) {
-      actionType = "MAP<STRING, DOUBLE>"
-      possibleActionType = "ARRAY<MAP<STRING,DOUBLE>>"
-    }
-
+                                     actionDiscrete: Boolean): Unit =
     try {
       val checkOutputTableCommand = s"""
       DESCRIBE ${tableName}
       """
       val df = sqlContext.sql(checkOutputTableCommand);
       // Validate the schema and destroy the output table if it doesn't match
-      var validTable = Timeline.outputTableIsValid(sqlContext, tableName)
+      var validTable = Helper.outputTableIsValid(sqlContext, tableName, actionDiscrete)
       if (!validTable) {
         val dropTableCommand = s"""
         DROP TABLE ${tableName}
@@ -220,27 +305,25 @@ object Timeline {
       case e: org.apache.spark.sql.catalyst.analysis.NoSuchTableException => {}
       case e: Throwable                                                   => log.error(e.toString())
     }
-  }
-
   def createTrainingTable(sqlContext: SQLContext,
                           tableName: String,
                           actionDiscrete: Boolean): Unit = {
     var actionType = "STRING";
     var possibleActionType = "ARRAY<STRING>";
     if (!actionDiscrete) {
-      actionType = "MAP<STRING, DOUBLE>"
-      possibleActionType = "ARRAY<MAP<STRING,DOUBLE>>"
+      actionType = "MAP<BIGINT, DOUBLE>"
+      possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
     }
 
     val sqlCommand = s"""
 CREATE TABLE IF NOT EXISTS ${tableName} (
     mdp_id STRING,
-    state_features MAP < STRING,
+    state_features MAP < BIGINT,
     DOUBLE >,
     action ${actionType},
     action_probability DOUBLE,
     reward DOUBLE,
-    next_state_features MAP < STRING,
+    next_state_features MAP < BIGINT,
     DOUBLE >,
     next_action ${actionType},
     sequence_number BIGINT,

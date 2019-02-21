@@ -5,16 +5,19 @@ import argparse
 import json
 import logging
 import os
+import sys
 import time
 
 import torch
+from ml.rl.models.dqn import FullyConnectedDQN
+from ml.rl.training._dqn_trainer import _DQNTrainer
+from ml.rl.training._parametric_dqn_trainer import _ParametricDQNTrainer
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def minibatch_size_multiplier(use_gpu, use_all_avail_gpus):
@@ -22,21 +25,6 @@ def minibatch_size_multiplier(use_gpu, use_all_avail_gpus):
     if use_gpu and use_all_avail_gpus and torch.cuda.is_available():
         return torch.cuda.device_count()
     return 1
-
-
-def report_training_status(batch_num, num_batches, epoch_num, num_epochs):
-    percent_complete = (
-        (batch_num + epoch_num * num_batches) / (num_batches * num_epochs) * 100
-    )
-    logger.info(
-        "On batch {} of {} and epoch {} of {} ({}% complete)".format(
-            batch_num + 1,
-            num_batches,
-            epoch_num + 1,
-            num_epochs,
-            round(percent_complete),
-        )
-    )
 
 
 def parse_args(args):
@@ -67,7 +55,9 @@ def save_model_to_file(model, path):
     except NotImplementedError:
         pass
 
-    if isinstance(model, (DQNTrainer, ParametricDQNTrainer)):
+    if isinstance(
+        model, (_DQNTrainer, DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)
+    ):
         state = {
             "q_network": model.q_network.state_dict(),
             "optimizer": model.q_network_optimizer.state_dict(),
@@ -109,10 +99,24 @@ def update_model_for_warm_start(model, path=None):
     except NotImplementedError:
         pass
 
-    if isinstance(model, (DQNTrainer, ParametricDQNTrainer)):
-        model.q_network.load_state_dict(state["q_network"])
-        model.q_network_target.load_state_dict(state["q_network"])
-        model.q_network_optimizer.load_state_dict(state["optimizer"])
+    if isinstance(
+        model, (_DQNTrainer, DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)
+    ):
+        try:
+            model.q_network.load_state_dict(state["q_network"])
+            model.q_network_target.load_state_dict(state["q_network"])
+            model.q_network_optimizer.load_state_dict(state["optimizer"])
+        except Exception:
+            if not isinstance(model.q_network, FullyConnectedDQN):
+                raise
+            # If it's FullyConnectedDQN, we try to load FullyConnectedNetwork into it
+            # by adding "fc." prefix
+            state["q_network"] = type(state["q_network"])(
+                ("fc.{}".format(k), v) for k, v in state["q_network"].items()
+            )
+            model.q_network.load_state_dict(state["q_network"])
+            model.q_network_target.load_state_dict(state["q_network"])
+            model.q_network_optimizer.load_state_dict(state["optimizer"])
     elif isinstance(model, DDPGTrainer):
         model.actor.load_state_dict(state["actor"])
         model.actor_target.load_state_dict(state["actor"])

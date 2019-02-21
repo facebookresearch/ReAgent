@@ -8,7 +8,7 @@ from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 
 
 class ParametricDQNWithPreprocessing(ModelBase):
-    def __init__(self, q_network, state_preprocessor, action_preprocessor):
+    def __init__(self, q_network, state_preprocessor, action_preprocessor=None):
         super(ParametricDQNWithPreprocessing, self).__init__()
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
@@ -90,9 +90,7 @@ class _DataParallelFullyConnectedParametricDQN(ModelBase):
         )
 
     def cpu_model(self):
-        # TODO: This might have problem when this is called while training is still
-        # in progress
-        return self.fc_parametric_dqn.cpu()
+        return self.fc_parametric_dqn.cpu_model()
 
     def forward(self, input):
         cat_input = torch.cat(

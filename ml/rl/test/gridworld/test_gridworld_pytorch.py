@@ -6,33 +6,44 @@ import random
 import tempfile
 import unittest
 
+import ml.rl.types as rlt
 import numpy as np
 import torch
+from ml.rl.models.dqn import FullyConnectedDQN
+from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
+from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
+from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
-    InTrainingCPEParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
+from ml.rl.training._dqn_trainer import _DQNTrainer
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.rl_exporter import DQNExporter
 
 
 class TestGridworld(GridworldTestBase):
     def setUp(self):
+        self.minibatch_size = 512
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        self.minibatch_size = 512
-        super(self.__class__, self).setUp()
+        super(TestGridworld, self).setUp()
 
     def get_sarsa_trainer(
-        self, environment, dueling, use_gpu=False, use_all_avail_gpus=False
+        self,
+        environment,
+        dueling,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
     ):
         return self.get_sarsa_trainer_reward_boost(
             environment,
@@ -40,6 +51,7 @@ class TestGridworld(GridworldTestBase):
             dueling,
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
+            clip_grad_norm=clip_grad_norm,
         )
 
     def get_sarsa_trainer_reward_boost(
@@ -49,7 +61,20 @@ class TestGridworld(GridworldTestBase):
         dueling,
         use_gpu=False,
         use_all_avail_gpus=False,
+        clip_grad_norm=None,
     ):
+        parameters = self.get_sarsa_parameters(
+            environment, reward_shape, dueling, clip_grad_norm
+        )
+        trainer = DQNTrainer(
+            parameters,
+            environment.normalization,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
+        )
+        return trainer
+
+    def get_sarsa_parameters(self, environment, reward_shape, dueling, clip_grad_norm):
         rl_parameters = RLParameters(
             gamma=DISCOUNT,
             target_update_rate=1.0,
@@ -63,102 +88,259 @@ class TestGridworld(GridworldTestBase):
             minibatch_size=self.minibatch_size,
             learning_rate=0.05,
             optimizer="ADAM",
+            clip_grad_norm=clip_grad_norm,
         )
-        return DQNTrainer(
-            DiscreteActionModelParameters(
-                actions=environment.ACTIONS,
-                rl=rl_parameters,
-                training=training_parameters,
-                rainbow=RainbowDQNParameters(
-                    double_q_learning=True, dueling_architecture=dueling
-                ),
-                in_training_cpe=InTrainingCPEParameters(mdp_sampled_rate=0.1),
+        return DiscreteActionModelParameters(
+            actions=environment.ACTIONS,
+            rl=rl_parameters,
+            training=training_parameters,
+            rainbow=RainbowDQNParameters(
+                double_q_learning=True, dueling_architecture=dueling
             ),
-            environment.normalization,
+        )
+
+    def get_sarsa_trainer_exporter(
+        self,
+        environment,
+        reward_shape,
+        dueling,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
+    ):
+        trainer = self.get_sarsa_trainer_reward_boost(
+            environment,
+            reward_shape,
+            dueling,
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
+            clip_grad_norm=clip_grad_norm,
+        )
+        return (trainer, trainer)
+
+    def get_modular_sarsa_trainer(
+        self,
+        environment,
+        dueling,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
+    ):
+        return self.get_modular_sarsa_trainer_reward_boost(
+            environment,
+            {},
+            dueling,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
+            clip_grad_norm=clip_grad_norm,
         )
 
-    def _test_evaluator_ground_truth_no_dueling(
-        self, use_gpu=False, use_all_avail_gpus=False
+    def get_modular_sarsa_trainer_reward_boost(
+        self,
+        environment,
+        reward_shape,
+        dueling,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
+    ):
+        parameters = self.get_sarsa_parameters(
+            environment, reward_shape, dueling, clip_grad_norm
+        )
+        q_network = FullyConnectedDQN(
+            state_dim=get_num_output_features(environment.normalization),
+            action_dim=len(environment.ACTIONS),
+            sizes=parameters.training.layers[1:-1],
+            activations=parameters.training.activations[:-1],
+        )
+        reward_network = FullyConnectedDQN(
+            state_dim=get_num_output_features(environment.normalization),
+            action_dim=len(environment.ACTIONS),
+            sizes=parameters.training.layers[1:-1],
+            activations=parameters.training.activations[:-1],
+        )
+        q_network_cpe = FullyConnectedDQN(
+            state_dim=get_num_output_features(environment.normalization),
+            action_dim=len(environment.ACTIONS),
+            sizes=parameters.training.layers[1:-1],
+            activations=parameters.training.activations[:-1],
+        )
+        if use_gpu:
+            q_network = q_network.cuda()
+            reward_network = reward_network.cuda()
+            q_network_cpe = q_network_cpe.cuda()
+            if use_all_avail_gpus:
+                q_network = q_network.get_data_parallel_model()
+                reward_network = reward_network.get_data_parallel_model()
+                q_network_cpe = q_network_cpe.get_data_parallel_model()
+
+        q_network_target = q_network.get_target_network()
+        q_network_cpe_target = q_network_cpe.get_target_network()
+        trainer = _DQNTrainer(
+            q_network,
+            q_network_target,
+            reward_network,
+            parameters,
+            use_gpu,
+            q_network_cpe=q_network_cpe,
+            q_network_cpe_target=q_network_cpe_target,
+        )
+        return trainer
+
+    def get_modular_sarsa_trainer_exporter(
+        self,
+        environment,
+        reward_shape,
+        dueling,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
+    ):
+        parameters = self.get_sarsa_parameters(
+            environment, reward_shape, dueling, clip_grad_norm
+        )
+        trainer = self.get_modular_sarsa_trainer_reward_boost(
+            environment,
+            reward_shape,
+            dueling,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
+            clip_grad_norm=clip_grad_norm,
+        )
+        feature_extractor = PredictorFeatureExtractor(
+            state_normalization_parameters=environment.normalization
+        )
+        output_transformer = DiscreteActionOutputTransformer(parameters.actions)
+        exporter = DQNExporter(trainer.q_network, feature_extractor, output_transformer)
+        return (trainer, exporter)
+
+    def _test_evaluator_ground_truth(
+        self,
+        dueling=False,
+        use_gpu=False,
+        use_all_avail_gpus=False,
+        clip_grad_norm=None,
+        modular=False,
     ):
         environment = Gridworld()
-        trainer = self.get_sarsa_trainer(
-            environment, False, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
-        )
-        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
-        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
+        evaluator = GridworldEvaluator(environment, False, DISCOUNT)
+        if modular:
+            trainer, exporter = self.get_modular_sarsa_trainer_exporter(
+                environment, {}, dueling, use_gpu, use_all_avail_gpus, clip_grad_norm
+            )
+        else:
+            trainer, exporter = self.get_sarsa_trainer_exporter(
+                environment, {}, dueling, use_gpu, use_all_avail_gpus, clip_grad_norm
+            )
+        self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
     def test_evaluator_ground_truth_no_dueling(self):
-        self._test_evaluator_ground_truth_no_dueling()
+        self._test_evaluator_ground_truth()
+
+    def test_evaluator_ground_truth_no_dueling_modular(self):
+        self._test_evaluator_ground_truth(modular=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_no_dueling_gpu(self):
-        self._test_evaluator_ground_truth_no_dueling(use_gpu=True)
+        self._test_evaluator_ground_truth(use_gpu=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_no_dueling_gpu_modular(self):
+        self._test_evaluator_ground_truth(use_gpu=True, modular=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_no_dueling_all_gpus(self):
-        self._test_evaluator_ground_truth_no_dueling(
-            use_gpu=True, use_all_avail_gpus=True
-        )
+        self._test_evaluator_ground_truth(use_gpu=True, use_all_avail_gpus=True)
 
-    def _test_evaluator_ground_truth_dueling(
-        self, use_gpu=False, use_all_avail_gpus=False
-    ):
-        environment = Gridworld()
-
-        trainer = self.get_sarsa_trainer(
-            environment, True, use_gpu=use_gpu, use_all_avail_gpus=use_all_avail_gpus
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_no_dueling_all_gpus_modular(self):
+        self._test_evaluator_ground_truth(
+            use_gpu=True, use_all_avail_gpus=True, modular=True
         )
-        evaluator = GridworldEvaluator(environment, False, DISCOUNT, False)
-        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
 
     def test_evaluator_ground_truth_dueling(self):
-        self._test_evaluator_ground_truth_dueling()
+        self._test_evaluator_ground_truth(dueling=True)
+
+    def test_evaluator_ground_truth_dueling_modular(self):
+        self._test_evaluator_ground_truth(dueling=True, modular=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_dueling_gpu(self):
-        self._test_evaluator_ground_truth_dueling(use_gpu=True)
+        self._test_evaluator_ground_truth(dueling=True, use_gpu=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_dueling_gpu_modular(self):
+        self._test_evaluator_ground_truth(dueling=True, use_gpu=True, modular=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_dueling_all_gpus(self):
-        self._test_evaluator_ground_truth_dueling(use_gpu=True, use_all_avail_gpus=True)
+        self._test_evaluator_ground_truth(
+            dueling=True, use_gpu=True, use_all_avail_gpus=True
+        )
 
-    def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_dueling_all_gpus_modular(self):
+        self._test_evaluator_ground_truth(
+            dueling=True, use_gpu=True, use_all_avail_gpus=True, modular=True
+        )
+
+    def test_evaluator_ground_truth_no_dueling_clip_grad_norm(self):
+        self._test_evaluator_ground_truth(clip_grad_norm=1.0)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_no_dueling_gpu_clip_grad_norm(self):
+        self._test_evaluator_ground_truth(use_gpu=True, clip_grad_norm=1.0)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_no_dueling_all_gpus_clip_grad_norm(self):
+        self._test_evaluator_ground_truth(
+            use_gpu=True, use_all_avail_gpus=True, clip_grad_norm=1.0
+        )
+
+    def _test_reward_boost(
+        self, use_gpu=False, use_all_avail_gpus=False, modular=False
+    ):
         environment = Gridworld()
         reward_boost = {"L": 100, "R": 200, "U": 300, "D": 400}
-        trainer = self.get_sarsa_trainer_reward_boost(
-            environment,
-            reward_boost,
-            False,
-            use_gpu=use_gpu,
-            use_all_avail_gpus=use_all_avail_gpus,
-        )
+        if modular:
+            trainer, exporter = self.get_modular_sarsa_trainer_exporter(
+                environment, reward_boost, False, use_gpu, use_all_avail_gpus
+            )
+        else:
+            trainer, exporter = self.get_sarsa_trainer_exporter(
+                environment, reward_boost, False, use_gpu, use_all_avail_gpus
+            )
         evaluator = GridworldEvaluator(
-            env=environment,
-            assume_optimal_policy=False,
-            gamma=DISCOUNT,
-            use_int_features=False,
+            env=environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
-        self.evaluate_gridworld(environment, evaluator, trainer, trainer, use_gpu)
+        self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
     def test_reward_boost(self):
         self._test_reward_boost()
+
+    def test_reward_boost_modular(self):
+        self._test_reward_boost(modular=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_reward_boost_gpu(self):
         self._test_reward_boost(use_gpu=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_reward_boost_gpu_modular(self):
+        self._test_reward_boost(use_gpu=True, modular=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_reward_boost_all_gpus(self):
         self._test_reward_boost(use_gpu=True, use_all_avail_gpus=True)
 
-    def test_predictor_export(self):
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_reward_boost_all_gpus_modular(self):
+        self._test_reward_boost(use_gpu=True, use_all_avail_gpus=True, modular=True)
+
+    def _test_predictor_export(self, modular=False):
         """Verify that q-values before model export equal q-values after
         model export. Meant to catch issues with export logic."""
         environment = Gridworld()
-        trainer = trainer = self.get_sarsa_trainer(environment, False)
-
         samples = Samples(
             mdp_ids=["0"],
             sequence_numbers=[0],
@@ -174,13 +356,27 @@ class TestGridworld(GridworldTestBase):
         )
         tdps = environment.preprocess_samples(samples, 1)
 
-        pre_export_q_values = trainer.q_network(tdps[0].states).detach().numpy()
+        if modular:
+            trainer, exporter = self.get_modular_sarsa_trainer_exporter(
+                environment, {}, False
+            )
+            input = rlt.StateInput(
+                state=rlt.FeatureVector(float_features=tdps[0].states)
+            )
+        else:
+            trainer, exporter = self.get_sarsa_trainer_exporter(environment, {}, False)
+            input = tdps[0].states
 
-        predictor = trainer.predictor()
+        if modular:
+            pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
+        else:
+            pre_export_q_values = trainer.q_network(input).detach().numpy()
+
+        predictor = exporter.export()
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmp_path = os.path.join(tmpdirname, "model")
             predictor.save(tmp_path, "minidb")
-            new_predictor = DQNPredictor.load(tmp_path, "minidb", False)
+            new_predictor = DQNPredictor.load(tmp_path, "minidb")
 
         post_export_q_values = new_predictor.predict([samples.states[0]])
 
@@ -188,3 +384,9 @@ class TestGridworld(GridworldTestBase):
             self.assertAlmostEquals(
                 pre_export_q_values[0][i], post_export_q_values[0][action], places=4
             )
+
+    def test_predictor_export(self):
+        self._test_predictor_export()
+
+    def test_predictor_export_modular(self):
+        self._test_predictor_export(modular=True)

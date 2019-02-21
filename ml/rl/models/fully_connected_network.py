@@ -15,15 +15,20 @@ from ml.rl.models.noisy_linear_layer import NoisyLinear
 logger = logging.getLogger(__name__)
 
 
-def gaussian_fill_w_gain(tensor, activation, dim_in) -> None:
+def gaussian_fill_w_gain(tensor, activation, dim_in, min_std=0.0) -> None:
     """ Gaussian initialization with gain."""
     gain = math.sqrt(2) if activation == "relu" else 1
-    init.normal_(tensor, mean=0, std=gain * math.sqrt(1 / dim_in))
+    init.normal_(tensor, mean=0, std=max(gain * math.sqrt(1 / dim_in), min_std))
 
 
 class FullyConnectedNetwork(nn.Module):
     def __init__(
-        self, layers, activations, use_batch_norm=False, use_noisy_linear_layers=False
+        self,
+        layers,
+        activations,
+        use_batch_norm=False,
+        use_noisy_linear_layers=False,
+        min_std=0.0,
     ) -> None:
         super(FullyConnectedNetwork, self).__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
@@ -40,7 +45,9 @@ class FullyConnectedNetwork(nn.Module):
                 self.layers.append(nn.Linear(layers[i], layer))
             if self.use_batch_norm:
                 self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
-            gaussian_fill_w_gain(self.layers[i].weight, self.activations[i], layers[i])
+            gaussian_fill_w_gain(
+                self.layers[i].weight, self.activations[i], layers[i], min_std
+            )
             init.constant_(self.layers[i].bias, 0)
 
     def forward(self, input) -> torch.FloatTensor:

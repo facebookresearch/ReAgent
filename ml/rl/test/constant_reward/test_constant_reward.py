@@ -41,7 +41,7 @@ class TestConstantReward(unittest.TestCase):
             actions=env.actions,
             rl=RLParameters(
                 gamma=0.99,
-                target_update_rate=1.0,
+                target_update_rate=0.9,
                 reward_burnin=100,
                 maxq_learning=True,
             ),
@@ -52,7 +52,7 @@ class TestConstantReward(unittest.TestCase):
                 layers=self.layers,
                 activations=self.activations,
                 minibatch_size=self.minibatch_size,
-                learning_rate=1.0,
+                learning_rate=0.25,
                 optimizer="ADAM",
             ),
         )
@@ -60,7 +60,7 @@ class TestConstantReward(unittest.TestCase):
 
         logger.info("Generating constant_reward MDPs..")
 
-        states, actions, rewards, next_states, next_actions, is_terminal, possible_next_actions = env.generate_samples_discrete(
+        states, actions, rewards, next_states, next_actions, is_terminal, possible_actions, possible_next_actions = env.generate_samples_discrete(
             self.num_samples
         )
 
@@ -74,12 +74,13 @@ class TestConstantReward(unittest.TestCase):
                 next_states,
                 next_actions,
                 is_terminal,
+                possible_actions,
                 possible_next_actions,
                 self.minibatch_size,
             )
             logger.info("Training.. " + str(epoch))
             for tdp in tdps:
-                maxq_trainer.train(tdp, None)
+                maxq_trainer.train(tdp)
             logger.info(
                 " ".join(
                     [

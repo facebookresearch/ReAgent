@@ -4,6 +4,7 @@
 import json
 import logging
 from collections import namedtuple
+from typing import Dict
 
 import numpy as np
 import six
@@ -58,6 +59,7 @@ def no_op_feature():
 
 
 def identify_parameter(
+    feature_name,
     values,
     max_unique_enum_values=DEFAULT_MAX_UNIQUE_ENUM,
     quantile_size=DEFAULT_MAX_QUANTILE_SIZE,
@@ -154,6 +156,9 @@ def identify_parameter(
         mean = float(np.mean(values))
         values = values - mean
         stddev = max(float(np.std(values, ddof=1)), 1.0)
+        if not np.isfinite(stddev):
+            logger.info("Std. dev not finite for feature {}".format(feature_name))
+            return None
         values /= stddev
 
     if feature_type == identify_types.ENUM:
@@ -202,7 +207,7 @@ def sort_features_by_normalization(normalization_parameters):
     return sorted_features, feature_starts
 
 
-def deserialize(parameters_json):
+def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
         # Note: This is OK since NormalizationParameters is flat.
@@ -232,12 +237,12 @@ def serialize_one(feature_parameters):
 def serialize(parameters):
     parameters_json = {}
     for feature, feature_parameters in six.iteritems(parameters):
-        parameters_json[str(feature)] = serialize_one(feature_parameters)
+        parameters_json[feature] = serialize_one(feature_parameters)
     return parameters_json
 
 
 def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
-    logger.info("Got feature: " + feature_name)
+    logger.info("Got feature: {}".format(feature_name))
     num_features = len(feature_value_list)
     if num_features < MINIMUM_SAMPLES_TO_IDENTIFY:
         return None
@@ -255,6 +260,7 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
         np.any(np.isnan(feature_values))
     ), "Feature values contain nan (are there nulls in the feature values?)"
     normalization_parameters = identify_parameter(
+        feature_name,
         feature_values,
         norm_params["max_unique_enum_values"],
         norm_params["quantile_size"],

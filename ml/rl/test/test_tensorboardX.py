@@ -11,6 +11,12 @@ from tensorboardX import SummaryWriter
 
 
 class TestSummaryWriterContext(unittest.TestCase):
+    def setUp(self):
+        SummaryWriterContext._reset_globals()
+
+    def tearDown(self):
+        SummaryWriterContext._reset_globals()
+
     def test_noop(self):
         self.assertIsNone(SummaryWriterContext.add_scalar("test", torch.ones(1)))
 
@@ -44,6 +50,23 @@ class TestSummaryWriterContext(unittest.TestCase):
             writer2.add_scalar.assert_called_once_with(
                 "test2", torch.ones(1), global_step=0
             )
+
+    def test_swallowing_exception(self):
+        with TemporaryDirectory() as tmp_dir:
+            writer = SummaryWriter(tmp_dir)
+            writer.add_scalar = MagicMock(side_effect=NotImplementedError("test"))
+            writer.exceptions_to_ignore = (NotImplementedError, KeyError)
+            with summary_writer_context(writer):
+                SummaryWriterContext.add_scalar("test", torch.ones(1))
+
+    def test_not_swallowing_exception(self):
+        with TemporaryDirectory() as tmp_dir:
+            writer = SummaryWriter(tmp_dir)
+            writer.add_scalar = MagicMock(side_effect=NotImplementedError("test"))
+            with self.assertRaisesRegexp(
+                NotImplementedError, "test"
+            ), summary_writer_context(writer):
+                SummaryWriterContext.add_scalar("test", torch.ones(1))
 
     def test_global_step(self):
         with TemporaryDirectory() as tmp_dir:

@@ -2,21 +2,19 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+from typing import Optional, Tuple
 
 import ml.rl.types as rlt
-import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.caffe_utils import arange_expand
 from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
-from ml.rl.training.evaluator import BatchStatsForCPE
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
+from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 
 
 logger = logging.getLogger(__name__)
 
 
-class _ParametricDQNTrainer(RLTrainer):
+class _ParametricDQNTrainer(DQNTrainerBase):
     def __init__(
         self,
         q_network,
@@ -27,13 +25,7 @@ class _ParametricDQNTrainer(RLTrainer):
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
 
-        RLTrainer.__init__(
-            self,
-            parameters,
-            use_gpu=False,
-            additional_feature_types=None,
-            gradient_handler=None,
-        )
+        DQNTrainerBase.__init__(self, parameters, use_gpu=False, gradient_handler=None)
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -49,60 +41,17 @@ class _ParametricDQNTrainer(RLTrainer):
             self.reward_network.parameters(), lr=parameters.training.learning_rate
         )
 
-    def get_max_q_values(
-        self, tiled_next_state, possible_next_actions, double_q_learning
-    ):
-        """
-        :param double_q_learning: bool to use double q-learning
-        """
+    def get_detached_q_values(
+        self, state, action
+    ) -> Tuple[rlt.SingleQValue, rlt.SingleQValue]:
+        """ Gets the q values from the model and target networks """
+        with torch.no_grad():
+            input = rlt.StateAction(state=state, action=action)
+            q_values = self.q_network(input)
+            q_values_target = self.q_network_target(input)
+        return q_values, q_values_target
 
-        lengths = possible_next_actions.lengths
-        row_nums = np.arange(len(lengths))
-        row_idxs = np.repeat(row_nums, lengths.cpu().numpy())
-        col_idxs = arange_expand(lengths).cpu().numpy()
-
-        dense_idxs = torch.tensor(
-            (row_idxs, col_idxs), device=lengths.device, dtype=torch.int64
-        )
-
-        q_network_input = rlt.StateAction(
-            state=tiled_next_state, action=possible_next_actions.actions
-        )
-        if double_q_learning:
-            q_values = self.q_network(q_network_input).q_value.squeeze().detach()
-            q_values_target = (
-                self.q_network_target(q_network_input).q_value.squeeze().detach()
-            )
-        else:
-            q_values = self.q_network_target(q_network_input).q_value.squeeze().detach()
-
-        dense_dim = [len(lengths), max(lengths)]
-        # Add specific fingerprint to q-values so that after sparse -> dense we can
-        # subtract the fingerprint to identify the 0's added in sparse -> dense
-        q_values.add_(self.FINGERPRINT)
-        sparse_q = torch.sparse_coo_tensor(dense_idxs, q_values, dense_dim)
-        dense_q = sparse_q.to_dense()
-        dense_q.add_(self.FINGERPRINT * -1)
-        dense_q[dense_q == self.FINGERPRINT * -1] = self.ACTION_NOT_POSSIBLE_VAL
-        max_q_values, max_indexes = torch.max(dense_q, dim=1)
-
-        if double_q_learning:
-            sparse_q_target = torch.sparse_coo_tensor(
-                dense_idxs, q_values_target, dense_dim
-            )
-            dense_q_values_target = sparse_q_target.to_dense()
-            max_q_values = torch.gather(
-                dense_q_values_target, 1, max_indexes.unsqueeze(1)
-            )
-
-        return max_q_values.squeeze()
-
-    def get_next_action_q_values(self, state, action):
-        return self.q_network_target(
-            rlt.StateAction(state=state, action=action)
-        ).q_value
-
-    def train(self, training_batch, evaluator=None) -> None:
+    def train(self, training_batch) -> None:
         if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
             training_batch = training_batch.as_parametric_sarsa_training_batch()
 
@@ -110,27 +59,37 @@ class _ParametricDQNTrainer(RLTrainer):
         self.minibatch += 1
 
         reward = learning_input.reward
-        discount_tensor = torch.full_like(reward, self.gamma)
+        if self.multi_steps is not None:
+            discount_tensor = torch.pow(self.gamma, learning_input.step.float())
+        else:
+            discount_tensor = torch.full_like(reward, self.gamma)
         not_done_mask = learning_input.not_terminal
 
         if self.use_seq_num_diff_as_time_diff:
-            # TODO: Implement this in another diff
-            raise NotImplementedError
+            if self.multi_steps is not None:
+                # TODO: Implement this in another diff
+                pass
+            else:
+                discount_tensor = discount_tensor.pow(learning_input.time_diff.float())
 
         if self.maxq_learning:
+            all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
+                learning_input.tiled_next_state, learning_input.possible_next_actions
+            )
             # Compute max a' Q(s', a') over all possible actions using target network
-            next_q_values = self.get_max_q_values(
-                learning_input.tiled_next_state,
-                learning_input.possible_next_actions,
-                self.double_q_learning,
+            next_q_values, _ = self.get_max_q_values_with_target(
+                all_next_q_values.q_value,
+                all_next_q_values_target.q_value,
+                learning_input.possible_next_actions_mask.float(),
             )
         else:
-            # SARSA
-            next_q_values = self.get_next_action_q_values(
+            # SARSA (Use the target network)
+            _, next_q_values = self.get_detached_q_values(
                 learning_input.next_state, learning_input.next_action
             )
+            next_q_values = next_q_values.q_value
 
-        filtered_max_q_vals = next_q_values.reshape(-1, 1) * not_done_mask
+        filtered_max_q_vals = next_q_values * not_done_mask.float()
 
         if self.minibatch < self.reward_burnin:
             target_q_values = reward
@@ -168,9 +127,8 @@ class _ParametricDQNTrainer(RLTrainer):
         reward_loss.backward()
         self.reward_network_optimizer.step()
 
-        if evaluator is not None:
-            cpe_stats = BatchStatsForCPE(
-                td_loss=self.loss.cpu().numpy(),
-                model_values_on_logged_actions=self.all_action_scores.cpu().numpy(),
-            )
-            evaluator.report(cpe_stats)
+        self.loss_reporter.report(
+            td_loss=self.loss,
+            reward_loss=reward_loss,
+            model_values_on_logged_actions=self.all_action_scores,
+        )

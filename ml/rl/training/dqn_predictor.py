@@ -6,10 +6,10 @@ import logging
 import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core, model_helper, workspace
-from ml.rl.caffe_utils import C2, PytorchCaffe2Converter
+from ml.rl.caffe_utils import C2, PytorchCaffe2Converter, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
-from ml.rl.preprocessing.sparse_to_dense import sparse_to_dense
+from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
 
@@ -22,8 +22,8 @@ OUTPUT_SINGLE_CAT_VALS_NAME = "output/string_single_categorical_features.values"
 
 
 class DQNPredictor(RLPredictor):
-    def __init__(self, net, init_net, parameters, int_features):
-        RLPredictor.__init__(self, net, init_net, parameters, int_features)
+    def __init__(self, net, init_net, parameters):
+        RLPredictor.__init__(self, net, init_net, parameters)
         self._output_blobs.extend(
             [
                 OUTPUT_SINGLE_CAT_KEYS_NAME,
@@ -38,25 +38,27 @@ class DQNPredictor(RLPredictor):
         trainer,
         actions,
         state_normalization_parameters,
-        int_features=False,
         model_on_gpu=False,
+        set_missing_value_to_zero=False,
     ):
         """Export caffe2 preprocessor net and pytorch DQN forward pass as one
         caffe2 net.
 
         :param trainer DQNTrainer
         :param state_normalization_parameters state NormalizationParameters
-        :param int_features boolean indicating if int features blob will be present
         :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
         """
 
         input_dim = trainer.num_features
 
-        if isinstance(trainer.q_network, DataParallel):
-            trainer.q_network = trainer.q_network.module
+        q_network = (
+            trainer.q_network.module
+            if isinstance(trainer.q_network, DataParallel)
+            else trainer.q_network
+        )
 
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(
-            trainer.q_network, input_dim, model_on_gpu
+            q_network, input_dim, model_on_gpu
         )
         qnet_input_blob, qnet_output_blob, caffe2_netdef = PytorchCaffe2Converter.buffer_to_caffe2_netdef(
             buffer
@@ -66,6 +68,10 @@ class DQNPredictor(RLPredictor):
         parameters = torch_workspace.Blobs()
         for blob_str in parameters:
             workspace.FeedBlob(blob_str, torch_workspace.FetchBlob(blob_str))
+
+        # Remove the input blob from parameters since it's not a real
+        #     input (will be calculated by preprocessor)
+        parameters.remove(qnet_input_blob)
 
         torch_init_net = core.Net(caffe2_netdef.init_net)
         torch_predict_net = core.Net(caffe2_netdef.predict_net)
@@ -92,51 +98,30 @@ class DQNPredictor(RLPredictor):
         input_feature_keys = "input_feature_keys"
         input_feature_values = "input_feature_values"
 
-        if int_features:
-            workspace.FeedBlob(
-                "input/int_features.lengths", np.zeros(1, dtype=np.int32)
-            )
-            workspace.FeedBlob("input/int_features.keys", np.zeros(1, dtype=np.int64))
-            workspace.FeedBlob("input/int_features.values", np.zeros(1, dtype=np.int32))
-            C2.net().Cast(
-                ["input/int_features.values"],
-                ["input/int_features.values_float"],
-                dtype=caffe2_pb2.TensorProto.FLOAT,
-            )
-            C2.net().MergeMultiScalarFeatureTensors(
-                [
-                    "input/float_features.lengths",
-                    "input/float_features.keys",
-                    "input/float_features.values",
-                    "input/int_features.lengths",
-                    "input/int_features.keys",
-                    "input/int_features.values_float",
-                ],
-                [input_feature_lengths, input_feature_keys, input_feature_values],
-            )
-        else:
-            C2.net().Copy(["input/float_features.lengths"], [input_feature_lengths])
-            C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
-            C2.net().Copy(["input/float_features.values"], [input_feature_values])
+        C2.net().Copy(["input/float_features.lengths"], [input_feature_lengths])
+        C2.net().Copy(["input/float_features.keys"], [input_feature_keys])
+        C2.net().Copy(["input/float_features.values"], [input_feature_values])
 
         if state_normalization_parameters is not None:
             sorted_feature_ids = sort_features_by_normalization(
                 state_normalization_parameters
             )[0]
-            dense_matrix, new_parameters = sparse_to_dense(
-                input_feature_lengths,
-                input_feature_keys,
-                input_feature_values,
+            sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
+            dense_matrix, new_parameters = sparse_to_dense_processor(
                 sorted_feature_ids,
+                StackedAssociativeArray(
+                    input_feature_lengths, input_feature_keys, input_feature_values
+                ),
+                set_missing_value_to_zero=set_missing_value_to_zero,
             )
             parameters.extend(new_parameters)
-            preprocessor_net = PreprocessorNet(clip_anomalies=True)
+            preprocessor_net = PreprocessorNet()
             state_normalized_dense_matrix, new_parameters = preprocessor_net.normalize_dense_matrix(
                 dense_matrix,
                 sorted_feature_ids,
                 state_normalization_parameters,
                 "state_norm_",
-                False,
+                True,
             )
             parameters.extend(new_parameters)
         else:
@@ -210,4 +195,4 @@ class DQNPredictor(RLPredictor):
         C2.net().FlattenToVec([output_key_tile], [OUTPUT_SINGLE_CAT_KEYS_NAME])
 
         workspace.CreateNet(net)
-        return DQNPredictor(net, torch_init_net, parameters, int_features)
+        return DQNPredictor(net, torch_init_net, parameters)

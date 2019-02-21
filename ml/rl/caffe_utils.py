@@ -54,20 +54,33 @@ class C2Meta(type):
 
 class C2(metaclass=C2Meta):
     _net: Optional[Any] = None
+    _init_net: Optional[Any] = None
     _model: Optional[Any] = None
 
     @staticmethod
     def set_net(net):
         C2._model = None
         C2._net = net
+        C2._init_net = None
+
+    @staticmethod
+    def set_net_and_init_net(net, init_net):
+        C2._model = None
+        C2._net = net
+        C2._init_net = init_net
 
     @staticmethod
     def net():
         return C2._net
 
     @staticmethod
+    def init_net():
+        return C2._init_net
+
+    @staticmethod
     def set_model(model):
         C2._model = model
+        C2._init_net = None
         if model is None:
             C2._net = None
         else:
@@ -202,6 +215,16 @@ class PytorchCaffe2Converter(object):
         """Traces a pytorch net and outputs a python buffer object
         holding net."""
 
+        training = pytorch_net.training
+        pytorch_net.train(False)
+
+        for name, p in pytorch_net.named_parameters():
+            inf_count = torch.isinf(p).sum().item()
+            nan_count = torch.isnan(p).sum().item()
+            assert inf_count + nan_count == 0, "{} has {} inf and {} nan".format(
+                name, inf_count, nan_count
+            )
+
         if float_input:
             dtype = torch.cuda.FloatTensor if model_on_gpu else torch.FloatTensor
             dummy_input = torch.randn(1, input_dim).type(dtype)
@@ -210,7 +233,10 @@ class PytorchCaffe2Converter(object):
             dummy_input = torch.randint(low=0, high=1, size=(1, input_dim)).type(dtype)
 
         write_buffer = BytesIO()
-        torch.onnx.export(pytorch_net, dummy_input, write_buffer)
+        try:
+            torch.onnx.export(pytorch_net, dummy_input, write_buffer)
+        finally:
+            pytorch_net.train(training)
         return write_buffer
 
     @staticmethod
@@ -271,27 +297,21 @@ class PytorchCaffe2Converter(object):
         )
 
 
-def arange_expand(lens_array):
-    """
-    Converts lens array to flattened array with each lens value expanded
-    using only vectorized operations.
+def softmax(x, temperature):
+    """Compute softmax values for each sets of scores in x."""
+    x = x / temperature
+    return torch.nn.functional.softmax(x, dim=1)
 
-    Example:
-        lens_array: [0, 2, 1, 0, 2]
-        returns: [0, 1, 0, 0, 1]
-    """
-    lens_array = lens_array.long()
-    # Return empty np array if all 0s
-    if lens_array.sum() == 0:
-        return torch.tensor([]).type(lens_array.type())
-    # Keep values that need to be expaned
-    counts = lens_array[lens_array != 0]
-    # Record indexes in final array where ranges start over
-    counts_tmp = counts[:-1]
-    reset_index = torch.cumsum(counts_tmp, dim=0)
-    # Init final array with 1s
-    incr = torch.ones([counts.sum()]).type(counts_tmp.type())
-    # First value in output array is always 0
-    incr[0] = 0
-    incr[reset_index] = 1 - counts_tmp
-    return incr.cumsum(dim=0)
+
+def masked_softmax(x, mask, temperature):
+    """Compute softmax values for each sets of scores in x."""
+    x = x / temperature
+    mask_min_x = x - ((1.0 - mask) * 1e20)
+    mask_min_x -= torch.max(mask_min_x, dim=1, keepdim=True)[0]
+    e_x = torch.exp(mask_min_x)
+    e_x *= mask
+    out = e_x / e_x.sum(dim=1, keepdim=True)
+
+    # Set NaN values to 0 (NaN happens when a full mask row is passed in)
+    out[out != out] = 0
+    return out

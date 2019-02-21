@@ -27,7 +27,10 @@ class TestOSSWorkflows(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/discrete_action/cartpole_training_data.json"
+                    curr_dir, "test_data/discrete_action/cartpole_training.json.bz2"
+                ),
+                "eval_data_path": os.path.join(
+                    curr_dir, "test_data/discrete_action/cartpole_eval.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/discrete_action/cartpole_norm.json"
@@ -36,13 +39,12 @@ class TestOSSWorkflows(unittest.TestCase):
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
                 "actions": ["0", "1"],
-                "epochs": 5,
+                "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "training": {"minibatch_size": 16},
-                "in_training_cpe": {"mdp_sampled_rate": 1.0},
+                "training": {"minibatch_size": 128},
             }
-            predictor = dqn_workflow.train_network(params)
+            predictor = dqn_workflow.main(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             q_values = predictor.predict(test_float_state_features)
         assert len(q_values[0].keys()) == 2
@@ -64,7 +66,10 @@ class TestOSSWorkflows(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/parametric_action/cartpole_training_data.json"
+                    curr_dir, "test_data/parametric_action/cartpole_training.json.bz2"
+                ),
+                "eval_data_path": os.path.join(
+                    curr_dir, "test_data/parametric_action/cartpole_eval.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/parametric_action/state_features_norm.json"
@@ -75,18 +80,16 @@ class TestOSSWorkflows(unittest.TestCase):
                 "model_output_path": tmpdirname,
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
-                "epochs": 5,
+                "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "training": {"minibatch_size": 16},
-                "in_training_cpe": None,
+                "training": {"minibatch_size": 128},
             }
-            predictor = parametric_dqn_workflow.train_network(params)
+            predictor = parametric_dqn_workflow.main(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
-            test_int_state_features = [{}]
             test_action_features = [{"4": 0.0, "5": 1.0}]
             q_values = predictor.predict(
-                test_float_state_features, test_int_state_features, test_action_features
+                test_float_state_features, test_action_features
             )
         assert len(q_values[0].keys()) == 1
 
@@ -107,7 +110,10 @@ class TestOSSWorkflows(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             params = {
                 "training_data_path": os.path.join(
-                    curr_dir, "test_data/continuous_action/pendulum_training_data.json"
+                    curr_dir, "test_data/continuous_action/pendulum_training.json.bz2"
+                ),
+                "eval_data_path": os.path.join(
+                    curr_dir, "test_data/continuous_action/pendulum_eval.json.bz2"
                 ),
                 "state_norm_data_path": os.path.join(
                     curr_dir, "test_data/continuous_action/state_features_norm.json"
@@ -118,19 +124,16 @@ class TestOSSWorkflows(unittest.TestCase):
                 "model_output_path": tmpdirname,
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
-                "epochs": 5,
+                "epochs": 1,
                 "rl": {},
                 "rainbow": {},
-                "shared_training": {"minibatch_size": 16},
+                "shared_training": {"minibatch_size": 128},
                 "actor_training": {},
                 "critic_training": {},
             }
-            predictor = ddpg_workflow.train_network(params)
+            predictor = ddpg_workflow.main(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
-            test_int_state_features = [{}]
-            action = predictor.actor_prediction(
-                test_float_state_features, test_int_state_features
-            )
+            action = predictor.actor_prediction(test_float_state_features)
         assert len(action) == 1
 
     def test_ddpg_workflow(self):
@@ -147,7 +150,7 @@ class TestOSSWorkflows(unittest.TestCase):
     def test_read_c2_model_from_file(self):
         """Test reading output caffe2 model from file and using it for inference."""
         path = os.path.join(curr_dir, "test_data/discrete_action/example_predictor.c2")
-        predictor = DQNPredictor.load(path, "minidb", int_features=False)
+        predictor = DQNPredictor.load(path, "minidb")
         test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
         q_values = predictor.predict(test_float_state_features)
         assert len(q_values[0].keys()) == 2

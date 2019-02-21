@@ -2,17 +2,20 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
-from typing import Dict, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 import ml.rl.types as mt
+import numpy as np
 import torch
 from caffe2.python import core, schema
+from ml.rl.caffe_utils import C2
 
 from .normalization import (
     MISSING_VALUE,
     NormalizationParameters,
     sort_features_by_normalization,
 )
+from .preprocessor_net import PreprocessorNet
 
 
 """
@@ -85,6 +88,21 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             )
         return float_features
 
+    def read_actions_to_mask(
+        self, net, name, num_actions, action, action_size_plus_one
+    ):
+        with core.NameScope(name):
+            action_blob_one_hot = net.OneHot(
+                [action(), action_size_plus_one], ["action_blob_one_hot"]
+            )
+            action_blob_one_hot_sliced = net.Slice(
+                [action_blob_one_hot],
+                ["action_blob_one_hot_sliced"],
+                starts=[0, 0],
+                ends=[-1, num_actions],
+            )
+        return action_blob_one_hot_sliced
+
 
 def map_schema():
     return schema.Map(schema.Scalar(), schema.Scalar())
@@ -95,7 +113,16 @@ class InputColumn(object):
     NEXT_STATE_FEATURES = "next_state_features"
     ACTION = "action"
     NEXT_ACTION = "next_action"
+    POSSIBLE_ACTIONS = "possible_actions"
+    POSSIBLE_ACTIONS_MASK = "possible_actions_mask"
     POSSIBLE_NEXT_ACTIONS = "possible_next_actions"
+    POSSIBLE_NEXT_ACTIONS_MASK = "possible_next_actions_mask"
+    NOT_TERMINAL = "not_terminal"
+    STEP = "step"
+    TIME_DIFF = "time_diff"
+    MDP_ID = "mdp_id"
+    SEQUENCE_NUMBER = "sequence_number"
+    METRICS = "metrics"
 
 
 class TrainingFeatureExtractor(FeatureExtractorBase):
@@ -104,7 +131,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
     - State
     - Action
     - Next state
-    - Possible next actions/Next actions (depending on max_q_learning)
+    - Possible next actions/Next actions
     """
 
     def __init__(
@@ -113,8 +140,14 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         action_normalization_parameters: Optional[
             Dict[int, NormalizationParameters]
         ] = None,
-        max_q_learning: bool = True,
+        include_possible_actions: bool = True,
+        normalize: bool = True,
+        max_num_actions: int = None,
+        multi_steps: Optional[int] = None,
+        metrics_to_score: Optional[List[str]] = None,
     ) -> None:
+        self.state_normalization_parameters = state_normalization_parameters
+        self.action_normalization_parameters = action_normalization_parameters
         self.sorted_state_features, _ = sort_features_by_normalization(
             state_normalization_parameters
         )
@@ -124,12 +157,21 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             )
         else:
             self.sorted_action_features = None
-        self.max_q_learning = max_q_learning
+        self.include_possible_actions = include_possible_actions
+        self.normalize = normalize
+        self.max_num_actions = max_num_actions
+        self.multi_steps = multi_steps
+        self.metrics_to_score = metrics_to_score
 
     def extract(self, ws, input_record, extract_record):
-        def fetch(b):
+        def fetch(b, to_torch=True):
             data = ws.fetch_blob(str(b()))
-            return torch.tensor(data)
+            if not isinstance(data, np.ndarray):
+                # Blob uninitialized, return None and handle downstream
+                return None
+            if to_torch:
+                return torch.tensor(data)
+            return data
 
         def fetch_action(b):
             if self.sorted_action_features is None:
@@ -137,54 +179,101 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             else:
                 return mt.FeatureVector(float_features=fetch(b))
 
-        state = mt.FeatureVector(float_features=fetch(extract_record.state))
+        def fetch_possible_actions(b):
+            if self.sorted_action_features is not None:
+                return mt.FeatureVector(float_features=fetch(b))
+            else:
+                return None
+
+        state = mt.FeatureVector(float_features=fetch(extract_record.state_features))
+        next_state = mt.FeatureVector(
+            float_features=fetch(extract_record.next_state_features)
+        )
+
         action = fetch_action(extract_record.action)
+        next_action = fetch_action(extract_record.next_action)
+        max_num_actions = None
+        step = None
+        if self.multi_steps is not None:
+            step = fetch(input_record.step).reshape(-1, 1)
         reward = fetch(input_record.reward).reshape(-1, 1)
 
         # is_terminal should be filled by preprocessor
-        if self.max_q_learning:
-            if self.sorted_action_features is not None:
-                next_state = None
-                tiled_next_state = mt.FeatureVector(
-                    float_features=fetch(extract_record.tiled_next_state)
-                )
-            else:
-                next_state = mt.FeatureVector(
-                    float_features=fetch(extract_record.next_state)
-                )
-                tiled_next_state = None
-            possible_next_actions = mt.PossibleActions(
-                lengths=fetch(extract_record.possible_next_actions["lengths"]),
-                actions=fetch_action(extract_record.possible_next_actions["values"]),
+        not_terminal = fetch(input_record.not_terminal).reshape(-1, 1)
+        time_diff = fetch(input_record.time_diff).reshape(-1, 1)
+
+        if self.include_possible_actions:
+            # TODO: this will need to be more complicated to support sparse features
+            assert self.max_num_actions is not None, "Missing max_num_actions"
+            possible_actions_mask = (
+                fetch(extract_record.possible_actions_mask)
+                .reshape(-1, self.max_num_actions)
+                .type(torch.FloatTensor)
             )
+            possible_next_actions_mask = fetch(
+                extract_record.possible_next_actions_mask
+            ).reshape(-1, self.max_num_actions)
+
+            if self.sorted_action_features is not None:
+                possible_actions = fetch_possible_actions(
+                    extract_record.possible_actions
+                )
+                possible_next_actions = fetch_possible_actions(
+                    extract_record.possible_next_actions
+                )
+                tiled_next_state = mt.FeatureVector(
+                    float_features=next_state.float_features.repeat(
+                        1, self.max_num_actions
+                    ).reshape(-1, next_state.float_features.shape[1])
+                )
+                max_num_actions = self.max_num_actions
+
+            else:
+                possible_actions = None
+                possible_next_actions = None
+                tiled_next_state = None
 
             training_input = mt.MaxQLearningInput(
                 state=state,
                 action=action,
                 next_state=next_state,
                 tiled_next_state=tiled_next_state,
+                possible_actions=possible_actions,
+                possible_actions_mask=possible_actions_mask,
                 possible_next_actions=possible_next_actions,
+                possible_next_actions_mask=possible_next_actions_mask,
+                next_action=next_action,
                 reward=reward,
-                not_terminal=(possible_next_actions.lengths > 0).float().reshape(-1, 1),
+                not_terminal=not_terminal,
+                step=step,
+                time_diff=time_diff,
             )
         else:
-            next_state = mt.FeatureVector(
-                float_features=fetch(extract_record.next_state)
-            )
-            next_action = fetch_action(extract_record.next_action)
             training_input = mt.SARSAInput(
                 state=state,
                 action=action,
                 next_state=next_state,
                 next_action=next_action,
                 reward=reward,
-                # HACK: Need a better way to check this
-                not_terminal=torch.ones_like(reward),
+                not_terminal=not_terminal,
+                step=step,
+                time_diff=time_diff,
             )
+
+        mdp_id = fetch(input_record.mdp_id, to_torch=False)
+        sequence_number = fetch(input_record.sequence_number)
+
+        metrics = fetch(extract_record.metrics) if self.metrics_to_score else None
 
         # TODO: stuff other fields in here
         extras = mt.ExtraData(
-            action_probability=fetch(input_record.action_probability).reshape(-1, 1)
+            action_probability=fetch(input_record.action_probability).reshape(-1, 1),
+            sequence_number=sequence_number.reshape(-1, 1)
+            if sequence_number is not None
+            else None,
+            mdp_id=mdp_id.reshape(-1, 1) if mdp_id is not None else None,
+            max_num_actions=max_num_actions,
+            metrics=metrics,
         )
 
         return mt.TrainingBatch(training_input=training_input, extras=extras)
@@ -196,19 +285,27 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
         action_schema = map_schema() if self.sorted_action_features else schema.Scalar()
 
-        if self.max_q_learning:
-            next_action_field = InputColumn.POSSIBLE_NEXT_ACTIONS
-            next_action_schema = schema.List(action_schema)
-        else:
-            next_action_field = InputColumn.NEXT_ACTION
-            next_action_schema = action_schema
-
         input_schema = schema.Struct(
             (InputColumn.STATE_FEATURES, map_schema()),
             (InputColumn.NEXT_STATE_FEATURES, map_schema()),
             (InputColumn.ACTION, action_schema),
-            (next_action_field, next_action_schema),
+            (InputColumn.NEXT_ACTION, action_schema),
+            (InputColumn.NOT_TERMINAL, schema.Scalar()),
+            (InputColumn.TIME_DIFF, schema.Scalar()),
         )
+        if self.include_possible_actions:
+            input_schema += schema.Struct(
+                (InputColumn.POSSIBLE_ACTIONS_MASK, schema.List(schema.Scalar())),
+                (InputColumn.POSSIBLE_NEXT_ACTIONS_MASK, schema.List(schema.Scalar())),
+            )
+            if self.sorted_action_features is not None:
+                input_schema += schema.Struct(
+                    (InputColumn.POSSIBLE_ACTIONS, schema.List(map_schema())),
+                    (InputColumn.POSSIBLE_NEXT_ACTIONS, schema.List(map_schema())),
+                )
+
+        if self.metrics_to_score:
+            input_schema += schema.Struct((InputColumn.METRICS, map_schema()))
 
         input_record = net.set_input_record(input_schema)
 
@@ -227,49 +324,149 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             missing_scalar,
         )
 
-        if self.max_q_learning and self.sorted_action_features is not None:
-            next_state_field = "tiled_next_state"
-            # TODO: this will need to be more complicated to support sparse features
-            next_state = net.LengthsTile(
-                [next_state, input_record.possible_next_actions.lengths()],
-                ["tiled_next_state"],
-            )
-        else:
-            next_state_field = "next_state"
-
-        action = input_record.action
-        next_action = input_record[next_action_field]
-        if self.max_q_learning:
-            next_action = next_action["values"]
         if self.sorted_action_features:
             action = self.extract_float_features(
-                net, "action", action, self.sorted_action_features, missing_scalar
-            )
-            next_action = self.extract_float_features(
                 net,
-                next_action_field,
-                next_action,
+                InputColumn.ACTION,
+                input_record[InputColumn.ACTION],
                 self.sorted_action_features,
                 missing_scalar,
             )
-
-        next_action_output = (
-            schema.List(
-                next_action, lengths_blob=input_record.possible_next_actions.lengths
+            next_action = self.extract_float_features(
+                net,
+                InputColumn.NEXT_ACTION,
+                input_record[InputColumn.NEXT_ACTION],
+                self.sorted_action_features,
+                missing_scalar,
             )
-            if self.max_q_learning
-            else next_action
+            if self.include_possible_actions:
+                possible_action_features = self.extract_float_features(
+                    net,
+                    InputColumn.POSSIBLE_ACTIONS,
+                    input_record[InputColumn.POSSIBLE_ACTIONS]["values"],
+                    self.sorted_action_features,
+                    missing_scalar,
+                )
+                possible_next_action_features = self.extract_float_features(
+                    net,
+                    InputColumn.POSSIBLE_NEXT_ACTIONS,
+                    input_record[InputColumn.POSSIBLE_NEXT_ACTIONS]["values"],
+                    self.sorted_action_features,
+                    missing_scalar,
+                )
+        else:
+            action_size_plus_one = self.create_const(
+                init_net,
+                "action_size_plus_one",
+                self.max_num_actions + 1,
+                dtype=core.DataType.INT64,
+            )
+            action = self.read_actions_to_mask(
+                net,
+                InputColumn.ACTION,
+                self.max_num_actions,
+                input_record[InputColumn.ACTION],
+                action_size_plus_one,
+            )
+            next_action = self.read_actions_to_mask(
+                net,
+                InputColumn.NEXT_ACTION,
+                self.max_num_actions,
+                input_record[InputColumn.NEXT_ACTION],
+                action_size_plus_one,
+            )
+
+        if self.normalize:
+            C2.set_net_and_init_net(net, init_net)
+            state, _ = PreprocessorNet().normalize_dense_matrix(
+                state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="state",
+                split_expensive_feature_groups=True,
+            )
+            next_state, _ = PreprocessorNet().normalize_dense_matrix(
+                next_state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="next_state",
+                split_expensive_feature_groups=True,
+            )
+            if self.sorted_action_features is not None:
+                action, _ = PreprocessorNet().normalize_dense_matrix(
+                    action,
+                    self.sorted_action_features,
+                    self.action_normalization_parameters,
+                    blobname_prefix="action",
+                    split_expensive_feature_groups=True,
+                )
+                next_action, _ = PreprocessorNet().normalize_dense_matrix(
+                    next_action,
+                    self.sorted_action_features,
+                    self.action_normalization_parameters,
+                    blobname_prefix="next_action",
+                    split_expensive_feature_groups=True,
+                )
+                if self.include_possible_actions:
+                    possible_action_features, _ = PreprocessorNet().normalize_dense_matrix(
+                        possible_action_features,
+                        self.sorted_action_features,
+                        self.action_normalization_parameters,
+                        blobname_prefix="possible_action",
+                        split_expensive_feature_groups=True,
+                    )
+                    possible_next_action_features, _ = PreprocessorNet().normalize_dense_matrix(
+                        possible_next_action_features,
+                        self.sorted_action_features,
+                        self.action_normalization_parameters,
+                        blobname_prefix="possible_next_action",
+                        split_expensive_feature_groups=True,
+                    )
+            C2.set_net_and_init_net(None, None)
+
+        if self.metrics_to_score:
+            metrics_to_score_idxs = list(range(len(self.metrics_to_score)))
+            missing_metric = self.create_const(init_net, "MISSING_METRIC", 0.0)
+            metrics = self.extract_float_features(
+                net,
+                InputColumn.METRICS,
+                input_record[InputColumn.METRICS],
+                metrics_to_score_idxs,
+                missing_metric,
+            )
+
+        output_schema = schema.Struct(
+            (InputColumn.STATE_FEATURES, state),
+            (InputColumn.NEXT_STATE_FEATURES, next_state),
+            (InputColumn.ACTION, action),
+            (InputColumn.NEXT_ACTION, next_action),
+            (InputColumn.NOT_TERMINAL, input_record[InputColumn.NOT_TERMINAL]),
+            (InputColumn.TIME_DIFF, input_record[InputColumn.TIME_DIFF]),
         )
 
-        net.set_output_record(
-            schema.Struct(
-                ("state", state),
-                ("action", action),
-                (next_state_field, next_state),
-                (next_action_field, next_action_output),
+        if self.include_possible_actions:
+            # Drop the "lengths" blob from possible_actions_mask since we know
+            # it's just a list of [max_num_actions, max_num_actions, ...]
+            output_schema += schema.Struct(
+                (
+                    InputColumn.POSSIBLE_ACTIONS_MASK,
+                    input_record[InputColumn.POSSIBLE_ACTIONS_MASK]["values"],
+                ),
+                (
+                    InputColumn.POSSIBLE_NEXT_ACTIONS_MASK,
+                    input_record[InputColumn.POSSIBLE_NEXT_ACTIONS_MASK]["values"],
+                ),
             )
-        )
+            if self.sorted_action_features is not None:
+                output_schema += schema.Struct(
+                    (InputColumn.POSSIBLE_ACTIONS, possible_action_features),
+                    (InputColumn.POSSIBLE_NEXT_ACTIONS, possible_next_action_features),
+                )
 
+        if self.metrics_to_score:
+            output_schema += schema.Struct((InputColumn.METRICS, metrics))
+
+        net.set_output_record(output_schema)
         return FeatureExtractorNet(net, init_net)
 
 
@@ -293,7 +490,10 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
         action_normalization_parameters: Optional[
             Dict[int, NormalizationParameters]
         ] = None,
+        normalize: bool = True,
     ) -> None:
+        self.state_normalization_parameters = state_normalization_parameters
+        self.action_normalization_parameters = action_normalization_parameters
         self.sorted_state_features, _ = sort_features_by_normalization(
             state_normalization_parameters
         )
@@ -303,6 +503,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             )
         else:
             self.sorted_action_features = None
+        self.normalize = normalize
 
     def extract(self, ws, input_record, extract_record):
         def fetch(b):
@@ -342,8 +543,6 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             missing_scalar,
         )
 
-        output_record = schema.Struct(("state", state))
-
         if self.sorted_action_features:
             action = self.extract_float_features(
                 net,
@@ -352,6 +551,28 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                 self.sorted_action_features,
                 missing_scalar,
             )
+
+        if self.normalize:
+            C2.set_net_and_init_net(net, init_net)
+            state, _ = PreprocessorNet().normalize_dense_matrix(
+                state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="state",
+                split_expensive_feature_groups=True,
+            )
+            if self.sorted_action_features:
+                action, _ = PreprocessorNet().normalize_dense_matrix(
+                    action,
+                    self.sorted_action_features,
+                    self.action_normalization_parameters,
+                    blobname_prefix="action",
+                    split_expensive_feature_groups=True,
+                )
+            C2.set_net_and_init_net(None, None)
+
+        output_record = schema.Struct(("state", state))
+        if self.sorted_action_features:
             output_record += schema.Struct(("action", action))
 
         net.set_output_record(output_record)
