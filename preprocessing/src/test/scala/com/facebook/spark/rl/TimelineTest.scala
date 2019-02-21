@@ -549,6 +549,9 @@ class TimelineTest extends PipelineTester {
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
 
+    val percentileFunc =
+      if (sparkContext.version >= "2.3.0") "approx_percentile" else "fb_approx_percentile"
+
     // Setup configuration
     val config = TimelineConfiguration("2018-01-01",
                                        "2018-01-01",
@@ -559,7 +562,7 @@ class TimelineTest extends PipelineTester {
                                        null,
                                        1,
                                        Some(0.95),
-                                       "fb_approx_percentile")
+                                       percentileFunc)
 
     // destroy previous schema
     Timeline.validateOrDestroyTrainingTable(sqlContext,
