@@ -3,7 +3,7 @@
 
 import gzip
 import json
-from datetime import datetime
+import pickle
 
 import numpy as np
 
@@ -11,7 +11,9 @@ import numpy as np
 class RLDataset:
     def __init__(self, file_path):
         """
-        Holds a collection of RL samples in the "pre-timeline" format.
+        Holds a collection of RL samples:
+            1) Can insert in the "pre-timeline" format (`insert_hive_format`)
+            2) Can insert in the replay buffer format (`insert_gym_format`)
 
         :param file_path: String Load/save the dataset from/to this file.
         """
@@ -24,14 +26,52 @@ class RLDataset:
             for line in f:
                 self.rows.append(json.loads(line))
 
-    def save(self):
-        """Save samples as a JSON file."""
-        with open(self.file_path, "w") as f:
-            for data in self.rows:
-                json.dump(data, f)
-                f.write("\n")
+    def save(self, use_pickle=True):
+        """Save samples as a pickle file or JSON file."""
+        with open(self.file_path, "wb") as f:
+            if use_pickle:
+                pickle.dump(self.rows, f)
+            else:
+                for data in self.rows:
+                    json.dump(data, f)
+                    f.write("\n")
 
-    def insert(
+    def insert_gym_format(
+        self,
+        state,
+        action,
+        reward,
+        next_state,
+        next_action,
+        terminal,
+        possible_next_actions,
+        possible_next_actions_mask,
+        time_diff,
+        possible_actions,
+        possible_actions_mask,
+    ):
+        """
+        Insert a new sample to the dataset in the same format as the
+        replay buffer.
+        """
+        self.rows.append(
+            {
+                "state": state,
+                "action": action,
+                "reward": reward,
+                "next_state": next_state,
+                "next_action": next_action,
+                "terminal": terminal,
+                "possible_next_actions": possible_next_actions,
+                "possible_next_actions_mask": possible_next_actions_mask,
+                "time_diff": time_diff,
+                "next_action": next_action,
+                "possible_actions": possible_actions,
+                "possible_actions_mask": possible_actions_mask,
+            }
+        )
+
+    def insert_hive_format(
         self,
         mdp_id,
         sequence_number,
@@ -44,12 +84,12 @@ class RLDataset:
         action_probability,
     ):
         """
-        Insert a new sample to the dataset.
+        Insert a new sample to the dataset in the format needed to upload
+        dataset to hive.
         """
-
         assert isinstance(state, list)
         assert isinstance(action, (list, str))
-        assert isinstance(reward, float)
+        assert isinstance(reward, (float, int))
         assert isinstance(terminal, bool)
         assert possible_actions is None or isinstance(
             possible_actions, (list, np.ndarray)

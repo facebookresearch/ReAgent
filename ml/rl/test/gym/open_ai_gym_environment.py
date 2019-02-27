@@ -38,7 +38,15 @@ class EnvType(enum.Enum):
 
 
 class OpenAIGymEnvironment(Environment):
-    def __init__(self, gymenv, epsilon=0, softmax_policy=False, gamma=0.99):
+    def __init__(
+        self,
+        gymenv,
+        epsilon=0,
+        softmax_policy=False,
+        gamma=0.99,
+        epsilon_decay=1,
+        minimum_epsilon=None,
+    ):
         """
         Creates an OpenAIGymEnvironment object.
 
@@ -47,8 +55,13 @@ class OpenAIGymEnvironment(Environment):
             action during training.
         :param softmax_policy: 1 to use softmax selection policy or 0 to use
             max q selection.
+        :param gamma: Discount rate
+        :param epsilon_decay: How much to decay epsilon over each iteration in training.
+        :param minimum_epsilon: Lower bound of epsilon.
         """
         self.epsilon = epsilon
+        self.epsilon_decay = epsilon_decay
+        self.minimum_epsilon = minimum_epsilon
         self.softmax_policy = softmax_policy
         self.gamma = gamma
         self.env_name_str = gymenv
@@ -58,6 +71,11 @@ class OpenAIGymEnvironment(Environment):
             self.state_features = [str(sf) for sf in range(self.state_dim)]
         if self.action_type == EnvType.DISCRETE_ACTION:
             self.actions = [str(a + self.state_dim) for a in range(self.action_dim)]
+
+    def decay_epsilon(self):
+        self.epsilon *= self.epsilon_decay
+        if self.minimum_epsilon is not None:
+            self.epsilon = max(self.epsilon, self.minimum_epsilon)
 
     def _create_env(self, gymenv):
         """

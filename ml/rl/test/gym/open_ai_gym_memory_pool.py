@@ -26,6 +26,10 @@ class OpenAIGymMemoryPool:
         self.memory_num = 0
         self.skip_insert_until = self.max_replay_memory_size
 
+    @property
+    def size(self):
+        return len(self.replay_memory)
+
     def sample_memories(self, batch_size, model_type):
         """
         Samples transitions from replay memory uniformly at random.
