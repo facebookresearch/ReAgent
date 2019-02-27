@@ -65,11 +65,15 @@ class TestGridworldCPE(GridworldTestBase):
                 DISCOUNT, epsilon_model
             )
             ratio = true_model_value[0] / true_logged_value[0]
+            cpe_drs_names = [
+                "One-step direct method",
+                "One-step inverse propensity",
+                "One-step doubly robust",
+            ]
             for i in range(len(cpe_drs)):
                 percent_err = (cpe_drs[i].normalized - ratio) / ratio * 100
                 logger.info(
-                    "Doubly Robust "
-                    + str(i)
+                    cpe_drs_names[i]
                     + ": epsilon_pair = ("
                     + str(epsilon_logged)
                     + ", "

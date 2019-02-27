@@ -308,6 +308,9 @@ class GridworldBase(Environment):
     def is_terminal(self, state):
         return self.grid[self._pos(state)] == G
 
+    def is_wall(self, state):
+        return self.grid[self._pos(state)] == W
+
     def is_valid(self, y, x):
         return x >= 0 and x <= self.width - 1 and y >= 0 and y <= self.height - 1
 
@@ -347,16 +350,17 @@ class GridworldBase(Environment):
         possible_actions: List[ACTION] = []
         if not ignore_terminal and self.is_terminal(state):
             return possible_actions
+        assert not self.is_wall(state)
         # else: #Q learning is better with true possible_next_actions
         #    return range(len(self.ACTIONS))
         y, x = self._pos(state)
-        if x - 1 >= 0:
+        if x - 1 >= 0 and not self.is_wall(self._index((y, x - 1))):
             possible_actions.append("L")
-        if x + 1 <= self.width - 1:
+        if x + 1 <= self.width - 1 and not self.is_wall(self._index((y, x + 1))):
             possible_actions.append("R")
-        if y - 1 >= 0:
+        if y - 1 >= 0 and not self.is_wall(self._index((y - 1, x))):
             possible_actions.append("U")
-        if y + 1 <= self.height - 1:
+        if y + 1 <= self.height - 1 and not self.is_wall(self._index((y + 1, x))):
             possible_actions.append("D")
         if use_continuous_action:
             return [self.action_to_features(pa) for pa in possible_actions]
@@ -365,7 +369,7 @@ class GridworldBase(Environment):
     def q_transition_matrix(self, assume_optimal_policy, epsilon=0.0):
         T = np.zeros((self.size, self.size))
         for state in range(self.size):
-            if not self.is_terminal(state):
+            if not self.is_terminal(state) and not self.is_wall(state):
                 poss_a = self.ACTIONS
                 if self.USING_ONLY_VALID_ACTION:
                     poss_a = self.possible_actions(state)
@@ -383,6 +387,7 @@ class GridworldBase(Environment):
                     else:
                         action_probability = fraction
                     T[state, :] += action_probability * transition_probabilities
+
         return T
 
     def reward_vector(self):
