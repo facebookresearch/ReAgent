@@ -5,6 +5,7 @@ import logging
 import math
 from typing import Dict, NamedTuple, Optional
 
+import numpy as np
 from ml.rl.tensorboardX import SummaryWriterContext
 
 
@@ -15,6 +16,8 @@ logger.setLevel(logging.INFO)
 class CpeEstimate(NamedTuple):
     raw: float
     normalized: float
+    raw_std_error: float
+    normalized_std_error: float
 
 
 class CpeEstimateSet:
@@ -29,37 +32,54 @@ class CpeEstimateSet:
 
     def log(self):
         logger.info(
-            "Reward Inverse Propensity Score : normalized {0:.3f} raw {1:.3f}".format(
-                self.inverse_propensity.normalized, self.inverse_propensity.raw
+            "Reward Inverse Propensity Score : normalized {0:.3f} +/- {0:.3f} raw {1:.3f} +/- {1:.3f}".format(
+                self.inverse_propensity.normalized,
+                self.inverse_propensity.normalized_std_error,
+                self.inverse_propensity.raw,
+                self.inverse_propensity.raw_std_error,
             )
         )
 
         logger.info(
-            "Reward Direct Method : normalized {0:.3f} raw {1:.3f}".format(
-                self.direct_method.normalized, self.direct_method.raw
+            "Reward Direct Method : normalized {0:.3f} +/- {0:.3f} raw {1:.3f} +/- {1:.3f}".format(
+                self.direct_method.normalized,
+                self.direct_method.normalized_std_error,
+                self.direct_method.raw,
+                self.direct_method.raw_std_error,
             )
         )
 
         logger.info(
-            "Reward Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
-                self.doubly_robust.normalized, self.doubly_robust.raw
+            "Reward Doubly Robust P.E. : normalized {0:.3f} +/- {0:.3f} raw {1:.3f} +/- {1:.3f}".format(
+                self.doubly_robust.normalized,
+                self.doubly_robust.normalized_std_error,
+                self.doubly_robust.raw,
+                self.doubly_robust.raw_std_error,
             )
         )
 
         logger.info(
-            "Value Weighted Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
-                self.weighted_doubly_robust.normalized, self.weighted_doubly_robust.raw
+            "Value Weighted Doubly Robust P.E. : normalized {0:.3f} +/- {0:.3f} raw {1:.3f} +/- {1:.3f}".format(
+                self.weighted_doubly_robust.normalized,
+                self.weighted_doubly_robust.normalized_std_error,
+                self.weighted_doubly_robust.raw,
+                self.weighted_doubly_robust.raw_std_error,
             )
         )
         logger.info(
-            "Value Sequential Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
+            "Value Sequential Doubly Robust P.E. : normalized {0:.3f} +/- {0:.3f} raw {1:.3f} +/- {1:.3f}".format(
                 self.sequential_doubly_robust.normalized,
+                self.sequential_doubly_robust.normalized_std_error,
                 self.sequential_doubly_robust.raw,
+                self.sequential_doubly_robust.raw_std_error,
             )
         )
         logger.info(
-            "Value Magic Doubly Robust P.E. : normalized {0:.3f} raw {1:.3f}".format(
-                self.magic.normalized, self.magic.raw
+            "Value Magic Doubly Robust P.E. : normalized {0:.3f} +/- {0:.3f} raw {1:.3f} +/- {1:.3f}".format(
+                self.magic.normalized,
+                self.magic.normalized_std_error,
+                self.magic.raw,
+                self.magic.raw_std_error,
             )
         )
 
@@ -119,3 +139,19 @@ class CpeDetails:
         self.reward_estimates.log_to_tensorboard("Reward")
         for metric_name, estimate_set in self.metric_estimates.items():
             estimate_set.log_to_tensorboard(metric_name)
+
+
+def bootstrapped_std_error_of_mean(data, sample_percent=0.25, num_samples=1000):
+    """
+    Compute bootstrapped standard error of mean of input data.
+
+    :param data: Input data (1D torch tensor or numpy array).
+    :param sample_percent: Size of sample to use to calculate bootstrap statistic.
+    :param num_samples: Number of times to sample.
+    """
+    sample_size = int(sample_percent * len(data))
+    means = [
+        np.mean(np.random.choice(data, size=sample_size, replace=True))
+        for i in range(num_samples)
+    ]
+    return np.std(means)

@@ -88,6 +88,9 @@ class TestGridworldCPE(GridworldTestBase):
                     + "."
                 )
                 self.assertLessEqual(np.absolute(percent_err), 1000)
+                self.assertLessEqual(
+                    cpe_drs[i].normalized_std_error, cpe_drs[i].normalized
+                )
 
     def test_sequential_doubly_robust(self):
         """Both the logged and model policies are epsilon-greedy policies where
@@ -139,6 +142,9 @@ class TestGridworldCPE(GridworldTestBase):
                 + "."
             )
             self.assertLessEqual(np.absolute(percent_err), 100)
+            self.assertLessEqual(
+                cpe_sequential_dr.normalized_std_error, cpe_sequential_dr.normalized
+            )
 
     def test_magic(self):
         """Both the logged and model policies are epsilon-greedy policies where
@@ -192,6 +198,7 @@ class TestGridworldCPE(GridworldTestBase):
                 + "."
             )
             self.assertLessEqual(np.absolute(percent_err), 100)
+            self.assertLessEqual(cpe_magic.normalized_std_error, cpe_magic.normalized)
 
     def create_edp(self, environment, samples, epsilon_model):
         """Generate a EvaluationDataPage such that the model policy is epsilon

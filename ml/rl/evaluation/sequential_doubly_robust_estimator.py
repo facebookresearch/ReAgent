@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 import torch
-from ml.rl.evaluation.cpe import CpeEstimate
+from ml.rl.evaluation.cpe import CpeEstimate, bootstrapped_std_error_of_mean
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 
 
@@ -90,9 +90,15 @@ class SequentialDoublyRobustEstimator:
 
         denominator = np.mean(episode_values)
         if abs(denominator) < 1e-6:
-            return CpeEstimate(raw=0.0, normalized=0.0)
+            return CpeEstimate(
+                raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
+            )
 
         dr_score = np.mean(doubly_robusts)
+        dr_score_std_error = bootstrapped_std_error_of_mean(doubly_robusts)
         return CpeEstimate(
-            raw=float(dr_score), normalized=float(dr_score) / denominator
+            raw=float(dr_score),
+            normalized=float(dr_score) / denominator,
+            raw_std_error=dr_score_std_error,
+            normalized_std_error=dr_score_std_error / denominator,
         )
