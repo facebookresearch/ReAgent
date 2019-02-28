@@ -334,6 +334,7 @@ def train_gym_online_rl(
         while not terminal:
             state = next_state
             action = next_action
+            action_probability = next_action_probability
 
             # Get possible actions
             possible_actions, _ = get_possible_actions(gym_env, model_type, terminal)
@@ -341,22 +342,16 @@ def train_gym_online_rl(
             if render:
                 gym_env.env.render()
 
-            action_to_log, gym_action = _format_action_for_log_and_gym(
+            timeline_format_action, gym_action = _format_action_for_log_and_gym(
                 action, gym_env.action_type, model_type
             )
-            if gym_env.action_type == EnvType.DISCRETE_ACTION:
-                next_state, reward, terminal, _ = gym_env.env.step(gym_action)
-            else:
-                next_state, reward, terminal, _ = gym_env.env.step(gym_action)
+            next_state, reward, terminal, _ = gym_env.env.step(gym_action)
             next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
             total_timesteps += 1
             next_action, next_action_probability = gym_env.policy(
                 predictor, next_state, False
-            )
-            next_action_to_log, _ = _format_action_for_log_and_gym(
-                next_action, gym_env.action_type, model_type
             )
             reward_sum += reward
 
@@ -387,18 +382,22 @@ def train_gym_online_rl(
                 start_saving_from_score is None
                 or best_episode_score_seeen >= start_saving_from_score
             ):
-                save_timesteps_to_dataset.insert_gym_format(
-                    state,
-                    action,
-                    reward,
-                    next_state,
-                    next_action,
-                    terminal,
-                    possible_next_actions,
-                    possible_next_actions_mask,
-                    1,
-                    possible_actions,
-                    possible_actions_mask,
+                save_timesteps_to_dataset.insert(
+                    mdp_id=i,
+                    sequence_number=ep_timesteps - 1,
+                    state=state,
+                    action=action,
+                    timeline_format_action=timeline_format_action,
+                    action_probability=action_probability,
+                    reward=reward,
+                    next_state=next_state,
+                    next_action=next_action,
+                    terminal=terminal,
+                    possible_next_actions=possible_next_actions,
+                    possible_next_actions_mask=possible_next_actions_mask,
+                    time_diff=1,
+                    possible_actions=possible_actions,
+                    possible_actions_mask=possible_actions_mask,
                 )
 
             # Training loop
@@ -509,7 +508,7 @@ def main(args):
         "--start_saving_from_score",
         type=int,
         help="If file_path is set, start saving episodes after this score is hit.",
-        default=0,
+        default=None,
     )
     parser.add_argument(
         "-r",
