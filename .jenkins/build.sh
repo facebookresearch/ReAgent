@@ -14,7 +14,7 @@ pytest
 mvn -f preprocessing/pom.xml clean package
 
 mkdir cartpole_discrete
-python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0.json -f cartpole_discrete/training_data.json
+python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0_small.json -f cartpole_discrete/training_data.json
 
 /usr/local/spark/bin/spark-submit \
   --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
@@ -30,6 +30,7 @@ rm -Rf cartpole_discrete_training cartpole_discrete_eval
 python ml/rl/workflow/create_normalization_metadata.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_example.json
 
 mkdir outputs
+rm -Rf outputs/predictor*
 python ml/rl/workflow/dqn_workflow.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_example.json
 
 # Evaluate

@@ -10,7 +10,7 @@
     "numOutputShards": 1
   },
   "query": {
-    "tableSample": 10,
+    "tableSample": 100,
     "actions": [
       "0",
       "1"
