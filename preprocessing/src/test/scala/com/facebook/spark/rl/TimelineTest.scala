@@ -549,8 +549,7 @@ class TimelineTest extends PipelineTester {
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
 
-    val percentileFunc =
-      if (sparkContext.version >= "2.3.0") "approx_percentile" else "fb_approx_percentile"
+    val percentileFunc = "percentile"
 
     // Setup configuration
     val config = TimelineConfiguration("2018-01-01",
