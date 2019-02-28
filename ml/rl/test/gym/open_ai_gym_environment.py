@@ -223,7 +223,7 @@ class OpenAIGymEnvironment(Environment):
             # assumes state preprocessor already part of predictor net.
             sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
             q_values = predictor.predict(sparse_next_states)
-            action_idx = int(max(q_values[0], key=q_values[0].get)) - self.state_dim
+            action_idx = int(max(q_values[0], key=q_values[0].get))
             action[action_idx] = 1.0
             return action, action_probability
         elif isinstance(predictor, (ParametricDQNPredictor, _ParametricDQNPredictor)):
