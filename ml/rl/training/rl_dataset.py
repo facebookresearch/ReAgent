@@ -12,11 +12,17 @@ class RLDataset:
     def __init__(self, file_path):
         """
         Holds a collection of RL samples:
-            1) Can insert in the "pre-timeline" format (`insert_hive_format`)
-            2) Can insert in the replay buffer format (`insert_gym_format`)
+            1) Can insert in the "pre-timeline" format (file extension json)
+            2) Can insert in the "replay buffer" format (file extension pkl)
 
-        :param file_path: String Load/save the dataset from/to this file.
+        :param file_path: String load/save the dataset from/to this file.
         """
+        file_extension = file_path.split(".")[-1]
+        assert file_extension in (
+            "json",
+            "pkl",
+        ), "File type {} not supported. Only json and pkl supported."
+        self.use_pickle = True if file_extension == "pkl" else False
         self.file_path = file_path
         self.rows = []
 
@@ -26,17 +32,33 @@ class RLDataset:
             for line in f:
                 self.rows.append(json.loads(line))
 
-    def save(self, use_pickle=True):
+    def save(self):
         """Save samples as a pickle file or JSON file."""
-        with open(self.file_path, "wb") as f:
-            if use_pickle:
+        if self.use_pickle:
+            with open(self.file_path, "wb") as f:
                 pickle.dump(self.rows, f)
-            else:
+        else:
+            with open(self.file_path, "w") as f:
                 for data in self.rows:
                     json.dump(data, f)
                     f.write("\n")
 
-    def insert_gym_format(
+    def insert(self, **kwargs):
+        if self.use_pickle:
+            del kwargs["mdp_id"]
+            del kwargs["sequence_number"]
+            del kwargs["action_probability"]
+            del kwargs["timeline_format_action"]
+            self.insert_replay_buffer_format(**kwargs)
+        else:
+            del kwargs["next_state"]
+            del kwargs["next_action"]
+            del kwargs["action"]
+            del kwargs["possible_next_actions"]
+            del kwargs["possible_next_actions_mask"]
+            self.insert_pre_timeline_format(**kwargs)
+
+    def insert_replay_buffer_format(
         self,
         state,
         action,
@@ -71,22 +93,30 @@ class RLDataset:
             }
         )
 
-    def insert_hive_format(
+    def insert_pre_timeline_format(
         self,
         mdp_id,
         sequence_number,
         state,
-        action,
+        timeline_format_action,
         reward,
         terminal,
         possible_actions,
         time_diff,
         action_probability,
+        possible_actions_mask,
     ):
         """
-        Insert a new sample to the dataset in the format needed to upload
-        dataset to hive.
+        Insert a new sample to the dataset in the pre-timeline json format.
+        Format needed for running timeline operator and for uploading dataset to hive.
         """
+        state = state.tolist()
+        action = timeline_format_action
+        if possible_actions:
+            possible_actions = possible_actions.tolist()
+        else:
+            possible_actions = possible_actions_mask
+
         assert isinstance(state, list)
         assert isinstance(action, (list, str))
         assert isinstance(reward, (float, int))

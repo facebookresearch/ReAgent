@@ -126,16 +126,16 @@ object Timeline {
 
     config.outlierEpisodeLengthPercentile.foreach { percentile =>
       sqlContext.sql(s"""
-          SELECT mdp_id, COUNT(1) mdp_length
+          SELECT mdp_id, COUNT(mdp_id) AS mdp_length
           FROM ${config.inputTableName}
           WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-          GROUP BY 1
+          GROUP BY mdp_id
       """).createOrReplaceTempView("episode_length")
     }
 
     val sourceTable = Timeline.mdpLengthThreshold(sqlContext, config) match {
       case Some(threshold) => s"""
-      WITH a AS (SELECT mdp_id FROM episode_length WHERE mdp_length < ${threshold}),
+      WITH a AS (SELECT mdp_id FROM episode_length WHERE mdp_length <= ${threshold}),
       source_table AS (
           SELECT
               b.mdp_id,
@@ -253,24 +253,24 @@ object Timeline {
     sqlContext.sql(insertCommand)
   }
 
-  def mdpLengthThreshold(sqlContext: SQLContext, config: TimelineConfiguration): Option[Int] =
+  def mdpLengthThreshold(sqlContext: SQLContext, config: TimelineConfiguration): Option[Double] =
     config.outlierEpisodeLengthPercentile.flatMap { percentile =>
       {
         val df = sqlContext.sql(s"""
             WITH a AS (
-                SELECT CAST(${config.percentileFunction}(mdp_length, ${percentile}) AS INT) pct FROM episode_length
+                SELECT ${config.percentileFunction}(mdp_length, ${percentile}) pct FROM episode_length
             ),
             b AS (
                 SELECT
-                    count(1) as mdp_count,
-                    count(IF(episode_length.mdp_length >= a.pct, 1, NULL)) as outlier_count
-                FROM episode_length, a
+                    count(*) as mdp_count,
+                    sum(IF(episode_length.mdp_length > a.pct, 1, 0)) as outlier_count
+                FROM episode_length CROSS JOIN a
             )
             SELECT a.pct, b.mdp_count, b.outlier_count
-            FROM a, b
+            FROM b CROSS JOIN a
         """)
         val res = df.first
-        val pct_val = res.getAs[Int]("pct")
+        val pct_val = res.getAs[Double]("pct")
         val mdp_count = res.getAs[Long]("mdp_count")
         val outlier_count = res.getAs[Long]("outlier_count")
         log.info(s"Threshold: ${pct_val}; mdp count: ${mdp_count}; outlier_count: ${outlier_count}")
