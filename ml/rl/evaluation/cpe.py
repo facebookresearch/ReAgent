@@ -6,6 +6,7 @@ import math
 from typing import Dict, NamedTuple, Optional
 
 import numpy as np
+import torch
 from ml.rl.tensorboardX import SummaryWriterContext
 
 
@@ -149,6 +150,8 @@ def bootstrapped_std_error_of_mean(data, sample_percent=0.25, num_samples=1000):
     :param sample_percent: Size of sample to use to calculate bootstrap statistic.
     :param num_samples: Number of times to sample.
     """
+    if isinstance(data, torch.Tensor):
+        data = data.cpu().numpy()
     sample_size = int(sample_percent * len(data))
     means = [
         np.mean(np.random.choice(data, size=sample_size, replace=True))

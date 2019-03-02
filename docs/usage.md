@@ -130,7 +130,18 @@ Data from production systems is often sparse, noisy and arbitrarily distributed.
 python ml/rl/workflow/create_normalization_metadata.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_example.json
 ```
 
+Now we can look at the normalization file.  It's a JSON file where each key is a feature id and each value is a string-encoded JSON object describing the normalization:
 
+```
+cat training_data/state_features_norm.json | python -m json.tool
+
+{
+    "0": "{\"feature_type\":\"CONTINUOUS\",\"mean\":0.5675003528594971,\"stddev\":1.0,\"min_value\":-0.1467551738023758,\"max_value\":2.1779561042785645}",
+    "1": "{\"feature_type\":\"CONTINUOUS\",\"mean\":0.42259514331817627,\"stddev\":1.0,\"min_value\":-1.3586808443069458,\"max_value\":1.8529225587844849}",
+    "2": "{\"feature_type\":\"CONTINUOUS\",\"mean\":0.028220390900969505,\"stddev\":1.0,\"min_value\":-0.14581388235092163,\"max_value\":0.19483095407485962}",
+    "3": "{\"feature_type\":\"CONTINUOUS\",\"mean\":0.02947876788675785,\"stddev\":1.0,\"min_value\":-2.194336175918579,\"max_value\":2.164193868637085}"
+}
+```
 
 ##### Step 4 - Train model
 Now we are ready to train a model by running:

@@ -51,7 +51,23 @@ object Preprocessor {
         StructField("metrics", MapType(StringType, DoubleType, true))
       ))
 
-    val inputDf = sparkSession.read.schema(schema).json(timelineConfig.inputTableName)
+    var inputDf = sparkSession.read.schema(schema).json(timelineConfig.inputTableName)
+
+    val mapStringDoubleToLongDouble = udf(
+      (r: Map[String, Double]) => r.map({ case (key, value) => (key.toLong, value) }))
+
+    inputDf = inputDf.withColumn("state_features",
+                                 mapStringDoubleToLongDouble(inputDf.col("state_features")))
+    if (!timelineConfig.actionDiscrete) {
+      inputDf = inputDf.withColumn("action", mapStringDoubleToLongDouble(inputDf.col("action")))
+
+      val mapArrayStringDoubleToArrayLongDouble = udf((r: Array[Map[String, Double]]) =>
+        r.map((m) => m.map({ case (key, value) => (key.toLong, value) })))
+      inputDf = inputDf.withColumn(
+        "possible_actions",
+        mapArrayStringDoubleToArrayLongDouble(inputDf.col("possible_actions")))
+    }
+
     inputDf.createOrReplaceTempView(timelineConfig.inputTableName)
 
     Timeline.run(sparkSession.sqlContext, timelineConfig)

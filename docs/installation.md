@@ -36,9 +36,9 @@ echo $JAVA_HOME # Should see something like "/home/jjg/miniconda3"
 
 Install Spark (the mv command may need to be done as root):
 ```
-wget https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
-tar -xzf spark-2.4.0-bin-hadoop2.7.tgz
-mv spark-2.4.0-bin-hadoop2.7 /usr/local/spark
+wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoop2.7.tgz
+tar -xzf spark-2.3.3-bin-hadoop2.7.tgz
+sudo mv spark-2.3.3-bin-hadoop2.7 /usr/local/spark
 ```
 
 Add the spark bin directory to your path so your terminal can find `spark-submit`:

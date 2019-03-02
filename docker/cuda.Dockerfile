@@ -16,15 +16,15 @@ FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    ca-certificates \
-    cmake \
-    git \
-    sudo \
-    software-properties-common \
-    vim \
-    emacs \
-    wget
+  build-essential \
+  ca-certificates \
+  cmake \
+  git \
+  sudo \
+  software-properties-common \
+  vim \
+  emacs \
+  wget
 
 # Sometimes needed to avoid SSL CA issues.
 RUN update-ca-certificates
@@ -33,9 +33,9 @@ ENV HOME /home
 WORKDIR ${HOME}/
 
 RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
-    chmod +x miniconda.sh && \
-    ./miniconda.sh -b -p ${HOME}/miniconda && \
-    rm miniconda.sh
+  chmod +x miniconda.sh && \
+  ./miniconda.sh -b -p ${HOME}/miniconda && \
+  rm miniconda.sh
 
 # Setting these env var outside of the install script to ensure
 # they persist in image
@@ -60,9 +60,9 @@ RUN pip install "gym[classic_control,box2d,atari]"
 ENV JAVA_HOME ${HOME}/miniconda
 
 # Install Spark
-RUN wget https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz && \
-    tar -xzf spark-2.4.0-bin-hadoop2.7.tgz && \
-    mv spark-2.4.0-bin-hadoop2.7 /usr/local/spark
+RUN wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoop2.7.tgz && \
+  tar -xzf spark-2.3.3-bin-hadoop2.7.tgz && \
+  mv spark-2.3.3-bin-hadoop2.7 /usr/local/spark
 
 # Reminder: this should be updated when switching between CUDA 8 or 9. Should
 # be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
