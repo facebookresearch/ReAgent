@@ -91,7 +91,7 @@ RUN rm "${TMP_NCCL_VERSION}.txz"
 ARG JENKINS
 ARG JENKINS_UID
 ARG JENKINS_GID
-ADD jenkins/add_jenkins_user.sh add_jenkins_user.sh
+ADD docker/jenkins/add_jenkins_user.sh add_jenkins_user.sh
 RUN if [ -n "${JENKINS}" ]; then bash ./add_jenkins_user.sh ${JENKINS_UID} ${JENKINS_GID}; fi
 RUN rm add_jenkins_user.sh
 
