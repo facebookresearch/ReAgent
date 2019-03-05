@@ -107,11 +107,14 @@ class WeightedSequentialDoublyRobustEstimator:
         else:
             # break trajectories into several subsets to estimate confidence bounds
             infinite_step_returns = []
-            num_subsets = int(
-                min(
-                    num_trajectories / 2,
-                    WeightedSequentialDoublyRobustEstimator.NUM_SUBSETS_FOR_CB_ESTIMATES,
-                )
+            num_subsets = max(
+                int(
+                    min(
+                        num_trajectories / 2,
+                        WeightedSequentialDoublyRobustEstimator.NUM_SUBSETS_FOR_CB_ESTIMATES,
+                    )
+                ),
+                1,
             )
             interval = num_trajectories / num_subsets
             for i in range(num_subsets):
