@@ -17,5 +17,8 @@ chown jenkins:jenkins /var/lib/jenkins/.ccache
 # Allow writing to /usr/local (for make install)
 chown jenkins:jenkins /usr/local
 
+# Allow writing to /home/miniconda (for pip install)
+chown jenkins:jenkins /home/miniconda
+
 # Allow sudo
 echo 'jenkins ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/jenkins

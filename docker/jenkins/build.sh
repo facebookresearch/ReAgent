@@ -23,14 +23,14 @@ if [ -n "${JENKINS:-}" ]; then
   JENKINS_GID=$(id -g jenkins)
 fi
 
-pushd ..
+pushd ../..
 docker build \
   --no-cache \
   --build-arg "JENKINS=${JENKINS:-}" \
   --build-arg "JENKINS_UID=${JENKINS_UID:-}" \
   --build-arg "JENKINS_GID=${JENKINS_GID:-}" \
   --build-arg "USE_GPU=${USE_GPU}" \
-  -f jenkins.Dockerfile \
+  -f docker/jenkins.Dockerfile \
   "$@" \
   .
 popd
