@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+import random
 
 import numpy as np
 import torch
@@ -30,15 +31,27 @@ class OpenAIGymMemoryPool:
     def size(self):
         return len(self.replay_memory)
 
-    def sample_memories(self, batch_size, model_type):
+    def shuffle(self):
+        random.shuffle(self.replay_memory)
+
+    def sample_memories(self, batch_size, model_type, chunk=None):
         """
-        Samples transitions from replay memory uniformly at random.
+        Samples transitions from replay memory uniformly at random by default
+        or pass chunk for deterministic sample.
 
         :param batch_size: Number of sampled transitions to return.
         :param model_type: Model type (discrete, parametric).
+        :param chunk: Index of chunk of data (for deterministic sampling).
         """
-        cols = [[], [], [], [], [], [], [], [], [], [], []]
-        indices = np.random.permutation(len(self.replay_memory))[:batch_size]
+        cols = [[], [], [], [], [], [], [], [], [], [], [], []]
+
+        if chunk is None:
+            indices = np.random.permutation(len(self.replay_memory))[:batch_size]
+        else:
+            start_idx = chunk * batch_size
+            end_idx = start_idx + batch_size
+            indices = range(start_idx, end_idx)
+
         for idx in indices:
             memory = self.replay_memory[idx]
             for col, value in zip(cols, memory):
@@ -131,6 +144,7 @@ class OpenAIGymMemoryPool:
         time_diff,
         possible_actions,
         possible_actions_mask,
+        policy_id,
     ):
         """
         Inserts transition into replay memory in such a way that retrieving
@@ -148,6 +162,7 @@ class OpenAIGymMemoryPool:
             possible_actions,
             possible_actions_mask,
             time_diff,
+            policy_id,
         )
 
         if self.memory_num < self.max_replay_memory_size:

@@ -84,7 +84,7 @@ def get_possible_actions(gym_env, model_type, terminal):
     return possible_next_actions, possible_next_actions_mask
 
 
-def train_sgd(
+def train(
     c2_device,
     gym_env,
     offline_train,
@@ -161,6 +161,7 @@ def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, mode
         use_continuous_action=True,
         max_step=max_steps,
     )
+    policy_id = 0
     for i in range(len(samples.mdp_ids)):
         state = dict_to_np(samples.states[i], gym_env.state_dim, 0)
         action = dict_to_np(samples.actions[i], gym_env.action_dim, gym_env.state_dim)
@@ -188,6 +189,7 @@ def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, mode
             1,
             possible_actions,
             possible_actions_mask,
+            policy_id,
         )
 
 
@@ -195,8 +197,13 @@ def create_stored_policy_offline_dataset(replay_buffer, path):
     """Read transitions from pickle file and load into replay buffer."""
     with open(path, "rb") as f:
         rows = pickle.load(f)
+    unique_policies = set()
     for row in rows:
+        unique_policies.add(row["policy_id"])
         replay_buffer.insert_into_memory(**row)
+    logger.info(
+        "Transitions generated from {} different policies".format(len(unique_policies))
+    )
 
 
 def train_gym_offline_rl(
@@ -309,6 +316,7 @@ def train_gym_online_rl(
     best_episode_score_seeen = -1e20
     episodes_since_solved = 0
     solved = False
+    policy_id = 0
 
     for i in range(num_episodes):
         if (
@@ -376,6 +384,7 @@ def train_gym_online_rl(
                 1,
                 possible_actions,
                 possible_actions_mask,
+                policy_id,
             )
 
             if save_timesteps_to_dataset and (
@@ -398,6 +407,7 @@ def train_gym_online_rl(
                     time_diff=1,
                     possible_actions=possible_actions,
                     possible_actions_mask=possible_actions_mask,
+                    policy_id=policy_id,
                 )
 
             # Training loop
@@ -413,6 +423,8 @@ def train_gym_online_rl(
                     )
                     samples.set_type(trainer.dtype)
                     trainer.train(samples)
+                    # Every time we train, the policy changes
+                    policy_id += 1
 
             # Evaluation loop
             if total_timesteps % test_every_ts == 0 and total_timesteps > test_after_ts:
@@ -461,7 +473,7 @@ def train_gym_online_rl(
                 )
             )
 
-        if solved and stop_training_after_solved:
+        if solved:
             gym_env.epsilon = gym_env.minimum_epsilon
         else:
             gym_env.decay_epsilon()
@@ -601,7 +613,7 @@ def run_gym(
     c2_device = core.DeviceOption(
         caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, int(gpu_id)
     )
-    return train_sgd(
+    return train(
         c2_device,
         env,
         offline_train,

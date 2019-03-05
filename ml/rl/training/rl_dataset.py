@@ -56,6 +56,7 @@ class RLDataset:
             del kwargs["action"]
             del kwargs["possible_next_actions"]
             del kwargs["possible_next_actions_mask"]
+            del kwargs["policy_id"]
             self.insert_pre_timeline_format(**kwargs)
 
     def insert_replay_buffer_format(
@@ -71,6 +72,7 @@ class RLDataset:
         time_diff,
         possible_actions,
         possible_actions_mask,
+        policy_id,
     ):
         """
         Insert a new sample to the dataset in the same format as the
@@ -90,6 +92,7 @@ class RLDataset:
                 "next_action": next_action,
                 "possible_actions": possible_actions,
                 "possible_actions_mask": possible_actions_mask,
+                "policy_id": policy_id,
             }
         )
 
