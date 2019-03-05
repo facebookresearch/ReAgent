@@ -70,5 +70,8 @@ RUN wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoo
 # Caches dependencies so they do not need to be re-downloaded
 RUN mvn -f /tmp/pom.xml dependency:resolve
 
+# Clean up pom.xml
+RUN rm /tmp/pom.xml
+
 # Define default command.
 CMD ["bash"]

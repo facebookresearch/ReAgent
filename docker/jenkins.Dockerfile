@@ -71,6 +71,9 @@ RUN wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoo
 # Caches dependencies so they do not need to be re-downloaded
 RUN mvn -f /tmp/pom.xml dependency:resolve
 
+# Clean up pom.xml
+RUN rm /tmp/pom.xml
+
 # Reminder: this should be updated when switching between CUDA 8 or 9. Should
 # be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
 ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
