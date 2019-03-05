@@ -92,23 +92,23 @@ class CpeEstimateSet:
 
         for name, value in [
             (
-                "CPE/{}/Direct Method Reward".format(metric_name),
+                "CPE/{}/Direct_Method_Reward".format(metric_name),
                 self.direct_method.normalized,
             ),
             (
-                "CPE/{}/IPS Reward".format(metric_name),
+                "CPE/{}/IPS_Reward".format(metric_name),
                 self.inverse_propensity.normalized,
             ),
             (
-                "CPE/{}/Doubly Robust Reward".format(metric_name),
+                "CPE/{}/Doubly_Robust_Reward".format(metric_name),
                 self.doubly_robust.normalized,
             ),
             (
-                "CPE/{}/Sequential Doubly Robust".format(metric_name),
+                "CPE/{}/Sequential_Doubly_Robust".format(metric_name),
                 self.sequential_doubly_robust.normalized,
             ),
             (
-                "CPE/{}/Weighted Sequential Doubly Robust".format(metric_name),
+                "CPE/{}/Weighted_Sequential_Doubly_Robust".format(metric_name),
                 self.weighted_doubly_robust.normalized,
             ),
             ("CPE/{}/MAGIC".format(metric_name), self.magic.normalized),

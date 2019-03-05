@@ -49,8 +49,11 @@ ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
 RUN conda config --add channels pytorch # For PyTorch
 
+# Add files to image
+ADD requirements.txt requirements.txt
+ADD preprocessing/pom.xml /tmp/pom.xml
+
 # Install dependencies
-ADD ./requirements.txt requirements.txt
 RUN conda install --file requirements.txt
 RUN rm requirements.txt
 
@@ -64,6 +67,12 @@ ENV JAVA_HOME ${HOME}/miniconda
 RUN wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoop2.7.tgz && \
   tar -xzf spark-2.3.3-bin-hadoop2.7.tgz && \
   mv spark-2.3.3-bin-hadoop2.7 /usr/local/spark
+
+# Caches dependencies so they do not need to be re-downloaded
+RUN mvn -f /tmp/pom.xml dependency:resolve
+
+# Clean up pom.xml
+RUN rm /tmp/pom.xml
 
 # Reminder: this should be updated when switching between CUDA 8 or 9. Should
 # be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
@@ -85,7 +94,7 @@ RUN rm "${TMP_NCCL_VERSION}.txz"
 ARG JENKINS
 ARG JENKINS_UID
 ARG JENKINS_GID
-ADD jenkins/add_jenkins_user.sh add_jenkins_user.sh
+ADD docker/jenkins/add_jenkins_user.sh add_jenkins_user.sh
 RUN if [ -n "${JENKINS}" ]; then bash ./add_jenkins_user.sh ${JENKINS_UID} ${JENKINS_GID}; fi
 RUN rm add_jenkins_user.sh
 
