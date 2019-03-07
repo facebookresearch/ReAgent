@@ -97,9 +97,15 @@ class DuelingQNetwork(ModelBase):
         for i, activation in enumerate(self.activations[:-1]):
             if self.use_batch_norm:
                 x = self.batch_norm_ops[i](x)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
+
+            x = self.layers[i](x)
+            if activation == "linear":
+                pass
+            elif activation == "tanh":
+                activation_func = torch.tanh
+            else:
+                activation_func = getattr(F, activation)
+                x = activation_func(x)
 
         value = self.value(x)
         if action is not None:

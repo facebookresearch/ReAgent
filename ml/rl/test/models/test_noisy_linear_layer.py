@@ -19,4 +19,4 @@ class TestNoisyLinearLayer(unittest.TestCase):
         noisy_layer = NoisyLinear(in_dim, out_dim)
         input = torch.randn(1, 5)
         equal_tensor = torch.eq(noisy_layer(input), noisy_layer(input))
-        self.assertEquals(equal_tensor.sum(), 0)
+        self.assertEqual(equal_tensor.sum(), 0)

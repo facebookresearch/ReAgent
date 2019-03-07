@@ -306,9 +306,14 @@ class ActorNet(nn.Module):
         x = state
         for i, activation in enumerate(self.activations):
             x = self.batch_norm_ops[i](x)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
+            x = self.layers[i](x)
+            if activation == "linear":
+                pass
+            elif activation == "tanh":
+                activation_func = torch.tanh
+            else:
+                activation_func = getattr(F, activation)
+                x = activation_func(x)
         return x
 
 
@@ -367,9 +372,15 @@ class CriticNet(nn.Module):
             elif i == 1:
                 x = self.batch_norm_ops[i](x)
                 x = torch.cat((x, action), dim=1)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
+
+            x = self.layers[i](x)
+            if activation == "linear":
+                pass
+            elif activation == "tanh":
+                activation_func = torch.tanh
+            else:
+                activation_func = getattr(F, activation)
+                x = activation_func(x)
         return x
 
 

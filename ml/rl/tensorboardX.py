@@ -47,7 +47,7 @@ class SummaryWriterContextMeta(type):
                 if hasattr(writer, "exceptions_to_ignore") and isinstance(
                     e, writer.exceptions_to_ignore
                 ):
-                    logger.warn("Ignoring exception: {}".format(e))
+                    logger.warning("Ignoring exception: {}".format(e))
                     if hasattr(writer, "exception_logging_func"):
                         writer.exception_logging_func(e)
                     return

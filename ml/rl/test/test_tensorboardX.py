@@ -63,7 +63,7 @@ class TestSummaryWriterContext(unittest.TestCase):
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             writer.add_scalar = MagicMock(side_effect=NotImplementedError("test"))
-            with self.assertRaisesRegexp(
+            with self.assertRaisesRegex(
                 NotImplementedError, "test"
             ), summary_writer_context(writer):
                 SummaryWriterContext.add_scalar("test", torch.ones(1))
