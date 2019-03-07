@@ -381,7 +381,7 @@ class TestGridworld(GridworldTestBase):
         post_export_q_values = new_predictor.predict([samples.states[0]])
 
         for i, action in enumerate(environment.ACTIONS):
-            self.assertAlmostEquals(
+            self.assertAlmostEqual(
                 pre_export_q_values[0][i], post_export_q_values[0][action], places=4
             )
 

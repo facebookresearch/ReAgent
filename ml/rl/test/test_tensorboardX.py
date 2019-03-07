@@ -92,8 +92,8 @@ class TestSummaryWriterContext(unittest.TestCase):
                 SummaryWriterContext.add_custom_scalars_multilinechart(
                     ["a", "b"], category="cat", title="title"
                 )
-                with self.assertRaisesRegexp(
-                    AssertionError, "Title \(title\) is already in category \(cat\)"
+                with self.assertRaisesRegex(
+                    AssertionError, "Title \\(title\\) is already in category \\(cat\\)"
                 ):
                     SummaryWriterContext.add_custom_scalars_multilinechart(
                         ["c", "d"], category="cat", title="title"
