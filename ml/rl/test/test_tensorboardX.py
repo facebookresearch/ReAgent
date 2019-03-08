@@ -63,7 +63,7 @@ class TestSummaryWriterContext(unittest.TestCase):
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             writer.add_scalar = MagicMock(side_effect=NotImplementedError("test"))
-            with self.assertRaisesRegexp(
+            with self.assertRaisesRegex(
                 NotImplementedError, "test"
             ), summary_writer_context(writer):
                 SummaryWriterContext.add_scalar("test", torch.ones(1))
@@ -92,8 +92,8 @@ class TestSummaryWriterContext(unittest.TestCase):
                 SummaryWriterContext.add_custom_scalars_multilinechart(
                     ["a", "b"], category="cat", title="title"
                 )
-                with self.assertRaisesRegexp(
-                    AssertionError, "Title \(title\) is already in category \(cat\)"
+                with self.assertRaisesRegex(
+                    AssertionError, "Title \\(title\\) is already in category \\(cat\\)"
                 ):
                     SummaryWriterContext.add_custom_scalars_multilinechart(
                         ["c", "d"], category="cat", title="title"

@@ -95,9 +95,9 @@ class TestMDNRNN(unittest.TestCase):
             next_state = torch.randn((1, 1, state_dim))
             for s in range(seq_len):
                 cur_state = next_state
-                action = torch.tensor(
-                    possible_actions[np.random.randint(action_dim)]
-                ).view(1, 1, action_dim)
+                action = possible_actions[np.random.randint(action_dim)].view(
+                    1, 1, action_dim
+                )
                 next_mus, reward = swm(action, cur_state)
 
                 not_terminal = 1

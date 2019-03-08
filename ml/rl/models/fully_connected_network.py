@@ -59,7 +59,12 @@ class FullyConnectedNetwork(nn.Module):
         for i, activation in enumerate(self.activations):
             if self.use_batch_norm:
                 x = self.batch_norm_ops[i](x)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
+            x = self.layers[i](x)
+            if activation == "linear":
+                continue
+            elif activation == "tanh":
+                activation_func = torch.tanh
+            else:
+                activation_func = getattr(F, activation)
+            x = activation_func(x)
         return x
