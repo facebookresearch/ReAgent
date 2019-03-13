@@ -121,6 +121,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
                 training_parameters.layers,
                 training_parameters.activations,
                 use_noisy_linear_layers=training_parameters.use_noisy_linear_layers,
+                dropout_ratio=training_parameters.dropout_ratio,
             )
         else:
             return ParametricInnerProduct(

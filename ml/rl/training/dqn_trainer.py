@@ -83,6 +83,7 @@ class DQNTrainer(DQNTrainerBase):
                     use_noisy_linear_layers=parameters.training.use_noisy_linear_layers,
                     min_std=parameters.training.weight_init_min_std,
                     use_batch_norm=parameters.training.use_batch_norm,
+                    dropout_ratio=parameters.training.dropout_ratio,
                 )
             else:
                 self.q_network = ConvolutionalNetwork(
