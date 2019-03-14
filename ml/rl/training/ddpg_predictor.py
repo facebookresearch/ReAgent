@@ -259,7 +259,7 @@ class DDPGPredictor(RLPredictor):
         output_keys = "output/float_features.keys"
         workspace.FeedBlob(output_keys, np.zeros(1, dtype=np.int64))
         num_examples, _ = C2.Reshape(C2.Size("input/float_features.lengths"), shape=[1])
-        C2.net().Tile([action_feature_ids_blob, num_examples], [output_keys], axis=1)
+        C2.net().Tile([action_feature_ids_blob, num_examples], [output_keys], axis=0)
 
         output_values = "output/float_features.values"
         workspace.FeedBlob(output_values, np.zeros(1, dtype=np.float32))
