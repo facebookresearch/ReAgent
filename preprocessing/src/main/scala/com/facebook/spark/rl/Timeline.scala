@@ -227,20 +227,15 @@ object Timeline {
     val nextAction = df("next_action")
     val possibleNextActions = df("possible_next_actions")
 
-    val map_ = udf(() => Map.empty[Long, Double])
-    val array_ = udf(() => Array.empty[String])
-    val string_ = udf(() => "")
-    val arrayOfMaps_ = udf(() => Array.empty[Map[Long, Double]])
-
-    df = df.withColumn("next_state_features", coalesce(df("next_state_features"), map_()))
+    df = df.withColumn("next_state_features", coalesce(df("next_state_features"), Udfs.emptyMap()))
     if (config.actionDiscrete) {
       df = df
-        .withColumn("next_action", coalesce(nextAction, string_()))
-        .withColumn("possible_next_actions", coalesce(possibleNextActions, array_()))
+        .withColumn("next_action", coalesce(nextAction, Udfs.emptyStr()))
+        .withColumn("possible_next_actions", coalesce(possibleNextActions, Udfs.emptyArrOfStr()))
     } else {
       df = df
-        .withColumn("next_action", coalesce(nextAction, map_()))
-        .withColumn("possible_next_actions", coalesce(possibleNextActions, arrayOfMaps_()))
+        .withColumn("next_action", coalesce(nextAction, Udfs.emptyMap()))
+        .withColumn("possible_next_actions", coalesce(possibleNextActions, Udfs.emptyArrOfMap()))
     }
 
     val finalTableName = "finalTable"
