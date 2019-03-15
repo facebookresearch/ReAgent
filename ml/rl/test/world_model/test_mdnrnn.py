@@ -58,7 +58,14 @@ class TestMDNRNN(unittest.TestCase):
         )
         assert -torch.log(p1 + p2) == gl
 
-    def test_mdnrnn_simulate_world(self):
+    def test_mdnrnn_simulate_world_cpu(self):
+        self._test_mdnrnn_simulate_world()
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_mdnrnn_simulate_world_gpu(self):
+        self._test_mdnrnn_simulate_world(use_gpu=True)
+
+    def _test_mdnrnn_simulate_world(self, use_gpu=False):
         num_epochs = 300
         num_episodes = 400
         batch_size = 200
@@ -136,13 +143,18 @@ class TestMDNRNN(unittest.TestCase):
             num_gaussians=mdnrnn_params.num_gaussians,
         )
         trainer = MDNRNNTrainer(
-            mdnrnn_network=mdnrnn_net, params=mdnrnn_params, cum_loss_hist=num_batch
+            mdnrnn_network=mdnrnn_net,
+            params=mdnrnn_params,
+            cum_loss_hist=num_batch,
+            use_gpu=use_gpu,
         )
 
         for e in range(num_epochs):
             for i in range(num_batch):
-                training_batch = replay_buffer.sample_memories(batch_size)
-                losses = trainer.train(training_batch)
+                training_batch = replay_buffer.sample_memories(
+                    batch_size, batch_first=use_gpu
+                )
+                losses = trainer.train(training_batch, batch_first=use_gpu)
                 logger.info(
                     "{}-th epoch, {}-th minibatch: \n"
                     "loss={}, bce={}, gmm={}, mse={} \n"

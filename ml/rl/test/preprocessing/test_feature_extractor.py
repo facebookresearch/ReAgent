@@ -10,6 +10,7 @@ from ml.rl import types as rlt
 from ml.rl.preprocessing.feature_extractor import (
     PredictorFeatureExtractor,
     TrainingFeatureExtractor,
+    WorldModelFeatureExtractor,
     map_schema,
 )
 from ml.rl.preprocessing.identify_types import CONTINUOUS, PROBABILITY
@@ -289,6 +290,176 @@ class FeatureExtractorTestBase(unittest.TestCase):
         )
         self.assertEqual(
             set(expected_output_record.field_names()), set(output_record.field_names())
+        )
+
+
+class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
+    SEQ_LEN = 3
+
+    def expected_state_features(self, normalize):
+        dense = super(TestWorldModelFeatureExtractor, self).expected_state_features(
+            normalize
+        )
+        dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
+        return dense
+
+    def expected_next_state_features(self, normalize):
+        dense = super(
+            TestWorldModelFeatureExtractor, self
+        ).expected_next_state_features(normalize)
+        dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
+        return dense
+
+    def expected_action_features(self, normalize):
+        dense = super(TestWorldModelFeatureExtractor, self).expected_action_features(
+            normalize
+        )
+        dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
+        return dense
+
+    def create_extra_input_record(self, net):
+        return net.input_record() + schema.NewRecord(
+            net, schema.Struct(("reward", schema.List(schema.Scalar())))
+        )
+
+    def setup_state_features(self, ws, field):
+        lengths = np.array([1], dtype=np.int32)
+        values_lengths = np.array([3, 0, 5], dtype=np.int32)
+        keys = np.array([2, 1, 9, 1, 2, 3, 4, 5], dtype=np.int64)
+        values = np.arange(8).astype(np.float32)
+        ws.feed_blob(str(field["lengths"]()), lengths)
+        ws.feed_blob(str(field["values"].lengths()), values_lengths)
+        ws.feed_blob(str(field["values"].keys()), keys)
+        ws.feed_blob(str(field["values"].values()), values)
+        return lengths, values_lengths, keys, values
+
+    def setup_next_state_features(self, ws, field):
+        lengths = np.array([1], dtype=np.int32)
+        values_lengths = np.array([2, 2, 4], dtype=np.int32)
+        keys = np.array([2, 1, 9, 1, 2, 3, 4, 5], dtype=np.int64)
+        values = np.arange(10, 18).astype(np.float32)
+        ws.feed_blob(str(field["lengths"]()), lengths)
+        ws.feed_blob(str(field["values"].lengths()), values_lengths)
+        ws.feed_blob(str(field["values"].keys()), keys)
+        ws.feed_blob(str(field["values"].values()), values)
+        return lengths, values_lengths, keys, values
+
+    def setup_action_features(self, ws, field):
+        lengths = np.array([1], dtype=np.int32)
+        values_lengths = np.array([2, 4, 2], dtype=np.int32)
+        keys = np.array([11, 12, 14, 11, 12, 13, 13, 12], dtype=np.int64)
+        values = np.arange(20, 28).astype(np.float32)
+        ws.feed_blob(str(field["lengths"]()), lengths)
+        ws.feed_blob(str(field["values"].lengths()), values_lengths)
+        ws.feed_blob(str(field["values"].keys()), keys)
+        ws.feed_blob(str(field["values"].values()), values)
+        return lengths, values_lengths, keys, values
+
+    def setup_action(self, ws, field):
+        lengths = np.array([3], dtype=np.int32)
+        action = np.array([1, 0, 1], dtype=np.int64)
+        ws.feed_blob(str(field["lengths"]()), lengths)
+        ws.feed_blob(str(field["values"]()), action)
+        return lengths, action
+
+    def setup_reward(self, ws, field):
+        lengths = np.array([3], dtype=np.int32)
+        reward = np.array([0.5, 0.6, 0.7], dtype=np.float32)
+        ws.feed_blob(str(field["lengths"]()), lengths)
+        ws.feed_blob(str(field["values"]()), reward)
+        return lengths, reward
+
+    def setup_not_terminal(self, ws, field):
+        lengths = np.array([3], dtype=np.int32)
+        not_terminal = np.array([1, 1, 1], dtype=np.int32)
+        ws.feed_blob(str(field["lengths"]()), lengths)
+        ws.feed_blob(str(field["values"]()), not_terminal)
+        return lengths, not_terminal
+
+    def test_extract_parametric_action(self):
+        self._test_extract_parametric_action(normalize=False)
+
+    def test_extract_parametric_action_normalize(self):
+        self._test_extract_parametric_action(normalize=True)
+
+    def _test_extract_parametric_action(self, normalize):
+        extractor = WorldModelFeatureExtractor(
+            self.SEQ_LEN,
+            self.get_state_normalization_parameters(),
+            self.get_action_normalization_parameters(),
+            normalize=normalize,
+        )
+        # Setup
+        ws, net = self.create_ws_and_net(extractor)
+        input_record = self.create_extra_input_record(net)
+        self.setup_state_features(ws, input_record.state_features)
+        self.setup_next_state_features(ws, input_record.next_state_features)
+        self.setup_action_features(ws, input_record.action)
+        _, reward = self.setup_reward(ws, input_record.reward)
+        _, not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
+        # Run
+        ws.run(net)
+        res = extractor.extract(ws, input_record, net.output_record())
+        o = res.training_input
+        npt.assert_array_equal(reward.reshape(1, 3), o.reward.numpy())
+        npt.assert_array_equal(not_terminal.reshape(1, 3), o.not_terminal.numpy())
+        npt.assert_allclose(
+            self.expected_action_features(normalize),
+            o.action.float_features.numpy(),
+            rtol=1e-6,
+        )
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            o.state.float_features.numpy(),
+            rtol=1e-6,
+        )
+        npt.assert_allclose(
+            self.expected_next_state_features(normalize),
+            o.next_state.numpy(),
+            rtol=1e-6,
+        )
+
+    def test_extract_discrete_action(self):
+        self._test_extract_discrete_action(normalize=False)
+
+    def test_extract_discrete_action_normalize(self):
+        self._test_extract_discrete_action(normalize=True)
+
+    def _test_extract_discrete_action(self, normalize):
+        num_actions = 2
+        extractor = WorldModelFeatureExtractor(
+            self.SEQ_LEN,
+            self.get_state_normalization_parameters(),
+            discrete_action_names=["ACT1", "ACT2"],
+            normalize=normalize,
+        )
+        # Setup
+        ws, net = self.create_ws_and_net(extractor)
+        input_record = self.create_extra_input_record(net)
+        self.setup_state_features(ws, input_record.state_features)
+        self.setup_next_state_features(ws, input_record.next_state_features)
+        _, action = self.setup_action(ws, input_record.action)
+        _, reward = self.setup_reward(ws, input_record.reward)
+        _, not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
+        # Run
+        ws.run(net)
+        res = extractor.extract(ws, input_record, net.output_record())
+        o = res.training_input
+        npt.assert_array_equal(reward.reshape(1, 3), o.reward.numpy())
+        npt.assert_array_equal(not_terminal.reshape(1, 3), o.not_terminal.numpy())
+        npt.assert_array_equal(
+            action.reshape(-1, 3, 1) == np.arange(num_actions),
+            o.action.float_features.numpy(),
+        )
+        npt.assert_allclose(
+            self.expected_state_features(normalize),
+            o.state.float_features.numpy(),
+            rtol=1e-6,
+        )
+        npt.assert_allclose(
+            self.expected_next_state_features(normalize),
+            o.next_state.numpy(),
+            rtol=1e-6,
         )
 
 

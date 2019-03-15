@@ -100,15 +100,14 @@ class _DQNTrainer(DQNTrainerBase):
 
         self.minibatch += 1
         rewards = boosted_rewards
-        discount_tensor = torch.full_like(rewards, self.gamma)
         not_done_mask = learning_input.not_terminal.float()
 
+        discount_tensor = torch.full_like(rewards, self.gamma)
         if self.use_seq_num_diff_as_time_diff:
-            # TODO: Implement this in another diff
-            logger.warning(
-                "_dqn_trainer has not implemented use_seq_num_diff_as_time_diff feature"
-            )
-            pass
+            assert self.multi_steps is None
+            discount_tensor = torch.pow(self.gamma, learning_input.time_diff.float())
+        if self.multi_steps is not None:
+            discount_tensor = torch.pow(self.gamma, learning_input.step.float())
 
         all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
             learning_input.next_state

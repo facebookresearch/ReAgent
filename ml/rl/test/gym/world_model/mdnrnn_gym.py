@@ -227,7 +227,7 @@ def train_sgd(
         latest_loss = valid_loss_history[-1]["loss"]
         recent_valid_loss_hist = valid_loss_history[-1 - early_stopping_patience : -1]
         if len(valid_loss_history) > early_stopping_patience and all(
-            [latest_loss >= v["loss"] for v in recent_valid_loss_hist]
+            (latest_loss >= v["loss"] for v in recent_valid_loss_hist)
         ):
             break
 

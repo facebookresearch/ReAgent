@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
+from functools import partial
 from typing import Dict, List, NamedTuple, Optional
 
 import ml.rl.types as mt
@@ -103,6 +104,16 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             )
         return action_blob_one_hot_sliced
 
+    @staticmethod
+    def fetch(ws, b, to_torch=True):
+        data = ws.fetch_blob(str(b()))
+        if not isinstance(data, np.ndarray):
+            # Blob uninitialized, return None and handle downstream
+            return None
+        if to_torch:
+            return torch.tensor(data)
+        return data
+
 
 def map_schema():
     return schema.Map(schema.Scalar(), schema.Scalar())
@@ -164,14 +175,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         self.metrics_to_score = metrics_to_score
 
     def extract(self, ws, input_record, extract_record):
-        def fetch(b, to_torch=True):
-            data = ws.fetch_blob(str(b()))
-            if not isinstance(data, np.ndarray):
-                # Blob uninitialized, return None and handle downstream
-                return None
-            if to_torch:
-                return torch.tensor(data)
-            return data
+        fetch = partial(self.fetch, ws)
 
         def fetch_action(b):
             if self.sorted_action_features is None:
@@ -227,7 +231,6 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                     ).reshape(-1, next_state.float_features.shape[1])
                 )
                 max_num_actions = self.max_num_actions
-
             else:
                 possible_actions = None
                 possible_next_actions = None
@@ -506,10 +509,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
         self.normalize = normalize
 
     def extract(self, ws, input_record, extract_record):
-        def fetch(b):
-            data = ws.fetch_blob(str(b()))
-            return torch.tensor(data)
-
+        fetch = partial(self.fetch, ws)
         state = mt.FeatureVector(float_features=fetch(extract_record.state))
         if self.sorted_action_features is None:
             action = None
@@ -577,4 +577,161 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
 
         net.set_output_record(output_record)
 
+        return FeatureExtractorNet(net, init_net)
+
+
+class WorldModelFeatureExtractor(FeatureExtractorBase):
+    """
+    Extract:
+    - State
+    - Action
+    - Next state
+    - Reward
+    - Not terminal
+    """
+
+    def __init__(
+        self,
+        seq_len,
+        state_normalization_parameters: Dict[int, NormalizationParameters],
+        action_normalization_parameters: Optional[
+            Dict[int, NormalizationParameters]
+        ] = None,
+        discrete_action_names: Optional[List[str]] = None,
+        normalize: Optional[bool] = True,
+    ) -> None:
+        self.seq_len = seq_len
+        self.normalize = normalize
+        self.state_normalization_parameters = state_normalization_parameters
+        self.action_normalization_parameters = action_normalization_parameters
+        self.sorted_state_features, _ = sort_features_by_normalization(
+            state_normalization_parameters
+        )
+        self.state_dim = len(self.sorted_state_features)
+        if action_normalization_parameters:
+            self.sorted_action_features, _ = sort_features_by_normalization(
+                action_normalization_parameters
+            )
+            self.action_dim = len(self.sorted_action_features)
+        else:
+            self.sorted_action_features = None
+            assert discrete_action_names is not None
+            self.action_dim = len(discrete_action_names)
+
+    def extract(self, ws, input_record, extract_record):
+        fetch = partial(self.fetch, ws)
+        state = mt.FeatureVector(
+            float_features=fetch(extract_record.state_features).reshape(
+                -1, self.seq_len, self.state_dim
+            )
+        )
+        action = mt.FeatureVector(
+            float_features=fetch(extract_record.action).reshape(
+                -1, self.seq_len, self.action_dim
+            )
+        )
+        next_state = fetch(extract_record.next_state_features).reshape(
+            -1, self.seq_len, self.state_dim
+        )
+        reward = fetch(input_record.reward["values"]).reshape(-1, self.seq_len)
+        not_terminal = (
+            fetch(input_record.not_terminal["values"]).reshape(-1, self.seq_len).float()
+        )
+        training_input = mt.MemoryNetworkInput(
+            state=state,
+            action=action,
+            next_state=next_state,
+            reward=reward,
+            not_terminal=not_terminal,
+        )
+        return mt.TrainingBatch(training_input=training_input, extras=None)
+
+    def create_net(self):
+        net = core.Net("feature_extractor")
+        init_net = core.Net("feature_extractor_init")
+        missing_scalar = self.create_const(init_net, "MISSING_SCALAR", MISSING_VALUE)
+        action_schema = (
+            schema.List(map_schema())
+            if self.sorted_action_features
+            else schema.List(schema.Scalar())
+        )
+
+        input_schema = schema.Struct(
+            (InputColumn.STATE_FEATURES, schema.List(map_schema())),
+            (InputColumn.ACTION, action_schema),
+            (InputColumn.NOT_TERMINAL, schema.List(schema.Scalar())),
+            (InputColumn.NEXT_STATE_FEATURES, schema.List(map_schema())),
+        )
+        input_record = net.set_input_record(input_schema)
+
+        state = self.extract_float_features(
+            net,
+            "state",
+            input_record[InputColumn.STATE_FEATURES].value,
+            self.sorted_state_features,
+            missing_scalar,
+        )
+        next_state = self.extract_float_features(
+            net,
+            "next_state",
+            input_record[InputColumn.NEXT_STATE_FEATURES].value,
+            self.sorted_state_features,
+            missing_scalar,
+        )
+
+        if self.sorted_action_features:
+            action = self.extract_float_features(
+                net,
+                InputColumn.ACTION,
+                input_record[InputColumn.ACTION].value,
+                self.sorted_action_features,
+                missing_scalar,
+            )
+        else:
+            action_size_plus_one = self.create_const(
+                init_net,
+                "action_size_plus_one",
+                self.action_dim + 1,
+                dtype=core.DataType.INT64,
+            )
+            action = self.read_actions_to_mask(
+                net,
+                InputColumn.ACTION,
+                self.action_dim,
+                input_record[InputColumn.ACTION].value,
+                action_size_plus_one,
+            )
+
+        if self.normalize:
+            C2.set_net_and_init_net(net, init_net)
+            state, _ = PreprocessorNet().normalize_dense_matrix(
+                state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="state",
+                split_expensive_feature_groups=True,
+            )
+            next_state, _ = PreprocessorNet().normalize_dense_matrix(
+                next_state,
+                self.sorted_state_features,
+                self.state_normalization_parameters,
+                blobname_prefix="next_state",
+                split_expensive_feature_groups=True,
+            )
+            if self.sorted_action_features is not None:
+                action, _ = PreprocessorNet().normalize_dense_matrix(
+                    action,
+                    self.sorted_action_features,
+                    self.action_normalization_parameters,
+                    blobname_prefix="action",
+                    split_expensive_feature_groups=True,
+                )
+            C2.set_net_and_init_net(None, None)
+
+        output_schema = schema.Struct(
+            (InputColumn.STATE_FEATURES, state),
+            (InputColumn.NEXT_STATE_FEATURES, next_state),
+            (InputColumn.ACTION, action),
+        )
+        net.set_output_record(output_schema)
         return FeatureExtractorNet(net, init_net)

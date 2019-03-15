@@ -344,6 +344,7 @@ class TestGridworld(GridworldTestBase):
         samples = Samples(
             mdp_ids=["0"],
             sequence_numbers=[0],
+            sequence_number_ordinals=[1],
             states=[{0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 15: 1.0, 24: 1.0}],
             actions=["D"],
             action_probabilities=[0.5],

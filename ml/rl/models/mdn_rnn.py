@@ -65,11 +65,10 @@ class MDNRNN(_MDNRNNBase):
             - mus: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS, STATE_DIM) torch tensor
             - sigmas: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS, STATE_DIM) torch tensor
             - logpi: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS) torch tensor
-            - rs: (SEQ_LEN, BATCH_SIZE) torch tensor
-            - ds: (SEQ_LEN, BATCH_SIZE) torch tensor
+            - reward: (SEQ_LEN, BATCH_SIZE) torch tensor
+            - not_terminal: (SEQ_LEN, BATCH_SIZE) torch tensor
         """
         seq_len, batch_size = actions.size(0), actions.size(1)
-
         ins = torch.cat([actions, states], dim=-1)
         outs, new_hidden = self.rnn(ins, hidden)
         gmm_outs = self.gmm_linear(outs)
