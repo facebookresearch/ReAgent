@@ -91,7 +91,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             bool(v) for v in self.sequence_id_features.values()
         )
         self.has_sequence_float_features = any(
-            bool(v.get_float_feature_ids()) for v in self.sequence_features.values()
+            bool(v.get_float_feature_infos()) for v in self.sequence_features.values()
         )
 
     def extract(self, ws, input_record, extract_record):
@@ -166,7 +166,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
                     )
                 )
 
-            if sequence_type.get_float_feature_ids():
+            if sequence_type.get_float_feature_infos():
                 sequence_record += schema.Struct(
                     ("float_features", sequence_float_features[sequence_name])
                 )
@@ -244,9 +244,9 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         feature_ids: List[int] = []
 
         for sequence_name, sequence_type in sequence_feature_types.items():
-            for feature_id in sequence_type.get_float_feature_ids():
-                feature_names.append("{}_{}".format(sequence_name, feature_id))
-                feature_ids.append(feature_id)
+            for info in sequence_type.get_float_feature_infos():
+                feature_names.append("{}_{}".format(sequence_name, info.name))
+                feature_ids.append(info.feature_id)
 
         id_score_list_feature_ranges = self.extract_id_score_list_features_ranges(
             net, name, field, feature_names, feature_ids, empty_range
@@ -258,24 +258,24 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
                     [
                         self.range_to_dense(
                             net,
-                            "{}_{}".format(sequence_name, feature_id),
+                            "{}_{}".format(sequence_name, info.name),
                             id_score_list_feature_ranges[
-                                "{}_{}".format(sequence_name, feature_id)
+                                "{}_{}".format(sequence_name, info.name)
                             ]["ranges"],
                             id_score_list_feature_ranges[
-                                "{}_{}".format(sequence_name, feature_id)
+                                "{}_{}".format(sequence_name, info.name)
                             ]["scores"],
                             sequence_type.get_max_length(),
                             zero_float,
                         )
-                        for feature_id in sequence_type.get_float_feature_ids()
+                        for info in sequence_type.get_float_feature_infos()
                     ],
                     [sequence_name, "{}_split_info".format(sequence_name)],
                     axis=2,
                     add_axis=1,
                 )[0]
                 for sequence_name, sequence_type in sequence_feature_types.items()
-                if sequence_type.get_float_feature_ids()
+                if sequence_type.get_float_feature_infos()
             }
 
     def create_empty_range(self, init_net: core.Net) -> core.BlobReference:
@@ -553,7 +553,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
                     }
                 )
 
-            if sequence_feature_type.get_float_feature_ids():
+            if sequence_feature_type.get_float_feature_infos():
                 state_seq.float_features = fetch_func(
                     record[seq_name]["float_features"]
                 )

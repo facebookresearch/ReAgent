@@ -60,6 +60,12 @@ T = TypeVar("T", bound="SequenceFeatureBase")
 
 
 @dataclass
+class FloatFeatureInfo:
+    name: str
+    feature_id: int
+
+
+@dataclass
 class SequenceFeatureBase:
     id_features: Optional[IdFeatureBase]
     float_features: Optional[ValueType]
@@ -77,7 +83,7 @@ class SequenceFeatureBase:
         raise NotImplementedError
 
     @classmethod
-    def get_float_feature_ids(cls) -> List[int]:
+    def get_float_feature_infos(cls) -> List[FloatFeatureInfo]:
         """
         Override this if the sequence has float features associated to it.
         Float features should be stored as ID-score-list, where the ID part corresponds
@@ -88,16 +94,16 @@ class SequenceFeatureBase:
 
     @classmethod
     def prototype(cls: Type[T]) -> T:
-        float_feature_ids = cls.get_float_feature_ids()
+        float_feature_infos = cls.get_float_feature_infos()
         float_features = (
-            torch.rand(1, cls.get_max_length(), len(float_feature_ids))
-            if float_feature_ids
+            torch.rand(1, cls.get_max_length(), len(float_feature_infos))
+            if float_feature_infos
             else None
         )
         fields = dataclasses.fields(cls)
         id_features = None
         for field in fields:
-            if field.name != "id_features" or not issubclass(field.type, IdFeatureBase):
+            if field.name != "id_features" or not isinstance(field.type, type):
                 continue
             id_feature_fields = dataclasses.fields(field.type)
             id_features = field.type(  # noqa
@@ -134,7 +140,7 @@ class IdMapping:
 
 @dataclass
 class ModelFeatureConfig:
-    float_feature_ids: List[int]
+    float_feature_infos: List[FloatFeatureInfo]
     id_mapping_config: Dict[str, IdMapping]
     sequence_features_type: Optional[Type[SequenceFeatures]]
 

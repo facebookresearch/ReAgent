@@ -35,8 +35,11 @@ class WatchedVideoSequence(rlt.SequenceFeatureBase):
         return HISTORY_LENGTH
 
     @classmethod
-    def get_float_feature_ids(cls) -> List[int]:
-        return [1001, 1002]
+    def get_float_feature_infos(cls) -> List[rlt.FloatFeatureInfo]:
+        return [
+            rlt.FloatFeatureInfo(name="f{}".format(f_id), feature_id=f_id)
+            for f_id in [1001, 1002]
+        ]
 
 
 @dataclass
@@ -65,7 +68,7 @@ class ExampleSequenceModel(ModelBase):
         self.hidden_size = 10
         # ONNX cannot export batch_first=True
         self.gru = nn.GRU(
-            self.embedding_dim + len(WatchedVideoSequence.get_float_feature_ids()),
+            self.embedding_dim + len(WatchedVideoSequence.get_float_feature_infos()),
             self.hidden_size,
         )
         self.linear = nn.Linear(10 + self.state_dim, 1)

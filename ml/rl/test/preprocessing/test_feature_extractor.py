@@ -19,75 +19,15 @@ from ml.rl.preprocessing.feature_extractor import (
 )
 from ml.rl.preprocessing.identify_types import CONTINUOUS, PROBABILITY
 from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
-from ml.rl.test.utils import NumpyFeatureProcessor
-
-
-@dataclass
-class ABIdFeatures(rlt.IdFeatureBase):
-    a_id: rlt.ValueType
-    b_id: rlt.ValueType
-
-    @classmethod
-    def get_feature_config(cls) -> Dict[str, rlt.IdFeatureConfig]:
-        return {
-            "a_id": rlt.IdFeatureConfig(feature_id=2002, id_mapping_name="a_mapping"),
-            "b_id": rlt.IdFeatureConfig(feature_id=2003, id_mapping_name="b_mapping"),
-        }
-
-
-@dataclass
-class CIdFeatures(rlt.IdFeatureBase):
-    c_id: rlt.ValueType
-
-    @classmethod
-    def get_feature_config(cls) -> Dict[str, rlt.IdFeatureConfig]:
-        return {
-            "c_id": rlt.IdFeatureConfig(feature_id=2004, id_mapping_name="c_mapping")
-        }
-
-
-@dataclass
-class IdOnlySequence(rlt.SequenceFeatureBase):
-    id_features: ABIdFeatures
-
-    @classmethod
-    def get_max_length(cls) -> int:
-        return 2
-
-    @classmethod
-    def get_float_feature_ids(cls) -> List[int]:
-        return []
-
-
-@dataclass
-class IdAndFloatSequence(rlt.SequenceFeatureBase):
-    id_features: CIdFeatures
-
-    @classmethod
-    def get_max_length(cls) -> int:
-        return 3
-
-    @classmethod
-    def get_float_feature_ids(cls) -> List[int]:
-        return [1004]
-
-
-@dataclass
-class FloatOnlySequence(rlt.SequenceFeatureBase):
-    @classmethod
-    def get_max_length(cls) -> int:
-        return 2
-
-    @classmethod
-    def get_float_feature_ids(cls) -> List[int]:
-        return [1001, 1002, 1003]
-
-
-@dataclass
-class SequenceFeatures(rlt.SequenceFeatures):
-    id_only: IdOnlySequence
-    id_and_float: IdAndFloatSequence
-    float_only: FloatOnlySequence
+from ml.rl.test.utils import (
+    ABIdFeatures,
+    CIdFeatures,
+    FloatOnlySequence,
+    IdAndFloatSequence,
+    IdOnlySequence,
+    NumpyFeatureProcessor,
+    SequenceFeatures,
+)
 
 
 class FeatureExtractorTestBase(unittest.TestCase):
@@ -861,7 +801,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         model_feature_config = rlt.ModelFeatureConfig(
             id_mapping_config=self.id_mapping_config(),
             sequence_features_type=SequenceFeatures,
-            float_feature_ids=[],
+            float_feature_infos=[],
         )
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
@@ -1411,7 +1351,7 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         model_feature_config = rlt.ModelFeatureConfig(
             id_mapping_config=self.id_mapping_config(),
             sequence_features_type=SequenceFeatures,
-            float_feature_ids=[],
+            float_feature_infos=[],
         )
         extractor = PredictorFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
@@ -1518,7 +1458,7 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
             model_feature_config=rlt.ModelFeatureConfig(
                 id_mapping_config=self.id_mapping_config(),
                 sequence_features_type=SequenceFeatures,
-                float_feature_ids=[],
+                float_feature_infos=[],
             ),
         )
         expected_input_record = schema.Struct(

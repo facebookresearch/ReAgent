@@ -3,9 +3,12 @@
 
 import collections
 import csv
+from dataclasses import dataclass
+from typing import Dict, List
 
 import numpy as np
 import six
+from ml.rl import types as rlt
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import (
     BOX_COX_MARGIN,
@@ -15,6 +18,76 @@ from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
 )
 from scipy import special, stats
+
+
+@dataclass
+class ABIdFeatures(rlt.IdFeatureBase):
+    a_id: rlt.ValueType
+    b_id: rlt.ValueType
+
+    @classmethod
+    def get_feature_config(cls) -> Dict[str, rlt.IdFeatureConfig]:
+        return {
+            "a_id": rlt.IdFeatureConfig(feature_id=2002, id_mapping_name="a_mapping"),
+            "b_id": rlt.IdFeatureConfig(feature_id=2003, id_mapping_name="b_mapping"),
+        }
+
+
+@dataclass
+class CIdFeatures(rlt.IdFeatureBase):
+    c_id: rlt.ValueType
+
+    @classmethod
+    def get_feature_config(cls) -> Dict[str, rlt.IdFeatureConfig]:
+        return {
+            "c_id": rlt.IdFeatureConfig(feature_id=2004, id_mapping_name="c_mapping")
+        }
+
+
+@dataclass
+class IdOnlySequence(rlt.SequenceFeatureBase):
+    id_features: ABIdFeatures
+
+    @classmethod
+    def get_max_length(cls) -> int:
+        return 2
+
+
+@dataclass
+class IdAndFloatSequence(rlt.SequenceFeatureBase):
+    id_features: CIdFeatures
+
+    @classmethod
+    def get_max_length(cls) -> int:
+        return 3
+
+    @classmethod
+    def get_float_feature_infos(cls) -> List[rlt.FloatFeatureInfo]:
+        return [
+            rlt.FloatFeatureInfo(name="f{}".format(f_id), feature_id=f_id)
+            for f_id in [1004]
+        ]
+
+
+@dataclass
+class FloatOnlySequence(rlt.SequenceFeatureBase):
+    @classmethod
+    def get_max_length(cls) -> int:
+        return 2
+
+    @classmethod
+    def get_float_feature_infos(cls) -> List[rlt.FloatFeatureInfo]:
+        return [
+            rlt.FloatFeatureInfo(name="f{}".format(f_id), feature_id=f_id)
+            for f_id in [1001, 1002, 1003]
+        ]
+
+
+@dataclass
+class SequenceFeatures(rlt.SequenceFeatures):
+    id_only: IdOnlySequence
+    id_and_float: IdAndFloatSequence
+    float_only: FloatOnlySequence
 
 
 def default_normalizer(feats, min_value=None, max_value=None):
