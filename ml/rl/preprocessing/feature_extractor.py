@@ -2,13 +2,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
+import dataclasses
+from collections import OrderedDict
 from functools import partial
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional, Type
 
-import ml.rl.types as mt
 import numpy as np
 import torch
 from caffe2.python import core, schema
+from ml.rl import types as rlt
 from ml.rl.caffe_utils import C2
 
 from .normalization import (
@@ -42,8 +44,54 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
     call functions. It's easier to handle separately.
     """
 
-    def __init__(self, ws=None):
+    def __init__(self, model_feature_config: Optional[rlt.ModelFeatureConfig] = None):
         super(FeatureExtractorBase, self).__init__()
+        self._init_sequence_features(model_feature_config)
+
+    def _init_sequence_features(self, config: Optional[rlt.ModelFeatureConfig]) -> None:
+        self.sequence_features_type = config.sequence_features_type if config else None
+        sequence_features = (
+            dataclasses.fields(self.sequence_features_type)
+            if self.sequence_features_type
+            else []
+        )
+        self.has_sequence_features = bool(sequence_features)
+        self.sequence_features = OrderedDict(
+            (s.name, s.type) for s in sequence_features
+        )
+
+        def get_id_features(t):
+            fields = dataclasses.fields(t)
+            for f in fields:
+                # If the `id_features` remains an Optional, it won't be a type object
+                if f.name != "id_features" or not isinstance(f.type, type):
+                    continue
+                return f.type.get_feature_config()
+            return {}
+
+        self.sequence_id_features = {
+            s.name: get_id_features(s.type) for s in sequence_features
+        }
+
+        def get_id_feature_type(t):
+            fields = dataclasses.fields(t)
+            for f in fields:
+                if f.name != "id_features":
+                    continue
+                return f.type
+            return None
+
+        self.sequence_id_feature_types = {
+            k: get_id_feature_type(self.sequence_features[k])
+            for k, v in self.sequence_id_features.items()
+            if v
+        }
+        self.has_sequence_id_features = any(
+            bool(v) for v in self.sequence_id_features.values()
+        )
+        self.has_sequence_float_features = any(
+            bool(v.get_float_feature_ids()) for v in self.sequence_features.values()
+        )
 
     def extract(self, ws, input_record, extract_record):
         """
@@ -89,6 +137,350 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             )
         return float_features
 
+    def get_state_sequence_features_schema(
+        self,
+        sequence_id_features: Dict[str, Dict[str, core.BlobReference]],
+        sequence_float_features: Dict[str, core.BlobReference],
+    ) -> schema.Struct:
+        """
+        Layout the record to match SequenceFeatures type. This is necessary to make ONNX
+        exporting works.
+        """
+        record_fields = []
+        for sequence_name, sequence_type in self.sequence_features.items():
+            sequence_record = schema.Struct()
+            if sequence_name in self.sequence_id_feature_types:
+                fields = dataclasses.fields(
+                    self.sequence_id_feature_types[sequence_name]
+                )
+                sequence_record += schema.Struct(
+                    (
+                        "id_features",
+                        schema.Struct(
+                            *[
+                                (f.name, sequence_id_features[sequence_name][f.name])
+                                for f in fields
+                            ]
+                        ),
+                    )
+                )
+
+            if sequence_type.get_float_feature_ids():
+                sequence_record += schema.Struct(
+                    ("float_features", sequence_float_features[sequence_name])
+                )
+            record_fields.append((sequence_name, sequence_record))
+
+        return schema.Struct(*record_fields)
+
+    def extract_sequence_id_features(
+        self,
+        net: core.Net,
+        name: str,
+        sequence_feature_types: Dict[str, Type[rlt.SequenceFeatureBase]],
+        sequence_id_features: Dict[str, Dict[str, rlt.IdFeatureConfig]],
+        field: schema.List,
+        empty_range: schema.BlobReference,
+        zero_int64: schema.BlobReference,
+    ) -> Dict[str, Dict[str, core.BlobReference]]:
+        """
+        Convert CSR-like format of MAP<BIGINT, LIST<BIGINT>> to dictionary from
+        sequence name to dictionary from ID-list name to the blob containing the
+        fixed-length sequence of IDs. Each blob will be 2-D tensor. The first dimension
+        is the batch size. The second dimension is each element in the list.
+        """
+        feature_names: List[str] = []
+        feature_ids: List[int] = []
+        for sequence_name, id_features in sequence_id_features.items():
+            for id_feature_name, id_feature_config in id_features.items():
+                feature_names.append("{}_{}".format(sequence_name, id_feature_name))
+                feature_ids.append(id_feature_config.feature_id)
+
+        id_list_feature_ranges = self.extract_id_list_features_ranges(
+            net, name, field, feature_names, feature_ids, empty_range
+        )
+
+        with core.NameScope(name):
+            return {
+                sequence_name: {
+                    id_feature_name: self.range_to_dense(
+                        net,
+                        "{}_{}".format(sequence_name, id_feature_name),
+                        id_list_feature_ranges[
+                            "{}_{}".format(sequence_name, id_feature_name)
+                        ]["ranges"],
+                        id_list_feature_ranges[
+                            "{}_{}".format(sequence_name, id_feature_name)
+                        ]["values"],
+                        sequence_feature_types[sequence_name].get_max_length(),
+                        zero_int64,
+                    )
+                    for id_feature_name, id_feature_config in id_features.items()
+                }
+                for sequence_name, id_features in sequence_id_features.items()
+                if id_features
+            }
+
+    def extract_sequence_float_features(
+        self,
+        net: core.Net,
+        name: str,
+        sequence_feature_types: Dict[str, Type[rlt.SequenceFeatureBase]],
+        field: schema.List,
+        empty_range: schema.BlobReference,
+        zero_float: schema.BlobReference,
+    ) -> Dict[str, core.BlobReference]:
+        """
+        Convert CSR-like format of MAP<BIGINT, MAP<BIGINT, FLOAT>> to dictionary from
+        sequence name to the blob containing the fixed-length sequence of vector of
+        float features of each element. Each blob will be 3-D tensor. The first
+        dimension is the batch size. The second dimension is each element in the list.
+        The third dimension is ordered by the order given by
+        `SequenceFeatureBase.get_float_feature_infos()`. These float features are not
+        normalized.
+        """
+        feature_names: List[str] = []
+        feature_ids: List[int] = []
+
+        for sequence_name, sequence_type in sequence_feature_types.items():
+            for feature_id in sequence_type.get_float_feature_ids():
+                feature_names.append("{}_{}".format(sequence_name, feature_id))
+                feature_ids.append(feature_id)
+
+        id_score_list_feature_ranges = self.extract_id_score_list_features_ranges(
+            net, name, field, feature_names, feature_ids, empty_range
+        )
+
+        with core.NameScope(name):
+            return {
+                sequence_name: net.Concat(
+                    [
+                        self.range_to_dense(
+                            net,
+                            "{}_{}".format(sequence_name, feature_id),
+                            id_score_list_feature_ranges[
+                                "{}_{}".format(sequence_name, feature_id)
+                            ]["ranges"],
+                            id_score_list_feature_ranges[
+                                "{}_{}".format(sequence_name, feature_id)
+                            ]["scores"],
+                            sequence_type.get_max_length(),
+                            zero_float,
+                        )
+                        for feature_id in sequence_type.get_float_feature_ids()
+                    ],
+                    [sequence_name, "{}_split_info".format(sequence_name)],
+                    axis=2,
+                    add_axis=1,
+                )[0]
+                for sequence_name, sequence_type in sequence_feature_types.items()
+                if sequence_type.get_float_feature_ids()
+            }
+
+    def create_empty_range(self, init_net: core.Net) -> core.BlobReference:
+        return self.create_const(
+            init_net, "empty_range", [0, 0], dtype=core.DataType.INT32
+        )
+
+    def extract_id_list_features_ranges(
+        self,
+        net: core.Net,
+        name: str,
+        field: schema.List,
+        feature_names: List[str],
+        feature_ids: List[int],
+        empty_range: core.BlobReference,
+    ) -> Dict[str, Dict[str, core.BlobReference]]:
+        """
+        Convert the CSR-like format of ID-list to ranges and values.
+        See https://caffe2.ai/docs/operators-catalogue#gatherranges
+
+        The return value is keyed by ID-list name
+        """
+        assert len(feature_names) == len(
+            feature_ids
+        ), "feature_names and feature_ids must be parallel"
+        with core.NameScope("{}_id_list_ranges".format(name)):
+            id_list_ranges = net.LengthsToRanges(
+                field["values"]["values"]["lengths"](), ["input_ranges"]
+            )
+            densified_ranges = net.SparseToDenseMask(
+                [
+                    field["values"]["keys"](),
+                    id_list_ranges,
+                    empty_range,
+                    field["lengths"](),
+                ],
+                ["densified_ranges"],
+                mask=feature_ids,
+            )
+            result = {}
+            for idx, name in enumerate(feature_names):
+                starts = [0, idx, 0]
+                ends = [-1, idx + 1, -1]
+                result[name] = {
+                    "ranges": net.Slice(
+                        [densified_ranges],
+                        "{}_ranges".format(name),
+                        starts=starts,
+                        ends=ends,
+                    ),
+                    "values": field["values"]["values"]["values"](),
+                }
+        return result
+
+    def extract_id_score_list_features_ranges(
+        self,
+        net: core.Net,
+        name: str,
+        field: schema.List,
+        feature_names: List[str],
+        feature_ids: List[int],
+        empty_range: core.BlobReference,
+    ) -> Dict[str, Dict[str, core.BlobReference]]:
+        """
+        Convert the CSR-like format of ID-score-list to ranges and values.
+        See https://caffe2.ai/docs/operators-catalogue#gatherranges
+
+        The return value is keyed by ID-score-list name
+        """
+        assert len(feature_names) == len(
+            feature_ids
+        ), "feature_names and feature_ids must be parallel"
+        with core.NameScope("{}_id_score_list_ranges".format(name)):
+            id_score_list_ranges = net.LengthsToRanges(
+                field["values"]["values"]["lengths"](), ["input_ranges"]
+            )
+
+            densified_ranges = net.SparseToDenseMask(
+                [
+                    field["values"]["keys"](),
+                    id_score_list_ranges,
+                    empty_range,
+                    field["lengths"](),
+                ],
+                ["densified_ranges"],
+                mask=feature_ids,
+            )
+            result = {}
+            for idx, name in enumerate(feature_names):
+                starts = [0, idx, 0]
+                ends = [-1, idx + 1, -1]
+                result[name] = {
+                    "ranges": net.Slice(
+                        [densified_ranges],
+                        "{}_ranges".format(name),
+                        starts=starts,
+                        ends=ends,
+                    ),
+                    "ids": field["values"]["values"]["values"]["keys"](),
+                    "scores": field["values"]["values"]["values"]["values"](),
+                }
+        return result
+
+    def range_to_dense(
+        self,
+        net: core.Net,
+        name: str,
+        ranges: core.BlobReference,
+        values: core.BlobReference,
+        max_length: int,
+        zero_val: core.BlobReference,
+    ) -> core.BlobReference:
+        """
+        Convert batch of variable-length lists (in range format) to fixed-length lists.
+        """
+        with core.NameScope("range_to_dense_{}".format(name)):
+            # First slicing the offset and length
+            offset = net.Cast(
+                net.Slice(ranges, ["offset"], starts=[0, 0, 0], ends=[-1, -1, 1]),
+                ["float_offset"],
+                to=core.DataType.FLOAT,
+            )
+            length = net.Cast(
+                net.Slice(ranges, ["length"], starts=[0, 0, 1], ends=[-1, -1, 2]),
+                ["float_length"],
+                to=core.DataType.FLOAT,
+            )
+
+            zero_offset = net.ConstantFill(length, ["zero_offset"], value=0.0)
+            max_length_blob = net.ConstantFill(
+                length, ["max_length"], value=float(max_length)
+            )
+
+            # Calculate the new offset, which is
+            # offset + max(0, length - max_length)
+            new_offset = net.Cast(
+                net.Add(
+                    [
+                        offset,
+                        net.Max(
+                            [zero_offset, net.Sub([length, max_length_blob], ["sub"])],
+                            ["max"],
+                        ),
+                    ],
+                    ["float_new_offset"],
+                    broadcast=1,
+                ),
+                ["new_offset"],
+                to=core.DataType.INT32,
+            )
+            new_length = net.Cast(
+                net.Min([length, max_length_blob], "float_new_length"),
+                ["new_length"],
+                to=core.DataType.INT32,
+            )
+            # Stitch these back togther
+            new_range, _ = net.Concat(
+                [new_offset, new_length], ["new_range", "split_info"], axis=2
+            )
+
+            # At this point, we have lists w/ length up to max_length
+            gathered_values, gathered_lengths = net.GatherRanges(
+                [values, new_range], ["gathered_values", "gathered_length"]
+            )
+            # This generate indices for each element
+            lengths_range_fill = net.LengthsRangeFill(
+                gathered_lengths, ["lengths_range_fill"]
+            )
+            # Finally, we make the dense output
+            keys_to_extract = list(range(max_length))
+            dense_values, _presence_mask = net.SparseToDenseMask(
+                [lengths_range_fill, gathered_values, zero_val, gathered_lengths],
+                ["dense_values", "presence_mask"],
+                mask=keys_to_extract,
+            )
+        return dense_values
+
+    def fetch_state_sequence_features(
+        self, record: schema.Struct, fetch_func
+    ) -> rlt.SequenceFeatures:
+        """
+        Pull the values from Caffe2's blobs into PyTorch's tensors.
+        """
+        state_sequence_features = {}
+        for seq_name, sequence_feature_type in self.sequence_features.items():
+            state_seq = sequence_feature_type(id_features=None, float_features=None)
+
+            if seq_name in self.sequence_id_feature_types:
+                state_seq.id_features = self.sequence_id_feature_types[seq_name](
+                    **{
+                        feature_name: fetch_func(
+                            record[seq_name]["id_features"][feature_name]
+                        )
+                        for feature_name in self.sequence_id_features[seq_name]
+                    }
+                )
+
+            if sequence_feature_type.get_float_feature_ids():
+                state_seq.float_features = fetch_func(
+                    record[seq_name]["float_features"]
+                )
+
+            state_sequence_features[seq_name] = state_seq
+
+        return self.sequence_features_type(**state_sequence_features)
+
     def read_actions_to_mask(
         self, net, name, num_actions, action, action_size_plus_one
     ):
@@ -119,9 +511,21 @@ def map_schema():
     return schema.Map(schema.Scalar(), schema.Scalar())
 
 
+def id_list_schema():
+    return schema.Map(schema.Scalar(), schema.List(schema.Scalar()))
+
+
+def id_score_list_schema():
+    return schema.Map(schema.Scalar(), schema.Map(schema.Scalar(), schema.Scalar()))
+
+
 class InputColumn(object):
     STATE_FEATURES = "state_features"
+    STATE_ID_LIST_FEATURES = "state_id_list_features"
+    STATE_ID_SCORE_LIST_FEATURES = "state_id_score_list_features"
     NEXT_STATE_FEATURES = "next_state_features"
+    NEXT_STATE_ID_LIST_FEATURES = "next_state_id_list_features"
+    NEXT_STATE_ID_SCORE_LIST_FEATURES = "next_state_id_score_list_features"
     ACTION = "action"
     NEXT_ACTION = "next_action"
     POSSIBLE_ACTIONS = "possible_actions"
@@ -156,7 +560,9 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         max_num_actions: int = None,
         multi_steps: Optional[int] = None,
         metrics_to_score: Optional[List[str]] = None,
+        model_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> None:
+        super().__init__(model_feature_config=model_feature_config)
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
         self.sorted_state_features, _ = sort_features_by_normalization(
@@ -181,18 +587,30 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             if self.sorted_action_features is None:
                 return fetch(b)
             else:
-                return mt.FeatureVector(float_features=fetch(b))
+                return rlt.FeatureVector(float_features=fetch(b))
 
         def fetch_possible_actions(b):
             if self.sorted_action_features is not None:
-                return mt.FeatureVector(float_features=fetch(b))
+                return rlt.FeatureVector(float_features=fetch(b))
             else:
                 return None
 
-        state = mt.FeatureVector(float_features=fetch(extract_record.state_features))
-        next_state = mt.FeatureVector(
-            float_features=fetch(extract_record.next_state_features)
-        )
+        state_features = {"float_features": fetch(extract_record.state_features)}
+        next_state_features = {
+            "float_features": fetch(extract_record.next_state_features)
+        }
+        if self.has_sequence_features:
+            state_features["sequence_features"] = self.fetch_state_sequence_features(
+                extract_record.state_sequence_features, fetch
+            )
+            next_state_features[
+                "sequence_features"
+            ] = self.fetch_state_sequence_features(
+                extract_record.next_state_sequence_features, fetch
+            )
+
+        state = rlt.FeatureVector(**state_features)
+        next_state = rlt.FeatureVector(**next_state_features)
 
         action = fetch_action(extract_record.action)
         next_action = fetch_action(extract_record.next_action)
@@ -225,7 +643,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 possible_next_actions = fetch_possible_actions(
                     extract_record.possible_next_actions
                 )
-                tiled_next_state = mt.FeatureVector(
+                tiled_next_state = rlt.FeatureVector(
                     float_features=next_state.float_features.repeat(
                         1, self.max_num_actions
                     ).reshape(-1, next_state.float_features.shape[1])
@@ -236,7 +654,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 possible_next_actions = None
                 tiled_next_state = None
 
-            training_input = mt.MaxQLearningInput(
+            training_input = rlt.MaxQLearningInput(
                 state=state,
                 action=action,
                 next_state=next_state,
@@ -252,7 +670,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 time_diff=time_diff,
             )
         else:
-            training_input = mt.SARSAInput(
+            training_input = rlt.SARSAInput(
                 state=state,
                 action=action,
                 next_state=next_state,
@@ -269,7 +687,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         metrics = fetch(extract_record.metrics) if self.metrics_to_score else None
 
         # TODO: stuff other fields in here
-        extras = mt.ExtraData(
+        extras = rlt.ExtraData(
             action_probability=fetch(input_record.action_probability).reshape(-1, 1),
             sequence_number=sequence_number.reshape(-1, 1)
             if sequence_number is not None
@@ -279,7 +697,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             metrics=metrics,
         )
 
-        return mt.TrainingBatch(training_input=training_input, extras=extras)
+        return rlt.TrainingBatch(training_input=training_input, extras=extras)
 
     def create_net(self):
         net = core.Net("feature_extractor")
@@ -296,6 +714,16 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             (InputColumn.NOT_TERMINAL, schema.Scalar()),
             (InputColumn.TIME_DIFF, schema.Scalar()),
         )
+        if self.has_sequence_id_features:
+            input_schema += schema.Struct(
+                (InputColumn.STATE_ID_LIST_FEATURES, id_list_schema()),
+                (InputColumn.NEXT_STATE_ID_LIST_FEATURES, id_list_schema()),
+            )
+        if self.has_sequence_float_features:
+            input_schema += schema.Struct(
+                (InputColumn.STATE_ID_SCORE_LIST_FEATURES, id_score_list_schema()),
+                (InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES, id_score_list_schema()),
+            )
         if self.include_possible_actions:
             input_schema += schema.Struct(
                 (InputColumn.POSSIBLE_ACTIONS_MASK, schema.List(schema.Scalar())),
@@ -326,6 +754,57 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             self.sorted_state_features,
             missing_scalar,
         )
+
+        if self.has_sequence_features:
+            empty_range = self.create_empty_range(init_net)
+
+        if self.has_sequence_id_features:
+            zero_int64 = self.create_const(
+                init_net, "zero_int64", 0, dtype=core.DataType.INT64
+            )
+            state_sequence_id_features = self.extract_sequence_id_features(
+                net,
+                "state",
+                self.sequence_features,
+                self.sequence_id_features,
+                input_record[InputColumn.STATE_ID_LIST_FEATURES],
+                empty_range,
+                zero_int64,
+            )
+            next_state_sequence_id_features = self.extract_sequence_id_features(
+                net,
+                "next_state",
+                self.sequence_features,
+                self.sequence_id_features,
+                input_record[InputColumn.NEXT_STATE_ID_LIST_FEATURES],
+                empty_range,
+                zero_int64,
+            )
+        else:
+            state_sequence_id_features = {}
+            next_state_sequence_id_features = {}
+
+        if self.has_sequence_float_features:
+            zero_float = self.create_const(init_net, "zero_float", 0.0)
+            state_sequence_float_features = self.extract_sequence_float_features(
+                net,
+                "state",
+                self.sequence_features,
+                input_record[InputColumn.STATE_ID_SCORE_LIST_FEATURES],
+                empty_range,
+                zero_float,
+            )
+            next_state_sequence_float_features = self.extract_sequence_float_features(
+                net,
+                "next_state",
+                self.sequence_features,
+                input_record[InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES],
+                empty_range,
+                zero_float,
+            )
+        else:
+            state_sequence_float_features = {}
+            next_state_sequence_float_features = {}
 
         if self.sorted_action_features:
             action = self.extract_float_features(
@@ -447,6 +926,23 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             (InputColumn.TIME_DIFF, input_record[InputColumn.TIME_DIFF]),
         )
 
+        if self.has_sequence_features:
+            output_schema += schema.Struct(
+                (
+                    "state_sequence_features",
+                    self.get_state_sequence_features_schema(
+                        state_sequence_id_features, state_sequence_float_features
+                    ),
+                ),
+                (
+                    "next_state_sequence_features",
+                    self.get_state_sequence_features_schema(
+                        next_state_sequence_id_features,
+                        next_state_sequence_float_features,
+                    ),
+                ),
+            )
+
         if self.include_possible_actions:
             # Drop the "lengths" blob from possible_actions_mask since we know
             # it's just a list of [max_num_actions, max_num_actions, ...]
@@ -494,7 +990,9 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             Dict[int, NormalizationParameters]
         ] = None,
         normalize: bool = True,
+        model_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> None:
+        super().__init__(model_feature_config=model_feature_config)
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
         self.sorted_state_features, _ = sort_features_by_normalization(
@@ -510,12 +1008,19 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
 
     def extract(self, ws, input_record, extract_record):
         fetch = partial(self.fetch, ws)
-        state = mt.FeatureVector(float_features=fetch(extract_record.state))
+
+        state_features = {"float_features": fetch(extract_record.state.float_features)}
+        if self.has_sequence_features:
+            state_features["sequence_features"] = self.fetch_state_sequence_features(
+                extract_record.state.sequence_features, fetch
+            )
+
+        state = rlt.FeatureVector(**state_features)
         if self.sorted_action_features is None:
             action = None
         else:
-            action = mt.FeatureVector(float_features=fetch(extract_record.action))
-        return mt.StateAction(state=state, action=action)
+            action = rlt.FeatureVector(float_features=fetch(extract_record.action))
+        return rlt.StateAction(state=state, action=action)
 
     def create_net(self):
         net = core.Net("feature_extractor")
@@ -532,6 +1037,53 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                 ),
             )
         )
+        if self.has_sequence_id_features:
+            input_schema += schema.Struct(
+                (
+                    "id_list_features",
+                    schema.Map(
+                        keys=core.BlobReference(
+                            "input/int_multi_categorical_feature.keys"
+                        ),
+                        values=schema.List(
+                            values=core.BlobReference(
+                                "input/int_multi_categorical_feature.values.values"
+                            ),
+                            lengths_blob=core.BlobReference(
+                                "input/int_multi_categorical_feature.values.lengths"
+                            ),
+                        ),
+                        lengths_blob=core.BlobReference(
+                            "input/int_multi_categorical_feature.lengths"
+                        ),
+                    ),
+                )
+            )
+        if self.has_sequence_float_features:
+            input_schema += schema.Struct(
+                (
+                    "id_score_list_features",
+                    schema.Map(
+                        keys=core.BlobReference(
+                            "input/int_weighted_multi_categorical_feature.keys"
+                        ),
+                        values=schema.Map(
+                            keys=core.BlobReference(
+                                "input/int_weighted_multi_categorical_feature.values.keys"
+                            ),
+                            values=core.BlobReference(
+                                "input/int_weighted_multi_categorical_feature.values.values"
+                            ),
+                            lengths_blob=core.BlobReference(
+                                "input/int_weighted_multi_categorical_feature.values.lengths"
+                            ),
+                        ),
+                        lengths_blob=core.BlobReference(
+                            "input/int_weighted_multi_categorical_feature.lengths"
+                        ),
+                    ),
+                )
+            )
 
         input_record = net.set_input_record(input_schema)
 
@@ -542,6 +1094,34 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             self.sorted_state_features,
             missing_scalar,
         )
+
+        if self.has_sequence_features:
+            empty_range = self.create_empty_range(init_net)
+
+        if self.has_sequence_id_features:
+            zero_int64 = self.create_const(
+                init_net, "zero_int64", 0, dtype=core.DataType.INT64
+            )
+            state_sequence_id_features = self.extract_sequence_id_features(
+                net,
+                "state",
+                self.sequence_features,
+                self.sequence_id_features,
+                input_record.id_list_features,
+                empty_range,
+                zero_int64,
+            )
+
+        if self.has_sequence_float_features:
+            zero_float = self.create_const(init_net, "zero_float", 0.0)
+            state_sequence_float_features = self.extract_sequence_float_features(
+                net,
+                "state",
+                self.sequence_features,
+                input_record.id_score_list_features,
+                empty_range,
+                zero_float,
+            )
 
         if self.sorted_action_features:
             action = self.extract_float_features(
@@ -571,7 +1151,17 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                 )
             C2.set_net_and_init_net(None, None)
 
-        output_record = schema.Struct(("state", state))
+        output_record = schema.Struct(("state:float_features", state))
+        if self.has_sequence_features:
+            output_record += schema.Struct(
+                (
+                    "state:sequence_features",
+                    self.get_state_sequence_features_schema(
+                        state_sequence_id_features, state_sequence_float_features
+                    ),
+                )
+            )
+
         if self.sorted_action_features:
             output_record += schema.Struct(("action", action))
 
@@ -620,12 +1210,12 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
 
     def extract(self, ws, input_record, extract_record):
         fetch = partial(self.fetch, ws)
-        state = mt.FeatureVector(
+        state = rlt.FeatureVector(
             float_features=fetch(extract_record.state_features).reshape(
                 -1, self.seq_len, self.state_dim
             )
         )
-        action = mt.FeatureVector(
+        action = rlt.FeatureVector(
             float_features=fetch(extract_record.action).reshape(
                 -1, self.seq_len, self.action_dim
             )
@@ -637,14 +1227,14 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
         not_terminal = (
             fetch(input_record.not_terminal["values"]).reshape(-1, self.seq_len).float()
         )
-        training_input = mt.MemoryNetworkInput(
+        training_input = rlt.MemoryNetworkInput(
             state=state,
             action=action,
             next_state=next_state,
             reward=reward,
             not_terminal=not_terminal,
         )
-        return mt.TrainingBatch(training_input=training_input, extras=None)
+        return rlt.TrainingBatch(training_input=training_input, extras=None)
 
     def create_net(self):
         net = core.Net("feature_extractor")
