@@ -178,6 +178,13 @@ class FeatureExtractorTestBase(unittest.TestCase):
             )
         return dense
 
+    def id_mapping_config(self):
+        return {
+            "a_mapping": rlt.IdMapping(ids=[20020, 20021]),
+            "b_mapping": rlt.IdMapping(ids=[20031, 20030, 20032]),
+            "c_mapping": rlt.IdMapping(ids=[20040, 20041, 20042, 20043, 20044]),
+        }
+
     def setup_state_sequence_features(self, ws, id_list_field, id_score_list_field):
         # id_list
         id_list_lengths = np.array([3, 2, 0], dtype=np.int32)
@@ -253,17 +260,14 @@ class FeatureExtractorTestBase(unittest.TestCase):
         return SequenceFeatures(
             id_only=IdOnlySequence(
                 id_features=ABIdFeatures(
-                    a_id=np.array([[20020, 20021], [0, 0], [0, 0]], dtype=np.int64),
-                    b_id=np.array([[20030, 20031], [0, 0], [0, 0]], dtype=np.int64),
+                    a_id=np.array([[1, 2], [0, 0], [0, 0]], dtype=np.int64),
+                    b_id=np.array([[2, 1], [0, 0], [0, 0]], dtype=np.int64),
                 ),
                 float_features=None,
             ),
             id_and_float=IdAndFloatSequence(
                 id_features=CIdFeatures(
-                    c_id=np.array(
-                        [[20040, 0, 0], [20042, 20043, 20044], [0, 0, 0]],
-                        dtype=np.int64,
-                    )
+                    c_id=np.array([[1, 0, 0], [3, 4, 5], [0, 0, 0]], dtype=np.int64)
                 ),
                 float_features=np.array(
                     [
@@ -364,17 +368,14 @@ class FeatureExtractorTestBase(unittest.TestCase):
         return SequenceFeatures(
             id_only=IdOnlySequence(
                 id_features=ABIdFeatures(
-                    a_id=np.array([[0, 0], [20020, 20021], [0, 0]], dtype=np.int64),
-                    b_id=np.array([[0, 0], [20030, 20031], [0, 0]], dtype=np.int64),
+                    a_id=np.array([[0, 0], [1, 2], [0, 0]], dtype=np.int64),
+                    b_id=np.array([[0, 0], [2, 1], [0, 0]], dtype=np.int64),
                 ),
                 float_features=None,
             ),
             id_and_float=IdAndFloatSequence(
                 id_features=CIdFeatures(
-                    c_id=np.array(
-                        [[0, 0, 0], [20040, 0, 0], [20042, 20043, 20044]],
-                        dtype=np.int64,
-                    )
+                    c_id=np.array([[0, 0, 0], [1, 0, 0], [3, 4, 5]], dtype=np.int64)
                 ),
                 float_features=np.array(
                     [
@@ -858,10 +859,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         normalize = True
         num_actions = 2
         model_feature_config = rlt.ModelFeatureConfig(
-            id_mapping_config={
-                # FIXME
-                "page": rlt.IdMapping(ids=list(range(100, 110)))
-            },
+            id_mapping_config=self.id_mapping_config(),
             sequence_features_type=SequenceFeatures,
             float_feature_ids=[],
         )
@@ -1411,10 +1409,7 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
 
     def test_extract_with_sequence(self):
         model_feature_config = rlt.ModelFeatureConfig(
-            id_mapping_config={
-                # FIXME
-                "page": rlt.IdMapping(ids=list(range(100, 110)))
-            },
+            id_mapping_config=self.id_mapping_config(),
             sequence_features_type=SequenceFeatures,
             float_feature_ids=[],
         )
@@ -1521,10 +1516,7 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
             state_normalization_parameters=self.get_state_normalization_parameters(),
             normalize=True,
             model_feature_config=rlt.ModelFeatureConfig(
-                id_mapping_config={
-                    # FIXME
-                    "page": rlt.IdMapping(ids=list(range(100, 110)))
-                },
+                id_mapping_config=self.id_mapping_config(),
                 sequence_features_type=SequenceFeatures,
                 float_feature_ids=[],
             ),

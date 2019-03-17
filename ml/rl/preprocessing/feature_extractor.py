@@ -49,6 +49,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         self._init_sequence_features(model_feature_config)
 
     def _init_sequence_features(self, config: Optional[rlt.ModelFeatureConfig]) -> None:
+        self.id_mapping_configs = config.id_mapping_config if config else {}
         self.sequence_features_type = config.sequence_features_type if config else None
         sequence_features = (
             dataclasses.fields(self.sequence_features_type)
@@ -452,6 +453,86 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             )
         return dense_values
 
+    def create_id_mapping(
+        self, init_net: core.Net, name: str, mapping: List[int]
+    ) -> core.BlobReference:
+        """
+        Given the ID list in the mapping, create index from ID to its (1-base) index.
+        """
+        assert len(set(mapping)) == len(
+            mapping
+        ), "mapping for {} must not contain duplicated IDs".format(name)
+        mapping_data = init_net.NextScopedBlob("mapping_data_{}".format(name))
+        init_net.GivenTensorFill(
+            [],
+            mapping_data,
+            shape=[len(mapping)],
+            values=mapping,
+            dtype=core.DataType.INT64,
+        )
+        handler = init_net.NextScopedBlob("mapping_{}".format(name))
+        init_net.LongIndexCreate([], handler, max_elements=len(mapping))
+        init_net.IndexLoad([handler, mapping_data], [handler])
+        init_net.IndexFreeze(handler, handler)
+        init_net.AddExternalOutput(handler)
+        return handler
+
+    def create_id_mappings(
+        self, init_net: core.Net, id_mapping_configs: Dict[str, rlt.IdMapping]
+    ) -> Dict[str, core.BlobReference]:
+        return {
+            mapping_name: self.create_id_mapping(init_net, mapping_name, mapping.ids)
+            for mapping_name, mapping in id_mapping_configs.items()
+        }
+
+    def map_ids(
+        self,
+        net: core.Net,
+        name: str,
+        map_handler: core.BlobReference,
+        raw_ids: core.BlobReference,
+    ) -> core.BlobReference:
+        """
+        Map raw ID to index (into embedding lookup table, usually)
+        """
+        with core.NameScope("mapping_{}".format(name)):
+            return net.IndexGet([map_handler, raw_ids], ["mapped_ids"])
+
+    def map_sequence_id_features(
+        self,
+        net: core.Net,
+        name: str,
+        map_handlers: Dict[str, core.BlobReference],
+        raw_sequence_id_features: Dict[str, Dict[str, core.BlobReference]],
+        sequence_id_feature_configs: Dict[str, Dict[str, rlt.IdFeatureConfig]],
+    ) -> Dict[str, Dict[str, core.BlobReference]]:
+        """
+        Map raw IDs of all sequences' ID features to index (into embedding lookup table)
+        """
+        def _map_id_feature(sequence_name, id_feature, raw_id_feature):
+            with core.NameScope(sequence_name):
+                return self.map_ids(
+                    net,
+                    id_feature,
+                    map_handlers[
+                        sequence_id_feature_configs[sequence_name][
+                            id_feature
+                        ].id_mapping_name
+                    ],
+                    raw_id_feature,
+                )
+
+        with core.NameScope(name):
+            return {
+                sequence_name: {
+                    id_feature: _map_id_feature(
+                        sequence_name, id_feature, raw_id_feature
+                    )
+                    for id_feature, raw_id_feature in id_features.items()
+                }
+                for sequence_name, id_features in raw_sequence_id_features.items()
+            }
+
     def fetch_state_sequence_features(
         self, record: schema.Struct, fetch_func
     ) -> rlt.SequenceFeatures:
@@ -779,6 +860,22 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 input_record[InputColumn.NEXT_STATE_ID_LIST_FEATURES],
                 empty_range,
                 zero_int64,
+            )
+
+            id_mappings = self.create_id_mappings(init_net, self.id_mapping_configs)
+            state_sequence_id_features = self.map_sequence_id_features(
+                net,
+                "state",
+                id_mappings,
+                state_sequence_id_features,
+                self.sequence_id_features,
+            )
+            next_state_sequence_id_features = self.map_sequence_id_features(
+                net,
+                "next_state",
+                id_mappings,
+                next_state_sequence_id_features,
+                self.sequence_id_features,
             )
         else:
             state_sequence_id_features = {}
@@ -1110,6 +1207,15 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                 input_record.id_list_features,
                 empty_range,
                 zero_int64,
+            )
+
+            id_mappings = self.create_id_mappings(init_net, self.id_mapping_configs)
+            state_sequence_id_features = self.map_sequence_id_features(
+                net,
+                "state",
+                id_mappings,
+                state_sequence_id_features,
+                self.sequence_id_features,
             )
 
         if self.has_sequence_float_features:
