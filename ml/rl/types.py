@@ -134,8 +134,9 @@ class IdMapping:
 
 @dataclass
 class ModelFeatureConfig:
+    float_feature_ids: List[int]
     id_mapping_config: Dict[str, IdMapping]
-    sequence_features_type: Type[SequenceFeatures]
+    sequence_features_type: Optional[Type[SequenceFeatures]]
 
 
 class FeatureVector(NamedTuple):
