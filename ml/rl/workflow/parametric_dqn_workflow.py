@@ -6,6 +6,8 @@ import sys
 from typing import Dict
 
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.models.output_transformer import ParametricActionOutputTransformer
+from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
@@ -18,6 +20,7 @@ from ml.rl.thrift.core.ttypes import (
     TrainingParameters,
 )
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.training.rl_exporter import ParametricDQNExporter
 from ml.rl.workflow.base_workflow import BaseWorkflow
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
@@ -29,6 +32,7 @@ from ml.rl.workflow.preprocess_handler import (
     ParametricDqnPreprocessHandler,
     PreprocessHandler,
 )
+from ml.rl.workflow.transitional import create_parametric_dqn_trainer_from_params
 from tensorboardX import SummaryWriter
 
 
@@ -50,12 +54,12 @@ class ParametricDqnWorkflow(BaseWorkflow):
         logger.info(model_params)
         model_params = model_params
 
-        trainer = ParametricDQNTrainer(
+        trainer = create_parametric_dqn_trainer_from_params(
             model_params,
             state_normalization,
             action_normalization,
             use_gpu=use_gpu,
-            use_all_avail_gpus=use_all_avail_gpus,
+            # use_all_avail_gpus=use_all_avail_gpus,
         )
         trainer = update_model_for_warm_start(trainer)
         assert (
@@ -115,8 +119,17 @@ def main(params):
 
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
+
+    exporter = ParametricDQNExporter(
+        workflow.trainer.q_network,
+        PredictorFeatureExtractor(
+            state_normalization_parameters=state_normalization,
+            action_normalization_parameters=action_normalization,
+        ),
+        ParametricActionOutputTransformer(),
+    )
     return export_trainer_and_predictor(
-        workflow.trainer, params["model_output_path"]
+        workflow.trainer, params["model_output_path"], exporter=exporter
     )  # noqa
 
 

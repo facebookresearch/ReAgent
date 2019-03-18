@@ -6,12 +6,17 @@ from typing import Dict
 import torch
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.dueling_q_network import DuelingQNetwork
+from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
+from ml.rl.thrift.core.ttypes import (
+    ContinuousActionModelParameters,
+    DiscreteActionModelParameters,
+)
 from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 def create_dqn_trainer_from_params(
@@ -77,3 +82,29 @@ def create_dqn_trainer_from_params(
         q_network_cpe_target=q_network_cpe_target,
         metrics_to_score=metrics_to_score,
     )
+
+
+def create_parametric_dqn_trainer_from_params(
+    model: ContinuousActionModelParameters,
+    state_normalization_parameters: Dict[int, NormalizationParameters],
+    action_normalization_parameters: Dict[int, NormalizationParameters],
+    use_gpu: bool = False,
+):
+    q_network = FullyConnectedParametricDQN(
+        state_dim=get_num_output_features(state_normalization_parameters),
+        action_dim=get_num_output_features(action_normalization_parameters),
+        sizes=model.training.layers[1:-1],
+        activations=model.training.activations[:-1],
+    )
+    reward_network = FullyConnectedParametricDQN(
+        state_dim=get_num_output_features(state_normalization_parameters),
+        action_dim=get_num_output_features(action_normalization_parameters),
+        sizes=model.training.layers[1:-1],
+        activations=model.training.activations[:-1],
+    )
+    if use_gpu and torch.cuda.is_available():
+        q_network = q_network.cuda()
+        reward_network = reward_network.cuda()
+
+    q_network_target = q_network.get_target_network()
+    return ParametricDQNTrainer(q_network, q_network_target, reward_network, model)

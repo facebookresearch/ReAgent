@@ -45,10 +45,12 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
-from ml.rl.workflow.transitional import create_dqn_trainer_from_params
+from ml.rl.workflow.transitional import (
+    create_dqn_trainer_from_params,
+    create_parametric_dqn_trainer_from_params,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -609,7 +611,7 @@ def run_gym(
 
     use_gpu = gpu_id != USE_CPU
     trainer = create_trainer(params["model_type"], params, rl_parameters, use_gpu, env)
-    predictor = create_predictor(trainer, model_type, use_gpu)
+    predictor = create_predictor(trainer, model_type, use_gpu, env.action_dim)
 
     c2_device = core.DeviceOption(
         caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, int(gpu_id)
@@ -686,7 +688,7 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         trainer_params = ContinuousActionModelParameters(
             rl=rl_parameters, training=training_parameters, rainbow=rainbow_parameters
         )
-        trainer = ParametricDQNTrainer(
+        trainer = create_parametric_dqn_trainer_from_params(
             trainer_params, env.normalization, env.normalization_action, use_gpu
         )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
@@ -827,16 +829,16 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
     return action.tolist(), action.tolist()
 
 
-def create_predictor(trainer, model_type, use_gpu):
+def create_predictor(trainer, model_type, use_gpu, action_dim=None):
     if model_type == ModelType.CONTINUOUS_ACTION.value:
-        predictor = GymDDPGPredictor(trainer)
+        predictor = GymDDPGPredictor(trainer, action_dim)
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        predictor = GymSACPredictor(trainer)
+        predictor = GymSACPredictor(trainer, action_dim)
     elif model_type in (
         ModelType.PYTORCH_DISCRETE_DQN.value,
         ModelType.PYTORCH_PARAMETRIC_DQN.value,
     ):
-        predictor = GymDQNPredictor(trainer)
+        predictor = GymDQNPredictor(trainer, action_dim)
     else:
         raise NotImplementedError()
     return predictor

@@ -22,7 +22,6 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.training._parametric_dqn_trainer import _ParametricDQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_exporter import ParametricDQNExporter
 
@@ -55,48 +54,6 @@ class TestGridworldParametric(GridworldTestBase):
             ),
         )
 
-    def get_sarsa_parameters_factorized(self):
-        return ContinuousActionModelParameters(
-            rl=RLParameters(
-                gamma=DISCOUNT,
-                target_update_rate=1.0,
-                reward_burnin=100,
-                maxq_learning=False,
-            ),
-            training=TrainingParameters(
-                # These are used by reward network
-                layers=[-1, 256, 128, -1],
-                activations=["relu", "relu", "linear"],
-                factorization_parameters=FactorizationParameters(
-                    state=FeedForwardParameters(
-                        layers=[-1, 128, 64], activations=["relu", "linear"]
-                    ),
-                    action=FeedForwardParameters(
-                        layers=[-1, 128, 64], activations=["relu", "linear"]
-                    ),
-                ),
-                minibatch_size=self.minibatch_size,
-                learning_rate=0.03,
-                optimizer="ADAM",
-            ),
-            rainbow=RainbowDQNParameters(
-                double_q_learning=True, dueling_architecture=False
-            ),
-        )
-
-    def get_sarsa_trainer_exporter(
-        self, environment, parameters=None, use_gpu=False, use_all_avail_gpus=False
-    ):
-        parameters = parameters or self.get_sarsa_parameters()
-        trainer = ParametricDQNTrainer(
-            parameters,
-            environment.normalization,
-            environment.normalization_action,
-            use_gpu=use_gpu,
-            use_all_avail_gpus=use_all_avail_gpus,
-        )
-        return (trainer, trainer)
-
     def get_modular_sarsa_trainer_exporter(
         self, environment, parameters=None, use_gpu=False, use_all_avail_gpus=False
     ):
@@ -121,7 +78,7 @@ class TestGridworldParametric(GridworldTestBase):
                 reward_network = reward_network.get_data_parallel_model()
 
         q_network_target = q_network.get_target_network()
-        trainer = _ParametricDQNTrainer(
+        trainer = ParametricDQNTrainer(
             q_network, q_network_target, reward_network, parameters
         )
         feature_extractor = PredictorFeatureExtractor(
@@ -134,69 +91,27 @@ class TestGridworldParametric(GridworldTestBase):
         )
         return (trainer, exporter)
 
-    def _test_trainer_sarsa(
-        self, use_gpu=False, use_all_avail_gpus=False, modular=False
-    ):
+    def _test_trainer_sarsa(self, use_gpu=False, use_all_avail_gpus=False):
         environment = GridworldContinuous()
         evaluator = GridworldContinuousEvaluator(
             environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
-        if modular:
-            if use_all_avail_gpus:
-                self.tolerance_threshold = 0.11
-            trainer, exporter = self.get_modular_sarsa_trainer_exporter(
-                environment, None, use_gpu, use_all_avail_gpus
-            )
-        else:
-            trainer, exporter = self.get_sarsa_trainer_exporter(
-                environment, None, use_gpu, use_all_avail_gpus
-            )
+        if use_all_avail_gpus:
+            self.tolerance_threshold = 0.11
+        trainer, exporter = self.get_modular_sarsa_trainer_exporter(
+            environment, None, use_gpu, use_all_avail_gpus
+        )
 
         self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
-    def test_trainer_sarsa(self):
+    def test_modular_trainer_sarsa(self):
         self._test_trainer_sarsa()
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_trainer_sarsa_gpu(self):
+    def test_modular_trainer_sarsa_gpu(self):
         self._test_trainer_sarsa(use_gpu=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_trainer_sarsa_all_gpus(self):
-        self._test_trainer_sarsa(use_gpu=True, use_all_avail_gpus=True)
-
-    def test_modular_trainer_sarsa(self):
-        self._test_trainer_sarsa(modular=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_modular_trainer_sarsa_gpu(self):
-        self._test_trainer_sarsa(use_gpu=True, modular=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_modular_trainer_sarsa_all_gpus(self):
-        self._test_trainer_sarsa(use_gpu=True, use_all_avail_gpus=True, modular=True)
-
-    def _test_trainer_sarsa_factorized(self, use_gpu=False, use_all_avail_gpus=False):
-        self.check_tolerance = False
-        self.tolerance_threshold = 0.15
-        environment = GridworldContinuous()
-        trainer, exporter = self.get_sarsa_trainer_exporter(
-            environment,
-            self.get_sarsa_parameters_factorized(),
-            use_gpu,
-            use_all_avail_gpus,
-        )
-        evaluator = GridworldContinuousEvaluator(environment, False, DISCOUNT)
-        self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
-
-    def test_trainer_sarsa_factorized(self):
-        self._test_trainer_sarsa_factorized()
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_trainer_sarsa_factorized_gpu(self):
-        self._test_trainer_sarsa_factorized(use_gpu=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_trainer_sarsa_factorized_all_gpus(self):
-        self._test_trainer_sarsa_factorized(use_gpu=True, use_all_avail_gpus=True)
+        self._test_trainer_sarsa(use_gpu=True, use_all_avail_gpus=True)

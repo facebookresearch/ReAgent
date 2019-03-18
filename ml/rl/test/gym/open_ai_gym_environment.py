@@ -15,7 +15,6 @@ from ml.rl.test.gym.gym_predictor import (
     GymSACPredictor,
 )
 from ml.rl.test.utils import only_continuous_normalizer
-from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.dqn_predictor import DQNPredictor
@@ -226,7 +225,7 @@ class OpenAIGymEnvironment(Environment):
             action_idx -= self.state_dim
             action[action_idx] = 1.0
             return action, action_probability
-        elif isinstance(predictor, (ParametricDQNPredictor, _ParametricDQNPredictor)):
+        elif isinstance(predictor, ParametricDQNPredictor):
             # Needs to get a list of candidate actions if actions are continuous
             if self.action_type == EnvType.CONTINUOUS_ACTION:
                 raise NotImplementedError()

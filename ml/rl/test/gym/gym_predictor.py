@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class GymPredictor(object):
-    def __init__(self, trainer, c2_device=None):
-        self.c2_device = c2_device
+    def __init__(self, trainer, action_dim):
         self.trainer = trainer
+        self.action_dim = action_dim
 
     def policy(self):
         raise NotImplementedError()
@@ -29,21 +29,18 @@ class GymPredictor(object):
 
 
 class GymDQNPredictor(GymPredictor):
-    def __init__(self, trainer):
-        GymPredictor.__init__(self, trainer)
-
     def policy(self, states):
         if isinstance(self.trainer, DQNTrainer):
-            input = states
+            input = [states]
         elif isinstance(self.trainer, ParametricDQNTrainer):
-            num_actions = len(self.trainer.action_normalization_parameters)
+            num_actions = self.action_dim
             actions = np.eye(num_actions, dtype=np.float32)
             actions = np.tile(actions, reps=(len(states), 1))
             states = np.repeat(states, repeats=num_actions, axis=0)
-            input = np.hstack((states, actions))
+            input = (states, actions)
         else:
             raise NotImplementedError("Invalid trainer passed to GymPredictor")
-        q_scores = self.trainer.internal_prediction(input)
+        q_scores = self.trainer.internal_prediction(*input)
         if isinstance(self.trainer, DQNTrainer):
             assert q_scores.shape[0] == 1
             q_scores = q_scores[0]
@@ -60,45 +57,39 @@ class GymDQNPredictor(GymPredictor):
 
     def predict(self, states):
         if isinstance(self.trainer, DQNTrainer):
-            input = states
+            input = [states]
         elif isinstance(self.trainer, ParametricDQNTrainer):
-            num_actions = len(self.trainer.action_normalization_parameters)
+            num_actions = self.action_dim
             actions = np.eye(num_actions, dtype=np.float32)
             actions = np.tile(actions, reps=(len(states), 1))
             states = np.repeat(states, repeats=num_actions, axis=0)
-            input = np.hstack((states, actions))
+            input = (states, actions)
         else:
             raise NotImplementedError("Invalid trainer passed to GymPredictor")
-        q_scores = self.trainer.internal_prediction(input)
+        q_scores = self.trainer.internal_prediction(*input)
         return q_scores
 
     def estimate_reward(self, states):
         if isinstance(self.trainer, DQNTrainer):
-            input = states
+            input = [states]
         elif isinstance(self.trainer, ParametricDQNTrainer):
-            num_actions = len(self.trainer.action_normalization_parameters)
+            num_actions = self.action_dim
             actions = np.eye(num_actions, dtype=np.float32)
             actions = np.tile(actions, reps=(len(states), 1))
             states = np.repeat(states, repeats=num_actions, axis=0)
-            input = np.hstack((states, actions))
+            input = (states, actions)
         else:
             raise NotImplementedError("Invalid trainer passed to GymPredictor")
-        reward_estimates = self.trainer.internal_reward_estimation(input)
+        reward_estimates = self.trainer.internal_reward_estimation(*input)
         return reward_estimates
 
 
 class GymDDPGPredictor(GymPredictor):
-    def __init__(self, trainer):
-        GymPredictor.__init__(self, trainer)
-
     def policy(self, states, add_action_noise=False):
         return self.trainer.internal_prediction(states, add_action_noise)
 
 
 class GymSACPredictor(GymPredictor):
-    def __init__(self, trainer):
-        GymPredictor.__init__(self, trainer)
-
     def policy(self, states):
         actions = self.trainer.internal_prediction(states)
         actions = actions.data.numpy()

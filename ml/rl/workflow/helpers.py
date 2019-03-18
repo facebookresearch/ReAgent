@@ -10,7 +10,6 @@ import time
 
 import torch
 from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.training._parametric_dqn_trainer import _ParametricDQNTrainer
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
@@ -54,7 +53,7 @@ def save_model_to_file(model, path):
     except NotImplementedError:
         pass
 
-    if isinstance(model, (DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)):
+    if isinstance(model, (DQNTrainer, ParametricDQNTrainer)):
         state = {
             "q_network": model.q_network.state_dict(),
             "optimizer": model.q_network_optimizer.state_dict(),
@@ -96,7 +95,7 @@ def update_model_for_warm_start(model, path=None):
     except NotImplementedError:
         pass
 
-    if isinstance(model, (DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)):
+    if isinstance(model, (DQNTrainer, ParametricDQNTrainer)):
         try:
             model.q_network.load_state_dict(state["q_network"])
             model.q_network_target.load_state_dict(state["q_network"])

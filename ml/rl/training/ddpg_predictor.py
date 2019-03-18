@@ -11,7 +11,7 @@ from ml.rl.caffe_utils import C2, PytorchCaffe2Converter, StackedAssociativeArra
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
-from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
+from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
 from torch.nn import DataParallel
 
@@ -80,7 +80,7 @@ class DDPGPredictor(RLPredictor):
         :param float_state_features states as list of feature -> float value dict
         :param actions actions as list of feature -> value dict
         """
-        return ParametricDQNPredictor.predict(self, float_state_features, actions)
+        return _ParametricDQNPredictor.predict(self, float_state_features, actions)
 
     @classmethod
     def generate_train_net(
@@ -276,7 +276,15 @@ class DDPGPredictor(RLPredictor):
         action_normalization_parameters,
         model_on_gpu=False,
     ):
-        return ParametricDQNPredictor.export(
+        """Export caffe2 preprocessor net and pytorch DQN forward pass as one
+        caffe2 net.
+
+        :param trainer ParametricDQNTrainer
+        :param state_normalization_parameters state NormalizationParameters
+        :param action_normalization_parameters action NormalizationParameters
+        :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
+        """
+        return _ParametricDQNPredictor.export(
             trainer,
             state_normalization_parameters,
             action_normalization_parameters,

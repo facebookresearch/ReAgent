@@ -88,6 +88,35 @@ class TrainingDataPage(object):
             extras=rlt.ExtraData(),
         )
 
+    def as_parametric_maxq_training_batch(self):
+        state_dim = self.states.shape[1]
+        return rlt.TrainingBatch(
+            training_input=rlt.MaxQLearningInput(
+                state=rlt.FeatureVector(float_features=self.states),
+                action=rlt.FeatureVector(float_features=self.actions),
+                next_state=None,
+                next_action=None,
+                tiled_next_state=rlt.FeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, :state_dim
+                    ]
+                ),
+                possible_actions=None,
+                possible_actions_mask=self.possible_actions_mask,
+                possible_next_actions=rlt.FeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, state_dim:
+                    ]
+                ),
+                possible_next_actions_mask=self.possible_next_actions_mask,
+                reward=self.rewards,
+                not_terminal=self.not_terminal,
+                step=self.step,
+                time_diff=self.time_diffs,
+            ),
+            extras=rlt.ExtraData(),
+        )
+
     def as_discrete_sarsa_training_batch(self):
         return rlt.TrainingBatch(
             training_input=rlt.SARSAInput(
