@@ -7,6 +7,8 @@ from typing import Dict
 
 import numpy as np
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
+from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
@@ -19,6 +21,7 @@ from ml.rl.thrift.core.ttypes import (
     TrainingParameters,
 )
 from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.rl_exporter import DQNExporter
 from ml.rl.workflow.base_workflow import BaseWorkflow
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
@@ -27,6 +30,7 @@ from ml.rl.workflow.helpers import (
     update_model_for_warm_start,
 )
 from ml.rl.workflow.preprocess_handler import DqnPreprocessHandler, PreprocessHandler
+from ml.rl.workflow.transitional import create_dqn_trainer_from_params
 from tensorboardX import SummaryWriter
 
 
@@ -46,11 +50,11 @@ class DqnWorkflow(BaseWorkflow):
         logger.info(model_params)
         model_params = model_params
 
-        trainer = DQNTrainer(
+        trainer = create_dqn_trainer_from_params(
             model_params,
             state_normalization,
             use_gpu=use_gpu,
-            use_all_avail_gpus=use_all_avail_gpus,
+            # use_all_avail_gpus=use_all_avail_gpus,
         )
         trainer = update_model_for_warm_start(trainer)
         assert type(trainer) == DQNTrainer, "Warm started wrong model type: " + str(
@@ -111,8 +115,15 @@ def main(params):
 
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
+
+    exporter = DQNExporter(
+        workflow.trainer.q_network,
+        PredictorFeatureExtractor(state_normalization_parameters=state_normalization),
+        DiscreteActionOutputTransformer(model_params.actions),
+    )
+
     return export_trainer_and_predictor(
-        workflow.trainer, params["model_output_path"]
+        workflow.trainer, params["model_output_path"], exporter=exporter
     )  # noqa
 
 

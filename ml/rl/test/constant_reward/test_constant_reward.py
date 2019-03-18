@@ -14,7 +14,7 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.workflow.transitional import create_dqn_trainer_from_params
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,9 @@ class TestConstantReward(unittest.TestCase):
                 optimizer="ADAM",
             ),
         )
-        maxq_trainer = DQNTrainer(maxq_parameters, env.normalization)
+        maxq_trainer = create_dqn_trainer_from_params(
+            maxq_parameters, env.normalization
+        )
 
         logger.info("Generating constant_reward MDPs..")
 

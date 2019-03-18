@@ -8,6 +8,7 @@ import numpy as np
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
+from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.types import TrainingBatch
@@ -52,7 +53,18 @@ class EvaluationPageHandler(PageHandler):
         if not self.trainer.calc_cpe_in_training:
             return
         if isinstance(tdp, TrainingDataPage):
-            edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
+            if isinstance(self.trainer, DQNTrainer):
+                # This is required until we get rid of TrainingDataPage
+                if self.trainer.maxq_learning:
+                    edp = EvaluationDataPage.create_from_training_batch(
+                        tdp.as_discrete_maxq_training_batch(), self.trainer
+                    )
+                else:
+                    edp = EvaluationDataPage.create_from_training_batch(
+                        tdp.as_discrete_sarsa_training_batch(), self.trainer
+                    )
+            else:
+                edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
         elif isinstance(tdp, TrainingBatch):
             if isinstance(self.trainer, SACTrainer):
                 # TODO: Implement CPE for continuous algos

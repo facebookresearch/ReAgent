@@ -100,7 +100,39 @@ class TrainingDataPage(object):
                 step=self.step,
                 time_diff=self.time_diffs,
             ),
-            extras=rlt.ExtraData(action_probability=self.propensities),
+            extras=rlt.ExtraData(
+                mdp_id=self.mdp_ids,
+                sequence_number=self.sequence_numbers,
+                action_probability=self.propensities,
+                max_num_actions=self.max_num_actions,
+                metrics=self.metrics,
+            ),
+        )
+
+    def as_discrete_maxq_training_batch(self):
+        return rlt.TrainingBatch(
+            training_input=rlt.MaxQLearningInput(
+                state=rlt.FeatureVector(float_features=self.states),
+                action=self.actions,
+                next_state=rlt.FeatureVector(float_features=self.next_states),
+                next_action=self.next_actions,
+                tiled_next_state=None,
+                possible_actions=None,
+                possible_actions_mask=self.possible_actions_mask,
+                possible_next_actions=None,
+                possible_next_actions_mask=self.possible_next_actions_mask,
+                reward=self.rewards,
+                not_terminal=self.not_terminal,
+                step=self.step,
+                time_diff=self.time_diffs,
+            ),
+            extras=rlt.ExtraData(
+                mdp_id=self.mdp_ids,
+                sequence_number=self.sequence_numbers,
+                action_probability=self.propensities,
+                max_num_actions=self.max_num_actions,
+                metrics=self.metrics,
+            ),
         )
 
     def size(self) -> int:

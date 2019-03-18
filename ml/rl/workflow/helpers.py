@@ -10,7 +10,6 @@ import time
 
 import torch
 from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.training._dqn_trainer import _DQNTrainer
 from ml.rl.training._parametric_dqn_trainer import _ParametricDQNTrainer
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
@@ -55,9 +54,7 @@ def save_model_to_file(model, path):
     except NotImplementedError:
         pass
 
-    if isinstance(
-        model, (_DQNTrainer, DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)
-    ):
+    if isinstance(model, (DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)):
         state = {
             "q_network": model.q_network.state_dict(),
             "optimizer": model.q_network_optimizer.state_dict(),
@@ -99,9 +96,7 @@ def update_model_for_warm_start(model, path=None):
     except NotImplementedError:
         pass
 
-    if isinstance(
-        model, (_DQNTrainer, DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)
-    ):
+    if isinstance(model, (DQNTrainer, _ParametricDQNTrainer, ParametricDQNTrainer)):
         try:
             model.q_network.load_state_dict(state["q_network"])
             model.q_network_target.load_state_dict(state["q_network"])
@@ -130,7 +125,7 @@ def update_model_for_warm_start(model, path=None):
     return model
 
 
-def export_trainer_and_predictor(trainer, output_path):
+def export_trainer_and_predictor(trainer, output_path, exporter=None):
     """Writes PyTorch trainer and Caffe2 Predictor to file and returns predictor
 
     returns: Predictor object
@@ -139,7 +134,7 @@ def export_trainer_and_predictor(trainer, output_path):
 
     if output_path is None:
         # Don't write models to file, just return predictor
-        caffe2_predictor = trainer.predictor()
+        caffe2_predictor = exporter.export() if exporter else trainer.predictor()
     else:
         # Write models to file and return predictor
         output_path = os.path.expanduser(output_path)
@@ -152,6 +147,6 @@ def export_trainer_and_predictor(trainer, output_path):
         logger.info("Saving PyTorch trainer to {}".format(pytorch_output_path))
         save_model_to_file(trainer, pytorch_output_path)
         logger.info("Saving Caffe2 predictor to {}".format(caffe2_output_path))
-        caffe2_predictor = trainer.predictor()
+        caffe2_predictor = exporter.export() if exporter else trainer.predictor()
         caffe2_predictor.save(caffe2_output_path, "minidb")
     return caffe2_predictor

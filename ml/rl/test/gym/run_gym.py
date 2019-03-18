@@ -48,6 +48,7 @@ from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
+from ml.rl.workflow.transitional import create_dqn_trainer_from_params
 
 
 logger = logging.getLogger(__name__)
@@ -662,7 +663,9 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             training=training_parameters,
             rainbow=rainbow_parameters,
         )
-        trainer = DQNTrainer(trainer_params, env.normalization, use_gpu)
+        trainer = create_dqn_trainer_from_params(
+            trainer_params, env.normalization, use_gpu
+        )
 
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
         training_parameters = params["training"]
