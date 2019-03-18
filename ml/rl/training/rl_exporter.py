@@ -5,9 +5,9 @@ import logging
 
 from ml.rl.models.actor import ActorWithPreprocessing
 from ml.rl.models.parametric_dqn import ParametricDQNWithPreprocessing
-from ml.rl.training._dqn_predictor import _DQNPredictor
-from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
+from ml.rl.training.dqn_predictor import DQNPredictor
+from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ class ParametricDQNExporter(SandboxedRLExporter):
     ):
         super(ParametricDQNExporter, self).__init__(
             dnn,
-            _ParametricDQNPredictor,
+            ParametricDQNPredictor,
             ParametricDQNWithPreprocessing,
             feature_extractor,
             output_transformer,
@@ -88,7 +88,7 @@ class DQNExporter(SandboxedRLExporter):
         feature_extractor=None,
         output_transformer=None,
         state_preprocessor=None,
-        predictor_class=_DQNPredictor,
+        predictor_class=DQNPredictor,
         preprocessing_class=None,
         **kwargs,
     ):

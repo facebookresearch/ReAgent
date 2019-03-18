@@ -2,12 +2,13 @@
 
 import logging
 import time
-from typing import List
+from typing import Dict, List
 
+import numpy as np
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.training._dqn_trainer import _DQNTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.types import TrainingBatch
@@ -24,16 +25,13 @@ class PageHandler:
         raise NotImplementedError()
 
     def set_epoch(self, epoch) -> None:
-        raise NotImplementedError()
+        self.epoch = epoch
 
 
 class TrainingPageHandler(PageHandler):
     def __init__(self, trainer):
         self.accumulated_tdp = None
         self.trainer = trainer
-
-    def set_epoch(self, epoch) -> None:
-        self.epoch = epoch
 
     def handle(self, tdp: TrainingDataPage) -> None:
         SummaryWriterContext.increase_global_step()
@@ -51,14 +49,22 @@ class EvaluationPageHandler(PageHandler):
         self.reporter = reporter
         self.results: List[CpeDetails] = []
 
-    def set_epoch(self, epoch) -> None:
-        self.epoch = epoch
-
     def handle(self, tdp: TrainingDataPage) -> None:
         if not self.trainer.calc_cpe_in_training:
             return
         if isinstance(tdp, TrainingDataPage):
-            edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
+            if isinstance(self.trainer, DQNTrainer):
+                # This is required until we get rid of TrainingDataPage
+                if self.trainer.maxq_learning:
+                    edp = EvaluationDataPage.create_from_training_batch(
+                        tdp.as_discrete_maxq_training_batch(), self.trainer
+                    )
+                else:
+                    edp = EvaluationDataPage.create_from_training_batch(
+                        tdp.as_discrete_sarsa_training_batch(), self.trainer
+                    )
+            else:
+                edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
         elif isinstance(tdp, TrainingBatch):
             if isinstance(self.trainer, SACTrainer):
                 # TODO: Implement CPE for continuous algos
@@ -88,6 +94,41 @@ class EvaluationPageHandler(PageHandler):
         if len(self.results) == 0:
             return CpeDetails()
         return self.results[-1]
+
+
+class WorldModelPageHandler(PageHandler):
+    def __init__(self, trainer_or_evaluator):
+        self.trainer_or_evaluator = trainer_or_evaluator
+        self.results: List[Dict] = []
+
+    def finish(self) -> None:
+        pass
+
+    def refresh_results(self) -> None:
+        self.results: List[Dict] = []
+
+    def get_mean_loss(self, loss_name="loss", axis=None) -> float:
+        """
+        :param loss_name: possible loss names: 'loss' (referring to total loss),
+            'bce' (loss for predicting not_terminal), 'gmm' (loss for next state
+            prediction), 'mse' (loss for predicting reward)
+        :param axis: axis to perform mean function.
+        """
+        return np.mean(
+            [result[loss_name].detach().numpy() for result in self.results], axis=axis
+        )
+
+
+class WorldModelTrainingPageHandler(WorldModelPageHandler):
+    def handle(self, tdp: TrainingDataPage) -> None:
+        losses = self.trainer_or_evaluator.train(tdp, batch_first=True)
+        self.results.append(losses)
+
+
+class WorldModelEvaluationPageHandler(WorldModelPageHandler):
+    def handle(self, tdp: TrainingDataPage) -> None:
+        losses = self.trainer_or_evaluator.evaluate(tdp)
+        self.results.append(losses)
 
 
 def feed_pages(
@@ -124,7 +165,6 @@ def feed_pages(
         # TODO: This preprocessing should go into background as well
         if batch_preprocessor:
             batch = batch_preprocessor(batch)
-
         page_handler.handle(batch)
 
     page_handler.finish()

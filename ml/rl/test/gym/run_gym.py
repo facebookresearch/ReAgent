@@ -4,6 +4,7 @@
 import argparse
 import json
 import logging
+import pickle
 import sys
 from copy import deepcopy
 
@@ -44,9 +45,12 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
+from ml.rl.workflow.transitional import (
+    create_dqn_trainer_from_params,
+    create_parametric_dqn_trainer_from_params,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -83,7 +87,7 @@ def get_possible_actions(gym_env, model_type, terminal):
     return possible_next_actions, possible_next_actions_mask
 
 
-def train_sgd(
+def train(
     c2_device,
     gym_env,
     offline_train,
@@ -103,8 +107,12 @@ def train_sgd(
     avg_over_num_episodes=100,
     render=False,
     save_timesteps_to_dataset=None,
-    start_saving_from_episode=0,
+    start_saving_from_score=None,
+    solved_reward_threshold=None,
+    max_episodes_to_run_after_solved=None,
+    stop_training_after_solved=False,
     offline_train_epochs=3,
+    path_to_pickled_transitions=None,
 ):
     if offline_train:
         return train_gym_offline_rl(
@@ -119,6 +127,7 @@ def train_sgd(
             max_steps,
             avg_over_num_episodes,
             offline_train_epochs,
+            path_to_pickled_transitions,
         )
     else:
         return train_gym_online_rl(
@@ -140,31 +149,22 @@ def train_sgd(
             avg_over_num_episodes,
             render,
             save_timesteps_to_dataset,
-            start_saving_from_episode,
+            start_saving_from_score,
+            solved_reward_threshold,
+            max_episodes_to_run_after_solved,
+            stop_training_after_solved,
         )
 
 
-def train_gym_offline_rl(
-    c2_device,
-    gym_env,
-    replay_buffer,
-    model_type,
-    trainer,
-    predictor,
-    test_run_name,
-    score_bar,
-    max_steps,
-    avg_over_num_episodes,
-    offline_train_epochs,
-):
-    """
-    Train on transitions collected by a random policy then learn RL off policy.
-    """
+def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, model_type):
+    """Generate random transitions and and load into replay buffer."""
+
     samples = gym_env.generate_random_samples(
         num_transitions=replay_buffer.max_replay_memory_size,
         use_continuous_action=True,
         max_step=max_steps,
     )
+    policy_id = 0
     for i in range(len(samples.mdp_ids)):
         state = dict_to_np(samples.states[i], gym_env.state_dim, 0)
         action = dict_to_np(samples.actions[i], gym_env.action_dim, gym_env.state_dim)
@@ -192,15 +192,56 @@ def train_gym_offline_rl(
             1,
             possible_actions,
             possible_actions_mask,
+            policy_id,
         )
 
-    memory_size = min(replay_buffer.memory_num, replay_buffer.max_replay_memory_size)
-    num_batch_per_epoch = memory_size // trainer.minibatch_size
+
+def create_stored_policy_offline_dataset(replay_buffer, path):
+    """Read transitions from pickle file and load into replay buffer."""
+    with open(path, "rb") as f:
+        rows = pickle.load(f)
+    unique_policies = set()
+    for row in rows:
+        unique_policies.add(row["policy_id"])
+        replay_buffer.insert_into_memory(**row)
     logger.info(
-        "Collect {} offline transitions.\n"
+        "Transitions generated from {} different policies".format(len(unique_policies))
+    )
+
+
+def train_gym_offline_rl(
+    c2_device,
+    gym_env,
+    replay_buffer,
+    model_type,
+    trainer,
+    predictor,
+    test_run_name,
+    score_bar,
+    max_steps,
+    avg_over_num_episodes,
+    offline_train_epochs,
+    path_to_pickled_transitions=None,
+):
+    """
+    Train on transitions generated from a random policy live or
+    read transitions from a pickle file and load into replay buffer.
+    """
+    if path_to_pickled_transitions is not None:
+        logger.info("Loading transitions from {}".format(path_to_pickled_transitions))
+        create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
+    else:
+        logger.info("Generating {} transitions under random policy.".format(max_steps))
+        create_random_policy_offline_dataset(
+            gym_env, replay_buffer, max_steps, model_type
+        )
+
+    num_batch_per_epoch = replay_buffer.size // trainer.minibatch_size
+    logger.info(
+        "{} offline transitions in replay buffer.\n"
         "Training will take {} epochs, with each epoch having {} mini-batches"
         " and each mini-batch having {} samples".format(
-            memory_size,
+            replay_buffer.size,
             offline_train_epochs,
             num_batch_per_epoch,
             trainer.minibatch_size,
@@ -267,14 +308,29 @@ def train_gym_online_rl(
     avg_over_num_episodes,
     render,
     save_timesteps_to_dataset,
-    start_saving_from_episode,
+    start_saving_from_score,
+    solved_reward_threshold,
+    max_episodes_to_run_after_solved,
+    stop_training_after_solved,
 ):
     """Train off of dynamic set of transitions generated on-policy."""
-
     total_timesteps = 0
     avg_reward_history, timestep_history = [], []
+    best_episode_score_seeen = -1e20
+    episodes_since_solved = 0
+    solved = False
+    policy_id = 0
 
     for i in range(num_episodes):
+        if (
+            max_episodes_to_run_after_solved is not None
+            and episodes_since_solved > max_episodes_to_run_after_solved
+        ):
+            break
+
+        if solved:
+            episodes_since_solved += 1
+
         terminal = False
         next_state = gym_env.transform_state(gym_env.env.reset())
         next_action, next_action_probability = gym_env.policy(
@@ -297,22 +353,16 @@ def train_gym_online_rl(
             if render:
                 gym_env.env.render()
 
-            action_to_log, gym_action = _format_action_for_log_and_gym(
+            timeline_format_action, gym_action = _format_action_for_log_and_gym(
                 action, gym_env.action_type, model_type
             )
-            if gym_env.action_type == EnvType.DISCRETE_ACTION:
-                next_state, reward, terminal, _ = gym_env.env.step(gym_action)
-            else:
-                next_state, reward, terminal, _ = gym_env.env.step(gym_action)
+            next_state, reward, terminal, _ = gym_env.env.step(gym_action)
             next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
             total_timesteps += 1
             next_action, next_action_probability = gym_env.policy(
                 predictor, next_state, False
-            )
-            next_action_to_log, _ = _format_action_for_log_and_gym(
-                next_action, gym_env.action_type, model_type
             )
             reward_sum += reward
 
@@ -337,21 +387,30 @@ def train_gym_online_rl(
                 1,
                 possible_actions,
                 possible_actions_mask,
+                policy_id,
             )
 
-            if save_timesteps_to_dataset and i >= start_saving_from_episode:
+            if save_timesteps_to_dataset and (
+                start_saving_from_score is None
+                or best_episode_score_seeen >= start_saving_from_score
+            ):
                 save_timesteps_to_dataset.insert(
-                    i,
-                    ep_timesteps - 1,
-                    state.tolist(),
-                    action_to_log,
-                    reward,
-                    terminal,
-                    possible_actions.tolist()
-                    if possible_actions is not None
-                    else possible_actions_mask,
-                    1,
-                    action_probability,
+                    mdp_id=i,
+                    sequence_number=ep_timesteps - 1,
+                    state=state,
+                    action=action,
+                    timeline_format_action=timeline_format_action,
+                    action_probability=action_probability,
+                    reward=reward,
+                    next_state=next_state,
+                    next_action=next_action,
+                    terminal=terminal,
+                    possible_next_actions=possible_next_actions,
+                    possible_next_actions_mask=possible_next_actions_mask,
+                    time_diff=1,
+                    possible_actions=possible_actions,
+                    possible_actions_mask=possible_actions_mask,
+                    policy_id=policy_id,
                 )
 
             # Training loop
@@ -359,6 +418,7 @@ def train_gym_online_rl(
                 total_timesteps % train_every_ts == 0
                 and total_timesteps > train_after_ts
                 and len(replay_buffer.replay_memory) >= trainer.minibatch_size
+                and not (stop_training_after_solved and solved)
             ):
                 for _ in range(num_train_batches):
                     samples = replay_buffer.sample_memories(
@@ -366,12 +426,23 @@ def train_gym_online_rl(
                     )
                     samples.set_type(trainer.dtype)
                     trainer.train(samples)
+                    # Every time we train, the policy changes
+                    policy_id += 1
 
             # Evaluation loop
             if total_timesteps % test_every_ts == 0 and total_timesteps > test_after_ts:
                 avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
                     avg_over_num_episodes, predictor, test=True
                 )
+                if avg_rewards > best_episode_score_seeen:
+                    best_episode_score_seeen = avg_rewards
+
+                if (
+                    solved_reward_threshold is not None
+                    and best_episode_score_seeen > solved_reward_threshold
+                ):
+                    solved = True
+
                 avg_reward_history.append(avg_rewards)
                 timestep_history.append(total_timesteps)
                 logger.info(
@@ -391,22 +462,6 @@ def train_gym_online_rl(
             if max_steps and ep_timesteps >= max_steps:
                 break
 
-        # If the episode ended due to a terminal state being hit, log that
-        if terminal and save_timesteps_to_dataset:
-            save_timesteps_to_dataset.insert(
-                i,
-                ep_timesteps,
-                next_state.tolist(),
-                next_action_to_log,
-                0.0,
-                terminal,
-                possible_next_actions.tolist()
-                if possible_next_actions is not None
-                else possible_next_actions_mask,
-                1,
-                next_action_probability,
-            )
-
         # Always eval on last episode if previous eval loop didn't return.
         if i == num_episodes - 1:
             avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
@@ -420,6 +475,11 @@ def train_gym_online_rl(
                     avg_rewards, avg_over_num_episodes, i + 1, total_timesteps
                 )
             )
+
+        if solved:
+            gym_env.epsilon = gym_env.minimum_epsilon
+        else:
+            gym_env.decay_epsilon()
 
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
@@ -460,10 +520,10 @@ def main(args):
     )
     parser.add_argument(
         "-e",
-        "--start_saving_from_episode",
+        "--start_saving_from_score",
         type=int,
-        help="If file_path is set, start saving episodes from this episode num.",
-        default=0,
+        help="If file_path is set, start saving episodes after this score is hit.",
+        default=None,
     )
     parser.add_argument(
         "-r",
@@ -476,6 +536,12 @@ def main(args):
         "--offline_train",
         action="store_true",
         help="If set, collect data using a random policy then train RL offline.",
+    )
+    parser.add_argument(
+        "--path_to_pickled_transitions",
+        help="Path to saved transitions to load into replay buffer.",
+        type=str,
+        default=None,
     )
     args = parser.parse_args(args)
 
@@ -494,7 +560,8 @@ def main(args):
         args.score_bar,
         args.gpu_id,
         dataset,
-        args.start_saving_from_episode,
+        args.start_saving_from_score,
+        args.path_to_pickled_transitions,
     )
     if dataset:
         dataset.save()
@@ -509,7 +576,8 @@ def run_gym(
     score_bar,
     gpu_id,
     save_timesteps_to_dataset=None,
-    start_saving_from_episode=0,
+    start_saving_from_score=None,
+    path_to_pickled_transitions=None,
 ):
     logger.info("Running gym with params")
     logger.info(params)
@@ -521,20 +589,34 @@ def run_gym(
         epsilon = 1.0
     else:
         epsilon = rl_parameters.epsilon
+
+    epsilon_decay, minimum_epsilon = 1.0, None
+    if "epsilon_decay" in params["run_details"]:
+        epsilon_decay = params["run_details"]["epsilon_decay"]
+        del params["run_details"]["epsilon_decay"]
+    if "minimum_epsilon" in params["run_details"]:
+        minimum_epsilon = params["run_details"]["minimum_epsilon"]
+        del params["run_details"]["minimum_epsilon"]
+
     env = OpenAIGymEnvironment(
-        env_type, epsilon, rl_parameters.softmax_policy, rl_parameters.gamma
+        env_type,
+        epsilon,
+        rl_parameters.softmax_policy,
+        rl_parameters.gamma,
+        epsilon_decay,
+        minimum_epsilon,
     )
     replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
     model_type = params["model_type"]
 
     use_gpu = gpu_id != USE_CPU
     trainer = create_trainer(params["model_type"], params, rl_parameters, use_gpu, env)
-    predictor = create_predictor(trainer, model_type, use_gpu)
+    predictor = create_predictor(trainer, model_type, use_gpu, env.action_dim)
 
     c2_device = core.DeviceOption(
         caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, int(gpu_id)
     )
-    return train_sgd(
+    return train(
         c2_device,
         env,
         offline_train,
@@ -546,7 +628,8 @@ def run_gym(
         score_bar,
         **params["run_details"],
         save_timesteps_to_dataset=save_timesteps_to_dataset,
-        start_saving_from_episode=start_saving_from_episode,
+        start_saving_from_score=start_saving_from_score,
+        path_to_pickled_transitions=path_to_pickled_transitions,
     )
 
 
@@ -582,7 +665,9 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             training=training_parameters,
             rainbow=rainbow_parameters,
         )
-        trainer = DQNTrainer(trainer_params, env.normalization, use_gpu)
+        trainer = create_dqn_trainer_from_params(
+            trainer_params, env.normalization, use_gpu
+        )
 
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
         training_parameters = params["training"]
@@ -603,7 +688,7 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         trainer_params = ContinuousActionModelParameters(
             rl=rl_parameters, training=training_parameters, rainbow=rainbow_parameters
         )
-        trainer = ParametricDQNTrainer(
+        trainer = create_parametric_dqn_trainer_from_params(
             trainer_params, env.normalization, env.normalization_action, use_gpu
         )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
@@ -744,16 +829,16 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
     return action.tolist(), action.tolist()
 
 
-def create_predictor(trainer, model_type, use_gpu):
+def create_predictor(trainer, model_type, use_gpu, action_dim=None):
     if model_type == ModelType.CONTINUOUS_ACTION.value:
-        predictor = GymDDPGPredictor(trainer)
+        predictor = GymDDPGPredictor(trainer, action_dim)
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        predictor = GymSACPredictor(trainer)
+        predictor = GymSACPredictor(trainer, action_dim)
     elif model_type in (
         ModelType.PYTORCH_DISCRETE_DQN.value,
         ModelType.PYTORCH_PARAMETRIC_DQN.value,
     ):
-        predictor = GymDQNPredictor(trainer)
+        predictor = GymDQNPredictor(trainer, action_dim)
     else:
         raise NotImplementedError()
     return predictor

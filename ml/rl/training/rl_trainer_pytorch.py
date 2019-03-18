@@ -102,6 +102,10 @@ class RLTrainer:
         :param tau hyperparameter to control target tracking speed
         """
         for t_param, param in zip(target_network.parameters(), network.parameters()):
+            if t_param is param:
+                # Skip soft-updating when the target network shares the parameter with
+                # the network being train.
+                continue
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 

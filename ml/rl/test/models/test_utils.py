@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import dataclasses
 import logging
 import os
 import tempfile
@@ -58,6 +59,14 @@ def check_save_load(
 
 
 def _flatten_named_tuple(nt):
+    if dataclasses.is_dataclass(nt):
+        fields = dataclasses.fields(nt)
+        return [
+            e
+            for field in fields
+            for e in _flatten_named_tuple(getattr(nt, field.name))
+            if e is not None
+        ]
     if not hasattr(nt, "_asdict"):
         # This is not a NamedTuple
         return [nt]

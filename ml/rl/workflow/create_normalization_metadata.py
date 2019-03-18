@@ -53,7 +53,7 @@ def get_norm_metadata(dataset, norm_params, norm_col):
             logger.info("No more data in training data. Breaking.")
             break
 
-        feature_df = batch[norm_col].apply(pd.Series)
+        feature_df = pd.DataFrame.from_dict(batch[norm_col]).apply(pd.Series)
         for feature in feature_df:
             values = feature_df[feature].dropna().values
             samples_per_feature[feature] += len(values)
@@ -66,7 +66,7 @@ def get_norm_metadata(dataset, norm_params, norm_col):
         if done:
             logger.info("Collected sufficient sample size for all features. Breaking.")
 
-        batch = dataset.read_batch(astype="df")
+        batch = dataset.read_batch()
 
     output = {}
     for feature, values in samples.items():

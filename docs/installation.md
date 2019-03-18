@@ -19,7 +19,7 @@ cd Horizon/
 
 Install dependencies:
 ```
-conda install --file docker/requirements.txt
+conda install --file requirements.txt
 ```
 
 Install ONNX using pip, which builds the latest version from source:
@@ -36,9 +36,9 @@ echo $JAVA_HOME # Should see something like "/home/jjg/miniconda3"
 
 Install Spark (the mv command may need to be done as root):
 ```
-wget https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
-tar -xzf spark-2.4.0-bin-hadoop2.7.tgz
-mv spark-2.4.0-bin-hadoop2.7 /usr/local/spark
+wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoop2.7.tgz
+tar -xzf spark-2.3.3-bin-hadoop2.7.tgz
+sudo mv spark-2.3.3-bin-hadoop2.7 /usr/local/spark
 ```
 
 Add the spark bin directory to your path so your terminal can find `spark-submit`:
@@ -76,47 +76,47 @@ The CUDA build will need [nvidia-docker](https://github.com/NVIDIA/nvidia-docker
 To build, clone repository and cd into the respective directory:
 ```
 git clone https://github.com/facebookresearch/Horizon.git
-cd Horizon/docker/
+cd Horizon/
 ```
 
 On macOS you will need to increase the default memory allocation as the default of 2G is not enough. You can do this by clicking the whale icon in the task bar. We recommend using at least 8G of memory.
 
 On macOS, you can then build the image:
 ```
-docker build -f cpu.Dockerfile -t horizon:dev .
+docker build -f docker/cpu.Dockerfile -t horizon:dev .
 ```
 On Linux you can build the image with specific memory allocations from command line:
 ```
-docker build -f cpu.Dockerfile -t horizon:dev --memory=8g --memory-swap=8g .
+docker build -f docker/cpu.Dockerfile -t horizon:dev --memory=8g --memory-swap=8g .
 ```
 
 To build with CUDA support, use the corresponding dockerfile:
 
 ```
-docker build -f cuda.Dockerfile -t horizon:dev .
+docker build -f docker/cuda.Dockerfile -t horizon:dev .
 ```
 
 Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume using the `-v` flag. We also add `-p` for port mapping so we can view Tensorboard visualizations locally.
 ```
-docker run -v $HOME/.m2:/root/.m2 -v $PWD/../:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+docker run -v $PWD/../:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
 ```
 
 To run with GPU, include `--runtime=nvidia` after installing [nvidia-docker](https://github.com/NVIDIA/nvidia-docker).
 
 ```
-docker run --runtime=nvidia -v $HOME/.m2:/root/.m2 -v $PWD/../:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+docker run --runtime=nvidia -v $PWD:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
 ```
 
 If you have SELinux (Fedora, Redhat, etc.) you will have to start docker with the following command (notice the `:Z` at the end of path):
 
 ```
-docker run -v $HOME/.m2:/root/.m2 -v $PWD/../:/home/Horizon:Z -p 0.0.0.0:6006:6006 -it horizon:dev
+docker run -v $PWD:/home/Horizon:Z -p 0.0.0.0:6006:6006 -it horizon:dev
 ```
 
 To run with GPU, include `--runtime=nvidia` after installing [nvidia-docker](https://github.com/NVIDIA/nvidia-docker).
 
 ```
-docker run --runtime=nvidia -v $HOME/.m2:/root/.m2 -v $PWD/../:/home/Horizon:Z -p 0.0.0.0:6006:6006 -it horizon:dev
+docker run --runtime=nvidia -v $PWD:/home/Horizon:Z -p 0.0.0.0:6006:6006 -it horizon:dev
 ```
 
 Depending on where your local Horizon copy is, you may need to white list your shared path via Docker -> Preferences... -> File Sharing.

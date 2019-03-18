@@ -3,8 +3,6 @@
 
 import itertools
 import logging
-from collections import Counter, defaultdict
-from typing import Dict, List, NamedTuple, Optional
 
 import numpy as np
 import scipy as sp
@@ -20,6 +18,8 @@ logger.setLevel(logging.INFO)
 class WeightedSequentialDoublyRobustEstimator:
     NUM_SUBSETS_FOR_CB_ESTIMATES = 25
     CONFIDENCE_INTERVAL = 0.9
+    NUM_BOOTSTRAP_SAMPLES = 50
+    BOOTSTRAP_SAMPLE_PCT = 0.5
 
     def __init__(self, gamma):
         self.gamma = gamma
@@ -103,7 +103,7 @@ class WeightedSequentialDoublyRobustEstimator:
 
         if len(j_step_returns) == 1:
             weighted_doubly_robust = j_step_returns[0]
-
+            weighted_doubly_robust_std_error = 0.0
         else:
             # break trajectories into several subsets to estimate confidence bounds
             infinite_step_returns = []
@@ -145,49 +145,85 @@ class WeightedSequentialDoublyRobustEstimator:
                 )
                 infinite_step_returns.append(infinite_step_return)
 
-            low_bound, high_bound = WeightedSequentialDoublyRobustEstimator.confidence_bounds(
+            # Compute weighted_doubly_robust mean point estimate using all data
+            weighted_doubly_robust = self.compute_weighted_doubly_robust_point_estimate(
+                j_steps,
+                num_j_steps,
+                j_step_returns,
                 infinite_step_returns,
-                WeightedSequentialDoublyRobustEstimator.CONFIDENCE_INTERVAL,
+                j_step_return_trajectories,
             )
 
-            # decompose error into bias + variance
-            j_step_bias = np.zeros([num_j_steps])
-            where_lower = np.where(j_step_returns < low_bound)[0]
-            j_step_bias[where_lower] = low_bound - j_step_returns[where_lower]
-            where_higher = np.where(j_step_returns > high_bound)[0]
-            j_step_bias[where_higher] = j_step_returns[where_higher] - high_bound
-
-            covariance = np.cov(j_step_return_trajectories)
-
-            error = covariance + j_step_bias.T * j_step_bias
-
-            # minimize mse error
-            def mse_loss(x, error):
-                return np.dot(np.dot(x, error), x.T)
-
-            constraint = {"type": "eq", "fun": lambda x: np.sum(x) - 1.0}
-
-            x = np.zeros([len(j_steps)])
-            res = sp.optimize.minimize(
-                mse_loss,
-                x,
-                args=error,
-                constraints=constraint,
-                bounds=[(0, 1) for _ in range(x.shape[0])],
+            # Use bootstrapping to compute weighted_doubly_robust standard error
+            bootstrapped_means = []
+            sample_size = int(
+                WeightedSequentialDoublyRobustEstimator.BOOTSTRAP_SAMPLE_PCT
+                * num_subsets
             )
-            x = np.array(res.x)
-
-            weighted_doubly_robust = float(np.dot(x, j_step_returns))
+            for _ in range(
+                WeightedSequentialDoublyRobustEstimator.NUM_BOOTSTRAP_SAMPLES
+            ):
+                random_idxs = np.random.choice(num_j_steps, sample_size, replace=False)
+                random_idxs.sort()
+                wdr_estimate = self.compute_weighted_doubly_robust_point_estimate(
+                    j_steps=[j_steps[i] for i in random_idxs],
+                    num_j_steps=sample_size,
+                    j_step_returns=j_step_returns[random_idxs],
+                    infinite_step_returns=infinite_step_returns,
+                    j_step_return_trajectories=j_step_return_trajectories[random_idxs],
+                )
+                bootstrapped_means.append(wdr_estimate)
+            weighted_doubly_robust_std_error = np.std(bootstrapped_means)
 
         episode_values = np.sum(np.multiply(rewards, discounts), axis=1)
-
         denominator = np.nanmean(episode_values)
         if abs(denominator) < 1e-6:
-            return CpeEstimate(raw=0.0, normalized=0.0)
+            return CpeEstimate(
+                raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
+            )
 
         return CpeEstimate(
-            raw=weighted_doubly_robust, normalized=weighted_doubly_robust / denominator
+            raw=weighted_doubly_robust,
+            normalized=weighted_doubly_robust / denominator,
+            raw_std_error=weighted_doubly_robust_std_error,
+            normalized_std_error=weighted_doubly_robust_std_error / denominator,
         )
+
+    def compute_weighted_doubly_robust_point_estimate(
+        self,
+        j_steps,
+        num_j_steps,
+        j_step_returns,
+        infinite_step_returns,
+        j_step_return_trajectories,
+    ):
+        low_bound, high_bound = WeightedSequentialDoublyRobustEstimator.confidence_bounds(
+            infinite_step_returns,
+            WeightedSequentialDoublyRobustEstimator.CONFIDENCE_INTERVAL,
+        )
+        # decompose error into bias + variance
+        j_step_bias = np.zeros([num_j_steps])
+        where_lower = np.where(j_step_returns < low_bound)[0]
+        j_step_bias[where_lower] = low_bound - j_step_returns[where_lower]
+        where_higher = np.where(j_step_returns > high_bound)[0]
+        j_step_bias[where_higher] = j_step_returns[where_higher] - high_bound
+
+        covariance = np.cov(j_step_return_trajectories)
+        error = covariance + j_step_bias.T * j_step_bias
+
+        # minimize mse error
+        constraint = {"type": "eq", "fun": lambda x: np.sum(x) - 1.0}
+
+        x = np.zeros([len(j_steps)])
+        res = sp.optimize.minimize(
+            mse_loss,
+            x,
+            args=error,
+            constraints=constraint,
+            bounds=[(0, 1) for _ in range(x.shape[0])],
+        )
+        x = np.array(res.x)
+        return float(np.dot(x, j_step_returns))
 
     @staticmethod
     def transform_to_equal_length_trajectories(
@@ -332,3 +368,7 @@ class WeightedSequentialDoublyRobustEstimator:
         m, se = np.mean(x), sp.stats.sem(x)
         h = se * sp.stats.t._ppf((1 + confidence) / 2.0, n - 1)
         return m - h, m + h
+
+
+def mse_loss(x, error):
+    return np.dot(np.dot(x, error), x.T)

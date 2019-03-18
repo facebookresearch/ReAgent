@@ -5,31 +5,24 @@
   "use_gpu": false,
   "rl": {
     "gamma": 0.99,
-    "target_update_rate": 0.1,
+    "target_update_rate": 0.001,
     "reward_burnin": 1,
     "maxq_learning": 1,
-    "epsilon": 0.05,
+    "epsilon": 1,
     "temperature": 0.35,
     "softmax_policy": 0
   },
   "rainbow": {
     "double_q_learning": false,
-    "dueling_architecture": false
+    "dueling_architecture": false,
+    "bcq": false,
+    "bcq_drop_threshold": 0.99
   },
   "training": {
-    "layers": [
-      -1,
-      128,
-      64,
-      -1
-    ],
-    "activations": [
-      "relu",
-      "relu",
-      "linear"
-    ],
-    "minibatch_size": 1024,
-    "learning_rate": 0.1,
+    "layers": [-1, 128, 64, -1],
+    "activations": ["relu", "relu", "linear"],
+    "minibatch_size": 128,
+    "learning_rate": 0.001,
     "optimizer": "ADAM",
     "lr_decay": 0.999,
     "use_noisy_linear_layers": false
@@ -46,6 +39,11 @@
     "test_after_ts": 1,
     "num_train_batches": 1,
     "avg_over_num_episodes": 100,
-    "offline_train_epochs": 300
+    "offline_train_epochs": 300,
+    "solved_reward_threshold": 200,
+    "max_episodes_to_run_after_solved": 200,
+    "stop_training_after_solved": true,
+    "epsilon_decay": 0.995,
+    "minimum_epsilon": 0.0
   }
 }

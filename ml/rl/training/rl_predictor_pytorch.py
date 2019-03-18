@@ -225,7 +225,7 @@ class RLPredictor:
 
         output_keys = "output/string_weighted_multi_categorical_features.values.keys"
         workspace.FeedBlob(output_keys, np.array(["a"]))
-        C2.net().Tile([action_names, output_shape_row_count], [output_keys], axis=1)
+        C2.net().Tile([action_names, output_shape_row_count], [output_keys], axis=0)
 
         output_lengths_matrix = C2.ConstantFill(
             output_row_shape, value=len(actions), dtype=caffe2_pb2.TensorProto.INT32

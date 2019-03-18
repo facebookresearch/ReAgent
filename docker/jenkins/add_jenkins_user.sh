@@ -10,12 +10,15 @@ echo "jenkins:x:$JENKINS_GID:" >> /etc/group
 
 # Create $HOME
 mkdir -p /var/lib/jenkins
-chown jenkins:jenkins /var/lib/jenkins
+chown -R jenkins:jenkins /var/lib/jenkins
 mkdir -p /var/lib/jenkins/.ccache
-chown jenkins:jenkins /var/lib/jenkins/.ccache
+chown -R jenkins:jenkins /var/lib/jenkins/.ccache
 
 # Allow writing to /usr/local (for make install)
-chown jenkins:jenkins /usr/local
+chown -R jenkins:jenkins /usr/local
+
+# Allow writing to /home/miniconda (for pip install)
+chown -R jenkins:jenkins /home/miniconda
 
 # Allow sudo
 echo 'jenkins ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/jenkins

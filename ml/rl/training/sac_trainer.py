@@ -10,7 +10,6 @@ import torch
 import torch.nn.functional as F
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.thrift.core.ttypes import SACModelParameters
-from ml.rl.training._parametric_dqn_predictor import _ParametricDQNPredictor
 from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
 from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor

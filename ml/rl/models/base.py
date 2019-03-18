@@ -2,10 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
+import dataclasses
 from collections import OrderedDict
 from copy import deepcopy
 from io import BytesIO
-from typing import List, NamedTuple, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 
 import caffe2.python.onnx.backend
 import onnx
@@ -13,6 +14,7 @@ import torch
 import torch.nn as nn
 from caffe2.python import core, schema
 from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
+from ml.rl import types as rlt
 
 
 class ModelBase(nn.Module, metaclass=abc.ABCMeta):
@@ -39,6 +41,13 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         The return value should be what expected by `forward()`.
         """
         raise NotImplementedError
+
+    def feature_config(self) -> Optional[rlt.ModelFeatureConfig]:
+        """
+        If the model needs additional preprocessing, e.g., using sequence features,
+        returns the config here.
+        """
+        return None
 
     def get_target_network(self):
         """
@@ -70,10 +79,25 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         return self.derive_blob_names(self.input_prototype())
 
     def derive_blob_names(self, named_tuple):
+        """
+        Deriving blob names from the object structure. The names of members of
+        namedtuple/dataclass from the root to each tensor forms its qualified name.
+        Each level is separated by `:`.
+        """
+
         def name_helper(d):
             if hasattr(d, "_asdict"):
                 d = d._asdict()
-            if isinstance(d, OrderedDict):
+            if dataclasses.is_dataclass(d):
+                fields = dataclasses.fields(d)
+                return [
+                    ":".join(filter(None, [field.name, n]))
+                    for field in fields
+                    for n in filter(
+                        lambda x: x is not None, name_helper(getattr(d, field.name))
+                    )
+                ]
+            elif isinstance(d, OrderedDict):
                 return [
                     ":".join(filter(None, [k, n]))
                     for k, v in d.items()
@@ -321,7 +345,13 @@ class ONNXExportModel(nn.Module):
         def helper(st):
             if hasattr(st, "_asdict"):
                 st = st._asdict()
-            if isinstance(st, OrderedDict):
+
+            if dataclasses.is_dataclass(st):
+                fields = dataclasses.fields(st)
+                return tuple(
+                    e for field in fields for e in helper(getattr(st, field.name))
+                )
+            elif isinstance(st, OrderedDict):
                 return tuple(e for v in st.values() for e in helper(v))
             elif isinstance(st, torch.Tensor):
                 return (st,)

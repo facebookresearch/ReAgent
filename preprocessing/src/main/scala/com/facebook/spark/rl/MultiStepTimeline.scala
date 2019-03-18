@@ -178,7 +178,10 @@ object MultiStepTimeline {
               second_sa.action AS next_action,
               first_sa.sequence_number AS sequence_number,
               first_sa.sequence_number_ordinal AS sequence_number_ordinal,
-              CAST(second_sa.sequence_number - first_sa.sequence_number AS BIGINT) AS time_diff,
+              COALESCE(
+                CAST(second_sa.sequence_number - first_sa.sequence_number AS BIGINT),
+                first_sa.sequence_number
+              ) AS time_diff,
               first_sa.possible_actions AS possible_actions,
               second_sa.possible_actions AS possible_next_actions,
               first_sa.metrics AS metrics,

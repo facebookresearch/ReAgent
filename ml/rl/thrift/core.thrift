@@ -184,7 +184,12 @@ struct OpenAIGymParameters {
   6: i32 test_after_ts = 1,
   7: i32 num_train_batches = 1,
   8: i32 avg_over_num_episodes = 100,
-  9: i32 offline_train_epochs = 30
+  9: i32 offline_train_epochs = 30,
+  10: double epsilon_decay = 1,
+  11: optional double minimum_epsilon,
+  12: optional i32 solved_reward_threshold,
+  13: optional i32 max_episodes_to_run_after_solved,
+  14: optional bool stop_training_after_solved,
 }
 
 struct NormalizationParameters {

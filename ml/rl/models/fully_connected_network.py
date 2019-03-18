@@ -29,12 +29,15 @@ class FullyConnectedNetwork(nn.Module):
         use_batch_norm=False,
         use_noisy_linear_layers=False,
         min_std=0.0,
+        dropout_ratio=0.0,
     ) -> None:
         super(FullyConnectedNetwork, self).__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
         self.use_batch_norm = use_batch_norm
+        self.dropout_layers: nn.ModuleList = nn.ModuleList()
+        self.use_dropout = dropout_ratio > 0.0
 
         assert len(layers) >= 2, "Invalid layer schema {} for network".format(layers)
 
@@ -45,6 +48,10 @@ class FullyConnectedNetwork(nn.Module):
                 self.layers.append(nn.Linear(layers[i], layer))
             if self.use_batch_norm:
                 self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
+            if self.use_dropout and i < len(layers[1:]) - 1:
+                # applying dropout to all layers except
+                # the input and the last output layer
+                self.dropout_layers.append(nn.Dropout(p=dropout_ratio))
             gaussian_fill_w_gain(
                 self.layers[i].weight, self.activations[i], layers[i], min_std
             )
@@ -59,7 +66,13 @@ class FullyConnectedNetwork(nn.Module):
         for i, activation in enumerate(self.activations):
             if self.use_batch_norm:
                 x = self.batch_norm_ops[i](x)
-            activation_func = getattr(F, activation)
-            fc_func = self.layers[i]
-            x = fc_func(x) if activation == "linear" else activation_func(fc_func(x))
+            x = self.layers[i](x)
+            if activation == "linear":
+                pass
+            elif activation == "tanh":
+                x = torch.tanh(x)
+            else:
+                x = getattr(F, activation)(x)
+            if self.use_dropout and i < len(self.dropout_layers):
+                x = self.dropout_layers[i](x)
         return x

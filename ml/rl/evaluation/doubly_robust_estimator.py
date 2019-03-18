@@ -5,7 +5,7 @@ import logging
 from typing import Tuple
 
 import torch
-from ml.rl.evaluation.cpe import CpeEstimate
+from ml.rl.evaluation.cpe import CpeEstimate, bootstrapped_std_error_of_mean
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 
 
@@ -22,9 +22,15 @@ class DoublyRobustEstimator:
 
         if abs(denominator) < 1e-6:
             return (
-                CpeEstimate(raw=0.0, normalized=0.0),
-                CpeEstimate(raw=0.0, normalized=0.0),
-                CpeEstimate(raw=0.0, normalized=0.0),
+                CpeEstimate(
+                    raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
+                ),
+                CpeEstimate(
+                    raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
+                ),
+                CpeEstimate(
+                    raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
+                ),
             )
 
         # For details, visit https://arxiv.org/pdf/1612.01205.pdf
@@ -56,18 +62,32 @@ class DoublyRobustEstimator:
         ) + direct_method_values
 
         direct_method_score = float(torch.mean(direct_method_values))
+        direct_method_std_error = bootstrapped_std_error_of_mean(
+            direct_method_values.squeeze()
+        )
         direct_method_estimate = CpeEstimate(
-            raw=direct_method_score, normalized=direct_method_score / denominator
+            raw=direct_method_score,
+            normalized=direct_method_score / denominator,
+            raw_std_error=direct_method_std_error,
+            normalized_std_error=direct_method_std_error / denominator,
         )
 
         ips_score = float(torch.mean(ips))
+        ips_score_std_error = bootstrapped_std_error_of_mean(ips.squeeze())
         inverse_propensity_estimate = CpeEstimate(
-            raw=ips_score, normalized=ips_score / denominator
+            raw=ips_score,
+            normalized=ips_score / denominator,
+            raw_std_error=ips_score_std_error,
+            normalized_std_error=ips_score_std_error / denominator,
         )
 
         dr_score = float(torch.mean(doubly_robust))
+        dr_score_std_error = bootstrapped_std_error_of_mean(doubly_robust.squeeze())
         doubly_robust_estimate = CpeEstimate(
-            raw=dr_score, normalized=dr_score / denominator
+            raw=dr_score,
+            normalized=dr_score / denominator,
+            raw_std_error=dr_score_std_error,
+            normalized_std_error=dr_score_std_error / denominator,
         )
 
         return (

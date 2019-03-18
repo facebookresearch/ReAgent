@@ -31,6 +31,7 @@ class NamedTupleGenericMeta(NamedTupleMeta, GenericMeta):
 class Samples(NamedTuple, Generic[ACTION_TYPEVAR], metaclass=NamedTupleGenericMeta):
     mdp_ids: List[str]
     sequence_numbers: List[int]
+    sequence_number_ordinals: List[int]
     states: List[FEATURES]
     actions: List[ACTION]
     action_probabilities: List[float]
@@ -47,6 +48,7 @@ class MultiStepSamples(
 ):
     mdp_ids: List[str]
     sequence_numbers: List[int]
+    sequence_number_ordinals: List[int]
     states: List[FEATURES]
     actions: List[ACTION]
     action_probabilities: List[float]
@@ -61,6 +63,7 @@ class MultiStepSamples(
         return Samples(
             mdp_ids=self.mdp_ids,
             sequence_numbers=self.sequence_numbers,
+            sequence_number_ordinals=self.sequence_number_ordinals,
             states=self.states,
             actions=self.actions,
             action_probabilities=self.action_probabilities,
@@ -327,6 +330,7 @@ class Environment:
         samples = MultiStepSamples(
             mdp_ids=mdp_ids,
             sequence_numbers=sequence_numbers,
+            sequence_number_ordinals=sequence_numbers,
             states=states,
             actions=actions,
             action_probabilities=action_probabilities,

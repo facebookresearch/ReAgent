@@ -67,6 +67,6 @@ class SimulatedWorldModel(nn.Module):
 
         mus = gmm_outs[:, :, :-1]
         mus = mus.view(seq_len, batch_size, self.num_gaussians, self.state_dim)
-        rs = gmm_outs[:, :, -1]
+        rewards = gmm_outs[:, :, -1]
 
-        return mus, rs
+        return mus, rewards

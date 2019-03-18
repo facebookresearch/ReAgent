@@ -534,13 +534,13 @@ class Preprocessor(Module):
         if feature_type == "CONTINUOUS":
             # Continuous features may be in range (-inf, inf)
             pass
-        elif bool(max_value > MAX_FEATURE_VALUE):
+        elif float(max_value) > MAX_FEATURE_VALUE:
             raise Exception(
                 "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
                     feature_type, max_value, MAX_FEATURE_VALUE
                 )
             )
-        elif bool(min_value < MIN_FEATURE_VALUE):
+        elif float(min_value) < MIN_FEATURE_VALUE:
             raise Exception(
                 "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
                     feature_type, min_value, MIN_FEATURE_VALUE
