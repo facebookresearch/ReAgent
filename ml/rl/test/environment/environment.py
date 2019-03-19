@@ -21,14 +21,9 @@ from typing import (  # noqa
 
 FEATURES = Dict[int, float]
 ACTION = Union[str, FEATURES]
-ACTION_TYPEVAR = TypeVar("ACTION_TYPEVAR", str, FEATURES)
 
 
-class NamedTupleGenericMeta(NamedTupleMeta, GenericMeta):
-    pass
-
-
-class Samples(NamedTuple, Generic[ACTION_TYPEVAR], metaclass=NamedTupleGenericMeta):
+class Samples(NamedTuple):
     mdp_ids: List[str]
     sequence_numbers: List[int]
     sequence_number_ordinals: List[int]
@@ -43,9 +38,7 @@ class Samples(NamedTuple, Generic[ACTION_TYPEVAR], metaclass=NamedTupleGenericMe
     possible_next_actions: List[List[ACTION]]
 
 
-class MultiStepSamples(
-    NamedTuple, Generic[ACTION_TYPEVAR], metaclass=NamedTupleGenericMeta
-):
+class MultiStepSamples(NamedTuple):
     mdp_ids: List[str]
     sequence_numbers: List[int]
     sequence_number_ordinals: List[int]
