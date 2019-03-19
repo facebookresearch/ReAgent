@@ -215,14 +215,13 @@ class OpenAIGymEnvironment(Environment):
             if state_preprocessor:
                 next_state = state_preprocessor.forward(next_state)
             return predictor.policy(next_state)[0], action_probability
-        elif isinstance(predictor, (DQNPredictor)):
+        elif isinstance(predictor, DQNPredictor):
             action_probability = 1.0 if test else 1.0 - self.epsilon
             # Use DQNPredictor directly - useful to test caffe2 predictor
             # assumes state preprocessor already part of predictor net.
             sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
             q_values = predictor.predict(sparse_next_states)
-            action_idx = int(max(q_values[0], key=q_values[0].get))
-            action_idx -= self.state_dim
+            action_idx = int(max(q_values[0], key=q_values[0].get)) - self.state_dim
             action[action_idx] = 1.0
             return action, action_probability
         elif isinstance(predictor, ParametricDQNPredictor):
