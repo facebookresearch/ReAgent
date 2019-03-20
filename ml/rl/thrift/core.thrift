@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+
 namespace py ml.rl.thrift.core
 
 struct RLParameters {

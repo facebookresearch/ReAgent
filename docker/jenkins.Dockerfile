@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+
 # Pre-req installations:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu/
 # https://github.com/NVIDIA/nvidia-docker
