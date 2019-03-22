@@ -132,6 +132,20 @@ class WorldModelEvaluationPageHandler(WorldModelPageHandler):
         self.results.append(losses)
 
 
+class ImitatorPageHandler(PageHandler):
+    def __init__(self, trainer, train=True):
+        self.trainer = trainer
+        self.results: List[Dict] = []
+        self.train = train
+
+    def handle(self, tdp: TrainingDataPage) -> None:
+        losses = self.trainer.train(tdp, train=self.train)
+        self.results.append(losses)
+
+    def finish(self) -> None:
+        pass
+
+
 def feed_pages(
     data_streamer,
     dataset_num_rows,
