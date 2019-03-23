@@ -17,7 +17,8 @@ case class TimelineConfiguration(startDs: String,
                                  evalTableName: String,
                                  numOutputShards: Int,
                                  outlierEpisodeLengthPercentile: Option[Double] = None,
-                                 percentileFunction: String = "percentile_approx")
+                                 percentileFunction: String = "percentile_approx",
+                                 includeSparseData: Boolean = false)
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
@@ -119,10 +120,16 @@ object Timeline {
       filterTerminal = "";
     }
 
-    Timeline.validateOrDestroyTrainingTable(sqlContext,
-                                            config.outputTableName,
-                                            config.actionDiscrete)
-    Timeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
+    Helper.validateOrDestroyTrainingTable(sqlContext,
+                                          config.outputTableName,
+                                          config.actionDiscrete,
+                                          config.includeSparseData)
+    Timeline.createTrainingTable(
+      sqlContext,
+      config.outputTableName,
+      config.actionDiscrete,
+      config.includeSparseData
+    )
 
     config.outlierEpisodeLengthPercentile.foreach { percentile =>
       sqlContext.sql(s"""
@@ -134,37 +141,77 @@ object Timeline {
     }
 
     val sourceTable = Timeline.mdpLengthThreshold(sqlContext, config) match {
-      case Some(threshold) => s"""
-      WITH a AS (SELECT mdp_id FROM episode_length WHERE mdp_length <= ${threshold}),
-      source_table AS (
-          SELECT
-              b.mdp_id,
-              b.state_features,
-              b.action,
-              b.action_probability,
-              b.reward,
-              b.sequence_number,
-              b.possible_actions,
-              b.metrics
-          FROM ${config.inputTableName} b JOIN a
-          WHERE a.mdp_id = b.mdp_id
-            AND b.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-      )
-      """.stripMargin
-      case None            => s"""
-      WITH source_table AS (
-          SELECT
-              mdp_id,
-              state_features,
-              action,
-              action_probability,
-              reward,
-              sequence_number,
-              possible_actions,
-              metrics
-          FROM ${config.inputTableName}
-          WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-      )
+      case Some(threshold) => {
+        var sparseSourceColumns = ""
+        if (config.includeSparseData)
+          sparseSourceColumns = s""",
+            b.state_id_list_features,
+            b.state_id_score_list_features
+          """
+        s"""
+        WITH a AS (SELECT mdp_id FROM episode_length WHERE mdp_length <= ${threshold}),
+        source_table AS (
+            SELECT
+                b.mdp_id,
+                b.state_features,
+                b.action,
+                b.action_probability,
+                b.reward,
+                b.sequence_number,
+                b.possible_actions,
+                b.metrics
+                ${sparseSourceColumns}
+            FROM ${config.inputTableName} b JOIN a
+            WHERE a.mdp_id = b.mdp_id
+              AND b.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+        )
+        """.stripMargin
+      }
+      case None => {
+        var sparseSourceColumns = ""
+        if (config.includeSparseData)
+          sparseSourceColumns = s""",
+            state_id_list_features,
+            state_id_score_list_features
+          """
+        s"""
+        WITH source_table AS (
+            SELECT
+                mdp_id,
+                state_features,
+                action,
+                action_probability,
+                reward,
+                sequence_number,
+                possible_actions,
+                metrics
+                ${sparseSourceColumns}
+            FROM ${config.inputTableName}
+            WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+        )
+        """.stripMargin
+      }
+    }
+
+    var sparseQuery = ""
+    if (config.includeSparseData) {
+      sparseQuery = s""",
+          state_id_list_features,
+          state_id_score_list_features,
+          LEAD(state_id_list_features) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS next_state_id_list_features,
+          LEAD(state_id_score_list_features) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS next_state_id_score_list_features
       """.stripMargin
     }
 
@@ -213,7 +260,7 @@ object Timeline {
                 mdp_id,
                 sequence_number
         ) AS possible_next_actions,
-        metrics
+        metrics${sparseQuery}
     FROM source_table
     ${filterTerminal}
     CLUSTER BY HASH(mdp_id, sequence_number)
@@ -280,35 +327,25 @@ object Timeline {
       }
     }
 
-  def validateOrDestroyTrainingTable(sqlContext: SQLContext,
-                                     tableName: String,
-                                     actionDiscrete: Boolean): Unit =
-    try {
-      val checkOutputTableCommand = s"""
-      DESCRIBE ${tableName}
-      """
-      val df = sqlContext.sql(checkOutputTableCommand);
-      // Validate the schema and destroy the output table if it doesn't match
-      var validTable = Helper.outputTableIsValid(sqlContext, tableName, actionDiscrete)
-      if (!validTable) {
-        val dropTableCommand = s"""
-        DROP TABLE ${tableName}
-        """
-        sqlContext.sql(dropTableCommand);
-      }
-    } catch {
-      case e: org.apache.spark.sql.catalyst.analysis.NoSuchTableException => {}
-      case e: Throwable                                                   => log.error(e.toString())
-    }
   def createTrainingTable(sqlContext: SQLContext,
                           tableName: String,
-                          actionDiscrete: Boolean): Unit = {
+                          actionDiscrete: Boolean,
+                          includeSparseData: Boolean): Unit = {
     var actionType = "STRING";
     var possibleActionType = "ARRAY<STRING>";
     if (!actionDiscrete) {
       actionType = "MAP<BIGINT, DOUBLE>"
       possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
     }
+
+    var sparseColumns = ""
+    if (includeSparseData)
+      sparseColumns = s""",
+      state_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
+      state_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>,
+      next_state_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
+      next_state_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>
+      """
 
     val sqlCommand = s"""
 CREATE TABLE IF NOT EXISTS ${tableName} (
@@ -326,7 +363,7 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     time_diff BIGINT,
     possible_actions ${possibleActionType},
     possible_next_actions ${possibleActionType},
-    metrics MAP< STRING, DOUBLE>
+    metrics MAP< STRING, DOUBLE>${sparseColumns}
 ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);

@@ -19,4 +19,11 @@ object Constants {
     "metrics"
   );
 
+  val SPARSE_DATA_COLUMN_NAMES = Array(
+    "state_id_list_features",
+    "state_id_score_list_features",
+    "next_state_id_list_features",
+    "next_state_id_score_list_features"
+  );
+
 }

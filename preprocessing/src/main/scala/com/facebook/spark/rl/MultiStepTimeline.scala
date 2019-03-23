@@ -128,9 +128,10 @@ object MultiStepTimeline {
       sortPossibleActionMethod = "UDF_SORT_ARRAY_MAP";
     }
 
-    MultiStepTimeline.validateOrDestroyTrainingTable(sqlContext,
-                                                     config.outputTableName,
-                                                     config.actionDiscrete)
+    Helper.validateOrDestroyTrainingTable(sqlContext,
+                                          config.outputTableName,
+                                          config.actionDiscrete,
+                                          false)
     MultiStepTimeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
     MultiStepTimeline.registerUDFs(sqlContext)
 
@@ -269,23 +270,6 @@ object MultiStepTimeline {
     log.info(sqlCommand)
     sqlContext.sql(sqlCommand)
   }
-
-  def validateOrDestroyTrainingTable(sqlContext: SQLContext,
-                                     tableName: String,
-                                     actionDiscrete: Boolean): Unit =
-    try {
-      // Validate the schema and destroy the output table if it doesn't match
-      var validTable = Helper.outputTableIsValid(sqlContext, tableName, actionDiscrete)
-      if (!validTable) {
-        val dropTableCommand = s"""
-         DROP TABLE ${tableName}
-         """
-        sqlContext.sql(dropTableCommand);
-      }
-    } catch {
-      case e: org.apache.spark.sql.catalyst.analysis.NoSuchTableException => {}
-      case e: Throwable                                                   => log.error(e.toString())
-    }
 
   def createTrainingTable(sqlContext: SQLContext,
                           tableName: String,
