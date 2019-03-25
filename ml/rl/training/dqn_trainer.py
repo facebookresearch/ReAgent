@@ -8,7 +8,7 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.caffe_utils import masked_softmax
+from ml.rl.caffe_utils import masked_softmax, softmax
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -28,6 +28,7 @@ class DQNTrainer(DQNTrainerBase):
         q_network_cpe=None,
         q_network_cpe_target=None,
         metrics_to_score=None,
+        imitator=None,
     ) -> None:
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
@@ -76,6 +77,12 @@ class DQNTrainer(DQNTrainerBase):
                 i = self._actions.index(k)
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
+        # Batch constrained q-learning
+        self.bcq = parameters.rainbow.bcq
+        if self.bcq:
+            self.bcq_drop_threshold = parameters.rainbow.bcq_drop_threshold
+            self.bcq_imitator = imitator
+
     @property
     def num_actions(self) -> int:
         return len(self._actions)
@@ -117,12 +124,27 @@ class DQNTrainer(DQNTrainerBase):
             learning_input.next_state
         )
 
+        if self.bcq:
+            # Batch constrained q-learning
+            on_policy_actions = self.bcq_imitator(
+                learning_input.next_state.float_features
+            )
+            on_policy_action_probs = softmax(on_policy_actions, temperature=1)
+            filter_values = (
+                on_policy_action_probs
+                / on_policy_action_probs.max(keepdim=True, dim=1)[0]
+            )
+            action_on_policy = (filter_values >= self.bcq_drop_threshold).float()
+
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
+            possible_next_actions_mask = (
+                learning_input.possible_next_actions_mask.float()
+            )
+            if self.bcq:
+                possible_next_actions_mask *= action_on_policy
             next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
-                all_next_q_values,
-                all_next_q_values_target,
-                learning_input.possible_next_actions_mask.float(),
+                all_next_q_values, all_next_q_values_target, possible_next_actions_mask
             )
         else:
             # SARSA
