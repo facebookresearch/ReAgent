@@ -509,6 +509,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         """
         Map raw IDs of all sequences' ID features to index (into embedding lookup table)
         """
+
         def _map_id_feature(sequence_name, id_feature, raw_id_feature):
             with core.NameScope(sequence_name):
                 return self.map_ids(
@@ -639,6 +640,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         include_possible_actions: bool = True,
         normalize: bool = True,
         max_num_actions: int = None,
+        set_missing_value_to_zero: bool = None,
         multi_steps: Optional[int] = None,
         metrics_to_score: Optional[List[str]] = None,
         model_feature_config: Optional[rlt.ModelFeatureConfig] = None,
@@ -658,6 +660,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         self.include_possible_actions = include_possible_actions
         self.normalize = normalize
         self.max_num_actions = max_num_actions
+        self.set_missing_value_to_zero = set_missing_value_to_zero
         self.multi_steps = multi_steps
         self.metrics_to_score = metrics_to_score
 
@@ -783,7 +786,11 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
     def create_net(self):
         net = core.Net("feature_extractor")
         init_net = core.Net("feature_extractor_init")
-        missing_scalar = self.create_const(init_net, "MISSING_SCALAR", MISSING_VALUE)
+        missing_scalar = self.create_const(
+            init_net,
+            "MISSING_SCALAR",
+            0.0 if self.set_missing_value_to_zero else MISSING_VALUE,
+        )
 
         action_schema = map_schema() if self.sorted_action_features else schema.Scalar()
 
@@ -1087,6 +1094,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             Dict[int, NormalizationParameters]
         ] = None,
         normalize: bool = True,
+        set_missing_value_to_zero: bool = False,
         model_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> None:
         super().__init__(model_feature_config=model_feature_config)
@@ -1102,6 +1110,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
         else:
             self.sorted_action_features = None
         self.normalize = normalize
+        self.set_missing_value_to_zero = set_missing_value_to_zero
 
     def extract(self, ws, input_record, extract_record):
         fetch = partial(self.fetch, ws)
@@ -1122,7 +1131,11 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
     def create_net(self):
         net = core.Net("feature_extractor")
         init_net = core.Net("feature_extractor_init")
-        missing_scalar = self.create_const(init_net, "MISSING_SCALAR", MISSING_VALUE)
+        missing_scalar = self.create_const(
+            init_net,
+            "MISSING_SCALAR",
+            0.0 if self.set_missing_value_to_zero else MISSING_VALUE,
+        )
 
         input_schema = schema.Struct(
             (
