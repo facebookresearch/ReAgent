@@ -9,6 +9,7 @@ import sys
 import numpy as np
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
+from ml.rl.evaluation.world_model_evaluator import FeatureImportanceEvaluator
 from ml.rl.models.mdn_rnn import MDNRNNMemoryPool
 from ml.rl.models.world_model import MemoryNetwork
 from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
@@ -113,6 +114,12 @@ def main(args):
         "critical). Else defaults to info.",
         default="info",
     )
+    parser.add_argument(
+        "-f",
+        "--feature_importance",
+        action="store_true",
+        help="If set, will calculate feature importance after the training",
+    )
     args = parser.parse_args(args)
 
     if args.log_level not in ("debug", "info", "warning", "error", "critical"):
@@ -123,10 +130,10 @@ def main(args):
     with open(args.parameters, "r") as f:
         params = json.load(f)
 
-    return mdnrnn_gym(params, args.gpu_id)
+    mdnrnn_gym(params, args.gpu_id, args.feature_importance)
 
 
-def mdnrnn_gym(params, gpu_id):
+def mdnrnn_gym(params, gpu_id, feature_importance):
     logger.info("Running gym with params")
     logger.info(params)
 
@@ -141,7 +148,7 @@ def mdnrnn_gym(params, gpu_id):
     c2_device = core.DeviceOption(
         caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, int(gpu_id)
     )
-    return train_sgd(
+    _, _, trainer = train_sgd(
         c2_device,
         env,
         trainer,
@@ -149,6 +156,31 @@ def mdnrnn_gym(params, gpu_id):
         params["mdnrnn"]["minibatch_size"],
         **params["run_details"],
     )
+    if feature_importance:
+        calculate_feature_importance(env, trainer, **params["run_details"])
+
+
+def calculate_feature_importance(
+    gym_env, trainer, seq_len=5, num_test_episodes=100, max_steps=None, **kwargs
+):
+    feature_importance_evaluator = FeatureImportanceEvaluator(trainer)
+    test_replay_buffer = get_replay_buffer(
+        num_test_episodes, seq_len, max_steps, gym_env
+    )
+    test_batch = test_replay_buffer.sample_memories(test_replay_buffer.memory_size)
+    feature_loss_vector = feature_importance_evaluator.evaluate(test_batch)[
+        "feature_loss_increase"
+    ]
+    for i in range(gym_env.action_dim):
+        print(
+            "action {}, feature importance: {}".format(i, feature_loss_vector[i].item())
+        )
+    for i in range(gym_env.state_dim):
+        print(
+            "state {}, feature importance: {}".format(
+                i, feature_loss_vector[i + gym_env.action_dim].item()
+            )
+        )
 
 
 def train_sgd(

@@ -3,16 +3,18 @@
 
 import logging
 import time
+from collections import OrderedDict
 from typing import Dict, List
 
 import numpy as np
+import torch
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
-from ml.rl.types import TrainingBatch
+from ml.rl.types import ExtraData, MemoryNetworkInput, TrainingBatch
 
 
 logger = logging.getLogger(__name__)
@@ -121,13 +123,35 @@ class WorldModelPageHandler(PageHandler):
 
 
 class WorldModelTrainingPageHandler(WorldModelPageHandler):
-    def handle(self, tdp: TrainingDataPage) -> None:
+    def handle(self, tdp: TrainingBatch) -> None:
+        losses = self.trainer_or_evaluator.train(tdp, batch_first=True)
+        self.results.append(losses)
+
+
+class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
+    """ Train a baseline model based on randomly shuffled data """
+
+    def handle(self, tdp: TrainingBatch) -> None:
+        batch_size, _, _ = tdp.training_input.next_state.size()
+        tdp = TrainingBatch(
+            training_input=MemoryNetworkInput(
+                state=tdp.training_input.state,
+                action=tdp.training_input.action,
+                # shuffle the data
+                next_state=tdp.training_input.next_state[torch.randperm(batch_size)],
+                reward=tdp.training_input.reward[torch.randperm(batch_size)],
+                not_terminal=tdp.training_input.not_terminal[
+                    torch.randperm(batch_size)
+                ],
+            ),
+            extras=ExtraData(),
+        )
         losses = self.trainer_or_evaluator.train(tdp, batch_first=True)
         self.results.append(losses)
 
 
 class WorldModelEvaluationPageHandler(WorldModelPageHandler):
-    def handle(self, tdp: TrainingDataPage) -> None:
+    def handle(self, tdp: TrainingBatch) -> None:
         losses = self.trainer_or_evaluator.evaluate(tdp)
         self.results.append(losses)
 
@@ -146,6 +170,14 @@ class ImitatorPageHandler(PageHandler):
         pass
 
 
+def get_actual_minibatch_size(batch, minibatch_size_preset):
+    if isinstance(batch, TrainingBatch):
+        batch_size = batch.training_input.state.float_features.size()[0]
+    else:
+        batch_size = minibatch_size_preset
+    return batch_size
+
+
 def feed_pages(
     data_streamer,
     dataset_num_rows,
@@ -161,7 +193,9 @@ def feed_pages(
     last_percent_reported = -1
 
     for batch in data_streamer:
-        num_rows_processed += minibatch_size
+        batch_size = get_actual_minibatch_size(batch, minibatch_size)
+        num_rows_processed += batch_size
+
         if (
             num_rows_processed // num_rows_to_process_for_progress_tick
         ) != last_percent_reported:
