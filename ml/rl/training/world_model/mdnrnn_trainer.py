@@ -125,9 +125,15 @@ class MDNRNNTrainer:
             mdnrnn_output.not_terminal,
         )
 
-        gmm = gmm_loss(learning_input.next_state, mus, sigmas, logpi)
-        bce = F.binary_cross_entropy_with_logits(ds, learning_input.not_terminal)
-        mse = F.mse_loss(rs, learning_input.reward)
+        gmm = (
+            gmm_loss(learning_input.next_state, mus, sigmas, logpi)
+            * self.params.next_state_loss_weight
+        )
+        bce = (
+            F.binary_cross_entropy_with_logits(ds, learning_input.not_terminal)
+            * self.params.not_terminal_loss_weight
+        )
+        mse = F.mse_loss(rs, learning_input.reward) * self.params.reward_loss_weight
         if state_dim is not None:
             loss = (gmm + bce + mse) / (state_dim + 2)
         else:

@@ -211,5 +211,12 @@ struct MDNRNNParameters {
   2: i32 num_hidden_layers = 2,
   3: i32 minibatch_size = 16,
   4: double learning_rate = 0.001,
-  5: i32 num_gaussians = 5
+  5: i32 num_gaussians = 5,
+  6: double train_data_percentage = 60.0,
+  7: double validation_data_percentage = 20.0,
+  8: double test_data_percentage = 20.0,
+  # weight in calculating world-model loss
+  9: double reward_loss_weight = 1.0,
+  10: double next_state_loss_weight = 1.0,
+  11: double not_terminal_loss_weight = 1.0,
 }
