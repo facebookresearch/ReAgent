@@ -172,7 +172,7 @@ class ImitatorPageHandler(PageHandler):
 
 def get_actual_minibatch_size(batch, minibatch_size_preset):
     if isinstance(batch, TrainingBatch):
-        batch_size = batch.training_input.state.float_features.size()[0]
+        batch_size = len(batch)
     else:
         batch_size = minibatch_size_preset
     return batch_size

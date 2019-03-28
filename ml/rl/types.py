@@ -231,6 +231,9 @@ class TrainingBatch(NamedTuple):
     training_input: Union[MaxQLearningInput, SARSAInput, MemoryNetworkInput]
     extras: Any
 
+    def __len__(self):
+        return self.training_input.state.float_features.size()[0]
+
 
 class SingleQValue(NamedTuple):
     q_value: ValueType
