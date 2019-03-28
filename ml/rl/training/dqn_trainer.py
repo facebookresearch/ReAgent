@@ -11,6 +11,7 @@ import torch.nn.functional as F
 from ml.rl.caffe_utils import masked_softmax, softmax
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
+from ml.rl.training.imitator_training import get_valid_actions_from_imitator
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -124,24 +125,17 @@ class DQNTrainer(DQNTrainerBase):
             learning_input.next_state
         )
 
-        if self.bcq:
-            # Batch constrained q-learning
-            on_policy_actions = self.bcq_imitator(
-                learning_input.next_state.float_features
-            )
-            on_policy_action_probs = softmax(on_policy_actions, temperature=1)
-            filter_values = (
-                on_policy_action_probs
-                / on_policy_action_probs.max(keepdim=True, dim=1)[0]
-            )
-            action_on_policy = (filter_values >= self.bcq_drop_threshold).float()
-
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
             possible_next_actions_mask = (
                 learning_input.possible_next_actions_mask.float()
             )
             if self.bcq:
+                action_on_policy = get_valid_actions_from_imitator(
+                    self.bcq_imitator,
+                    learning_input.next_state.float_features,
+                    self.bcq_drop_threshold,
+                )
                 possible_next_actions_mask *= action_on_policy
             next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
                 all_next_q_values, all_next_q_values_target, possible_next_actions_mask
@@ -191,6 +185,17 @@ class DQNTrainer(DQNTrainerBase):
             not_done_mask,
         )
 
+        if self.maxq_learning:
+            possible_actions_mask = learning_input.possible_actions_mask
+
+        if self.bcq:
+            action_on_policy = get_valid_actions_from_imitator(
+                self.bcq_imitator,
+                learning_input.state.float_features,
+                self.bcq_drop_threshold,
+            )
+            possible_actions_mask *= action_on_policy
+
         self.loss_reporter.report(
             td_loss=self.loss,
             reward_loss=reward_loss,
@@ -204,9 +209,7 @@ class DQNTrainer(DQNTrainerBase):
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=self.get_max_q_values(
                 self.all_action_scores,
-                learning_input.possible_actions_mask
-                if self.maxq_learning
-                else learning_input.action,
+                possible_actions_mask if self.maxq_learning else learning_input.action,
             )[1],
         )
 

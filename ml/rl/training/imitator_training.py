@@ -51,3 +51,13 @@ class ImitatorTrainer(RLTrainer):
             self.imitator_optimizer.step()
 
         return self._imitator_accuracy(pred_action_idxs, actual_action_idxs)
+
+
+def get_valid_actions_from_imitator(imitator, input, drop_threshold):
+    """Create mask for non-viable actions under the imitator."""
+    imitator_outputs = imitator(input)
+    on_policy_action_probs = torch.nn.functional.softmax(imitator_outputs, dim=1)
+    filter_values = (
+        on_policy_action_probs / on_policy_action_probs.max(keepdim=True, dim=1)[0]
+    )
+    return (filter_values >= drop_threshold).float()
