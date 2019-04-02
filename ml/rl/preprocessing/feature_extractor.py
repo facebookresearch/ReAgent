@@ -617,6 +617,7 @@ class InputColumn(object):
     NOT_TERMINAL = "not_terminal"
     STEP = "step"
     TIME_DIFF = "time_diff"
+    TIME_SINCE_FIRST = "time_since_first"
     MDP_ID = "mdp_id"
     SEQUENCE_NUMBER = "sequence_number"
     METRICS = "metrics"
@@ -644,6 +645,10 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         multi_steps: Optional[int] = None,
         metrics_to_score: Optional[List[str]] = None,
         model_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        use_time_since_first: Optional[bool] = None,
+        time_since_first_normalization_parameters: Optional[
+            NormalizationParameters
+        ] = None,
     ) -> None:
         super().__init__(model_feature_config=model_feature_config)
         self.state_normalization_parameters = state_normalization_parameters
@@ -663,6 +668,10 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         self.set_missing_value_to_zero = set_missing_value_to_zero
         self.multi_steps = multi_steps
         self.metrics_to_score = metrics_to_score
+        self.use_time_since_first = use_time_since_first or False
+        self.time_since_first_normalization_parameters = (
+            time_since_first_normalization_parameters
+        )
 
     def extract(self, ws, input_record, extract_record):
         fetch = partial(self.fetch, ws)
@@ -691,6 +700,11 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 "sequence_features"
             ] = self.fetch_state_sequence_features(
                 extract_record.next_state_sequence_features, fetch
+            )
+        if self.use_time_since_first:
+            state_features["time_since_first"] = fetch(extract_record.time_since_first)
+            next_state_features["time_since_first"] = fetch(
+                extract_record.next_time_since_first
             )
 
         state = rlt.FeatureVector(**state_features)
@@ -825,6 +839,11 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
         if self.metrics_to_score:
             input_schema += schema.Struct((InputColumn.METRICS, map_schema()))
+
+        if self.use_time_since_first:
+            input_schema += schema.Struct(
+                (InputColumn.TIME_SINCE_FIRST, schema.Scalar())
+            )
 
         input_record = net.set_input_record(input_schema)
 
@@ -1021,6 +1040,42 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 missing_metric,
             )
 
+        if self.use_time_since_first:
+            time_since_first = net.Cast(
+                net.ExpandDims(
+                    input_record[InputColumn.TIME_SINCE_FIRST](), 1, dims=[1]
+                ),
+                net.NextScopedBlob("float_time_since_first"),
+                to=core.DataType.FLOAT,
+            )
+            float_time_diff = net.Cast(
+                net.ExpandDims(input_record[InputColumn.TIME_DIFF](), 1, dims=[1]),
+                net.NextScopedBlob("float_time_diff"),
+                to=core.DataType.FLOAT,
+            )
+
+            next_time_since_first = net.Add(
+                [time_since_first, float_time_diff],
+                net.NextScopedBlob("float_next_time_since_first"),
+            )
+            if self.time_since_first_normalization_parameters:
+                C2.set_net_and_init_net(net, init_net)
+                time_since_first, _ = PreprocessorNet().normalize_dense_matrix(
+                    time_since_first,
+                    [0],
+                    {0: self.time_since_first_normalization_parameters},
+                    blobname_prefix="time_since_first",
+                    split_expensive_feature_groups=True,
+                )
+                next_time_since_first, _ = PreprocessorNet().normalize_dense_matrix(
+                    next_time_since_first,
+                    [0],
+                    {0: self.time_since_first_normalization_parameters},
+                    blobname_prefix="next_time_since_first",
+                    split_expensive_feature_groups=True,
+                )
+                C2.set_net_and_init_net(None, None)
+
         output_schema = schema.Struct(
             (InputColumn.STATE_FEATURES, state),
             (InputColumn.NEXT_STATE_FEATURES, next_state),
@@ -1045,6 +1100,12 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                         next_state_sequence_float_features,
                     ),
                 ),
+            )
+
+        if self.use_time_since_first:
+            output_schema += schema.Struct(
+                ("time_since_first", time_since_first),
+                ("next_time_since_first", next_time_since_first),
             )
 
         if self.include_possible_actions:
@@ -1096,6 +1157,10 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
         normalize: bool = True,
         set_missing_value_to_zero: bool = False,
         model_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        use_time_since_first: Optional[bool] = None,
+        time_since_first_normalization_parameters: Optional[
+            NormalizationParameters
+        ] = None,
     ) -> None:
         super().__init__(model_feature_config=model_feature_config)
         self.state_normalization_parameters = state_normalization_parameters
@@ -1111,6 +1176,10 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             self.sorted_action_features = None
         self.normalize = normalize
         self.set_missing_value_to_zero = set_missing_value_to_zero
+        self.use_time_since_first = use_time_since_first or False
+        self.time_since_first_normalization_parameters = (
+            time_since_first_normalization_parameters
+        )
 
     def extract(self, ws, input_record, extract_record):
         fetch = partial(self.fetch, ws)
@@ -1119,6 +1188,10 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
         if self.has_sequence_features:
             state_features["sequence_features"] = self.fetch_state_sequence_features(
                 extract_record.state.sequence_features, fetch
+            )
+        if self.use_time_since_first:
+            state_features["time_since_first"] = fetch(
+                extract_record.state.time_since_first
             )
 
         state = rlt.FeatureVector(**state_features)
@@ -1270,6 +1343,26 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                 )
             C2.set_net_and_init_net(None, None)
 
+        if self.use_time_since_first:
+            state_shape = net.Shape(state, 1)
+            batch_size = net.Slice(state_shape, 1, starts=[0], ends=[1])
+            time_since_first = net.ExpandDims(
+                net.ConstantFill(batch_size, 1, value=0.0, input_as_shape=1),
+                1,
+                dims=[1],
+            )
+
+            if self.time_since_first_normalization_parameters:
+                C2.set_net_and_init_net(net, init_net)
+                time_since_first, _ = PreprocessorNet().normalize_dense_matrix(
+                    time_since_first,
+                    [0],
+                    {0: self.time_since_first_normalization_parameters},
+                    blobname_prefix="time_since_first",
+                    split_expensive_feature_groups=True,
+                )
+                C2.set_net_and_init_net(None, None)
+
         output_record = schema.Struct(("state:float_features", state))
         if self.has_sequence_features:
             output_record += schema.Struct(
@@ -1280,6 +1373,8 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                     ),
                 )
             )
+        if self.use_time_since_first:
+            output_record += schema.Struct(("state:time_since_first", time_since_first))
 
         if self.sorted_action_features:
             output_record += schema.Struct(("action", action))

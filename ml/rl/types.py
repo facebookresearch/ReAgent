@@ -152,6 +152,10 @@ class FeatureVector(NamedTuple):
     # User is expected to dynamically define the type of id_list_features based
     # on the actual features used in the model.
     sequence_features: Optional[SequenceFeatureBase] = None
+    # Experimental: sticking this here instead of putting it in float_features
+    # because a lot of places derive the shape of float_features from
+    # normalization parameters.
+    time_since_first: Optional[ValueType] = None
 
 
 DiscreteAction = ValueType

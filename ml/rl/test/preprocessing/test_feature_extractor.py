@@ -48,6 +48,9 @@ class FeatureExtractorTestBase(unittest.TestCase):
             for i in range(11, 14)
         }
 
+    def get_time_since_first_normalization_parameters(self):
+        return NormalizationParameters(feature_type=CONTINUOUS, mean=0, stddev=1)
+
     def setup_state_features(self, ws, field):
         lengths = np.array([3, 0, 5], dtype=np.int32)
         keys = np.array([2, 1, 9, 1, 2, 3, 4, 5], dtype=np.int64)
@@ -485,6 +488,27 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field()), time_diff)
         return time_diff
 
+    def setup_time_since_first(self, ws, field):
+        time_since_first = np.array([0, 0, 0], dtype=np.int32)
+        ws.feed_blob(str(field()), time_since_first)
+        return time_since_first
+
+    def expected_time_since_first(self, normalize):
+        dense = np.array([0, 0, 0], dtype=np.float).reshape(-1, 1)
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [0], {0: self.get_time_since_first_normalization_parameters()}
+            )
+        return dense
+
+    def expected_next_time_since_first(self, normalize):
+        dense = np.array([1, 1, 1], dtype=np.float).reshape(-1, 1)
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [0], {0: self.get_time_since_first_normalization_parameters()}
+            )
+        return dense
+
     def setup_mdp_id(self, ws, field):
         mdp_id = np.array(["1", "2", "3"], dtype=np.string_)
         ws.feed_blob(str(field()), mdp_id)
@@ -698,17 +722,17 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
 
 
 class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
-    def create_extra_input_record(self, net):
-        return net.input_record() + schema.NewRecord(
-            net,
-            schema.Struct(
-                ("reward", schema.Scalar()),
-                ("action_probability", schema.Scalar()),
-                ("step", schema.Scalar()),
-                ("mdp_id", schema.Scalar()),
-                ("sequence_number", schema.Scalar()),
-            ),
-        )
+    def create_extra_input_record(self, net, use_time_since_first=False):
+        extra_inputs = [
+            ("reward", schema.Scalar()),
+            ("action_probability", schema.Scalar()),
+            ("step", schema.Scalar()),
+            ("mdp_id", schema.Scalar()),
+            ("sequence_number", schema.Scalar()),
+        ]
+        if use_time_since_first:
+            extra_inputs.append(("time_since_first", schema.Scalar()))
+        return net.input_record() + schema.NewRecord(net, schema.Struct(*extra_inputs))
 
     def setup_extra_data(self, ws, input_record):
         extra_data = rlt.ExtraData(
@@ -725,7 +749,19 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
     def test_extract_max_q_discrete_action_normalize(self):
         self._test_extract_max_q_discrete_action(normalize=True)
 
-    def _test_extract_max_q_discrete_action(self, normalize):
+    def test_extract_max_q_discrete_action_time_since_first(self):
+        self._test_extract_max_q_discrete_action(
+            normalize=True, use_time_since_first=True
+        )
+
+    def test_extract_max_q_discrete_action_time_since_first_normalize(self):
+        self._test_extract_max_q_discrete_action(
+            normalize=True, use_time_since_first=True, normalize_time_since_first=True
+        )
+
+    def _test_extract_max_q_discrete_action(
+        self, normalize, use_time_since_first=False, normalize_time_since_first=False
+    ):
         num_actions = 2
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
@@ -733,6 +769,10 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             normalize=normalize,
             max_num_actions=num_actions,
             multi_steps=3,
+            use_time_since_first=use_time_since_first,
+            time_since_first_normalization_parameters=self.get_time_since_first_normalization_parameters()
+            if normalize_time_since_first
+            else None,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -750,6 +790,8 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         time_diff = self.setup_time_diff(ws, input_record.time_diff)
+        if use_time_since_first:
+            self.setup_time_since_first(ws, input_record.time_since_first)
         mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
         sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
         step = self.setup_step(ws, input_record.step)
@@ -761,6 +803,20 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
+        if use_time_since_first:
+            npt.assert_allclose(
+                self.expected_time_since_first(normalize_time_since_first),
+                o.state.time_since_first.numpy(),
+                rtol=1e-6,
+            )
+            npt.assert_allclose(
+                self.expected_next_time_since_first(normalize_time_since_first),
+                o.next_state.time_since_first.numpy(),
+                rtol=1e-6,
+            )
+        else:
+            self.assertIsNone(o.state.time_since_first)
+            self.assertIsNone(o.next_state.time_since_first)
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
         npt.assert_array_equal(step.reshape(-1, 1), o.step.numpy())
         npt.assert_array_equal(
@@ -1329,10 +1385,24 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
     def test_extract_no_action_normalize(self):
         self._test_extract_no_action(normalize=True)
 
-    def _test_extract_no_action(self, normalize):
+    def test_extract_no_action_time_since_first(self):
+        self._test_extract_no_action(normalize=True, use_time_since_first=True)
+
+    def test_extract_no_action_time_since_first_normalize(self):
+        self._test_extract_no_action(
+            normalize=True, use_time_since_first=True, normalize_time_since_first=True
+        )
+
+    def _test_extract_no_action(
+        self, normalize, use_time_since_first=False, normalize_time_since_first=False
+    ):
         extractor = PredictorFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             normalize=normalize,
+            use_time_since_first=use_time_since_first,
+            time_since_first_normalization_parameters=self.get_time_since_first_normalization_parameters()
+            if normalize_time_since_first
+            else None,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -1346,6 +1416,14 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
             res.state.float_features.numpy(),
             rtol=1e-6,
         )
+        if use_time_since_first:
+            npt.assert_allclose(
+                self.expected_time_since_first(normalize_time_since_first),
+                res.state.time_since_first.numpy(),
+                rtol=1e-6,
+            )
+        else:
+            self.assertIsNone(res.state.time_since_first)
 
     def test_extract_with_sequence(self):
         model_feature_config = rlt.ModelFeatureConfig(
