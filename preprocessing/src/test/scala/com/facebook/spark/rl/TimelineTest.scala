@@ -120,11 +120,12 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Long](8) == 1)
     assert(firstRow.getAs[Long](9) == 1)
     assert(firstRow.getAs[Seq[Long]](10) == List(10))
-    assert(firstRow.getAs[Seq[String]](11) == List("action1", "action2"))
+    assert(firstRow.getAs[Long](11) == 0)
+    assert(firstRow.getAs[Seq[String]](12) == List("action1", "action2"))
     // special case: possible_next_actions is a list (not list of list) when
     // possible_next_actions in all next n steps (here n = 1) are empty lists
-    assert(firstRow.getAs[Seq[Seq[String]]](12) == List())
-    assert(firstRow.getAs[Seq[Map[String, Double]]](13) == List(Map("Widgets" -> 10.0)))
+    assert(firstRow.getAs[Seq[Seq[String]]](13) == List())
+    assert(firstRow.getAs[Seq[Map[String, Double]]](14) == List(Map("Widgets" -> 10.0)))
   }
 
   test("four-state-discrete-mdp-three-step-rl") {
@@ -256,14 +257,15 @@ class TimelineTest extends PipelineTester {
     assert(firstRec.getAs[Long](8) == 1)
     assert(firstRec.getAs[Long](9) == 1)
     assert(firstRec.getAs[Seq[Long]](10) == List(10, 11, 12))
-    assert(firstRec.getAs[Seq[String]](11) == List("action1", "action2"))
+    assert(firstRec.getAs[Long](11) == 0)
+    assert(firstRec.getAs[Seq[String]](12) == List("action1", "action2"))
     assert(
-      firstRec.getAs[Seq[Seq[String]]](12) ==
+      firstRec.getAs[Seq[Seq[String]]](13) ==
         List(List("action2", "action3"),
              List("action3", "action4"),
              List("action4", "action1", "action2", "action3")))
     assert(
-      firstRec.getAs[Seq[Map[String, Double]]](13) ==
+      firstRec.getAs[Seq[Map[String, Double]]](14) ==
         List(Map("Widgets" -> 10.0), Map("Widgets" -> 20.0), Map("Widgets" -> 30.0)))
 
     val secondRec = df.where($"sequence_number_ordinal" === 2).head()
@@ -280,12 +282,13 @@ class TimelineTest extends PipelineTester {
     assert(secondRec.getAs[Long](8) == 11)
     assert(secondRec.getAs[Long](9) == 2)
     assert(secondRec.getAs[Seq[Long]](10) == List(1, 2))
-    assert(secondRec.getAs[Seq[String]](11) == List("action2", "action3"))
+    assert(secondRec.getAs[Long](11) == 10)
+    assert(secondRec.getAs[Seq[String]](12) == List("action2", "action3"))
     assert(
-      secondRec.getAs[Seq[Seq[String]]](12) ==
+      secondRec.getAs[Seq[Seq[String]]](13) ==
         List(List("action3", "action4"), List("action4", "action1", "action2", "action3")))
     assert(
-      secondRec.getAs[Seq[Map[String, Double]]](13) ==
+      secondRec.getAs[Seq[Map[String, Double]]](14) ==
         List(Map("Widgets" -> 20.0), Map("Widgets" -> 30.0)))
 
     val thirdRec = df.where($"sequence_number_ordinal" === 3).head()
@@ -302,11 +305,12 @@ class TimelineTest extends PipelineTester {
     assert(thirdRec.getAs[Long](8) == 12)
     assert(thirdRec.getAs[Long](9) == 3)
     assert(thirdRec.getAs[Seq[Long]](10) == List(1))
-    assert(thirdRec.getAs[Seq[String]](11) == List("action3", "action4"))
+    assert(thirdRec.getAs[Long](11) == 11)
+    assert(thirdRec.getAs[Seq[String]](12) == List("action3", "action4"))
     assert(
-      thirdRec.getAs[Seq[Seq[String]]](12) ==
+      thirdRec.getAs[Seq[Seq[String]]](13) ==
         List(List("action4", "action1", "action2", "action3")))
-    assert(thirdRec.getAs[Seq[Map[String, Double]]](13) == List(Map("Widgets" -> 30.0)))
+    assert(thirdRec.getAs[Seq[Map[String, Double]]](14) == List(Map("Widgets" -> 30.0)))
   }
 
   test("three-state-continuous-mdp-two-step-rl") {
@@ -431,17 +435,18 @@ class TimelineTest extends PipelineTester {
     assert(firstRec.getAs[Long](8) == 1)
     assert(firstRec.getAs[Long](9) == 1)
     assert(firstRec.getAs[Seq[Long]](10) == List(10, 11))
+    assert(firstRec.getAs[Long](11) == 0)
     assert(
-      firstRec.getAs[Seq[Map[Long, Double]]](11) == List(Map(1001L -> 0.3, 1002L -> 0.5),
+      firstRec.getAs[Seq[Map[Long, Double]]](12) == List(Map(1001L -> 0.3, 1002L -> 0.5),
                                                          Map(1001L -> 0.6, 1002L -> 0.2)))
     assert(
-      firstRec.getAs[Seq[Seq[Map[Long, Double]]]](12) ==
+      firstRec.getAs[Seq[Seq[Map[Long, Double]]]](13) ==
         List(
           List(Map(1001L -> 0.1, 1002L -> 0.9), Map(1001L -> 0.8, 1002L -> 0.2)),
           List(Map(1001L -> 0.8, 1002L -> 0.2), Map(1001L -> 0.3, 1002L -> 0.3))
         ))
     assert(
-      firstRec.getAs[Seq[Map[String, Double]]](13) ==
+      firstRec.getAs[Seq[Map[String, Double]]](14) ==
         List(Map("Widgets" -> 10.0), Map("Widgets" -> 20.0)))
 
     val secondRec = df.where($"sequence_number_ordinal" === 2).head()
@@ -456,14 +461,15 @@ class TimelineTest extends PipelineTester {
     assert(secondRec.getAs[Long](8) == 11)
     assert(secondRec.getAs[Long](9) == 2)
     assert(secondRec.getAs[Seq[Long]](10) == List(1))
+    assert(secondRec.getAs[Long](11) == 10)
     assert(
-      secondRec.getAs[Seq[Map[Long, Double]]](11) == List(Map(1001L -> 0.1, 1002L -> 0.9),
+      secondRec.getAs[Seq[Map[Long, Double]]](12) == List(Map(1001L -> 0.1, 1002L -> 0.9),
                                                           Map(1001L -> 0.8, 1002L -> 0.2)))
     assert(
-      secondRec.getAs[Seq[Seq[Map[Long, Double]]]](12) ==
+      secondRec.getAs[Seq[Seq[Map[Long, Double]]]](13) ==
         List(List(Map(1001L -> 0.8, 1002L -> 0.2), Map(1001L -> 0.3, 1002L -> 0.3))))
     assert(
-      secondRec.getAs[Seq[Map[String, Double]]](13) ==
+      secondRec.getAs[Seq[Map[String, Double]]](14) ==
         List(Map("Widgets" -> 20.0)))
   }
 
@@ -566,11 +572,12 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Long](8) == 1)
     assert(firstRow.getAs[Long](9) == 1)
     assert(firstRow.getAs[Long](10) == 10)
+    assert(firstRow.getAs[Long](11) == 0)
     assert(
-      firstRow.getAs[Seq[Map[Long, Double]]](11) == List(Map(1001L -> 0.3, 1002L -> 0.5),
+      firstRow.getAs[Seq[Map[Long, Double]]](12) == List(Map(1001L -> 0.3, 1002L -> 0.5),
                                                          Map(1001L -> 0.6, 1002L -> 0.2)))
-    assert(firstRow.getAs[Seq[Map[Long, Double]]](12) == List())
-    assert(firstRow.getAs[Map[String, Double]](13) == Map("Widgets" -> 10.0))
+    assert(firstRow.getAs[Seq[Map[Long, Double]]](13) == List())
+    assert(firstRow.getAs[Map[String, Double]](14) == Map("Widgets" -> 10.0))
   }
 
   test("two-state-discrete-sparse-mdp") {
@@ -684,23 +691,24 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Long](8) == 1)
     assert(firstRow.getAs[Long](9) == 1)
     assert(firstRow.getAs[Long](10) == 10)
-    assert(firstRow.getAs[Seq[String]](11) == List("action1", "action2"))
-    assert(firstRow.getAs[Seq[String]](12) == List())
-    assert(firstRow.getAs[Map[String, Double]](13) == Map("Widgets" -> 10.0))
+    assert(firstRow.getAs[Long](11) == 0)
+    assert(firstRow.getAs[Seq[String]](12) == List("action1", "action2"))
+    assert(firstRow.getAs[Seq[String]](13) == List())
+    assert(firstRow.getAs[Map[String, Double]](14) == Map("Widgets" -> 10.0))
     // sparse data columns:
     // state_id_list_features, state_id_score_list_features,
     // next_state_id_list_features, next_state_id_score_list_features
     assert(
-      firstRow.getAs[Map[Long, Seq[Long]]](14)
+      firstRow.getAs[Map[Long, Seq[Long]]](15)
         == Map(35L -> List(156L, 157L), 36L -> List(138L)))
     assert(
-      firstRow.getAs[Map[Long, Map[Long, Double]]](15)
+      firstRow.getAs[Map[Long, Map[Long, Double]]](16)
         == Map(35L -> Map(156L -> 0.5, 157L -> 0.4), 36L -> Map(138L -> 0.3)))
     assert(
-      firstRow.getAs[Map[Long, Seq[Long]]](16)
+      firstRow.getAs[Map[Long, Seq[Long]]](17)
         == Map(35L -> List(153L, 154L), 36L -> List(139L)))
     assert(
-      firstRow.getAs[Map[Long, Map[Long, Double]]](17)
+      firstRow.getAs[Map[Long, Map[Long, Double]]](18)
         == Map(35L -> Map(153L -> 0.1, 154L -> 0.2), 36L -> Map(139L -> 0.7)))
   }
 
@@ -803,9 +811,10 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Long](8) == 1)
     assert(firstRow.getAs[Long](9) == 1)
     assert(firstRow.getAs[Long](10) == 10)
-    assert(firstRow.getAs[Seq[String]](11) == List("action1", "action2"))
-    assert(firstRow.getAs[Seq[String]](12) == List())
-    assert(firstRow.getAs[Map[String, Double]](13) == Map("Widgets" -> 10.0))
+    assert(firstRow.getAs[Long](11) == 0)
+    assert(firstRow.getAs[Seq[String]](12) == List("action1", "action2"))
+    assert(firstRow.getAs[Seq[String]](13) == List())
+    assert(firstRow.getAs[Map[String, Double]](14) == Map("Widgets" -> 10.0))
   }
 
   test("filter-outliers") {
@@ -903,6 +912,99 @@ class TimelineTest extends PipelineTester {
 
     df.show()
     assert(df.count() == 95)
+  }
+
+  test("time-window-limit") {
+    val action_discrete: Boolean = true
+    val includeSparseData: Boolean = false
+    val sqlCtx = sqlContext
+    import sqlCtx.implicits._
+    val sparkContext = sqlCtx.sparkContext
+
+    val percentileFunc = "percentile"
+
+    // Setup configuration
+    val config = TimelineConfiguration("2018-01-01",
+                                       "2018-01-01",
+                                       true,
+                                       action_discrete,
+                                       "some_rl_input_5",
+                                       "some_rl_timeline_5",
+                                       null,
+                                       1,
+                                       Some(0.95),
+                                       percentileFunc,
+                                       false,
+                                       Some(3L))
+
+    // destroy previous schema
+    Helper.validateOrDestroyTrainingTable(sqlContext,
+                                          s"${config.outputTableName}",
+                                          action_discrete,
+                                          includeSparseData)
+
+    // Create fake input data
+    val rl_input = sparkContext
+      .parallelize(
+        for (mdp_id <- 1 to 3; mdp_length = 10;
+             seq_id <- 1 to mdp_length)
+          yield
+            ("2018-01-01",
+             s"mdp${mdp_id}",
+             seq_id,
+             0.2,
+             s"action${(seq_id + 1) % 2 + 1}",
+             0.7,
+             Map(2L -> 1.0),
+             List("action1", "action2"),
+             Map("Widgets" -> 20.0))
+      )
+      .toDF("ds",
+            "mdp_id",
+            "sequence_number",
+            "reward",
+            "action",
+            "action_probability",
+            "state_features",
+            "possible_actions",
+            "metrics")
+    rl_input.createOrReplaceTempView(config.inputTableName)
+
+    // Create a mis-specified output table that will be deleted
+    val bad_output = sparkContext
+      .parallelize(
+        List(
+          ("2018-01-01"), // First state
+          ("2018-01-01") // Second state
+        ))
+      .toDF("ds")
+    bad_output.createOrReplaceTempView(config.outputTableName)
+
+    // Run the pipeline
+    Timeline.run(sqlContext, config)
+
+    // Ensure that the table is valid
+    assert(
+      Helper.outputTableIsValid(
+        sqlContext,
+        s"${config.outputTableName}",
+        action_discrete,
+        includeSparseData
+      )
+    )
+
+    // Query the results
+    val df =
+      sqlCtx.sql(s"""SELECT ${Constants.TRAINING_DATA_COLUMN_NAMES
+        .mkString(",")} from ${config.outputTableName}""")
+
+    df.show()
+    assert(df.count() == 12)
+    df.collect.foreach(row => {
+      assert(row.getAs[Long](11) <= 3)
+      assert(row.getAs[Long](11) == row.getAs[Long](8) - 1)
+    })
+
   }
 
 }

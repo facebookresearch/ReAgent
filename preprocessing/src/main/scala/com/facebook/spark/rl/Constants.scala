@@ -14,6 +14,7 @@ object Constants {
     "sequence_number",
     "sequence_number_ordinal",
     "time_diff",
+    "time_since_first",
     "possible_actions",
     "possible_next_actions",
     "metrics"

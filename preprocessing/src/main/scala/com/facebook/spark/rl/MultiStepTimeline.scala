@@ -164,7 +164,10 @@ object MultiStepTimeline {
               metrics as metrics,
               ds as ds,
               sequence_number as sequence_number,
-              row_number() over (partition by mdp_id order by mdp_id, sequence_number) as sequence_number_ordinal
+              row_number() over (partition by mdp_id order by mdp_id, sequence_number) as sequence_number_ordinal,
+              sequence_number - FIRST(sequence_number) OVER (
+                  PARTITION BY mdp_id ORDER BY mdp_id, sequence_number
+              ) AS time_since_first
               FROM deduped
       ),
       ordinal_join AS (
@@ -183,6 +186,7 @@ object MultiStepTimeline {
                 CAST(second_sa.sequence_number - first_sa.sequence_number AS BIGINT),
                 first_sa.sequence_number
               ) AS time_diff,
+              first_sa.time_since_first AS time_since_first,
               first_sa.possible_actions AS possible_actions,
               second_sa.possible_actions AS possible_next_actions,
               first_sa.metrics AS metrics,
@@ -207,6 +211,7 @@ object MultiStepTimeline {
               sequence_number AS sequence_number,
               sequence_number_ordinal AS sequence_number_ordinal,
               time_diff AS time_diff,
+              time_since_first AS time_since_first,
               possible_actions AS possible_actions,
               MAP(time_diff, possible_next_actions) AS possible_next_actions,
               metrics AS metrics,
@@ -235,6 +240,7 @@ object MultiStepTimeline {
               SORT_ARRAY(
                 COLLECT_LIST(time_diff)
               ) AS time_diff,
+              FIRST(time_since_first) AS time_since_first,
               FIRST(possible_actions) AS possible_actions,
               ${sortPossibleActionMethod}(
                 COLLECT_LIST(possible_next_actions)
@@ -259,6 +265,7 @@ object MultiStepTimeline {
           sequence_number,
           sequence_number_ordinal,
           time_diff,
+          time_since_first,
           possible_actions,
           possible_next_actions,
           metrics
@@ -293,6 +300,7 @@ object MultiStepTimeline {
           sequence_number BIGINT,
           sequence_number_ordinal BIGINT,
           time_diff ARRAY<BIGINT>,
+          time_since_first BIGINT,
           possible_actions ${possibleActionType},
           possible_next_actions ARRAY<${possibleActionType}>,
           metrics ARRAY<MAP<STRING, DOUBLE>>

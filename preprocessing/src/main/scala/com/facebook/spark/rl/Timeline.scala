@@ -18,7 +18,8 @@ case class TimelineConfiguration(startDs: String,
                                  numOutputShards: Int,
                                  outlierEpisodeLengthPercentile: Option[Double] = None,
                                  percentileFunction: String = "percentile_approx",
-                                 includeSparseData: Boolean = false)
+                                 includeSparseData: Boolean = false,
+                                 timeWindowLimit: Option[Long] = None)
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
@@ -140,62 +141,74 @@ object Timeline {
       """).createOrReplaceTempView("episode_length")
     }
 
-    val sourceTable = Timeline.mdpLengthThreshold(sqlContext, config) match {
-      case Some(threshold) => {
-        var sparseSourceColumns = ""
-        if (config.includeSparseData)
-          sparseSourceColumns = s""",
-            b.state_id_list_features,
-            b.state_id_score_list_features
-          """
+    val lengthThreshold = Timeline.mdpLengthThreshold(sqlContext, config)
+
+    val mdpFilter = lengthThreshold
+      .map { threshold =>
+        s"mdp_filter AS (SELECT mdp_id FROM episode_length WHERE mdp_length <= ${threshold}),"
+      }
+      .getOrElse("")
+
+    val joinClause = lengthThreshold
+      .map { threshold =>
         s"""
-        WITH a AS (SELECT mdp_id FROM episode_length WHERE mdp_length <= ${threshold}),
+        JOIN mdp_filter
+        WHERE a.mdp_id = mdp_filter.mdp_id AND
+    """.stripMargin
+      }
+      .getOrElse("WHERE")
+
+    val sparseSourceColumns = if (config.includeSparseData) s"""
+    , a.state_id_list_features
+    , a.state_id_score_list_features
+    """.stripMargin else ""
+
+    val timeLimitedSourceTable = config.timeWindowLimit
+      .map { timeLimit =>
+        s"""
+        , time_limited_source_table AS (
+            SELECT
+                *,
+                sequence_number - FIRST(sequence_number) OVER (
+                     PARTITION BY mdp_id
+                     ORDER BY mdp_id, sequence_number
+                ) AS time_since_first
+            FROM source_table
+            HAVING time_since_first <= ${timeLimit}
+        )
+        """.stripMargin
+      }
+      .getOrElse("")
+
+    val sourceTable = s"""
+    WITH ${mdpFilter}
         source_table AS (
             SELECT
-                b.mdp_id,
-                b.state_features,
-                b.action,
-                b.action_probability,
-                b.reward,
-                b.sequence_number,
-                b.possible_actions,
-                b.metrics
+                a.mdp_id,
+                a.state_features,
+                a.action,
+                a.action_probability,
+                a.reward,
+                a.sequence_number,
+                a.possible_actions,
+                a.metrics
                 ${sparseSourceColumns}
-            FROM ${config.inputTableName} b JOIN a
-            WHERE a.mdp_id = b.mdp_id
-              AND b.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+            FROM ${config.inputTableName} a
+            ${joinClause}
+            a.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
         )
-        """.stripMargin
-      }
-      case None => {
-        var sparseSourceColumns = ""
-        if (config.includeSparseData)
-          sparseSourceColumns = s""",
-            state_id_list_features,
-            state_id_score_list_features
-          """
-        s"""
-        WITH source_table AS (
-            SELECT
-                mdp_id,
-                state_features,
-                action,
-                action_probability,
-                reward,
-                sequence_number,
-                possible_actions,
-                metrics
-                ${sparseSourceColumns}
-            FROM ${config.inputTableName}
-            WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-        )
-        """.stripMargin
-      }
-    }
+        ${timeLimitedSourceTable}
+    """.stripMargin
 
-    var sparseQuery = ""
-    if (config.includeSparseData) {
-      sparseQuery = s""",
+    val sourceTableName = config.timeWindowLimit
+      .map { _ =>
+        "time_limited_source_table"
+      }
+      .getOrElse("source_table")
+
+    val sparseQuery =
+      if (config.includeSparseData)
+        s""",
           state_id_list_features,
           state_id_score_list_features,
           LEAD(state_id_list_features) OVER (
@@ -213,7 +226,7 @@ object Timeline {
                   sequence_number
           ) AS next_state_id_score_list_features
       """.stripMargin
-    }
+      else ""
 
     val sqlCommand = s"""
     ${sourceTable}
@@ -252,6 +265,13 @@ object Timeline {
                 mdp_id,
                 sequence_number
         ), sequence_number) - sequence_number AS time_diff,
+        sequence_number - FIRST(sequence_number) OVER (
+            PARTITION BY
+                mdp_id
+            ORDER BY
+                mdp_id,
+                sequence_number
+        ) AS time_since_first,
         possible_actions,
         LEAD(possible_actions) OVER (
             PARTITION BY
@@ -261,7 +281,7 @@ object Timeline {
                 sequence_number
         ) AS possible_next_actions,
         metrics${sparseQuery}
-    FROM source_table
+    FROM ${sourceTableName}
     ${filterTerminal}
     CLUSTER BY HASH(mdp_id, sequence_number)
     """.stripMargin
@@ -338,14 +358,15 @@ object Timeline {
       possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
     }
 
-    var sparseColumns = ""
-    if (includeSparseData)
-      sparseColumns = s""",
+    val sparseColumns =
+      if (includeSparseData)
+        s""",
       state_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
       state_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>,
       next_state_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
       next_state_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>
       """
+      else ""
 
     val sqlCommand = s"""
 CREATE TABLE IF NOT EXISTS ${tableName} (
@@ -361,6 +382,7 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     sequence_number BIGINT,
     sequence_number_ordinal BIGINT,
     time_diff BIGINT,
+    time_since_first BIGINT,
     possible_actions ${possibleActionType},
     possible_next_actions ${possibleActionType},
     metrics MAP< STRING, DOUBLE>${sparseColumns}
