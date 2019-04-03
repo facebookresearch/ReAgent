@@ -47,7 +47,6 @@
     "optimizer": "ADAM",
     "lr_decay": 0.999,
     "warm_start_model_path": null,
-    "l2_decay": 0,
-    "use_noisy_linear_layers": false
+    "l2_decay": 0
   }
 }

@@ -31,8 +31,7 @@
     "minibatch_size": 1024,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
-    "lr_decay": 0.999,
-    "use_noisy_linear_layers": false
+    "lr_decay": 0.999
   },
   "run_details": {
     "num_episodes": 100,

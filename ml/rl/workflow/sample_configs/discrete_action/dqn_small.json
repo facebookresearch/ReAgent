@@ -7,15 +7,10 @@
   "use_all_avail_gpus": true,
   "norm_params": {
     "output_dir": "training_data/",
-    "cols_to_norm": [
-      "state_features"
-    ],
+    "cols_to_norm": ["state_features"],
     "num_samples": 1000
   },
-  "actions": [
-    "4",
-    "5"
-  ],
+  "actions": ["4", "5"],
   "epochs": 10,
   "rl": {
     "gamma": 0.99,
@@ -31,23 +26,13 @@
     "dueling_architecture": false
   },
   "training": {
-    "layers": [
-      -1,
-      128,
-      64,
-      -1
-    ],
-    "activations": [
-      "relu",
-      "relu",
-      "linear"
-    ],
+    "layers": [-1, 128, 64, -1],
+    "activations": ["relu", "relu", "linear"],
     "minibatch_size": 256,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
     "lr_decay": 0.999,
     "warm_start_model_path": null,
-    "l2_decay": 0,
-    "use_noisy_linear_layers": false
+    "l2_decay": 0
   }
 }
