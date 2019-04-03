@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import random
 import unittest
 from dataclasses import dataclass
 from typing import Dict, List
 
 import numpy as np
 import numpy.testing as npt
+import torch
 from caffe2.python import schema, workspace
 from ml.rl import types as rlt
 from ml.rl.preprocessing.feature_extractor import (
@@ -31,6 +33,12 @@ from ml.rl.test.utils import (
 
 
 class FeatureExtractorTestBase(unittest.TestCase):
+    def setUp(self):
+        np.random.seed(0)
+        random.seed(0)
+        torch.manual_seed(0)
+        super().setUp()
+
     def get_state_normalization_parameters(self):
         return {
             i: NormalizationParameters(
