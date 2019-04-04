@@ -117,9 +117,7 @@ class WorldModelPageHandler(PageHandler):
             prediction), 'mse' (loss for predicting reward)
         :param axis: axis to perform mean function.
         """
-        return np.mean(
-            [result[loss_name].detach().numpy() for result in self.results], axis=axis
-        )
+        return np.mean([result[loss_name] for result in self.results], axis=axis)
 
 
 class WorldModelTrainingPageHandler(WorldModelPageHandler):

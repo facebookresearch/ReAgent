@@ -34,7 +34,7 @@ class RLTrainer:
         self.minibatch = 0
         self.parameters = parameters
         self.reward_burnin = parameters.rl.reward_burnin
-        self.rl_temperature = parameters.rl.temperature
+        self.rl_temperature = float(parameters.rl.temperature)
         self.maxq_learning = parameters.rl.maxq_learning
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
@@ -46,9 +46,9 @@ class RLTrainer:
         self.calc_cpe_in_training = parameters.evaluation.calc_cpe_in_training
 
         if parameters.rl.q_network_loss == "mse":
-            self.q_network_loss = getattr(F, "mse_loss")
+            self.q_network_loss = F.mse_loss
         elif parameters.rl.q_network_loss == "huber":
-            self.q_network_loss = getattr(F, "smooth_l1_loss")
+            self.q_network_loss = F.smooth_l1_loss
         else:
             raise Exception(
                 "Q-Network loss type {} not valid loss.".format(

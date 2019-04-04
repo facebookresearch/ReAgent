@@ -12,12 +12,14 @@ import torch
 from caffe2.python import core, schema
 from ml.rl import types as rlt
 from ml.rl.caffe_utils import C2
-
-from .normalization import (
+from ml.rl.preprocessing.normalization import (
     MISSING_VALUE,
     NormalizationParameters,
+    get_feature_start_indices,
+    get_num_output_features,
     sort_features_by_normalization,
 )
+
 from .preprocessor_net import PreprocessorNet
 
 
@@ -730,9 +732,11 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 .reshape(-1, self.max_num_actions)
                 .type(torch.FloatTensor)
             )
-            possible_next_actions_mask = fetch(
-                extract_record.possible_next_actions_mask
-            ).reshape(-1, self.max_num_actions)
+            possible_next_actions_mask = (
+                fetch(extract_record.possible_next_actions_mask)
+                .reshape(-1, self.max_num_actions)
+                .type(torch.FloatTensor)
+            )
 
             if self.sorted_action_features is not None:
                 possible_actions = fetch_possible_actions(
@@ -1408,19 +1412,35 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
         self.normalize = normalize
         self.state_normalization_parameters = state_normalization_parameters
         self.action_normalization_parameters = action_normalization_parameters
+
         self.sorted_state_features, _ = sort_features_by_normalization(
             state_normalization_parameters
         )
-        self.state_dim = len(self.sorted_state_features)
+        self.state_dim = get_num_output_features(self.state_normalization_parameters)
+        self.state_feature_num = len(self.sorted_state_features)
+        self.sorted_state_feature_start_indices = get_feature_start_indices(
+            self.sorted_state_features, state_normalization_parameters
+        )
+
         if action_normalization_parameters:
             self.sorted_action_features, _ = sort_features_by_normalization(
                 action_normalization_parameters
             )
-            self.action_dim = len(self.sorted_action_features)
+            self.action_dim = get_num_output_features(
+                self.action_normalization_parameters
+            )
+            self.action_feature_num = len(self.sorted_action_features)
+            self.sorted_action_feature_start_indices = get_feature_start_indices(
+                self.sorted_action_features, action_normalization_parameters
+            )
         else:
             self.sorted_action_features = None
             assert discrete_action_names is not None
             self.action_dim = len(discrete_action_names)
+            self.action_feature_num = len(discrete_action_names)
+            self.sorted_action_feature_start_indices = list(
+                range(len(discrete_action_names))
+            )
 
     def extract(self, ws, input_record, extract_record):
         fetch = partial(self.fetch, ws)

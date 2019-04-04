@@ -57,12 +57,19 @@ class MDNRNNTrainer:
         losses["loss"].backward()
         self.optimizer.step()
 
-        self.cum_loss += [losses["loss"].item()]
-        self.cum_gmm += [losses["gmm"].item()]
-        self.cum_bce += [losses["bce"].item()]
-        self.cum_mse += [losses["mse"].item()]
+        detached_losses = {
+            "loss": losses["loss"].cpu().detach().item(),
+            "gmm": losses["gmm"].cpu().detach().item(),
+            "bce": losses["bce"].cpu().detach().item(),
+            "mse": losses["mse"].cpu().detach().item(),
+        }
+        self.cum_loss += [detached_losses["loss"]]
+        self.cum_gmm += [detached_losses["gmm"]]
+        self.cum_bce += [detached_losses["bce"]]
+        self.cum_mse += [detached_losses["mse"]]
+        del losses
 
-        return losses
+        return detached_losses
 
     def get_loss(
         self,
@@ -87,7 +94,8 @@ class MDNRNNTrainer:
             reward: (BATCH_SIZE, SEQ_LEN) torch tensor
             not-terminal: (BATCH_SIZE, SEQ_LEN) torch tensor
             next_state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
-        :param state_dim: the dimension of states. If provided, use it to normalize loss
+        :param state_dim: the dimension of states. If provided, use it to normalize
+            gmm loss
         :param batch_first: whether data's first dimension represents batch size. If
             FALSE, state, action, reward, not-terminal, and next_state's first
             two dimensions are SEQ_LEN and BATCH_SIZE.
@@ -135,7 +143,7 @@ class MDNRNNTrainer:
         )
         mse = F.mse_loss(rs, learning_input.reward) * self.params.reward_loss_weight
         if state_dim is not None:
-            loss = (gmm + bce + mse) / (state_dim + 2)
+            loss = gmm / (state_dim + 2) + bce + mse
         else:
-            loss = mse + bce + gmm
+            loss = gmm + bce + mse
         return {"gmm": gmm, "bce": bce, "mse": mse, "loss": loss}

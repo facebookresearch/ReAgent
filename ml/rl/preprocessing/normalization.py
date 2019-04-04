@@ -177,15 +177,29 @@ def identify_parameter(
     )
 
 
-def get_num_output_features(normalization_parmeters):
+def get_num_output_features(normalization_parameters):
     return sum(
         map(
             lambda np: (
                 len(np.possible_values) if np.feature_type == identify_types.ENUM else 1
             ),
-            normalization_parmeters.values(),
+            normalization_parameters.values(),
         )
     )
+
+
+def get_feature_start_indices(sorted_features, normalization_parameters):
+    """ Returns the starting index for each feature in the output feature vector """
+    start_indices = []
+    cur_idx = 0
+    for feature in sorted_features:
+        np = normalization_parameters[feature]
+        start_indices.append(cur_idx)
+        if np.feature_type == identify_types.ENUM:
+            cur_idx += len(np.possible_values)
+        else:
+            cur_idx += 1
+    return start_indices
 
 
 def sort_features_by_normalization(normalization_parameters):

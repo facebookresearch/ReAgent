@@ -102,7 +102,7 @@ class PreprocessorNet:
                             + str(parameter.possible_values)
                         )
 
-            int_blob = C2.Cast(blob, to=core.DataType.INT32)
+            int_blob = C2.Cast(blob, to=core.DataType.INT64)
 
             # Batch one hot transform with MISSING_VALUE as a possible value
             feature_lengths = [
@@ -122,7 +122,7 @@ class PreprocessorNet:
             feature_values_blob = self._store_parameter(
                 parameters,
                 "feature_values_blob",
-                np.array(feature_values, dtype=np.int32),
+                np.array(feature_values, dtype=np.int64),
             )
 
             one_hot_output = C2.BatchOneHot(
