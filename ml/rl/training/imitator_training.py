@@ -55,8 +55,14 @@ class ImitatorTrainer(RLTrainer):
 
 def get_valid_actions_from_imitator(imitator, input, drop_threshold):
     """Create mask for non-viable actions under the imitator."""
-    imitator_outputs = imitator(input)
-    on_policy_action_probs = torch.nn.functional.softmax(imitator_outputs, dim=1)
+    if isinstance(imitator, torch.nn.Module):
+        # pytorch model
+        imitator_outputs = imitator(input)
+        on_policy_action_probs = torch.nn.functional.softmax(imitator_outputs, dim=1)
+    else:
+        # sci-kit learn model
+        on_policy_action_probs = torch.tensor(imitator(input.cpu()))
+
     filter_values = (
         on_policy_action_probs / on_policy_action_probs.max(keepdim=True, dim=1)[0]
     )

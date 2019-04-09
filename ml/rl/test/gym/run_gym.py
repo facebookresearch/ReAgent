@@ -44,13 +44,14 @@ from ml.rl.thrift.core.ttypes import (
     TrainingParameters,
 )
 from ml.rl.training.ddpg_trainer import DDPGTrainer
-from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.workflow.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
 )
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
 
 
 logger = logging.getLogger(__name__)
@@ -113,6 +114,7 @@ def train(
     stop_training_after_solved=False,
     offline_train_epochs=3,
     path_to_pickled_transitions=None,
+    bcq_imitator_hyperparams=None,
 ):
     if offline_train:
         return train_gym_offline_rl(
@@ -128,6 +130,7 @@ def train(
             avg_over_num_episodes,
             offline_train_epochs,
             path_to_pickled_transitions,
+            bcq_imitator_hyperparams,
         )
     else:
         return train_gym_online_rl(
@@ -221,7 +224,8 @@ def train_gym_offline_rl(
     max_steps,
     avg_over_num_episodes,
     offline_train_epochs,
-    path_to_pickled_transitions=None,
+    path_to_pickled_transitions,
+    bcq_imitator_hyper_params,
 ):
     """
     Train on transitions generated from a random policy live or
@@ -249,6 +253,26 @@ def train_gym_offline_rl(
     )
 
     avg_reward_history, timestep_history = [], []
+
+    # Pre-train a GBDT imitator if doing batch constrained q-learning in Gym
+    if trainer.bcq:
+        gbdt = GradientBoostingClassifier(
+            n_estimators=bcq_imitator_hyper_params["gbdt_trees"],
+            max_depth=bcq_imitator_hyper_params["max_depth"],
+        )
+        samples = replay_buffer.sample_memories(replay_buffer.size, model_type)
+        X, y = samples.states.numpy(), torch.max(samples.actions, dim=1)[1].numpy()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
+        logger.info("Fitting GBDT...")
+        gbdt.fit(X_train, y_train)
+        train_score = round(gbdt.score(X_train, y_train) * 100, 1)
+        test_score = round(gbdt.score(X_test, y_test) * 100, 1)
+        logger.info(
+            "GBDT train accuracy {}% || test accuracy {}%".format(
+                train_score, test_score
+            )
+        )
+        trainer.bcq_imitator = gbdt.predict_proba
 
     # Offline training
     for i_epoch in range(offline_train_epochs):
@@ -286,7 +310,7 @@ def train_gym_offline_rl(
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
-    return avg_reward_history, timestep_history, trainer, predictor
+    return avg_reward_history, timestep_history, trainer, predictor, gym_env
 
 
 def train_gym_online_rl(
@@ -462,7 +486,7 @@ def train_gym_online_rl(
             if max_steps and ep_timesteps >= max_steps:
                 break
 
-        # Always eval on last episode if previous eval loop didn't return.
+        # Always eval on last episode
         if i == num_episodes - 1:
             avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
                 avg_over_num_episodes, predictor, test=True
@@ -484,7 +508,7 @@ def train_gym_online_rl(
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
-    return avg_reward_history, timestep_history, trainer, predictor
+    return avg_reward_history, timestep_history, trainer, predictor, gym_env
 
 
 def main(args):
@@ -554,7 +578,8 @@ def main(args):
         params = json.load(f)
 
     dataset = RLDataset(args.file_path) if args.file_path else None
-    reward_history, timestep_history, trainer, predictor = run_gym(
+
+    reward_history, timestep_history, trainer, predictor, env = run_gym(
         params,
         args.offline_train,
         args.score_bar,
@@ -563,8 +588,25 @@ def main(args):
         args.start_saving_from_score,
         args.path_to_pickled_transitions,
     )
+
     if dataset:
         dataset.save()
+        logger.info("Saving dataset to {}".format(args.file_path))
+        final_score_exploit, _ = env.run_ep_n_times(
+            params["run_details"]["avg_over_num_episodes"], predictor, test=True
+        )
+        final_score_explore, _ = env.run_ep_n_times(
+            params["run_details"]["avg_over_num_episodes"], predictor, test=False
+        )
+        logger.info(
+            "Final policy scores {} with ε={} and {} with ε=0 over {} eps.".format(
+                final_score_explore,
+                env.epsilon,
+                final_score_exploit,
+                params["run_details"]["avg_over_num_episodes"],
+            )
+        )
+
     if args.results_file_path:
         write_lists_to_csv(args.results_file_path, reward_history, timestep_history)
     return reward_history

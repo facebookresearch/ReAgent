@@ -8,7 +8,7 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.caffe_utils import masked_softmax, softmax
+from ml.rl.caffe_utils import masked_softmax
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.imitator_training import get_valid_actions_from_imitator
@@ -298,8 +298,17 @@ class DQNTrainer(DQNTrainerBase):
             q_values = self.q_network(
                 rlt.StateInput(rlt.FeatureVector(float_features=input))
             )
+            q_values = q_values.q_values.cpu()
         self.q_network.train()
-        return q_values.q_values.cpu().data.numpy()
+
+        if self.bcq:
+            action_preds = torch.tensor(self.bcq_imitator(input.cpu()))
+            action_preds /= torch.max(action_preds, dim=1)[0]
+            action_off_policy = (action_preds < self.bcq_drop_threshold).float()
+            action_off_policy *= self.ACTION_NOT_POSSIBLE_VAL
+            q_values += action_off_policy
+
+        return q_values.data.numpy()
 
     def internal_reward_estimation(self, input):
         """

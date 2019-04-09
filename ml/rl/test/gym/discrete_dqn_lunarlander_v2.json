@@ -43,6 +43,10 @@
     "max_episodes_to_run_after_solved": 200,
     "stop_training_after_solved": true,
     "epsilon_decay": 0.995,
-    "minimum_epsilon": 0.0
+    "minimum_epsilon": 0.0,
+    "bcq_imitator_hyperparams": {
+      "gbdt_trees": 100,
+      "max_depth": 8
+    }
   }
 }
