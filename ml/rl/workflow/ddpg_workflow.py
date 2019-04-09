@@ -75,7 +75,7 @@ class ContinuousWorkflow(BaseWorkflow):
             metrics_to_score=trainer.metrics_to_score,
         )
 
-        super(ContinuousWorkflow, self).__init__(
+        super().__init__(
             preprocess_handler,
             trainer,
             evaluator,

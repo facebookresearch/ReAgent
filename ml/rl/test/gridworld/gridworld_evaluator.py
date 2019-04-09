@@ -18,9 +18,7 @@ class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
 
     def __init__(self, env, assume_optimal_policy: bool, gamma) -> None:
-        super(GridworldEvaluator, self).__init__(
-            None, gamma, None, metrics_to_score=["reward"]
-        )
+        super().__init__(None, gamma, None, metrics_to_score=["reward"])
 
         self._env = env
         self.mc_loss: List[float] = []
@@ -178,9 +176,7 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
 
 class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
     def __init__(self, env, gamma) -> None:
-        super(GridworldDDPGEvaluator, self).__init__(
-            env, assume_optimal_policy=True, gamma=gamma
-        )
+        super().__init__(env, assume_optimal_policy=True, gamma=gamma)
         self.optimal_policy_samples = self._env.generate_samples(100, 0.0, self.gamma)
 
     def evaluate_actor(self, actor, thres: float = 0.2):
@@ -245,4 +241,4 @@ class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
                 )
 
     def evaluate_critic(self, critic):
-        return super(GridworldDDPGEvaluator, self).evaluate(critic)
+        return super().evaluate(critic)

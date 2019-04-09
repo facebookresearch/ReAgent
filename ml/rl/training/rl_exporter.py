@@ -35,9 +35,7 @@ class SandboxedRLExporter(RLExporter):
         action_preprocessor=None,
         **kwargs,
     ):
-        super(SandboxedRLExporter, self).__init__(
-            dnn, feature_extractor, output_transformer
-        )
+        super().__init__(dnn, feature_extractor, output_transformer)
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
         self.predictor_class = predictor_class
@@ -70,7 +68,7 @@ class ParametricDQNExporter(SandboxedRLExporter):
         state_preprocessor=None,
         action_preprocessor=None,
     ):
-        super(ParametricDQNExporter, self).__init__(
+        super().__init__(
             dnn,
             ParametricDQNPredictor,
             ParametricDQNWithPreprocessing,
@@ -92,7 +90,7 @@ class DQNExporter(SandboxedRLExporter):
         preprocessing_class=None,
         **kwargs,
     ):
-        super(DQNExporter, self).__init__(
+        super().__init__(
             dnn,
             predictor_class,
             preprocessing_class,
@@ -114,7 +112,7 @@ class ActorExporter(SandboxedRLExporter):
         predictor_class=ActorPredictor,
         **kwargs,
     ):
-        super(ActorExporter, self).__init__(
+        super().__init__(
             dnn,
             predictor_class,
             ActorWithPreprocessing,

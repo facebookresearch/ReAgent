@@ -32,7 +32,7 @@ class TestConstantReward(unittest.TestCase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        super(self.__class__, self).setUp()
+        super().setUp()
 
     def test_trainer_maxq(self):
         env = Env(self.state_dims, self.action_dims)

@@ -574,9 +574,7 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
     SEQ_LEN = 3
 
     def expected_state_features(self, normalize):
-        dense = super(TestWorldModelFeatureExtractor, self).expected_state_features(
-            normalize
-        )
+        dense = super().expected_state_features(normalize)
         dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
         return dense
 
@@ -588,9 +586,7 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         return dense
 
     def expected_action_features(self, normalize):
-        dense = super(TestWorldModelFeatureExtractor, self).expected_action_features(
-            normalize
-        )
+        dense = super().expected_action_features(normalize)
         dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
         return dense
 

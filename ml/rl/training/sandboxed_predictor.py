@@ -17,9 +17,7 @@ logger = logging.getLogger(__name__)
 
 class SandboxedRLPredictor(RLPredictor):
     def __init__(self, pem, ws, predict_net=None):
-        super(SandboxedRLPredictor, self).__init__(
-            net=None, init_net=None, parameters=None, ws=ws
-        )
+        super().__init__(net=None, init_net=None, parameters=None, ws=ws)
         self.pem = pem
         self._predict_net = predict_net
 

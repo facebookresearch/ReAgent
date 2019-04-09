@@ -47,7 +47,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
     """
 
     def __init__(self, model_feature_config: Optional[rlt.ModelFeatureConfig] = None):
-        super(FeatureExtractorBase, self).__init__()
+        super().__init__()
         self._init_sequence_features(model_feature_config)
 
     def _init_sequence_features(self, config: Optional[rlt.ModelFeatureConfig]) -> None:

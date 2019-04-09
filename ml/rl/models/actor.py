@@ -12,7 +12,7 @@ from torch.distributions.normal import Normal
 
 class ActorWithPreprocessing(ModelBase):
     def __init__(self, actor_network, state_preprocessor):
-        super(ActorWithPreprocessing, self).__init__()
+        super().__init__()
         self.state_preprocessor = state_preprocessor
         self.actor_network = actor_network
 
@@ -34,7 +34,7 @@ class FullyConnectedActor(ModelBase):
         use_batch_norm=False,
         action_activation="tanh",
     ):
-        super(FullyConnectedActor, self).__init__()
+        super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim
@@ -71,7 +71,7 @@ class GaussianFullyConnectedActor(ModelBase):
         scale=0.05,
         use_batch_norm=False,
     ):
-        super(GaussianFullyConnectedActor, self).__init__()
+        super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim

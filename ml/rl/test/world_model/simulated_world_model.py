@@ -19,7 +19,7 @@ class SimulatedWorldModel(nn.Module):
         lstm_num_hidden_layers,
         lstm_num_hiddens,
     ):
-        super(SimulatedWorldModel, self).__init__()
+        super().__init__()
         self.action_dim = action_dim
         self.state_dim = state_dim
         self.num_gaussians = num_gaussians

@@ -29,7 +29,7 @@ class Preprocessor(Module):
         use_gpu: bool,
         typed_output: bool = False,
     ) -> None:
-        super(Preprocessor, self).__init__()
+        super().__init__()
         self.normalization_parameters = normalization_parameters
         self.sorted_features, self.sorted_feature_boundaries = (
             self._sort_features_by_normalization()
@@ -550,7 +550,7 @@ class Preprocessor(Module):
 
 class PreprocesserAndForwardPassContainer(nn.Module):
     def __init__(self, preprocessor_module, forward_pass_module):
-        super(PreprocesserAndForwardPassContainer, self).__init__()
+        super().__init__()
         self.add_module("preprocess", preprocessor_module)
         self.add_module("forward_pass", forward_pass_module)
 

@@ -34,7 +34,7 @@ class JSONDatasetReader(ReaderBase):
     """Create the reader for a JSON training dataset."""
 
     def __init__(self, path, batch_size=None, converter=None):
-        super(JSONDatasetReader, self).__init__(batch_size=batch_size)
+        super().__init__(batch_size=batch_size)
         self.path = os.path.expanduser(path)
         self.file_type = path.split(".")[-1]
         self.len = self.line_count()

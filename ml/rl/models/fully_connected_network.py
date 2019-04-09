@@ -23,7 +23,7 @@ class FullyConnectedNetwork(nn.Module):
     def __init__(
         self, layers, activations, use_batch_norm=False, min_std=0.0, dropout_ratio=0.0
     ) -> None:
-        super(FullyConnectedNetwork, self).__init__()
+        super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations

@@ -48,9 +48,7 @@ class SACTrainer(RLTrainer):
                 min / max value of actions at serving time
         """
         self.minibatch_size = parameters.training.minibatch_size
-        super(SACTrainer, self).__init__(
-            parameters, use_gpu=False, gradient_handler=None
-        )
+        super().__init__(parameters, use_gpu=False)
 
         self.q1_network = q1_network
         self.q1_network_optimizer = self._get_optimizer(

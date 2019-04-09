@@ -28,7 +28,6 @@ class RLTrainer:
         parameters,
         use_gpu,
         metrics_to_score=None,
-        gradient_handler=None,
         actions: Optional[List[str]] = None,
     ):
         self.minibatch = 0
@@ -40,7 +39,6 @@ class RLTrainer:
         self.tau = parameters.rl.target_update_rate
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
         self.time_diff_unit_length = parameters.rl.time_diff_unit_length
-        self.gradient_handler = gradient_handler
         self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
         self.multi_steps = parameters.rl.multi_steps
         self.calc_cpe_in_training = parameters.evaluation.calc_cpe_in_training

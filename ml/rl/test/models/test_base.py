@@ -40,7 +40,7 @@ class ModelOutput(NamedTuple):
 
 class Model(ModelBase):
     def __init__(self):
-        super(Model, self).__init__()
+        super().__init__()
         self.linear = nn.Linear(4, 1)
 
     def input_prototype(self):

@@ -8,7 +8,7 @@ from ml.rl.models.base import ModelBase
 
 class BatchConstrainedDQN(ModelBase):
     def __init__(self, state_dim, q_network, imitator_network, bcq_drop_threshold):
-        super(BatchConstrainedDQN, self).__init__()
+        super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         self.state_dim = state_dim
         self.q_network = q_network

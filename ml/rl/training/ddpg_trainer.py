@@ -278,7 +278,7 @@ class DDPGTrainer(RLTrainer):
 
 class ActorNet(nn.Module):
     def __init__(self, layers, activations, fl_init) -> None:
-        super(ActorNet, self).__init__()
+        super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
@@ -319,7 +319,7 @@ class ActorNet(nn.Module):
 
 class CriticNet(nn.Module):
     def __init__(self, layers, activations, fl_init, action_dim) -> None:
-        super(CriticNet, self).__init__()
+        super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations

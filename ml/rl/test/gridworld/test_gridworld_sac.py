@@ -49,7 +49,7 @@ class TestGridworldSAC(GridworldTestBase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        super(TestGridworldSAC, self).setUp()
+        super().setUp()
 
     def get_sac_parameters(
         self, use_2_q_functions=False, logged_action_uniform_prior=True

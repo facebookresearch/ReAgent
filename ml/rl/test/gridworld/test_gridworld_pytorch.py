@@ -26,6 +26,7 @@ from ml.rl.thrift.core.ttypes import (
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.rl_exporter import DQNExporter
+from torch import distributed
 
 
 class TestGridworld(GridworldTestBase):
@@ -34,7 +35,7 @@ class TestGridworld(GridworldTestBase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        super(TestGridworld, self).setUp()
+        super().setUp()
 
     def get_sarsa_parameters(self, environment, reward_shape, dueling, clip_grad_norm):
         rl_parameters = RLParameters(
@@ -113,9 +114,9 @@ class TestGridworld(GridworldTestBase):
             reward_network = reward_network.cuda()
             q_network_cpe = q_network_cpe.cuda()
             if use_all_avail_gpus:
-                q_network = q_network.get_data_parallel_model()
-                reward_network = reward_network.get_data_parallel_model()
-                q_network_cpe = q_network_cpe.get_data_parallel_model()
+                q_network = q_network.get_distributed_data_parallel_model()
+                reward_network = reward_network.get_distributed_data_parallel_model()
+                q_network_cpe = q_network_cpe.get_distributed_data_parallel_model()
 
         q_network_target = q_network.get_target_network()
         q_network_cpe_target = q_network_cpe.get_target_network()
@@ -180,7 +181,14 @@ class TestGridworld(GridworldTestBase):
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_no_dueling_all_gpus_modular(self):
-        self._test_evaluator_ground_truth(use_gpu=True, use_all_avail_gpus=True)
+        with tempfile.NamedTemporaryFile() as lockfile:
+            distributed.init_process_group(
+                backend="nccl",
+                init_method="file://" + lockfile.name,
+                world_size=1,
+                rank=0,
+            )
+            self._test_evaluator_ground_truth(use_gpu=True, use_all_avail_gpus=True)
 
     def test_evaluator_ground_truth_dueling_modular(self):
         self._test_evaluator_ground_truth(dueling=True)
@@ -191,9 +199,16 @@ class TestGridworld(GridworldTestBase):
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_dueling_all_gpus_modular(self):
-        self._test_evaluator_ground_truth(
-            dueling=True, use_gpu=True, use_all_avail_gpus=True
-        )
+        with tempfile.NamedTemporaryFile() as lockfile:
+            distributed.init_process_group(
+                backend="nccl",
+                init_method="file://" + lockfile.name,
+                world_size=1,
+                rank=0,
+            )
+            self._test_evaluator_ground_truth(
+                dueling=True, use_gpu=True, use_all_avail_gpus=True
+            )
 
     def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
         environment = Gridworld()
@@ -215,7 +230,14 @@ class TestGridworld(GridworldTestBase):
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_reward_boost_all_gpus_modular(self):
-        self._test_reward_boost(use_gpu=True, use_all_avail_gpus=True)
+        with tempfile.NamedTemporaryFile() as lockfile:
+            distributed.init_process_group(
+                backend="nccl",
+                init_method="file://" + lockfile.name,
+                world_size=1,
+                rank=0,
+            )
+            self._test_reward_boost(use_gpu=True, use_all_avail_gpus=True)
 
     def _test_predictor_export(self):
         """Verify that q-values before model export equal q-values after

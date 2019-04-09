@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class ConvolutionalNetwork(nn.Module):
     def __init__(self, cnn_parameters, layers, activations) -> None:
-        super(ConvolutionalNetwork, self).__init__()
+        super().__init__()
         self.conv_dims = cnn_parameters.conv_dims
         self.conv_height_kernels = cnn_parameters.conv_height_kernels
         self.conv_width_kernels = cnn_parameters.conv_width_kernels
