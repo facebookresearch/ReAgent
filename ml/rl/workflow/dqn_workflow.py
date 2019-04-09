@@ -105,7 +105,7 @@ def single_process_main(gpu_index, *args):
 
     if params["use_all_avail_gpus"]:
         BaseWorkflow.init_multiprocessing(
-            int(params["num_gpus"]),
+            int(params["num_processes_per_node"]),
             int(params["num_nodes"]),
             int(params["node_index"]),
             gpu_index,
@@ -143,16 +143,21 @@ def single_process_main(gpu_index, *args):
 
 
 def main(params):
-    if params["use_all_avail_gpus"]:
-        params["num_gpus"] = torch.cuda.device_count()
+    if params["use_all_avail_gpus"] and not torch.distributed.is_available():
+        logger.info(
+            "Horizon is configured to use all GPUs but your platform doesn't support torch.distributed!"
+        )
+        params["use_all_avail_gpus"] = False
+    if params["use_all_avail_gpus"] and torch.distributed.is_available():
+        params["num_processes_per_node"] = max(1, torch.cuda.device_count())
         multiprocessing.spawn(
-            single_process_main, nprocs=params["num_gpus"], args=[params]
+            single_process_main, nprocs=params["num_processes_per_node"], args=[params]
         )
     else:
         single_process_main(0, params)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     params = parse_args(sys.argv)
     main(params)

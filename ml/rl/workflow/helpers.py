@@ -26,15 +26,18 @@ def minibatch_size_multiplier(use_gpu, use_all_avail_gpus):
 
 
 def parse_args(args):
-    if len(args) != 3:
+    if len(args) < 3:
         raise Exception("Usage: python <file.py> -p <parameters_file>")
 
     parser = argparse.ArgumentParser(description="Read command line parameters.")
     parser.add_argument("-p", "--parameters", help="Path to JSON parameters file.")
+    parser.add_argument("-ni", "--node_index", help="Node index")
     args = parser.parse_args(args[1:])
 
     with open(args.parameters, "r") as f:
         params = json.load(f)
+
+    params["node_index"] = args.node_index
 
     return params
 
