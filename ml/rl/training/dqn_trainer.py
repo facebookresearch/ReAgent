@@ -40,7 +40,6 @@ class DQNTrainer(DQNTrainerBase):
             parameters,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
-            gradient_handler=None,
             actions=parameters.actions,
         )
 
@@ -164,8 +163,6 @@ class DQNTrainer(DQNTrainerBase):
 
         self.q_network_optimizer.zero_grad()
         loss.backward()
-        if self.gradient_handler:
-            self.gradient_handler(self.q_network.parameters())
         self.q_network_optimizer.step()
 
         if self.minibatch < self.reward_burnin:

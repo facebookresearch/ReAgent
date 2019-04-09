@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import glob
 import os
 import tempfile
 import unittest
+from pathlib import Path
 
 import torch
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.training.dqn_predictor import DQNPredictor
+from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.workflow import ddpg_workflow, dqn_workflow, parametric_dqn_workflow
 
 
@@ -25,6 +28,8 @@ class TestOSSWorkflows(unittest.TestCase):
         """Run DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
+            lockfile = os.path.join(tmpdirname, "multiprocess_lock")
+            Path(lockfile).touch()
             params = {
                 "training_data_path": os.path.join(
                     curr_dir, "test_data/discrete_action/cartpole_training.json.bz2"
@@ -38,13 +43,19 @@ class TestOSSWorkflows(unittest.TestCase):
                 "model_output_path": tmpdirname,
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
+                "init_method": "file://" + lockfile,
+                "num_nodes": 1,
+                "node_index": 0,
                 "actions": ["0", "1"],
                 "epochs": 1,
                 "rl": {},
-                "rainbow": {},
+                "rainbow": {"double_q_learning": False, "dueling_architecture": False},
                 "training": {"minibatch_size": 128},
             }
-            predictor = dqn_workflow.main(params)
+            dqn_workflow.main(params)
+            predictor_files = glob.glob(tmpdirname + "/predictor_*.c2")
+            assert len(predictor_files) == 1, "Somehow created two predictor files!"
+            predictor = DQNPredictor.load(predictor_files[0], "minidb")
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             q_values = predictor.predict(test_float_state_features)
         assert len(q_values[0].keys()) == 2
@@ -64,6 +75,8 @@ class TestOSSWorkflows(unittest.TestCase):
         """Run Parametric DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
         with tempfile.TemporaryDirectory() as tmpdirname:
+            lockfile = os.path.join(tmpdirname, "multiprocess_lock")
+            Path(lockfile).touch()
             params = {
                 "training_data_path": os.path.join(
                     curr_dir, "test_data/parametric_action/cartpole_training.json.bz2"
@@ -80,12 +93,18 @@ class TestOSSWorkflows(unittest.TestCase):
                 "model_output_path": tmpdirname,
                 "use_gpu": use_gpu,
                 "use_all_avail_gpus": use_all_avail_gpus,
+                "init_method": "file://" + lockfile,
+                "num_nodes": 1,
+                "node_index": 0,
                 "epochs": 1,
                 "rl": {},
                 "rainbow": {},
                 "training": {"minibatch_size": 128},
             }
-            predictor = parametric_dqn_workflow.main(params)
+            parametric_dqn_workflow.main(params)
+            predictor_files = glob.glob(tmpdirname + "/predictor_*.c2")
+            assert len(predictor_files) == 1, "Somehow created two predictor files!"
+            predictor = ParametricDQNPredictor.load(predictor_files[0], "minidb")
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             test_action_features = [{"4": 0.0, "5": 1.0}]
             q_values = predictor.predict(

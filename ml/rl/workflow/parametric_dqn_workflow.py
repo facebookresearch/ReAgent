@@ -5,6 +5,7 @@ import logging
 import sys
 from typing import Dict
 
+import torch
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.models.output_transformer import ParametricActionOutputTransformer
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
@@ -34,6 +35,7 @@ from ml.rl.workflow.preprocess_handler import (
 )
 from ml.rl.workflow.transitional import create_parametric_dqn_trainer_from_params
 from tensorboardX import SummaryWriter
+from torch import multiprocessing
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +61,7 @@ class ParametricDqnWorkflow(BaseWorkflow):
             state_normalization,
             action_normalization,
             use_gpu=use_gpu,
-            # use_all_avail_gpus=use_all_avail_gpus,
+            use_all_avail_gpus=use_all_avail_gpus,
         )
         trainer = update_model_for_warm_start(trainer)
         assert (
@@ -78,7 +80,8 @@ class ParametricDqnWorkflow(BaseWorkflow):
         )
 
 
-def main(params):
+def single_process_main(gpu_index, *args):
+    params = args[0]
     # Set minibatch size based on # of devices being used to train
     params["training"]["minibatch_size"] *= minibatch_size_multiplier(
         params["use_gpu"], params["use_all_avail_gpus"]
@@ -102,6 +105,15 @@ def main(params):
         Preprocessor(action_normalization, False),
         PandasSparseToDenseProcessor(),
     )
+
+    if params["use_all_avail_gpus"]:
+        BaseWorkflow.init_multiprocessing(
+            int(params["num_gpus"]),
+            int(params["num_nodes"]),
+            int(params["node_index"]),
+            gpu_index,
+            params["init_method"],
+        )
 
     workflow = ParametricDqnWorkflow(
         model_params,
@@ -128,9 +140,21 @@ def main(params):
         ),
         ParametricActionOutputTransformer(),
     )
-    return export_trainer_and_predictor(
-        workflow.trainer, params["model_output_path"], exporter=exporter
-    )  # noqa
+
+    if int(params["node_index"]) == 0 and gpu_index == 0:
+        export_trainer_and_predictor(
+            workflow.trainer, params["model_output_path"], exporter=exporter
+        )  # noqa
+
+
+def main(params):
+    if params["use_all_avail_gpus"]:
+        params["num_gpus"] = torch.cuda.device_count()
+        multiprocessing.spawn(
+            single_process_main, nprocs=params["num_gpus"], args=[params]
+        )
+    else:
+        single_process_main(0, params)
 
 
 if __name__ == "__main__":

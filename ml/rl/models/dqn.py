@@ -5,6 +5,7 @@ import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from torch.nn.parallel.distributed import DistributedDataParallel
 
 
 class FullyConnectedDQN(ModelBase):
@@ -34,8 +35,8 @@ class FullyConnectedDQN(ModelBase):
             dropout_ratio=dropout_ratio,
         )
 
-    def get_data_parallel_model(self):
-        return _DataParallelFullyConnectedDQN(self)
+    def get_distributed_data_parallel_model(self):
+        return _DistributedDataParallelFullyConnectedDQN(self)
 
     def input_prototype(self):
         return rlt.StateInput(
@@ -47,12 +48,15 @@ class FullyConnectedDQN(ModelBase):
         return rlt.AllActionQValues(q_values=q_values)
 
 
-class _DataParallelFullyConnectedDQN(ModelBase):
+class _DistributedDataParallelFullyConnectedDQN(ModelBase):
     def __init__(self, fc_dqn):
-        super(_DataParallelFullyConnectedDQN, self).__init__()
+        super(_DistributedDataParallelFullyConnectedDQN, self).__init__()
         self.state_dim = fc_dqn.state_dim
         self.action_dim = fc_dqn.action_dim
-        self.data_parallel = torch.nn.DataParallel(fc_dqn.fc)
+        current_device = torch.cuda.current_device()
+        self.data_parallel = DistributedDataParallel(
+            fc_dqn.fc, device_ids=[current_device], output_device=current_device
+        )
         self.fc_dqn = fc_dqn
 
     def input_prototype(self):

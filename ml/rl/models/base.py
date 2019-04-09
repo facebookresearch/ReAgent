@@ -58,13 +58,13 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         """
         return deepcopy(self)
 
-    def get_data_parallel_model(self):
+    def get_distributed_data_parallel_model(self):
         """
-        Return DataParallel version of this model
+        Return DistributedDataParallel version of this model
 
         This needs to be implemented explicitly because:
-        1) Model with EmbeddingBag module is not compatible with vanilla DataParallel
-        2) Exporting logic needs structured data. DataParallel doesn't work with structured data.
+        1) Model with EmbeddingBag module is not compatible with vanilla DistributedDataParallel
+        2) Exporting logic needs structured data. DistributedDataParallel doesn't work with structured data.
         """
         raise NotImplementedError
 
@@ -125,7 +125,7 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
 
     def cpu_model(self):
         """
-        Override this in DataParallel models
+        Override this in DistributedDataParallel models
         """
         # This is not ideal but makes exporting simple
         return deepcopy(self).cpu()

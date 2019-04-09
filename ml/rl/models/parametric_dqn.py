@@ -5,6 +5,7 @@ import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from torch.nn.parallel.distributed import DistributedDataParallel
 
 
 class ParametricDQNWithPreprocessing(ModelBase):
@@ -58,8 +59,8 @@ class FullyConnectedParametricDQN(ModelBase):
             use_batch_norm=use_batch_norm,
         )
 
-    def get_data_parallel_model(self):
-        return _DataParallelFullyConnectedParametricDQN(self)
+    def get_distributed_data_parallel_model(self):
+        return _DistributedDataParallelFullyConnectedParametricDQN(self)
 
     def input_prototype(self):
         return rlt.StateAction(
@@ -75,12 +76,17 @@ class FullyConnectedParametricDQN(ModelBase):
         return rlt.SingleQValue(q_value=q_value)
 
 
-class _DataParallelFullyConnectedParametricDQN(ModelBase):
+class _DistributedDataParallelFullyConnectedParametricDQN(ModelBase):
     def __init__(self, fc_parametric_dqn):
-        super(_DataParallelFullyConnectedParametricDQN, self).__init__()
+        super().__init__()
         self.state_dim = fc_parametric_dqn.state_dim
         self.action_dim = fc_parametric_dqn.action_dim
-        self.data_parallel = torch.nn.DataParallel(fc_parametric_dqn.fc)
+        current_device = torch.cuda.current_device()
+        self.data_parallel = DistributedDataParallel(
+            fc_parametric_dqn.fc,
+            device_ids=[current_device],
+            output_device=current_device,
+        )
         self.fc_parametric_dqn = fc_parametric_dqn
 
     def input_prototype(self):

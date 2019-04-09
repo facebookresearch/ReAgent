@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import random
+import tempfile
 import unittest
 
 import numpy as np
@@ -17,6 +18,7 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
 )
 from ml.rl.training.ddpg_trainer import DDPGTrainer
+from torch import distributed
 
 
 class TestGridworldDdpg(GridworldTestBase):
@@ -82,4 +84,11 @@ class TestGridworldDdpg(GridworldTestBase):
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_ddpg_trainer_all_gpus(self):
-        self._test_ddpg_trainer(use_gpu=True, use_all_avail_gpus=True)
+        with tempfile.NamedTemporaryFile() as lockfile:
+            distributed.init_process_group(
+                backend="nccl",
+                init_method="file://" + lockfile.name,
+                world_size=1,
+                rank=0,
+            )
+            self._test_ddpg_trainer(use_gpu=True, use_all_avail_gpus=True)

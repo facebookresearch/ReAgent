@@ -23,11 +23,12 @@ class ParametricDQNTrainer(DQNTrainerBase):
         q_network_target,
         reward_network,
         parameters: ContinuousActionModelParameters,
+        use_gpu: bool = False,
     ) -> None:
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
 
-        DQNTrainerBase.__init__(self, parameters, use_gpu=False, gradient_handler=None)
+        DQNTrainerBase.__init__(self, parameters, use_gpu=use_gpu)
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -109,8 +110,6 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         self.q_network_optimizer.zero_grad()
         value_loss.backward()
-        if self.gradient_handler:
-            self.gradient_handler(self.q_network.parameters())
         self.q_network_optimizer.step()
 
         # TODO: Maybe soft_update should belong to the target network
