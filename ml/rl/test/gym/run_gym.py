@@ -252,7 +252,7 @@ def train_gym_offline_rl(
         )
     )
 
-    avg_reward_history, timestep_history = [], []
+    avg_reward_history, epoch_history = [], []
 
     # Pre-train a GBDT imitator if doing batch constrained q-learning in Gym
     if trainer.bcq:
@@ -280,8 +280,10 @@ def train_gym_offline_rl(
             avg_over_num_episodes, predictor, test=True
         )
         avg_reward_history.append(avg_rewards)
-        # FIXME: needs to get average timesteps from run_ep_n_times
-        timestep_history.append(-1)
+
+        # For offline training, use epoch number as timestep history since
+        # we have a fixed batch of data to count epochs over.
+        epoch_history.append(i_epoch)
         logger.info(
             "Achieved an average reward score of {} over {} evaluations"
             " after epoch {}.".format(avg_rewards, avg_over_num_episodes, i_epoch)
@@ -292,7 +294,7 @@ def train_gym_offline_rl(
                     test_run_name, avg_reward_history
                 )
             )
-            return avg_reward_history, timestep_history, trainer, predictor
+            return avg_reward_history, epoch_history, trainer, predictor
 
         for _ in range(num_batch_per_epoch):
             samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
@@ -310,7 +312,7 @@ def train_gym_offline_rl(
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
-    return avg_reward_history, timestep_history, trainer, predictor, gym_env
+    return avg_reward_history, epoch_history, trainer, predictor, gym_env
 
 
 def train_gym_online_rl(
@@ -579,7 +581,7 @@ def main(args):
 
     dataset = RLDataset(args.file_path) if args.file_path else None
 
-    reward_history, timestep_history, trainer, predictor, env = run_gym(
+    reward_history, iteration_history, trainer, predictor, env = run_gym(
         params,
         args.offline_train,
         args.score_bar,
@@ -608,7 +610,7 @@ def main(args):
         )
 
     if args.results_file_path:
-        write_lists_to_csv(args.results_file_path, reward_history, timestep_history)
+        write_lists_to_csv(args.results_file_path, reward_history, iteration_history)
     return reward_history
 
 
