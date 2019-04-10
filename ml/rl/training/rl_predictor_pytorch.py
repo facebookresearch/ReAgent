@@ -7,7 +7,7 @@ import numpy as np
 import six
 from caffe2.proto import caffe2_pb2
 from caffe2.python import workspace
-from caffe2.python.predictor.predictor_exporter import (
+from caffe2.python.predictor.predictor_exporter import (  # type: ignore
     PredictorExportMeta,
     load_from_db,
     prepare_prediction_net,

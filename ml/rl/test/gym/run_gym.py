@@ -16,6 +16,7 @@ from ml.rl.models.actor import GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.normalization import get_num_output_features
+from ml.rl.test.base.utils import write_lists_to_csv
 from ml.rl.test.gym.gym_predictor import (
     GymDDPGPredictor,
     GymDQNPredictor,
@@ -27,7 +28,6 @@ from ml.rl.test.gym.open_ai_gym_environment import (
     OpenAIGymEnvironment,
 )
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
-from ml.rl.test.utils import write_lists_to_csv
 from ml.rl.thrift.core.ttypes import (
     CNNParameters,
     ContinuousActionModelParameters,

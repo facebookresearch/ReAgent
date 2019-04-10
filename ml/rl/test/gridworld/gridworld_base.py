@@ -6,19 +6,7 @@ import collections
 import itertools
 import logging
 import random
-from typing import (  # noqa
-    Deque,
-    Dict,
-    Generic,
-    GenericMeta,
-    List,
-    NamedTuple,
-    NamedTupleMeta,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -27,13 +15,13 @@ from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
+from ml.rl.test.base.utils import default_normalizer
 from ml.rl.test.environment.environment import (
     ACTION,
     Environment,
     Samples,
     shuffle_samples,
 )
-from ml.rl.test.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -108,7 +96,9 @@ class GridworldBase(Environment):
             working_set.remove(current)
             if current in not_visited:
                 not_visited.remove(current)
-            possible_actions = self.possible_actions(self._index(current), True)
+            possible_actions = self.possible_actions(
+                self._index(current), ignore_terminal=True
+            )
             for action in possible_actions:
                 next_state_pos = self.move_on_pos(current[0], current[1], action)
                 next_state = self._index(next_state_pos)
@@ -143,7 +133,9 @@ class GridworldBase(Environment):
             if current in not_visited:
                 not_visited.remove(current)
 
-            possible_actions = self.possible_actions(self._index(current), True)
+            possible_actions = self.possible_actions(
+                self._index(current), ignore_terminal=True
+            )
             for action in possible_actions:
                 next_state_pos = self.move_on_pos(current[0], current[1], action)
                 next_state = self._index(next_state_pos)
@@ -266,7 +258,7 @@ class GridworldBase(Environment):
 
     def sample_policy(
         self, state, use_continuous_action, epsilon
-    ) -> Tuple[str, ACTION, float]:
+    ) -> Tuple[ACTION, ACTION, float]:
         """
         Sample an action following epsilon-greedy
         Return the raw action which can be fed into env.step(), the processed
@@ -279,8 +271,8 @@ class GridworldBase(Environment):
             return "", "", 1.0
 
         optimal_action = self.optimal_policy(state)
-        if np.random.rand() < epsilon:
-            action = np.random.choice(possible_actions)
+        if random.random() < epsilon:
+            action: ACTION = random.choice(possible_actions)
         else:
             action = optimal_action
         if action == optimal_action:
@@ -288,7 +280,7 @@ class GridworldBase(Environment):
         else:
             action_probability = epsilon / len(possible_actions)
         if use_continuous_action:
-            processed_action = self.action_to_features(action)
+            processed_action: ACTION = self.action_to_features(action)
         else:
             processed_action = action
         return action, processed_action, action_probability
@@ -343,6 +335,7 @@ class GridworldBase(Environment):
     def possible_actions(
         self,
         state,
+        terminal=False,
         ignore_terminal=False,
         use_continuous_action: bool = False,
         **kwargs,

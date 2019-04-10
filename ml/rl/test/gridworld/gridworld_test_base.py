@@ -15,7 +15,7 @@ class GridworldTestBase(unittest.TestCase):
         self.check_tolerance = True
         self.test_save_load = True
         self.num_epochs = 5
-        self.tolerance_threshold = 0.1
+        self.tolerance_threshold = 0.11
         self.run_pre_training_eval = True
         SummaryWriterContext._reset_globals()
 

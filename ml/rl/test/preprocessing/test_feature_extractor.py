@@ -21,7 +21,7 @@ from ml.rl.preprocessing.feature_extractor import (
 )
 from ml.rl.preprocessing.identify_types import CONTINUOUS, PROBABILITY
 from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
-from ml.rl.test.utils import (
+from ml.rl.test.base.utils import (
     ABIdFeatures,
     CIdFeatures,
     FloatOnlySequence,
