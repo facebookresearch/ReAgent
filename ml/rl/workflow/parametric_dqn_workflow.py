@@ -141,15 +141,15 @@ def single_process_main(gpu_index, *args):
         ParametricActionOutputTransformer(),
     )
 
-    if (
-        "node_index" not in params or int(params["node_index"]) == 0
-    ) and gpu_index == 0:
+    if int(params["node_index"]) == 0 and gpu_index == 0:
         export_trainer_and_predictor(
             workflow.trainer, params["model_output_path"], exporter=exporter
         )  # noqa
 
 
 def main(params):
+    if "node_index" not in params or params["node_index"] is None:
+        params["node_index"] = 0
     can_do_distributed = torch.distributed.is_available() and torch.cuda.is_available()
     if params["use_all_avail_gpus"] and not can_do_distributed:
         logger.info(
@@ -158,8 +158,6 @@ def main(params):
         params["use_all_avail_gpus"] = False
     if params["use_all_avail_gpus"]:
         params["num_processes_per_node"] = max(1, torch.cuda.device_count())
-        if "node_index" not in params or params["node_index"] is None:
-            params["node_index"] = 0
         multiprocessing.spawn(
             single_process_main, nprocs=params["num_processes_per_node"], args=[params]
         )
