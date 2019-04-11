@@ -150,7 +150,7 @@ def main(params):
         params["use_all_avail_gpus"] = False
     if params["use_all_avail_gpus"] and torch.distributed.is_available():
         params["num_processes_per_node"] = max(1, torch.cuda.device_count())
-        if "node_index" not in params:
+        if "node_index" not in params or params["node_index"] is None:
             params["node_index"] = 0
         multiprocessing.spawn(
             single_process_main, nprocs=params["num_processes_per_node"], args=[params]
