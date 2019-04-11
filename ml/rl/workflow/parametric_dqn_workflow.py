@@ -150,12 +150,13 @@ def single_process_main(gpu_index, *args):
 
 
 def main(params):
-    if params["use_all_avail_gpus"] and not torch.distributed.is_available():
+    can_do_distributed = torch.distributed.is_available() and torch.cuda.is_available()
+    if params["use_all_avail_gpus"] and not can_do_distributed:
         logger.info(
-            "Horizon is configured to use all GPUs but your platform doesn't support torch.distributed!"
+            "Horizon is configured to use all GPUs but your platform doesn't support torch.distributed & torch.cuda!"
         )
         params["use_all_avail_gpus"] = False
-    if params["use_all_avail_gpus"] and torch.distributed.is_available():
+    if params["use_all_avail_gpus"]:
         params["num_processes_per_node"] = max(1, torch.cuda.device_count())
         if "node_index" not in params or params["node_index"] is None:
             params["node_index"] = 0
