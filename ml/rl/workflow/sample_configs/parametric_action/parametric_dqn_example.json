@@ -1,11 +1,13 @@
 {
   "training_data_path": "training_data/cartpole_parametric_training_data.json",
-  "training_data_path": "training_data/cartpole_parametric_eval_data.json",
+  "eval_data_path": "training_data/cartpole_parametric_eval_data.json",
   "state_norm_data_path": "training_data/state_features_norm.json",
   "action_norm_data_path": "training_data/action_norm.json",
   "model_output_path": "outputs/",
   "use_gpu": true,
   "use_all_avail_gpus": true,
+  "num_nodes": 1,
+  "init_method": "file:///tmp/parametric_dqn_example.lock",
   "norm_params": {
     "output_dir": "training_data/",
     "cols_to_norm": [

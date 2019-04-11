@@ -113,14 +113,3 @@ class TestGridworldParametric(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_modular_trainer_sarsa_gpu(self):
         self._test_trainer_sarsa(use_gpu=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_modular_trainer_sarsa_all_gpus(self):
-        with tempfile.NamedTemporaryFile() as lockfile:
-            distributed.init_process_group(
-                backend="nccl",
-                init_method="file://" + lockfile.name,
-                world_size=1,
-                rank=0,
-            )
-            self._test_trainer_sarsa(use_gpu=True, use_all_avail_gpus=True)
