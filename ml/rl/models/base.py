@@ -17,12 +17,11 @@ from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from ml.rl import types as rlt
 
 
-class ModelBase(nn.Module, metaclass=abc.ABCMeta):
+class ModelBase(nn.Module):
     """
     A base class to support exporting through ONNX
     """
 
-    @abc.abstractmethod
     def forward(self, input: NamedTuple) -> NamedTuple:
         """
         Args:
@@ -33,7 +32,6 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         """
         pass
 
-    @abc.abstractmethod
     def input_prototype(self) -> NamedTuple:
         """
         This function provides the input for ONNX graph tracing.

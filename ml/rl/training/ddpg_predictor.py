@@ -170,14 +170,14 @@ class DDPGPredictor(RLPredictor):
         """Export caffe2 preprocessor net and pytorch actor forward pass as one
         caffe2 net.
 
-        :param trainer DDPGTrainer
-        :param state_normalization_parameters state NormalizationParameters
-        :param min_action_range_tensor_serving pytorch tensor that specifies
+        :param trainer: DDPGTrainer
+        :param state_normalization_parameters: state NormalizationParameters
+        :param min_action_range_tensor_serving: pytorch tensor that specifies
             min action value for each dimension
-        :param max_action_range_tensor_serving pytorch tensor that specifies
+        :param max_action_range_tensor_serving: pytorch tensor that specifies
             min action value for each dimension
-        :param state_normalization_parameters state NormalizationParameters
-        :param model_on_gpu boolean indicating if the model is a GPU model or CPU model
+        :param state_normalization_parameters: state NormalizationParameters
+        :param model_on_gpu: boolean indicating if the model is a GPU model or CPU model
         """
         model = model_helper.ModelHelper(name="predictor")
         net = model.net

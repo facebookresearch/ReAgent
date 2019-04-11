@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 class DQNTrainerBase(RLTrainer):
     def get_max_q_values(self, q_values, possible_actions_mask):
-        """
-        Used in Q-learning update.
+        """Used in Q-learning update.
+
         :param states: Numpy array with shape (batch_size, state_dim). Each row
             contains a representation of a state.
         :param possible_actions_mask: Numpy array with shape (batch_size, action_dim).
@@ -35,8 +35,8 @@ class DQNTrainerBase(RLTrainer):
     def get_max_q_values_with_target(
         self, q_values, q_values_target, possible_actions_mask
     ):
-        """
-        Used in Q-learning update.
+        """Used in Q-learning update.
+
         :param states: Numpy array with shape (batch_size, state_dim). Each row
             contains a representation of a state.
         :param possible_actions_mask: Numpy array with shape (batch_size, action_dim).
