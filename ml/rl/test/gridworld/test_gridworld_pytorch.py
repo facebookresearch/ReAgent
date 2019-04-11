@@ -179,36 +179,12 @@ class TestGridworld(GridworldTestBase):
     def test_evaluator_ground_truth_no_dueling_gpu_modular(self):
         self._test_evaluator_ground_truth(use_gpu=True)
 
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_evaluator_ground_truth_no_dueling_all_gpus_modular(self):
-        with tempfile.NamedTemporaryFile() as lockfile:
-            distributed.init_process_group(
-                backend="nccl",
-                init_method="file://" + lockfile.name,
-                world_size=1,
-                rank=0,
-            )
-            self._test_evaluator_ground_truth(use_gpu=True, use_all_avail_gpus=True)
-
     def test_evaluator_ground_truth_dueling_modular(self):
         self._test_evaluator_ground_truth(dueling=True)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_dueling_gpu_modular(self):
         self._test_evaluator_ground_truth(dueling=True, use_gpu=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_evaluator_ground_truth_dueling_all_gpus_modular(self):
-        with tempfile.NamedTemporaryFile() as lockfile:
-            distributed.init_process_group(
-                backend="nccl",
-                init_method="file://" + lockfile.name,
-                world_size=1,
-                rank=0,
-            )
-            self._test_evaluator_ground_truth(
-                dueling=True, use_gpu=True, use_all_avail_gpus=True
-            )
 
     def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
         environment = Gridworld()
@@ -227,17 +203,6 @@ class TestGridworld(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_reward_boost_gpu_modular(self):
         self._test_reward_boost(use_gpu=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_reward_boost_all_gpus_modular(self):
-        with tempfile.NamedTemporaryFile() as lockfile:
-            distributed.init_process_group(
-                backend="nccl",
-                init_method="file://" + lockfile.name,
-                world_size=1,
-                rank=0,
-            )
-            self._test_reward_boost(use_gpu=True, use_all_avail_gpus=True)
 
     def _test_predictor_export(self):
         """Verify that q-values before model export equal q-values after
