@@ -2,6 +2,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 # Builds Horizon and runs basic tests.
 
+set -e
+
+conda install --file requirements.txt
+
 export PATH=${HOME}/miniconda/bin:$PATH
 
 pip uninstall -y horizon
