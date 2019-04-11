@@ -2,8 +2,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
+from ml.rl.test.environment.environment import MultiStepSamples
 from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -18,7 +19,7 @@ class Gridworld(GridworldBase):
         epsilon,
         discount_factor,
         multi_steps: Optional[int] = None,
-    ) -> Samples:
+    ) -> Union[Samples, MultiStepSamples]:
         return self.generate_random_samples(
             num_transitions,
             use_continuous_action=False,

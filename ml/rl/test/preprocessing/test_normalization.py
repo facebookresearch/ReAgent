@@ -6,31 +6,27 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 import six
-import torch
-from caffe2.python import core
-from ml.rl.caffe_utils import PytorchCaffe2Converter
+from caffe2.python import core, workspace
+from ml.rl.caffe_utils import C2
 from ml.rl.preprocessing import identify_types, normalization
 from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
 from ml.rl.preprocessing.normalization import (
-    MISSING_VALUE,
     NormalizationParameters,
     sort_features_by_normalization,
 )
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.test.preprocessing_util import (
+from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
+from ml.rl.test.base.utils import NumpyFeatureProcessor
+from ml.rl.test.preprocessing.preprocessing_util import (
     BOXCOX_FEATURE_ID,
-    CONTINUOUS_ACTION_FEATURE_ID,
-    CONTINUOUS_ACTION_FEATURE_ID_2,
     ENUM_FEATURE_ID,
     PROBABILITY_FEATURE_ID,
     id_to_type,
     read_data,
 )
-from ml.rl.test.utils import NumpyFeatureProcessor
 from scipy import special
 
 
-class TestPreprocessing(unittest.TestCase):
+class TestNormalization(unittest.TestCase):
     def _feature_type_override(self, feature_id):
         """
         This should only be used to test CONTINUOUS_ACTION
@@ -58,13 +54,22 @@ class TestPreprocessing(unittest.TestCase):
                 self.assertIsNot(v.boxcox_shift, None)
             else:
                 assert v.feature_type == id_to_type(k)
-
-        preprocessor = Preprocessor(normalization_parameters, False)
         sorted_features, _ = sort_features_by_normalization(normalization_parameters)
+
+        norm_net = core.Net("net")
+        C2.set_net(norm_net)
+        preprocessor = PreprocessorNet()
         input_matrix = np.zeros([10000, len(sorted_features)], dtype=np.float32)
         for i, feature in enumerate(sorted_features):
             input_matrix[:, i] = feature_value_map[feature]
-        normalized_feature_matrix = preprocessor.forward(input_matrix)
+        input_matrix_blob = "input_matrix_blob"
+        workspace.FeedBlob(input_matrix_blob, np.array([], dtype=np.float32))
+        output_blob, _ = preprocessor.normalize_dense_matrix(
+            input_matrix_blob, sorted_features, normalization_parameters, "", False
+        )
+        workspace.FeedBlob(input_matrix_blob, input_matrix)
+        workspace.RunNetOnce(norm_net)
+        normalized_feature_matrix = workspace.FetchBlob(output_blob)
 
         normalized_features = {}
         on_column = 0
@@ -88,7 +93,6 @@ class TestPreprocessing(unittest.TestCase):
             )
         )
         for k, v in six.iteritems(normalized_features):
-            v = v.numpy()
             self.assertTrue(np.all(np.isfinite(v)))
             feature_type = normalization_parameters[k].feature_type
             if feature_type == identify_types.PROBABILITY:
@@ -109,13 +113,9 @@ class TestPreprocessing(unittest.TestCase):
 
                 for i, row in enumerate(v):
                     original_feature = feature_value_map[k][i]
-                    if abs(original_feature - MISSING_VALUE) < 0.01:
-                        self.assertEqual(0.0, np.sum(row))
-                    else:
-                        self.assertEqual(
-                            possible_value_map[original_feature],
-                            np.where(row == 1)[0][0],
-                        )
+                    self.assertEqual(
+                        possible_value_map[original_feature], np.where(row == 1)[0][0]
+                    )
             elif feature_type == identify_types.QUANTILE:
                 for i, feature in enumerate(v[0]):
                     original_feature = feature_value_map[k][i]
@@ -171,14 +171,23 @@ class TestPreprocessing(unittest.TestCase):
                 identify_types.ENUM, None, None, None, None, [15, 3], None, None, None
             ),
         }
-        preprocessor = Preprocessor(normalization_parameters, False)
+        norm_net = core.Net("net")
+        C2.set_net(norm_net)
+        preprocessor = PreprocessorNet()
 
         inputs = np.zeros([4, 3], dtype=np.float32)
         feature_ids = [2, 1, 3]  # Sorted according to feature type
         inputs[:, feature_ids.index(1)] = [12, 4, 2, 2]
         inputs[:, feature_ids.index(2)] = [1.0, 2.0, 3.0, 3.0]
         inputs[:, feature_ids.index(3)] = [15, 3, 15, normalization.MISSING_VALUE]
-        normalized_feature_matrix = preprocessor.forward(inputs)
+        input_blob = C2.NextBlob("input_blob")
+        workspace.FeedBlob(input_blob, np.array([0], dtype=np.float32))
+        normalized_output_blob, _ = preprocessor.normalize_dense_matrix(
+            input_blob, feature_ids, normalization_parameters, "", False
+        )
+        workspace.FeedBlob(input_blob, inputs)
+        workspace.RunNetOnce(norm_net)
+        normalized_feature_matrix = workspace.FetchBlob(normalized_output_blob)
 
         np.testing.assert_allclose(
             np.array(
@@ -199,7 +208,6 @@ class TestPreprocessing(unittest.TestCase):
             normalization_parameters[name] = normalization.identify_parameter(
                 name, values, feature_type=self._feature_type_override(name)
             )
-            values[0] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
 
         s = normalization.serialize(normalization_parameters)
         read_parameters = normalization.deserialize(s)
@@ -235,112 +243,40 @@ class TestPreprocessing(unittest.TestCase):
                         getattr(normalization_parameters[k], field),
                     )
 
-    def test_preprocessing_network_onnx(self):
-        feature_value_map = read_data()
-
-        for feature_name, feature_values in feature_value_map.items():
-            normalization_parameters = normalization.identify_parameter(
-                feature_name,
-                feature_values,
-                feature_type=self._feature_type_override(feature_name),
-            )
-            feature_values[
-                0
-            ] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
-            feature_values_matrix = np.expand_dims(feature_values, -1)
-
-            preprocessor = Preprocessor({feature_name: normalization_parameters}, False)
-            normalized_feature_values = preprocessor.forward(feature_values_matrix)
-
-            input_blob, output_blob, netdef = PytorchCaffe2Converter.pytorch_net_to_caffe2_netdef(
-                preprocessor, 1, False, float_input=True
-            )
-
-            preproc_workspace = netdef.workspace
-
-            preproc_workspace.FeedBlob(input_blob, feature_values_matrix)
-
-            preproc_workspace.RunNetOnce(core.Net(netdef.init_net))
-            preproc_workspace.RunNetOnce(core.Net(netdef.predict_net))
-
-            normalized_feature_values_onnx = netdef.workspace.FetchBlob(output_blob)
-            tolerance = 0.0001
-            non_matching = np.where(
-                np.logical_not(
-                    np.isclose(
-                        normalized_feature_values,
-                        normalized_feature_values_onnx,
-                        rtol=tolerance,
-                        atol=tolerance,
-                    )
-                )
-            )
-            self.assertTrue(
-                np.all(
-                    np.isclose(
-                        normalized_feature_values,
-                        normalized_feature_values_onnx,
-                        rtol=tolerance,
-                        atol=tolerance,
-                    )
-                ),
-                "{} does not match: {} \n!=\n {}".format(
-                    feature_name,
-                    normalized_feature_values[non_matching].tolist()[0:10],
-                    normalized_feature_values_onnx[non_matching].tolist()[0:10],
-                ),
-            )
-
-    def test_quantile_boundary_logic(self):
-        """Test quantile logic when feaure value == quantile boundary."""
-        input = torch.tensor([[0.0], [80.0], [100.0]])
-        norm_params = NormalizationParameters(
-            feature_type="QUANTILE",
-            boxcox_lambda=None,
-            boxcox_shift=None,
-            mean=0,
-            stddev=1,
-            possible_values=None,
-            quantiles=[0.0, 80.0, 100.0],
-            min_value=0.0,
-            max_value=100.0,
-        )
-        preprocessor = Preprocessor({1: norm_params}, False)
-        output = preprocessor._preprocess_QUANTILE(0, input.float(), [norm_params])
-
-        expected_output = torch.tensor([[0.0], [0.5], [1.0]])
-
-        self.assertTrue(np.all(np.isclose(output, expected_output)))
-
     def test_preprocessing_network(self):
         feature_value_map = read_data()
 
         normalization_parameters = {}
-        name_preprocessed_blob_map = {}
-
-        for feature_name, feature_values in feature_value_map.items():
-            normalization_parameters[feature_name] = normalization.identify_parameter(
-                feature_name,
-                feature_values,
-                feature_type=self._feature_type_override(feature_name),
+        for name, values in feature_value_map.items():
+            normalization_parameters[name] = normalization.identify_parameter(
+                name, values, feature_type=self._feature_type_override(name)
             )
-            feature_values[
-                0
-            ] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
-
-            preprocessor = Preprocessor(
-                {feature_name: normalization_parameters[feature_name]}, False
-            )
-            feature_values_matrix = np.expand_dims(feature_values, -1)
-            normalized_feature_values = preprocessor.forward(feature_values_matrix)
-            name_preprocessed_blob_map[feature_name] = normalized_feature_values.numpy()
-
         test_features = NumpyFeatureProcessor.preprocess(
             feature_value_map, normalization_parameters
         )
 
+        net = core.Net("PreprocessingTestNet")
+        C2.set_net(net)
+        preprocessor = PreprocessorNet()
+        name_preprocessed_blob_map = {}
         for feature_name in feature_value_map:
-            normalized_features = name_preprocessed_blob_map[feature_name]
+            workspace.FeedBlob(str(feature_name), np.array([0], dtype=np.int32))
+            preprocessed_blob, _ = preprocessor.preprocess_blob(
+                str(feature_name), [normalization_parameters[feature_name]]
+            )
+            name_preprocessed_blob_map[feature_name] = preprocessed_blob
+
+        workspace.CreateNet(net)
+
+        for feature_name, feature_value in six.iteritems(feature_value_map):
+            feature_value = np.expand_dims(feature_value, -1)
+            workspace.FeedBlob(str(feature_name), feature_value)
+        workspace.RunNetOnce(net)
+
+        for feature_name in feature_value_map:
+            normalized_features = workspace.FetchBlob(
+                name_preprocessed_blob_map[feature_name]
+            )
             if feature_name != ENUM_FEATURE_ID:
                 normalized_features = np.squeeze(normalized_features, -1)
 
@@ -351,8 +287,8 @@ class TestPreprocessing(unittest.TestCase):
             non_matching = np.where(
                 np.logical_not(
                     np.isclose(
-                        normalized_features.flatten(),
-                        test_features[feature_name].flatten(),
+                        normalized_features,
+                        test_features[feature_name],
                         rtol=tolerance,
                         atol=tolerance,
                     )
@@ -361,16 +297,16 @@ class TestPreprocessing(unittest.TestCase):
             self.assertTrue(
                 np.all(
                     np.isclose(
-                        normalized_features.flatten(),
-                        test_features[feature_name].flatten(),
+                        normalized_features,
+                        test_features[feature_name],
                         rtol=tolerance,
                         atol=tolerance,
                     )
                 ),
-                "{} does not match: {} \n!=\n {}".format(
+                "{} does not match: {} {}".format(
                     feature_name,
-                    normalized_features.flatten()[non_matching],
-                    test_features[feature_name].flatten()[non_matching],
+                    normalized_features[non_matching].tolist(),
+                    test_features[feature_name][non_matching].tolist(),
                 ),
             )
 

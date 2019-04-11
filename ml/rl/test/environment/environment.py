@@ -4,19 +4,7 @@
 import collections
 import random
 from functools import partial
-from typing import (  # noqa
-    Deque,
-    Dict,
-    Generic,
-    GenericMeta,
-    List,
-    NamedTuple,
-    NamedTupleMeta,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Deque, Dict, List, NamedTuple, Optional, Union
 
 
 FEATURES = Dict[int, float]
@@ -110,7 +98,12 @@ class Environment:
         raise NotImplementedError
 
     def possible_actions(
-        self, state, terminal=False, ignore_terminal=False, use_continuous_action=False
+        self,
+        state,
+        terminal=False,
+        ignore_terminal=False,
+        use_continuous_action: bool = False,
+        **kwargs,
     ) -> List[ACTION]:
         """
         Get possible actions at the current state. If ignore_terminal is False,
@@ -167,10 +160,11 @@ class Environment:
             [[]] for _ in range(num_transitions)
         ]
         next_actions: List[List[ACTION]] = [[] for _ in range(num_transitions)]
+        actions: List[ACTION] = []
         if use_continuous_action:
-            actions: List[ACTION] = [{} for _ in range(num_transitions)]
+            actions = [{} for _ in range(num_transitions)]
         else:
-            actions: List[ACTION] = [""] * num_transitions  # noqa
+            actions = [""] * num_transitions
 
         state = None
         terminal = True
@@ -227,8 +221,8 @@ class Environment:
 
             possible_action = self.possible_actions(
                 state,
-                ignore_terminal=False,
                 terminal=terminal,
+                ignore_terminal=False,
                 use_continuous_action=use_continuous_action,
             )
             next_state, reward, terminal, _ = self.step(raw_action)
@@ -239,8 +233,8 @@ class Environment:
             )
             possible_next_action = self.possible_actions(
                 next_state,
-                ignore_terminal=False,
                 terminal=terminal,
+                ignore_terminal=False,
                 use_continuous_action=use_continuous_action,
             )
 

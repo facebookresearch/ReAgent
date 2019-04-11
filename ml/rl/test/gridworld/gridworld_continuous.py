@@ -11,16 +11,16 @@ from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
+from ml.rl.test.base.utils import (
+    only_continuous_action_normalizer,
+    only_continuous_normalizer,
+)
 from ml.rl.test.environment.environment import (
     MultiStepSamples,
     Samples,
     shuffle_samples,
 )
 from ml.rl.test.gridworld.gridworld_base import GridworldBase
-from ml.rl.test.utils import (
-    only_continuous_action_normalizer,
-    only_continuous_normalizer,
-)
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -107,9 +107,11 @@ class GridworldContinuous(GridworldBase):
         sorted_action_features, _ = sort_features_by_normalization(
             self.normalization_action
         )
-        saa = StackedAssociativeArray.from_dict_list(samples.actions, "action")
+        saa = StackedAssociativeArray.from_dict_list(  # type: ignore
+            samples.actions, "action"
+        )
         action_matrix, _ = sparse_to_dense_processor(sorted_action_features, saa)
-        saa = StackedAssociativeArray.from_dict_list(
+        saa = StackedAssociativeArray.from_dict_list(  # type: ignore
             samples.next_actions, "next_action"
         )
         next_action_matrix, _ = sparse_to_dense_processor(sorted_action_features, saa)
@@ -124,10 +126,12 @@ class GridworldContinuous(GridworldBase):
         pnas_flat: List[Dict[str, float]] = []
         for pnas in samples.possible_next_actions:
             pnas_mask_list.append([1] * len(pnas) + [0] * (max_action_size - len(pnas)))
-            pnas_flat.extend(pnas)
+            pnas_flat.extend(pnas)  # type: ignore
             for _ in range(max_action_size - len(pnas)):
                 pnas_flat.append({})  # Filler
-        saa = StackedAssociativeArray.from_dict_list(pnas_flat, "possible_next_actions")
+        saa = StackedAssociativeArray.from_dict_list(  # type: ignore
+            pnas_flat, "possible_next_actions"
+        )
         pnas_mask = torch.Tensor(pnas_mask_list)
 
         possible_next_actions_matrix, _ = sparse_to_dense_processor(
