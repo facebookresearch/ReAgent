@@ -483,7 +483,13 @@ def train_gym_online_rl(
                             test_run_name, avg_reward_history
                         )
                     )
-                    return avg_reward_history, timestep_history, trainer, predictor
+                    return (
+                        avg_reward_history,
+                        timestep_history,
+                        trainer,
+                        predictor,
+                        gym_env,
+                    )
 
             if max_steps and ep_timesteps >= max_steps:
                 break
