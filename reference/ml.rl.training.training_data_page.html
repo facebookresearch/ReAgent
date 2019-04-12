@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.training.training_data_page module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.training.training_data_page module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.training.training_data_page module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.training.training_data_page.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.training.training_data_page">
+<span id="ml-rl-training-training-data-page-module"></span><h1>ml.rl.training.training_data_page module<a class="headerlink" href="#module-ml.rl.training.training_data_page" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage">
+<em class="property">class </em><code class="descclassname">ml.rl.training.training_data_page.</code><code class="descname">TrainingDataPage</code><span class="sig-paren">(</span><em>mdp_ids: Optional[numpy.ndarray] = None</em>, <em>sequence_numbers: Optional[torch.Tensor] = None</em>, <em>states: Optional[torch.Tensor] = None</em>, <em>actions: Optional[torch.Tensor] = None</em>, <em>propensities: Optional[torch.Tensor] = None</em>, <em>rewards: Optional[torch.Tensor] = None</em>, <em>possible_actions_mask: Optional[torch.Tensor] = None</em>, <em>possible_actions_state_concat: Optional[torch.Tensor] = None</em>, <em>next_states: Optional[torch.Tensor] = None</em>, <em>next_actions: Optional[torch.Tensor] = None</em>, <em>possible_next_actions_mask: Optional[torch.Tensor] = None</em>, <em>possible_next_actions_state_concat: Optional[torch.Tensor] = None</em>, <em>not_terminal: Optional[torch.Tensor] = None</em>, <em>time_diffs: Optional[torch.Tensor] = None</em>, <em>metrics: Optional[torch.Tensor] = None</em>, <em>step: Optional[torch.Tensor] = None</em>, <em>max_num_actions: Optional[int] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.actions">
+<code class="descname">actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_discrete_maxq_training_batch">
+<code class="descname">as_discrete_maxq_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_discrete_maxq_training_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_discrete_sarsa_training_batch">
+<code class="descname">as_discrete_sarsa_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_discrete_sarsa_training_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_parametric_maxq_training_batch">
+<code class="descname">as_parametric_maxq_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_parametric_maxq_training_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_parametric_sarsa_training_batch">
+<code class="descname">as_parametric_sarsa_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_parametric_sarsa_training_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.max_num_actions">
+<code class="descname">max_num_actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.max_num_actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.mdp_ids">
+<code class="descname">mdp_ids</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.mdp_ids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.metrics">
+<code class="descname">metrics</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.metrics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.next_actions">
+<code class="descname">next_actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.next_actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.next_states">
+<code class="descname">next_states</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.next_states" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.not_terminal">
+<code class="descname">not_terminal</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.not_terminal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_actions_mask">
+<code class="descname">possible_actions_mask</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_actions_mask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_actions_state_concat">
+<code class="descname">possible_actions_state_concat</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_actions_state_concat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_mask">
+<code class="descname">possible_next_actions_mask</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_mask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_state_concat">
+<code class="descname">possible_next_actions_state_concat</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_state_concat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.propensities">
+<code class="descname">propensities</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.propensities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.rewards">
+<code class="descname">rewards</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.rewards" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.sequence_numbers">
+<code class="descname">sequence_numbers</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.sequence_numbers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.set_type">
+<code class="descname">set_type</code><span class="sig-paren">(</span><em>dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.set_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.size">
+<code class="descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.states">
+<code class="descname">states</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.states" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.step">
+<code class="descname">step</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.time_diffs">
+<code class="descname">time_diffs</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.time_diffs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

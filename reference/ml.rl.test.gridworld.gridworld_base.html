@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.test.gridworld.gridworld_base module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.test.gridworld.gridworld_base module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.test.gridworld.gridworld_base module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.test.gridworld.gridworld_base.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.test.gridworld.gridworld_base">
+<span id="ml-rl-test-gridworld-gridworld-base-module"></span><h1>ml.rl.test.gridworld.gridworld_base module<a class="headerlink" href="#module-ml.rl.test.gridworld.gridworld_base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase">
+<em class="property">class </em><code class="descclassname">ml.rl.test.gridworld.gridworld_base.</code><code class="descname">GridworldBase</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.test.environment.environment.Environment</span></code></p>
+<p>Implements a simple grid world, a domain often used as a very simple
+to solve benchmark for reinforcement learning algorithms, also see:
+<a class="reference external" href="https://people.eecs.berkeley.edu/~pabbeel/cs287-fa09/lecture-notes/lecture11-6pp.pdf">https://people.eecs.berkeley.edu/~pabbeel/cs287-fa09/lecture-notes/lecture11-6pp.pdf</a></p>
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.ACTIONS">
+<code class="descname">ACTIONS</code><em class="property"> = ['L', 'R', 'U', 'D']</em><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.ACTIONS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.STATES">
+<code class="descname">STATES</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.STATES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.USING_ONLY_VALID_ACTION">
+<code class="descname">USING_ONLY_VALID_ACTION</code><em class="property"> = True</em><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.USING_ONLY_VALID_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.action_to_index">
+<code class="descname">action_to_index</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.action_to_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.generate_samples">
+<code class="descname">generate_samples</code><span class="sig-paren">(</span><em>num_transitions</em>, <em>epsilon</em>, <em>discount_factor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.generate_samples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.grid">
+<code class="descname">grid</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.height">
+<code class="descname">height</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.index_to_action">
+<code class="descname">index_to_action</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.index_to_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.invert_action">
+<code class="descname">invert_action</code><span class="sig-paren">(</span><em>action: str</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.invert_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.is_terminal">
+<code class="descname">is_terminal</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.is_terminal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.is_valid">
+<code class="descname">is_valid</code><span class="sig-paren">(</span><em>y</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.is_wall">
+<code class="descname">is_wall</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.is_wall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.move_on_index_limit">
+<code class="descname">move_on_index_limit</code><span class="sig-paren">(</span><em>state</em>, <em>act</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.move_on_index_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.move_on_pos">
+<code class="descname">move_on_pos</code><span class="sig-paren">(</span><em>y</em>, <em>x</em>, <em>act</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.move_on_pos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.move_on_pos_limit">
+<code class="descname">move_on_pos_limit</code><span class="sig-paren">(</span><em>y</em>, <em>x</em>, <em>act</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.move_on_pos_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.normalization">
+<code class="descname">normalization</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.normalization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.num_actions">
+<code class="descname">num_actions</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.num_actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.num_states">
+<code class="descname">num_states</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.num_states" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.optimal_policy">
+<code class="descname">optimal_policy</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.optimal_policy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.policy_probabilities">
+<code class="descname">policy_probabilities</code><span class="sig-paren">(</span><em>state</em>, <em>epsilon</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.policy_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the probabilities of the epsilon-greedy version of the optimal
+policy for a given state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.policy_probabilities_for_sample">
+<code class="descname">policy_probabilities_for_sample</code><span class="sig-paren">(</span><em>states</em>, <em>epsilon</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.policy_probabilities_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the probabilities of the epsilon-greedy version of the optimal
+policy for a vector of states.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.possible_actions">
+<code class="descname">possible_actions</code><span class="sig-paren">(</span><em>state</em>, <em>terminal=False</em>, <em>ignore_terminal=False</em>, <em>use_continuous_action: bool = False</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; List[Union[str, Dict[int, float]]]<a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.possible_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get possible actions at the current state. If ignore_terminal is False,
+then this function always returns an empty list at a terminal state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.preprocess_samples">
+<code class="descname">preprocess_samples</code><span class="sig-paren">(</span><em>samples</em>, <em>minibatch_size</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.preprocess_samples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.preprocess_samples_discrete">
+<code class="descname">preprocess_samples_discrete</code><span class="sig-paren">(</span><em>samples: ml.rl.test.environment.environment.Samples</em>, <em>minibatch_size: int</em>, <em>one_hot_action: bool = True</em>, <em>use_gpu: bool = False</em>, <em>do_shuffle: bool = True</em><span class="sig-paren">)</span> &#x2192; List[ml.rl.training.training_data_page.TrainingDataPage]<a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.preprocess_samples_discrete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.q_transition_matrix">
+<code class="descname">q_transition_matrix</code><span class="sig-paren">(</span><em>assume_optimal_policy</em>, <em>epsilon=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.q_transition_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the environment and return the initial state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.reward">
+<code class="descname">reward</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.reward_vector">
+<code class="descname">reward_vector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.reward_vector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.sample_policy">
+<code class="descname">sample_policy</code><span class="sig-paren">(</span><em>state</em>, <em>use_continuous_action</em>, <em>epsilon</em><span class="sig-paren">)</span> &#x2192; Tuple[Union[str, Dict[int, float]], Union[str, Dict[int, float]], float]<a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.sample_policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample an action following epsilon-greedy</p>
+<dl class="simple">
+<dt>Return the raw action which can be fed into env.step(), the processed</dt><dd><p>action which can be uploaded to Hive, and action probability</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.size">
+<code class="descname">size</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span> &#x2192; Tuple[int, float, bool, object]<a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Proceed one step ahead using the action.
+Return next state, reward, terminal, and info</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.transition_noise">
+<code class="descname">transition_noise</code><em class="property"> = 0.01</em><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.transition_noise" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.transition_probabilities">
+<code class="descname">transition_probabilities</code><span class="sig-paren">(</span><em>state</em>, <em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.transition_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.true_epsilon_values_all_actions_for_sample">
+<code class="descname">true_epsilon_values_all_actions_for_sample</code><span class="sig-paren">(</span><em>states</em>, <em>epsilon</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.true_epsilon_values_all_actions_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the true values of the epsilon-greedy optimal policy for
+<em>all actions</em> for each state in ‘states.’</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.true_epsilon_values_for_sample">
+<code class="descname">true_epsilon_values_for_sample</code><span class="sig-paren">(</span><em>states</em>, <em>actions</em>, <em>epsilon</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.true_epsilon_values_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.true_q_epsilon_values">
+<code class="descname">true_q_epsilon_values</code><span class="sig-paren">(</span><em>discount</em>, <em>epsilon</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.true_q_epsilon_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.true_q_values">
+<code class="descname">true_q_values</code><span class="sig-paren">(</span><em>discount</em>, <em>assume_optimal_policy</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.true_q_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.true_rewards_all_actions_for_sample">
+<code class="descname">true_rewards_all_actions_for_sample</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.true_rewards_all_actions_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the true rewards for for <em>all actions</em> of
+each state in ‘states.’</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.true_rewards_for_sample">
+<code class="descname">true_rewards_for_sample</code><span class="sig-paren">(</span><em>states</em>, <em>actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.true_rewards_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the true rewards for each state/action pair in states/actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.true_values_for_sample">
+<code class="descname">true_values_for_sample</code><span class="sig-paren">(</span><em>states</em>, <em>actions</em>, <em>assume_optimal_policy: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.true_values_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_base.GridworldBase.width">
+<code class="descname">width</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_base.GridworldBase.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

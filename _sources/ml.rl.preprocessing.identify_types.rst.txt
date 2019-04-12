@@ -1,0 +1,7 @@
+ml.rl.preprocessing.identify\_types module
+==========================================
+
+.. automodule:: ml.rl.preprocessing.identify_types
+    :members:
+    :undoc-members:
+    :show-inheritance:

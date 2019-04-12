@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.test.gridworld.gridworld_continuous module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ml.rl.test.gridworld.gridworld_evaluator module" href="ml.rl.test.gridworld.gridworld_evaluator.html" />
+    <link rel="prev" title="ml.rl.test.gridworld.gridworld_base module" href="ml.rl.test.gridworld.gridworld_base.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">ml.rl.preprocessing package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ml.rl.test.html">ml.rl.test package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ml.rl.test.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.base.html">ml.rl.test.base package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.constant_reward.html">ml.rl.test.constant_reward package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="ml.rl.test.gridworld.html">ml.rl.test.gridworld package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="ml.rl.test.gridworld.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ml.rl.test.gridworld.html#module-ml.rl.test.gridworld">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.gym.html">ml.rl.test.gym package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.models.html">ml.rl.test.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.preprocessing.html">ml.rl.test.preprocessing package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.readers.html">ml.rl.test.readers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.workflow.html">ml.rl.test.workflow package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.test.world_model.html">ml.rl.test.world_model package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.test.html#module-ml.rl.test">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.thrift.html">ml.rl.thrift package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">ml.rl.training package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">ml.rl.workflow package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.caffe_utils.html">ml.rl.caffe_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.tensorboardX.html">ml.rl.tensorboardX module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.types.html">ml.rl.types module</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.feature_extractor.html">ml.rl.preprocessing.feature_extractor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.identify_types.html">ml.rl.preprocessing.identify_types module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.normalization.html">ml.rl.preprocessing.normalization module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.preprocessor.html">ml.rl.preprocessing.preprocessor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.preprocessor_net.html">ml.rl.preprocessing.preprocessor_net module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.sparse_to_dense.html">ml.rl.preprocessing.sparse_to_dense module</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.world_model.html">ml.rl.training.world_model package</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.actor_predictor.html">ml.rl.training.actor_predictor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.ddpg_predictor.html">ml.rl.training.ddpg_predictor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.ddpg_trainer.html">ml.rl.training.ddpg_trainer module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.dqn_predictor.html">ml.rl.training.dqn_predictor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.dqn_trainer.html">ml.rl.training.dqn_trainer module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.dqn_trainer_base.html">ml.rl.training.dqn_trainer_base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.imitator_training.html">ml.rl.training.imitator_training module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.loss_reporter.html">ml.rl.training.loss_reporter module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.parametric_dqn_predictor.html">ml.rl.training.parametric_dqn_predictor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.parametric_dqn_trainer.html">ml.rl.training.parametric_dqn_trainer module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.parametric_inner_product.html">ml.rl.training.parametric_inner_product module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.rl_dataset.html">ml.rl.training.rl_dataset module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.rl_exporter.html">ml.rl.training.rl_exporter module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.rl_predictor_pytorch.html">ml.rl.training.rl_predictor_pytorch module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.rl_trainer_pytorch.html">ml.rl.training.rl_trainer_pytorch module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.sac_trainer.html">ml.rl.training.sac_trainer module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.sandboxed_predictor.html">ml.rl.training.sandboxed_predictor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.training_data_page.html">ml.rl.training.training_data_page module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="ml.rl.test.html">ml.rl.test package</a> &raquo;</li>
+        
+          <li><a href="ml.rl.test.gridworld.html">ml.rl.test.gridworld package</a> &raquo;</li>
+        
+      <li>ml.rl.test.gridworld.gridworld_continuous module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ml.rl.test.gridworld.gridworld_continuous.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.test.gridworld.gridworld_continuous">
+<span id="ml-rl-test-gridworld-gridworld-continuous-module"></span><h1>ml.rl.test.gridworld.gridworld_continuous module<a class="headerlink" href="#module-ml.rl.test.gridworld.gridworld_continuous" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous">
+<em class="property">class </em><code class="descclassname">ml.rl.test.gridworld.gridworld_continuous.</code><code class="descname">GridworldContinuous</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ml.rl.test.gridworld.gridworld_base.html#ml.rl.test.gridworld.gridworld_base.GridworldBase" title="ml.rl.test.gridworld.gridworld_base.GridworldBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.test.gridworld.gridworld_base.GridworldBase</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.action_to_features">
+<code class="descname">action_to_features</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.action_to_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform an action into a feature vector (as a dictionary)
+Call this function when discrete actions need to be transformed into
+continuous formats</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.action_to_index">
+<code class="descname">action_to_index</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.action_to_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.features_to_action">
+<code class="descname">features_to_action</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.features_to_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.features_to_state">
+<code class="descname">features_to_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.features_to_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.generate_samples">
+<code class="descname">generate_samples</code><span class="sig-paren">(</span><em>num_transitions</em>, <em>epsilon</em>, <em>discount_factor</em>, <em>multi_steps: Optional[int] = None</em><span class="sig-paren">)</span> &#x2192; Union[ml.rl.test.environment.environment.Samples, ml.rl.test.environment.environment.MultiStepSamples]<a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.generate_samples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.index_to_action">
+<code class="descname">index_to_action</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.index_to_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.max_action_range">
+<code class="descname">max_action_range</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.max_action_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.min_action_range">
+<code class="descname">min_action_range</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.min_action_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.normalization_action">
+<code class="descname">normalization_action</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.normalization_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.normalization_continuous_action">
+<code class="descname">normalization_continuous_action</code><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.normalization_continuous_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.preprocess_samples">
+<code class="descname">preprocess_samples</code><span class="sig-paren">(</span><em>samples: ml.rl.test.environment.environment.Samples</em>, <em>minibatch_size: int</em>, <em>use_gpu: bool = False</em>, <em>one_hot_action: bool = True</em>, <em>normalize_actions: bool = True</em><span class="sig-paren">)</span> &#x2192; List[ml.rl.training.training_data_page.TrainingDataPage]<a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.preprocess_samples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.state_to_features">
+<code class="descname">state_to_features</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.state_to_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.true_rewards_for_sample">
+<code class="descname">true_rewards_for_sample</code><span class="sig-paren">(</span><em>states</em>, <em>actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.true_rewards_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the true rewards for each state/action pair in states/actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.true_values_for_sample">
+<code class="descname">true_values_for_sample</code><span class="sig-paren">(</span><em>states</em>, <em>actions</em>, <em>assume_optimal_policy: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gridworld.gridworld_continuous.GridworldContinuous.true_values_for_sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ml.rl.test.gridworld.gridworld_evaluator.html" class="btn btn-neutral float-right" title="ml.rl.test.gridworld.gridworld_evaluator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ml.rl.test.gridworld.gridworld_base.html" class="btn btn-neutral float-left" title="ml.rl.test.gridworld.gridworld_base module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

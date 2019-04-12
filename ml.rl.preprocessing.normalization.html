@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.preprocessing.normalization module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.feature_extractor.html">Feature Extractor</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.preprocessing.normalization module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ml.rl.preprocessing.normalization.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.preprocessing.normalization">
+<span id="ml-rl-preprocessing-normalization-module"></span><h1>ml.rl.preprocessing.normalization module<a class="headerlink" href="#module-ml.rl.preprocessing.normalization" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.preprocessing.normalization.NumpyEncoder">
+<em class="property">class </em><code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">NumpyEncoder</code><span class="sig-paren">(</span><em>*</em>, <em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.NumpyEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
+<dl class="method">
+<dt id="ml.rl.preprocessing.normalization.NumpyEncoder.default">
+<code class="descname">default</code><span class="sig-paren">(</span><em>o</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.NumpyEncoder.default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this method in a subclass such that it returns
+a serializable object for <code class="docutils literal notranslate"><span class="pre">o</span></code>, or calls the base implementation
+(to raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>).</p>
+<p>For example, to support arbitrary iterators, you could
+implement default like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">iterable</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="c1"># Let the base class default method raise the TypeError</span>
+    <span class="k">return</span> <span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.deserialize">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">deserialize</code><span class="sig-paren">(</span><em>parameters_json</em><span class="sig-paren">)</span> &#x2192; Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters]<a class="headerlink" href="#ml.rl.preprocessing.normalization.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.get_feature_norm_metadata">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">get_feature_norm_metadata</code><span class="sig-paren">(</span><em>feature_name</em>, <em>feature_value_list</em>, <em>norm_params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_feature_norm_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.get_feature_start_indices">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">get_feature_start_indices</code><span class="sig-paren">(</span><em>sorted_features</em>, <em>normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_feature_start_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the starting index for each feature in the output feature vector</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.get_num_output_features">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">get_num_output_features</code><span class="sig-paren">(</span><em>normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_num_output_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.identify_parameter">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">identify_parameter</code><span class="sig-paren">(</span><em>feature_name</em>, <em>values</em>, <em>max_unique_enum_values=100</em>, <em>quantile_size=20</em>, <em>quantile_k2_threshold=1000.0</em>, <em>skip_box_cox=False</em>, <em>skip_quantiles=False</em>, <em>feature_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.identify_parameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.no_op_feature">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">no_op_feature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.no_op_feature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.serialize">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">serialize</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.serialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.serialize_one">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">serialize_one</code><span class="sig-paren">(</span><em>feature_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.serialize_one" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.sort_features_by_normalization">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">sort_features_by_normalization</code><span class="sig-paren">(</span><em>normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.sort_features_by_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to return a sorted list from a normalization map.
+Also returns the starting index for each feature type</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

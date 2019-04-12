@@ -1,0 +1,7 @@
+ml.rl.test.models.test\_parametric\_dqn module
+==============================================
+
+.. automodule:: ml.rl.test.models.test_parametric_dqn
+    :members:
+    :undoc-members:
+    :show-inheritance:

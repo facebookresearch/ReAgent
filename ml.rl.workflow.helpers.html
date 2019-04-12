@@ -1,0 +1,232 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.workflow.helpers module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.feature_extractor.html">Feature Extractor</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.workflow.helpers module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ml.rl.workflow.helpers.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.workflow.helpers">
+<span id="ml-rl-workflow-helpers-module"></span><h1>ml.rl.workflow.helpers module<a class="headerlink" href="#module-ml.rl.workflow.helpers" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="ml.rl.workflow.helpers.export_trainer_and_predictor">
+<code class="descclassname">ml.rl.workflow.helpers.</code><code class="descname">export_trainer_and_predictor</code><span class="sig-paren">(</span><em>trainer</em>, <em>output_path</em>, <em>exporter=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.export_trainer_and_predictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes PyTorch trainer and Caffe2 Predictor to file and returns predictor</p>
+<p>returns: Predictor object</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.helpers.minibatch_size_multiplier">
+<code class="descclassname">ml.rl.workflow.helpers.</code><code class="descname">minibatch_size_multiplier</code><span class="sig-paren">(</span><em>use_gpu</em>, <em>use_all_avail_gpus</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.minibatch_size_multiplier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increase size of minibatch if using PyTorch DataParallel.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.helpers.parse_args">
+<code class="descclassname">ml.rl.workflow.helpers.</code><code class="descname">parse_args</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.parse_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.helpers.save_model_to_file">
+<code class="descclassname">ml.rl.workflow.helpers.</code><code class="descname">save_model_to_file</code><span class="sig-paren">(</span><em>model</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.save_model_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save network parameters and optimizer parameters to file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – one of (DQNTrainer, ParametricDQNTrainer, DDPGTrainer) object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.helpers.update_model_for_warm_start">
+<code class="descclassname">ml.rl.workflow.helpers.</code><code class="descname">update_model_for_warm_start</code><span class="sig-paren">(</span><em>model</em>, <em>path=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.update_model_for_warm_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load network parameters and optimizer parameters into trainer object
+to warm start it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – one of (DQNTrainer, ParametricDQNTrainer, DDPGTrainer) object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

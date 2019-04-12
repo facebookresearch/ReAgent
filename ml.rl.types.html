@@ -1,0 +1,675 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.types module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.feature_extractor.html">Feature Extractor</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.types module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ml.rl.types.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.types">
+<span id="ml-rl-types-module"></span><h1>ml.rl.types module<a class="headerlink" href="#module-ml.rl.types" title="Permalink to this headline">¶</a></h1>
+<p>EXPERIMENTAL</p>
+<p>These generic types define common interface between modules. Above all, these
+facilitates model exporting through ONNX. ONNX doesn’t trace dictionary so we
+use NamedTuple to act in place of dictionaries. NamedTuple is also more compact
+than dictionary; so, this should be good overall.</p>
+<dl class="class">
+<dt id="ml.rl.types.ActorOutput">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">ActorOutput</code><span class="sig-paren">(</span><em>action</em>, <em>log_prob</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ActorOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.ActorOutput.action">
+<code class="descname">action</code><a class="headerlink" href="#ml.rl.types.ActorOutput.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.ActorOutput.log_prob">
+<code class="descname">log_prob</code><a class="headerlink" href="#ml.rl.types.ActorOutput.log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.AllActionQValues">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">AllActionQValues</code><span class="sig-paren">(</span><em>q_values</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.AllActionQValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.AllActionQValues.q_values">
+<code class="descname">q_values</code><a class="headerlink" href="#ml.rl.types.AllActionQValues.q_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.CappedContinuousAction">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">CappedContinuousAction</code><a class="headerlink" href="#ml.rl.types.CappedContinuousAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Continuous action in range [-1, 1], e.g., the output of DDPG actor</p>
+<dl class="attribute">
+<dt id="ml.rl.types.CappedContinuousAction.action">
+<code class="descname">action</code><a class="headerlink" href="#ml.rl.types.CappedContinuousAction.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.ExtraData">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">ExtraData</code><span class="sig-paren">(</span><em>mdp_id</em>, <em>sequence_number</em>, <em>action_probability</em>, <em>max_num_actions</em>, <em>metrics</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ExtraData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.ExtraData.action_probability">
+<code class="descname">action_probability</code><a class="headerlink" href="#ml.rl.types.ExtraData.action_probability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.ExtraData.max_num_actions">
+<code class="descname">max_num_actions</code><a class="headerlink" href="#ml.rl.types.ExtraData.max_num_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.ExtraData.mdp_id">
+<code class="descname">mdp_id</code><a class="headerlink" href="#ml.rl.types.ExtraData.mdp_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.ExtraData.metrics">
+<code class="descname">metrics</code><a class="headerlink" href="#ml.rl.types.ExtraData.metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.ExtraData.sequence_number">
+<code class="descname">sequence_number</code><a class="headerlink" href="#ml.rl.types.ExtraData.sequence_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.FeatureVector">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">FeatureVector</code><span class="sig-paren">(</span><em>float_features</em>, <em>sequence_features</em>, <em>time_since_first</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.FeatureVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.FeatureVector.float_features">
+<code class="descname">float_features</code><a class="headerlink" href="#ml.rl.types.FeatureVector.float_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.FeatureVector.sequence_features">
+<code class="descname">sequence_features</code><a class="headerlink" href="#ml.rl.types.FeatureVector.sequence_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.FeatureVector.time_since_first">
+<code class="descname">time_since_first</code><a class="headerlink" href="#ml.rl.types.FeatureVector.time_since_first" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.FloatFeatureInfo">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">FloatFeatureInfo</code><span class="sig-paren">(</span><em>name:str</em>, <em>feature_id:int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.FloatFeatureInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.IdFeatureBase">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">IdFeatureBase</code><a class="headerlink" href="#ml.rl.types.IdFeatureBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>User should subclass this class and define each ID feature as a field w/ ValueType
+as the type of the field.</p>
+<dl class="classmethod">
+<dt id="ml.rl.types.IdFeatureBase.get_feature_config">
+<em class="property">classmethod </em><code class="descname">get_feature_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[str, ml.rl.types.IdFeatureConfig]<a class="headerlink" href="#ml.rl.types.IdFeatureBase.get_feature_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns mapping from feature name, which must be a field in this dataclass, to
+feature config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.IdFeatureConfig">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">IdFeatureConfig</code><span class="sig-paren">(</span><em>feature_id: int</em>, <em>id_mapping_name: str</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.IdFeatureConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This describes how to map raw features to model features</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.IdMapping">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">IdMapping</code><span class="sig-paren">(</span><em>ids:List[int]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.IdMapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.MaxQLearningInput">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">MaxQLearningInput</code><span class="sig-paren">(</span><em>state</em>, <em>action</em>, <em>next_action</em>, <em>next_state</em>, <em>tiled_next_state</em>, <em>possible_actions</em>, <em>possible_actions_mask</em>, <em>possible_next_actions</em>, <em>possible_next_actions_mask</em>, <em>reward</em>, <em>not_terminal</em>, <em>step</em>, <em>time_diff</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.MaxQLearningInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.action">
+<code class="descname">action</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.next_action">
+<code class="descname">next_action</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.next_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.next_state">
+<code class="descname">next_state</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.next_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.not_terminal">
+<code class="descname">not_terminal</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.not_terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.possible_actions">
+<code class="descname">possible_actions</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.possible_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.possible_actions_mask">
+<code class="descname">possible_actions_mask</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.possible_actions_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.possible_next_actions">
+<code class="descname">possible_next_actions</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.possible_next_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.possible_next_actions_mask">
+<code class="descname">possible_next_actions_mask</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.possible_next_actions_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.reward">
+<code class="descname">reward</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.reward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.state">
+<code class="descname">state</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.step">
+<code class="descname">step</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 11</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.tiled_next_state">
+<code class="descname">tiled_next_state</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.tiled_next_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MaxQLearningInput.time_diff">
+<code class="descname">time_diff</code><a class="headerlink" href="#ml.rl.types.MaxQLearningInput.time_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 12</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.MemoryNetworkInput">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">MemoryNetworkInput</code><span class="sig-paren">(</span><em>state</em>, <em>action</em>, <em>next_state</em>, <em>reward</em>, <em>not_terminal</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.MemoryNetworkInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkInput.action">
+<code class="descname">action</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkInput.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkInput.next_state">
+<code class="descname">next_state</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkInput.next_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkInput.not_terminal">
+<code class="descname">not_terminal</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkInput.not_terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkInput.reward">
+<code class="descname">reward</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkInput.reward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkInput.state">
+<code class="descname">state</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkInput.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.MemoryNetworkOutput">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">MemoryNetworkOutput</code><span class="sig-paren">(</span><em>mus</em>, <em>sigmas</em>, <em>logpi</em>, <em>reward</em>, <em>not_terminal</em>, <em>next_lstm_hidden</em>, <em>next_lstm_cell</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkOutput.logpi">
+<code class="descname">logpi</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput.logpi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkOutput.mus">
+<code class="descname">mus</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput.mus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkOutput.next_lstm_cell">
+<code class="descname">next_lstm_cell</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput.next_lstm_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkOutput.next_lstm_hidden">
+<code class="descname">next_lstm_hidden</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput.next_lstm_hidden" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkOutput.not_terminal">
+<code class="descname">not_terminal</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput.not_terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkOutput.reward">
+<code class="descname">reward</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput.reward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.MemoryNetworkOutput.sigmas">
+<code class="descname">sigmas</code><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput.sigmas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.ModelFeatureConfig">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">ModelFeatureConfig</code><span class="sig-paren">(</span><em>float_feature_infos:List[ml.rl.types.FloatFeatureInfo], id_mapping_config:Dict[str, ml.rl.types.IdMapping], sequence_features_type:Union[Type[ml.rl.types.SequenceFeatures], NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ModelFeatureConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.ParametricAction">
+<code class="descclassname">ml.rl.types.</code><code class="descname">ParametricAction</code><a class="headerlink" href="#ml.rl.types.ParametricAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#ml.rl.types.FeatureVector" title="ml.rl.types.FeatureVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.FeatureVector</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.SARSAInput">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">SARSAInput</code><span class="sig-paren">(</span><em>state</em>, <em>action</em>, <em>next_state</em>, <em>next_action</em>, <em>reward</em>, <em>not_terminal</em>, <em>step</em>, <em>time_diff</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SARSAInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.action">
+<code class="descname">action</code><a class="headerlink" href="#ml.rl.types.SARSAInput.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.next_action">
+<code class="descname">next_action</code><a class="headerlink" href="#ml.rl.types.SARSAInput.next_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.next_state">
+<code class="descname">next_state</code><a class="headerlink" href="#ml.rl.types.SARSAInput.next_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.not_terminal">
+<code class="descname">not_terminal</code><a class="headerlink" href="#ml.rl.types.SARSAInput.not_terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.reward">
+<code class="descname">reward</code><a class="headerlink" href="#ml.rl.types.SARSAInput.reward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.state">
+<code class="descname">state</code><a class="headerlink" href="#ml.rl.types.SARSAInput.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.step">
+<code class="descname">step</code><a class="headerlink" href="#ml.rl.types.SARSAInput.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.SARSAInput.time_diff">
+<code class="descname">time_diff</code><a class="headerlink" href="#ml.rl.types.SARSAInput.time_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.SequenceFeatureBase">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">SequenceFeatureBase</code><span class="sig-paren">(</span><em>id_features:Union[ml.rl.types.IdFeatureBase, NoneType], float_features:Union[torch.Tensor, caffe2.python.core.BlobReference, numpy.ndarray, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SequenceFeatureBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="classmethod">
+<dt id="ml.rl.types.SequenceFeatureBase.get_float_feature_infos">
+<em class="property">classmethod </em><code class="descname">get_float_feature_infos</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[ml.rl.types.FloatFeatureInfo]<a class="headerlink" href="#ml.rl.types.SequenceFeatureBase.get_float_feature_infos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this if the sequence has float features associated to it.
+Float features should be stored as ID-score-list, where the ID part corresponds
+to primary entity ID of the sequence. E.g., if this is a sequence of previously
+watched videos, then the key should be video ID.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="ml.rl.types.SequenceFeatureBase.get_max_length">
+<em class="property">classmethod </em><code class="descname">get_max_length</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#ml.rl.types.SequenceFeatureBase.get_max_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass should return the max-length of this sequence. If the raw data is
+longer, feature extractor will truncate the front. If the raw data is shorter,
+feature extractor will fill the front with zero.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="ml.rl.types.SequenceFeatureBase.prototype">
+<em class="property">classmethod </em><code class="descname">prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; T<a class="headerlink" href="#ml.rl.types.SequenceFeatureBase.prototype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.SequenceFeatures">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">SequenceFeatures</code><a class="headerlink" href="#ml.rl.types.SequenceFeatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A stub-class for sequence features in the model. All fileds should be subclass of
+SequenceFeatureBase above.</p>
+<dl class="classmethod">
+<dt id="ml.rl.types.SequenceFeatures.prototype">
+<em class="property">classmethod </em><code class="descname">prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; U<a class="headerlink" href="#ml.rl.types.SequenceFeatures.prototype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.SingleQValue">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">SingleQValue</code><span class="sig-paren">(</span><em>q_value</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SingleQValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.SingleQValue.q_value">
+<code class="descname">q_value</code><a class="headerlink" href="#ml.rl.types.SingleQValue.q_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.State">
+<code class="descclassname">ml.rl.types.</code><code class="descname">State</code><a class="headerlink" href="#ml.rl.types.State" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#ml.rl.types.FeatureVector" title="ml.rl.types.FeatureVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.FeatureVector</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.StateAction">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">StateAction</code><span class="sig-paren">(</span><em>state</em>, <em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.StateAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.StateAction.action">
+<code class="descname">action</code><a class="headerlink" href="#ml.rl.types.StateAction.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.StateAction.state">
+<code class="descname">state</code><a class="headerlink" href="#ml.rl.types.StateAction.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.StateInput">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">StateInput</code><a class="headerlink" href="#ml.rl.types.StateInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>This class makes it easier to plug modules into predictor</p>
+<dl class="attribute">
+<dt id="ml.rl.types.StateInput.state">
+<code class="descname">state</code><a class="headerlink" href="#ml.rl.types.StateInput.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.types.TrainingBatch">
+<em class="property">class </em><code class="descclassname">ml.rl.types.</code><code class="descname">TrainingBatch</code><span class="sig-paren">(</span><em>training_input</em>, <em>extras</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.TrainingBatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.types.TrainingBatch.extras">
+<code class="descname">extras</code><a class="headerlink" href="#ml.rl.types.TrainingBatch.extras" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.types.TrainingBatch.training_input">
+<code class="descname">training_input</code><a class="headerlink" href="#ml.rl.types.TrainingBatch.training_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

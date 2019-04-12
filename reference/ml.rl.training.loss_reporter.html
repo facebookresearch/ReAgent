@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.training.loss_reporter module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.training.loss_reporter module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.training.loss_reporter module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.training.loss_reporter.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.training.loss_reporter">
+<span id="ml-rl-training-loss-reporter-module"></span><h1>ml.rl.training.loss_reporter module<a class="headerlink" href="#module-ml.rl.training.loss_reporter" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.training.loss_reporter.BatchStats">
+<em class="property">class </em><code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">BatchStats</code><span class="sig-paren">(</span><em>td_loss</em>, <em>reward_loss</em>, <em>imitator_loss</em>, <em>logged_actions</em>, <em>logged_propensities</em>, <em>logged_rewards</em>, <em>logged_values</em>, <em>model_propensities</em>, <em>model_rewards</em>, <em>model_values</em>, <em>model_values_on_logged_actions</em>, <em>model_action_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="staticmethod">
+<dt id="ml.rl.training.loss_reporter.BatchStats.add_custom_scalars">
+<em class="property">static </em><code class="descname">add_custom_scalars</code><span class="sig-paren">(</span><em>action_names: Optional[List[str]]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.add_custom_scalars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.imitator_loss">
+<code class="descname">imitator_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.imitator_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.logged_actions">
+<code class="descname">logged_actions</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.logged_propensities">
+<code class="descname">logged_propensities</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_propensities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.logged_rewards">
+<code class="descname">logged_rewards</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_rewards" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.logged_values">
+<code class="descname">logged_values</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.model_action_idxs">
+<code class="descname">model_action_idxs</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_action_idxs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 11</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.model_propensities">
+<code class="descname">model_propensities</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_propensities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.model_rewards">
+<code class="descname">model_rewards</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_rewards" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.model_values">
+<code class="descname">model_values</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.model_values_on_logged_actions">
+<code class="descname">model_values_on_logged_actions</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_values_on_logged_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.reward_loss">
+<code class="descname">reward_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.reward_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.BatchStats.td_loss">
+<code class="descname">td_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.td_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.BatchStats.write_summary">
+<code class="descname">write_summary</code><span class="sig-paren">(</span><em>actions: List[str]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.write_summary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.loss_reporter.LossReporter">
+<em class="property">class </em><code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">LossReporter</code><span class="sig-paren">(</span><em>action_names: Optional[List[str]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.LossReporter.RECENT_WINDOW_SIZE">
+<code class="descname">RECENT_WINDOW_SIZE</code><em class="property"> = 100</em><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.RECENT_WINDOW_SIZE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="ml.rl.training.loss_reporter.LossReporter.calculate_recent_window_average">
+<em class="property">static </em><code class="descname">calculate_recent_window_average</code><span class="sig-paren">(</span><em>arr</em>, <em>window_size</em>, <em>num_entries</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.calculate_recent_window_average" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.flush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_last_n_td_loss">
+<code class="descname">get_last_n_td_loss</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_last_n_td_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_logged_action_distribution">
+<code class="descname">get_logged_action_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_logged_action_distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_model_action_distribution">
+<code class="descname">get_model_action_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_model_action_distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_recent_imitator_loss">
+<code class="descname">get_recent_imitator_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_imitator_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_recent_reward_loss">
+<code class="descname">get_recent_reward_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_reward_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_recent_td_loss">
+<code class="descname">get_recent_td_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_td_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.log_to_tensorboard">
+<code class="descname">log_to_tensorboard</code><span class="sig-paren">(</span><em>epoch: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.log_to_tensorboard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.training.loss_reporter.LossReporter.num_batches">
+<code class="descname">num_batches</code><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.num_batches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.report">
+<code class="descname">report</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.report" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.loss_reporter.StatsByAction">
+<em class="property">class </em><code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">StatsByAction</code><span class="sig-paren">(</span><em>actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.StatsByAction.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>stats</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.StatsByAction.items">
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.training.loss_reporter.merge_tensor_namedtuple_list">
+<code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">merge_tensor_namedtuple_list</code><span class="sig-paren">(</span><em>l</em>, <em>cls</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.merge_tensor_namedtuple_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

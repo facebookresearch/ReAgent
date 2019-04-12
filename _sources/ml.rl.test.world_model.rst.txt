@@ -1,0 +1,18 @@
+ml.rl.test.world\_model package
+===============================
+
+Submodules
+----------
+
+.. toctree::
+
+   ml.rl.test.world_model.simulated_world_model
+   ml.rl.test.world_model.test_mdnrnn
+
+Module contents
+---------------
+
+.. automodule:: ml.rl.test.world_model
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,18 @@
+ml.rl.test.readers package
+==========================
+
+Submodules
+----------
+
+.. toctree::
+
+   ml.rl.test.readers.test_data_streamer
+   ml.rl.test.readers.test_nparray_reader
+
+Module contents
+---------------
+
+.. automodule:: ml.rl.test.readers
+    :members:
+    :undoc-members:
+    :show-inheritance:

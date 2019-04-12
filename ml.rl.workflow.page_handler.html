@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.workflow.page_handler module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.feature_extractor.html">Feature Extractor</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.workflow.page_handler module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ml.rl.workflow.page_handler.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.workflow.page_handler">
+<span id="ml-rl-workflow-page-handler-module"></span><h1>ml.rl.workflow.page_handler module<a class="headerlink" href="#module-ml.rl.workflow.page_handler" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">EvaluationPageHandler</code><span class="sig-paren">(</span><em>trainer</em>, <em>evaluator</em>, <em>reporter</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler.get_last_cpe_results">
+<code class="descname">get_last_cpe_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler.get_last_cpe_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler.handle">
+<code class="descname">handle</code><span class="sig-paren">(</span><em>tdp: ml.rl.training.training_data_page.TrainingDataPage</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.ImitatorPageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">ImitatorPageHandler</code><span class="sig-paren">(</span><em>trainer</em>, <em>train=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.ImitatorPageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.ImitatorPageHandler.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.ImitatorPageHandler.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.ImitatorPageHandler.handle">
+<code class="descname">handle</code><span class="sig-paren">(</span><em>tdp: ml.rl.training.training_data_page.TrainingDataPage</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.ImitatorPageHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.PageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">PageHandler</code><a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.PageHandler.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.PageHandler.handle">
+<code class="descname">handle</code><span class="sig-paren">(</span><em>tdp: ml.rl.training.training_data_page.TrainingDataPage</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.PageHandler.set_epoch">
+<code class="descname">set_epoch</code><span class="sig-paren">(</span><em>epoch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler.set_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.TrainingPageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">TrainingPageHandler</code><span class="sig-paren">(</span><em>trainer</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.TrainingPageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.TrainingPageHandler.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.TrainingPageHandler.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.TrainingPageHandler.handle">
+<code class="descname">handle</code><span class="sig-paren">(</span><em>tdp: ml.rl.training.training_data_page.TrainingDataPage</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.TrainingPageHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">WorldModelEvaluationPageHandler</code><span class="sig-paren">(</span><em>trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="ml.rl.workflow.page_handler.WorldModelPageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.WorldModelPageHandler</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler.handle">
+<code class="descname">handle</code><span class="sig-paren">(</span><em>tdp: ml.rl.types.TrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">WorldModelPageHandler</code><span class="sig-paren">(</span><em>trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler.get_mean_loss">
+<code class="descname">get_mean_loss</code><span class="sig-paren">(</span><em>loss_name='loss'</em>, <em>axis=None</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler.get_mean_loss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss_name</strong> – possible loss names: ‘loss’ (referring to total loss),
+‘bce’ (loss for predicting not_terminal), ‘gmm’ (loss for next state
+prediction), ‘mse’ (loss for predicting reward)</p></li>
+<li><p><strong>axis</strong> – axis to perform mean function.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler.refresh_results">
+<code class="descname">refresh_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler.refresh_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">WorldModelRandomTrainingPageHandler</code><span class="sig-paren">(</span><em>trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="ml.rl.workflow.page_handler.WorldModelPageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.WorldModelPageHandler</span></code></a></p>
+<p>Train a baseline model based on randomly shuffled data</p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler.handle">
+<code class="descname">handle</code><span class="sig-paren">(</span><em>tdp: ml.rl.types.TrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.workflow.page_handler.WorldModelTrainingPageHandler">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">WorldModelTrainingPageHandler</code><span class="sig-paren">(</span><em>trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelTrainingPageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="ml.rl.workflow.page_handler.WorldModelPageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.WorldModelPageHandler</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.workflow.page_handler.WorldModelTrainingPageHandler.handle">
+<code class="descname">handle</code><span class="sig-paren">(</span><em>tdp: ml.rl.types.TrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelTrainingPageHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.page_handler.feed_pages">
+<code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">feed_pages</code><span class="sig-paren">(</span><em>data_streamer</em>, <em>dataset_num_rows</em>, <em>epoch</em>, <em>minibatch_size</em>, <em>use_gpu</em>, <em>page_handler</em>, <em>feature_extractor=None</em>, <em>batch_preprocessor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.feed_pages" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.page_handler.get_actual_minibatch_size">
+<code class="descclassname">ml.rl.workflow.page_handler.</code><code class="descname">get_actual_minibatch_size</code><span class="sig-paren">(</span><em>batch</em>, <em>minibatch_size_preset</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.get_actual_minibatch_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

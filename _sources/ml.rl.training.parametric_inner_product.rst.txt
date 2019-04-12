@@ -1,0 +1,7 @@
+ml.rl.training.parametric\_inner\_product module
+================================================
+
+.. automodule:: ml.rl.training.parametric_inner_product
+    :members:
+    :undoc-members:
+    :show-inheritance:

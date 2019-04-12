@@ -1,0 +1,7 @@
+ml.rl.test.preprocessing.test\_feature\_extractor module
+========================================================
+
+.. automodule:: ml.rl.test.preprocessing.test_feature_extractor
+    :members:
+    :undoc-members:
+    :show-inheritance:

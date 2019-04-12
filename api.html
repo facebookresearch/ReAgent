@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Horizon: Applied Reinforcement Learning Platform &mdash; Horizon 1.0 documentation</title>
+  <title>API &mdash; Horizon 1.0 documentation</title>
   
 
   
@@ -34,8 +34,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="getting_started/installation.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -49,7 +48,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> Horizon
+            <a href="index.html" class="icon icon-home"> Horizon
           
 
           
@@ -104,7 +103,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">Horizon</a>
+          <a href="index.html">Horizon</a>
         
       </nav>
 
@@ -133,15 +132,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Horizon: Applied Reinforcement Learning Platform</li>
+      <li>API</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -154,70 +153,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <img alt="Banner" src="_images/horizon_banner.png" />
-<div class="section" id="horizon-applied-reinforcement-learning-platform">
-<h1>Horizon: Applied Reinforcement Learning Platform<a class="headerlink" href="#horizon-applied-reinforcement-learning-platform" title="Permalink to this headline">¶</a></h1>
-<a class="reference external image-reference" href="https://ci.pytorch.org/jenkins/job/horizon-master/"><img alt="Build Status" src="https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master" /></a>
-</div>
-<hr class="docutils" />
-<div class="section" id="overview">
-<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
-<p>Horizon is an open source end-to-end platform for applied reinforcement learning (RL) developed and used at Facebook. Horizon is built in Python and uses PyTorch for modeling and training and Caffe2 for model serving. The platform contains workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training, counterfactual policy evaluation, and optimized serving. For more detailed information about Horizon see the white paper <a class="reference external" href="https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/">here</a>.</p>
-</div>
-<div class="section" id="algorithms-supported">
-<h1>Algorithms Supported<a class="headerlink" href="#algorithms-supported" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><p>Discrete-Action <a class="reference external" href="https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf">DQN</a></p></li>
-<li><p>Parametric-Action DQN</p></li>
-<li><p><a class="reference external" href="https://arxiv.org/abs/1509.06461">Double DQN</a>, <a class="reference external" href="https://arxiv.org/abs/1511.06581">Dueling DQN</a>, <a class="reference external" href="https://arxiv.org/abs/1710.02298">Dueling Double DQN</a></p></li>
-<li><p><a class="reference external" href="https://arxiv.org/abs/1509.02971">DDPG</a> (DDPG)</p></li>
-<li><p><a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic</a> (SAC)</p></li>
-</ul>
-</div>
-<div class="section" id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>Horizon can be installed via. Docker or manually. Detailed instructions on how to install Horizon can be found here: <a class="reference internal" href="getting_started/installation.html#installation"><span class="std std-ref">Installation</span></a>.</p>
-</div>
-<div class="section" id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
-<p>Detailed instructions on how to use Horizon can be found here: <a class="reference internal" href="getting_started/usage.html#usage"><span class="std std-ref">Usage</span></a>.</p>
-</div>
-<div class="section" id="license">
-<h1>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h1>
-<p>Horizon is released under a BSD license.  Find out more about it here: <a class="reference internal" href="getting_started/license.html#license"><span class="std std-ref">License</span></a>.</p>
-<a class="reference internal image-reference" href="_images/horizon_logo.png"><img alt="Logo" src="_images/horizon_logo.png" style="width: 200px;" /></a>
-</div>
-<div class="section" id="table-of-contents">
-<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="api">
+<span id="id1"></span><h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Getting Started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getting_started/installation.html#anaconda">Anaconda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting_started/installation.html#docker">Docker</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/usage.html">Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getting_started/usage.html#on-policy-rl-training">1 - On-Policy RL Training</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting_started/usage.html#offline-rl-training-batch-rl">2- Offline RL Training (Batch RL)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="getting_started/usage.html#end-to-end-example-training-a-dqn-model-on-offline-cartpole-v0-data">End-to-End example: Training a DQN model on Offline <code class="docutils literal notranslate"><span class="pre">Cartpole-v0</span></code> data:</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="getting_started/usage.html#step-1-create-training-data">Step 1 - Create training data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="getting_started/usage.html#step-2-convert-the-data-to-the-timeline-format">Step 2 - Convert the data to the <code class="docutils literal notranslate"><span class="pre">timeline</span></code> format</a></li>
-<li class="toctree-l4"><a class="reference internal" href="getting_started/usage.html#step-3-create-the-normalization-parameters">Step 3 - Create the normalization parameters</a></li>
-<li class="toctree-l4"><a class="reference internal" href="getting_started/usage.html#step-4-train-model">Step 4 - Train model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="getting_started/usage.html#step-5-evaluate-the-model">Step 5 - Evaluate the Model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="getting_started/usage.html#step-6-visualize-results-via-tensorboard">Step 6 - Visualize Results via Tensorboard</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/license.html">License</a></li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#submodules">Submodules</a></li>
@@ -285,13 +223,6 @@
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="getting_started/installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
   
 
   <hr/>

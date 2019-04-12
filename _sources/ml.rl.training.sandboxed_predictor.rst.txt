@@ -1,0 +1,7 @@
+ml.rl.training.sandboxed\_predictor module
+==========================================
+
+.. automodule:: ml.rl.training.sandboxed_predictor
+    :members:
+    :undoc-members:
+    :show-inheritance:

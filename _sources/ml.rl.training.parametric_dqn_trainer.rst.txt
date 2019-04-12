@@ -1,0 +1,7 @@
+ml.rl.training.parametric\_dqn\_trainer module
+==============================================
+
+.. automodule:: ml.rl.training.parametric_dqn_trainer
+    :members:
+    :undoc-members:
+    :show-inheritance:

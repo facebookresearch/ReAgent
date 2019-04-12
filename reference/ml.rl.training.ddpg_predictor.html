@@ -1,0 +1,257 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.training.ddpg_predictor module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.training.ddpg_predictor module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.training.ddpg_predictor module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.training.ddpg_predictor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.training.ddpg_predictor">
+<span id="ml-rl-training-ddpg-predictor-module"></span><h1>ml.rl.training.ddpg_predictor module<a class="headerlink" href="#module-ml.rl.training.ddpg_predictor" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_predictor.</code><code class="descname">DDPGPredictor</code><span class="sig-paren">(</span><em>net</em>, <em>init_net</em>, <em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ml.rl.training.rl_predictor_pytorch.html#ml.rl.training.rl_predictor_pytorch.RLPredictor" title="ml.rl.training.rl_predictor_pytorch.RLPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_predictor_pytorch.RLPredictor</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.actor_prediction">
+<code class="descname">actor_prediction</code><span class="sig-paren">(</span><em>float_state_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.actor_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actor Prediction - Returns action for each float_feature state.
+:param float_state_features A list of feature -&gt; float value dict examples</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.critic_prediction">
+<code class="descname">critic_prediction</code><span class="sig-paren">(</span><em>float_state_features</em>, <em>actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.critic_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Critic Prediction - Returns values for each state/action pair. Accepts</p>
+<p>:param float_state_features states as list of feature -&gt; float value dict
+:param actions actions as list of feature -&gt; value dict</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.export_actor">
+<em class="property">classmethod </em><code class="descname">export_actor</code><span class="sig-paren">(</span><em>trainer</em>, <em>state_normalization_parameters</em>, <em>action_feature_ids</em>, <em>min_action_range_tensor_serving</em>, <em>max_action_range_tensor_serving</em>, <em>model_on_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.export_actor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export caffe2 preprocessor net and pytorch actor forward pass as one
+caffe2 net.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trainer</strong> – DDPGTrainer</p></li>
+<li><p><strong>state_normalization_parameters</strong> – state NormalizationParameters</p></li>
+<li><p><strong>min_action_range_tensor_serving</strong> – pytorch tensor that specifies
+min action value for each dimension</p></li>
+<li><p><strong>max_action_range_tensor_serving</strong> – pytorch tensor that specifies
+min action value for each dimension</p></li>
+<li><p><strong>state_normalization_parameters</strong> – state NormalizationParameters</p></li>
+<li><p><strong>model_on_gpu</strong> – boolean indicating if the model is a GPU model or CPU model</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.export_critic">
+<em class="property">classmethod </em><code class="descname">export_critic</code><span class="sig-paren">(</span><em>trainer</em>, <em>state_normalization_parameters</em>, <em>action_normalization_parameters</em>, <em>model_on_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.export_critic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export caffe2 preprocessor net and pytorch DQN forward pass as one
+caffe2 net.</p>
+<p>:param trainer ParametricDQNTrainer
+:param state_normalization_parameters state NormalizationParameters
+:param action_normalization_parameters action NormalizationParameters
+:param model_on_gpu boolean indicating if the model is a GPU model or CPU model</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.generate_train_net">
+<em class="property">classmethod </em><code class="descname">generate_train_net</code><span class="sig-paren">(</span><em>trainer</em>, <em>model</em>, <em>min_action_range_tensor_serving</em>, <em>max_action_range_tensor_serving</em>, <em>model_on_gpu</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.generate_train_net" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.policy">
+<code class="descname">policy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: Return actions when exporting final net and fill in this
+function.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

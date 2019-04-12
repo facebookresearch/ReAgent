@@ -1,0 +1,257 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.test.gym.run_gym module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.test.gym.run_gym module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.test.gym.run_gym module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.test.gym.run_gym.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.test.gym.run_gym">
+<span id="ml-rl-test-gym-run-gym-module"></span><h1>ml.rl.test.gym.run_gym module<a class="headerlink" href="#module-ml.rl.test.gym.run_gym" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.create_predictor">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">create_predictor</code><span class="sig-paren">(</span><em>trainer</em>, <em>model_type</em>, <em>use_gpu</em>, <em>action_dim=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.create_predictor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.create_random_policy_offline_dataset">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">create_random_policy_offline_dataset</code><span class="sig-paren">(</span><em>gym_env</em>, <em>replay_buffer</em>, <em>max_steps</em>, <em>model_type</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.create_random_policy_offline_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate random transitions and and load into replay buffer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.create_stored_policy_offline_dataset">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">create_stored_policy_offline_dataset</code><span class="sig-paren">(</span><em>replay_buffer</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.create_stored_policy_offline_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read transitions from pickle file and load into replay buffer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.create_trainer">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">create_trainer</code><span class="sig-paren">(</span><em>model_type</em>, <em>params</em>, <em>rl_parameters</em>, <em>use_gpu</em>, <em>env</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.create_trainer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.dict_to_np">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">dict_to_np</code><span class="sig-paren">(</span><em>d</em>, <em>np_size</em>, <em>key_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.dict_to_np" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.get_possible_actions">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">get_possible_actions</code><span class="sig-paren">(</span><em>gym_env</em>, <em>model_type</em>, <em>terminal</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.get_possible_actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.get_sac_trainer">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">get_sac_trainer</code><span class="sig-paren">(</span><em>env</em>, <em>parameters</em>, <em>use_gpu</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.get_sac_trainer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.main">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">main</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.run_gym">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">run_gym</code><span class="sig-paren">(</span><em>params</em>, <em>offline_train</em>, <em>score_bar</em>, <em>gpu_id</em>, <em>save_timesteps_to_dataset=None</em>, <em>start_saving_from_score=None</em>, <em>path_to_pickled_transitions=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.run_gym" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.train">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">train</code><span class="sig-paren">(</span><em>c2_device</em>, <em>gym_env</em>, <em>offline_train</em>, <em>replay_buffer</em>, <em>model_type</em>, <em>trainer</em>, <em>predictor</em>, <em>test_run_name</em>, <em>score_bar</em>, <em>num_episodes=301</em>, <em>max_steps=None</em>, <em>train_every_ts=100</em>, <em>train_after_ts=10</em>, <em>test_every_ts=100</em>, <em>test_after_ts=10</em>, <em>num_train_batches=1</em>, <em>avg_over_num_episodes=100</em>, <em>render=False</em>, <em>save_timesteps_to_dataset=None</em>, <em>start_saving_from_score=None</em>, <em>solved_reward_threshold=None</em>, <em>max_episodes_to_run_after_solved=None</em>, <em>stop_training_after_solved=False</em>, <em>offline_train_epochs=3</em>, <em>path_to_pickled_transitions=None</em>, <em>bcq_imitator_hyperparams=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.train_gym_offline_rl">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">train_gym_offline_rl</code><span class="sig-paren">(</span><em>c2_device</em>, <em>gym_env</em>, <em>replay_buffer</em>, <em>model_type</em>, <em>trainer</em>, <em>predictor</em>, <em>test_run_name</em>, <em>score_bar</em>, <em>max_steps</em>, <em>avg_over_num_episodes</em>, <em>offline_train_epochs</em>, <em>path_to_pickled_transitions</em>, <em>bcq_imitator_hyper_params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.train_gym_offline_rl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train on transitions generated from a random policy live or
+read transitions from a pickle file and load into replay buffer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.test.gym.run_gym.train_gym_online_rl">
+<code class="descclassname">ml.rl.test.gym.run_gym.</code><code class="descname">train_gym_online_rl</code><span class="sig-paren">(</span><em>c2_device</em>, <em>gym_env</em>, <em>replay_buffer</em>, <em>model_type</em>, <em>trainer</em>, <em>predictor</em>, <em>test_run_name</em>, <em>score_bar</em>, <em>num_episodes</em>, <em>max_steps</em>, <em>train_every_ts</em>, <em>train_after_ts</em>, <em>test_every_ts</em>, <em>test_after_ts</em>, <em>num_train_batches</em>, <em>avg_over_num_episodes</em>, <em>render</em>, <em>save_timesteps_to_dataset</em>, <em>start_saving_from_score</em>, <em>solved_reward_threshold</em>, <em>max_episodes_to_run_after_solved</em>, <em>stop_training_after_solved</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.run_gym.train_gym_online_rl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train off of dynamic set of transitions generated on-policy.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

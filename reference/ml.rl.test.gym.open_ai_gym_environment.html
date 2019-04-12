@@ -1,0 +1,356 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.test.gym.open_ai_gym_environment module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.test.gym.open_ai_gym_environment module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.test.gym.open_ai_gym_environment module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.test.gym.open_ai_gym_environment.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.test.gym.open_ai_gym_environment">
+<span id="ml-rl-test-gym-open-ai-gym-environment-module"></span><h1>ml.rl.test.gym.open_ai_gym_environment module<a class="headerlink" href="#module-ml.rl.test.gym.open_ai_gym_environment" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.EnvType">
+<em class="property">class </em><code class="descclassname">ml.rl.test.gym.open_ai_gym_environment.</code><code class="descname">EnvType</code><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.EnvType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.EnvType.CONTINUOUS_ACTION">
+<code class="descname">CONTINUOUS_ACTION</code><em class="property"> = 'continuous'</em><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.EnvType.CONTINUOUS_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.EnvType.DISCRETE_ACTION">
+<code class="descname">DISCRETE_ACTION</code><em class="property"> = 'discrete'</em><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.EnvType.DISCRETE_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.ModelType">
+<em class="property">class </em><code class="descclassname">ml.rl.test.gym.open_ai_gym_environment.</code><code class="descname">ModelType</code><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.ModelType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.ModelType.CONTINUOUS_ACTION">
+<code class="descname">CONTINUOUS_ACTION</code><em class="property"> = 'continuous'</em><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.ModelType.CONTINUOUS_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.ModelType.DDPG_ACTOR_CRITIC">
+<code class="descname">DDPG_ACTOR_CRITIC</code><em class="property"> = 'ddpg_actor_critic'</em><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.ModelType.DDPG_ACTOR_CRITIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.ModelType.PYTORCH_DISCRETE_DQN">
+<code class="descname">PYTORCH_DISCRETE_DQN</code><em class="property"> = 'pytorch_discrete_dqn'</em><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.ModelType.PYTORCH_DISCRETE_DQN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.ModelType.PYTORCH_PARAMETRIC_DQN">
+<code class="descname">PYTORCH_PARAMETRIC_DQN</code><em class="property"> = 'pytorch_parametric_dqn'</em><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.ModelType.PYTORCH_PARAMETRIC_DQN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.ModelType.SOFT_ACTOR_CRITIC">
+<code class="descname">SOFT_ACTOR_CRITIC</code><em class="property"> = 'soft_actor_critic'</em><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.ModelType.SOFT_ACTOR_CRITIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment">
+<em class="property">class </em><code class="descclassname">ml.rl.test.gym.open_ai_gym_environment.</code><code class="descname">OpenAIGymEnvironment</code><span class="sig-paren">(</span><em>gymenv</em>, <em>epsilon=0</em>, <em>softmax_policy=False</em>, <em>gamma=0.99</em>, <em>epsilon_decay=1</em>, <em>minimum_epsilon=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.test.environment.environment.Environment</span></code></p>
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.decay_epsilon">
+<code class="descname">decay_epsilon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.decay_epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.normalization">
+<code class="descname">normalization</code><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.normalization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.normalization_action">
+<code class="descname">normalization_action</code><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.normalization_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.policy">
+<code class="descname">policy</code><span class="sig-paren">(</span><em>predictor: Union[ml.rl.training.rl_predictor_pytorch.RLPredictor, ml.rl.test.gym.gym_predictor.GymPredictor, None], next_state, test, state_preprocessor=None</em><span class="sig-paren">)</span> &#x2192; Tuple[numpy.ndarray, float]<a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects the next action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictor</strong> – RLPredictor/GymPredictor object whose policy to
+follow. If set to None, use a random policy.</p></li>
+<li><p><strong>next_state</strong> – State to evaluate predictor’s policy on.</p></li>
+<li><p><strong>test</strong> – Whether or not to bypass exploration (if predictor is not None).
+For discrete action problems, the exploration policy is epsilon-greedy.
+For continuous action problems, the exploration is achieved by adding
+noise to action outputs.</p></li>
+<li><p><strong>state_preprocessor</strong> – State preprocessor to use to preprocess states</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.possible_actions">
+<code class="descname">possible_actions</code><span class="sig-paren">(</span><em>state</em>, <em>terminal: bool = False</em>, <em>ignore_terminal=False</em>, <em>use_continuous_action: bool = False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.possible_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get possible actions at the current state. If ignore_terminal is False,
+then this function always returns an empty list at a terminal state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the environment and return the initial state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.run_ep_n_times">
+<code class="descname">run_ep_n_times</code><span class="sig-paren">(</span><em>n, predictor: Union[ml.rl.training.rl_predictor_pytorch.RLPredictor, ml.rl.test.gym.gym_predictor.GymPredictor, None], max_steps=None, test=False, render=False, state_preprocessor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.run_ep_n_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs an episode of the environment n times and returns the average
+sum of rewards.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of episodes to average over.</p></li>
+<li><p><strong>predictor</strong> – RLPredictor/GymPredictor object whose policy to
+follow. If set to None, use a random policy</p></li>
+<li><p><strong>max_steps</strong> – Max number of timesteps before ending episode.</p></li>
+<li><p><strong>test</strong> – Whether or not to bypass an epsilon-greedy selection policy.</p></li>
+<li><p><strong>render</strong> – Whether or not to render the episode.</p></li>
+<li><p><strong>state_preprocessor</strong> – State preprocessor to use to preprocess states</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.run_episode">
+<code class="descname">run_episode</code><span class="sig-paren">(</span><em>predictor: Union[ml.rl.training.rl_predictor_pytorch.RLPredictor, ml.rl.test.gym.gym_predictor.GymPredictor, None], max_steps=None, test=False, render=False, state_preprocessor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.run_episode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs an episode of the environment and returns the sum of rewards
+experienced in the episode. For evaluation purposes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictor</strong> – RLPredictor/GymPredictor object whose policy to
+follow. If set to None, use a random policy.</p></li>
+<li><p><strong>max_steps</strong> – Max number of timesteps before ending episode.</p></li>
+<li><p><strong>test</strong> – Whether or not to bypass an epsilon-greedy selection policy.</p></li>
+<li><p><strong>render</strong> – Whether or not to render the episode.</p></li>
+<li><p><strong>state_preprocessor</strong> – State preprocessor to use to preprocess states</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.sample_policy">
+<code class="descname">sample_policy</code><span class="sig-paren">(</span><em>state</em>, <em>use_continuous_action: bool</em>, <em>epsilon: float = 0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.sample_policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample a random action</p>
+<dl class="simple">
+<dt>Return the raw action which can be fed into env.step(), the processed</dt><dd><p>action which can be uploaded to Hive, and action probability</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Proceed one step ahead using the action.
+Return next state, reward, terminal, and info</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.transform_state">
+<code class="descname">transform_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment.transform_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

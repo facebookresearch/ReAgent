@@ -1,0 +1,208 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.workflow.parametric_dqn_workflow module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.workflow.parametric_dqn_workflow module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.workflow.parametric_dqn_workflow module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.workflow.parametric_dqn_workflow.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.workflow.parametric_dqn_workflow">
+<span id="ml-rl-workflow-parametric-dqn-workflow-module"></span><h1>ml.rl.workflow.parametric_dqn_workflow module<a class="headerlink" href="#module-ml.rl.workflow.parametric_dqn_workflow" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.workflow.parametric_dqn_workflow.ParametricDqnWorkflow">
+<em class="property">class </em><code class="descclassname">ml.rl.workflow.parametric_dqn_workflow.</code><code class="descname">ParametricDqnWorkflow</code><span class="sig-paren">(</span><em>model_params: ml.rl.thrift.core.ttypes.ContinuousActionModelParameters, preprocess_handler: ml.rl.workflow.preprocess_handler.PreprocessHandler, state_normalization: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], action_normalization: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], use_gpu: bool, use_all_avail_gpus: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.parametric_dqn_workflow.ParametricDqnWorkflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ml.rl.workflow.base_workflow.html#ml.rl.workflow.base_workflow.BaseWorkflow" title="ml.rl.workflow.base_workflow.BaseWorkflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.base_workflow.BaseWorkflow</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.parametric_dqn_workflow.main">
+<code class="descclassname">ml.rl.workflow.parametric_dqn_workflow.</code><code class="descname">main</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.parametric_dqn_workflow.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.workflow.parametric_dqn_workflow.single_process_main">
+<code class="descclassname">ml.rl.workflow.parametric_dqn_workflow.</code><code class="descname">single_process_main</code><span class="sig-paren">(</span><em>gpu_index</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.parametric_dqn_workflow.single_process_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,1461 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.thrift.core package &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.thrift.core package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ml.rl.thrift.core.constants">ml.rl.thrift.core.constants module</a></li>
+<li><a class="reference internal" href="#module-ml.rl.thrift.core.ttypes">ml.rl.thrift.core.ttypes module</a></li>
+<li><a class="reference internal" href="#module-ml.rl.thrift.core">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.thrift.core package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/code/ml.rl.thrift.core.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ml-rl-thrift-core-package">
+<h1>ml.rl.thrift.core package<a class="headerlink" href="#ml-rl-thrift-core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ml.rl.thrift.core.constants">
+<span id="ml-rl-thrift-core-constants-module"></span><h2>ml.rl.thrift.core.constants module<a class="headerlink" href="#module-ml.rl.thrift.core.constants" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ml.rl.thrift.core.ttypes">
+<span id="ml-rl-thrift-core-ttypes-module"></span><h2>ml.rl.thrift.core.ttypes module<a class="headerlink" href="#module-ml.rl.thrift.core.ttypes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.CNNParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">CNNParameters</code><span class="sig-paren">(</span><em>conv_dims=None</em>, <em>conv_height_kernels=None</em>, <em>conv_width_kernels=None</em>, <em>pool_kernels_strides=None</em>, <em>pool_types=None</em>, <em>num_input_channels=None</em>, <em>input_height=None</em>, <em>input_width=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.CNNParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- conv_dims</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- conv_height_kernels</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- conv_width_kernels</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- pool_kernels_strides</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- pool_types</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- num_input_channels</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- input_height</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- input_width</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.CNNParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.CNNParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.CNNParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 15, 'conv_dims', (8, None, False), None), (2, 15, 'conv_height_kernels', (8, None, False), None), (3, 15, 'conv_width_kernels', (8, None, False), None), (4, 15, 'pool_kernels_strides', (8, None, False), None), (5, 15, 'pool_types', (11, 'UTF8', False), None), (6, 8, 'num_input_channels', None, None), (7, 8, 'input_height', None, None), (8, 8, 'input_width', None, None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.CNNParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.CNNParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.CNNParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.CNNParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.CNNParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.ContinuousActionModelParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">ContinuousActionModelParameters</code><span class="sig-paren">(</span><em>rl=None</em>, <em>training=None</em>, <em>rainbow=None</em>, <em>evaluation=EvaluationParameters(calc_cpe_in_training=True)</em>, <em>state_feature_params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.ContinuousActionModelParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- rl</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- rainbow</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- evaluation</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- state_feature_params</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 12, 'rl', (&lt;class 'ml.rl.thrift.core.ttypes.RLParameters'&gt;, (None, (1, 4, 'gamma', None, 0.9), (2, 4, 'epsilon', None, 0.1), (3, 4, 'target_update_rate', None, 0.001), (4, 8, 'reward_burnin', None, 1), (5, 2, 'maxq_learning', None, True), (6, 13, 'reward_boost', (11, 'UTF8', 4, None, False), None), (7, 4, 'temperature', None, 0.01), (8, 8, 'softmax_policy', None, 1), (9, 2, 'use_seq_num_diff_as_time_diff', None, False), (10, 11, 'q_network_loss', 'UTF8', 'mse'), (11, 2, 'set_missing_value_to_zero', None, False), (12, 8, 'tensorboard_logging_freq', None, None), (13, 4, 'predictor_atol_check', None, 0), (14, 4, 'predictor_rtol_check', None, 5e-05), (15, 4, 'time_diff_unit_length', None, 1), (16, 8, 'multi_steps', None, None), (17, 4, 'ratio_different_predictions_tolerance', None, None))), None), (2, 12, 'training', (&lt;class 'ml.rl.thrift.core.ttypes.TrainingParameters'&gt;, (None, (1, 8, 'minibatch_size', None, 4096), (2, 4, 'learning_rate', None, 0.001), (3, 11, 'optimizer', 'UTF8', 'ADAM'), (4, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (5, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'linear']), (6, 11, 'lr_policy', 'UTF8', 'fixed'), (7, 4, 'lr_decay', None, 0.999), (8, 4, 'dropout_ratio', None, 0), (9, 11, 'warm_start_model_path', 'UTF8', None), (10, 12, 'cnn_parameters', (&lt;class 'ml.rl.thrift.core.ttypes.CNNParameters'&gt;, (None, (1, 15, 'conv_dims', (8, None, False), None), (2, 15, 'conv_height_kernels', (8, None, False), None), (3, 15, 'conv_width_kernels', (8, None, False), None), (4, 15, 'pool_kernels_strides', (8, None, False), None), (5, 15, 'pool_types', (11, 'UTF8', False), None), (6, 8, 'num_input_channels', None, None), (7, 8, 'input_height', None, None), (8, 8, 'input_width', None, None))), None), (11, 12, 'factorization_parameters', (&lt;class 'ml.rl.thrift.core.ttypes.FactorizationParameters'&gt;, (None, (1, 12, 'state', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None), (2, 12, 'action', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None))), None), (12, 4, 'l2_decay', None, 0.01), None, (14, 4, 'weight_init_min_std', None, 0), (15, 2, 'use_batch_norm', None, False), (16, 4, 'clip_grad_norm', None, None))), None), None, (4, 12, 'rainbow', (&lt;class 'ml.rl.thrift.core.ttypes.RainbowDQNParameters'&gt;, (None, (1, 2, 'double_q_learning', None, True), (2, 2, 'dueling_architecture', None, True), (3, 2, 'bcq', None, False), (4, 4, 'bcq_drop_threshold', None, 0.1))), None), None, (6, 12, 'evaluation', (&lt;class 'ml.rl.thrift.core.ttypes.EvaluationParameters'&gt;, (None, (1, 2, 'calc_cpe_in_training', None, True))), EvaluationParameters(calc_cpe_in_training=True)), (7, 12, 'state_feature_params', (&lt;class 'ml.rl.thrift.core.ttypes.StateFeatureParameters'&gt;, (None, (1, 15, 'state_feature_names_override', (11, 'UTF8', False), []), (2, 15, 'state_feature_hashes_override', (8, None, False), []))), None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.ContinuousActionModelParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.DDPGModelParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">DDPGModelParameters</code><span class="sig-paren">(</span><em>rl=None</em>, <em>shared_training=None</em>, <em>actor_training=None</em>, <em>critic_training=None</em>, <em>action_rescale_map={}</em>, <em>state_feature_params=None</em>, <em>evaluation=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGModelParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- rl</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- shared_training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- actor_training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- critic_training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- action_rescale_map</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- state_feature_params</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- evaluation</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGModelParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGModelParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.DDPGModelParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 12, 'rl', (&lt;class 'ml.rl.thrift.core.ttypes.RLParameters'&gt;, (None, (1, 4, 'gamma', None, 0.9), (2, 4, 'epsilon', None, 0.1), (3, 4, 'target_update_rate', None, 0.001), (4, 8, 'reward_burnin', None, 1), (5, 2, 'maxq_learning', None, True), (6, 13, 'reward_boost', (11, 'UTF8', 4, None, False), None), (7, 4, 'temperature', None, 0.01), (8, 8, 'softmax_policy', None, 1), (9, 2, 'use_seq_num_diff_as_time_diff', None, False), (10, 11, 'q_network_loss', 'UTF8', 'mse'), (11, 2, 'set_missing_value_to_zero', None, False), (12, 8, 'tensorboard_logging_freq', None, None), (13, 4, 'predictor_atol_check', None, 0), (14, 4, 'predictor_rtol_check', None, 5e-05), (15, 4, 'time_diff_unit_length', None, 1), (16, 8, 'multi_steps', None, None), (17, 4, 'ratio_different_predictions_tolerance', None, None))), None), (2, 12, 'shared_training', (&lt;class 'ml.rl.thrift.core.ttypes.DDPGTrainingParameters'&gt;, (None, (1, 8, 'minibatch_size', None, 2048), (2, 4, 'final_layer_init', None, 0.003), (3, 11, 'optimizer', 'UTF8', 'ADAM'), (4, 11, 'warm_start_model_path', 'UTF8', None))), None), (3, 12, 'actor_training', (&lt;class 'ml.rl.thrift.core.ttypes.DDPGNetworkParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'tanh']), (3, 4, 'l2_decay', None, 0.01), (4, 4, 'learning_rate', None, 0.001))), None), (4, 12, 'critic_training', (&lt;class 'ml.rl.thrift.core.ttypes.DDPGNetworkParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'tanh']), (3, 4, 'l2_decay', None, 0.01), (4, 4, 'learning_rate', None, 0.001))), None), (5, 13, 'action_rescale_map', (10, None, 15, (4, None, False), False), {}), (6, 12, 'state_feature_params', (&lt;class 'ml.rl.thrift.core.ttypes.StateFeatureParameters'&gt;, (None, (1, 15, 'state_feature_names_override', (11, 'UTF8', False), []), (2, 15, 'state_feature_hashes_override', (8, None, False), []))), None), (7, 12, 'evaluation', (&lt;class 'ml.rl.thrift.core.ttypes.EvaluationParameters'&gt;, (None, (1, 2, 'calc_cpe_in_training', None, True))), EvaluationParameters(calc_cpe_in_training=True)))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGModelParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGModelParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGModelParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGModelParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGModelParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.DDPGNetworkParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">DDPGNetworkParameters</code><span class="sig-paren">(</span><em>layers=[-1, 256, 128, 1], activations=['relu', 'relu', 'tanh'], l2_decay=0.01, learning_rate=0.001</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGNetworkParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- layers</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- activations</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- l2_decay</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- learning_rate</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGNetworkParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGNetworkParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.DDPGNetworkParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'tanh']), (3, 4, 'l2_decay', None, 0.01), (4, 4, 'learning_rate', None, 0.001))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGNetworkParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGNetworkParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGNetworkParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGNetworkParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGNetworkParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.DDPGTrainingParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">DDPGTrainingParameters</code><span class="sig-paren">(</span><em>minibatch_size=2048</em>, <em>final_layer_init=0.003</em>, <em>optimizer='ADAM'</em>, <em>warm_start_model_path=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGTrainingParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- minibatch_size</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- final_layer_init</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- optimizer</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- warm_start_model_path</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGTrainingParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGTrainingParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.DDPGTrainingParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 8, 'minibatch_size', None, 2048), (2, 4, 'final_layer_init', None, 0.003), (3, 11, 'optimizer', 'UTF8', 'ADAM'), (4, 11, 'warm_start_model_path', 'UTF8', None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGTrainingParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGTrainingParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGTrainingParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DDPGTrainingParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DDPGTrainingParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.DiscreteActionModelParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">DiscreteActionModelParameters</code><span class="sig-paren">(</span><em>actions=None</em>, <em>rl=None</em>, <em>training=None</em>, <em>rainbow=None</em>, <em>state_feature_params=None</em>, <em>target_action_distribution=None</em>, <em>evaluation=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DiscreteActionModelParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- actions</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- rl</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- rainbow</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- state_feature_params</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- target_action_distribution</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- evaluation</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 15, 'actions', (11, 'UTF8', False), None), (2, 12, 'rl', (&lt;class 'ml.rl.thrift.core.ttypes.RLParameters'&gt;, (None, (1, 4, 'gamma', None, 0.9), (2, 4, 'epsilon', None, 0.1), (3, 4, 'target_update_rate', None, 0.001), (4, 8, 'reward_burnin', None, 1), (5, 2, 'maxq_learning', None, True), (6, 13, 'reward_boost', (11, 'UTF8', 4, None, False), None), (7, 4, 'temperature', None, 0.01), (8, 8, 'softmax_policy', None, 1), (9, 2, 'use_seq_num_diff_as_time_diff', None, False), (10, 11, 'q_network_loss', 'UTF8', 'mse'), (11, 2, 'set_missing_value_to_zero', None, False), (12, 8, 'tensorboard_logging_freq', None, None), (13, 4, 'predictor_atol_check', None, 0), (14, 4, 'predictor_rtol_check', None, 5e-05), (15, 4, 'time_diff_unit_length', None, 1), (16, 8, 'multi_steps', None, None), (17, 4, 'ratio_different_predictions_tolerance', None, None))), None), (3, 12, 'training', (&lt;class 'ml.rl.thrift.core.ttypes.TrainingParameters'&gt;, (None, (1, 8, 'minibatch_size', None, 4096), (2, 4, 'learning_rate', None, 0.001), (3, 11, 'optimizer', 'UTF8', 'ADAM'), (4, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (5, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'linear']), (6, 11, 'lr_policy', 'UTF8', 'fixed'), (7, 4, 'lr_decay', None, 0.999), (8, 4, 'dropout_ratio', None, 0), (9, 11, 'warm_start_model_path', 'UTF8', None), (10, 12, 'cnn_parameters', (&lt;class 'ml.rl.thrift.core.ttypes.CNNParameters'&gt;, (None, (1, 15, 'conv_dims', (8, None, False), None), (2, 15, 'conv_height_kernels', (8, None, False), None), (3, 15, 'conv_width_kernels', (8, None, False), None), (4, 15, 'pool_kernels_strides', (8, None, False), None), (5, 15, 'pool_types', (11, 'UTF8', False), None), (6, 8, 'num_input_channels', None, None), (7, 8, 'input_height', None, None), (8, 8, 'input_width', None, None))), None), (11, 12, 'factorization_parameters', (&lt;class 'ml.rl.thrift.core.ttypes.FactorizationParameters'&gt;, (None, (1, 12, 'state', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None), (2, 12, 'action', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None))), None), (12, 4, 'l2_decay', None, 0.01), None, (14, 4, 'weight_init_min_std', None, 0), (15, 2, 'use_batch_norm', None, False), (16, 4, 'clip_grad_norm', None, None))), None), None, (5, 12, 'rainbow', (&lt;class 'ml.rl.thrift.core.ttypes.RainbowDQNParameters'&gt;, (None, (1, 2, 'double_q_learning', None, True), (2, 2, 'dueling_architecture', None, True), (3, 2, 'bcq', None, False), (4, 4, 'bcq_drop_threshold', None, 0.1))), None), None, (7, 12, 'state_feature_params', (&lt;class 'ml.rl.thrift.core.ttypes.StateFeatureParameters'&gt;, (None, (1, 15, 'state_feature_names_override', (11, 'UTF8', False), []), (2, 15, 'state_feature_hashes_override', (8, None, False), []))), None), (8, 15, 'target_action_distribution', (4, None, False), None), None, None, (11, 12, 'evaluation', (&lt;class 'ml.rl.thrift.core.ttypes.EvaluationParameters'&gt;, (None, (1, 2, 'calc_cpe_in_training', None, True))), EvaluationParameters(calc_cpe_in_training=True)))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.DiscreteActionModelParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.EvaluationParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">EvaluationParameters</code><span class="sig-paren">(</span><em>calc_cpe_in_training=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvaluationParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- calc_cpe_in_training</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.EvaluationParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvaluationParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.EvaluationParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 2, 'calc_cpe_in_training', None, True))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvaluationParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.EvaluationParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvaluationParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.EvaluationParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvaluationParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.EvolutionParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">EvolutionParameters</code><span class="sig-paren">(</span><em>population_size=1000</em>, <em>mutation_power=0.1</em>, <em>learning_rate=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvolutionParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- population_size</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- mutation_power</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- learning_rate</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.EvolutionParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvolutionParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.EvolutionParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 8, 'population_size', None, 1000), (2, 4, 'mutation_power', None, 0.1), (3, 4, 'learning_rate', None, 0.01))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvolutionParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.EvolutionParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvolutionParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.EvolutionParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.EvolutionParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.FactorizationParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">FactorizationParameters</code><span class="sig-paren">(</span><em>state=None</em>, <em>action=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FactorizationParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- state</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- action</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.FactorizationParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FactorizationParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.FactorizationParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 12, 'state', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None), (2, 12, 'action', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FactorizationParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.FactorizationParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FactorizationParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.FactorizationParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FactorizationParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.FeedForwardParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">FeedForwardParameters</code><span class="sig-paren">(</span><em>layers=[256, 128], activations=['relu', 'relu']</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FeedForwardParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- layers</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- activations</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.FeedForwardParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FeedForwardParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.FeedForwardParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FeedForwardParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.FeedForwardParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FeedForwardParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.FeedForwardParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.FeedForwardParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.KNNDQNModelParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">KNNDQNModelParameters</code><span class="sig-paren">(</span><em>rl=None</em>, <em>shared_training=None</em>, <em>actor_training=None</em>, <em>critic_training=None</em>, <em>num_actions=None</em>, <em>action_dim=None</em>, <em>k=None</em>, <em>evaluation=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.KNNDQNModelParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- rl</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- shared_training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- actor_training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- critic_training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- num_actions</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- action_dim</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- k</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- evaluation</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.KNNDQNModelParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.KNNDQNModelParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.KNNDQNModelParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 12, 'rl', (&lt;class 'ml.rl.thrift.core.ttypes.RLParameters'&gt;, (None, (1, 4, 'gamma', None, 0.9), (2, 4, 'epsilon', None, 0.1), (3, 4, 'target_update_rate', None, 0.001), (4, 8, 'reward_burnin', None, 1), (5, 2, 'maxq_learning', None, True), (6, 13, 'reward_boost', (11, 'UTF8', 4, None, False), None), (7, 4, 'temperature', None, 0.01), (8, 8, 'softmax_policy', None, 1), (9, 2, 'use_seq_num_diff_as_time_diff', None, False), (10, 11, 'q_network_loss', 'UTF8', 'mse'), (11, 2, 'set_missing_value_to_zero', None, False), (12, 8, 'tensorboard_logging_freq', None, None), (13, 4, 'predictor_atol_check', None, 0), (14, 4, 'predictor_rtol_check', None, 5e-05), (15, 4, 'time_diff_unit_length', None, 1), (16, 8, 'multi_steps', None, None), (17, 4, 'ratio_different_predictions_tolerance', None, None))), None), (2, 12, 'shared_training', (&lt;class 'ml.rl.thrift.core.ttypes.DDPGTrainingParameters'&gt;, (None, (1, 8, 'minibatch_size', None, 2048), (2, 4, 'final_layer_init', None, 0.003), (3, 11, 'optimizer', 'UTF8', 'ADAM'), (4, 11, 'warm_start_model_path', 'UTF8', None))), None), (3, 12, 'actor_training', (&lt;class 'ml.rl.thrift.core.ttypes.DDPGNetworkParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'tanh']), (3, 4, 'l2_decay', None, 0.01), (4, 4, 'learning_rate', None, 0.001))), None), (4, 12, 'critic_training', (&lt;class 'ml.rl.thrift.core.ttypes.DDPGNetworkParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'tanh']), (3, 4, 'l2_decay', None, 0.01), (4, 4, 'learning_rate', None, 0.001))), None), (5, 10, 'num_actions', None, None), (6, 8, 'action_dim', None, None), (7, 10, 'k', None, None), (8, 12, 'evaluation', (&lt;class 'ml.rl.thrift.core.ttypes.EvaluationParameters'&gt;, (None, (1, 2, 'calc_cpe_in_training', None, True))), EvaluationParameters(calc_cpe_in_training=True)))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.KNNDQNModelParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.KNNDQNModelParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.KNNDQNModelParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.KNNDQNModelParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.KNNDQNModelParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.MDNRNNParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">MDNRNNParameters</code><span class="sig-paren">(</span><em>hidden_size=64</em>, <em>num_hidden_layers=2</em>, <em>minibatch_size=16</em>, <em>learning_rate=0.001</em>, <em>num_gaussians=5</em>, <em>train_data_percentage=60</em>, <em>validation_data_percentage=20</em>, <em>test_data_percentage=20</em>, <em>reward_loss_weight=1</em>, <em>next_state_loss_weight=1</em>, <em>not_terminal_loss_weight=1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.MDNRNNParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- hidden_size</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- num_hidden_layers</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- minibatch_size</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- learning_rate</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- num_gaussians</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- train_data_percentage</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- validation_data_percentage</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- test_data_percentage</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- reward_loss_weight</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- next_state_loss_weight</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- not_terminal_loss_weight</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.MDNRNNParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.MDNRNNParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.MDNRNNParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 8, 'hidden_size', None, 64), (2, 8, 'num_hidden_layers', None, 2), (3, 8, 'minibatch_size', None, 16), (4, 4, 'learning_rate', None, 0.001), (5, 8, 'num_gaussians', None, 5), (6, 4, 'train_data_percentage', None, 60), (7, 4, 'validation_data_percentage', None, 20), (8, 4, 'test_data_percentage', None, 20), (9, 4, 'reward_loss_weight', None, 1), (10, 4, 'next_state_loss_weight', None, 1), (11, 4, 'not_terminal_loss_weight', None, 1))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.MDNRNNParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.MDNRNNParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.MDNRNNParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.MDNRNNParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.MDNRNNParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.NormalizationParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">NormalizationParameters</code><span class="sig-paren">(</span><em>feature_type=None</em>, <em>boxcox_lambda=None</em>, <em>boxcox_shift=None</em>, <em>mean=None</em>, <em>stddev=None</em>, <em>possible_values=None</em>, <em>quantiles=None</em>, <em>min_value=None</em>, <em>max_value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.NormalizationParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- feature_type</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- boxcox_lambda</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- boxcox_shift</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- mean</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- stddev</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- possible_values</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- quantiles</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- min_value</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- max_value</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.NormalizationParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.NormalizationParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.NormalizationParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 11, 'feature_type', 'UTF8', None), (2, 4, 'boxcox_lambda', None, None), (3, 4, 'boxcox_shift', None, None), (4, 4, 'mean', None, None), (5, 4, 'stddev', None, None), (6, 15, 'possible_values', (10, None, False), None), (7, 15, 'quantiles', (4, None, False), None), (8, 4, 'min_value', None, None), (9, 4, 'max_value', None, None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.NormalizationParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.NormalizationParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.NormalizationParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.NormalizationParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.NormalizationParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.OpenAIGymParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">OpenAIGymParameters</code><span class="sig-paren">(</span><em>num_episodes=1000</em>, <em>max_steps=200</em>, <em>train_every_ts=1</em>, <em>train_after_ts=1</em>, <em>test_every_ts=2000</em>, <em>test_after_ts=1</em>, <em>num_train_batches=1</em>, <em>avg_over_num_episodes=100</em>, <em>offline_train_epochs=30</em>, <em>epsilon_decay=1</em>, <em>minimum_epsilon=None</em>, <em>solved_reward_threshold=None</em>, <em>max_episodes_to_run_after_solved=None</em>, <em>stop_training_after_solved=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OpenAIGymParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- num_episodes</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- max_steps</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- train_every_ts</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- train_after_ts</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- test_every_ts</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- test_after_ts</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- num_train_batches</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- avg_over_num_episodes</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- offline_train_epochs</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- epsilon_decay</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- minimum_epsilon</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- solved_reward_threshold</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- max_episodes_to_run_after_solved</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- stop_training_after_solved</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.OpenAIGymParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OpenAIGymParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.OpenAIGymParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 8, 'num_episodes', None, 1000), (2, 8, 'max_steps', None, 200), (3, 8, 'train_every_ts', None, 1), (4, 8, 'train_after_ts', None, 1), (5, 8, 'test_every_ts', None, 2000), (6, 8, 'test_after_ts', None, 1), (7, 8, 'num_train_batches', None, 1), (8, 8, 'avg_over_num_episodes', None, 100), (9, 8, 'offline_train_epochs', None, 30), (10, 4, 'epsilon_decay', None, 1), (11, 4, 'minimum_epsilon', None, None), (12, 8, 'solved_reward_threshold', None, None), (13, 8, 'max_episodes_to_run_after_solved', None, None), (14, 2, 'stop_training_after_solved', None, None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OpenAIGymParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.OpenAIGymParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OpenAIGymParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.OpenAIGymParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OpenAIGymParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.OptimizerParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">OptimizerParameters</code><span class="sig-paren">(</span><em>optimizer='ADAM'</em>, <em>learning_rate=0.001</em>, <em>l2_decay=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OptimizerParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- optimizer</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- learning_rate</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- l2_decay</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.OptimizerParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OptimizerParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.OptimizerParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 11, 'optimizer', 'UTF8', 'ADAM'), (2, 4, 'learning_rate', None, 0.001), (3, 4, 'l2_decay', None, 0.01))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OptimizerParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.OptimizerParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OptimizerParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.OptimizerParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.OptimizerParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.RLParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">RLParameters</code><span class="sig-paren">(</span><em>gamma=0.9</em>, <em>epsilon=0.1</em>, <em>target_update_rate=0.001</em>, <em>reward_burnin=1</em>, <em>maxq_learning=True</em>, <em>reward_boost=None</em>, <em>temperature=0.01</em>, <em>softmax_policy=1</em>, <em>use_seq_num_diff_as_time_diff=False</em>, <em>q_network_loss='mse'</em>, <em>set_missing_value_to_zero=False</em>, <em>tensorboard_logging_freq=None</em>, <em>predictor_atol_check=0</em>, <em>predictor_rtol_check=5e-05</em>, <em>time_diff_unit_length=1</em>, <em>multi_steps=None</em>, <em>ratio_different_predictions_tolerance=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RLParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- gamma</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- epsilon</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- target_update_rate</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- reward_burnin</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- maxq_learning</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- reward_boost</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- temperature</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- softmax_policy</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- use_seq_num_diff_as_time_diff</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- q_network_loss</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- set_missing_value_to_zero</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- tensorboard_logging_freq</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- predictor_atol_check</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- predictor_rtol_check</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- time_diff_unit_length</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- multi_steps</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- ratio_different_predictions_tolerance</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.RLParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RLParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.RLParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 4, 'gamma', None, 0.9), (2, 4, 'epsilon', None, 0.1), (3, 4, 'target_update_rate', None, 0.001), (4, 8, 'reward_burnin', None, 1), (5, 2, 'maxq_learning', None, True), (6, 13, 'reward_boost', (11, 'UTF8', 4, None, False), None), (7, 4, 'temperature', None, 0.01), (8, 8, 'softmax_policy', None, 1), (9, 2, 'use_seq_num_diff_as_time_diff', None, False), (10, 11, 'q_network_loss', 'UTF8', 'mse'), (11, 2, 'set_missing_value_to_zero', None, False), (12, 8, 'tensorboard_logging_freq', None, None), (13, 4, 'predictor_atol_check', None, 0), (14, 4, 'predictor_rtol_check', None, 5e-05), (15, 4, 'time_diff_unit_length', None, 1), (16, 8, 'multi_steps', None, None), (17, 4, 'ratio_different_predictions_tolerance', None, None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RLParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.RLParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RLParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.RLParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RLParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.RainbowDQNParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">RainbowDQNParameters</code><span class="sig-paren">(</span><em>double_q_learning=True</em>, <em>dueling_architecture=True</em>, <em>bcq=False</em>, <em>bcq_drop_threshold=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RainbowDQNParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- double_q_learning</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- dueling_architecture</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- bcq</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- bcq_drop_threshold</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.RainbowDQNParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RainbowDQNParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.RainbowDQNParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 2, 'double_q_learning', None, True), (2, 2, 'dueling_architecture', None, True), (3, 2, 'bcq', None, False), (4, 4, 'bcq_drop_threshold', None, 0.1))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RainbowDQNParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.RainbowDQNParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RainbowDQNParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.RainbowDQNParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.RainbowDQNParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.SACModelParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">SACModelParameters</code><span class="sig-paren">(</span><em>rl=RLParameters(gamma=0.9, epsilon=0.1, target_update_rate=0.001, reward_burnin=100, maxq_learning=False, reward_boost=None, temperature=0.01, softmax_policy=1, use_seq_num_diff_as_time_diff=False, q_network_loss='mse', set_missing_value_to_zero=False, tensorboard_logging_freq=100, predictor_atol_check=0, predictor_rtol_check=5e-05, time_diff_unit_length=1, multi_steps=None, ratio_different_predictions_tolerance=None), training=SACTrainingParameters(minibatch_size=1024, q_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), value_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), actor_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), use_2_q_functions=True, entropy_temperature=0.1, warm_start_model_path=None, logged_action_uniform_prior=True), q_network=FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu']), value_network=FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu']), actor_network=FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu']), state_feature_params=None, evaluation=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACModelParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- rl</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- training</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- q_network</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- value_network</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- actor_network</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- state_feature_params</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- evaluation</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.SACModelParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACModelParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.SACModelParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 12, 'rl', (&lt;class 'ml.rl.thrift.core.ttypes.RLParameters'&gt;, (None, (1, 4, 'gamma', None, 0.9), (2, 4, 'epsilon', None, 0.1), (3, 4, 'target_update_rate', None, 0.001), (4, 8, 'reward_burnin', None, 1), (5, 2, 'maxq_learning', None, True), (6, 13, 'reward_boost', (11, 'UTF8', 4, None, False), None), (7, 4, 'temperature', None, 0.01), (8, 8, 'softmax_policy', None, 1), (9, 2, 'use_seq_num_diff_as_time_diff', None, False), (10, 11, 'q_network_loss', 'UTF8', 'mse'), (11, 2, 'set_missing_value_to_zero', None, False), (12, 8, 'tensorboard_logging_freq', None, None), (13, 4, 'predictor_atol_check', None, 0), (14, 4, 'predictor_rtol_check', None, 5e-05), (15, 4, 'time_diff_unit_length', None, 1), (16, 8, 'multi_steps', None, None), (17, 4, 'ratio_different_predictions_tolerance', None, None))), RLParameters(gamma=0.9, epsilon=0.1, target_update_rate=0.001, reward_burnin=100, maxq_learning=False, reward_boost=None, temperature=0.01, softmax_policy=1, use_seq_num_diff_as_time_diff=False, q_network_loss='mse', set_missing_value_to_zero=False, tensorboard_logging_freq=100, predictor_atol_check=0, predictor_rtol_check=5e-05, time_diff_unit_length=1, multi_steps=None, ratio_different_predictions_tolerance=None)), (2, 12, 'training', (&lt;class 'ml.rl.thrift.core.ttypes.SACTrainingParameters'&gt;, (None, (1, 8, 'minibatch_size', None, 1024), (2, 12, 'q_network_optimizer', (&lt;class 'ml.rl.thrift.core.ttypes.OptimizerParameters'&gt;, (None, (1, 11, 'optimizer', 'UTF8', 'ADAM'), (2, 4, 'learning_rate', None, 0.001), (3, 4, 'l2_decay', None, 0.01))), OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01)), (3, 12, 'value_network_optimizer', (&lt;class 'ml.rl.thrift.core.ttypes.OptimizerParameters'&gt;, (None, (1, 11, 'optimizer', 'UTF8', 'ADAM'), (2, 4, 'learning_rate', None, 0.001), (3, 4, 'l2_decay', None, 0.01))), OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01)), (4, 12, 'actor_network_optimizer', (&lt;class 'ml.rl.thrift.core.ttypes.OptimizerParameters'&gt;, (None, (1, 11, 'optimizer', 'UTF8', 'ADAM'), (2, 4, 'learning_rate', None, 0.001), (3, 4, 'l2_decay', None, 0.01))), OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01)), (5, 2, 'use_2_q_functions', None, True), (6, 4, 'entropy_temperature', None, 0.1), (7, 11, 'warm_start_model_path', 'UTF8', None), (8, 2, 'logged_action_uniform_prior', None, True))), SACTrainingParameters(minibatch_size=1024, q_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), value_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), actor_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), use_2_q_functions=True, entropy_temperature=0.1, warm_start_model_path=None, logged_action_uniform_prior=True)), (3, 12, 'q_network', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu'])), (4, 12, 'value_network', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu'])), (5, 12, 'actor_network', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu'])), None, None, (8, 12, 'state_feature_params', (&lt;class 'ml.rl.thrift.core.ttypes.StateFeatureParameters'&gt;, (None, (1, 15, 'state_feature_names_override', (11, 'UTF8', False), []), (2, 15, 'state_feature_hashes_override', (8, None, False), []))), None), (9, 12, 'evaluation', (&lt;class 'ml.rl.thrift.core.ttypes.EvaluationParameters'&gt;, (None, (1, 2, 'calc_cpe_in_training', None, True))), EvaluationParameters(calc_cpe_in_training=True)))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACModelParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.SACModelParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACModelParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.SACModelParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACModelParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.SACTrainingParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">SACTrainingParameters</code><span class="sig-paren">(</span><em>minibatch_size=1024</em>, <em>q_network_optimizer=OptimizerParameters(optimizer='ADAM'</em>, <em>learning_rate=0.001</em>, <em>l2_decay=0.01)</em>, <em>value_network_optimizer=OptimizerParameters(optimizer='ADAM'</em>, <em>learning_rate=0.001</em>, <em>l2_decay=0.01)</em>, <em>actor_network_optimizer=OptimizerParameters(optimizer='ADAM'</em>, <em>learning_rate=0.001</em>, <em>l2_decay=0.01)</em>, <em>use_2_q_functions=True</em>, <em>entropy_temperature=0.1</em>, <em>warm_start_model_path=None</em>, <em>logged_action_uniform_prior=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACTrainingParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- minibatch_size</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- q_network_optimizer</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- value_network_optimizer</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- actor_network_optimizer</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- use_2_q_functions</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- entropy_temperature</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- warm_start_model_path</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- logged_action_uniform_prior</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.SACTrainingParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACTrainingParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.SACTrainingParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 8, 'minibatch_size', None, 1024), (2, 12, 'q_network_optimizer', (&lt;class 'ml.rl.thrift.core.ttypes.OptimizerParameters'&gt;, (None, (1, 11, 'optimizer', 'UTF8', 'ADAM'), (2, 4, 'learning_rate', None, 0.001), (3, 4, 'l2_decay', None, 0.01))), OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01)), (3, 12, 'value_network_optimizer', (&lt;class 'ml.rl.thrift.core.ttypes.OptimizerParameters'&gt;, (None, (1, 11, 'optimizer', 'UTF8', 'ADAM'), (2, 4, 'learning_rate', None, 0.001), (3, 4, 'l2_decay', None, 0.01))), OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01)), (4, 12, 'actor_network_optimizer', (&lt;class 'ml.rl.thrift.core.ttypes.OptimizerParameters'&gt;, (None, (1, 11, 'optimizer', 'UTF8', 'ADAM'), (2, 4, 'learning_rate', None, 0.001), (3, 4, 'l2_decay', None, 0.01))), OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01)), (5, 2, 'use_2_q_functions', None, True), (6, 4, 'entropy_temperature', None, 0.1), (7, 11, 'warm_start_model_path', 'UTF8', None), (8, 2, 'logged_action_uniform_prior', None, True))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACTrainingParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.SACTrainingParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACTrainingParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.SACTrainingParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.SACTrainingParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.StateFeatureParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">StateFeatureParameters</code><span class="sig-paren">(</span><em>state_feature_names_override=[]</em>, <em>state_feature_hashes_override=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.StateFeatureParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- state_feature_names_override</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- state_feature_hashes_override</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.StateFeatureParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.StateFeatureParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.StateFeatureParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 15, 'state_feature_names_override', (11, 'UTF8', False), []), (2, 15, 'state_feature_hashes_override', (8, None, False), []))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.StateFeatureParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.StateFeatureParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.StateFeatureParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.StateFeatureParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.StateFeatureParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.thrift.core.ttypes.TrainingParameters">
+<em class="property">class </em><code class="descclassname">ml.rl.thrift.core.ttypes.</code><code class="descname">TrainingParameters</code><span class="sig-paren">(</span><em>minibatch_size=4096, learning_rate=0.001, optimizer='ADAM', layers=[-1, 256, 128, 1], activations=['relu', 'relu', 'linear'], lr_policy='fixed', lr_decay=0.999, dropout_ratio=0, warm_start_model_path=None, cnn_parameters=None, factorization_parameters=None, l2_decay=0.01, weight_init_min_std=0, use_batch_norm=False, clip_grad_norm=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.TrainingParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">- minibatch_size</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- learning_rate</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- optimizer</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- layers</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- activations</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- lr_policy</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- lr_decay</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- dropout_ratio</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- warm_start_model_path</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- cnn_parameters</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- factorization_parameters</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- l2_decay</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- weight_init_min_std</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- use_batch_norm</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">- clip_grad_norm</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.TrainingParameters.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>iprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.TrainingParameters.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.thrift.core.ttypes.TrainingParameters.thrift_spec">
+<code class="descname">thrift_spec</code><em class="property"> = (None, (1, 8, 'minibatch_size', None, 4096), (2, 4, 'learning_rate', None, 0.001), (3, 11, 'optimizer', 'UTF8', 'ADAM'), (4, 15, 'layers', (8, None, False), [-1, 256, 128, 1]), (5, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu', 'linear']), (6, 11, 'lr_policy', 'UTF8', 'fixed'), (7, 4, 'lr_decay', None, 0.999), (8, 4, 'dropout_ratio', None, 0), (9, 11, 'warm_start_model_path', 'UTF8', None), (10, 12, 'cnn_parameters', (&lt;class 'ml.rl.thrift.core.ttypes.CNNParameters'&gt;, (None, (1, 15, 'conv_dims', (8, None, False), None), (2, 15, 'conv_height_kernels', (8, None, False), None), (3, 15, 'conv_width_kernels', (8, None, False), None), (4, 15, 'pool_kernels_strides', (8, None, False), None), (5, 15, 'pool_types', (11, 'UTF8', False), None), (6, 8, 'num_input_channels', None, None), (7, 8, 'input_height', None, None), (8, 8, 'input_width', None, None))), None), (11, 12, 'factorization_parameters', (&lt;class 'ml.rl.thrift.core.ttypes.FactorizationParameters'&gt;, (None, (1, 12, 'state', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None), (2, 12, 'action', (&lt;class 'ml.rl.thrift.core.ttypes.FeedForwardParameters'&gt;, (None, (1, 15, 'layers', (8, None, False), [256, 128]), (2, 15, 'activations', (11, 'UTF8', False), ['relu', 'relu']))), None))), None), (12, 4, 'l2_decay', None, 0.01), None, (14, 4, 'weight_init_min_std', None, 0), (15, 2, 'use_batch_norm', None, False), (16, 4, 'clip_grad_norm', None, None))</em><a class="headerlink" href="#ml.rl.thrift.core.ttypes.TrainingParameters.thrift_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.TrainingParameters.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.TrainingParameters.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.thrift.core.ttypes.TrainingParameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>oprot</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.thrift.core.ttypes.TrainingParameters.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ml.rl.thrift.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.thrift.core" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+ml.rl.training.rl\_predictor\_pytorch module
+============================================
+
+.. automodule:: ml.rl.training.rl_predictor_pytorch
+    :members:
+    :undoc-members:
+    :show-inheritance:

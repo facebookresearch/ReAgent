@@ -1,0 +1,7 @@
+ml.rl.tensorboardX module
+=========================
+
+.. automodule:: ml.rl.tensorboardX
+    :members:
+    :undoc-members:
+    :show-inheritance:

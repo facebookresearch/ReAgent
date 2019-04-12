@@ -1,0 +1,18 @@
+ml.rl.thrift.core package
+=========================
+
+Submodules
+----------
+
+.. toctree::
+
+   ml.rl.thrift.core.constants
+   ml.rl.thrift.core.ttypes
+
+Module contents
+---------------
+
+.. automodule:: ml.rl.thrift.core
+    :members:
+    :undoc-members:
+    :show-inheritance:

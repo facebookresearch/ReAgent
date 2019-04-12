@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.training.ddpg_trainer module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.training.ddpg_trainer module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.training.ddpg_trainer module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.training.ddpg_trainer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.training.ddpg_trainer">
+<span id="ml-rl-training-ddpg-trainer-module"></span><h1>ml.rl.training.ddpg_trainer module<a class="headerlink" href="#module-ml.rl.training.ddpg_trainer" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.training.ddpg_trainer.ActorNet">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">ActorNet</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.ActorNet.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span> &#x2192; torch.FloatTensor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNet.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass for actor network. Assumes activation names are
+valid pytorch activation names.
+:param state state as list of state features</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.ddpg_trainer.CriticNet">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">CriticNet</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em>, <em>action_dim</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.CriticNet.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>state_action</em><span class="sig-paren">)</span> &#x2192; torch.FloatTensor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNet.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass for critic network. Assumes activation names are
+valid pytorch activation names.
+:param state_action tensor of state &amp; actions concatted</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.CriticNet.forward_split">
+<code class="descname">forward_split</code><span class="sig-paren">(</span><em>state</em>, <em>action</em><span class="sig-paren">)</span> &#x2192; torch.FloatTensor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNet.forward_split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">DDPGTrainer</code><span class="sig-paren">(</span><em>parameters, state_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], action_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], min_action_range_tensor_serving: torch.Tensor, max_action_range_tensor_serving: torch.Tensor, use_gpu: bool = False, use_all_avail_gpus: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ml.rl.training.rl_trainer_pytorch.html#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.export">
+<code class="descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ml.rl.training.ddpg_predictor.DDPGPredictor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.internal_prediction">
+<code class="descname">internal_prediction</code><span class="sig-paren">(</span><em>states</em>, <em>noisy=False</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of actions output from actor network
+:param states states as list of states to produce actions for</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.predictor">
+<code class="descname">predictor</code><span class="sig-paren">(</span><em>actor=True</em><span class="sig-paren">)</span> &#x2192; ml.rl.training.ddpg_predictor.DDPGPredictor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.predictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a DDPGPredictor.
+:param actor export the actor or the critic. If actor == True export
+the actor network, else export the critic network.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>training_samples: ml.rl.training.training_data_page.TrainingDataPage</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">OrnsteinUhlenbeckProcessNoise</code><span class="sig-paren">(</span><em>action_dim</em>, <em>theta=0.15</em>, <em>sigma=0.2</em>, <em>mu=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Exploration noise process with temporally correlated noise. Used to
+explore in physical environments w/momentum. Outlined in DDPG paper.</p>
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.get_noise">
+<code class="descname">get_noise</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.get_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>dx = theta * (mu − prev_noise) + sigma * new_gaussian_noise</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.training.ddpg_trainer.construct_action_scale_tensor">
+<code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">construct_action_scale_tensor</code><span class="sig-paren">(</span><em>action_norm_params</em>, <em>action_scale_overrides</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.construct_action_scale_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct tensors that will rescale each action value on each dimension i
+from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.training.ddpg_trainer.fan_in_init">
+<code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">fan_in_init</code><span class="sig-paren">(</span><em>weight_tensor</em>, <em>bias_tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.fan_in_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fan in initialization as described in DDPG paper.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

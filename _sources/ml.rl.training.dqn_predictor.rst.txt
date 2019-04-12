@@ -1,0 +1,7 @@
+ml.rl.training.dqn\_predictor module
+====================================
+
+.. automodule:: ml.rl.training.dqn_predictor
+    :members:
+    :undoc-members:
+    :show-inheritance:

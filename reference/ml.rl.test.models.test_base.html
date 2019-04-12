@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.test.models.test_base module &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ml.rl.test.models.test_base module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.test.models.test_base module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/ml.rl.test.models.test_base.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ml.rl.test.models.test_base">
+<span id="ml-rl-test-models-test-base-module"></span><h1>ml.rl.test.models.test_base module<a class="headerlink" href="#module-ml.rl.test.models.test_base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ml.rl.test.models.test_base.Model">
+<em class="property">class </em><code class="descclassname">ml.rl.test.models.test_base.</code><code class="descname">Model</code><a class="headerlink" href="#ml.rl.test.models.test_base.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.models.base.ModelBase</span></code></p>
+<dl class="method">
+<dt id="ml.rl.test.models.test_base.Model.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>sa</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.Model.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input</strong> – An (nested) NamedTuple of torch.Tensor</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An NamedTuple of torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.models.test_base.Model.input_prototype">
+<code class="descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.Model.input_prototype" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.test.models.test_base.ModelOutput">
+<em class="property">class </em><code class="descclassname">ml.rl.test.models.test_base.</code><code class="descname">ModelOutput</code><span class="sig-paren">(</span><em>sum</em>, <em>mul</em>, <em>plus_one</em>, <em>linear</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.ModelOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="ml.rl.test.models.test_base.ModelOutput.linear">
+<code class="descname">linear</code><a class="headerlink" href="#ml.rl.test.models.test_base.ModelOutput.linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.models.test_base.ModelOutput.mul">
+<code class="descname">mul</code><a class="headerlink" href="#ml.rl.test.models.test_base.ModelOutput.mul" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.models.test_base.ModelOutput.plus_one">
+<code class="descname">plus_one</code><a class="headerlink" href="#ml.rl.test.models.test_base.ModelOutput.plus_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ml.rl.test.models.test_base.ModelOutput.sum">
+<code class="descname">sum</code><a class="headerlink" href="#ml.rl.test.models.test_base.ModelOutput.sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.test.models.test_base.TestBase">
+<em class="property">class </em><code class="descclassname">ml.rl.test.models.test_base.</code><code class="descname">TestBase</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.TestBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="ml.rl.test.models.test_base.TestBase.test_export_to_buffer">
+<code class="descname">test_export_to_buffer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.TestBase.test_export_to_buffer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.models.test_base.TestBase.test_get_predictor_export_meta_and_workspace">
+<code class="descname">test_get_predictor_export_meta_and_workspace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.TestBase.test_get_predictor_export_meta_and_workspace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.models.test_base.TestBase.test_get_predictor_export_meta_and_workspace_full">
+<code class="descname">test_get_predictor_export_meta_and_workspace_full</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.TestBase.test_get_predictor_export_meta_and_workspace_full" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.test.models.test_base.TestBase.test_get_predictor_export_meta_and_workspace_with_feature_extractor">
+<code class="descname">test_get_predictor_export_meta_and_workspace_with_feature_extractor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.TestBase.test_get_predictor_export_meta_and_workspace_with_feature_extractor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.test.models.test_base.TestOutputTransformer">
+<em class="property">class </em><code class="descclassname">ml.rl.test.models.test_base.</code><code class="descname">TestOutputTransformer</code><a class="headerlink" href="#ml.rl.test.models.test_base.TestOutputTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.models.output_transformer.OutputTransformerBase</span></code></p>
+<dl class="method">
+<dt id="ml.rl.test.models.test_base.TestOutputTransformer.create_net">
+<code class="descname">create_net</code><span class="sig-paren">(</span><em>original_output</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.test.models.test_base.TestOutputTransformer.create_net" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

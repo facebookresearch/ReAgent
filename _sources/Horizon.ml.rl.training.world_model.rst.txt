@@ -1,0 +1,22 @@
+Horizon.ml.rl.training.world\_model package
+===========================================
+
+Submodules
+----------
+
+Horizon.ml.rl.training.world\_model.mdnrnn\_trainer module
+----------------------------------------------------------
+
+.. automodule:: Horizon.ml.rl.training.world_model.mdnrnn_trainer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: Horizon.ml.rl.training.world_model
+    :members:
+    :undoc-members:
+    :show-inheritance:

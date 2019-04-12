@@ -1,0 +1,7 @@
+ml.rl.training.imitator\_training module
+========================================
+
+.. automodule:: ml.rl.training.imitator_training
+    :members:
+    :undoc-members:
+    :show-inheritance:

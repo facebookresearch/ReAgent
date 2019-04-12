@@ -1,0 +1,7 @@
+ml.rl.training.ddpg\_trainer module
+===================================
+
+.. automodule:: ml.rl.training.ddpg_trainer
+    :members:
+    :undoc-members:
+    :show-inheritance:
