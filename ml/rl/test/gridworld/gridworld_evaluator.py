@@ -2,13 +2,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import numpy.testing as npt
 import torch
 from ml.rl.caffe_utils import softmax
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.test.gridworld.gridworld import Gridworld
+from ml.rl.test.gridworld.gridworld_base import GridworldBase
+from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 
 
 logger = logging.getLogger(__name__)
@@ -16,8 +19,14 @@ logger = logging.getLogger(__name__)
 
 class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
+    ABS_ERR_THRES = 0.02
 
-    def __init__(self, env, assume_optimal_policy: bool, gamma) -> None:
+    def __init__(
+        self,
+        env: Union[Gridworld, GridworldContinuous],
+        assume_optimal_policy: bool,
+        gamma: float,
+    ) -> None:
         super().__init__(None, gamma, None, metrics_to_score=["reward"])
 
         self._env = env
@@ -117,7 +126,9 @@ class GridworldEvaluator(Evaluator):
             logged_value = self.logged_values[x][0]
             target_value = prediction[x][int_action]
             error = abs(logged_value - target_value)
-            if num_error_prints < 10 and error > 0.2:
+            if num_error_prints < 10 and error > self.ABS_ERR_THRES * (
+                GridworldBase.REWARD_SCALE ** 2
+            ):
                 print(
                     "GOT {}-th STATE (POS: {}) and ACTION {} WRONG. Logged Q-Value: {}, Predicted Q-Value: {}".format(
                         x,

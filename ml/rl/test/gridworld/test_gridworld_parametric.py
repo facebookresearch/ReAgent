@@ -99,8 +99,6 @@ class TestGridworldParametric(GridworldTestBase):
             environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
-        if use_all_avail_gpus:
-            self.tolerance_threshold = 0.11
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
             environment, None, use_gpu, use_all_avail_gpus
         )

@@ -64,6 +64,8 @@ class GridworldBase(Environment):
 
     transition_noise = 0.01  # nonzero means stochastic transition
 
+    REWARD_SCALE = 10.0
+
     def __init__(self):
         self.reset()
         self._optimal_policy = self._compute_optimal()
@@ -177,7 +179,7 @@ class GridworldBase(Environment):
         return self._state
 
     def reward(self, state):
-        return 1 if self.grid[self._pos(state)] == G else 0
+        return self.REWARD_SCALE if self.grid[self._pos(state)] == G else 0
 
     def transition_probabilities(self, state, action):
         y, x = self._pos(state)
