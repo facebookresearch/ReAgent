@@ -22,4 +22,12 @@ Detailed instructions on how to use Horizon can be found [here](docs/usage.md).
 #### License
 Horizon is released under a BSD license.  Find out more about it [here](LICENSE).
 
+#### Citing
+@article{gauci2018horizon,
+  title={Horizon: Facebook's Open Source Applied Reinforcement Learning Platform},
+  author={Gauci, Jason and Conti, Edoardo and Liang, Yitao and Virochsiri, Kittipat and Chen, Zhengxing and He, Yuchen and Kaden, Zachary and Narayanan, Vivek and Ye, Xiaohui},
+  journal={arXiv preprint arXiv:1811.00260},
+  year={2018}
+}
+
 <img src="logo/horizon_logo.png" alt="Logo" width="200"/>
