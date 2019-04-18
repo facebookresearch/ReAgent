@@ -36,17 +36,17 @@ Algorithms Supported
 Installation
 ~~~~~~~~~~~~
 
-Horizon can be installed via. Docker or manually. Detailed instructions on how to install Horizon can be found `here <docs/installation.md>`_.
+Horizon can be installed via. Docker or manually. Detailed instructions on how to install Horizon can be found `here <docs/installation>`_.
 
 Usage
 ~~~~~
 
-Detailed instructions on how to use Horizon can be found `here <docs/usage.md>`_.
+Detailed instructions on how to use Horizon can be found `here <docs/usage>`_.
 
 License
 ~~~~~~~
 
-Horizon is released under a BSD license.  Find out more about it `here <LICENSE>`_.
+Horizon is released under a BSD license.  Find out more about it `here <docs/license>`_.
 
 Citing
 ~~~~~~
@@ -58,4 +58,6 @@ Citing
   year={2018}
 }
 
-:raw-html-m2r:`<img src="logo/horizon_logo.png" alt="Logo" width="200"/>`
+.. image:: logo/horizon_logo.png
+   :alt: Logo
+   :width: 200px
