@@ -59,8 +59,12 @@ Table of Contents
 
     Installation <installation>
     Usage <usage>
-
     License <license>
+
+.. toctree::
+    :caption: Advanced Topics
+
+    Distributed Training <distributed>
 
 .. toctree::
     :caption: Package Reference
