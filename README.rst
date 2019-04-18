@@ -58,6 +58,5 @@ Citing
   year={2018}
 }
 
-.. image:: logo/horizon_logo.png
+.. image:: logo/horizon_logo_256.png
    :alt: Logo
-   :width: 200px
