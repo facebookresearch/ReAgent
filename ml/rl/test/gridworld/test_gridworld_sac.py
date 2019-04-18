@@ -55,7 +55,7 @@ class TestGridworldSAC(GridworldTestBase):
         self, use_2_q_functions=False, logged_action_uniform_prior=True
     ):
         return SACModelParameters(
-            rl=RLParameters(gamma=DISCOUNT, target_update_rate=0.5, reward_burnin=100),
+            rl=RLParameters(gamma=DISCOUNT, target_update_rate=0.5),
             training=SACTrainingParameters(
                 minibatch_size=self.minibatch_size,
                 use_2_q_functions=use_2_q_functions,

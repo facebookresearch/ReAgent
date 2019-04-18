@@ -33,12 +33,7 @@ class TestGridworldDdpg(GridworldTestBase):
 
     def get_ddpg_parameters(self):
         return DDPGModelParameters(
-            rl=RLParameters(
-                gamma=DISCOUNT,
-                target_update_rate=0.5,
-                reward_burnin=100,
-                maxq_learning=True,
-            ),
+            rl=RLParameters(gamma=DISCOUNT, target_update_rate=0.5, maxq_learning=True),
             shared_training=DDPGTrainingParameters(
                 minibatch_size=self.minibatch_size,
                 final_layer_init=0.003,

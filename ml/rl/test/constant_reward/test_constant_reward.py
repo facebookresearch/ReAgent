@@ -27,7 +27,7 @@ class TestConstantReward(unittest.TestCase):
         self.state_dims = 5
         self.action_dims = 2
         self.num_samples = 10000
-        self.minibatch_size = 128
+        self.minibatch_size = 1024
         self.epochs = 25
         np.random.seed(0)
         random.seed(0)
@@ -39,12 +39,7 @@ class TestConstantReward(unittest.TestCase):
         env.seed(42)
         maxq_parameters = DiscreteActionModelParameters(
             actions=env.actions,
-            rl=RLParameters(
-                gamma=0.99,
-                target_update_rate=0.9,
-                reward_burnin=100,
-                maxq_learning=True,
-            ),
+            rl=RLParameters(gamma=0.95, target_update_rate=0.9, maxq_learning=True),
             rainbow=RainbowDQNParameters(
                 double_q_learning=True, dueling_architecture=False
             ),
@@ -94,8 +89,8 @@ class TestConstantReward(unittest.TestCase):
                 )
             )
 
-        # Q value should converge to very close to 100
+        # Q value should converge to very close to 20
         avg_q_value_after_training = torch.mean(maxq_trainer.all_action_scores)
 
-        self.assertLess(avg_q_value_after_training, 102)
-        self.assertGreater(avg_q_value_after_training, 98)
+        self.assertLess(avg_q_value_after_training, 22)
+        self.assertGreater(avg_q_value_after_training, 18)

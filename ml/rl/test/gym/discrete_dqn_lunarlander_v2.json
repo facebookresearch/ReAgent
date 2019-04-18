@@ -6,7 +6,7 @@
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.001,
-    "reward_burnin": 1,
+    
     "maxq_learning": 1,
     "epsilon": 1,
     "temperature": 0.35,

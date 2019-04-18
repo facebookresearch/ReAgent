@@ -41,7 +41,6 @@ class TestGridworld(GridworldTestBase):
         rl_parameters = RLParameters(
             gamma=DISCOUNT,
             target_update_rate=1.0,
-            reward_burnin=10,
             maxq_learning=False,
             reward_boost=reward_shape,
         )

@@ -90,7 +90,6 @@ def update_model_for_warm_start(model, path=None):
     path = os.path.expanduser(path)
     state = torch.load(path)
     logger.info("Found model warm start checkpoint at path {}".format(path))
-    model.reward_burnin = -1
 
     try:
         model.load_state_dict(state)

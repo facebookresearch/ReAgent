@@ -32,7 +32,6 @@ class RLTrainer:
     ):
         self.minibatch = 0
         self.parameters = parameters
-        self.reward_burnin = parameters.rl.reward_burnin
         self.rl_temperature = float(parameters.rl.temperature)
         self.maxq_learning = parameters.rl.maxq_learning
         self.gamma = parameters.rl.gamma
