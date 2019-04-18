@@ -6,6 +6,10 @@ import sys
 from typing import Dict
 
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.preprocessing.normalization import (
+    construct_action_scale_tensor,
+    get_num_output_features,
+)
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
@@ -18,7 +22,8 @@ from ml.rl.thrift.core.ttypes import (
     NormalizationParameters,
     RLParameters,
 )
-from ml.rl.training.ddpg_trainer import DDPGTrainer, construct_action_scale_tensor
+from ml.rl.training.ddpg_trainer import ActorNetModel, CriticNetModel, DDPGTrainer
+from ml.rl.training.rl_exporter import ActorExporter
 from ml.rl.workflow.base_workflow import BaseWorkflow
 from ml.rl.workflow.helpers import (
     export_trainer_and_predictor,
@@ -54,7 +59,33 @@ class ContinuousWorkflow(BaseWorkflow):
             action_normalization, model_params.action_rescale_map
         )
 
+        state_dim = get_num_output_features(state_normalization)
+        action_dim = get_num_output_features(action_normalization)
+
+        # Build Actor Network
+        actor_network = ActorNetModel(
+            layers=(
+                [state_dim] + model_params.actor_training.layers[1:-1] + [action_dim]
+            ),
+            activations=model_params.actor_training.activations,
+            fl_init=model_params.shared_training.final_layer_init,
+            state_dim=state_dim,
+            action_dim=action_dim,
+        )
+
+        # Build Critic Network
+        critic_network = CriticNetModel(
+            # Ensure dims match input state and scalar output
+            layers=[state_dim] + model_params.critic_training.layers[1:-1] + [1],
+            activations=model_params.critic_training.activations,
+            fl_init=model_params.shared_training.final_layer_init,
+            state_dim=state_dim,
+            action_dim=action_dim,
+        )
+
         trainer = DDPGTrainer(
+            actor_network,
+            critic_network,
             model_params,
             state_normalization,
             action_normalization,
@@ -81,6 +112,14 @@ class ContinuousWorkflow(BaseWorkflow):
             evaluator,
             model_params.shared_training.minibatch_size,
         )
+
+
+def _get_actor_exporter(trainer, state_normalization, action_normalization):
+    return ActorExporter.from_state_action_normalization(
+        trainer.actor,
+        state_normalization=state_normalization,
+        action_normalization=action_normalization,
+    )
 
 
 def main(params):
@@ -130,7 +169,13 @@ def main(params):
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
     return export_trainer_and_predictor(
-        workflow.trainer, params["model_output_path"]
+        workflow.trainer,
+        params["model_output_path"],
+        exporter=_get_actor_exporter(
+            trainer=workflow.trainer,
+            state_normalization=state_normalization,
+            action_normalization=action_normalization,
+        ),
     )  # noqa
 
 

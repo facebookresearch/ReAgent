@@ -8,6 +8,7 @@ from typing import Dict
 
 import numpy as np
 import six
+import torch
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from ml.rl.thrift.core.ttypes import NormalizationParameters
@@ -284,3 +285,36 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
         "Feature {} normalization: {}".format(feature_name, normalization_parameters)
     )
     return normalization_parameters
+
+
+def construct_action_scale_tensor(action_norm_params, action_scale_overrides):
+    """Construct tensors that will rescale each action value on each dimension i
+    from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.
+    """
+    sorted_features, _ = sort_features_by_normalization(action_norm_params)
+    min_action_array = np.zeros((1, len(sorted_features)))
+    max_action_array = np.zeros((1, len(sorted_features)))
+
+    for idx, feature_id in enumerate(sorted_features):
+        if feature_id in action_scale_overrides:
+            min_action_array[0][idx] = action_scale_overrides[feature_id][0]
+            max_action_array[0][idx] = action_scale_overrides[feature_id][1]
+        else:
+            min_action_array[0][idx] = action_norm_params[feature_id].min_value
+            max_action_array[0][idx] = action_norm_params[feature_id].max_value
+
+    min_action_range_tensor_serving = torch.from_numpy(min_action_array)
+    max_action_range_tensor_serving = torch.from_numpy(max_action_array)
+    return min_action_range_tensor_serving, max_action_range_tensor_serving
+
+
+def get_action_output_parameters(action_normalization_parameters):
+    action_feature_ids = sort_features_by_normalization(
+        action_normalization_parameters
+    )[0]
+    serving_min_scale, serving_max_scale = construct_action_scale_tensor(
+        action_normalization_parameters, action_scale_overrides={}
+    )
+    serving_min_scale = serving_min_scale.reshape(-1)
+    serving_max_scale = serving_max_scale.reshape(-1)
+    return action_feature_ids, serving_min_scale, serving_max_scale

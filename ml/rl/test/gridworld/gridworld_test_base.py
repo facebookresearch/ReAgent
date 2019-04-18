@@ -61,14 +61,6 @@ class GridworldTestBase(unittest.TestCase):
             for tdp in tdps:
                 trainer.train(tdp)
 
-        # Test actor if it exists
-        if isinstance(trainer, DDPGTrainer):
-            # Make sure actor predictor works
-            actor = trainer.predictor(actor=True)
-            # Make sure all actions are optimal
-            error = evaluator.evaluate_actor(actor, thres=0.2)
-            print("gridworld optimal action match MAE: {0:.3f}".format(error))
-
         predictor = exporter.export()
         predictorClass = predictor.__class__
         evaluator.evaluate(predictor)
