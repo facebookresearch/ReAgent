@@ -41,15 +41,15 @@ EPS = 1e-6
 
 
 class NumpyEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, np.integer):
-            return int(o)
-        elif isinstance(o, np.floating):
-            return float(o)
-        elif isinstance(o, np.ndarray):
-            return o.tolist()
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
         else:
-            return super().default(o)
+            return super().default(obj)
 
 
 def no_op_feature():

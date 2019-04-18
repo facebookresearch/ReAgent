@@ -364,12 +364,11 @@ class OpenAIGymEnvironment(Environment):
         return processed_state
 
     def sample_policy(self, state, use_continuous_action: bool, epsilon: float = 0.0):
-        """Sample a random action
-
+        """
+        Sample a random action
         Return the raw action which can be fed into env.step(), the processed
             action which can be uploaded to Hive, and action probability
         """
-
         raw_action = self.env.action_space.sample()
 
         if self.action_type == EnvType.DISCRETE_ACTION:
