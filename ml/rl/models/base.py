@@ -17,6 +17,7 @@ from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from ml.rl import types as rlt
 
 
+# add ABCMeta once https://github.com/sphinx-doc/sphinx/issues/5995 is fixed
 class ModelBase(nn.Module):
     """
     A base class to support exporting through ONNX
@@ -30,7 +31,7 @@ class ModelBase(nn.Module):
         Returns:
             An NamedTuple of torch.Tensor
         """
-        pass
+        raise NotImplementedError
 
     def input_prototype(self) -> NamedTuple:
         """

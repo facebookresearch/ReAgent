@@ -56,6 +56,10 @@ class GridworldBase(Environment):
         ]
     )
 
+    width = grid.shape[1]
+    height = grid.shape[0]
+    STATES = list(range(width * height))
+
     USING_ONLY_VALID_ACTION = True
 
     transition_noise = 0.01  # nonzero means stochastic transition
@@ -69,18 +73,6 @@ class GridworldBase(Environment):
         self.sparse_to_dense_net = None
         self._true_q_values = collections.defaultdict(dict)
         self._true_q_epsilon_values = collections.defaultdict(dict)
-
-    @property
-    def width(self):
-        return self.grid.shape[1]
-
-    @property
-    def height(self):
-        return self.grid.shape[0]
-
-    @property
-    def STATES(self):
-        return list(range(self.width * self.height))
 
     @property
     def normalization(self):
@@ -269,8 +261,8 @@ class GridworldBase(Environment):
     def sample_policy(
         self, state, use_continuous_action, epsilon
     ) -> Tuple[ACTION, ACTION, float]:
-        """Sample an action following epsilon-greedy
-
+        """
+        Sample an action following epsilon-greedy
         Return the raw action which can be fed into env.step(), the processed
             action which can be uploaded to Hive, and action probability
         """
