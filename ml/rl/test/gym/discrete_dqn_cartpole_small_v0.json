@@ -34,7 +34,7 @@
     "lr_decay": 0.999
   },
   "run_details": {
-    "num_episodes": 100,
+    "num_episodes": 150,
     "max_steps": 200,
     "train_every_ts": 1,
     "train_after_ts": 1,

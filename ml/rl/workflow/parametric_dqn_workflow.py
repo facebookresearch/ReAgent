@@ -108,7 +108,7 @@ def single_process_main(gpu_index, *args):
 
     if params["use_all_avail_gpus"]:
         BaseWorkflow.init_multiprocessing(
-            int(params["num_gpus"]),
+            int(params["num_processes_per_node"]),
             int(params["num_nodes"]),
             int(params["node_index"]),
             gpu_index,
@@ -141,19 +141,25 @@ def single_process_main(gpu_index, *args):
         ParametricActionOutputTransformer(),
     )
 
-    if (
-        "node_index" not in params or int(params["node_index"]) == 0
-    ) and gpu_index == 0:
+    if int(params["node_index"]) == 0 and gpu_index == 0:
         export_trainer_and_predictor(
             workflow.trainer, params["model_output_path"], exporter=exporter
         )  # noqa
 
 
 def main(params):
+    if "node_index" not in params or params["node_index"] is None:
+        params["node_index"] = 0
+    can_do_distributed = torch.distributed.is_available() and torch.cuda.is_available()
+    if params["use_all_avail_gpus"] and not can_do_distributed:
+        logger.info(
+            "Horizon is configured to use all GPUs but your platform doesn't support torch.distributed & torch.cuda!"
+        )
+        params["use_all_avail_gpus"] = False
     if params["use_all_avail_gpus"]:
-        params["num_gpus"] = torch.cuda.device_count()
+        params["num_processes_per_node"] = max(1, torch.cuda.device_count())
         multiprocessing.spawn(
-            single_process_main, nprocs=params["num_gpus"], args=[params]
+            single_process_main, nprocs=params["num_processes_per_node"], args=[params]
         )
     else:
         single_process_main(0, params)

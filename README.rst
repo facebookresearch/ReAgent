@@ -48,4 +48,14 @@ License
 
 Horizon is released under a BSD license.  Find out more about it `here <LICENSE>`_.
 
+Citing
+~~~~~~
+
+@article{gauci2018horizon,
+  title={Horizon: Facebook's Open Source Applied Reinforcement Learning Platform},
+  author={Gauci, Jason and Conti, Edoardo and Liang, Yitao and Virochsiri, Kittipat and Chen, Zhengxing and He, Yuchen and Kaden, Zachary and Narayanan, Vivek and Ye, Xiaohui},
+  journal={arXiv preprint arXiv:1811.00260},
+  year={2018}
+}
+
 :raw-html-m2r:`<img src="logo/horizon_logo.png" alt="Logo" width="200"/>`

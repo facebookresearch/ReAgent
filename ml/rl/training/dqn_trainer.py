@@ -172,12 +172,18 @@ class DQNTrainer(DQNTrainerBase):
             # Use the soft update rule to update target network
             self._soft_update(self.q_network, self.q_network_target, self.tau)
 
+        # Get Q-values of next states, used in computing cpe
+        with torch.no_grad():
+            next_state = rlt.StateInput(state=learning_input.next_state)
+            all_next_action_scores = self.q_network(next_state).q_values.detach()
+
         logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self.calculate_cpes(
             training_batch,
             current_state,
+            next_state,
+            all_next_action_scores,
             logged_action_idxs,
-            max_q_action_idxs,
             discount_tensor,
             not_done_mask,
         )
@@ -214,8 +220,9 @@ class DQNTrainer(DQNTrainerBase):
         self,
         training_batch,
         states,
+        next_states,
+        all_next_action_scores,
         logged_action_idxs,
-        max_q_action_idxs,
         discount_tensor,
         not_done_mask,
     ):
@@ -229,6 +236,14 @@ class DQNTrainer(DQNTrainerBase):
                 (training_batch.training_input.reward, training_batch.extras.metrics),
                 dim=1,
             )
+
+        model_propensities_next_states = masked_softmax(
+            all_next_action_scores,
+            training_batch.training_input.possible_next_actions_mask
+            if self.maxq_learning
+            else training_batch.training_input.next_action,
+            self.rl_temperature,
+        )
 
         ######### Train separate reward network for CPE evaluation #############
         # FIXME: the reward network should be outputing a tensor, not a q-value object
@@ -247,17 +262,20 @@ class DQNTrainer(DQNTrainerBase):
         metric_q_values = self.q_network_cpe(states).q_values.gather(
             1, self.reward_idx_offsets + logged_action_idxs
         )
-        metric_target_q_values = self.q_network_cpe_target(states).q_values.detach()
-        max_q_values_metrics = metric_target_q_values.gather(
-            1, self.reward_idx_offsets + max_q_action_idxs
+        metric_target_q_values = self.q_network_cpe_target(
+            next_states
+        ).q_values.detach()
+        next_q_values_metrics = torch.sum(
+            metric_target_q_values * model_propensities_next_states, 1, keepdim=True
         )
-        filtered_max_q_values_metrics = max_q_values_metrics * not_done_mask
+        filtered_next_q_values_metrics = next_q_values_metrics * not_done_mask
         if self.minibatch < self.reward_burnin:
             target_metric_q_values = metrics_reward_concat_real_vals
         else:
             target_metric_q_values = metrics_reward_concat_real_vals + (
-                discount_tensor * filtered_max_q_values_metrics
+                discount_tensor * filtered_next_q_values_metrics
             )
+
         metric_q_value_loss = self.q_network_loss(
             metric_q_values, target_metric_q_values
         )

@@ -28,7 +28,7 @@ class TestConstantReward(unittest.TestCase):
         self.action_dims = 2
         self.num_samples = 10000
         self.minibatch_size = 128
-        self.epochs = 50
+        self.epochs = 25
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
@@ -97,5 +97,5 @@ class TestConstantReward(unittest.TestCase):
         # Q value should converge to very close to 100
         avg_q_value_after_training = torch.mean(maxq_trainer.all_action_scores)
 
-        self.assertLess(avg_q_value_after_training, 101)
-        self.assertGreater(avg_q_value_after_training, 99)
+        self.assertLess(avg_q_value_after_training, 102)
+        self.assertGreater(avg_q_value_after_training, 98)

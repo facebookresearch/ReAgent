@@ -2,6 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 # Builds Horizon and runs basic tests.
 
+set -e
+
 export PATH=${HOME}/miniconda/bin:$PATH
 
 pip uninstall -y horizon

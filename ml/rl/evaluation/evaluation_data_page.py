@@ -29,6 +29,7 @@ class EvaluationDataPage(NamedTuple):
     model_values: torch.Tensor
     model_values_for_logged_action: torch.Tensor
     possible_actions_mask: torch.Tensor
+    optimal_q_values: Optional[torch.Tensor] = None
     logged_values: Optional[torch.Tensor] = None
     logged_metrics: Optional[torch.Tensor] = None
     logged_metrics_values: Optional[torch.Tensor] = None
@@ -105,7 +106,10 @@ class EvaluationDataPage(NamedTuple):
                 )
 
                 # Parametric actions
+                # FIXME: model_values and model propensities should be calculated
+                # as in discrete dqn model
                 model_values = trainer.q_network(possible_actions_state_concat).q_value
+                optimal_q_values = model_values
                 assert (
                     model_values.shape[0] * model_values.shape[1]
                     == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
@@ -116,6 +120,9 @@ class EvaluationDataPage(NamedTuple):
                     + str(possible_actions_mask.shape)
                 )
                 model_values = model_values.reshape(possible_actions_mask.shape)
+                model_propensities = masked_softmax(
+                    model_values, possible_actions_mask, trainer.rl_temperature
+                )
 
                 model_rewards = trainer.reward_network(
                     possible_actions_state_concat
@@ -147,6 +154,9 @@ class EvaluationDataPage(NamedTuple):
                 model_metrics_values = None
                 model_metrics_values_for_logged_action = None
             else:
+                if isinstance(states, mt.State):
+                    states = mt.StateInput(state=states)
+
                 action_mask = actions.float()
 
                 # Switch to evaluation mode for the network
@@ -155,7 +165,11 @@ class EvaluationDataPage(NamedTuple):
 
                 # Discrete actions
                 rewards = trainer.boost_rewards(rewards, actions)
-                model_values = trainer.get_detached_q_values(states)[0]
+                model_values = trainer.q_network_cpe(states).q_values
+                optimal_q_values = trainer.get_detached_q_values(states.state)[0]
+                model_propensities = masked_softmax(
+                    optimal_q_values, possible_actions_mask, trainer.rl_temperature
+                )
                 assert model_values.shape == actions.shape, (
                     "Invalid shape: "
                     + str(model_values.shape)
@@ -171,9 +185,6 @@ class EvaluationDataPage(NamedTuple):
                 model_values_for_logged_action = torch.sum(
                     model_values * action_mask, dim=1, keepdim=True
                 )
-
-                if isinstance(states, mt.State):
-                    states = mt.StateInput(state=states)
 
                 rewards_and_metric_rewards = trainer.reward_network(states)
 
@@ -268,9 +279,7 @@ class EvaluationDataPage(NamedTuple):
                 model_values_for_logged_action=model_values_for_logged_action,
                 model_metrics_values=model_metrics_values,
                 model_metrics_values_for_logged_action=model_metrics_values_for_logged_action,
-                model_propensities=masked_softmax(
-                    model_values, possible_actions_mask, trainer.rl_temperature
-                ),
+                model_propensities=model_propensities,
                 logged_metrics=metrics,
                 model_metrics=model_metrics,
                 model_metrics_for_logged_action=model_metrics_for_logged_action,
@@ -278,6 +287,7 @@ class EvaluationDataPage(NamedTuple):
                 logged_values=None,
                 logged_metrics_values=None,
                 possible_actions_mask=possible_actions_mask,
+                optimal_q_values=optimal_q_values,
             )
 
     def append(self, edp):

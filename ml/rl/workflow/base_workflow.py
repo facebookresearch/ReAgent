@@ -46,12 +46,15 @@ class BaseWorkflow:
         return normalization.deserialize(norm_json)
 
     @staticmethod
-    def init_multiprocessing(num_gpus, num_nodes, node_index, gpu_index, init_method):
-        assert torch.cuda.device_count() == int(
-            num_gpus
+    def init_multiprocessing(
+        num_processes_per_node, num_nodes, node_index, gpu_index, init_method
+    ):
+        assert max(1, torch.cuda.device_count()) == int(
+            num_processes_per_node
         ), "Not all nodes have the same number of GPUs!"
-        torch.cuda.set_device(gpu_index)
-        world_size = num_nodes * num_gpus
+        if torch.cuda.device_count() > 0:
+            torch.cuda.set_device(gpu_index)
+        world_size = num_nodes * num_processes_per_node
         rank = (node_index * torch.cuda.device_count()) + gpu_index
         distributed.init_process_group(
             backend="nccl", init_method=init_method, world_size=world_size, rank=rank
