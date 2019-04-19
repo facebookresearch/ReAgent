@@ -776,6 +776,8 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             fl_init=trainer_params.shared_training.final_layer_init,
             state_dim=state_dim,
             action_dim=action_dim,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=False,
         )
 
         # Build Critic Network
@@ -786,6 +788,8 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             fl_init=trainer_params.shared_training.final_layer_init,
             state_dim=state_dim,
             action_dim=action_dim,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=False,
         )
 
         trainer = DDPGTrainer(

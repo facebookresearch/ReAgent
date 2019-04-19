@@ -71,6 +71,8 @@ class ContinuousWorkflow(BaseWorkflow):
             fl_init=model_params.shared_training.final_layer_init,
             state_dim=state_dim,
             action_dim=action_dim,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
         )
 
         # Build Critic Network
@@ -81,6 +83,8 @@ class ContinuousWorkflow(BaseWorkflow):
             fl_init=model_params.shared_training.final_layer_init,
             state_dim=state_dim,
             action_dim=action_dim,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
         )
 
         trainer = DDPGTrainer(

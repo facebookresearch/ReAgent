@@ -105,18 +105,6 @@ class DDPGTrainer(RLTrainer):
             self.dtype
         )
 
-        if self.use_gpu:
-            self.actor.cuda()
-            self.actor_target.cuda()
-            self.critic.cuda()
-            self.critic_target.cuda()
-
-            if use_all_avail_gpus:
-                self.actor = nn.DataParallel(self.actor)
-                self.actor_target = nn.DataParallel(self.actor_target)
-                self.critic = nn.DataParallel(self.critic)
-                self.critic_target = nn.DataParallel(self.critic_target)
-
     def train(self, training_batch: rlt.TrainingBatch) -> None:
         if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
             training_batch = training_batch.as_parametric_sarsa_training_batch()
@@ -270,18 +258,54 @@ class ActorNet(nn.Module):
 
 
 class ActorNetModel(ModelBase):
-    def __init__(self, layers, activations, fl_init, state_dim, action_dim) -> None:
+    def __init__(
+        self,
+        layers,
+        activations,
+        fl_init,
+        state_dim,
+        action_dim,
+        use_gpu,
+        use_all_avail_gpus,
+        dnn=None,
+    ) -> None:
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-        self.network = ActorNet(layers=layers, activations=activations, fl_init=fl_init)
+        # Allow dnn to be explicitly given (when exporting to cpu)
+        if dnn is None:
+            self.dnn = ActorNet(layers=layers, activations=activations, fl_init=fl_init)
+        else:
+            self.dnn = dnn
+
+        # `network` might be a nn.DataParallel when running on multiple devices
+        self.network = self.dnn
+        if use_gpu:
+            self.dnn.cuda()
+            if use_all_avail_gpus:
+                self.network = nn.DataParallel(self.dnn)
 
     def input_prototype(self) -> rlt.StateInput:
         return rlt.StateInput(
             state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
+        )
+
+    def cpu_model(self):
+        cpu_dnn = deepcopy(self.dnn)
+        cpu_dnn.cpu()
+
+        return self.__class__(
+            layers=self.dnn.layers,
+            activations=self.dnn.activations,
+            fl_init=None,  # Not saved anyway, and we're providing the initialized dnn
+            state_dim=self.state_dim,
+            action_dim=self.action_dim,
+            use_gpu=False,
+            use_all_avail_gpus=False,
+            dnn=cpu_dnn,
         )
 
     def forward(self, input: rlt.StateInput) -> rlt.ActorOutput:
@@ -364,18 +388,55 @@ class CriticNet(nn.Module):
 
 
 class CriticNetModel(ModelBase):
-    def __init__(self, layers, activations, fl_init, state_dim, action_dim) -> None:
+    def __init__(
+        self,
+        layers,
+        activations,
+        fl_init,
+        state_dim,
+        action_dim,
+        use_gpu,
+        use_all_avail_gpus,
+        dnn=None,
+    ) -> None:
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
-        self.network = CriticNet(
-            layers=layers,
-            activations=activations,
-            fl_init=fl_init,
-            action_dim=action_dim,
-        )
         self.state_dim = state_dim
         self.action_dim = action_dim
+
+        # Allow dnn to be explicitly given (for exporting as cpu)
+        if dnn is None:
+            self.dnn = CriticNet(
+                layers=layers,
+                activations=activations,
+                fl_init=fl_init,
+                action_dim=action_dim,
+            )
+        else:
+            self.dnn = dnn
+
+        # `network` might be a nn.DataParallel if on multiple devices
+        self.network = self.dnn
+        if use_gpu:
+            self.dnn.cuda()
+            if use_all_avail_gpus:
+                self.network = nn.DataParallel(self.dnn)
+
+    def cpu_model(self):
+        cpu_dnn = deepcopy(self.dnn)
+        cpu_dnn.cpu()
+
+        return self.__class__(
+            layers=self.dnn.layers,
+            activations=self.dnn.activations,
+            fl_init=None,  # Not saved anyway, and we're providing the initialized dnn
+            state_dim=self.state_dim,
+            action_dim=self.action_dim,
+            use_gpu=False,
+            use_all_avail_gpus=False,
+            dnn=cpu_dnn,
+        )
 
     def forward(self, input: rlt.StateAction) -> rlt.SingleQValue:
         """ Forward pass for critic network. Assumes activation names are
@@ -383,8 +444,8 @@ class CriticNetModel(ModelBase):
         :param input ml.rl.types.StateAction of combined states and actions
         """
         return rlt.SingleQValue(
-            q_value=self.network.forward_split(
-                state=input.state.float_features, action=input.action.float_features
+            q_value=self.network.forward(
+                [input.state.float_features, input.action.float_features]
             )
         )
 
