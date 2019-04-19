@@ -77,25 +77,29 @@ class MDNRNNTrainer:
         state_dim: Optional[int] = None,
         batch_first: bool = False,
     ):
-        """ Compute losses.
+        """
+        Compute losses.
 
         The loss that is computed is:
-        (GMMLoss(next_state, GMMPredicted) + MSE(reward, predicted_reward) +
-             BCE(not_terminal, logit_not_terminal)) / (STATE_DIM + 2)
+            (GMMLoss(next_state, GMMPredicted) + MSE(reward, predicted_reward) +
+            BCE(not_terminal, logit_not_terminal)) / (STATE_DIM + 2)
+
         The STATE_DIM + 2 factor is here to counteract the fact that the GMMLoss scales
-        approximately linearily with STATE_DIM, the feature size of states. All losses
-        are averaged both on the batch and the sequence dimensions (the two first
-        dimensions).
+            approximately linearily with STATE_DIM, the feature size of states. All losses
+            are averaged both on the batch and the sequence dimensions (the two first
+            dimensions).
 
         :param training_batch
-        training_batch.learning_input has these fields:
-            state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
-            action: (BATCH_SIZE, SEQ_LEN, ACTION_DIM) torch tensor
-            reward: (BATCH_SIZE, SEQ_LEN) torch tensor
-            not-terminal: (BATCH_SIZE, SEQ_LEN) torch tensor
-            next_state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
+            training_batch.learning_input has these fields:
+            - state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
+            - action: (BATCH_SIZE, SEQ_LEN, ACTION_DIM) torch tensor
+            - reward: (BATCH_SIZE, SEQ_LEN) torch tensor
+            - not-terminal: (BATCH_SIZE, SEQ_LEN) torch tensor
+            - next_state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
+
         :param state_dim: the dimension of states. If provided, use it to normalize
             gmm loss
+
         :param batch_first: whether data's first dimension represents batch size. If
             FALSE, state, action, reward, not-terminal, and next_state's first
             two dimensions are SEQ_LEN and BATCH_SIZE.

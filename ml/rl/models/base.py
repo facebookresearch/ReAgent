@@ -17,12 +17,12 @@ from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from ml.rl import types as rlt
 
 
-class ModelBase(nn.Module, metaclass=abc.ABCMeta):
+# add ABCMeta once https://github.com/sphinx-doc/sphinx/issues/5995 is fixed
+class ModelBase(nn.Module):
     """
     A base class to support exporting through ONNX
     """
 
-    @abc.abstractmethod
     def forward(self, input: NamedTuple) -> NamedTuple:
         """
         Args:
@@ -31,9 +31,8 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         Returns:
             An NamedTuple of torch.Tensor
         """
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def input_prototype(self) -> NamedTuple:
         """
         This function provides the input for ONNX graph tracing.
