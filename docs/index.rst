@@ -20,7 +20,12 @@ Horizon: Applied Reinforcement Learning Platform
 Overview
 ~~~~~~~~
 
-Horizon is an open source end-to-end platform for applied reinforcement learning (RL) developed and used at Facebook. Horizon is built in Python and uses PyTorch for modeling and training and Caffe2 for model serving. The platform contains workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training, counterfactual policy evaluation, and optimized serving. For more detailed information about Horizon see the white paper `here <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
+Horizon is an open source end-to-end platform for applied reinforcement learning (RL) developed and used at Facebook. 
+Horizon is built in Python and uses PyTorch for modeling and training and Caffe2 for model serving. The platform contains 
+workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training, 
+counterfactual policy evaluation, and optimized serving. For more detailed information about Horizon see the white 
+paper `here <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
+The source code is available `here <https://github.com/facebookresearch/Horizon>`_.
 
 Algorithms Supported
 ~~~~~~~~~~~~~~~~~~~~
@@ -35,7 +40,8 @@ Algorithms Supported
 Installation
 ~~~~~~~~~~~~~~~~~~~
 
-Horizon can be installed via. Docker or manually. Detailed instructions on how to install Horizon can be found here: :ref:`installation`.
+Horizon can be installed via. Docker or manually. Detailed instructions on how to install Horizon can be found
+here: :ref:`installation`.
 
 Usage
 ~~~~~~~~~~~~
@@ -71,4 +77,5 @@ Table of Contents
     Workflow <api/ml.rl.workflow>
     Preprocessing <api/ml.rl.preprocessing>
     Training <api/ml.rl.training>
+    Github <https://github.com/facebookresearch/Horizon>
     License <license>
