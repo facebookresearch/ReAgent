@@ -1,7 +1,0 @@
-ml.rl.preprocessing.feature\_extractor module
-=============================================
-
-.. automodule:: ml.rl.preprocessing.feature_extractor
-    :members:
-    :undoc-members:
-    :show-inheritance:

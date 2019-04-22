@@ -1,7 +1,0 @@
-ml.rl.test.models.test\_dueling\_q\_network module
-==================================================
-
-.. automodule:: ml.rl.test.models.test_dueling_q_network
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -81,15 +81,19 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
             
@@ -211,11 +215,13 @@
         <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_predictor.DDPGPredictor.actor_prediction">(ml.rl.training.ddpg_predictor.DDPGPredictor method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.training.html#ml.rl.training.rl_exporter.ActorExporter">ActorExporter (class in ml.rl.training.rl_exporter)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.ActorNet">ActorNet (class in ml.rl.training.ddpg_trainer)</a>
+</li>
+      <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.ActorNetModel">ActorNetModel (class in ml.rl.training.ddpg_trainer)</a>
 </li>
       <li><a href="api/ml.rl.html#ml.rl.types.ActorOutput">ActorOutput (class in ml.rl.types)</a>
 </li>
@@ -281,16 +287,22 @@
 </li>
       <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.clear">clear() (ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise method)</a>
 </li>
-      <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.construct_action_scale_tensor">construct_action_scale_tensor() (in module ml.rl.training.ddpg_trainer)</a>
+      <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.normalization.construct_action_scale_tensor">construct_action_scale_tensor() (in module ml.rl.preprocessing.normalization)</a>
 </li>
       <li><a href="api/ml.rl.workflow.html#ml.rl.workflow.preprocess_handler.ContinuousPreprocessHandler">ContinuousPreprocessHandler (class in ml.rl.workflow.preprocess_handler)</a>
 </li>
       <li><a href="api/ml.rl.workflow.html#ml.rl.workflow.ddpg_workflow.ContinuousWorkflow">ContinuousWorkflow (class in ml.rl.workflow.ddpg_workflow)</a>
 </li>
-      <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_const">create_const() (ml.rl.preprocessing.feature_extractor.FeatureExtractorBase method)</a>
+      <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.ActorNetModel.cpu_model">cpu_model() (ml.rl.training.ddpg_trainer.ActorNetModel method)</a>
+
+      <ul>
+        <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.CriticNetModel.cpu_model">(ml.rl.training.ddpg_trainer.CriticNetModel method)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_const">create_const() (ml.rl.preprocessing.feature_extractor.FeatureExtractorBase method)</a>
+</li>
       <li><a href="api/ml.rl.workflow.html#ml.rl.workflow.transitional.create_dqn_trainer_from_params">create_dqn_trainer_from_params() (in module ml.rl.workflow.transitional)</a>
 </li>
       <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_empty_range">create_empty_range() (ml.rl.preprocessing.feature_extractor.FeatureExtractorBase method)</a>
@@ -316,6 +328,8 @@
       <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_predictor.DDPGPredictor.critic_prediction">critic_prediction() (ml.rl.training.ddpg_predictor.DDPGPredictor method)</a>
 </li>
       <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.CriticNet">CriticNet (class in ml.rl.training.ddpg_trainer)</a>
+</li>
+      <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.CriticNetModel">CriticNetModel (class in ml.rl.training.ddpg_trainer)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -353,11 +367,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.workflow.html#ml.rl.workflow.page_handler.EvaluationPageHandler">EvaluationPageHandler (class in ml.rl.workflow.page_handler)</a>
 </li>
-      <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.DDPGTrainer.export">export() (ml.rl.training.ddpg_trainer.DDPGTrainer method)</a>
+      <li><a href="api/ml.rl.training.html#ml.rl.training.rl_exporter.RLExporter.export">export() (ml.rl.training.rl_exporter.RLExporter method)</a>
 
       <ul>
-        <li><a href="api/ml.rl.training.html#ml.rl.training.rl_exporter.RLExporter.export">(ml.rl.training.rl_exporter.RLExporter method)</a>
-</li>
         <li><a href="api/ml.rl.training.html#ml.rl.training.rl_exporter.SandboxedRLExporter.export">(ml.rl.training.rl_exporter.SandboxedRLExporter method)</a>
 </li>
       </ul></li>
@@ -427,10 +439,10 @@
         <li><a href="api/ml.rl.workflow.html#ml.rl.workflow.page_handler.WorldModelPageHandler.finish">(ml.rl.workflow.page_handler.WorldModelPageHandler method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.html#ml.rl.types.FeatureVector.float_features">float_features (ml.rl.types.FeatureVector attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.html#ml.rl.types.FloatFeatureInfo">FloatFeatureInfo (class in ml.rl.types)</a>
 </li>
       <li><a href="api/ml.rl.training.html#ml.rl.training.loss_reporter.LossReporter.flush">flush() (ml.rl.training.loss_reporter.LossReporter method)</a>
@@ -442,7 +454,11 @@
 </li>
         <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.ActorNet.forward">(ml.rl.training.ddpg_trainer.ActorNet method)</a>
 </li>
+        <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.ActorNetModel.forward">(ml.rl.training.ddpg_trainer.ActorNetModel method)</a>
+</li>
         <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.CriticNet.forward">(ml.rl.training.ddpg_trainer.CriticNet method)</a>
+</li>
+        <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.CriticNetModel.forward">(ml.rl.training.ddpg_trainer.CriticNetModel method)</a>
 </li>
         <li><a href="api/ml.rl.training.html#ml.rl.training.parametric_inner_product.ParametricInnerProduct.forward">(ml.rl.training.parametric_inner_product.ParametricInnerProduct method)</a>
 </li>
@@ -453,6 +469,12 @@
 </li>
       <li><a href="api/ml.rl.html#ml.rl.caffe_utils.StackedArray.from_list_list">from_list_list() (ml.rl.caffe_utils.StackedArray class method)</a>
 </li>
+      <li><a href="api/ml.rl.training.html#ml.rl.training.rl_exporter.ActorExporter.from_state_action_normalization">from_state_action_normalization() (ml.rl.training.rl_exporter.ActorExporter class method)</a>
+
+      <ul>
+        <li><a href="api/ml.rl.training.html#ml.rl.training.rl_exporter.ParametricDQNExporter.from_state_action_normalization">(ml.rl.training.rl_exporter.ParametricDQNExporter class method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -460,6 +482,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_predictor.DDPGPredictor.generate_train_net">generate_train_net() (ml.rl.training.ddpg_predictor.DDPGPredictor class method)</a>
+</li>
+      <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.normalization.get_action_output_parameters">get_action_output_parameters() (in module ml.rl.preprocessing.normalization)</a>
 </li>
       <li><a href="api/ml.rl.workflow.html#ml.rl.workflow.page_handler.get_actual_minibatch_size">get_actual_minibatch_size() (in module ml.rl.workflow.page_handler)</a>
 </li>
@@ -573,12 +597,18 @@
 </li>
       <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.feature_extractor.FeatureExtractorNet.init_net">init_net (ml.rl.preprocessing.feature_extractor.FeatureExtractorNet attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.html#ml.rl.caffe_utils.C2.init_net">init_net() (ml.rl.caffe_utils.C2 static method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.preprocessor.Preprocessor.input_prototype">input_prototype() (ml.rl.preprocessing.preprocessor.Preprocessor method)</a>
+
+      <ul>
+        <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.ActorNetModel.input_prototype">(ml.rl.training.ddpg_trainer.ActorNetModel method)</a>
 </li>
+        <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.CriticNetModel.input_prototype">(ml.rl.training.ddpg_trainer.CriticNetModel method)</a>
+</li>
+      </ul></li>
       <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.feature_extractor.InputColumn">InputColumn (class in ml.rl.preprocessing.feature_extractor)</a>
 </li>
       <li><a href="api/ml.rl.training.html#ml.rl.training.rl_dataset.RLDataset.insert">insert() (ml.rl.training.rl_dataset.RLDataset method)</a>
@@ -961,8 +991,6 @@
         <li><a href="api/ml.rl.training.html#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.predict_net">(ml.rl.training.sandboxed_predictor.SandboxedRLPredictor attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/ml.rl.training.html#ml.rl.training.ddpg_trainer.DDPGTrainer.predictor">predictor() (ml.rl.training.ddpg_trainer.DDPGTrainer method)</a>
-</li>
       <li><a href="api/ml.rl.preprocessing.html#ml.rl.preprocessing.feature_extractor.PredictorFeatureExtractor">PredictorFeatureExtractor (class in ml.rl.preprocessing.feature_extractor)</a>
 </li>
       <li><a href="api/ml.rl.workflow.html#ml.rl.workflow.preprocess_handler.ContinuousPreprocessHandler.preprocess">preprocess() (ml.rl.workflow.preprocess_handler.ContinuousPreprocessHandler method)</a>

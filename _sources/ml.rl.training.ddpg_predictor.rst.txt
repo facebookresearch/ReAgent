@@ -1,7 +1,0 @@
-ml.rl.training.ddpg\_predictor module
-=====================================
-
-.. automodule:: ml.rl.training.ddpg_predictor
-    :members:
-    :undoc-members:
-    :show-inheritance:

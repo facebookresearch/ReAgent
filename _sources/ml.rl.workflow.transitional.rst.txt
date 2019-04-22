@@ -1,7 +1,0 @@
-ml.rl.workflow.transitional module
-==================================
-
-.. automodule:: ml.rl.workflow.transitional
-    :members:
-    :undoc-members:
-    :show-inheritance:

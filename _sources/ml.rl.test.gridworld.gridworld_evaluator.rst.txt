@@ -1,7 +1,0 @@
-ml.rl.test.gridworld.gridworld\_evaluator module
-================================================
-
-.. automodule:: ml.rl.test.gridworld.gridworld_evaluator
-    :members:
-    :undoc-members:
-    :show-inheritance:

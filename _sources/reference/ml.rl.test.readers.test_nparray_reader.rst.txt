@@ -1,7 +1,0 @@
-ml.rl.test.readers.test\_nparray\_reader module
-===============================================
-
-.. automodule:: ml.rl.test.readers.test_nparray_reader
-    :members:
-    :undoc-members:
-    :show-inheritance:

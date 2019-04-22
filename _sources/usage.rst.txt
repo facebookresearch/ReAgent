@@ -38,11 +38,10 @@ For these reasons, Horizon is designed to support batch, off-policy RL.  Let's n
 
 The main use case of Horizon is to train RL models in the **batch** setting. In batch reinforcement learning the data collection and policy learning steps are decoupled. Specifically, we try to learn the best possible policy given the input data. In batch RL, being able to handle thousands of varying feature types and distributions and algorithm performance estimates before deployment are of key importance.
 
-End-to-End example: Training a DQN model on Offline ``Cartpole-v0`` data:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In this example, we will train a DQN model on Offline ``Cartpole-v0`` data:
 
 Step 1 - Create training data
-"""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First we need to generate the data required to train our RL models. For this example we generate data from the ``Cartpole-v0`` environment in OpenAI Gym. In practice, end users would generate a dataset in a similar format from their production system.
 
@@ -116,7 +115,7 @@ Note that JSON does not support integer keys in objects so in our JSON format we
 Once you have data on this format (or you have generated data using our gym script) you can move on to step 2:
 
 Step 2 - Convert the data to the ``timeline`` format
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Models are trained on consecutive pairs of state/action tuples. To assist in creating this table, we have an ``RLTimelineOperator`` spark operator. Let's build and run the timeline operator on the data:
 
@@ -163,7 +162,7 @@ There are many output files.  The reason for this is that Spark expects many inp
 Now that all of our data has been grouped into consecutive pairs, we can run the normalization pipeline.
 
 Step 3 - Create the normalization parameters
-""""""""""""""""""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. Horizon includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data:
 
@@ -185,7 +184,7 @@ Now we can look at the normalization file.  It's a JSON file where each key is a
    }
 
 Step 4 - Train model
-""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now we are ready to train a model by running:
 
@@ -199,7 +198,7 @@ Now we are ready to train a model by running:
 Note that, even in the OpenAI Gym case, we aren't running the gym at this step.  We are taking a batch of data that we generated previously and training by looping over that data and interatively learning a better policy than the policy that generated the data.
 
 Step 5 - Evaluate the Model
-"""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now that we have trained a new policy on the offline ``Cartpole-v0`` data, we can try it out to see how it does:
 
@@ -208,7 +207,7 @@ Now that we have trained a new policy on the offline ``Cartpole-v0`` data, we ca
    python ml/rl/test/workflow/eval_cartpole.py -m outputs/predictor*
 
 Step 6 - Visualize Results via Tensorboard
-""""""""""""""""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We can now view loss plots and CPE estimates in Tensorboard after running:
 

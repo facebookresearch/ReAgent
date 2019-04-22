@@ -1,7 +1,0 @@
-ml.rl.test.gym.gym\_evaluator module
-====================================
-
-.. automodule:: ml.rl.test.gym.gym_evaluator
-    :members:
-    :undoc-members:
-    :show-inheritance:

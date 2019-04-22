@@ -1,7 +1,0 @@
-ml.rl.test.world\_model.simulated\_world\_model module
-======================================================
-
-.. automodule:: ml.rl.test.world_model.simulated_world_model
-    :members:
-    :undoc-members:
-    :show-inheritance:

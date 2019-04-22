@@ -82,9 +82,12 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
@@ -117,6 +120,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
             
@@ -244,22 +248,20 @@
 <dl class="classmethod">
 <dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.export_actor">
 <em class="property">classmethod </em><code class="descname">export_actor</code><span class="sig-paren">(</span><em>trainer</em>, <em>state_normalization_parameters</em>, <em>action_feature_ids</em>, <em>min_action_range_tensor_serving</em>, <em>max_action_range_tensor_serving</em>, <em>model_on_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.export_actor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Export caffe2 preprocessor net and pytorch actor forward pass as one
-caffe2 net.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>trainer</strong> – DDPGTrainer</p></li>
-<li><p><strong>state_normalization_parameters</strong> – state NormalizationParameters</p></li>
-<li><p><strong>min_action_range_tensor_serving</strong> – pytorch tensor that specifies
-min action value for each dimension</p></li>
-<li><p><strong>max_action_range_tensor_serving</strong> – pytorch tensor that specifies
-min action value for each dimension</p></li>
-<li><p><strong>state_normalization_parameters</strong> – state NormalizationParameters</p></li>
-<li><p><strong>model_on_gpu</strong> – boolean indicating if the model is a GPU model or CPU model</p></li>
-</ul>
+<dd><dl class="simple">
+<dt>Export caffe2 preprocessor net and pytorch actor forward pass as one</dt><dd><p>caffe2 net.</p>
 </dd>
 </dl>
+<p>:param trainer DDPGTrainer</p>
+<p>:param state_normalization_parameters state NormalizationParameters</p>
+<dl class="simple">
+<dt>:param min_action_range_tensor_serving pytorch tensor that specifies</dt><dd><p>min action value for each dimension</p>
+</dd>
+<dt>:param max_action_range_tensor_serving pytorch tensor that specifies</dt><dd><p>min action value for each dimension</p>
+</dd>
+</dl>
+<p>:param state_normalization_parameters state NormalizationParameters</p>
+<p>:param model_on_gpu boolean indicating if the model is a GPU model or CPU model</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -305,6 +307,33 @@ valid pytorch activation names.
 </dd></dl>
 
 <dl class="class">
+<dt id="ml.rl.training.ddpg_trainer.ActorNetModel">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">ActorNetModel</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em>, <em>state_dim</em>, <em>action_dim</em>, <em>use_gpu</em>, <em>use_all_avail_gpus</em>, <em>dnn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.models.base.ModelBase</span></code></p>
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.ActorNetModel.cpu_model">
+<code class="descname">cpu_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel.cpu_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this in DistributedDataParallel models</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.ActorNetModel.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>input: ml.rl.types.StateInput</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.ActorOutput<a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass for actor network. Assumes activation names are
+valid pytorch activation names.
+:param input StateInput containing float_features</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.ActorNetModel.input_prototype">
+<code class="descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ml.rl.types.StateInput<a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel.input_prototype" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="ml.rl.training.ddpg_trainer.CriticNet">
 <em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">CriticNet</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em>, <em>action_dim</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
@@ -324,14 +353,36 @@ valid pytorch activation names.
 </dd></dl>
 
 <dl class="class">
-<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">DDPGTrainer</code><span class="sig-paren">(</span><em>parameters, state_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], action_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], min_action_range_tensor_serving: torch.Tensor, max_action_range_tensor_serving: torch.Tensor, use_gpu: bool = False, use_all_avail_gpus: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
+<dt id="ml.rl.training.ddpg_trainer.CriticNetModel">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">CriticNetModel</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em>, <em>state_dim</em>, <em>action_dim</em>, <em>use_gpu</em>, <em>use_all_avail_gpus</em>, <em>dnn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.models.base.ModelBase</span></code></p>
 <dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.export">
-<code class="descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ml.rl.training.ddpg_predictor.DDPGPredictor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.export" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="ml.rl.training.ddpg_trainer.CriticNetModel.cpu_model">
+<code class="descname">cpu_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel.cpu_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this in DistributedDataParallel models</p>
+</dd></dl>
 
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.CriticNetModel.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>input: ml.rl.types.StateAction</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.SingleQValue<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass for critic network. Assumes activation names are
+valid pytorch activation names.
+:param input ml.rl.types.StateAction of combined states and actions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.ddpg_trainer.CriticNetModel.input_prototype">
+<code class="descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ml.rl.types.StateAction<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel.input_prototype" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer">
+<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">DDPGTrainer</code><span class="sig-paren">(</span><em>actor_network, critic_network, parameters, state_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], action_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], min_action_range_tensor_serving: torch.Tensor, max_action_range_tensor_serving: torch.Tensor, use_gpu: bool = False, use_all_avail_gpus: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.internal_prediction">
 <code class="descname">internal_prediction</code><span class="sig-paren">(</span><em>states</em>, <em>noisy=False</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
@@ -340,16 +391,8 @@ valid pytorch activation names.
 </dd></dl>
 
 <dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.predictor">
-<code class="descname">predictor</code><span class="sig-paren">(</span><em>actor=True</em><span class="sig-paren">)</span> &#x2192; ml.rl.training.ddpg_predictor.DDPGPredictor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.predictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds a DDPGPredictor.
-:param actor export the actor or the critic. If actor == True export
-the actor network, else export the critic network.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>training_samples: ml.rl.training.training_data_page.TrainingDataPage</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.train" title="Permalink to this definition">¶</a></dt>
+<code class="descname">train</code><span class="sig-paren">(</span><em>training_batch: ml.rl.types.TrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -371,13 +414,6 @@ explore in physical environments w/momentum. Outlined in DDPG paper.</p>
 <dd><p>dx = theta * (mu − prev_noise) + sigma * new_gaussian_noise</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.training.ddpg_trainer.construct_action_scale_tensor">
-<code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">construct_action_scale_tensor</code><span class="sig-paren">(</span><em>action_norm_params</em>, <em>action_scale_overrides</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.construct_action_scale_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct tensors that will rescale each action value on each dimension i
-from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.</p>
 </dd></dl>
 
 <dl class="function">
@@ -411,7 +447,7 @@ from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.</p>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase" title="ml.rl.training.dqn_trainer_base.DQNTrainerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.dqn_trainer_base.DQNTrainerBase</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.dqn_trainer.DQNTrainer.calculate_cpes">
-<code class="descname">calculate_cpes</code><span class="sig-paren">(</span><em>training_batch</em>, <em>states</em>, <em>logged_action_idxs</em>, <em>max_q_action_idxs</em>, <em>discount_tensor</em>, <em>not_done_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.calculate_cpes" title="Permalink to this definition">¶</a></dt>
+<code class="descname">calculate_cpes</code><span class="sig-paren">(</span><em>training_batch</em>, <em>states</em>, <em>next_states</em>, <em>all_next_action_scores</em>, <em>logged_action_idxs</em>, <em>discount_tensor</em>, <em>not_done_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.calculate_cpes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -801,6 +837,11 @@ replay buffer.</p>
 <dt id="ml.rl.training.rl_exporter.ActorExporter">
 <em class="property">class </em><code class="descclassname">ml.rl.training.rl_exporter.</code><code class="descname">ActorExporter</code><span class="sig-paren">(</span><em>dnn</em>, <em>feature_extractor=None</em>, <em>output_transformer=None</em>, <em>state_preprocessor=None</em>, <em>predictor_class=&lt;class 'ml.rl.training.actor_predictor.ActorPredictor'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ActorExporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_exporter.SandboxedRLExporter" title="ml.rl.training.rl_exporter.SandboxedRLExporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_exporter.SandboxedRLExporter</span></code></a></p>
+<dl class="classmethod">
+<dt id="ml.rl.training.rl_exporter.ActorExporter.from_state_action_normalization">
+<em class="property">classmethod </em><code class="descname">from_state_action_normalization</code><span class="sig-paren">(</span><em>dnn</em>, <em>state_normalization</em>, <em>action_normalization</em>, <em>state_preprocessor=None</em>, <em>predictor_class=&lt;class 'ml.rl.training.actor_predictor.ActorPredictor'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ActorExporter.from_state_action_normalization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -813,6 +854,11 @@ replay buffer.</p>
 <dt id="ml.rl.training.rl_exporter.ParametricDQNExporter">
 <em class="property">class </em><code class="descclassname">ml.rl.training.rl_exporter.</code><code class="descname">ParametricDQNExporter</code><span class="sig-paren">(</span><em>dnn</em>, <em>feature_extractor=None</em>, <em>output_transformer=None</em>, <em>state_preprocessor=None</em>, <em>action_preprocessor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ParametricDQNExporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_exporter.SandboxedRLExporter" title="ml.rl.training.rl_exporter.SandboxedRLExporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_exporter.SandboxedRLExporter</span></code></a></p>
+<dl class="classmethod">
+<dt id="ml.rl.training.rl_exporter.ParametricDQNExporter.from_state_action_normalization">
+<em class="property">classmethod </em><code class="descname">from_state_action_normalization</code><span class="sig-paren">(</span><em>dnn</em>, <em>state_normalization</em>, <em>action_normalization</em>, <em>state_preprocessor=None</em>, <em>action_preprocessor=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ParametricDQNExporter.from_state_action_normalization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">

@@ -1,7 +1,0 @@
-ml.rl.test.preprocessing.test\_type\_identification module
-==========================================================
-
-.. automodule:: ml.rl.test.preprocessing.test_type_identification
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="ml.rl.preprocessing package" href="ml.rl.preprocessing.html" />
-    <link rel="prev" title="License" href="../getting_started/license.html" /> 
+    <link rel="prev" title="Training a model across multiple GPUs" href="../distributed.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -82,9 +82,12 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
@@ -104,6 +107,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
             
@@ -181,7 +185,7 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="staticmethod">
 <dt id="ml.rl.workflow.base_workflow.BaseWorkflow.init_multiprocessing">
-<em class="property">static </em><code class="descname">init_multiprocessing</code><span class="sig-paren">(</span><em>num_gpus</em>, <em>num_nodes</em>, <em>node_index</em>, <em>gpu_index</em>, <em>init_method</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.init_multiprocessing" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">init_multiprocessing</code><span class="sig-paren">(</span><em>num_processes_per_node</em>, <em>num_nodes</em>, <em>node_index</em>, <em>gpu_index</em>, <em>init_method</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.init_multiprocessing" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">
@@ -554,7 +558,7 @@ prediction), ‘mse’ (loss for predicting reward)</p></li>
         <a href="ml.rl.preprocessing.html" class="btn btn-neutral float-right" title="ml.rl.preprocessing package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../getting_started/license.html" class="btn btn-neutral float-left" title="License" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../distributed.html" class="btn btn-neutral float-left" title="Training a model across multiple GPUs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

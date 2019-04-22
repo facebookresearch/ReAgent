@@ -82,9 +82,12 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
@@ -101,6 +104,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
             
@@ -566,7 +570,7 @@ implement</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
 <dl class="method">
 <dt id="ml.rl.preprocessing.normalization.NumpyEncoder.default">
-<code class="descname">default</code><span class="sig-paren">(</span><em>o</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.NumpyEncoder.default" title="Permalink to this definition">¶</a></dt>
+<code class="descname">default</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.NumpyEncoder.default" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement this method in a subclass such that it returns
 a serializable object for <code class="docutils literal notranslate"><span class="pre">o</span></code>, or calls the base implementation
 (to raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>).</p>
@@ -588,8 +592,20 @@ implement default like this:</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ml.rl.preprocessing.normalization.construct_action_scale_tensor">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">construct_action_scale_tensor</code><span class="sig-paren">(</span><em>action_norm_params</em>, <em>action_scale_overrides</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.construct_action_scale_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct tensors that will rescale each action value on each dimension i
+from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="ml.rl.preprocessing.normalization.deserialize">
 <code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">deserialize</code><span class="sig-paren">(</span><em>parameters_json</em><span class="sig-paren">)</span> &#x2192; Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters]<a class="headerlink" href="#ml.rl.preprocessing.normalization.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ml.rl.preprocessing.normalization.get_action_output_parameters">
+<code class="descclassname">ml.rl.preprocessing.normalization.</code><code class="descname">get_action_output_parameters</code><span class="sig-paren">(</span><em>action_normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_action_output_parameters" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

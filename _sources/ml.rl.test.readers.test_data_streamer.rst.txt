@@ -1,7 +1,0 @@
-ml.rl.test.readers.test\_data\_streamer module
-==============================================
-
-.. automodule:: ml.rl.test.readers.test_data_streamer
-    :members:
-    :undoc-members:
-    :show-inheritance:

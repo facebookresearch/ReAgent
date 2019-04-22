@@ -1,7 +1,0 @@
-ml.rl.training.parametric\_dqn\_predictor module
-================================================
-
-.. automodule:: ml.rl.training.parametric_dqn_predictor
-    :members:
-    :undoc-members:
-    :show-inheritance:

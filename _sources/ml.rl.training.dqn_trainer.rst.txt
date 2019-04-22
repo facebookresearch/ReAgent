@@ -1,7 +1,0 @@
-ml.rl.training.dqn\_trainer module
-==================================
-
-.. automodule:: ml.rl.training.dqn_trainer
-    :members:
-    :undoc-members:
-    :show-inheritance:

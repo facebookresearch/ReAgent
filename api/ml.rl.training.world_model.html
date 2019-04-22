@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="License" href="../license.html" />
     <link rel="prev" title="ml.rl.training package" href="ml.rl.training.html" /> 
 </head>
 
@@ -81,9 +82,12 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
@@ -121,6 +125,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
             
@@ -202,25 +207,27 @@
 <dt id="ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer.get_loss">
 <code class="descname">get_loss</code><span class="sig-paren">(</span><em>training_batch: ml.rl.types.TrainingBatch</em>, <em>state_dim: Optional[int] = None</em>, <em>batch_first: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer.get_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute losses.</p>
-<p>The loss that is computed is:
-(GMMLoss(next_state, GMMPredicted) + MSE(reward, predicted_reward) + BCE(not_terminal, logit_not_terminal)) / (STATE_DIM + 2)
-The STATE_DIM + 2 factor is here to counteract the fact that the GMMLoss scales
-approximately linearily with STATE_DIM, the feature size of states. All losses
+<dl class="simple">
+<dt>The loss that is computed is:</dt><dd><p>(GMMLoss(next_state, GMMPredicted) + MSE(reward, predicted_reward) +
+BCE(not_terminal, logit_not_terminal)) / (STATE_DIM + 2)</p>
+</dd>
+<dt>The STATE_DIM + 2 factor is here to counteract the fact that the GMMLoss scales</dt><dd><p>approximately linearily with STATE_DIM, the feature size of states. All losses
 are averaged both on the batch and the sequence dimensions (the two first
 dimensions).</p>
-<dl class="simple">
-<dt>training_batch.learning_input has these fields:</dt><dd><p>state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
-action: (BATCH_SIZE, SEQ_LEN, ACTION_DIM) torch tensor
-reward: (BATCH_SIZE, SEQ_LEN) torch tensor
-not-terminal: (BATCH_SIZE, SEQ_LEN) torch tensor
-next_state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor</p>
+</dd>
+<dt>:param training_batch</dt><dd><p>training_batch.learning_input has these fields:
+- state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
+- action: (BATCH_SIZE, SEQ_LEN, ACTION_DIM) torch tensor
+- reward: (BATCH_SIZE, SEQ_LEN) torch tensor
+- not-terminal: (BATCH_SIZE, SEQ_LEN) torch tensor
+- next_state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor</p>
 </dd>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>training_batch</strong> – The batch of training data</p></li>
-<li><p><strong>state_dim</strong> – the dimension of states. If provided, use it to normalize gmm loss</p></li>
+<li><p><strong>state_dim</strong> – the dimension of states. If provided, use it to normalize
+gmm loss</p></li>
 <li><p><strong>batch_first</strong> – whether data’s first dimension represents batch size. If
 FALSE, state, action, reward, not-terminal, and next_state’s first
 two dimensions are SEQ_LEN and BATCH_SIZE.</p></li>
@@ -253,6 +260,8 @@ the averaged loss.</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="ml.rl.training.html" class="btn btn-neutral float-left" title="ml.rl.training package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
