@@ -147,10 +147,7 @@ class DQNTrainer(DQNTrainerBase):
 
         filtered_next_q_vals = next_q_values * not_done_mask
 
-        if self.minibatch < self.reward_burnin:
-            target_q_values = rewards
-        else:
-            target_q_values = rewards + (discount_tensor * filtered_next_q_vals)
+        target_q_values = rewards + (discount_tensor * filtered_next_q_vals)
 
         # Get Q-value of action taken
         current_state = rlt.StateInput(state=learning_input.state)
@@ -165,12 +162,8 @@ class DQNTrainer(DQNTrainerBase):
         loss.backward()
         self.q_network_optimizer.step()
 
-        if self.minibatch < self.reward_burnin:
-            # Reward burnin: force target network
-            self._soft_update(self.q_network, self.q_network_target, 1.0)
-        else:
-            # Use the soft update rule to update target network
-            self._soft_update(self.q_network, self.q_network_target, self.tau)
+        # Use the soft update rule to update target network
+        self._soft_update(self.q_network, self.q_network_target, self.tau)
 
         # Get Q-values of next states, used in computing cpe
         with torch.no_grad():
@@ -269,12 +262,9 @@ class DQNTrainer(DQNTrainerBase):
             metric_target_q_values * model_propensities_next_states, 1, keepdim=True
         )
         filtered_next_q_values_metrics = next_q_values_metrics * not_done_mask
-        if self.minibatch < self.reward_burnin:
-            target_metric_q_values = metrics_reward_concat_real_vals
-        else:
-            target_metric_q_values = metrics_reward_concat_real_vals + (
-                discount_tensor * filtered_next_q_values_metrics
-            )
+        target_metric_q_values = metrics_reward_concat_real_vals + (
+            discount_tensor * filtered_next_q_values_metrics
+        )
 
         metric_q_value_loss = self.q_network_loss(
             metric_q_values, target_metric_q_values
@@ -283,12 +273,8 @@ class DQNTrainer(DQNTrainerBase):
         metric_q_value_loss.backward()
         self.q_network_cpe_optimizer.step()
 
-        if self.minibatch < self.reward_burnin:
-            # Reward burnin: force target network
-            self._soft_update(self.q_network_cpe, self.q_network_cpe_target, 1.0)
-        else:
-            # Use the soft update rule to update target network
-            self._soft_update(self.q_network_cpe, self.q_network_cpe_target, self.tau)
+        # Use the soft update rule to update target network
+        self._soft_update(self.q_network_cpe, self.q_network_cpe_target, self.tau)
 
         model_propensities = masked_softmax(
             self.all_action_scores,

@@ -93,10 +93,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         filtered_max_q_vals = next_q_values * not_done_mask.float()
 
-        if self.minibatch < self.reward_burnin:
-            target_q_values = reward
-        else:
-            target_q_values = reward + (discount_tensor * filtered_max_q_vals)
+        target_q_values = reward + (discount_tensor * filtered_max_q_vals)
 
         # Get Q-value of action taken
         current_state_action = rlt.StateAction(
@@ -112,13 +109,8 @@ class ParametricDQNTrainer(DQNTrainerBase):
         value_loss.backward()
         self.q_network_optimizer.step()
 
-        # TODO: Maybe soft_update should belong to the target network
-        if self.minibatch < self.reward_burnin:
-            # Reward burnin: force target network
-            self._soft_update(self.q_network, self.q_network_target, 1.0)
-        else:
-            # Use the soft update rule to update target network
-            self._soft_update(self.q_network, self.q_network_target, self.tau)
+        # Use the soft update rule to update target network
+        self._soft_update(self.q_network, self.q_network_target, self.tau)
 
         # get reward estimates
         reward_estimates = self.reward_network(current_state_action).q_value

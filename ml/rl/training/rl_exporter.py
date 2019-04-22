@@ -4,7 +4,13 @@
 import logging
 
 from ml.rl.models.actor import ActorWithPreprocessing
+from ml.rl.models.output_transformer import (
+    ActorOutputTransformer,
+    ParametricActionOutputTransformer,
+)
 from ml.rl.models.parametric_dqn import ParametricDQNWithPreprocessing
+from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
+from ml.rl.preprocessing.normalization import get_action_output_parameters
 from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
@@ -78,6 +84,28 @@ class ParametricDQNExporter(SandboxedRLExporter):
             action_preprocessor,
         )
 
+    @classmethod
+    def from_state_action_normalization(
+        cls,
+        dnn,
+        state_normalization,
+        action_normalization,
+        state_preprocessor=None,
+        action_preprocessor=None,
+        **kwargs,
+    ):
+        return cls(
+            dnn=dnn,
+            feature_extractor=PredictorFeatureExtractor(
+                state_normalization_parameters=state_normalization,
+                action_normalization_parameters=action_normalization,
+            ),
+            output_transformer=ParametricActionOutputTransformer(),
+            state_preprocessor=state_preprocessor,
+            action_preprocessor=action_preprocessor,
+            **kwargs,
+        )
+
 
 class DQNExporter(SandboxedRLExporter):
     def __init__(
@@ -120,5 +148,34 @@ class ActorExporter(SandboxedRLExporter):
             output_transformer,
             state_preprocessor,
             action_preprocessor=None,
+            **kwargs,
+        )
+
+    @classmethod
+    def from_state_action_normalization(
+        cls,
+        dnn,
+        state_normalization,
+        action_normalization,
+        state_preprocessor=None,
+        predictor_class=ActorPredictor,
+        **kwargs,
+    ):
+        feature_extractor = PredictorFeatureExtractor(
+            state_normalization_parameters=state_normalization
+        )
+
+        action_feature_ids, serving_min_scale, serving_max_scale = get_action_output_parameters(  # noqa B950
+            action_normalization
+        )
+        output_transformer = ActorOutputTransformer(
+            action_feature_ids, serving_max_scale, serving_min_scale
+        )
+        return cls(
+            dnn,
+            feature_extractor=feature_extractor,
+            output_transformer=output_transformer,
+            state_preprocessor=state_preprocessor,
+            predictor_class=predictor_class,
             **kwargs,
         )

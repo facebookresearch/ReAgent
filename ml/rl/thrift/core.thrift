@@ -6,7 +6,7 @@ struct RLParameters {
   1: double gamma = 0.9,
   2: double epsilon = 0.1,
   3: double target_update_rate = 0.001,
-  4: i32 reward_burnin = 1,
+  # 4: i32 reward_burnin = 1,
   5: bool maxq_learning = true,
   6: map<string, double> reward_boost,
   7: double temperature = 0.01,
@@ -152,7 +152,6 @@ struct SACTrainingParameters {
 
 struct SACModelParameters {
   1: RLParameters rl = {
-    "reward_burnin": 100,
     "maxq_learning": false,
     "tensorboard_logging_freq": 100,
   },

@@ -39,10 +39,7 @@ class TestGridworldParametric(GridworldTestBase):
     def get_sarsa_parameters(self):
         return ContinuousActionModelParameters(
             rl=RLParameters(
-                gamma=DISCOUNT,
-                target_update_rate=1.0,
-                reward_burnin=100,
-                maxq_learning=False,
+                gamma=DISCOUNT, target_update_rate=1.0, maxq_learning=False
             ),
             training=TrainingParameters(
                 layers=[-1, 256, 128, -1],

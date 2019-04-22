@@ -192,7 +192,7 @@ class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
 
     def evaluate_actor(self, actor, thres: float = 0.2):
         first_states = self.logged_states[0:1000]
-        actor_prediction = actor.actor_prediction(first_states)
+        actor_prediction = actor.predict(first_states)
 
         res_msg = (
             "num of state, num of error, state pos, pred act, "
@@ -242,8 +242,8 @@ class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
         for action in optimal_policy_actions:
             optimal_policy_actions_int.append(self._env.action_to_index(action))
         optimal_policy_actions_int = np.array(optimal_policy_actions_int).reshape(-1, 1)
-        actor1_predictions = actor1.actor_prediction(optimal_policy_states)
-        actor2_predictions = actor2.actor_prediction(optimal_policy_states)
+        actor1_predictions = actor1.predict(optimal_policy_states)
+        actor2_predictions = actor2.predict(optimal_policy_states)
         for pred1, pred2 in zip(actor1_predictions, actor2_predictions):
             assert set(pred1.keys()) == set(pred2.keys())
             for action_feature_id in pred1.keys():

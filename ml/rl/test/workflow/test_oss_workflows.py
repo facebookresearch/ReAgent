@@ -152,7 +152,7 @@ class TestOSSWorkflows(unittest.TestCase):
             }
             predictor = ddpg_workflow.main(params)
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
-            action = predictor.actor_prediction(test_float_state_features)
+            action = predictor.predict(test_float_state_features)
         assert len(action) == 1
 
     def test_ddpg_workflow(self):

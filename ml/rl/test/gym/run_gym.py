@@ -43,7 +43,7 @@ from ml.rl.thrift.core.ttypes import (
     SACTrainingParameters,
     TrainingParameters,
 )
-from ml.rl.training.ddpg_trainer import DDPGTrainer
+from ml.rl.training.ddpg_trainer import ActorNetModel, CriticNetModel, DDPGTrainer
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.workflow.transitional import (
@@ -764,7 +764,37 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         action_range_low = env.action_space.low.astype(np.float32)
         action_range_high = env.action_space.high.astype(np.float32)
 
+        state_dim = get_num_output_features(env.normalization)
+        action_dim = get_num_output_features(env.normalization_action)
+
+        # Build Actor Network
+        actor_network = ActorNetModel(
+            layers=(
+                [state_dim] + trainer_params.actor_training.layers[1:-1] + [action_dim]
+            ),
+            activations=trainer_params.actor_training.activations,
+            fl_init=trainer_params.shared_training.final_layer_init,
+            state_dim=state_dim,
+            action_dim=action_dim,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=False,
+        )
+
+        # Build Critic Network
+        critic_network = CriticNetModel(
+            # Ensure dims match input state and scalar output
+            layers=[state_dim] + trainer_params.critic_training.layers[1:-1] + [1],
+            activations=trainer_params.critic_training.activations,
+            fl_init=trainer_params.shared_training.final_layer_init,
+            state_dim=state_dim,
+            action_dim=action_dim,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=False,
+        )
+
         trainer = DDPGTrainer(
+            actor_network,
+            critic_network,
             trainer_params,
             env.normalization,
             env.normalization_action,

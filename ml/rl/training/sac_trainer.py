@@ -171,10 +171,7 @@ class SACTrainer(RLTrainer):
                 * not_done_mask.float()
             )
 
-            if self.minibatch < self.reward_burnin:
-                target_q_value = reward
-            else:
-                target_q_value = reward + discount * next_state_value
+            target_q_value = reward + discount * next_state_value
 
         q1_loss = F.mse_loss(q1_value, target_q_value)
         self.q1_network_optimizer.zero_grad()
@@ -212,12 +209,8 @@ class SACTrainer(RLTrainer):
         actor_loss_mean.backward()
         self.actor_network_optimizer.step()
 
-        if self.minibatch < self.reward_burnin:
-            # Reward burnin: force target network
-            self._soft_update(self.value_network, self.value_network_target, 1.0)
-        else:
-            # Use the soft update rule to update both target networks
-            self._soft_update(self.value_network, self.value_network_target, self.tau)
+        # Use the soft update rule to update both target networks
+        self._soft_update(self.value_network, self.value_network_target, self.tau)
 
         # Logging at the end to schedule all the cuda operations first
         if (

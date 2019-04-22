@@ -59,7 +59,6 @@ Table of Contents
 
     Installation <installation>
     Usage <usage>
-    License <license>
 
 .. toctree::
     :caption: Advanced Topics
@@ -72,3 +71,4 @@ Table of Contents
     Workflow <api/ml.rl.workflow>
     Preprocessing <api/ml.rl.preprocessing>
     Training <api/ml.rl.training>
+    License <license>

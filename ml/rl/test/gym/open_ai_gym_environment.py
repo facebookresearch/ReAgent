@@ -254,7 +254,7 @@ class OpenAIGymEnvironment(Environment):
                 return action, action_probability
 
             sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
-            prediction = predictor.actor_prediction(sparse_next_states)[0]
+            prediction = predictor.predict(sparse_next_states)[0]
             if self.action_type == EnvType.DISCRETE_ACTION:
                 raw_action = (
                     int(max(prediction, key=(lambda key: prediction[key])))
