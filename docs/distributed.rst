@@ -1,7 +1,7 @@
 .. _distributed:
 
 Training a model across multiple GPUs
-============
+=====================================
 
 Before we get started, please check out the :ref:`Usage Guide <usage>` and
 the `PyTorch Distributed documentation <https://pytorch.org/docs/stable/distributed.html>`_.
