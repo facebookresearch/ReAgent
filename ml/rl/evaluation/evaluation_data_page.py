@@ -157,6 +157,7 @@ class EvaluationDataPage(NamedTuple):
                 if isinstance(states, mt.State):
                     states = mt.StateInput(state=states)
 
+                num_actions = trainer.num_actions
                 action_mask = actions.float()
 
                 # Switch to evaluation mode for the network
@@ -165,7 +166,7 @@ class EvaluationDataPage(NamedTuple):
 
                 # Discrete actions
                 rewards = trainer.boost_rewards(rewards, actions)
-                model_values = trainer.q_network_cpe(states).q_values
+                model_values = trainer.q_network_cpe(states).q_values[:, 0:num_actions]
                 optimal_q_values = trainer.get_detached_q_values(states.state)[0]
                 model_propensities = masked_softmax(
                     optimal_q_values, possible_actions_mask, trainer.rl_temperature
@@ -191,8 +192,6 @@ class EvaluationDataPage(NamedTuple):
                 # In case we reuse the modular for Q-network
                 if hasattr(rewards_and_metric_rewards, "q_values"):
                     rewards_and_metric_rewards = rewards_and_metric_rewards.q_values
-
-                num_actions = trainer.num_actions
 
                 model_rewards = rewards_and_metric_rewards[:, 0:num_actions]
                 assert model_rewards.shape == actions.shape, (

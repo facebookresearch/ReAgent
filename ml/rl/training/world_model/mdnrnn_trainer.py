@@ -23,6 +23,7 @@ class MDNRNNTrainer:
         params: MDNRNNParameters,
         use_gpu=False,
         cum_loss_hist=100,
+        fit_only_one_next_step=False,
     ):
         self.mdnrnn = mdnrnn_network
         self.params = params
@@ -34,6 +35,7 @@ class MDNRNNTrainer:
         self.cum_bce: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
+        self.fit_only_one_next_step = fit_only_one_next_step
 
     def train(self, training_batch, batch_first=False):
         assert (
@@ -96,6 +98,7 @@ class MDNRNNTrainer:
             - reward: (BATCH_SIZE, SEQ_LEN) torch tensor
             - not-terminal: (BATCH_SIZE, SEQ_LEN) torch tensor
             - next_state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
+            the first two dimensions may be swapped depending on batch_first
 
         :param state_dim: the dimension of states. If provided, use it to normalize
             gmm loss
@@ -129,7 +132,7 @@ class MDNRNNTrainer:
             state=learning_input.state, action=learning_input.action
         )
         mdnrnn_output = self.mdnrnn(mdnrnn_input)
-        mus, sigmas, logpi, rs, ds = (
+        mus, sigmas, logpi, rs, nts = (
             mdnrnn_output.mus,
             mdnrnn_output.sigmas,
             mdnrnn_output.logpi,
@@ -137,15 +140,28 @@ class MDNRNNTrainer:
             mdnrnn_output.not_terminal,
         )
 
+        next_state = learning_input.next_state
+        not_terminal = learning_input.not_terminal
+        reward = learning_input.reward
+        if self.fit_only_one_next_step:
+            next_state = next_state[-1:]
+            not_terminal = not_terminal[-1:]
+            reward = not_terminal[-1:]
+            mus = mus[-1:]
+            sigmas = sigmas[-1:]
+            logpi = logpi[-1:]
+            nts = nts[-1:]
+            rs = rs[-1:]
+
         gmm = (
-            gmm_loss(learning_input.next_state, mus, sigmas, logpi)
+            gmm_loss(next_state, mus, sigmas, logpi)
             * self.params.next_state_loss_weight
         )
         bce = (
-            F.binary_cross_entropy_with_logits(ds, learning_input.not_terminal)
+            F.binary_cross_entropy_with_logits(nts, not_terminal)
             * self.params.not_terminal_loss_weight
         )
-        mse = F.mse_loss(rs, learning_input.reward) * self.params.reward_loss_weight
+        mse = F.mse_loss(rs, reward) * self.params.reward_loss_weight
         if state_dim is not None:
             loss = gmm / (state_dim + 2) + bce + mse
         else:

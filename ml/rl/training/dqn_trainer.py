@@ -255,17 +255,25 @@ class DQNTrainer(DQNTrainerBase):
         metric_q_values = self.q_network_cpe(states).q_values.gather(
             1, self.reward_idx_offsets + logged_action_idxs
         )
-        metric_target_q_values = self.q_network_cpe_target(
-            next_states
-        ).q_values.detach()
-        next_q_values_metrics = torch.sum(
-            metric_target_q_values * model_propensities_next_states, 1, keepdim=True
+        all_metrics_target_q_values = torch.chunk(
+            self.q_network_cpe_target(next_states).q_values.detach(),
+            len(self.metrics_to_score),
+            dim=1,
         )
-        filtered_next_q_values_metrics = next_q_values_metrics * not_done_mask
-        target_metric_q_values = metrics_reward_concat_real_vals + (
-            discount_tensor * filtered_next_q_values_metrics
-        )
+        target_metric_q_values = []
+        for i, per_metric_target_q_values in enumerate(all_metrics_target_q_values):
+            per_metric_next_q_values = torch.sum(
+                per_metric_target_q_values * model_propensities_next_states,
+                1,
+                keepdim=True,
+            )
+            per_metric_next_q_values = per_metric_next_q_values * not_done_mask
+            per_metric_target_q_values = metrics_reward_concat_real_vals[
+                :, i : i + 1
+            ] + (discount_tensor * per_metric_next_q_values)
+            target_metric_q_values.append(per_metric_target_q_values)
 
+        target_metric_q_values = torch.cat(target_metric_q_values, dim=1)
         metric_q_value_loss = self.q_network_loss(
             metric_q_values, target_metric_q_values
         )
