@@ -18,6 +18,7 @@ class ImitatorTrainer(RLTrainer):
     ) -> None:
         self._set_optimizer(parameters.training.optimizer)
         self.minibatch_size = parameters.training.minibatch_size
+        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
         self.imitator = imitator
         self.imitator_optimizer = self.optimizer_func(
             imitator.parameters(),
@@ -46,9 +47,10 @@ class ImitatorTrainer(RLTrainer):
         if train:
             imitator_loss = torch.nn.CrossEntropyLoss()
             bcq_loss = imitator_loss(action_preds, actual_action_idxs)
-            self.imitator_optimizer.zero_grad()
             bcq_loss.backward()
-            self.imitator_optimizer.step()
+            self._maybe_run_optimizer(
+                self.imitator_optimizer, self.minibatches_per_step
+            )
 
         return self._imitator_accuracy(pred_action_idxs, actual_action_idxs)
 

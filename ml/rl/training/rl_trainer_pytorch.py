@@ -106,6 +106,23 @@ class RLTrainer:
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 
+    def _maybe_soft_update(
+        self, network, target_network, tau, minibatches_per_step
+    ) -> None:
+        if self.minibatch % minibatches_per_step != 0:
+            return
+        return self._soft_update(network, target_network, tau)
+
+    def _maybe_run_optimizer(self, optimizer, minibatches_per_step) -> None:
+        if self.minibatch % minibatches_per_step != 0:
+            return
+        for group in optimizer.param_groups:
+            for p in group["params"]:
+                if p.grad is not None:
+                    p.grad /= minibatches_per_step
+        optimizer.step()
+        optimizer.zero_grad()
+
     def train(self, training_samples, evaluator=None) -> None:
         raise NotImplementedError()
 

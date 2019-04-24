@@ -57,6 +57,7 @@ class DDPGTrainer(RLTrainer):
         # Shared params
         self.warm_start_model_path = parameters.shared_training.warm_start_model_path
         self.minibatch_size = parameters.shared_training.minibatch_size
+        self.minibatches_per_step = parameters.shared_training.minibatches_per_step or 1
         self.final_layer_init = parameters.shared_training.final_layer_init
         self._set_optimizer(parameters.shared_training.optimizer)
 
@@ -156,9 +157,8 @@ class DDPGTrainer(RLTrainer):
         critic_predictions = q_s1_a1
         loss_critic = self.q_network_loss(critic_predictions, target_q_values.detach())
         loss_critic_for_eval = loss_critic.detach()
-        self.critic_optimizer.zero_grad()
         loss_critic.backward()
-        self.critic_optimizer.step()
+        self._maybe_run_optimizer(self.critic_optimizer, self.minibatches_per_step)
 
         # Optimize the actor network subject to the following:
         # max mean(Q(s1, a1)) or min -mean(Q(s1, a1))
@@ -174,13 +174,16 @@ class DDPGTrainer(RLTrainer):
 
         # Zero out both the actor and critic gradients because we need
         #   to backprop through the critic to get to the actor
-        self.actor_optimizer.zero_grad()
         loss_actor.backward()
-        self.actor_optimizer.step()
+        self._maybe_run_optimizer(self.actor_optimizer, self.minibatches_per_step)
 
         # Use the soft update rule to update both target networks
-        self._soft_update(self.actor, self.actor_target, self.tau)
-        self._soft_update(self.critic, self.critic_target, self.tau)
+        self._maybe_soft_update(
+            self.actor, self.actor_target, self.tau, self.minibatches_per_step
+        )
+        self._maybe_soft_update(
+            self.critic, self.critic_target, self.tau, self.minibatches_per_step
+        )
 
         self.loss_reporter.report(
             td_loss=float(loss_critic_for_eval),

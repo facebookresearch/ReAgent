@@ -71,6 +71,7 @@ struct TrainingParameters {
   14: double weight_init_min_std = 0.0,
   15: bool use_batch_norm = false,
   16: optional double clip_grad_norm,
+  17: optional i32 minibatches_per_step,
 }
 
 struct EvaluationParameters {
@@ -120,6 +121,7 @@ struct DDPGTrainingParameters {
   2: double final_layer_init = 0.003,
   3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
+  5: optional i32 minibatches_per_step,
 }
 
 struct DDPGModelParameters {
@@ -148,6 +150,7 @@ struct SACTrainingParameters {
   6: double entropy_temperature = 0.1,
   7: optional string warm_start_model_path,
   8: bool logged_action_uniform_prior = true,
+  9: optional i32 minibatches_per_step,
 }
 
 struct SACModelParameters {

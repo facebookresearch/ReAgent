@@ -27,6 +27,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
     ) -> None:
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
+        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
 
         DQNTrainerBase.__init__(self, parameters, use_gpu=use_gpu)
 
@@ -105,19 +106,21 @@ class ParametricDQNTrainer(DQNTrainerBase):
         value_loss = self.q_network_loss(q_values, target_q_values)
         self.loss = value_loss.detach()
 
-        self.q_network_optimizer.zero_grad()
         value_loss.backward()
-        self.q_network_optimizer.step()
+        self._maybe_run_optimizer(self.q_network_optimizer, self.minibatches_per_step)
 
         # Use the soft update rule to update target network
-        self._soft_update(self.q_network, self.q_network_target, self.tau)
+        self._maybe_soft_update(
+            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
+        )
 
         # get reward estimates
         reward_estimates = self.reward_network(current_state_action).q_value
         reward_loss = F.mse_loss(reward_estimates, reward)
-        self.reward_network_optimizer.zero_grad()
         reward_loss.backward()
-        self.reward_network_optimizer.step()
+        self._maybe_run_optimizer(
+            self.reward_network_optimizer, self.minibatches_per_step
+        )
 
         self.loss_reporter.report(
             td_loss=self.loss,

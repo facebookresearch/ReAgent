@@ -33,6 +33,7 @@ class DQNTrainer(DQNTrainerBase):
     ) -> None:
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
+        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
         self._actions = parameters.actions if parameters.actions is not None else []
 
         DQNTrainerBase.__init__(
@@ -158,12 +159,13 @@ class DQNTrainer(DQNTrainerBase):
         loss = self.q_network_loss(q_values, target_q_values)
         self.loss = loss.detach()
 
-        self.q_network_optimizer.zero_grad()
         loss.backward()
-        self.q_network_optimizer.step()
+        self._maybe_run_optimizer(self.q_network_optimizer, self.minibatches_per_step)
 
         # Use the soft update rule to update target network
-        self._soft_update(self.q_network, self.q_network_target, self.tau)
+        self._maybe_soft_update(
+            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
+        )
 
         # Get Q-values of next states, used in computing cpe
         with torch.no_grad():
@@ -247,9 +249,10 @@ class DQNTrainer(DQNTrainerBase):
         reward_loss = F.mse_loss(
             reward_estimates_for_logged_actions, metrics_reward_concat_real_vals
         )
-        self.reward_network_optimizer.zero_grad()
         reward_loss.backward()
-        self.reward_network_optimizer.step()
+        self._maybe_run_optimizer(
+            self.reward_network_optimizer, self.minibatches_per_step
+        )
 
         ######### Train separate q-network for CPE evaluation #############
         metric_q_values = self.q_network_cpe(states).q_values.gather(
@@ -277,12 +280,18 @@ class DQNTrainer(DQNTrainerBase):
         metric_q_value_loss = self.q_network_loss(
             metric_q_values, target_metric_q_values
         )
-        self.q_network_cpe.zero_grad()
         metric_q_value_loss.backward()
-        self.q_network_cpe_optimizer.step()
+        self._maybe_run_optimizer(
+            self.q_network_cpe_optimizer, self.minibatches_per_step
+        )
 
         # Use the soft update rule to update target network
-        self._soft_update(self.q_network_cpe, self.q_network_cpe_target, self.tau)
+        self._maybe_soft_update(
+            self.q_network_cpe,
+            self.q_network_cpe_target,
+            self.tau,
+            self.minibatches_per_step,
+        )
 
         model_propensities = masked_softmax(
             self.all_action_scores,
