@@ -221,9 +221,11 @@ class FeatureSensitivityEvaluator(object):
                 torch.sum(
                     torch.abs(
                         shuffled_predicted_next_state_means[
-                            :, boundary_start:boundary_end
+                            :, :, :, boundary_start:boundary_end
                         ]
-                        - predicted_next_state_means[:, boundary_start:boundary_end]
+                        - predicted_next_state_means[
+                            :, :, :, boundary_start:boundary_end
+                        ]
                     ),
                     dim=3,
                 )
