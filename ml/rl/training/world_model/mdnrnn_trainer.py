@@ -21,7 +21,6 @@ class MDNRNNTrainer:
         self,
         mdnrnn_network: MemoryNetwork,
         params: MDNRNNParameters,
-        use_gpu=False,
         cum_loss_hist=100,
         fit_only_one_next_step=False,
     ):
@@ -144,14 +143,12 @@ class MDNRNNTrainer:
         not_terminal = learning_input.not_terminal
         reward = learning_input.reward
         if self.fit_only_one_next_step:
-            next_state = next_state[-1:]
-            not_terminal = not_terminal[-1:]
-            reward = not_terminal[-1:]
-            mus = mus[-1:]
-            sigmas = sigmas[-1:]
-            logpi = logpi[-1:]
-            nts = nts[-1:]
-            rs = rs[-1:]
+            next_state, not_terminal, reward, mus, sigmas, logpi, nts, rs = tuple(
+                map(
+                    lambda x: x[-1:],
+                    (next_state, not_terminal, reward, mus, sigmas, logpi, nts, rs),
+                )
+            )
 
         gmm = (
             gmm_loss(next_state, mus, sigmas, logpi)
