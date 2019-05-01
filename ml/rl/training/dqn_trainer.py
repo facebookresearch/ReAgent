@@ -194,6 +194,10 @@ class DQNTrainer(DQNTrainerBase):
             )
             possible_actions_mask *= action_on_policy
 
+        model_action_idxs = self.get_max_q_values(
+            self.all_action_scores,
+            possible_actions_mask if self.maxq_learning else learning_input.action,
+        )[1]
         self.loss_reporter.report(
             td_loss=self.loss,
             reward_loss=reward_loss,
@@ -205,10 +209,7 @@ class DQNTrainer(DQNTrainerBase):
             model_rewards=model_rewards,
             model_values=self.all_action_scores,
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
-            model_action_idxs=self.get_max_q_values(
-                self.all_action_scores,
-                possible_actions_mask if self.maxq_learning else learning_input.action,
-            )[1],
+            model_action_idxs=model_action_idxs,
         )
 
     def calculate_cpes(

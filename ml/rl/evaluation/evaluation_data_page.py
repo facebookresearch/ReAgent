@@ -30,6 +30,7 @@ class EvaluationDataPage(NamedTuple):
     model_values_for_logged_action: torch.Tensor
     possible_actions_mask: torch.Tensor
     optimal_q_values: Optional[torch.Tensor] = None
+    eval_action_idxs: Optional[torch.Tensor] = None
     logged_values: Optional[torch.Tensor] = None
     logged_metrics: Optional[torch.Tensor] = None
     logged_metrics_values: Optional[torch.Tensor] = None
@@ -110,6 +111,8 @@ class EvaluationDataPage(NamedTuple):
                 # as in discrete dqn model
                 model_values = trainer.q_network(possible_actions_state_concat).q_value
                 optimal_q_values = model_values
+                eval_action_idxs = None
+
                 assert (
                     model_values.shape[0] * model_values.shape[1]
                     == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
@@ -168,6 +171,9 @@ class EvaluationDataPage(NamedTuple):
                 rewards = trainer.boost_rewards(rewards, actions)
                 model_values = trainer.q_network_cpe(states).q_values[:, 0:num_actions]
                 optimal_q_values = trainer.get_detached_q_values(states.state)[0]
+                eval_action_idxs = trainer.get_max_q_values(
+                    optimal_q_values, possible_actions_mask
+                )[1]
                 model_propensities = masked_softmax(
                     optimal_q_values, possible_actions_mask, trainer.rl_temperature
                 )
@@ -287,6 +293,7 @@ class EvaluationDataPage(NamedTuple):
                 logged_metrics_values=None,
                 possible_actions_mask=possible_actions_mask,
                 optimal_q_values=optimal_q_values,
+                eval_action_idxs=eval_action_idxs,
             )
 
     def append(self, edp):
