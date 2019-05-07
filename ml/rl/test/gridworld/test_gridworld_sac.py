@@ -166,13 +166,19 @@ class TestGridworldSAC(GridworldTestBase):
         self._test_save_load_actor(preds, actor_predictor, evaluator.logged_states)
         # TODO: run predictor and check results
 
-    def _test_save_load_actor(self, before_preds, predictor, states, dbtype="minidb"):
+    def _test_save_load_actor(
+        self, before_preds, predictor, states, dbtype="minidb", check_equality=False
+    ):
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmp_path = os.path.join(tmpdirname, "model")
             predictor.save(tmp_path, dbtype)
             new_predictor = type(predictor).load(tmp_path, dbtype)
             after_preds = new_predictor.predict(states)
-        self._check_output_match(before_preds, after_preds)
+        if check_equality:
+            self._check_output_match(before_preds, after_preds)
+        else:
+            # Check if dims match for stochastic outputs in SAC
+            self.assertEqual(len(before_preds), len(after_preds))
 
     def _check_output_match(self, a_preds, b_preds):
         self.assertEqual(len(a_preds), len(b_preds))

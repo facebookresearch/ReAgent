@@ -130,11 +130,7 @@ class GaussianFullyConnectedActor(ModelBase):
 
     def forward(self, input):
         loc, scale_log = self._get_loc_and_scale_log(input.state)
-        if self.training:
-            r = torch.randn(scale_log.shape, device=scale_log.device)
-        else:
-            # Workaround until ONNX is fixed
-            r = torch.zeros(scale_log.shape, device=scale_log.device)
+        r = torch.randn_like(scale_log, device=scale_log.device)
         action = torch.tanh(loc + r * scale_log.exp())
         if not self.training:
             # ONNX doesn't like reshape either..
