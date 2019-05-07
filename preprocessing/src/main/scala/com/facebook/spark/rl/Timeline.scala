@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.coalesce
 import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.types._
 
 case class TimelineConfiguration(startDs: String,
                                  endDs: String,
@@ -332,7 +333,12 @@ object Timeline {
             FROM b CROSS JOIN a
         """)
         val res = df.first
-        val pct_val = res.getAs[Double]("pct")
+        // episode length at x percentile could be either Long or Double,
+        // depending on percentileFunction being used
+        val pct_val = res.schema("pct").dataType match {
+          case DoubleType => res.getAs[Double]("pct")
+          case LongType   => res.getAs[Long]("pct")
+        }
         val mdp_count = res.getAs[Long]("mdp_count")
         val outlier_count = res.getAs[Long]("outlier_count")
         log.info(s"Threshold: ${pct_val}; mdp count: ${mdp_count}; outlier_count: ${outlier_count}")
