@@ -164,6 +164,8 @@ struct SACModelParameters {
   5: FeedForwardParameters actor_network = {},
   8: optional StateFeatureParameters state_feature_params,
   9: EvaluationParameters evaluation = {},
+  # constrain action output to sum to 1 (using dirichlet distribution)
+  10: bool constrain_action_sum = false
 }
 
 struct KNNDQNModelParameters {

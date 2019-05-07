@@ -7,6 +7,7 @@ import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 
 
@@ -110,7 +111,7 @@ class GaussianFullyConnectedActor(ModelBase):
         In the context of this class, `value = loc + r * scale`. Therefore, this function
         only takes `r` & `scale`; it can be reduced to below.
 
-        The primary reason we don't use Normal class is thta it currently
+        The primary reason we don't use Normal class is that it currently
         cannot be exported through ONNX.
         """
         return -(r ** 2) / 2 - scale_log - self.const
@@ -161,3 +162,59 @@ class GaussianFullyConnectedActor(ModelBase):
             ).reshape(-1, 1)
 
         return log_prob
+
+
+class DirichletFullyConnectedActor(ModelBase):
+    def __init__(self, state_dim, action_dim, sizes, activations, use_batch_norm=False):
+        """
+        AKA the multivariate beta distribution. Used in cases where actor's action
+        must sum to 1.
+        """
+        super().__init__()
+        assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
+        assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+        assert len(sizes) == len(
+            activations
+        ), "The numbers of sizes and activations must match; got {} vs {}".format(
+            len(sizes), len(activations)
+        )
+
+        # The last layer gives the concentration of the distribution.
+        self.fc = FullyConnectedNetwork(
+            [state_dim] + sizes + [action_dim],
+            activations + ["relu"],
+            use_batch_norm=use_batch_norm,
+        )
+
+    def input_prototype(self):
+        return rlt.StateInput(
+            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
+        )
+
+    def _get_concentration(self, state):
+        """
+        Get concentration of distribution.
+        https://stats.stackexchange.com/questions/244917/what-exactly-is-the-alpha-in-the-dirichlet-distribution
+        """
+        return self.fc(state.float_features)
+
+    def get_log_prob(self, state, action):
+        with torch.no_grad():
+            concentration = self._get_concentration(state)
+            # This is not getting exported; we can use it
+            dist = Dirichlet(concentration)
+            log_prob = dist.log_prob(action)
+        return log_prob
+
+    def forward(self, input):
+        concentration = self._get_concentration(input.state)
+        action = torch._sample_dirichlet(concentration)
+
+        if not self.training:
+            # ONNX doesn't like reshape either..
+            return rlt.ActorOutput(action=action)
+
+        log_prob = self.get_log_prob(input.state, action)
+        return rlt.ActorOutput(action=action, log_prob=log_prob.unsqueeze(dim=1))
