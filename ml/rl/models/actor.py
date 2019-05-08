@@ -7,7 +7,7 @@ import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from torch.distributions import Dirichlet
+from torch.distributions import Gamma
 from torch.distributions.normal import Normal
 
 
@@ -204,13 +204,17 @@ class DirichletFullyConnectedActor(ModelBase):
         with torch.no_grad():
             concentration = self._get_concentration(state)
             # This is not getting exported; we can use it
-            dist = Dirichlet(concentration)
+            dist = Gamma(concentration, rate=torch.ones(concentration.shape))
             log_prob = dist.log_prob(action)
         return log_prob
 
     def forward(self, input):
         concentration = self._get_concentration(input.state)
-        action = torch._sample_dirichlet(concentration)
+        # Backwards pass of dirichlet distribution not implemented in PyTorch
+        # so sample using Gamma distribution outlined here:
+        # https://en.wikipedia.org/wiki/Dirichlet_distribution#Random_number_generation
+        gamma_samples = torch._standard_gamma(concentration)
+        action = gamma_samples / torch.sum(gamma_samples, dim=1, keepdim=True)
 
         if not self.training:
             # ONNX doesn't like reshape either..
