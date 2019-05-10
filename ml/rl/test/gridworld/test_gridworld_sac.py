@@ -10,7 +10,11 @@ from copy import deepcopy
 import numpy as np
 import numpy.testing as npt
 import torch
-from ml.rl.models.actor import ActorWithPreprocessing, GaussianFullyConnectedActor
+from ml.rl.models.actor import (
+    ActorWithPreprocessing,
+    DirichletFullyConnectedActor,
+    GaussianFullyConnectedActor,
+)
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.output_transformer import (
     ActorOutputTransformer,
@@ -52,7 +56,10 @@ class TestGridworldSAC(GridworldTestBase):
         super().setUp()
 
     def get_sac_parameters(
-        self, use_2_q_functions=False, logged_action_uniform_prior=True
+        self,
+        use_2_q_functions=False,
+        logged_action_uniform_prior=True,
+        constrain_action_sum=False,
     ):
         return SACModelParameters(
             rl=RLParameters(gamma=DISCOUNT, target_update_rate=0.5),
@@ -73,6 +80,7 @@ class TestGridworldSAC(GridworldTestBase):
             actor_network=FeedForwardParameters(
                 layers=[128, 64], activations=["relu", "relu"]
             ),
+            constrain_action_sum=constrain_action_sum,
         )
 
     def get_sac_trainer(self, env, parameters, use_gpu):
@@ -96,12 +104,20 @@ class TestGridworldSAC(GridworldTestBase):
             [state_dim] + parameters.value_network.layers + [1],
             parameters.value_network.activations + ["linear"],
         )
-        actor_network = GaussianFullyConnectedActor(
-            state_dim,
-            action_dim,
-            parameters.actor_network.layers,
-            parameters.actor_network.activations,
-        )
+        if parameters.constrain_action_sum:
+            actor_network = DirichletFullyConnectedActor(
+                state_dim,
+                action_dim,
+                parameters.actor_network.layers,
+                parameters.actor_network.activations,
+            )
+        else:
+            actor_network = GaussianFullyConnectedActor(
+                state_dim,
+                action_dim,
+                parameters.actor_network.layers,
+                parameters.actor_network.activations,
+            )
         if use_gpu:
             q1_network.cuda()
             if q2_network:
@@ -209,3 +225,10 @@ class TestGridworldSAC(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_sac_trainer_model_propensity_gpu(self):
         self._test_sac_trainer(use_gpu=True, logged_action_uniform_prior=True)
+
+    def test_sac_trainer_w_dirichlet_actor(self):
+        self._test_sac_trainer(constrain_action_sum=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_sac_trainer_w_dirichlet_actor_gpu(self):
+        self._test_sac_trainer(use_gpu=True, constrain_action_sum=True)

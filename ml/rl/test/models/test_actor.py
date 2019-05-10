@@ -187,7 +187,7 @@ class TestDirichletFullyConnectedActor(unittest.TestCase):
             activations=["relu", "relu"],
             use_batch_norm=False,
         )
-        expected_num_params, expected_num_inputs, expected_num_outputs = 6, 1, 1
+        expected_num_params, expected_num_inputs, expected_num_outputs = 7, 1, 1
         check_save_load(
             self,
             model,

@@ -7,7 +7,7 @@ import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from torch.distributions import Gamma
+from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 
 
@@ -165,6 +165,9 @@ class GaussianFullyConnectedActor(ModelBase):
 
 
 class DirichletFullyConnectedActor(ModelBase):
+    # Used to prevent concentration from being 0
+    EPSILON = 1e-6
+
     def __init__(self, state_dim, action_dim, sizes, activations, use_batch_norm=False):
         """
         AKA the multivariate beta distribution. Used in cases where actor's action
@@ -198,27 +201,26 @@ class DirichletFullyConnectedActor(ModelBase):
         Get concentration of distribution.
         https://stats.stackexchange.com/questions/244917/what-exactly-is-the-alpha-in-the-dirichlet-distribution
         """
-        return self.fc(state.float_features)
+        return self.fc(state.float_features) + self.EPSILON
 
     def get_log_prob(self, state, action):
         with torch.no_grad():
             concentration = self._get_concentration(state)
-            # This is not getting exported; we can use it
-            dist = Gamma(concentration, rate=torch.ones(concentration.shape))
-            log_prob = dist.log_prob(action)
+            log_prob = Dirichlet(concentration).log_prob(action)
         return log_prob
 
     def forward(self, input):
         concentration = self._get_concentration(input.state)
-        # Backwards pass of dirichlet distribution not implemented in PyTorch
-        # so sample using Gamma distribution outlined here:
-        # https://en.wikipedia.org/wiki/Dirichlet_distribution#Random_number_generation
-        gamma_samples = torch._standard_gamma(concentration)
-        action = gamma_samples / torch.sum(gamma_samples, dim=1, keepdim=True)
+        if self.training:
+            # PyTorch can't backwards pass _sample_dirichlet
+            action = Dirichlet(concentration).rsample()
+        else:
+            # ONNX can't export Dirichlet()
+            action = torch._sample_dirichlet(concentration)
 
         if not self.training:
             # ONNX doesn't like reshape either..
             return rlt.ActorOutput(action=action)
 
-        log_prob = self.get_log_prob(input.state, action)
+        log_prob = Dirichlet(concentration).log_prob(action)
         return rlt.ActorOutput(action=action, log_prob=log_prob.unsqueeze(dim=1))
