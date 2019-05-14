@@ -242,7 +242,7 @@ class WeightedSequentialDoublyRobustEstimator:
     ):
         """
         Take in samples (action, rewards, propensities, etc.) and output lists
-        of equal-length trajectories (episodes) accoriding to terminals.
+        of equal-length trajectories (episodes) according to terminals.
         As the raw trajectories are of various lengths, the shorter ones are
         filled with zeros(ones) at the end.
         """

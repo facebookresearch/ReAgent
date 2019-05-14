@@ -123,7 +123,9 @@ def single_process_main(gpu_index, *args):
     train_dataset = JSONDatasetReader(
         params["training_data_path"], batch_size=training_parameters.minibatch_size
     )
-    eval_dataset = JSONDatasetReader(params["eval_data_path"], batch_size=16)
+    eval_dataset = JSONDatasetReader(
+        params["eval_data_path"], batch_size=training_parameters.minibatch_size
+    )
 
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
