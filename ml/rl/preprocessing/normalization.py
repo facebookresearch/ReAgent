@@ -84,6 +84,7 @@ def identify_parameter(
         identify_types.BINARY,
         identify_types.ENUM,
         identify_types.CONTINUOUS_ACTION,
+        identify_types.DO_NOT_PREPROCESS,
     ], "unknown type {}".format(feature_type)
     assert (
         len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
@@ -91,6 +92,11 @@ def identify_parameter(
 
     min_value = np.min(values)
     max_value = np.max(values)
+
+    if feature_type == identify_types.DO_NOT_PREPROCESS:
+        mean = float(np.mean(values))
+        values = values - mean
+        stddev = max(float(np.std(values, ddof=1)), 1.0)
     if feature_type == identify_types.CONTINUOUS:
         if min_value == max_value:
             return no_op_feature()

@@ -58,7 +58,9 @@ class PreprocessorNet:
                     "Only one feature type is allowed per call to preprocess_blob!"
                 )
         feature_type = normalization_parameters[0].feature_type
-        if feature_type == identify_types.BINARY:
+        if feature_type == identify_types.DO_NOT_PREPROCESS:
+            pass
+        elif feature_type == identify_types.BINARY:
             TOLERANCE = self._store_parameter(
                 parameters, "TOLERANCE", np.array(1e-3, dtype=np.float32)
             )
