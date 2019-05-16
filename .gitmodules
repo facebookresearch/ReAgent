@@ -1,0 +1,42 @@
+[submodule "ml/decision/external/folly"]
+	path = ml/decision/external/folly
+	url = https://github.com/facebook/folly.git
+[submodule "ml/decision/external/eigen"]
+	path = ml/decision/external/eigen
+	url = https://github.com/eigenteam/eigen-git-mirror.git
+[submodule "ml/decision/external/double-conversion"]
+	path = ml/decision/external/double-conversion
+	url = https://github.com/google/double-conversion.git
+[submodule "ml/decision/external/fbthrift"]
+	path = ml/decision/external/fbthrift
+	url = https://github.com/facebook/fbthrift
+[submodule "ml/decision/external/rsocket-cpp"]
+	path = ml/decision/external/rsocket-cpp
+	url = https://github.com/rsocket/rsocket-cpp.git
+[submodule "ml/decision/external/fizz"]
+	path = ml/decision/external/fizz
+	url = https://github.com/facebookincubator/fizz.git
+[submodule "ml/decision/external/fmt"]
+	path = ml/decision/external/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "ml/decision/external/wangle"]
+	path = ml/decision/external/wangle
+	url = https://github.com/facebook/wangle.git
+[submodule "ml/decision/external/zstd"]
+	path = ml/decision/external/zstd
+	url = https://github.com/facebook/zstd.git
+[submodule "ml/decision/external/mstch"]
+	path = ml/decision/external/mstch
+	url = https://github.com/no1msd/mstch.git
+[submodule "ml/decision/external/gflags"]
+	path = ml/decision/external/gflags
+	url = https://github.com/gflags/gflags.git
+[submodule "ml/decision/external/glog"]
+	path = ml/decision/external/glog
+	url = https://github.com/google/glog.git
+[submodule "ml/decision/external/googletest"]
+	path = ml/decision/external/googletest
+	url = https://github.com/google/googletest.git
+[submodule "ml/decision/external/exprtk"]
+	path = ml/decision/external/exprtk
+	url = https://github.com/ArashPartow/exprtk.git
