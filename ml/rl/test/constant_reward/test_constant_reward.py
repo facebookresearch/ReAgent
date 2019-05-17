@@ -70,7 +70,11 @@ class TestConstantReward(unittest.TestCase):
         self.action_dims = 2
         self.num_samples = 1024 * 10  # multiple of minibatch_size (1024)
         self.epochs = 24
+        SummaryWriterContext._reset_globals()
         super().setUp()
+
+    def tearDown(self):
+        SummaryWriterContext._reset_globals()
 
     def test_trainer_maxq(self):
         env = Env(self.state_dims, self.action_dims)

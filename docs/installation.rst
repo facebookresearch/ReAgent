@@ -117,7 +117,7 @@ Once the Docker image is built you can start an interactive shell in the contain
 
 .. code-block::
 
-   docker run -v $PWD/../:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+   docker run -v $PWD:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
 
 To run with GPU, include ``--runtime=nvidia`` after installing `nvidia-docker <https://github.com/NVIDIA/nvidia-docker>`_.
 
@@ -146,8 +146,14 @@ Once inside the container, run the setup file:
    cd Horizon
    ./scripts/setup.sh
 
-Now you can run the tests:
+Now you can run all the tests:
 
 .. code-block::
 
    python setup.py test
+
+or try running one specific test:
+
+.. code-block::
+
+  python setup.py test -s ml.rl.test.constant_reward.test_constant_reward.TestConstantReward.test_trainer_maxq
