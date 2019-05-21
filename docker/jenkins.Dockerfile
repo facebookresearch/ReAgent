@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   software-properties-common \
   vim \
   emacs \
+  curl \
   wget
 
 # Sometimes needed to avoid SSL CA issues.

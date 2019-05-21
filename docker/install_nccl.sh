@@ -35,7 +35,7 @@ if [ -n "$NCCL_UBUNTU_VER" ]; then
   dpkg -i "${NCCL_DEB}"
 
   # On March 8, 2018 Nvidia began recommending version 2.1.15
-  NCCL_LIB_VERSION="2.1.15-1+cuda${CUDA_VERSION:0:3}"
+  NCCL_LIB_VERSION="2.3.4-1+cuda${CUDA_VERSION:0:3}"
 
   apt update
   apt install -y --allow-downgrades --allow-change-held-packages libnccl2=$NCCL_LIB_VERSION libnccl-dev=$NCCL_LIB_VERSION
