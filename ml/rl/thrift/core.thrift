@@ -143,7 +143,7 @@ struct OptimizerParameters {
 struct SACTrainingParameters {
   1: i32 minibatch_size = 1024,
   2: OptimizerParameters q_network_optimizer = {},
-  3: OptimizerParameters value_network_optimizer = {},
+  3: optional OptimizerParameters value_network_optimizer,
   4: OptimizerParameters actor_network_optimizer = {},
   5: bool use_2_q_functions = true,
   # alpha in the paper; controlling explore & exploit
@@ -151,6 +151,8 @@ struct SACTrainingParameters {
   7: optional string warm_start_model_path,
   8: bool logged_action_uniform_prior = true,
   9: optional i32 minibatches_per_step,
+  10: bool use_value_network = true,
+
 }
 
 struct SACModelParameters {
@@ -160,7 +162,7 @@ struct SACModelParameters {
   },
   2: SACTrainingParameters training = {},
   3: FeedForwardParameters q_network = {},
-  4: FeedForwardParameters value_network = {},
+  4: optional FeedForwardParameters value_network,
   5: FeedForwardParameters actor_network = {},
   8: optional StateFeatureParameters state_feature_params,
   9: EvaluationParameters evaluation = {},

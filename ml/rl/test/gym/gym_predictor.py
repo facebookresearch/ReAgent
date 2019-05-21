@@ -92,5 +92,5 @@ class GymDDPGPredictor(GymPredictor):
 class GymSACPredictor(GymPredictor):
     def policy(self, states):
         actions = self.trainer.internal_prediction(states)
-        actions = actions.data.numpy()
+        actions = actions.cpu().data.numpy()
         return actions

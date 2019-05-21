@@ -804,24 +804,31 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         )
 
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+        value_network = None
+        value_network_optimizer = None
+        if params["sac_training"]["use_value_network"]:
+            value_network = FeedForwardParameters(**params["sac_value_training"])
+            value_network_optimizer = OptimizerParameters(
+                **params["sac_training"]["value_network_optimizer"]
+            )
+
         trainer_params = SACModelParameters(
             rl=rl_parameters,
             training=SACTrainingParameters(
                 minibatch_size=params["sac_training"]["minibatch_size"],
                 use_2_q_functions=params["sac_training"]["use_2_q_functions"],
+                use_value_network=params["sac_training"]["use_value_network"],
                 q_network_optimizer=OptimizerParameters(
                     **params["sac_training"]["q_network_optimizer"]
                 ),
-                value_network_optimizer=OptimizerParameters(
-                    **params["sac_training"]["value_network_optimizer"]
-                ),
+                value_network_optimizer=value_network_optimizer,
                 actor_network_optimizer=OptimizerParameters(
                     **params["sac_training"]["actor_network_optimizer"]
                 ),
                 entropy_temperature=params["sac_training"]["entropy_temperature"],
             ),
             q_network=FeedForwardParameters(**params["sac_q_training"]),
-            value_network=FeedForwardParameters(**params["sac_value_training"]),
+            value_network=value_network,
             actor_network=FeedForwardParameters(**params["sac_actor_training"]),
         )
         trainer = get_sac_trainer(env, trainer_params, use_gpu)
@@ -834,7 +841,7 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
 
 def get_sac_trainer(env, parameters, use_gpu):
     trainer_args, trainer_kwargs = _get_sac_trainer_params(env, parameters, use_gpu)
-    return SACTrainer(*trainer_args, **trainer_kwargs)
+    return SACTrainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
 
 
 def _get_sac_trainer_params(env, sac_model_params, use_gpu):
@@ -854,23 +861,19 @@ def _get_sac_trainer_params(env, sac_model_params, use_gpu):
             sac_model_params.q_network.layers,
             sac_model_params.q_network.activations,
         )
-    value_network = FullyConnectedNetwork(
-        [state_dim] + sac_model_params.value_network.layers + [1],
-        sac_model_params.value_network.activations + ["linear"],
-    )
+    value_network = None
+    if sac_model_params.training.use_value_network:
+        value_network = FullyConnectedNetwork(
+            [state_dim] + sac_model_params.value_network.layers + [1],
+            sac_model_params.value_network.activations + ["linear"],
+        )
     actor_network = GaussianFullyConnectedActor(
         state_dim,
         action_dim,
         sac_model_params.actor_network.layers,
         sac_model_params.actor_network.activations,
     )
-    if use_gpu:
-        q1_network.cuda()
-        if q2_network:
-            q2_network.cuda()
-        value_network.cuda()
-        actor_network.cuda()
-    value_network_target = deepcopy(value_network)
+
     min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
     max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
     action_range_low = env.action_space.low.astype(np.float32)
@@ -882,14 +885,22 @@ def _get_sac_trainer_params(env, sac_model_params, use_gpu):
         dim=0
     )
 
-    trainer_args = [
-        q1_network,
-        value_network,
-        value_network_target,
-        actor_network,
-        sac_model_params,
-    ]
+    if use_gpu:
+        q1_network.cuda()
+        if q2_network:
+            q2_network.cuda()
+        if value_network:
+            value_network.cuda()
+        actor_network.cuda()
+
+        min_action_range_tensor_training.cuda()
+        max_action_range_tensor_training.cuda()
+        min_action_range_tensor_serving.cuda()
+        max_action_range_tensor_serving.cuda()
+
+    trainer_args = [q1_network, actor_network, sac_model_params]
     trainer_kwargs = {
+        "value_network": value_network,
         "q2_network": q2_network,
         "min_action_range_tensor_training": min_action_range_tensor_training,
         "max_action_range_tensor_training": max_action_range_tensor_training,

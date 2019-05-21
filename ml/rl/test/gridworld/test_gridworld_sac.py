@@ -100,10 +100,6 @@ class TestGridworldSAC(GridworldTestBase):
                 parameters.q_network.layers,
                 parameters.q_network.activations,
             )
-        value_network = FullyConnectedNetwork(
-            [state_dim] + parameters.value_network.layers + [1],
-            parameters.value_network.activations + ["linear"],
-        )
         if parameters.constrain_action_sum:
             actor_network = DirichletFullyConnectedActor(
                 state_dim,
@@ -118,20 +114,27 @@ class TestGridworldSAC(GridworldTestBase):
                 parameters.actor_network.layers,
                 parameters.actor_network.activations,
             )
+
+        value_network = None
+        if parameters.training.use_value_network:
+            value_network = FullyConnectedNetwork(
+                [state_dim] + parameters.value_network.layers + [1],
+                parameters.value_network.activations + ["linear"],
+            )
+
         if use_gpu:
             q1_network.cuda()
             if q2_network:
                 q2_network.cuda()
-            value_network.cuda()
+            if value_network:
+                value_network.cuda()
             actor_network.cuda()
 
-        value_network_target = deepcopy(value_network)
         return SACTrainer(
             q1_network,
-            value_network,
-            value_network_target,
             actor_network,
             parameters,
+            value_network=value_network,
             q2_network=q2_network,
         )
 
