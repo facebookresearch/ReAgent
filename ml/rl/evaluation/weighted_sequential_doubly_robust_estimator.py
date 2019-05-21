@@ -176,17 +176,23 @@ class WeightedSequentialDoublyRobustEstimator:
             weighted_doubly_robust_std_error = np.std(bootstrapped_means)
 
         episode_values = np.sum(np.multiply(rewards, discounts), axis=1)
-        denominator = np.nanmean(episode_values)
-        if abs(denominator) < 1e-6:
+        logged_policy_score = np.nanmean(episode_values)
+        if logged_policy_score < 1e-6:
+            logger.warning(
+                "Can't normalize WSDR-CPE because of small or negative logged_policy_score"
+            )
             return CpeEstimate(
-                raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
+                raw=weighted_doubly_robust,
+                normalized=0.0,
+                raw_std_error=weighted_doubly_robust_std_error,
+                normalized_std_error=0.0,
             )
 
         return CpeEstimate(
             raw=weighted_doubly_robust,
-            normalized=weighted_doubly_robust / denominator,
+            normalized=weighted_doubly_robust / logged_policy_score,
             raw_std_error=weighted_doubly_robust_std_error,
-            normalized_std_error=weighted_doubly_robust_std_error / denominator,
+            normalized_std_error=weighted_doubly_robust_std_error / logged_policy_score,
         )
 
     def compute_weighted_doubly_robust_point_estimate(
@@ -236,7 +242,7 @@ class WeightedSequentialDoublyRobustEstimator:
     ):
         """
         Take in samples (action, rewards, propensities, etc.) and output lists
-        of equal-length trajectories (episodes) accoriding to terminals.
+        of equal-length trajectories (episodes) according to terminals.
         As the raw trajectories are of various lengths, the shorter ones are
         filled with zeros(ones) at the end.
         """

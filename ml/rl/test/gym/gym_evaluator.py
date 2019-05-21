@@ -28,7 +28,7 @@ class GymEvaluator(Evaluator):
 
     def __init__(self, env, gamma) -> None:
         # TODO: incorporate int features
-        super(GymEvaluator, self).__init__(None, gamma, None, 1.0)
+        super().__init__(None, gamma, None, 1.0)
 
         self._env = env
         self.mc_loss: List[float] = []

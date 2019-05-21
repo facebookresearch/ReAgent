@@ -23,6 +23,7 @@ def create_dqn_trainer_from_params(
     model: DiscreteActionModelParameters,
     normalization_parameters: Dict[int, NormalizationParameters],
     use_gpu: bool = False,
+    use_all_avail_gpus: bool = False,
     metrics_to_score=None,
 ):
     metrics_to_score = metrics_to_score or []
@@ -72,6 +73,19 @@ def create_dqn_trainer_from_params(
 
         q_network_cpe_target = q_network_cpe.get_target_network()
 
+    if use_all_avail_gpus:
+        q_network = q_network.get_distributed_data_parallel_model()
+        reward_network = (
+            reward_network.get_distributed_data_parallel_model()
+            if reward_network
+            else None
+        )
+        q_network_cpe = (
+            q_network_cpe.get_distributed_data_parallel_model()
+            if q_network_cpe
+            else None
+        )
+
     return DQNTrainer(
         q_network,
         q_network_target,
@@ -89,6 +103,7 @@ def create_parametric_dqn_trainer_from_params(
     state_normalization_parameters: Dict[int, NormalizationParameters],
     action_normalization_parameters: Dict[int, NormalizationParameters],
     use_gpu: bool = False,
+    use_all_avail_gpus: bool = False,
 ):
     q_network = FullyConnectedParametricDQN(
         state_dim=get_num_output_features(state_normalization_parameters),
@@ -102,9 +117,18 @@ def create_parametric_dqn_trainer_from_params(
         sizes=model.training.layers[1:-1],
         activations=model.training.activations[:-1],
     )
+    q_network_target = q_network.get_target_network()
+
     if use_gpu and torch.cuda.is_available():
         q_network = q_network.cuda()
+        q_network_target = q_network_target.cuda()
         reward_network = reward_network.cuda()
 
-    q_network_target = q_network.get_target_network()
-    return ParametricDQNTrainer(q_network, q_network_target, reward_network, model)
+    if use_all_avail_gpus:
+        q_network = q_network.get_distributed_data_parallel_model()
+        q_network_target = q_network_target.get_distributed_data_parallel_model()
+        reward_network = reward_network.get_distributed_data_parallel_model()
+
+    return ParametricDQNTrainer(
+        q_network, q_network_target, reward_network, model, use_gpu
+    )

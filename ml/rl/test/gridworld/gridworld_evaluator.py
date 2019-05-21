@@ -2,13 +2,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import numpy.testing as npt
 import torch
 from ml.rl.caffe_utils import softmax
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.test.gridworld.gridworld import Gridworld
+from ml.rl.test.gridworld.gridworld_base import GridworldBase
+from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 
 
 logger = logging.getLogger(__name__)
@@ -16,11 +19,15 @@ logger = logging.getLogger(__name__)
 
 class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
+    ABS_ERR_THRES = 0.02
 
-    def __init__(self, env, assume_optimal_policy: bool, gamma) -> None:
-        super(GridworldEvaluator, self).__init__(
-            None, gamma, None, metrics_to_score=["reward"]
-        )
+    def __init__(
+        self,
+        env: Union[Gridworld, GridworldContinuous],
+        assume_optimal_policy: bool,
+        gamma: float,
+    ) -> None:
+        super().__init__(None, gamma, None, metrics_to_score=["reward"])
 
         self._env = env
         self.mc_loss: List[float] = []
@@ -119,7 +126,9 @@ class GridworldEvaluator(Evaluator):
             logged_value = self.logged_values[x][0]
             target_value = prediction[x][int_action]
             error = abs(logged_value - target_value)
-            if num_error_prints < 10 and error > 0.2:
+            if num_error_prints < 10 and error > self.ABS_ERR_THRES * (
+                GridworldBase.REWARD_SCALE ** 2
+            ):
                 print(
                     "GOT {}-th STATE (POS: {}) and ACTION {} WRONG. Logged Q-Value: {}, Predicted Q-Value: {}".format(
                         x,
@@ -178,14 +187,12 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
 
 class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
     def __init__(self, env, gamma) -> None:
-        super(GridworldDDPGEvaluator, self).__init__(
-            env, assume_optimal_policy=True, gamma=gamma
-        )
+        super().__init__(env, assume_optimal_policy=True, gamma=gamma)
         self.optimal_policy_samples = self._env.generate_samples(100, 0.0, self.gamma)
 
     def evaluate_actor(self, actor, thres: float = 0.2):
         first_states = self.logged_states[0:1000]
-        actor_prediction = actor.actor_prediction(first_states)
+        actor_prediction = actor.predict(first_states)
 
         res_msg = (
             "num of state, num of error, state pos, pred act, "
@@ -235,8 +242,8 @@ class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
         for action in optimal_policy_actions:
             optimal_policy_actions_int.append(self._env.action_to_index(action))
         optimal_policy_actions_int = np.array(optimal_policy_actions_int).reshape(-1, 1)
-        actor1_predictions = actor1.actor_prediction(optimal_policy_states)
-        actor2_predictions = actor2.actor_prediction(optimal_policy_states)
+        actor1_predictions = actor1.predict(optimal_policy_states)
+        actor2_predictions = actor2.predict(optimal_policy_states)
         for pred1, pred2 in zip(actor1_predictions, actor2_predictions):
             assert set(pred1.keys()) == set(pred2.keys())
             for action_feature_id in pred1.keys():
@@ -245,4 +252,4 @@ class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
                 )
 
     def evaluate_critic(self, critic):
-        return super(GridworldDDPGEvaluator, self).evaluate(critic)
+        return super().evaluate(critic)

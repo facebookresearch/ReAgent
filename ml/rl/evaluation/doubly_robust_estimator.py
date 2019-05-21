@@ -18,20 +18,14 @@ class DoublyRobustEstimator:
         self, edp: EvaluationDataPage
     ) -> Tuple[CpeEstimate, CpeEstimate, CpeEstimate]:
         # The score we would get if we evaluate the logged policy against itself
-        denominator = float(torch.mean(edp.logged_rewards))
-
-        if abs(denominator) < 1e-6:
-            return (
-                CpeEstimate(
-                    raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
-                ),
-                CpeEstimate(
-                    raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
-                ),
-                CpeEstimate(
-                    raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
-                ),
+        logged_policy_score = float(torch.mean(edp.logged_rewards))
+        if logged_policy_score < 1e-6:
+            logger.warning(
+                "Can't normalize DR-CPE because of small or negative logged_policy_score"
             )
+            normalizer = 0.0
+        else:
+            normalizer = 1.0 / logged_policy_score
 
         # For details, visit https://arxiv.org/pdf/1612.01205.pdf
         num_examples = edp.model_propensities.shape[0]
@@ -45,6 +39,17 @@ class DoublyRobustEstimator:
             direct_method_values = torch.sum(
                 edp.model_propensities * model_rewards, dim=1, keepdim=True
             )
+
+        direct_method_score = float(torch.mean(direct_method_values))
+        direct_method_std_error = bootstrapped_std_error_of_mean(
+            direct_method_values.squeeze()
+        )
+        direct_method_estimate = CpeEstimate(
+            raw=direct_method_score,
+            normalized=direct_method_score * normalizer,
+            raw_std_error=direct_method_std_error,
+            normalized_std_error=direct_method_std_error * normalizer,
+        )
 
         target_propensity_for_action = torch.sum(
             edp.model_propensities * edp.action_mask, dim=1, keepdim=True
@@ -61,33 +66,22 @@ class DoublyRobustEstimator:
             * (edp.logged_rewards - edp.model_rewards_for_logged_action)
         ) + direct_method_values
 
-        direct_method_score = float(torch.mean(direct_method_values))
-        direct_method_std_error = bootstrapped_std_error_of_mean(
-            direct_method_values.squeeze()
-        )
-        direct_method_estimate = CpeEstimate(
-            raw=direct_method_score,
-            normalized=direct_method_score / denominator,
-            raw_std_error=direct_method_std_error,
-            normalized_std_error=direct_method_std_error / denominator,
-        )
-
         ips_score = float(torch.mean(ips))
         ips_score_std_error = bootstrapped_std_error_of_mean(ips.squeeze())
         inverse_propensity_estimate = CpeEstimate(
             raw=ips_score,
-            normalized=ips_score / denominator,
+            normalized=ips_score * normalizer,
             raw_std_error=ips_score_std_error,
-            normalized_std_error=ips_score_std_error / denominator,
+            normalized_std_error=ips_score_std_error * normalizer,
         )
 
         dr_score = float(torch.mean(doubly_robust))
         dr_score_std_error = bootstrapped_std_error_of_mean(doubly_robust.squeeze())
         doubly_robust_estimate = CpeEstimate(
             raw=dr_score,
-            normalized=dr_score / denominator,
+            normalized=dr_score * normalizer,
             raw_std_error=dr_score_std_error,
-            normalized_std_error=dr_score_std_error / denominator,
+            normalized_std_error=dr_score_std_error * normalizer,
         )
 
         return (

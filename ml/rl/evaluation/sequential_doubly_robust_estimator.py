@@ -86,19 +86,24 @@ class SequentialDoublyRobustEstimator:
             i += 1
 
         doubly_robusts = np.array(doubly_robusts)
-        episode_values = np.array(episode_values)
-
-        denominator = np.mean(episode_values)
-        if abs(denominator) < 1e-6:
-            return CpeEstimate(
-                raw=0.0, normalized=0.0, raw_std_error=0.0, normalized_std_error=0.0
-            )
-
-        dr_score = np.mean(doubly_robusts)
+        dr_score = float(np.mean(doubly_robusts))
         dr_score_std_error = bootstrapped_std_error_of_mean(doubly_robusts)
+
+        episode_values = np.array(episode_values)
+        logged_policy_score = np.mean(episode_values)
+        if logged_policy_score < 1e-6:
+            logger.warning(
+                "Can't normalize SDR-CPE because of small or negative logged_policy_score"
+            )
+            return CpeEstimate(
+                raw=dr_score,
+                normalized=0.0,
+                raw_std_error=dr_score_std_error,
+                normalized_std_error=0.0,
+            )
         return CpeEstimate(
-            raw=float(dr_score),
-            normalized=float(dr_score) / denominator,
+            raw=dr_score,
+            normalized=dr_score / logged_policy_score,
             raw_std_error=dr_score_std_error,
-            normalized_std_error=dr_score_std_error / denominator,
+            normalized_std_error=dr_score_std_error / logged_policy_score,
         )

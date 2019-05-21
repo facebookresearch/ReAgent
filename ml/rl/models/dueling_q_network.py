@@ -27,7 +27,7 @@ class DuelingQNetwork(ModelBase):
         :param use_batch_norm: bool indicating whether to apply batch normalization
         :param action_dim: if !=0 use parametric dueling DQN, else standard dueling DQN
         """
-        super(DuelingQNetwork, self).__init__()
+        super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations

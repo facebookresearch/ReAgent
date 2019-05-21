@@ -7,6 +7,7 @@ from typing import Tuple, Union
 
 import gym
 import numpy as np
+from ml.rl.test.base.utils import only_continuous_normalizer
 from ml.rl.test.environment.environment import Environment
 from ml.rl.test.gym.gym_predictor import (
     GymDDPGPredictor,
@@ -14,7 +15,6 @@ from ml.rl.test.gym.gym_predictor import (
     GymPredictor,
     GymSACPredictor,
 )
-from ml.rl.test.utils import only_continuous_normalizer
 from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.dqn_predictor import DQNPredictor
@@ -178,7 +178,7 @@ class OpenAIGymEnvironment(Environment):
                 state=None, use_continuous_action=False
             )
             if self.action_type == EnvType.DISCRETE_ACTION:
-                action = np.zeros([self.action_dim], dtype=np.float32)
+                action: np.ndarray = np.zeros([self.action_dim], dtype=np.float32)
                 action[raw_action] = 1
                 return action, action_probability
             return raw_action, action_probability
@@ -215,14 +215,13 @@ class OpenAIGymEnvironment(Environment):
             if state_preprocessor:
                 next_state = state_preprocessor.forward(next_state)
             return predictor.policy(next_state)[0], action_probability
-        elif isinstance(predictor, (DQNPredictor)):
+        elif isinstance(predictor, DQNPredictor):
             action_probability = 1.0 if test else 1.0 - self.epsilon
             # Use DQNPredictor directly - useful to test caffe2 predictor
             # assumes state preprocessor already part of predictor net.
             sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
             q_values = predictor.predict(sparse_next_states)
-            action_idx = int(max(q_values[0], key=q_values[0].get))
-            action_idx -= self.state_dim
+            action_idx = int(max(q_values[0], key=q_values[0].get)) - self.state_dim
             action[action_idx] = 1.0
             return action, action_probability
         elif isinstance(predictor, ParametricDQNPredictor):
@@ -236,9 +235,9 @@ class OpenAIGymEnvironment(Environment):
                 {str(i + self.state_dim): 1} for i in range(self.action_dim)
             ]
             q_values = predictor.predict(sparse_next_states, sparse_actions)
-            q_values = np.fromiter(map(lambda x: x["Q"], q_values), np.float).reshape(
-                self.action_dim
-            )
+            q_values = np.fromiter(
+                map(lambda x: x["Q"], q_values), np.float  # type: ignore
+            ).reshape(self.action_dim)
             action_idx = np.argmax(q_values)
             action[action_idx] = 1.0
             return action, action_probability
@@ -255,7 +254,7 @@ class OpenAIGymEnvironment(Environment):
                 return action, action_probability
 
             sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
-            prediction = predictor.actor_prediction(sparse_next_states)[0]
+            prediction = predictor.predict(sparse_next_states)[0]
             if self.action_type == EnvType.DISCRETE_ACTION:
                 raw_action = (
                     int(max(prediction, key=(lambda key: prediction[key])))
@@ -395,6 +394,7 @@ class OpenAIGymEnvironment(Environment):
         self,
         state,
         terminal: bool = False,
+        ignore_terminal=False,
         use_continuous_action: bool = False,
         **kwargs,
     ):

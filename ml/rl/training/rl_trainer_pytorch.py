@@ -28,27 +28,24 @@ class RLTrainer:
         parameters,
         use_gpu,
         metrics_to_score=None,
-        gradient_handler=None,
         actions: Optional[List[str]] = None,
     ):
         self.minibatch = 0
         self.parameters = parameters
-        self.reward_burnin = parameters.rl.reward_burnin
-        self.rl_temperature = parameters.rl.temperature
+        self.rl_temperature = float(parameters.rl.temperature)
         self.maxq_learning = parameters.rl.maxq_learning
         self.gamma = parameters.rl.gamma
         self.tau = parameters.rl.target_update_rate
         self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
         self.time_diff_unit_length = parameters.rl.time_diff_unit_length
-        self.gradient_handler = gradient_handler
         self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
         self.multi_steps = parameters.rl.multi_steps
         self.calc_cpe_in_training = parameters.evaluation.calc_cpe_in_training
 
         if parameters.rl.q_network_loss == "mse":
-            self.q_network_loss = getattr(F, "mse_loss")
+            self.q_network_loss = F.mse_loss
         elif parameters.rl.q_network_loss == "huber":
-            self.q_network_loss = getattr(F, "smooth_l1_loss")
+            self.q_network_loss = F.smooth_l1_loss
         else:
             raise Exception(
                 "Q-Network loss type {} not valid loss.".format(
@@ -108,6 +105,23 @@ class RLTrainer:
                 continue
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
+
+    def _maybe_soft_update(
+        self, network, target_network, tau, minibatches_per_step
+    ) -> None:
+        if self.minibatch % minibatches_per_step != 0:
+            return
+        return self._soft_update(network, target_network, tau)
+
+    def _maybe_run_optimizer(self, optimizer, minibatches_per_step) -> None:
+        if self.minibatch % minibatches_per_step != 0:
+            return
+        for group in optimizer.param_groups:
+            for p in group["params"]:
+                if p.grad is not None:
+                    p.grad /= minibatches_per_step
+        optimizer.step()
+        optimizer.zero_grad()
 
     def train(self, training_samples, evaluator=None) -> None:
         raise NotImplementedError()

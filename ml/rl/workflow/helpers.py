@@ -5,7 +5,6 @@ import argparse
 import json
 import logging
 import os
-import sys
 import time
 
 import torch
@@ -26,15 +25,18 @@ def minibatch_size_multiplier(use_gpu, use_all_avail_gpus):
 
 
 def parse_args(args):
-    if len(args) != 3:
+    if len(args) < 3:
         raise Exception("Usage: python <file.py> -p <parameters_file>")
 
     parser = argparse.ArgumentParser(description="Read command line parameters.")
     parser.add_argument("-p", "--parameters", help="Path to JSON parameters file.")
+    parser.add_argument("-ni", "--node_index", help="Node index")
     args = parser.parse_args(args[1:])
 
     with open(args.parameters, "r") as f:
         params = json.load(f)
+
+    params["node_index"] = args.node_index
 
     return params
 
@@ -87,7 +89,6 @@ def update_model_for_warm_start(model, path=None):
     path = os.path.expanduser(path)
     state = torch.load(path)
     logger.info("Found model warm start checkpoint at path {}".format(path))
-    model.reward_burnin = -1
 
     try:
         model.load_state_dict(state)

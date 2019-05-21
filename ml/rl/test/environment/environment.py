@@ -4,31 +4,14 @@
 import collections
 import random
 from functools import partial
-from typing import (  # noqa
-    Deque,
-    Dict,
-    Generic,
-    GenericMeta,
-    List,
-    NamedTuple,
-    NamedTupleMeta,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Deque, Dict, List, NamedTuple, Optional, Union
 
 
 FEATURES = Dict[int, float]
 ACTION = Union[str, FEATURES]
-ACTION_TYPEVAR = TypeVar("ACTION_TYPEVAR", str, FEATURES)
 
 
-class NamedTupleGenericMeta(NamedTupleMeta, GenericMeta):
-    pass
-
-
-class Samples(NamedTuple, Generic[ACTION_TYPEVAR], metaclass=NamedTupleGenericMeta):
+class Samples(NamedTuple):
     mdp_ids: List[str]
     sequence_numbers: List[int]
     sequence_number_ordinals: List[int]
@@ -43,9 +26,7 @@ class Samples(NamedTuple, Generic[ACTION_TYPEVAR], metaclass=NamedTupleGenericMe
     possible_next_actions: List[List[ACTION]]
 
 
-class MultiStepSamples(
-    NamedTuple, Generic[ACTION_TYPEVAR], metaclass=NamedTupleGenericMeta
-):
+class MultiStepSamples(NamedTuple):
     mdp_ids: List[str]
     sequence_numbers: List[int]
     sequence_number_ordinals: List[int]
@@ -117,7 +98,12 @@ class Environment:
         raise NotImplementedError
 
     def possible_actions(
-        self, state, terminal=False, ignore_terminal=False, use_continuous_action=False
+        self,
+        state,
+        terminal=False,
+        ignore_terminal=False,
+        use_continuous_action: bool = False,
+        **kwargs,
     ) -> List[ACTION]:
         """
         Get possible actions at the current state. If ignore_terminal is False,
@@ -174,10 +160,11 @@ class Environment:
             [[]] for _ in range(num_transitions)
         ]
         next_actions: List[List[ACTION]] = [[] for _ in range(num_transitions)]
+        actions: List[ACTION] = []
         if use_continuous_action:
-            actions: List[ACTION] = [{} for _ in range(num_transitions)]
+            actions = [{} for _ in range(num_transitions)]
         else:
-            actions: List[ACTION] = [""] * num_transitions  # noqa
+            actions = [""] * num_transitions
 
         state = None
         terminal = True
@@ -234,8 +221,8 @@ class Environment:
 
             possible_action = self.possible_actions(
                 state,
-                ignore_terminal=False,
                 terminal=terminal,
+                ignore_terminal=False,
                 use_continuous_action=use_continuous_action,
             )
             next_state, reward, terminal, _ = self.step(raw_action)
@@ -246,8 +233,8 @@ class Environment:
             )
             possible_next_action = self.possible_actions(
                 next_state,
-                ignore_terminal=False,
                 terminal=terminal,
+                ignore_terminal=False,
                 use_continuous_action=use_continuous_action,
             )
 

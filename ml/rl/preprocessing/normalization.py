@@ -8,6 +8,7 @@ from typing import Dict
 
 import numpy as np
 import six
+import torch
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from ml.rl.thrift.core.ttypes import NormalizationParameters
@@ -49,7 +50,7 @@ class NumpyEncoder(json.JSONEncoder):
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         else:
-            return super(NumpyEncoder, self).default(obj)
+            return super().default(obj)
 
 
 def no_op_feature():
@@ -83,6 +84,7 @@ def identify_parameter(
         identify_types.BINARY,
         identify_types.ENUM,
         identify_types.CONTINUOUS_ACTION,
+        identify_types.DO_NOT_PREPROCESS,
     ], "unknown type {}".format(feature_type)
     assert (
         len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
@@ -90,6 +92,11 @@ def identify_parameter(
 
     min_value = np.min(values)
     max_value = np.max(values)
+
+    if feature_type == identify_types.DO_NOT_PREPROCESS:
+        mean = float(np.mean(values))
+        values = values - mean
+        stddev = max(float(np.std(values, ddof=1)), 1.0)
     if feature_type == identify_types.CONTINUOUS:
         if min_value == max_value:
             return no_op_feature()
@@ -177,15 +184,29 @@ def identify_parameter(
     )
 
 
-def get_num_output_features(normalization_parmeters):
+def get_num_output_features(normalization_parameters):
     return sum(
         map(
             lambda np: (
                 len(np.possible_values) if np.feature_type == identify_types.ENUM else 1
             ),
-            normalization_parmeters.values(),
+            normalization_parameters.values(),
         )
     )
+
+
+def get_feature_start_indices(sorted_features, normalization_parameters):
+    """ Returns the starting index for each feature in the output feature vector """
+    start_indices = []
+    cur_idx = 0
+    for feature in sorted_features:
+        np = normalization_parameters[feature]
+        start_indices.append(cur_idx)
+        if np.feature_type == identify_types.ENUM:
+            cur_idx += len(np.possible_values)
+        else:
+            cur_idx += 1
+    return start_indices
 
 
 def sort_features_by_normalization(normalization_parameters):
@@ -251,9 +272,6 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
     if norm_params["feature_overrides"] is not None:
         feature_override = norm_params["feature_overrides"].get(feature_name, None)
 
-    if norm_params.get("set_missing_value_to_zero", None):
-        feature_value_list.append(0.0)
-
     feature_values = np.array(feature_value_list, dtype=np.float32)
     assert not (np.any(np.isinf(feature_values))), "Feature values contain infinity"
     assert not (
@@ -273,3 +291,36 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
         "Feature {} normalization: {}".format(feature_name, normalization_parameters)
     )
     return normalization_parameters
+
+
+def construct_action_scale_tensor(action_norm_params, action_scale_overrides):
+    """Construct tensors that will rescale each action value on each dimension i
+    from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.
+    """
+    sorted_features, _ = sort_features_by_normalization(action_norm_params)
+    min_action_array = np.zeros((1, len(sorted_features)))
+    max_action_array = np.zeros((1, len(sorted_features)))
+
+    for idx, feature_id in enumerate(sorted_features):
+        if feature_id in action_scale_overrides:
+            min_action_array[0][idx] = action_scale_overrides[feature_id][0]
+            max_action_array[0][idx] = action_scale_overrides[feature_id][1]
+        else:
+            min_action_array[0][idx] = action_norm_params[feature_id].min_value
+            max_action_array[0][idx] = action_norm_params[feature_id].max_value
+
+    min_action_range_tensor_serving = torch.from_numpy(min_action_array)
+    max_action_range_tensor_serving = torch.from_numpy(max_action_array)
+    return min_action_range_tensor_serving, max_action_range_tensor_serving
+
+
+def get_action_output_parameters(action_normalization_parameters):
+    action_feature_ids = sort_features_by_normalization(
+        action_normalization_parameters
+    )[0]
+    serving_min_scale, serving_max_scale = construct_action_scale_tensor(
+        action_normalization_parameters, action_scale_overrides={}
+    )
+    serving_min_scale = serving_min_scale.reshape(-1)
+    serving_max_scale = serving_max_scale.reshape(-1)
+    return action_feature_ids, serving_min_scale, serving_max_scale

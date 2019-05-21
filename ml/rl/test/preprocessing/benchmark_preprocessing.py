@@ -175,7 +175,7 @@ def benchmark(num_forward_passes):
     start = time.time()
     for _ in range(NUM_FORWARD_PASSES):
         workspace.RunNetOnce(norm_net)
-        _ = workspace.FetchBlob(output_blob)
+        workspace.FetchBlob(output_blob)
     end = time.time()
     logger.info(
         "Caffe2: {} forward passes done in {} seconds".format(

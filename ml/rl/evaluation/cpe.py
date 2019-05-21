@@ -21,15 +21,14 @@ class CpeEstimate(NamedTuple):
     normalized_std_error: float
 
 
-class CpeEstimateSet:
-    def __init__(self):
-        self.direct_method: CpeEstimate = None
-        self.inverse_propensity: CpeEstimate = None
-        self.doubly_robust: CpeEstimate = None
+class CpeEstimateSet(NamedTuple):
+    direct_method: Optional[CpeEstimate] = None
+    inverse_propensity: Optional[CpeEstimate] = None
+    doubly_robust: Optional[CpeEstimate] = None
 
-        self.sequential_doubly_robust: CpeEstimate = None
-        self.weighted_doubly_robust: CpeEstimate = None
-        self.magic: CpeEstimate = None
+    sequential_doubly_robust: Optional[CpeEstimate] = None
+    weighted_doubly_robust: Optional[CpeEstimate] = None
+    magic: Optional[CpeEstimate] = None
 
     def log(self):
         logger.info(
@@ -114,6 +113,22 @@ class CpeEstimateSet:
             ("CPE/{}/MAGIC".format(metric_name), self.magic.normalized),
         ]:
             SummaryWriterContext.add_scalar(name, none_to_zero(value))
+
+    def fill_empty_with_zero(self):
+        retval = self
+        for name, value in self._asdict().items():
+            if value is None:
+                retval = retval._replace(
+                    **{
+                        name: CpeEstimate(
+                            raw=0.0,
+                            normalized=0.0,
+                            raw_std_error=0.0,
+                            normalized_std_error=0.0,
+                        )
+                    }
+                )
+        return retval
 
 
 class CpeDetails:

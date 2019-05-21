@@ -11,7 +11,7 @@ from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor_net import PreprocessorNet
 from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
-from torch.nn import DataParallel
+from torch.nn.parallel.distributed import DistributedDataParallel
 
 
 logger = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class _ParametricDQNPredictor(RLPredictor):
         """
 
         input_dim = trainer.num_features
-        if isinstance(trainer.q_network, DataParallel):
+        if isinstance(trainer.q_network, DistributedDataParallel):
             trainer.q_network = trainer.q_network.module
 
         buffer = PytorchCaffe2Converter.pytorch_net_to_buffer(

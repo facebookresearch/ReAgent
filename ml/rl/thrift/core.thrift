@@ -1,10 +1,12 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+
 namespace py ml.rl.thrift.core
 
 struct RLParameters {
   1: double gamma = 0.9,
   2: double epsilon = 0.1,
   3: double target_update_rate = 0.001,
-  4: i32 reward_burnin = 1,
+  # 4: i32 reward_burnin = 1,
   5: bool maxq_learning = true,
   6: map<string, double> reward_boost,
   7: double temperature = 0.01,
@@ -66,10 +68,10 @@ struct TrainingParameters {
   10: optional CNNParameters cnn_parameters,
   11: optional FactorizationParameters factorization_parameters,
   12: double l2_decay = 0.01,
-  13: bool use_noisy_linear_layers = false,
   14: double weight_init_min_std = 0.0,
   15: bool use_batch_norm = false,
   16: optional double clip_grad_norm,
+  17: optional i32 minibatches_per_step,
 }
 
 struct EvaluationParameters {
@@ -119,7 +121,7 @@ struct DDPGTrainingParameters {
   2: double final_layer_init = 0.003,
   3: string optimizer = 'ADAM',
   4: optional string warm_start_model_path,
-  5: bool use_noisy_linear_layers = false,
+  5: optional i32 minibatches_per_step,
 }
 
 struct DDPGModelParameters {
@@ -148,11 +150,11 @@ struct SACTrainingParameters {
   6: double entropy_temperature = 0.1,
   7: optional string warm_start_model_path,
   8: bool logged_action_uniform_prior = true,
+  9: optional i32 minibatches_per_step,
 }
 
 struct SACModelParameters {
   1: RLParameters rl = {
-    "reward_burnin": 100,
     "maxq_learning": false,
     "tensorboard_logging_freq": 100,
   },
@@ -162,6 +164,8 @@ struct SACModelParameters {
   5: FeedForwardParameters actor_network = {},
   8: optional StateFeatureParameters state_feature_params,
   9: EvaluationParameters evaluation = {},
+  # constrain action output to sum to 1 (using dirichlet distribution)
+  10: bool constrain_action_sum = false
 }
 
 struct KNNDQNModelParameters {
@@ -209,5 +213,12 @@ struct MDNRNNParameters {
   2: i32 num_hidden_layers = 2,
   3: i32 minibatch_size = 16,
   4: double learning_rate = 0.001,
-  5: i32 num_gaussians = 5
+  5: i32 num_gaussians = 5,
+  6: double train_data_percentage = 60.0,
+  7: double validation_data_percentage = 20.0,
+  8: double test_data_percentage = 20.0,
+  # weight in calculating world-model loss
+  9: double reward_loss_weight = 1.0,
+  10: double next_state_loss_weight = 1.0,
+  11: double not_terminal_loss_weight = 1.0,
 }

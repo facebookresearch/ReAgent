@@ -14,12 +14,20 @@ Horizon is an open source end-to-end platform for applied reinforcement learning
 - [Soft Actor-Critic](https://arxiv.org/abs/1801.01290) (SAC)
 
 #### Installation
-Horizon can be installed via. Docker or manually. Detailed instructions on how to install Horizon can be found [here](docs/installation.md).
+Horizon can be installed via. Docker or manually. Detailed instructions on how to install Horizon can be found [here](docs/installation.rst).
 
 #### Usage
-Detailed instructions on how to use Horizon can be found [here](docs/usage.md).
+Detailed instructions on how to use Horizon can be found [here](docs/usage.rst).
 
 #### License
 Horizon is released under a BSD license.  Find out more about it [here](LICENSE).
+
+#### Citing
+@article{gauci2018horizon,
+  title={Horizon: Facebook's Open Source Applied Reinforcement Learning Platform},
+  author={Gauci, Jason and Conti, Edoardo and Liang, Yitao and Virochsiri, Kittipat and Chen, Zhengxing and He, Yuchen and Kaden, Zachary and Narayanan, Vivek and Ye, Xiaohui},
+  journal={arXiv preprint arXiv:1811.00260},
+  year={2018}
+}
 
 <img src="logo/horizon_logo.png" alt="Logo" width="200"/>

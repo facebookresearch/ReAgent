@@ -4,26 +4,26 @@
 from copy import deepcopy
 from typing import Dict
 
+import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+from ml.rl.models.base import ModelBase
 from ml.rl.preprocessing.identify_types import CONTINUOUS
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
-    sort_features_by_normalization,
 )
-from ml.rl.training.ddpg_predictor import DDPGPredictor
 from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
-from ml.rl.training.training_data_page import TrainingDataPage
-from torch.autograd import Variable
 
 
 class DDPGTrainer(RLTrainer):
     def __init__(
         self,
+        actor_network,
+        critic_network,
         parameters,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         action_normalization_parameters: Dict[int, NormalizationParameters],
@@ -57,40 +57,24 @@ class DDPGTrainer(RLTrainer):
         # Shared params
         self.warm_start_model_path = parameters.shared_training.warm_start_model_path
         self.minibatch_size = parameters.shared_training.minibatch_size
+        self.minibatches_per_step = parameters.shared_training.minibatches_per_step or 1
         self.final_layer_init = parameters.shared_training.final_layer_init
         self._set_optimizer(parameters.shared_training.optimizer)
 
         # Actor params
         self.actor_params = parameters.actor_training
-        assert (
-            self.actor_params.activations[-1] == "tanh"
-        ), "Actor final layer activation must be tanh"
-        self.actor_params.layers[0] = self.state_dim
-        self.actor_params.layers[-1] = self.action_dim
-        self.noise_generator = OrnsteinUhlenbeckProcessNoise(self.action_dim)
-        self.actor = ActorNet(
-            self.actor_params.layers,
-            self.actor_params.activations,
-            self.final_layer_init,
-        )
+        self.actor = actor_network
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = self.optimizer_func(
             self.actor.parameters(),
             lr=self.actor_params.learning_rate,
             weight_decay=self.actor_params.l2_decay,
         )
-        self.noise = self.noise_generator
+        self.noise = OrnsteinUhlenbeckProcessNoise(self.action_dim)
 
         # Critic params
         self.critic_params = parameters.critic_training
-        self.critic_params.layers[0] = self.state_dim
-        self.critic_params.layers[-1] = 1
-        self.critic = self.q_network = CriticNet(
-            self.critic_params.layers,
-            self.critic_params.activations,
-            self.final_layer_init,
-            self.action_dim,
-        )
+        self.critic = self.q_network = critic_network
         self.critic_target = deepcopy(self.critic)
         self.critic_optimizer = self.optimizer_func(
             self.critic.parameters(),
@@ -122,105 +106,84 @@ class DDPGTrainer(RLTrainer):
             self.dtype
         )
 
-        if self.use_gpu:
-            self.actor.cuda()
-            self.actor_target.cuda()
-            self.critic.cuda()
-            self.critic_target.cuda()
+    def train(self, training_batch: rlt.TrainingBatch) -> None:
+        if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
+            training_batch = training_batch.as_parametric_sarsa_training_batch()
 
-            if use_all_avail_gpus:
-                self.actor = nn.DataParallel(self.actor)
-                self.actor_target = nn.DataParallel(self.actor_target)
-                self.critic = nn.DataParallel(self.critic)
-                self.critic_target = nn.DataParallel(self.critic_target)
-
-    def train(self, training_samples: TrainingDataPage) -> None:
-        if self.minibatch == 0:
-            # Assume that the tensors are the right shape after the first minibatch
-            assert (
-                training_samples.states.shape[0] == self.minibatch_size
-            ), "Invalid shape: " + str(training_samples.states.shape)
-            assert (
-                training_samples.actions.shape[0] == self.minibatch_size
-            ), "Invalid shape: " + str(training_samples.actions.shape)
-            assert training_samples.rewards.shape == torch.Size(
-                [self.minibatch_size, 1]
-            ), "Invalid shape: " + str(training_samples.rewards.shape)
-            assert (
-                training_samples.next_states.shape == training_samples.states.shape
-            ), "Invalid shape: " + str(training_samples.next_states.shape)
-            assert (
-                training_samples.not_terminal.shape == training_samples.rewards.shape
-            ), "Invalid shape: " + str(training_samples.not_terminal.shape)
-            if self.use_seq_num_diff_as_time_diff:
-                assert (
-                    training_samples.time_diffs.shape == training_samples.rewards.shape
-                ), "Invalid shape: " + str(training_samples.time_diffs.shape)
-
+        learning_input = training_batch.training_input
         self.minibatch += 1
-        states = training_samples.states.detach().requires_grad_(True)
-        actions = training_samples.actions.detach().requires_grad_(True)
+
+        state = learning_input.state
 
         # As far as ddpg is concerned all actions are [-1, 1] due to actor tanh
-        actions = rescale_torch_tensor(
-            actions,
-            new_min=self.min_action_range_tensor_training,
-            new_max=self.max_action_range_tensor_training,
-            prev_min=self.min_action_range_tensor_serving,
-            prev_max=self.max_action_range_tensor_serving,
+        action = rlt.FeatureVector(
+            rescale_torch_tensor(
+                learning_input.action.float_features,
+                new_min=self.min_action_range_tensor_training,
+                new_max=self.max_action_range_tensor_training,
+                prev_min=self.min_action_range_tensor_serving,
+                prev_max=self.max_action_range_tensor_serving,
+            )
         )
-        rewards = training_samples.rewards
-        next_states = training_samples.next_states
-        time_diffs = training_samples.time_diffs
-        discount_tensor = torch.tensor(np.full(rewards.shape, self.gamma)).type(
-            self.dtype
-        )
-        not_done_mask = training_samples.not_terminal
+
+        rewards = learning_input.reward
+        next_state = learning_input.next_state
+        time_diffs = learning_input.time_diff
+        discount_tensor = torch.full_like(rewards, self.gamma)
+        not_done_mask = learning_input.not_terminal
 
         # Optimize the critic network subject to mean squared error:
         # L = ([r + gamma * Q(s2, a2)] - Q(s1, a1)) ^ 2
-        q_s1_a1 = self.critic.forward([states, actions])
-        next_actions = self.actor_target(next_states)
+        q_s1_a1 = self.critic.forward(
+            rlt.StateAction(state=state, action=action)
+        ).q_value
+        next_action = rlt.FeatureVector(
+            float_features=self.actor_target(
+                rlt.StateAction(state=next_state, action=None)
+            ).action
+        )
 
-        q_s2_a2 = self.critic_target.forward([next_states, next_actions])
-        filtered_q_s2_a2 = not_done_mask * q_s2_a2
+        q_s2_a2 = self.critic_target.forward(
+            rlt.StateAction(state=next_state, action=next_action)
+        ).q_value
+        filtered_q_s2_a2 = not_done_mask.float() * q_s2_a2
 
         if self.use_seq_num_diff_as_time_diff:
             discount_tensor = discount_tensor.pow(time_diffs)
 
-        if self.minibatch < self.reward_burnin:
-            target_q_values = rewards
-        else:
-            target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
+        target_q_values = rewards + (discount_tensor * filtered_q_s2_a2)
 
         # compute loss and update the critic network
         critic_predictions = q_s1_a1
         loss_critic = self.q_network_loss(critic_predictions, target_q_values.detach())
         loss_critic_for_eval = loss_critic.detach()
-        self.critic_optimizer.zero_grad()
         loss_critic.backward()
-        self.critic_optimizer.step()
+        self._maybe_run_optimizer(self.critic_optimizer, self.minibatches_per_step)
 
         # Optimize the actor network subject to the following:
         # max mean(Q(s1, a1)) or min -mean(Q(s1, a1))
+        actor_output = self.actor(rlt.StateAction(state=state, action=None))
         loss_actor = -(
-            self.critic.forward([states.detach(), self.actor(states)]).mean()
+            self.critic.forward(
+                rlt.StateAction(
+                    state=state,
+                    action=rlt.FeatureVector(float_features=actor_output.action),
+                )
+            ).q_value.mean()
         )
 
         # Zero out both the actor and critic gradients because we need
         #   to backprop through the critic to get to the actor
-        self.actor_optimizer.zero_grad()
         loss_actor.backward()
-        self.actor_optimizer.step()
+        self._maybe_run_optimizer(self.actor_optimizer, self.minibatches_per_step)
 
-        if self.minibatch < self.reward_burnin:
-            # Reward burnin: force target network
-            self._soft_update(self.actor, self.actor_target, 1.0)
-            self._soft_update(self.critic, self.critic_target, 1.0)
-        else:
-            # Use the soft update rule to update both target networks
-            self._soft_update(self.actor, self.actor_target, self.tau)
-            self._soft_update(self.critic, self.critic_target, self.tau)
+        # Use the soft update rule to update both target networks
+        self._maybe_soft_update(
+            self.actor, self.actor_target, self.tau, self.minibatches_per_step
+        )
+        self._maybe_soft_update(
+            self.critic, self.critic_target, self.tau, self.minibatches_per_step
+        )
 
         self.loss_reporter.report(
             td_loss=float(loss_critic_for_eval),
@@ -233,52 +196,32 @@ class DDPGTrainer(RLTrainer):
         :param states states as list of states to produce actions for
         """
         self.actor.eval()
-        state_examples = torch.from_numpy(np.array(states)).type(self.dtype)
-        actions = self.actor(state_examples)
+        # TODO: Handle states being sequences
+        state_examples = rlt.FeatureVector(
+            float_features=torch.from_numpy(np.array(states)).type(self.dtype)
+        )
+        action = self.actor(rlt.StateAction(state=state_examples, action=None)).action
 
         self.actor.train()
 
-        actions = rescale_torch_tensor(
-            actions,
+        action = rescale_torch_tensor(
+            action,
             new_min=self.min_action_range_tensor_serving,
             new_max=self.max_action_range_tensor_serving,
             prev_min=self.min_action_range_tensor_training,
             prev_max=self.max_action_range_tensor_training,
         )
 
-        actions = actions.cpu().data.numpy()
+        action = action.cpu().data.numpy()
         if noisy:
-            actions = [x + (self.noise.get_noise()) for x in actions]
+            action = [x + (self.noise.get_noise()) for x in action]
 
-        return np.array(actions, dtype=np.float32)
-
-    def predictor(self, actor=True) -> DDPGPredictor:
-        """Builds a DDPGPredictor.
-        :param actor export the actor or the critic. If actor == True export
-        the actor network, else export the critic network."""
-        if actor:
-            return DDPGPredictor.export_actor(
-                self,
-                self.state_normalization_parameters,
-                sort_features_by_normalization(self.action_normalization_parameters)[0],
-                self.min_action_range_tensor_serving,
-                self.max_action_range_tensor_serving,
-                self.use_gpu,
-            )
-        return DDPGPredictor.export_critic(
-            self,
-            self.state_normalization_parameters,
-            self.action_normalization_parameters,
-            self.use_gpu,
-        )
-
-    def export(self) -> DDPGPredictor:
-        return self.predictor(actor=False)
+        return np.array(action, dtype=np.float32)
 
 
 class ActorNet(nn.Module):
     def __init__(self, layers, activations, fl_init) -> None:
-        super(ActorNet, self).__init__()
+        super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
@@ -317,9 +260,72 @@ class ActorNet(nn.Module):
         return x
 
 
+class ActorNetModel(ModelBase):
+    def __init__(
+        self,
+        layers,
+        activations,
+        fl_init,
+        state_dim,
+        action_dim,
+        use_gpu,
+        use_all_avail_gpus,
+        dnn=None,
+    ) -> None:
+        super().__init__()
+        assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
+        assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+
+        # Allow dnn to be explicitly given (when exporting to cpu)
+        if dnn is None:
+            self.dnn = ActorNet(layers=layers, activations=activations, fl_init=fl_init)
+        else:
+            self.dnn = dnn
+
+        # `network` might be a nn.DataParallel when running on multiple devices
+        self.network = self.dnn
+        if use_gpu:
+            self.dnn.cuda()
+            if use_all_avail_gpus:
+                self.network = nn.DataParallel(self.dnn)
+
+    def input_prototype(self) -> rlt.StateInput:
+        return rlt.StateInput(
+            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
+        )
+
+    def cpu_model(self):
+        cpu_dnn = deepcopy(self.dnn)
+        cpu_dnn.cpu()
+
+        return self.__class__(
+            layers=self.dnn.layers,
+            activations=self.dnn.activations,
+            fl_init=None,  # Not saved anyway, and we're providing the initialized dnn
+            state_dim=self.state_dim,
+            action_dim=self.action_dim,
+            use_gpu=False,
+            use_all_avail_gpus=False,
+            dnn=cpu_dnn,
+        )
+
+    def forward(self, input: rlt.StateInput) -> rlt.ActorOutput:
+        """ Forward pass for actor network. Assumes activation names are
+        valid pytorch activation names.
+        :param input StateInput containing float_features
+        """
+        if input.state.float_features is None:
+            raise NotImplementedError("Not implemented for non-float_features!")
+
+        action = self.network.forward(state=input.state.float_features)
+        return rlt.ActorOutput(action=action)
+
+
 class CriticNet(nn.Module):
     def __init__(self, layers, activations, fl_init, action_dim) -> None:
-        super(CriticNet, self).__init__()
+        super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
         self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
         self.activations = activations
@@ -384,6 +390,75 @@ class CriticNet(nn.Module):
         return x
 
 
+class CriticNetModel(ModelBase):
+    def __init__(
+        self,
+        layers,
+        activations,
+        fl_init,
+        state_dim,
+        action_dim,
+        use_gpu,
+        use_all_avail_gpus,
+        dnn=None,
+    ) -> None:
+        super().__init__()
+        assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
+        assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+
+        # Allow dnn to be explicitly given (for exporting as cpu)
+        if dnn is None:
+            self.dnn = CriticNet(
+                layers=layers,
+                activations=activations,
+                fl_init=fl_init,
+                action_dim=action_dim,
+            )
+        else:
+            self.dnn = dnn
+
+        # `network` might be a nn.DataParallel if on multiple devices
+        self.network = self.dnn
+        if use_gpu:
+            self.dnn.cuda()
+            if use_all_avail_gpus:
+                self.network = nn.DataParallel(self.dnn)
+
+    def cpu_model(self):
+        cpu_dnn = deepcopy(self.dnn)
+        cpu_dnn.cpu()
+
+        return self.__class__(
+            layers=self.dnn.layers,
+            activations=self.dnn.activations,
+            fl_init=None,  # Not saved anyway, and we're providing the initialized dnn
+            state_dim=self.state_dim,
+            action_dim=self.action_dim,
+            use_gpu=False,
+            use_all_avail_gpus=False,
+            dnn=cpu_dnn,
+        )
+
+    def forward(self, input: rlt.StateAction) -> rlt.SingleQValue:
+        """ Forward pass for critic network. Assumes activation names are
+        valid pytorch activation names.
+        :param input ml.rl.types.StateAction of combined states and actions
+        """
+        return rlt.SingleQValue(
+            q_value=self.network.forward(
+                [input.state.float_features, input.action.float_features]
+            )
+        )
+
+    def input_prototype(self) -> rlt.StateAction:
+        return rlt.StateAction(
+            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim)),
+            action=rlt.FeatureVector(float_features=torch.randn(1, self.action_dim)),
+        )
+
+
 def fan_in_init(weight_tensor, bias_tensor) -> None:
     """ Fan in initialization as described in DDPG paper."""
     val_range = 1.0 / np.sqrt(weight_tensor.size(1))
@@ -411,24 +486,3 @@ class OrnsteinUhlenbeckProcessNoise:
 
     def clear(self) -> None:
         self.noise = np.zeros(self.action_dim)
-
-
-def construct_action_scale_tensor(action_norm_params, action_scale_overrides):
-    """Construct tensors that will rescale each action value on each dimension i
-    from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.
-    """
-    sorted_features, _ = sort_features_by_normalization(action_norm_params)
-    min_action_array = np.zeros((1, len(sorted_features)))
-    max_action_array = np.zeros((1, len(sorted_features)))
-
-    for idx, feature_id in enumerate(sorted_features):
-        if feature_id in action_scale_overrides:
-            min_action_array[0][idx] = action_scale_overrides[feature_id][0]
-            max_action_array[0][idx] = action_scale_overrides[feature_id][1]
-        else:
-            min_action_array[0][idx] = action_norm_params[feature_id].min_value
-            max_action_array[0][idx] = action_norm_params[feature_id].max_value
-
-    min_action_range_tensor_serving = torch.from_numpy(min_action_array)
-    max_action_range_tensor_serving = torch.from_numpy(max_action_array)
-    return min_action_range_tensor_serving, max_action_range_tensor_serving

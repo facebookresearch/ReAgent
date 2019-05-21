@@ -1,18 +1,18 @@
 {
   "env": "CartPole-v0",
   "mdnrnn": {
-    "hidden_size": 4,
+    "hidden_size": 50,
     "num_hidden_layers": 2,
-    "minibatch_size": 512,
-    "learning_rate": 0.001,
-    "num_gaussians": 5
+    "minibatch_size": 1024,
+    "learning_rate": 0.005,
+    "num_gaussians": 1
   },
   "run_details": {
-    "seq_len": 5,
-    "num_train_episodes": 128,
-    "num_test_episodes": 10,
+    "seq_len": 3,
+    "num_train_episodes": 300,
+    "num_test_episodes": 30,
     "max_steps": 200,
-    "train_epochs": 100,
+    "train_epochs": 3,
     "early_stopping_patience": 2
   }
 }

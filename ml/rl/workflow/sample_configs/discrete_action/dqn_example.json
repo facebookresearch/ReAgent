@@ -5,6 +5,8 @@
   "model_output_path": "outputs/",
   "use_gpu": true,
   "use_all_avail_gpus": true,
+  "num_nodes": 1,
+  "init_method": "file:///tmp/dqn_example.lock",
   "norm_params": {
     "output_dir": "training_data/",
     "cols_to_norm": [
@@ -13,14 +15,14 @@
     "num_samples": 1000
   },
   "actions": [
-    "0",
-    "1"
+    "4",
+    "5"
   ],
   "epochs": 100,
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.2,
-    "reward_burnin": 1,
+    
     "maxq_learning": 1,
     "epsilon": 0.2,
     "temperature": 0.35,
@@ -47,7 +49,6 @@
     "optimizer": "ADAM",
     "lr_decay": 0.999,
     "warm_start_model_path": null,
-    "l2_decay": 0,
-    "use_noisy_linear_layers": false
+    "l2_decay": 0
   }
 }

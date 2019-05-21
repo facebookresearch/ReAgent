@@ -70,7 +70,7 @@ class Evaluator(object):
     def evaluate_post_training(self, edp: EvaluationDataPage) -> CpeDetails:
         cpe_details = CpeDetails()
 
-        self.score_cpe("Reward", edp, cpe_details.reward_estimates)
+        cpe_details.reward_estimates = self.score_cpe("Reward", edp)
 
         if (
             self.metrics_to_score is not None
@@ -84,27 +84,28 @@ class Evaluator(object):
 
                 metric_reward_edp = edp.set_metric_as_reward(i, len(self.action_names))
 
-                cpe_details.metric_estimates[metric] = CpeEstimateSet()
-                self.score_cpe(
-                    metric, metric_reward_edp, cpe_details.metric_estimates[metric]
+                cpe_details.metric_estimates[metric] = self.score_cpe(
+                    metric, metric_reward_edp
                 )
 
         if self.action_names is not None:
-            value_means = edp.model_values.mean(dim=0)
-            cpe_details.q_value_means = {
-                action: float(value_means[i])
-                for i, action in enumerate(self.action_names)
-            }
-            value_stds = edp.model_values.std(dim=0)
-            cpe_details.q_value_stds = {
-                action: float(value_stds[i])
-                for i, action in enumerate(self.action_names)
-            }
-            max_q_idxs = edp.model_values.argmax(dim=1)
-            cpe_details.action_distribution = {
-                action: float((max_q_idxs == i).sum()) / max_q_idxs.shape[0]
-                for i, action in enumerate(self.action_names)
-            }
+            if edp.optimal_q_values is not None:
+                value_means = edp.optimal_q_values.mean(dim=0)
+                cpe_details.q_value_means = {
+                    action: float(value_means[i])
+                    for i, action in enumerate(self.action_names)
+                }
+                value_stds = edp.optimal_q_values.std(dim=0)
+                cpe_details.q_value_stds = {
+                    action: float(value_stds[i])
+                    for i, action in enumerate(self.action_names)
+                }
+            if edp.eval_action_idxs is not None:
+                cpe_details.action_distribution = {
+                    action: float((edp.eval_action_idxs == i).sum())
+                    / edp.eval_action_idxs.shape[0]
+                    for i, action in enumerate(self.action_names)
+                }
 
         # Compute MC Loss on Aggregate Reward
         cpe_details.mc_loss = float(
@@ -113,22 +114,26 @@ class Evaluator(object):
 
         return cpe_details
 
-    def score_cpe(
-        self, metric_name, edp: EvaluationDataPage, cpe_estimate_set: CpeEstimateSet
-    ):
-        cpe_estimate_set.direct_method, cpe_estimate_set.inverse_propensity, cpe_estimate_set.doubly_robust = self.doubly_robust_estimator.estimate(
+    def score_cpe(self, metric_name, edp: EvaluationDataPage):
+        direct_method, inverse_propensity, doubly_robust = self.doubly_robust_estimator.estimate(
             edp
         )
-        cpe_estimate_set.sequential_doubly_robust = self.sequential_doubly_robust_estimator.estimate(
-            edp
-        )
-        cpe_estimate_set.weighted_doubly_robust = self.weighted_sequential_doubly_robust_estimator.estimate(
+        sequential_doubly_robust = self.sequential_doubly_robust_estimator.estimate(edp)
+        weighted_doubly_robust = self.weighted_sequential_doubly_robust_estimator.estimate(
             edp, num_j_steps=1, whether_self_normalize_importance_weights=True
         )
-        cpe_estimate_set.magic = self.weighted_sequential_doubly_robust_estimator.estimate(
+        magic = self.weighted_sequential_doubly_robust_estimator.estimate(
             edp,
             num_j_steps=Evaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR,
             whether_self_normalize_importance_weights=True,
+        )
+        return CpeEstimateSet(
+            direct_method=direct_method,
+            inverse_propensity=inverse_propensity,
+            doubly_robust=doubly_robust,
+            sequential_doubly_robust=sequential_doubly_robust,
+            weighted_doubly_robust=weighted_doubly_robust,
+            magic=magic,
         )
 
     def _get_batch_logged_actions(self, arr):

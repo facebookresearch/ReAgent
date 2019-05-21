@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import random
 import unittest
 from dataclasses import dataclass
 from typing import Dict, List
 
 import numpy as np
 import numpy.testing as npt
+import torch
 from caffe2.python import schema, workspace
 from ml.rl import types as rlt
 from ml.rl.preprocessing.feature_extractor import (
@@ -19,7 +21,7 @@ from ml.rl.preprocessing.feature_extractor import (
 )
 from ml.rl.preprocessing.identify_types import CONTINUOUS, PROBABILITY
 from ml.rl.preprocessing.normalization import MISSING_VALUE, NormalizationParameters
-from ml.rl.test.utils import (
+from ml.rl.test.base.utils import (
     ABIdFeatures,
     CIdFeatures,
     FloatOnlySequence,
@@ -31,6 +33,12 @@ from ml.rl.test.utils import (
 
 
 class FeatureExtractorTestBase(unittest.TestCase):
+    def setUp(self):
+        np.random.seed(0)
+        random.seed(0)
+        torch.manual_seed(0)
+        super().setUp()
+
     def get_state_normalization_parameters(self):
         return {
             i: NormalizationParameters(
@@ -47,6 +55,9 @@ class FeatureExtractorTestBase(unittest.TestCase):
             )
             for i in range(11, 14)
         }
+
+    def get_time_since_first_normalization_parameters(self):
+        return NormalizationParameters(feature_type=CONTINUOUS, mean=0, stddev=1)
 
     def setup_state_features(self, ws, field):
         lengths = np.array([3, 0, 5], dtype=np.int32)
@@ -485,6 +496,27 @@ class FeatureExtractorTestBase(unittest.TestCase):
         ws.feed_blob(str(field()), time_diff)
         return time_diff
 
+    def setup_time_since_first(self, ws, field):
+        time_since_first = np.array([0, 0, 0], dtype=np.int32)
+        ws.feed_blob(str(field()), time_since_first)
+        return time_since_first
+
+    def expected_time_since_first(self, normalize):
+        dense = np.array([0, 0, 0], dtype=np.float).reshape(-1, 1)
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [0], {0: self.get_time_since_first_normalization_parameters()}
+            )
+        return dense
+
+    def expected_next_time_since_first(self, normalize):
+        dense = np.array([1, 1, 1], dtype=np.float).reshape(-1, 1)
+        if normalize:
+            dense = NumpyFeatureProcessor.preprocess_array(
+                dense, [0], {0: self.get_time_since_first_normalization_parameters()}
+            )
+        return dense
+
     def setup_mdp_id(self, ws, field):
         mdp_id = np.array(["1", "2", "3"], dtype=np.string_)
         ws.feed_blob(str(field()), mdp_id)
@@ -506,7 +538,11 @@ class FeatureExtractorTestBase(unittest.TestCase):
         return ws, net
 
     def check_create_net_spec(
-        self, extractor, expected_input_record, expected_output_record
+        self,
+        extractor,
+        expected_input_record,
+        expected_output_record,
+        positional_match=True,
     ):
         net, init_net = extractor.create_net()
         # First, check that all outputs of init_net are used in net
@@ -521,19 +557,24 @@ class FeatureExtractorTestBase(unittest.TestCase):
         self.assertEqual(
             set(expected_input_record.field_names()), set(input_record.field_names())
         )
-        # Output must match positionally since it's used by exporting
-        self.assertEqual(
-            expected_output_record.field_names(), output_record.field_names()
-        )
+        if positional_match:
+            # Output must match positionally since it's used by exporting
+            self.assertEqual(
+                expected_output_record.field_names(), output_record.field_names()
+            )
+        else:
+            # Training
+            self.assertEqual(
+                set(expected_output_record.field_names()),
+                set(output_record.field_names()),
+            )
 
 
 class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
     SEQ_LEN = 3
 
     def expected_state_features(self, normalize):
-        dense = super(TestWorldModelFeatureExtractor, self).expected_state_features(
-            normalize
-        )
+        dense = super().expected_state_features(normalize)
         dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
         return dense
 
@@ -545,16 +586,9 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         return dense
 
     def expected_action_features(self, normalize):
-        dense = super(TestWorldModelFeatureExtractor, self).expected_action_features(
-            normalize
-        )
+        dense = super().expected_action_features(normalize)
         dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
         return dense
-
-    def create_extra_input_record(self, net):
-        return net.input_record() + schema.NewRecord(
-            net, schema.Struct(("reward", schema.List(schema.Scalar())))
-        )
 
     def setup_state_features(self, ws, field):
         lengths = np.array([1], dtype=np.int32)
@@ -625,7 +659,7 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = self.create_extra_input_record(net)
+        input_record = net.input_record()
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         self.setup_action_features(ws, input_record.action)
@@ -633,7 +667,7 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         _, not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(1, 3), o.reward.numpy())
         npt.assert_array_equal(not_terminal.reshape(1, 3), o.not_terminal.numpy())
@@ -669,7 +703,7 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = self.create_extra_input_record(net)
+        input_record = net.input_record()
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         _, action = self.setup_action(ws, input_record.action)
@@ -677,7 +711,7 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         _, not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         o = res.training_input
         npt.assert_array_equal(reward.reshape(1, 3), o.reward.numpy())
         npt.assert_array_equal(not_terminal.reshape(1, 3), o.not_terminal.numpy())
@@ -698,18 +732,6 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
 
 
 class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
-    def create_extra_input_record(self, net):
-        return net.input_record() + schema.NewRecord(
-            net,
-            schema.Struct(
-                ("reward", schema.Scalar()),
-                ("action_probability", schema.Scalar()),
-                ("step", schema.Scalar()),
-                ("mdp_id", schema.Scalar()),
-                ("sequence_number", schema.Scalar()),
-            ),
-        )
-
     def setup_extra_data(self, ws, input_record):
         extra_data = rlt.ExtraData(
             action_probability=np.array([0.11, 0.21, 0.13], dtype=np.float32)
@@ -719,13 +741,35 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         return extra_data
 
+    def pass_through_columns(self):
+        return schema.Struct(
+            ("reward", schema.Scalar()),
+            ("not_terminal", schema.Scalar()),
+            ("time_diff", schema.Scalar()),
+            ("mdp_id", schema.Scalar()),
+            ("sequence_number", schema.Scalar()),
+            ("action_probability", schema.Scalar()),
+        )
+
     def test_extract_max_q_discrete_action(self):
         self._test_extract_max_q_discrete_action(normalize=False)
 
     def test_extract_max_q_discrete_action_normalize(self):
         self._test_extract_max_q_discrete_action(normalize=True)
 
-    def _test_extract_max_q_discrete_action(self, normalize):
+    def test_extract_max_q_discrete_action_time_since_first(self):
+        self._test_extract_max_q_discrete_action(
+            normalize=True, use_time_since_first=True
+        )
+
+    def test_extract_max_q_discrete_action_time_since_first_normalize(self):
+        self._test_extract_max_q_discrete_action(
+            normalize=True, use_time_since_first=True, normalize_time_since_first=True
+        )
+
+    def _test_extract_max_q_discrete_action(
+        self, normalize, use_time_since_first=False, normalize_time_since_first=False
+    ):
         num_actions = 2
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
@@ -733,10 +777,14 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             normalize=normalize,
             max_num_actions=num_actions,
             multi_steps=3,
+            use_time_since_first=use_time_since_first,
+            time_since_first_normalization_parameters=self.get_time_since_first_normalization_parameters()
+            if normalize_time_since_first
+            else None,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = self.create_extra_input_record(net)
+        input_record = net.input_record()
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         action = self.setup_action(ws, input_record.action)
@@ -750,17 +798,33 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         reward = self.setup_reward(ws, input_record.reward)
         not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
         time_diff = self.setup_time_diff(ws, input_record.time_diff)
+        if use_time_since_first:
+            self.setup_time_since_first(ws, input_record.time_since_first)
         mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
         sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
         step = self.setup_step(ws, input_record.step)
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         o = res.training_input
         e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
         npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
+        if use_time_since_first:
+            npt.assert_allclose(
+                self.expected_time_since_first(normalize_time_since_first),
+                o.state.time_since_first.numpy(),
+                rtol=1e-6,
+            )
+            npt.assert_allclose(
+                self.expected_next_time_since_first(normalize_time_since_first),
+                o.next_state.time_since_first.numpy(),
+                rtol=1e-6,
+            )
+        else:
+            self.assertIsNone(o.state.time_since_first)
+            self.assertIsNone(o.next_state.time_since_first)
         npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
         npt.assert_array_equal(step.reshape(-1, 1), o.step.numpy())
         npt.assert_array_equal(
@@ -812,7 +876,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = self.create_extra_input_record(net)
+        input_record = net.input_record()
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         self.setup_state_sequence_features(
@@ -841,7 +905,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         o = res.training_input
         e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
@@ -955,7 +1019,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = self.create_extra_input_record(net)
+        input_record = net.input_record()
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         action = self.setup_action(ws, input_record.action)
@@ -968,7 +1032,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         o = res.training_input
         e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
@@ -1015,7 +1079,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = self.create_extra_input_record(net)
+        input_record = net.input_record()
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         self.setup_action_features(ws, input_record.action)
@@ -1038,7 +1102,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         o = res.training_input
         e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
@@ -1100,7 +1164,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
-        input_record = self.create_extra_input_record(net)
+        input_record = net.input_record()
         self.setup_state_features(ws, input_record.state_features)
         self.setup_next_state_features(ws, input_record.next_state_features)
         self.setup_action_features(ws, input_record.action)
@@ -1113,7 +1177,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         extra_data = self.setup_extra_data(ws, input_record)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         o = res.training_input
         e = res.extras
         npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
@@ -1154,28 +1218,33 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             include_possible_actions=True,
             max_num_actions=2,
         )
-        expected_input_record = schema.Struct(
-            ("state_features", map_schema()),
-            ("next_state_features", map_schema()),
-            ("action", schema.Scalar()),
-            ("next_action", schema.Scalar()),
-            ("not_terminal", schema.Scalar()),
-            ("possible_actions_mask", schema.List(schema.Scalar())),
-            ("possible_next_actions_mask", schema.List(schema.Scalar())),
-            ("time_diff", schema.Scalar()),
+        expected_input_record = (
+            schema.Struct(
+                ("state_features", map_schema()),
+                ("next_state_features", map_schema()),
+                ("action", schema.Scalar()),
+                ("next_action", schema.Scalar()),
+                ("possible_actions_mask", schema.List(schema.Scalar())),
+                ("possible_next_actions_mask", schema.List(schema.Scalar())),
+            )
+            + self.pass_through_columns()
         )
-        expected_output_record = schema.Struct(
-            ("state_features", schema.Scalar()),
-            ("next_state_features", schema.Scalar()),
-            ("action", schema.Scalar()),
-            ("next_action", schema.Scalar()),
-            ("not_terminal", schema.Scalar()),
-            ("time_diff", schema.Scalar()),
-            ("possible_actions_mask", schema.Scalar()),
-            ("possible_next_actions_mask", schema.Scalar()),
+        expected_output_record = (
+            schema.Struct(
+                ("state_features", schema.Scalar()),
+                ("next_state_features", schema.Scalar()),
+                ("action", schema.Scalar()),
+                ("next_action", schema.Scalar()),
+                ("possible_actions_mask", schema.Scalar()),
+                ("possible_next_actions_mask", schema.Scalar()),
+            )
+            + self.pass_through_columns()
         )
         self.check_create_net_spec(
-            extractor, expected_input_record, expected_output_record
+            extractor,
+            expected_input_record,
+            expected_output_record,
+            positional_match=False,
         )
 
     def test_create_net_sarsa_discrete_action(self):
@@ -1184,21 +1253,23 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             include_possible_actions=False,
             max_num_actions=2,
         )
-        expected_input_record = schema.Struct(
-            ("state_features", map_schema()),
-            ("next_state_features", map_schema()),
-            ("action", schema.Scalar()),
-            ("next_action", schema.Scalar()),
-            ("not_terminal", schema.Scalar()),
-            ("time_diff", schema.Scalar()),
+        expected_input_record = (
+            schema.Struct(
+                ("state_features", map_schema()),
+                ("next_state_features", map_schema()),
+                ("action", schema.Scalar()),
+                ("next_action", schema.Scalar()),
+            )
+            + self.pass_through_columns()
         )
-        expected_output_record = schema.Struct(
-            ("state_features", schema.Scalar()),
-            ("next_state_features", schema.Scalar()),
-            ("action", schema.Scalar()),
-            ("next_action", schema.Scalar()),
-            ("not_terminal", schema.Scalar()),
-            ("time_diff", schema.Scalar()),
+        expected_output_record = (
+            schema.Struct(
+                ("state_features", schema.Scalar()),
+                ("next_state_features", schema.Scalar()),
+                ("action", schema.Scalar()),
+                ("next_action", schema.Scalar()),
+            )
+            + self.pass_through_columns()
         )
         self.check_create_net_spec(
             extractor, expected_input_record, expected_output_record
@@ -1218,32 +1289,37 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             normalize=normalize,
             max_num_actions=2,
         )
-        expected_input_record = schema.Struct(
-            ("state_features", map_schema()),
-            ("next_state_features", map_schema()),
-            ("action", map_schema()),
-            ("next_action", map_schema()),
-            ("not_terminal", schema.Scalar()),
-            ("possible_actions", schema.List(map_schema())),
-            ("possible_actions_mask", schema.List(schema.Scalar())),
-            ("possible_next_actions", schema.List(map_schema())),
-            ("possible_next_actions_mask", schema.List(schema.Scalar())),
-            ("time_diff", schema.Scalar()),
+        expected_input_record = (
+            schema.Struct(
+                ("state_features", map_schema()),
+                ("next_state_features", map_schema()),
+                ("action", map_schema()),
+                ("next_action", map_schema()),
+                ("possible_actions", schema.List(map_schema())),
+                ("possible_actions_mask", schema.List(schema.Scalar())),
+                ("possible_next_actions", schema.List(map_schema())),
+                ("possible_next_actions_mask", schema.List(schema.Scalar())),
+            )
+            + self.pass_through_columns()
         )
-        expected_output_record = schema.Struct(
-            ("state_features", schema.Scalar()),
-            ("next_state_features", schema.Scalar()),
-            ("action", schema.Scalar()),
-            ("next_action", schema.Scalar()),
-            ("not_terminal", schema.Scalar()),
-            ("time_diff", schema.Scalar()),
-            ("possible_actions_mask", schema.Scalar()),
-            ("possible_next_actions_mask", schema.Scalar()),
-            ("possible_actions", schema.Scalar()),
-            ("possible_next_actions", schema.Scalar()),
+        expected_output_record = (
+            schema.Struct(
+                ("state_features", schema.Scalar()),
+                ("next_state_features", schema.Scalar()),
+                ("action", schema.Scalar()),
+                ("next_action", schema.Scalar()),
+                ("possible_actions_mask", schema.Scalar()),
+                ("possible_next_actions_mask", schema.Scalar()),
+                ("possible_actions", schema.Scalar()),
+                ("possible_next_actions", schema.Scalar()),
+            )
+            + self.pass_through_columns()
         )
         self.check_create_net_spec(
-            extractor, expected_input_record, expected_output_record
+            extractor,
+            expected_input_record,
+            expected_output_record,
+            positional_match=False,
         )
 
     def test_create_net_sarsa_parametric_action(self):
@@ -1260,21 +1336,23 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             normalize=normalize,
             max_num_actions=2,
         )
-        expected_input_record = schema.Struct(
-            ("state_features", map_schema()),
-            ("next_state_features", map_schema()),
-            ("action", map_schema()),
-            ("next_action", map_schema()),
-            ("not_terminal", schema.Scalar()),
-            ("time_diff", schema.Scalar()),
+        expected_input_record = (
+            schema.Struct(
+                ("state_features", map_schema()),
+                ("next_state_features", map_schema()),
+                ("action", map_schema()),
+                ("next_action", map_schema()),
+            )
+            + self.pass_through_columns()
         )
-        expected_output_record = schema.Struct(
-            ("state_features", schema.Scalar()),
-            ("next_state_features", schema.Scalar()),
-            ("action", schema.Scalar()),
-            ("next_action", schema.Scalar()),
-            ("not_terminal", schema.Scalar()),
-            ("time_diff", schema.Scalar()),
+        expected_output_record = (
+            schema.Struct(
+                ("state_features", schema.Scalar()),
+                ("next_state_features", schema.Scalar()),
+                ("action", schema.Scalar()),
+                ("next_action", schema.Scalar()),
+            )
+            + self.pass_through_columns()
         )
         self.check_create_net_spec(
             extractor, expected_input_record, expected_output_record
@@ -1329,10 +1407,24 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
     def test_extract_no_action_normalize(self):
         self._test_extract_no_action(normalize=True)
 
-    def _test_extract_no_action(self, normalize):
+    def test_extract_no_action_time_since_first(self):
+        self._test_extract_no_action(normalize=True, use_time_since_first=True)
+
+    def test_extract_no_action_time_since_first_normalize(self):
+        self._test_extract_no_action(
+            normalize=True, use_time_since_first=True, normalize_time_since_first=True
+        )
+
+    def _test_extract_no_action(
+        self, normalize, use_time_since_first=False, normalize_time_since_first=False
+    ):
         extractor = PredictorFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
             normalize=normalize,
+            use_time_since_first=use_time_since_first,
+            time_since_first_normalization_parameters=self.get_time_since_first_normalization_parameters()
+            if normalize_time_since_first
+            else None,
         )
         # Setup
         ws, net = self.create_ws_and_net(extractor)
@@ -1340,12 +1432,20 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         self.setup_float_features(ws, input_record.float_features)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         npt.assert_allclose(
             self.expected_state_features(normalize),
             res.state.float_features.numpy(),
             rtol=1e-6,
         )
+        if use_time_since_first:
+            npt.assert_allclose(
+                self.expected_time_since_first(normalize_time_since_first),
+                res.state.time_since_first.numpy(),
+                rtol=1e-6,
+            )
+        else:
+            self.assertIsNone(res.state.time_since_first)
 
     def test_extract_with_sequence(self):
         model_feature_config = rlt.ModelFeatureConfig(
@@ -1367,7 +1467,7 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         )
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         npt.assert_allclose(
             super().expected_state_features(normalize=True),
             res.state.float_features.numpy(),
@@ -1420,7 +1520,7 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         self.setup_float_features(ws, input_record.float_features)
         # Run
         ws.run(net)
-        res = extractor.extract(ws, input_record, net.output_record())
+        res = extractor.extract(ws, net.output_record())
         npt.assert_allclose(
             self.expected_action_features(normalize),
             res.action.float_features.numpy(),

@@ -18,7 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 def check_save_load(
-    self, model, expected_num_params, expected_num_inputs, expected_num_outputs
+    self,
+    model,
+    expected_num_params,
+    expected_num_inputs,
+    expected_num_outputs,
+    check_equality=True,
 ):
     pem, ws = model.get_predictor_export_meta_and_workspace()
     self.assertEqual(expected_num_params, len(pem.parameters))
@@ -52,10 +57,21 @@ def check_save_load(
         output = model(input_prototype)
         output_tensors = _flatten_named_tuple(output)
         self.assertEqual(len(output_arrays), len(output_tensors))
-        for a, t in zip(output_arrays, output_tensors):
-            # FXIME: PyTorch and Caffe2 has slightly different operator implementation;
-            # assert_array_equal would fail in some cases :(
-            npt.assert_allclose(t.detach().numpy(), a, atol=1e-6)
+        if check_equality:
+            for a, t in zip(output_arrays, output_tensors):
+                # FXIME: PyTorch and Caffe2 has slightly different operator implementation;
+                # assert_array_equal would fail in some cases :(
+                npt.assert_allclose(t.detach().numpy(), a, atol=1e-6)
+
+
+def save_pytorch_model_and_load_c2_net(model):
+    pem, ws = model.get_predictor_export_meta_and_workspace()
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        db_path, db_type = os.path.join(tmpdirname, "model"), "minidb"
+        with ws._ctx:
+            save_to_db(db_type, db_path, pem)
+        net = prepare_prediction_net(db_path, db_type)
+    return net
 
 
 def _flatten_named_tuple(nt):

@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import random
+import tempfile
 import unittest
 
 import numpy as np
@@ -24,6 +25,7 @@ from ml.rl.thrift.core.ttypes import (
 )
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_exporter import ParametricDQNExporter
+from torch import distributed
 
 
 class TestGridworldParametric(GridworldTestBase):
@@ -32,15 +34,12 @@ class TestGridworldParametric(GridworldTestBase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        super(self.__class__, self).setUp()
+        super().setUp()
 
     def get_sarsa_parameters(self):
         return ContinuousActionModelParameters(
             rl=RLParameters(
-                gamma=DISCOUNT,
-                target_update_rate=1.0,
-                reward_burnin=100,
-                maxq_learning=False,
+                gamma=DISCOUNT, target_update_rate=1.0, maxq_learning=False
             ),
             training=TrainingParameters(
                 layers=[-1, 256, 128, -1],
@@ -74,8 +73,8 @@ class TestGridworldParametric(GridworldTestBase):
             q_network = q_network.cuda()
             reward_network = reward_network.cuda()
             if use_all_avail_gpus:
-                q_network = q_network.get_data_parallel_model()
-                reward_network = reward_network.get_data_parallel_model()
+                q_network = q_network.get_distributed_data_parallel_model()
+                reward_network = reward_network.get_distributed_data_parallel_model()
 
         q_network_target = q_network.get_target_network()
         trainer = ParametricDQNTrainer(
@@ -97,8 +96,6 @@ class TestGridworldParametric(GridworldTestBase):
             environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
-        if use_all_avail_gpus:
-            self.tolerance_threshold = 0.11
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
             environment, None, use_gpu, use_all_avail_gpus
         )
@@ -111,7 +108,3 @@ class TestGridworldParametric(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_modular_trainer_sarsa_gpu(self):
         self._test_trainer_sarsa(use_gpu=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_modular_trainer_sarsa_all_gpus(self):
-        self._test_trainer_sarsa(use_gpu=True, use_all_avail_gpus=True)

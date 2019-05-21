@@ -6,7 +6,7 @@
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.001,
-    "reward_burnin": 1,
+    
     "maxq_learning": 1,
     "epsilon": 1,
     "temperature": 0.35,
@@ -24,8 +24,7 @@
     "minibatch_size": 128,
     "learning_rate": 0.001,
     "optimizer": "ADAM",
-    "lr_decay": 0.999,
-    "use_noisy_linear_layers": false
+    "lr_decay": 0.999
   },
   "evaluation": {
     "calc_cpe_in_training": false
@@ -44,6 +43,10 @@
     "max_episodes_to_run_after_solved": 200,
     "stop_training_after_solved": true,
     "epsilon_decay": 0.995,
-    "minimum_epsilon": 0.0
+    "minimum_epsilon": 0.0,
+    "bcq_imitator_hyperparams": {
+      "gbdt_trees": 100,
+      "max_depth": 8
+    }
   }
 }

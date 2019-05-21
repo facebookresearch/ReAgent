@@ -17,12 +17,12 @@ from caffe2.python.predictor.predictor_exporter import PredictorExportMeta
 from ml.rl import types as rlt
 
 
-class ModelBase(nn.Module, metaclass=abc.ABCMeta):
+# add ABCMeta once https://github.com/sphinx-doc/sphinx/issues/5995 is fixed
+class ModelBase(nn.Module):
     """
     A base class to support exporting through ONNX
     """
 
-    @abc.abstractmethod
     def forward(self, input: NamedTuple) -> NamedTuple:
         """
         Args:
@@ -31,9 +31,8 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         Returns:
             An NamedTuple of torch.Tensor
         """
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def input_prototype(self) -> NamedTuple:
         """
         This function provides the input for ONNX graph tracing.
@@ -58,13 +57,13 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
         """
         return deepcopy(self)
 
-    def get_data_parallel_model(self):
+    def get_distributed_data_parallel_model(self):
         """
-        Return DataParallel version of this model
+        Return DistributedDataParallel version of this model
 
         This needs to be implemented explicitly because:
-        1) Model with EmbeddingBag module is not compatible with vanilla DataParallel
-        2) Exporting logic needs structured data. DataParallel doesn't work with structured data.
+        1) Model with EmbeddingBag module is not compatible with vanilla DistributedDataParallel
+        2) Exporting logic needs structured data. DistributedDataParallel doesn't work with structured data.
         """
         raise NotImplementedError
 
@@ -125,7 +124,7 @@ class ModelBase(nn.Module, metaclass=abc.ABCMeta):
 
     def cpu_model(self):
         """
-        Override this in DataParallel models
+        Override this in DistributedDataParallel models
         """
         # This is not ideal but makes exporting simple
         return deepcopy(self).cpu()
@@ -301,7 +300,7 @@ class ONNXExportModel(nn.Module):
     """
 
     def __init__(self, m):
-        super(ONNXExportModel, self).__init__()
+        super().__init__()
         self.m = m
         self.input_prototype = m.input_prototype()
         self.onnx_input_args = self.flatten(self.input_prototype)

@@ -142,17 +142,16 @@ class TestMDNRNN(unittest.TestCase):
             num_hidden_layers=mdnrnn_params.num_hidden_layers,
             num_gaussians=mdnrnn_params.num_gaussians,
         )
+        if use_gpu and torch.cuda.is_available():
+            mdnrnn_net = mdnrnn_net.cuda()
         trainer = MDNRNNTrainer(
-            mdnrnn_network=mdnrnn_net,
-            params=mdnrnn_params,
-            cum_loss_hist=num_batch,
-            use_gpu=use_gpu,
+            mdnrnn_network=mdnrnn_net, params=mdnrnn_params, cum_loss_hist=num_batch
         )
 
         for e in range(num_epochs):
             for i in range(num_batch):
                 training_batch = replay_buffer.sample_memories(
-                    batch_size, batch_first=use_gpu
+                    batch_size, use_gpu=use_gpu, batch_first=use_gpu
                 )
                 losses = trainer.train(training_batch, batch_first=use_gpu)
                 logger.info(

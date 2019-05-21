@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from ml.rl.test.utils import default_normalizer
+from ml.rl.test.base.utils import default_normalizer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -20,7 +20,7 @@ class Env(object):
         self.action_dims = action_dims
         self.actions = [str(i) for i in range(self.action_dims)]
         self.const_reward = 1
-        self.gamma = 0.99
+        self.gamma = 0.95
         assert 0 < self.gamma < 1
 
     def seed(self, seed):

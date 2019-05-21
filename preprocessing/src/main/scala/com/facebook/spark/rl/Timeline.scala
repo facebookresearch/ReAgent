@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.coalesce
 import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.types._
+
+case class ExtraFeatureColumn(columnName: String, columnType: String)
 
 case class TimelineConfiguration(startDs: String,
                                  endDs: String,
@@ -17,7 +20,9 @@ case class TimelineConfiguration(startDs: String,
                                  evalTableName: String,
                                  numOutputShards: Int,
                                  outlierEpisodeLengthPercentile: Option[Double] = None,
-                                 percentileFunction: String = "percentile_approx")
+                                 percentileFunction: String = "percentile_approx",
+                                 extraFeatureColumns: List[String] = List(),
+                                 timeWindowLimit: Option[Long] = None)
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
@@ -119,10 +124,20 @@ object Timeline {
       filterTerminal = "";
     }
 
-    Timeline.validateOrDestroyTrainingTable(sqlContext,
-                                            config.outputTableName,
-                                            config.actionDiscrete)
-    Timeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
+    val extraFeatureColumnDataTypes =
+      Helper.getDataTypes(sqlContext, config.inputTableName, config.extraFeatureColumns)
+
+    Helper.validateOrDestroyTrainingTable(sqlContext,
+                                          config.outputTableName,
+                                          config.actionDiscrete,
+                                          extraFeatureColumnDataTypes)
+
+    Timeline.createTrainingTable(
+      sqlContext,
+      config.outputTableName,
+      config.actionDiscrete,
+      extraFeatureColumnDataTypes
+    )
 
     config.outlierEpisodeLengthPercentile.foreach { percentile =>
       sqlContext.sql(s"""
@@ -133,39 +148,83 @@ object Timeline {
       """).createOrReplaceTempView("episode_length")
     }
 
-    val sourceTable = Timeline.mdpLengthThreshold(sqlContext, config) match {
-      case Some(threshold) => s"""
-      WITH a AS (SELECT mdp_id FROM episode_length WHERE mdp_length <= ${threshold}),
-      source_table AS (
-          SELECT
-              b.mdp_id,
-              b.state_features,
-              b.action,
-              b.action_probability,
-              b.reward,
-              b.sequence_number,
-              b.possible_actions,
-              b.metrics
-          FROM ${config.inputTableName} b JOIN a
-          WHERE a.mdp_id = b.mdp_id
-            AND b.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-      )
-      """.stripMargin
-      case None            => s"""
-      WITH source_table AS (
-          SELECT
-              mdp_id,
-              state_features,
-              action,
-              action_probability,
-              reward,
-              sequence_number,
-              possible_actions,
-              metrics
-          FROM ${config.inputTableName}
-          WHERE ds BETWEEN '${config.startDs}' AND '${config.endDs}'
-      )
-      """.stripMargin
+    val lengthThreshold = Timeline.mdpLengthThreshold(sqlContext, config)
+
+    val mdpFilter = lengthThreshold
+      .map { threshold =>
+        s"mdp_filter AS (SELECT mdp_id FROM episode_length WHERE mdp_length <= ${threshold}),"
+      }
+      .getOrElse("")
+
+    val joinClause = lengthThreshold
+      .map { threshold =>
+        s"""
+        JOIN mdp_filter
+        WHERE a.mdp_id = mdp_filter.mdp_id AND
+    """.stripMargin
+      }
+      .getOrElse("WHERE")
+
+    val extraSourceColumns = extraFeatureColumnDataTypes.foldLeft("") {
+      case (acc, (k, v)) => s"${acc}, a.${k}"
+    }
+
+    val timeLimitedSourceTable = config.timeWindowLimit
+      .map { timeLimit =>
+        s"""
+        , time_limited_source_table AS (
+            SELECT
+                *,
+                sequence_number - FIRST(sequence_number) OVER (
+                     PARTITION BY mdp_id
+                     ORDER BY mdp_id, sequence_number
+                ) AS time_since_first
+            FROM source_table
+            HAVING time_since_first <= ${timeLimit}
+        )
+        """.stripMargin
+      }
+      .getOrElse("")
+
+    val sourceTable = s"""
+    WITH ${mdpFilter}
+        source_table AS (
+            SELECT
+                a.mdp_id,
+                a.state_features,
+                a.action,
+                a.action_probability,
+                a.reward,
+                a.sequence_number,
+                a.possible_actions,
+                a.metrics
+                ${extraSourceColumns}
+            FROM ${config.inputTableName} a
+            ${joinClause}
+            a.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
+        )
+        ${timeLimitedSourceTable}
+    """.stripMargin
+
+    val sourceTableName = config.timeWindowLimit
+      .map { _ =>
+        "time_limited_source_table"
+      }
+      .getOrElse("source_table")
+
+    val extraFeatureQuery = extraFeatureColumnDataTypes.foldLeft("") {
+      case (acc, (k, v)) =>
+        s"""
+        ${acc},
+        ${k},
+        LEAD(${k}) OVER (
+            PARTITION BY
+                mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS next_${k}
+        """
     }
 
     val sqlCommand = s"""
@@ -205,6 +264,13 @@ object Timeline {
                 mdp_id,
                 sequence_number
         ), sequence_number) - sequence_number AS time_diff,
+        sequence_number - FIRST(sequence_number) OVER (
+            PARTITION BY
+                mdp_id
+            ORDER BY
+                mdp_id,
+                sequence_number
+        ) AS time_since_first,
         possible_actions,
         LEAD(possible_actions) OVER (
             PARTITION BY
@@ -213,8 +279,8 @@ object Timeline {
                 mdp_id,
                 sequence_number
         ) AS possible_next_actions,
-        metrics
-    FROM source_table
+        metrics${extraFeatureQuery}
+    FROM ${sourceTableName}
     ${filterTerminal}
     CLUSTER BY HASH(mdp_id, sequence_number)
     """.stripMargin
@@ -265,7 +331,12 @@ object Timeline {
             FROM b CROSS JOIN a
         """)
         val res = df.first
-        val pct_val = res.getAs[Double]("pct")
+        // episode length at x percentile could be either Long or Double,
+        // depending on percentileFunction being used
+        val pct_val = res.schema("pct").dataType match {
+          case DoubleType => res.getAs[Double]("pct")
+          case LongType   => res.getAs[Long]("pct")
+        }
         val mdp_count = res.getAs[Long]("mdp_count")
         val outlier_count = res.getAs[Long]("outlier_count")
         log.info(s"Threshold: ${pct_val}; mdp count: ${mdp_count}; outlier_count: ${outlier_count}")
@@ -280,34 +351,19 @@ object Timeline {
       }
     }
 
-  def validateOrDestroyTrainingTable(sqlContext: SQLContext,
-                                     tableName: String,
-                                     actionDiscrete: Boolean): Unit =
-    try {
-      val checkOutputTableCommand = s"""
-      DESCRIBE ${tableName}
-      """
-      val df = sqlContext.sql(checkOutputTableCommand);
-      // Validate the schema and destroy the output table if it doesn't match
-      var validTable = Helper.outputTableIsValid(sqlContext, tableName, actionDiscrete)
-      if (!validTable) {
-        val dropTableCommand = s"""
-        DROP TABLE ${tableName}
-        """
-        sqlContext.sql(dropTableCommand);
-      }
-    } catch {
-      case e: org.apache.spark.sql.catalyst.analysis.NoSuchTableException => {}
-      case e: Throwable                                                   => log.error(e.toString())
-    }
   def createTrainingTable(sqlContext: SQLContext,
                           tableName: String,
-                          actionDiscrete: Boolean): Unit = {
+                          actionDiscrete: Boolean,
+                          extraFeatureColumnDataTypes: Map[String, String] = Map()): Unit = {
     var actionType = "STRING";
     var possibleActionType = "ARRAY<STRING>";
     if (!actionDiscrete) {
       actionType = "MAP<BIGINT, DOUBLE>"
       possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
+    }
+
+    val extraFeatureColumns = extraFeatureColumnDataTypes.foldLeft("") {
+      case (acc, (k, v)) => s"${acc}, ${k} ${v}, next_${k} ${v}"
     }
 
     val sqlCommand = s"""
@@ -324,9 +380,10 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     sequence_number BIGINT,
     sequence_number_ordinal BIGINT,
     time_diff BIGINT,
+    time_since_first BIGINT,
     possible_actions ${possibleActionType},
     possible_next_actions ${possibleActionType},
-    metrics MAP< STRING, DOUBLE>
+    metrics MAP< STRING, DOUBLE>${extraFeatureColumns}
 ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);

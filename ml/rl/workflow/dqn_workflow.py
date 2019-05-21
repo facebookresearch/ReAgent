@@ -6,6 +6,7 @@ import sys
 from typing import Dict
 
 import numpy as np
+import torch
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
@@ -32,6 +33,7 @@ from ml.rl.workflow.helpers import (
 from ml.rl.workflow.preprocess_handler import DqnPreprocessHandler, PreprocessHandler
 from ml.rl.workflow.transitional import create_dqn_trainer_from_params
 from tensorboardX import SummaryWriter
+from torch import multiprocessing
 
 
 logger = logging.getLogger(__name__)
@@ -54,7 +56,7 @@ class DqnWorkflow(BaseWorkflow):
             model_params,
             state_normalization,
             use_gpu=use_gpu,
-            # use_all_avail_gpus=use_all_avail_gpus,
+            use_all_avail_gpus=use_all_avail_gpus,
         )
         trainer = update_model_for_warm_start(trainer)
         assert type(trainer) == DQNTrainer, "Warm started wrong model type: " + str(
@@ -68,12 +70,13 @@ class DqnWorkflow(BaseWorkflow):
             metrics_to_score=trainer.metrics_to_score,
         )
 
-        super(DqnWorkflow, self).__init__(
+        super().__init__(
             preprocess_handler, trainer, evaluator, model_params.training.minibatch_size
         )
 
 
-def main(params):
+def single_process_main(gpu_index, *args):
+    params = args[0]
     # Set minibatch size based on # of devices being used to train
     params["training"]["minibatch_size"] *= minibatch_size_multiplier(
         params["use_gpu"], params["use_all_avail_gpus"]
@@ -100,6 +103,15 @@ def main(params):
         PandasSparseToDenseProcessor(),
     )
 
+    if params["use_all_avail_gpus"]:
+        BaseWorkflow.init_multiprocessing(
+            int(params["num_processes_per_node"]),
+            int(params["num_nodes"]),
+            int(params["node_index"]),
+            gpu_index,
+            params["init_method"],
+        )
+
     workflow = DqnWorkflow(
         model_params,
         preprocess_handler,
@@ -111,7 +123,9 @@ def main(params):
     train_dataset = JSONDatasetReader(
         params["training_data_path"], batch_size=training_parameters.minibatch_size
     )
-    eval_dataset = JSONDatasetReader(params["eval_data_path"], batch_size=16)
+    eval_dataset = JSONDatasetReader(
+        params["eval_data_path"], batch_size=training_parameters.minibatch_size
+    )
 
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
@@ -122,13 +136,31 @@ def main(params):
         DiscreteActionOutputTransformer(model_params.actions),
     )
 
-    return export_trainer_and_predictor(
-        workflow.trainer, params["model_output_path"], exporter=exporter
-    )  # noqa
+    if int(params["node_index"]) == 0 and gpu_index == 0:
+        export_trainer_and_predictor(
+            workflow.trainer, params["model_output_path"], exporter=exporter
+        )  # noqa
+
+
+def main(params):
+    if "node_index" not in params or params["node_index"] is None:
+        params["node_index"] = 0
+    can_do_distributed = torch.distributed.is_available() and torch.cuda.is_available()
+    if params["use_all_avail_gpus"] and not can_do_distributed:
+        logger.info(
+            "Horizon is configured to use all GPUs but your platform doesn't support torch.distributed & torch.cuda!"
+        )
+        params["use_all_avail_gpus"] = False
+    if params["use_all_avail_gpus"]:
+        params["num_processes_per_node"] = max(1, torch.cuda.device_count())
+        multiprocessing.spawn(
+            single_process_main, nprocs=params["num_processes_per_node"], args=[params]
+        )
+    else:
+        single_process_main(0, params)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     params = parse_args(sys.argv)
-
     main(params)

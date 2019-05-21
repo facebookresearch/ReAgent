@@ -8,6 +8,7 @@ import os
 import time
 from typing import Dict
 
+import torch
 from ml.rl.preprocessing import normalization
 from ml.rl.readers.data_streamer import DataStreamer
 from ml.rl.tensorboardX import SummaryWriterContext
@@ -18,6 +19,7 @@ from ml.rl.workflow.page_handler import (
     feed_pages,
 )
 from ml.rl.workflow.preprocess_handler import PreprocessHandler
+from torch import distributed
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,21 @@ class BaseWorkflow:
             with open(path) as f:
                 norm_json = json.load(f)
         return normalization.deserialize(norm_json)
+
+    @staticmethod
+    def init_multiprocessing(
+        num_processes_per_node, num_nodes, node_index, gpu_index, init_method
+    ):
+        assert max(1, torch.cuda.device_count()) == int(
+            num_processes_per_node
+        ), "Not all nodes have the same number of GPUs!"
+        if torch.cuda.device_count() > 0:
+            torch.cuda.set_device(gpu_index)
+        world_size = num_nodes * num_processes_per_node
+        rank = (node_index * torch.cuda.device_count()) + gpu_index
+        distributed.init_process_group(
+            backend="nccl", init_method=init_method, world_size=world_size, rank=rank
+        )
 
     def train_network(self, train_dataset, eval_dataset, epochs: int):
         num_batches = int(len(train_dataset) / self.minibatch_size)

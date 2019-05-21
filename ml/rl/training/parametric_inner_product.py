@@ -7,7 +7,7 @@ import torch.nn as nn
 
 class ParametricInnerProduct(nn.Module):
     def __init__(self, state_model, action_model, state_dim, action_dim):
-        super(ParametricInnerProduct, self).__init__()
+        super().__init__()
         self.state_model = state_model
         self.action_model = action_model
         self.state_dim = state_dim

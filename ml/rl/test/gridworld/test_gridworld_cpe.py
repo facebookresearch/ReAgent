@@ -29,7 +29,7 @@ class TestGridworldCPE(GridworldTestBase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
-        super(TestGridworldCPE, self).setUp()
+        super().setUp()
 
     def test_doubly_robust(self):
         """Both the logged and model policies are epsilon-greedy policies where

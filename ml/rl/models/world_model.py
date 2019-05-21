@@ -5,13 +5,14 @@ import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.mdn_rnn import MDNRNN
+from torch.nn.parallel.distributed import DistributedDataParallel
 
 
 class MemoryNetwork(ModelBase):
     def __init__(
         self, state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
     ):
-        super(MemoryNetwork, self).__init__()
+        super().__init__()
         self.mdnrnn = MDNRNN(
             state_dim=state_dim,
             action_dim=action_dim,
@@ -25,8 +26,8 @@ class MemoryNetwork(ModelBase):
         self.num_hidden_layers = num_hidden_layers
         self.num_gaussians = num_gaussians
 
-    def get_data_parallel_model(self):
-        return _DataParallelMemoryNetwork(self)
+    def get_distributed_data_parallel_model(self):
+        return _DistributedDataParallelMemoryNetwork(self)
 
     def input_prototype(self):
         return rlt.StateAction(
@@ -49,16 +50,19 @@ class MemoryNetwork(ModelBase):
         )
 
 
-class _DataParallelMemoryNetwork(ModelBase):
+class _DistributedDataParallelMemoryNetwork(ModelBase):
     def __init__(self, mem_net):
-        super(_DataParallelMemoryNetwork, self).__init__()
+        super().__init__()
         self.num_hiddens = mem_net.num_hiddens
         self.num_hidden_layers = mem_net.num_hidden_layers
         self.state_dim = mem_net.state_dim
         self.action_dim = mem_net.action_dim
         self.num_gaussians = mem_net.num_gaussians
 
-        self.data_parallel = torch.nn.DataParallel(mem_net.mdnrnn)
+        current_device = torch.cuda.current_device()
+        self.data_parallel = DistributedDataParallel(
+            mem_net.mdnrnn, device_ids=[current_device], output_device=current_device
+        )
         self.mem_net = mem_net
 
     def input_prototype(self):

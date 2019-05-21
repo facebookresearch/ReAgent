@@ -37,7 +37,7 @@ class NpArrayReader(ReaderBase):
     """
 
     def __init__(self, data, size=None, **kwargs):
-        super(NpArrayReader, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.data = data
         self.size = size
         self._sanity_check_data(self.data)

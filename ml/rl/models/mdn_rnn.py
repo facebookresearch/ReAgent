@@ -121,20 +121,22 @@ class MDNRNNMemoryPool:
             s = self.replay_memory[i]
             yield s.state, s.action, s.next_state, s.reward, s.not_terminal
 
-    def sample_memories(self, batch_size, batch_first=False):
+    def sample_memories(self, batch_size, use_gpu=False, batch_first=False):
         """
         :param batch_size: number of samples to return
+        :param use_gpu: whether to put samples on gpu
         :param batch_first: If True, the first dimension of data is batch_size.
             If False (default), the first dimension is SEQ_LEN. Therefore,
             state's shape is SEQ_LEN x BATCH_SIZE x STATE_DIM, for example. By default,
             MDN-RNN consumes data with SEQ_LEN as the first dimension.
         """
         sample_indices = np.random.randint(self.memory_size, size=batch_size)
+        device = torch.device("cuda") if use_gpu else torch.device("cpu")
         # state/next state shape: batch_size x seq_len x state_dim
         # action shape: # state shape: batch_size x seq_len x action_dim
         # reward/not_terminal shape: batch_size x seq_len
         state, action, next_state, reward, not_terminal = map(
-            lambda x: torch.tensor(x, dtype=torch.float),
+            lambda x: torch.tensor(x, dtype=torch.float, device=device),
             zip(*self.deque_sample(sample_indices)),
         )
 

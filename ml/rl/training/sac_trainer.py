@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional
 
 import ml.rl.types as rlt
 import numpy as np
@@ -10,8 +9,6 @@ import torch
 import torch.nn.functional as F
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.thrift.core.ttypes import SACModelParameters
-from ml.rl.training.actor_predictor import ActorPredictor
-from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
 from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
 
 
@@ -48,9 +45,8 @@ class SACTrainer(RLTrainer):
                 min / max value of actions at serving time
         """
         self.minibatch_size = parameters.training.minibatch_size
-        super(SACTrainer, self).__init__(
-            parameters, use_gpu=False, gradient_handler=None
-        )
+        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        super().__init__(parameters, use_gpu=False)
 
         self.q1_network = q1_network
         self.q1_network_optimizer = self._get_optimizer(
@@ -158,9 +154,10 @@ class SACTrainer(RLTrainer):
                 target_value = min_q_value - self.entropy_temperature * log_prob_a
 
         value_loss = F.mse_loss(state_value, target_value)
-        self.value_network_optimizer.zero_grad()
         value_loss.backward()
-        self.value_network_optimizer.step()
+        self._maybe_run_optimizer(
+            self.value_network_optimizer, self.minibatches_per_step
+        )
 
         #
         # Second, optimize Q networks; minimizing MSE between
@@ -173,20 +170,17 @@ class SACTrainer(RLTrainer):
                 * not_done_mask.float()
             )
 
-            if self.minibatch < self.reward_burnin:
-                target_q_value = reward
-            else:
-                target_q_value = reward + discount * next_state_value
+            target_q_value = reward + discount * next_state_value
 
         q1_loss = F.mse_loss(q1_value, target_q_value)
-        self.q1_network_optimizer.zero_grad()
         q1_loss.backward()
-        self.q1_network_optimizer.step()
+        self._maybe_run_optimizer(self.q1_network_optimizer, self.minibatches_per_step)
         if self.q2_network:
             q2_loss = F.mse_loss(q2_value, target_q_value)
-            self.q2_network_optimizer.zero_grad()
             q2_loss.backward()
-            self.q2_network_optimizer.step()
+            self._maybe_run_optimizer(
+                self.q2_network_optimizer, self.minibatches_per_step
+            )
 
         #
         # Lastly, optimize the actor; minimizing KL-divergence between action propensity
@@ -210,16 +204,18 @@ class SACTrainer(RLTrainer):
         )
         # Do this in 2 steps so we can log histogram of actor loss
         actor_loss_mean = actor_loss.mean()
-        self.actor_network_optimizer.zero_grad()
         actor_loss_mean.backward()
-        self.actor_network_optimizer.step()
+        self._maybe_run_optimizer(
+            self.actor_network_optimizer, self.minibatches_per_step
+        )
 
-        if self.minibatch < self.reward_burnin:
-            # Reward burnin: force target network
-            self._soft_update(self.value_network, self.value_network_target, 1.0)
-        else:
-            # Use the soft update rule to update both target networks
-            self._soft_update(self.value_network, self.value_network_target, self.tau)
+        # Use the soft update rule to update both target networks
+        self._maybe_soft_update(
+            self.value_network,
+            self.value_network_target,
+            self.tau,
+            self.minibatches_per_step,
+        )
 
         # Logging at the end to schedule all the cuda operations first
         if (

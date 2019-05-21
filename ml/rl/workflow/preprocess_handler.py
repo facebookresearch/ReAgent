@@ -65,9 +65,7 @@ class DqnPreprocessHandler(PreprocessHandler):
         action_names: List[str],
         sparse_to_dense_processor: SparseToDenseProcessor,
     ):
-        super(DqnPreprocessHandler, self).__init__(
-            state_preprocessor, sparse_to_dense_processor
-        )
+        super().__init__(state_preprocessor, sparse_to_dense_processor)
         self.action_names = action_names
 
     def read_actions(self, actions):
@@ -79,7 +77,7 @@ class DqnPreprocessHandler(PreprocessHandler):
         )
 
     def preprocess(self, batch) -> TrainingDataPage:
-        tdp = super(DqnPreprocessHandler, self).preprocess(batch)
+        tdp = super().preprocess(batch)
         actions = self.read_actions(batch["action"])
         pas_mask = torch.from_numpy(
             np.array(batch["possible_actions"], dtype=np.float32)
@@ -120,13 +118,11 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
         action_preprocessor,
         sparse_to_dense_processor: SparseToDenseProcessor,
     ):
-        super(ParametricDqnPreprocessHandler, self).__init__(
-            state_preprocessor, sparse_to_dense_processor
-        )
+        super().__init__(state_preprocessor, sparse_to_dense_processor)
         self.action_preprocessor = action_preprocessor
 
     def preprocess(self, batch) -> TrainingDataPage:
-        tdp = super(ParametricDqnPreprocessHandler, self).preprocess(batch)
+        tdp = super().preprocess(batch)
 
         # Preprocess action features for parametric action DQN
         sorted_action_features, _ = (
@@ -227,13 +223,11 @@ class ContinuousPreprocessHandler(PreprocessHandler):
         action_preprocessor,
         sparse_to_dense_processor: SparseToDenseProcessor,
     ):
-        super(ContinuousPreprocessHandler, self).__init__(
-            state_preprocessor, sparse_to_dense_processor
-        )
+        super().__init__(state_preprocessor, sparse_to_dense_processor)
         self.action_preprocessor = action_preprocessor
 
     def preprocess(self, batch) -> TrainingDataPage:
-        tdp = super(ContinuousPreprocessHandler, self).preprocess(batch)
+        tdp = super().preprocess(batch)
 
         sorted_action_features, _ = (
             self.action_preprocessor._sort_features_by_normalization()

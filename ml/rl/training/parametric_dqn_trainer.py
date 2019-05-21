@@ -23,11 +23,13 @@ class ParametricDQNTrainer(DQNTrainerBase):
         q_network_target,
         reward_network,
         parameters: ContinuousActionModelParameters,
+        use_gpu: bool = False,
     ) -> None:
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
+        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
 
-        DQNTrainerBase.__init__(self, parameters, use_gpu=False, gradient_handler=None)
+        DQNTrainerBase.__init__(self, parameters, use_gpu=use_gpu)
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -92,10 +94,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         filtered_max_q_vals = next_q_values * not_done_mask.float()
 
-        if self.minibatch < self.reward_burnin:
-            target_q_values = reward
-        else:
-            target_q_values = reward + (discount_tensor * filtered_max_q_vals)
+        target_q_values = reward + (discount_tensor * filtered_max_q_vals)
 
         # Get Q-value of action taken
         current_state_action = rlt.StateAction(
@@ -107,26 +106,21 @@ class ParametricDQNTrainer(DQNTrainerBase):
         value_loss = self.q_network_loss(q_values, target_q_values)
         self.loss = value_loss.detach()
 
-        self.q_network_optimizer.zero_grad()
         value_loss.backward()
-        if self.gradient_handler:
-            self.gradient_handler(self.q_network.parameters())
-        self.q_network_optimizer.step()
+        self._maybe_run_optimizer(self.q_network_optimizer, self.minibatches_per_step)
 
-        # TODO: Maybe soft_update should belong to the target network
-        if self.minibatch < self.reward_burnin:
-            # Reward burnin: force target network
-            self._soft_update(self.q_network, self.q_network_target, 1.0)
-        else:
-            # Use the soft update rule to update target network
-            self._soft_update(self.q_network, self.q_network_target, self.tau)
+        # Use the soft update rule to update target network
+        self._maybe_soft_update(
+            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
+        )
 
         # get reward estimates
         reward_estimates = self.reward_network(current_state_action).q_value
         reward_loss = F.mse_loss(reward_estimates, reward)
-        self.reward_network_optimizer.zero_grad()
         reward_loss.backward()
-        self.reward_network_optimizer.step()
+        self._maybe_run_optimizer(
+            self.reward_network_optimizer, self.minibatches_per_step
+        )
 
         self.loss_reporter.report(
             td_loss=self.loss,
