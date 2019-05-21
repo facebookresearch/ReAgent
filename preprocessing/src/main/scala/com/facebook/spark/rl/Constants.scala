@@ -27,4 +27,10 @@ object Constants {
     "next_state_id_score_list_features"
   );
 
+  val SPARSE_ACTION_COLUMN_NAMES = Array(
+    "action_id_list_features",
+    "action_id_score_list_features",
+    "next_action_id_list_features",
+    "next_action_id_score_list_features"
+  );
 }

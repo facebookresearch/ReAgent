@@ -580,6 +580,140 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Map[String, Double]](14) == Map("Widgets" -> 10.0))
   }
 
+  test("two-state-continuous-mdp-sparse-action") {
+    val action_discrete: Boolean = false
+    val includeSparseData: Boolean = false
+    val sparseAction: Boolean = true
+    val sqlCtx = sqlContext
+    import sqlCtx.implicits._
+    val sparkContext = sqlCtx.sparkContext
+
+    // Setup configuration
+    val config = TimelineConfiguration("2018-01-01",
+                                       "2018-01-01",
+                                       false,
+                                       action_discrete,
+                                       "some_rl_input_4",
+                                       "some_rl_timeline_4",
+                                       null,
+                                       1,
+                                       sparseAction = sparseAction)
+
+    // destroy previous schema
+    Helper.validateOrDestroyTrainingTable(sqlContext,
+                                          s"${config.outputTableName}",
+                                          action_discrete,
+                                          includeSparseData,
+                                          sparseAction)
+
+    // Create fake input data
+    val rl_input = sparkContext
+      .parallelize(
+        List(
+          ("2018-01-01",
+           "mdp1",
+           1,
+           1.0,
+           Map(1001L -> 0.3, 1002L -> 0.5),
+           0.8,
+           Map(1L -> 1.0),
+           List(Map(1001L -> 0.3, 1002L -> 0.5), Map(1001L -> 0.6, 1002L -> 0.2)),
+           Map("Widgets" -> 10.0),
+           Map(35L -> List(156L, 157L), 36L -> List(138L)), // actione_id_list_features
+           Map(35L -> Map(156L -> 0.5, 157L -> 0.4), 36L -> Map(138L -> 0.3)) // action_id_score_list_features
+          ), // First state
+          ("2018-01-01",
+           "mdp1",
+           11,
+           0.2,
+           Map.empty[Long, Double],
+           0.7,
+           Map(2L -> 1.0),
+           List(),
+           Map("Widgets" -> 20.0),
+           Map(35L -> List(153L, 154L), 36L -> List(139L)), // action_id_list_features
+           Map(35L -> Map(153L -> 0.1, 154L -> 0.2), 36L -> Map(139L -> 0.7)) // action_id_score_list_features
+          ) // Second state
+        ))
+      .toDF(
+        "ds",
+        "mdp_id",
+        "sequence_number",
+        "reward",
+        "action",
+        "action_probability",
+        "state_features",
+        "possible_actions",
+        "metrics",
+        "action_id_list_features",
+        "action_id_score_list_features"
+      )
+    rl_input.createOrReplaceTempView(config.inputTableName)
+
+    // Create a mis-specified output table that will be deleted
+    val bad_output = sparkContext
+      .parallelize(
+        List(
+          ("2018-01-01"), // First state
+          ("2018-01-01") // Second state
+        ))
+      .toDF("ds")
+    bad_output.createOrReplaceTempView(config.outputTableName)
+
+    // Run the pipeline
+    Timeline.run(sqlContext, config)
+
+    // Ensure that the table is valid
+    assert(
+      Helper.outputTableIsValid(
+        sqlContext,
+        s"${config.outputTableName}",
+        action_discrete,
+        includeSparseData,
+        sparseAction
+      )
+    )
+
+    // Query the results
+    val df =
+      sqlCtx.sql(
+        s"""SELECT ${(Constants.TRAINING_DATA_COLUMN_NAMES ++ Constants.SPARSE_ACTION_COLUMN_NAMES)
+          .mkString(",")} from ${config.outputTableName}""")
+
+    df.show(false)
+    assert(df.count() == 1)
+    val firstRow = df.head
+    assert(firstRow.getAs[String](0) == "2018-01-01")
+    assert(firstRow.getAs[String](1) == "mdp1")
+    assert(firstRow.getAs[Map[Long, Double]](2) == Map(1L -> 1.0))
+    assert(firstRow.getAs[Map[Long, Double]](3) == Map(1001L -> 0.3, 1002L -> 0.5))
+    assert(firstRow.getAs[Double](4) == 0.8)
+    assert(firstRow.getAs[Double](5) === 1.0)
+    assert(firstRow.getAs[Map[Long, Double]](6) == Map(2L -> 1.0))
+    assert(firstRow.getAs[Map[Long, Double]](7).isEmpty)
+    assert(firstRow.getAs[Long](8) == 1)
+    assert(firstRow.getAs[Long](9) == 1)
+    assert(firstRow.getAs[Long](10) == 10)
+    assert(firstRow.getAs[Long](11) == 0)
+    assert(
+      firstRow.getAs[Seq[Map[Long, Double]]](12) == List(Map(1001L -> 0.3, 1002L -> 0.5),
+                                                         Map(1001L -> 0.6, 1002L -> 0.2)))
+    assert(firstRow.getAs[Seq[Map[Long, Double]]](13) == List())
+    assert(firstRow.getAs[Map[String, Double]](14) == Map("Widgets" -> 10.0))
+    assert(
+      firstRow.getAs[Map[Long, Seq[Long]]](15)
+        == Map(35L -> List(156L, 157L), 36L -> List(138L)))
+    assert(
+      firstRow.getAs[Map[Long, Map[Long, Double]]](16)
+        == Map(35L -> Map(156L -> 0.5, 157L -> 0.4), 36L -> Map(138L -> 0.3)))
+    assert(
+      firstRow.getAs[Map[Long, Seq[Long]]](17)
+        == Map(35L -> List(153L, 154L), 36L -> List(139L)))
+    assert(
+      firstRow.getAs[Map[Long, Map[Long, Double]]](18)
+        == Map(35L -> Map(153L -> 0.1, 154L -> 0.2), 36L -> Map(139L -> 0.7)))
+  }
+
   test("two-state-discrete-sparse-mdp") {
     val action_discrete: Boolean = true
     val includeSparseData: Boolean = true
@@ -934,6 +1068,7 @@ class TimelineTest extends PipelineTester {
                                        1,
                                        Some(0.95),
                                        percentileFunc,
+                                       false,
                                        false,
                                        Some(3L))
 

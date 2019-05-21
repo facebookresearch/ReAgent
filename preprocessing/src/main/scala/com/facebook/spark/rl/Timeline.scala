@@ -20,6 +20,7 @@ case class TimelineConfiguration(startDs: String,
                                  outlierEpisodeLengthPercentile: Option[Double] = None,
                                  percentileFunction: String = "percentile_approx",
                                  includeSparseData: Boolean = false,
+                                 sparseAction: Boolean = false,
                                  timeWindowLimit: Option[Long] = None)
 
 /**
@@ -125,12 +126,14 @@ object Timeline {
     Helper.validateOrDestroyTrainingTable(sqlContext,
                                           config.outputTableName,
                                           config.actionDiscrete,
-                                          config.includeSparseData)
+                                          config.includeSparseData,
+                                          config.sparseAction)
     Timeline.createTrainingTable(
       sqlContext,
       config.outputTableName,
       config.actionDiscrete,
-      config.includeSparseData
+      config.includeSparseData,
+      config.sparseAction
     )
 
     config.outlierEpisodeLengthPercentile.foreach { percentile =>
@@ -164,6 +167,11 @@ object Timeline {
     , a.state_id_score_list_features
     """.stripMargin else ""
 
+    val sparseActionSourceColumns = if (config.sparseAction) s"""
+    , a.action_id_list_features
+    , a.action_id_score_list_features
+    """.stripMargin else ""
+
     val timeLimitedSourceTable = config.timeWindowLimit
       .map { timeLimit =>
         s"""
@@ -194,6 +202,7 @@ object Timeline {
                 a.possible_actions,
                 a.metrics
                 ${sparseSourceColumns}
+                ${sparseActionSourceColumns}
             FROM ${config.inputTableName} a
             ${joinClause}
             a.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
@@ -226,6 +235,28 @@ object Timeline {
                   mdp_id,
                   sequence_number
           ) AS next_state_id_score_list_features
+      """.stripMargin
+      else ""
+
+    val sparseActionQuery =
+      if (config.sparseAction)
+        s""",
+          action_id_list_features,
+          action_id_score_list_features,
+          LEAD(action_id_list_features) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS next_action_id_list_features,
+          LEAD(action_id_score_list_features) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS next_action_id_score_list_features
       """.stripMargin
       else ""
 
@@ -281,7 +312,7 @@ object Timeline {
                 mdp_id,
                 sequence_number
         ) AS possible_next_actions,
-        metrics${sparseQuery}
+        metrics${sparseQuery}${sparseActionQuery}
     FROM ${sourceTableName}
     ${filterTerminal}
     CLUSTER BY HASH(mdp_id, sequence_number)
@@ -356,13 +387,24 @@ object Timeline {
   def createTrainingTable(sqlContext: SQLContext,
                           tableName: String,
                           actionDiscrete: Boolean,
-                          includeSparseData: Boolean): Unit = {
+                          includeSparseData: Boolean,
+                          sparseAction: Boolean): Unit = {
     var actionType = "STRING";
     var possibleActionType = "ARRAY<STRING>";
     if (!actionDiscrete) {
       actionType = "MAP<BIGINT, DOUBLE>"
       possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
     }
+    val sparseActionColumns =
+      if (sparseAction)
+        s""",
+      action_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
+      action_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>,
+      next_action_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
+      next_action_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>
+
+    """
+      else ""
 
     val sparseColumns =
       if (includeSparseData)
@@ -391,7 +433,7 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     time_since_first BIGINT,
     possible_actions ${possibleActionType},
     possible_next_actions ${possibleActionType},
-    metrics MAP< STRING, DOUBLE>${sparseColumns}
+    metrics MAP< STRING, DOUBLE>${sparseColumns}${sparseActionColumns}
 ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);

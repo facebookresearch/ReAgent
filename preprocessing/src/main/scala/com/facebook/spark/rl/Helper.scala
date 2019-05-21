@@ -11,7 +11,8 @@ object Helper {
   def outputTableIsValid(sqlContext: SQLContext,
                          tableName: String,
                          actionDiscrete: Boolean,
-                         includeSparseData: Boolean): Boolean = {
+                         includeSparseData: Boolean,
+                         sparseAction: Boolean = false): Boolean = {
     // check number of columns
     val checkOutputTableCommand = s"""
      SELECT * FROM ${tableName} LIMIT 1
@@ -20,6 +21,9 @@ object Helper {
     var totalColumns = Constants.TRAINING_DATA_COLUMN_NAMES
     if (includeSparseData) {
       totalColumns = totalColumns ++ Constants.SPARSE_DATA_COLUMN_NAMES
+    }
+    if (sparseAction) {
+      totalColumns = totalColumns ++ Constants.SPARSE_ACTION_COLUMN_NAMES
     }
 
     if (checkOutputDf.columns.size != totalColumns.length)
@@ -52,6 +56,11 @@ object Helper {
                .head
                .getAs[String](1)))
       return false
+    else if (sparseAction && ("map<bigint,array<bigint>>" != describeTableDf
+               .filter("col_name=='action_id_list_features'")
+               .head
+               .getAs[String](1)))
+      return false
     else
       return true
   }
@@ -59,14 +68,16 @@ object Helper {
   def validateOrDestroyTrainingTable(sqlContext: SQLContext,
                                      tableName: String,
                                      actionDiscrete: Boolean,
-                                     includeSparseData: Boolean): Unit =
+                                     includeSparseData: Boolean,
+                                     sparseAction: Boolean = false): Unit =
     try {
       // Validate the schema and destroy the output table if it doesn't match
       var validTable = Helper.outputTableIsValid(
         sqlContext,
         tableName,
         actionDiscrete,
-        includeSparseData
+        includeSparseData,
+        sparseAction
       )
       if (!validTable) {
         val dropTableCommand = s"""
