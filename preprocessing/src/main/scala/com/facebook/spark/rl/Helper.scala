@@ -11,23 +11,8 @@ object Helper {
   def outputTableIsValid(sqlContext: SQLContext,
                          tableName: String,
                          actionDiscrete: Boolean,
-                         includeSparseData: Boolean,
-                         sparseAction: Boolean = false): Boolean = {
-    // check number of columns
-    val checkOutputTableCommand = s"""
-     SELECT * FROM ${tableName} LIMIT 1
-     """
-    val checkOutputDf = sqlContext.sql(checkOutputTableCommand)
-    var totalColumns = Constants.TRAINING_DATA_COLUMN_NAMES
-    if (includeSparseData) {
-      totalColumns = totalColumns ++ Constants.SPARSE_DATA_COLUMN_NAMES
-    }
-    if (sparseAction) {
-      totalColumns = totalColumns ++ Constants.SPARSE_ACTION_COLUMN_NAMES
-    }
-
-    if (checkOutputDf.columns.size != totalColumns.length)
-      return false
+                         extraFeatureColumnTypes: Map[String, String] = Map()): Boolean = {
+    val totalColumns = Constants.TRAINING_DATA_COLUMN_NAMES.size + 2 * extraFeatureColumnTypes.size
 
     // check column types
     var actionType = "string";
@@ -36,48 +21,46 @@ object Helper {
       actionType = "map<bigint,double>"
       possibleActionType = "array<map<bigint,double>>"
     }
-    val describeTableCommand = s"""
-      DESCRIBE ${tableName}
-      """
-    val describeTableDf = sqlContext.sql(describeTableCommand);
-    if (describeTableDf.filter("col_name=='action'").count() != 1)
-      return false
-    else if (actionType != describeTableDf.filter("col_name=='action'").head.getAs[String](1))
-      return false
-    else if (describeTableDf.filter("col_name=='possible_actions'").count() != 1)
-      return false
-    else if (possibleActionType != describeTableDf
-               .filter("col_name=='possible_actions'")
-               .head
-               .getAs[String](1))
-      return false
-    else if (includeSparseData && ("map<bigint,array<bigint>>" != describeTableDf
-               .filter("col_name=='state_id_list_features'")
-               .head
-               .getAs[String](1)))
-      return false
-    else if (sparseAction && ("map<bigint,array<bigint>>" != describeTableDf
-               .filter("col_name=='action_id_list_features'")
-               .head
-               .getAs[String](1)))
-      return false
-    else
-      return true
+    val dt = sqlContext.sparkSession.catalog
+      .listColumns(tableName)
+      .collect
+      .map(column => column.name -> column.dataType)
+      .toMap
+
+    (
+      dt.size == totalColumns &&
+      actionType == dt.getOrElse("action", "") &&
+      possibleActionType == dt.getOrElse("possible_actions", "") &&
+      extraFeatureColumnTypes.filter {
+        case (k, v) => (v == dt.getOrElse(k, "") && v == dt.getOrElse(s"next_${k}", ""))
+      }.size == extraFeatureColumnTypes.size
+    )
+  }
+
+  def getDataTypes(sqlContext: SQLContext,
+                   tableName: String,
+                   columnNames: List[String]): Map[String, String] = {
+    val dt = sqlContext.sparkSession.catalog
+      .listColumns(tableName)
+      .collect
+      .filter(column => columnNames.contains(column.name))
+      .map(column => column.name -> column.dataType)
+      .toMap
+    assert(dt.size == columnNames.size)
+    dt
   }
 
   def validateOrDestroyTrainingTable(sqlContext: SQLContext,
                                      tableName: String,
                                      actionDiscrete: Boolean,
-                                     includeSparseData: Boolean,
-                                     sparseAction: Boolean = false): Unit =
+                                     extraFeatureTypes: Map[String, String] = Map()): Unit =
     try {
       // Validate the schema and destroy the output table if it doesn't match
       var validTable = Helper.outputTableIsValid(
         sqlContext,
         tableName,
         actionDiscrete,
-        includeSparseData,
-        sparseAction
+        extraFeatureTypes
       )
       if (!validTable) {
         val dropTableCommand = s"""

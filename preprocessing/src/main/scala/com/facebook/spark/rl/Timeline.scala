@@ -9,6 +9,8 @@ import org.apache.spark.sql.functions.coalesce
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types._
 
+case class ExtraFeatureColumn(columnName: String, columnType: String)
+
 case class TimelineConfiguration(startDs: String,
                                  endDs: String,
                                  addTerminalStateRow: Boolean,
@@ -19,8 +21,7 @@ case class TimelineConfiguration(startDs: String,
                                  numOutputShards: Int,
                                  outlierEpisodeLengthPercentile: Option[Double] = None,
                                  percentileFunction: String = "percentile_approx",
-                                 includeSparseData: Boolean = false,
-                                 sparseAction: Boolean = false,
+                                 extraFeatureColumns: List[String] = List(),
                                  timeWindowLimit: Option[Long] = None)
 
 /**
@@ -123,17 +124,19 @@ object Timeline {
       filterTerminal = "";
     }
 
+    val extraFeatureColumnDataTypes =
+      Helper.getDataTypes(sqlContext, config.inputTableName, config.extraFeatureColumns)
+
     Helper.validateOrDestroyTrainingTable(sqlContext,
                                           config.outputTableName,
                                           config.actionDiscrete,
-                                          config.includeSparseData,
-                                          config.sparseAction)
+                                          extraFeatureColumnDataTypes)
+
     Timeline.createTrainingTable(
       sqlContext,
       config.outputTableName,
       config.actionDiscrete,
-      config.includeSparseData,
-      config.sparseAction
+      extraFeatureColumnDataTypes
     )
 
     config.outlierEpisodeLengthPercentile.foreach { percentile =>
@@ -162,15 +165,9 @@ object Timeline {
       }
       .getOrElse("WHERE")
 
-    val sparseSourceColumns = if (config.includeSparseData) s"""
-    , a.state_id_list_features
-    , a.state_id_score_list_features
-    """.stripMargin else ""
-
-    val sparseActionSourceColumns = if (config.sparseAction) s"""
-    , a.action_id_list_features
-    , a.action_id_score_list_features
-    """.stripMargin else ""
+    val extraSourceColumns = extraFeatureColumnDataTypes.foldLeft("") {
+      case (acc, (k, v)) => s"${acc}, a.${k}"
+    }
 
     val timeLimitedSourceTable = config.timeWindowLimit
       .map { timeLimit =>
@@ -201,8 +198,7 @@ object Timeline {
                 a.sequence_number,
                 a.possible_actions,
                 a.metrics
-                ${sparseSourceColumns}
-                ${sparseActionSourceColumns}
+                ${extraSourceColumns}
             FROM ${config.inputTableName} a
             ${joinClause}
             a.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
@@ -216,49 +212,20 @@ object Timeline {
       }
       .getOrElse("source_table")
 
-    val sparseQuery =
-      if (config.includeSparseData)
-        s""",
-          state_id_list_features,
-          state_id_score_list_features,
-          LEAD(state_id_list_features) OVER (
-              PARTITION BY
-                  mdp_id
+    val extraFeatureQuery = extraFeatureColumnDataTypes.foldLeft("") {
+      case (acc, (k, v)) =>
+        s"""
+        ${acc},
+        ${k},
+        LEAD(${k}) OVER (
+            PARTITION BY
+                mdp_id
               ORDER BY
                   mdp_id,
                   sequence_number
-          ) AS next_state_id_list_features,
-          LEAD(state_id_score_list_features) OVER (
-              PARTITION BY
-                  mdp_id
-              ORDER BY
-                  mdp_id,
-                  sequence_number
-          ) AS next_state_id_score_list_features
-      """.stripMargin
-      else ""
-
-    val sparseActionQuery =
-      if (config.sparseAction)
-        s""",
-          action_id_list_features,
-          action_id_score_list_features,
-          LEAD(action_id_list_features) OVER (
-              PARTITION BY
-                  mdp_id
-              ORDER BY
-                  mdp_id,
-                  sequence_number
-          ) AS next_action_id_list_features,
-          LEAD(action_id_score_list_features) OVER (
-              PARTITION BY
-                  mdp_id
-              ORDER BY
-                  mdp_id,
-                  sequence_number
-          ) AS next_action_id_score_list_features
-      """.stripMargin
-      else ""
+          ) AS next_${k}
+        """
+    }
 
     val sqlCommand = s"""
     ${sourceTable}
@@ -312,7 +279,7 @@ object Timeline {
                 mdp_id,
                 sequence_number
         ) AS possible_next_actions,
-        metrics${sparseQuery}${sparseActionQuery}
+        metrics${extraFeatureQuery}
     FROM ${sourceTableName}
     ${filterTerminal}
     CLUSTER BY HASH(mdp_id, sequence_number)
@@ -387,34 +354,17 @@ object Timeline {
   def createTrainingTable(sqlContext: SQLContext,
                           tableName: String,
                           actionDiscrete: Boolean,
-                          includeSparseData: Boolean,
-                          sparseAction: Boolean): Unit = {
+                          extraFeatureColumnDataTypes: Map[String, String] = Map()): Unit = {
     var actionType = "STRING";
     var possibleActionType = "ARRAY<STRING>";
     if (!actionDiscrete) {
       actionType = "MAP<BIGINT, DOUBLE>"
       possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
     }
-    val sparseActionColumns =
-      if (sparseAction)
-        s""",
-      action_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
-      action_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>,
-      next_action_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
-      next_action_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>
 
-    """
-      else ""
-
-    val sparseColumns =
-      if (includeSparseData)
-        s""",
-      state_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
-      state_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>,
-      next_state_id_list_features MAP<BIGINT, ARRAY<BIGINT>>,
-      next_state_id_score_list_features MAP<BIGINT, MAP<BIGINT, DOUBLE>>
-      """
-      else ""
+    val extraFeatureColumns = extraFeatureColumnDataTypes.foldLeft("") {
+      case (acc, (k, v)) => s"${acc}, ${k} ${v}, next_${k} ${v}"
+    }
 
     val sqlCommand = s"""
 CREATE TABLE IF NOT EXISTS ${tableName} (
@@ -433,7 +383,7 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     time_since_first BIGINT,
     possible_actions ${possibleActionType},
     possible_next_actions ${possibleActionType},
-    metrics MAP< STRING, DOUBLE>${sparseColumns}${sparseActionColumns}
+    metrics MAP< STRING, DOUBLE>${extraFeatureColumns}
 ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);

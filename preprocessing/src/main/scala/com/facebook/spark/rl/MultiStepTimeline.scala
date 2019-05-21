@@ -128,10 +128,7 @@ object MultiStepTimeline {
       sortPossibleActionMethod = "UDF_SORT_ARRAY_MAP";
     }
 
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          config.outputTableName,
-                                          config.actionDiscrete,
-                                          false)
+    Helper.validateOrDestroyTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
     MultiStepTimeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
     MultiStepTimeline.registerUDFs(sqlContext)
 

@@ -13,7 +13,6 @@ class TimelineTest extends PipelineTester {
 
   test("two-state-discrete-mdp-one-step-rl") {
     val action_discrete: Boolean = true
-    val includeSparseData: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -29,10 +28,7 @@ class TimelineTest extends PipelineTester {
                                                 1,
                                                 1)
     // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+    Helper.validateOrDestroyTrainingTable(sqlContext, s"${config.outputTableName}", action_discrete)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -86,8 +82,7 @@ class TimelineTest extends PipelineTester {
       Helper.outputTableIsValid(
         sqlContext,
         s"${config.outputTableName}",
-        action_discrete,
-        includeSparseData
+        action_discrete
       )
     )
 
@@ -130,7 +125,6 @@ class TimelineTest extends PipelineTester {
 
   test("four-state-discrete-mdp-three-step-rl") {
     val action_discrete: Boolean = true
-    val includeSparseData: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -146,10 +140,7 @@ class TimelineTest extends PipelineTester {
                                                 1,
                                                 3)
     // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+    Helper.validateOrDestroyTrainingTable(sqlContext, s"${config.outputTableName}", action_discrete)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -221,8 +212,7 @@ class TimelineTest extends PipelineTester {
       Helper.outputTableIsValid(
         sqlContext,
         s"${config.outputTableName}",
-        action_discrete,
-        includeSparseData
+        action_discrete
       )
     )
 
@@ -315,7 +305,6 @@ class TimelineTest extends PipelineTester {
 
   test("three-state-continuous-mdp-two-step-rl") {
     val action_discrete: Boolean = false
-    val includeSparseData: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -331,10 +320,7 @@ class TimelineTest extends PipelineTester {
                                                 1,
                                                 2)
     // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+    Helper.validateOrDestroyTrainingTable(sqlContext, s"${config.outputTableName}", action_discrete)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -397,8 +383,7 @@ class TimelineTest extends PipelineTester {
       Helper.outputTableIsValid(
         sqlContext,
         s"${config.outputTableName}",
-        action_discrete,
-        includeSparseData
+        action_discrete
       )
     )
 
@@ -475,7 +460,6 @@ class TimelineTest extends PipelineTester {
 
   test("two-state-continuous-mdp") {
     val action_discrete: Boolean = false
-    val includeSparseData: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -491,10 +475,7 @@ class TimelineTest extends PipelineTester {
                                        1)
 
     // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+    Helper.validateOrDestroyTrainingTable(sqlContext, s"${config.outputTableName}", action_discrete)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -548,8 +529,7 @@ class TimelineTest extends PipelineTester {
       Helper.outputTableIsValid(
         sqlContext,
         s"${config.outputTableName}",
-        action_discrete,
-        includeSparseData
+        action_discrete
       )
     )
 
@@ -582,8 +562,8 @@ class TimelineTest extends PipelineTester {
 
   test("two-state-continuous-mdp-sparse-action") {
     val action_discrete: Boolean = false
-    val includeSparseData: Boolean = false
-    val sparseAction: Boolean = true
+    val extraFeatureColumns: List[String] =
+      List("action_id_list_features", "action_id_score_list_features")
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -597,14 +577,7 @@ class TimelineTest extends PipelineTester {
                                        "some_rl_timeline_4",
                                        null,
                                        1,
-                                       sparseAction = sparseAction)
-
-    // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData,
-                                          sparseAction)
+                                       extraFeatureColumns = extraFeatureColumns)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -619,7 +592,7 @@ class TimelineTest extends PipelineTester {
            Map(1L -> 1.0),
            List(Map(1001L -> 0.3, 1002L -> 0.5), Map(1001L -> 0.6, 1002L -> 0.2)),
            Map("Widgets" -> 10.0),
-           Map(35L -> List(156L, 157L), 36L -> List(138L)), // actione_id_list_features
+           Map(35L -> List(156L, 157L), 36L -> List(138L)), // action_id_list_features
            Map(35L -> Map(156L -> 0.5, 157L -> 0.4), 36L -> Map(138L -> 0.3)) // action_id_score_list_features
           ), // First state
           ("2018-01-01",
@@ -650,6 +623,15 @@ class TimelineTest extends PipelineTester {
       )
     rl_input.createOrReplaceTempView(config.inputTableName)
 
+    val extraFeatureDataTypes =
+      Helper.getDataTypes(sqlContext, config.inputTableName, extraFeatureColumns)
+
+    // destroy previous schema
+    Helper.validateOrDestroyTrainingTable(sqlContext,
+                                          s"${config.outputTableName}",
+                                          action_discrete,
+                                          extraFeatureDataTypes)
+
     // Create a mis-specified output table that will be deleted
     val bad_output = sparkContext
       .parallelize(
@@ -669,8 +651,7 @@ class TimelineTest extends PipelineTester {
         sqlContext,
         s"${config.outputTableName}",
         action_discrete,
-        includeSparseData,
-        sparseAction
+        Helper.getDataTypes(sqlContext, config.inputTableName, extraFeatureColumns)
       )
     )
 
@@ -716,7 +697,8 @@ class TimelineTest extends PipelineTester {
 
   test("two-state-discrete-sparse-mdp") {
     val action_discrete: Boolean = true
-    val includeSparseData: Boolean = true
+    val extraFeatureColumns: List[String] =
+      List("state_id_list_features", "state_id_score_list_features")
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -730,13 +712,7 @@ class TimelineTest extends PipelineTester {
                                        "some_rl_timeline_4",
                                        null,
                                        1,
-                                       includeSparseData = includeSparseData)
-
-    // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+                                       extraFeatureColumns = extraFeatureColumns)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -782,6 +758,15 @@ class TimelineTest extends PipelineTester {
       )
     rl_input.createOrReplaceTempView(config.inputTableName)
 
+    val extraFeatureDataTypes =
+      Helper.getDataTypes(sqlContext, config.inputTableName, extraFeatureColumns)
+
+    // destroy previous schema
+    Helper.validateOrDestroyTrainingTable(sqlContext,
+                                          s"${config.outputTableName}",
+                                          action_discrete,
+                                          extraFeatureDataTypes)
+
     // Create a mis-specified output table that will be deleted
     val bad_output = sparkContext
       .parallelize(
@@ -801,7 +786,7 @@ class TimelineTest extends PipelineTester {
         sqlContext,
         s"${config.outputTableName}",
         action_discrete,
-        includeSparseData
+        extraFeatureDataTypes
       )
     )
 
@@ -848,7 +833,6 @@ class TimelineTest extends PipelineTester {
 
   test("two-state-discrete-mdp") {
     val action_discrete: Boolean = true
-    val includeSparseData: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -864,10 +848,7 @@ class TimelineTest extends PipelineTester {
                                        1)
 
     // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+    Helper.validateOrDestroyTrainingTable(sqlContext, s"${config.outputTableName}", action_discrete)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -921,8 +902,7 @@ class TimelineTest extends PipelineTester {
       Helper.outputTableIsValid(
         sqlContext,
         s"${config.outputTableName}",
-        action_discrete,
-        includeSparseData
+        action_discrete
       )
     )
 
@@ -953,7 +933,6 @@ class TimelineTest extends PipelineTester {
 
   test("filter-outliers") {
     val action_discrete: Boolean = true
-    val includeSparseData: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -973,10 +952,7 @@ class TimelineTest extends PipelineTester {
                                        percentileFunc)
 
     // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+    Helper.validateOrDestroyTrainingTable(sqlContext, s"${config.outputTableName}", action_discrete)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -1034,8 +1010,7 @@ class TimelineTest extends PipelineTester {
       Helper.outputTableIsValid(
         sqlContext,
         s"${config.outputTableName}",
-        action_discrete,
-        includeSparseData
+        action_discrete
       )
     )
 
@@ -1050,7 +1025,6 @@ class TimelineTest extends PipelineTester {
 
   test("time-window-limit") {
     val action_discrete: Boolean = true
-    val includeSparseData: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -1068,15 +1042,10 @@ class TimelineTest extends PipelineTester {
                                        1,
                                        Some(0.95),
                                        percentileFunc,
-                                       false,
-                                       false,
-                                       Some(3L))
+                                       timeWindowLimit = Some(3L))
 
     // destroy previous schema
-    Helper.validateOrDestroyTrainingTable(sqlContext,
-                                          s"${config.outputTableName}",
-                                          action_discrete,
-                                          includeSparseData)
+    Helper.validateOrDestroyTrainingTable(sqlContext, s"${config.outputTableName}", action_discrete)
 
     // Create fake input data
     val rl_input = sparkContext
@@ -1123,8 +1092,7 @@ class TimelineTest extends PipelineTester {
       Helper.outputTableIsValid(
         sqlContext,
         s"${config.outputTableName}",
-        action_discrete,
-        includeSparseData
+        action_discrete
       )
     )
 
