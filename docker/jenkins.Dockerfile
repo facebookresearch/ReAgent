@@ -78,22 +78,6 @@ RUN mvn -f /tmp/pom.xml dependency:resolve
 # Clean up pom.xml
 RUN rm /tmp/pom.xml
 
-# Reminder: this should be updated when switching between CUDA 8 or 9. Should
-# be kept in sync with TMP_CUDA_VERSION in install_prereqs.sh
-ENV NCCL_ROOT_DIR ${HOME}/horizon/nccl_2.1.15-1+cuda9.0_x86_64
-ENV LD_LIBRARY_PATH ${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}
-
-# Toggles between CUDA 8 or 9. Needs to be kept in sync with Dockerfile
-ENV NCCL_CUDA_VERSION="9"
-
-# Install NCCL2.
-RUN wget "https://s3.amazonaws.com/pytorch/nccl_2.1.15-1%2Bcuda${NCCL_CUDA_VERSION}.0_x86_64.txz"
-ENV TMP_NCCL_VERSION "nccl_2.1.15-1+cuda${NCCL_CUDA_VERSION}.0_x86_64"
-RUN tar -xvf "${TMP_NCCL_VERSION}.txz"
-ENV NCCL_ROOT_DIR "$(pwd)/${TMP_NCCL_VERSION}"
-ENV LD_LIBRARY_PATH "${NCCL_ROOT_DIR}/lib:${LD_LIBRARY_PATH}"
-RUN rm "${TMP_NCCL_VERSION}.txz"
-
 # Add Jenkins user
 ARG JENKINS
 ARG JENKINS_UID
