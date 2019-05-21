@@ -78,6 +78,9 @@ RUN mvn -f /tmp/pom.xml dependency:resolve
 # Clean up pom.xml
 RUN rm /tmp/pom.xml
 
+ADD docker/install_nccl.sh install_nccl.sh
+RUN bash ./install_nccl.sh && rm install_nccl.sh
+
 # Add Jenkins user
 ARG JENKINS
 ARG JENKINS_UID
