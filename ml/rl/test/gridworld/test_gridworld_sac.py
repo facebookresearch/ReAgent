@@ -232,6 +232,7 @@ class TestGridworldSAC(GridworldTestBase):
     def test_sac_trainer_w_dirichlet_actor(self):
         self._test_sac_trainer(constrain_action_sum=True)
 
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    # TODO: Renable when PyTorch supports backwards pass in CUDA.
+    @unittest.skipIf(True or not torch.cuda.is_available(), "CUDA not available")
     def test_sac_trainer_w_dirichlet_actor_gpu(self):
-        self._test_sac_trainer(use_gpu=True, constrain_action_sum=True)
+         self._test_sac_trainer(use_gpu=True, constrain_action_sum=True)
