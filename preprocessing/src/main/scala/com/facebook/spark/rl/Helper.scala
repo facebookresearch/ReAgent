@@ -43,7 +43,8 @@ object Helper {
     val dt = sqlContext.sparkSession.catalog
       .listColumns(tableName)
       .collect
-      .filter(column => columnNames.contains(column.name))
+      // null check is required because jackson doesn't care about default values
+      .filter(column => columnNames != null && columnNames.contains(column.name))
       .map(column => column.name -> column.dataType)
       .toMap
     assert(dt.size == columnNames.size)
