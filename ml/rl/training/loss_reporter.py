@@ -59,8 +59,7 @@ class BatchStats(NamedTuple):
             assert len(val.shape) == 1 or (
                 len(val.shape) == 2 and val.shape[1] == 1
             ), "Unexpected shape for {}: {}".format(field, val.shape)
-            SummaryWriterContext.add_histogram(log_key, val)
-            SummaryWriterContext.add_scalar("{}/mean".format(log_key), val.mean())
+            self._log_histogram_and_mean(log_key, val)
 
         for field, log_key in [
             ("model_propensities", "propensities/model"),
@@ -73,22 +72,28 @@ class BatchStats(NamedTuple):
             if (
                 len(val.shape) == 1 or (len(val.shape) == 2 and val.shape[1] == 1)
             ) and not actions:
-                SummaryWriterContext.add_histogram(log_key, val)
-                SummaryWriterContext.add_scalar("{}/mean".format(log_key), val.mean())
+                self._log_histogram_and_mean(log_key, val)
             elif len(val.shape) == 2 and val.shape[1] == len(actions):
                 for i, action in enumerate(actions):
-                    SummaryWriterContext.add_histogram(
-                        "{}/{}".format(log_key, action), val[:, i]
-                    )
-                    SummaryWriterContext.add_scalar(
-                        "{}/{}/mean".format(log_key, action), val[:, i].mean()
-                    )
+                    self._log_histogram_and_mean(f"{log_key}/{action}", val[:, i])
             else:
                 raise ValueError(
                     "Unexpected shape for {}: {}; actions: {}".format(
                         field, val.shape, actions
                     )
                 )
+
+    def _log_histogram_and_mean(self, log_key, val):
+        try:
+            SummaryWriterContext.add_histogram(log_key, val)
+            SummaryWriterContext.add_scalar(f"{log_key}/mean", val.mean())
+        except ValueError:
+            logger.warning(
+                f"Cannot create histogram for key: {log_key}; "
+                "this is likely because you have NULL value in your input; "
+                f"value: {val}"
+            )
+            raise
 
     @staticmethod
     def add_custom_scalars(action_names: Optional[List[str]]):
