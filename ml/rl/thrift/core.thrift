@@ -152,7 +152,6 @@ struct SACTrainingParameters {
   8: bool logged_action_uniform_prior = true,
   9: optional i32 minibatches_per_step,
   10: bool use_value_network = true,
-
 }
 
 struct SACModelParameters {
