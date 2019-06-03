@@ -5,25 +5,17 @@ import os
 import random
 import tempfile
 import unittest
-from copy import deepcopy
 
 import numpy as np
 import numpy.testing as npt
 import torch
-from ml.rl.models.actor import (
-    ActorWithPreprocessing,
-    DirichletFullyConnectedActor,
-    GaussianFullyConnectedActor,
-)
+from ml.rl.models.actor import DirichletFullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.output_transformer import (
     ActorOutputTransformer,
     ParametricActionOutputTransformer,
 )
-from ml.rl.models.parametric_dqn import (
-    FullyConnectedParametricDQN,
-    ParametricDQNWithPreprocessing,
-)
+from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import (
     get_num_output_features,
@@ -31,10 +23,7 @@ from ml.rl.preprocessing.normalization import (
 )
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
-from ml.rl.test.gridworld.gridworld_evaluator import (
-    GridworldContinuousEvaluator,
-    GridworldDDPGEvaluator,
-)
+from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.thrift.core.ttypes import (
     FeedForwardParameters,
@@ -235,4 +224,4 @@ class TestGridworldSAC(GridworldTestBase):
     # TODO: Renable when PyTorch supports backwards pass in CUDA.
     @unittest.skipIf(True or not torch.cuda.is_available(), "CUDA not available")
     def test_sac_trainer_w_dirichlet_actor_gpu(self):
-         self._test_sac_trainer(use_gpu=True, constrain_action_sum=True)
+        self._test_sac_trainer(use_gpu=True, constrain_action_sum=True)

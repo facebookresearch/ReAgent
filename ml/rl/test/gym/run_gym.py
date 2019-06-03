@@ -17,11 +17,7 @@ from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.test.base.utils import write_lists_to_csv
-from ml.rl.test.gym.gym_predictor import (
-    GymDDPGPredictor,
-    GymDQNPredictor,
-    GymSACPredictor,
-)
+from ml.rl.test.gym.gym_predictor import GymDQNPredictor, GymSACPredictor
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
@@ -31,9 +27,6 @@ from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 from ml.rl.thrift.core.ttypes import (
     CNNParameters,
     ContinuousActionModelParameters,
-    DDPGModelParameters,
-    DDPGNetworkParameters,
-    DDPGTrainingParameters,
     DiscreteActionModelParameters,
     FeedForwardParameters,
     OptimizerParameters,
@@ -43,7 +36,6 @@ from ml.rl.thrift.core.ttypes import (
     SACTrainingParameters,
     TrainingParameters,
 )
-from ml.rl.training.ddpg_trainer import ActorNetModel, CriticNetModel, DDPGTrainer
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.workflow.transitional import (
@@ -741,68 +733,6 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         trainer = create_parametric_dqn_trainer_from_params(
             trainer_params, env.normalization, env.normalization_action, use_gpu
         )
-    elif model_type == ModelType.CONTINUOUS_ACTION.value:
-        training_parameters = params["shared_training"]
-        if isinstance(training_parameters, dict):
-            training_parameters = DDPGTrainingParameters(**training_parameters)
-
-        actor_parameters = params["actor_training"]
-        if isinstance(actor_parameters, dict):
-            actor_parameters = DDPGNetworkParameters(**actor_parameters)
-
-        critic_parameters = params["critic_training"]
-        if isinstance(critic_parameters, dict):
-            critic_parameters = DDPGNetworkParameters(**critic_parameters)
-
-        trainer_params = DDPGModelParameters(
-            rl=rl_parameters,
-            shared_training=training_parameters,
-            actor_training=actor_parameters,
-            critic_training=critic_parameters,
-        )
-
-        action_range_low = env.action_space.low.astype(np.float32)
-        action_range_high = env.action_space.high.astype(np.float32)
-
-        state_dim = get_num_output_features(env.normalization)
-        action_dim = get_num_output_features(env.normalization_action)
-
-        # Build Actor Network
-        actor_network = ActorNetModel(
-            layers=(
-                [state_dim] + trainer_params.actor_training.layers[1:-1] + [action_dim]
-            ),
-            activations=trainer_params.actor_training.activations,
-            fl_init=trainer_params.shared_training.final_layer_init,
-            state_dim=state_dim,
-            action_dim=action_dim,
-            use_gpu=use_gpu,
-            use_all_avail_gpus=False,
-        )
-
-        # Build Critic Network
-        critic_network = CriticNetModel(
-            # Ensure dims match input state and scalar output
-            layers=[state_dim] + trainer_params.critic_training.layers[1:-1] + [1],
-            activations=trainer_params.critic_training.activations,
-            fl_init=trainer_params.shared_training.final_layer_init,
-            state_dim=state_dim,
-            action_dim=action_dim,
-            use_gpu=use_gpu,
-            use_all_avail_gpus=False,
-        )
-
-        trainer = DDPGTrainer(
-            actor_network,
-            critic_network,
-            trainer_params,
-            env.normalization,
-            env.normalization_action,
-            torch.from_numpy(action_range_low).unsqueeze(dim=0),
-            torch.from_numpy(action_range_high).unsqueeze(dim=0),
-            use_gpu,
-        )
-
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
         value_network = None
         value_network_optimizer = None
@@ -921,9 +851,7 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
 
 
 def create_predictor(trainer, model_type, use_gpu, action_dim=None):
-    if model_type == ModelType.CONTINUOUS_ACTION.value:
-        predictor = GymDDPGPredictor(trainer, action_dim)
-    elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+    if model_type == ModelType.SOFT_ACTOR_CRITIC.value:
         predictor = GymSACPredictor(trainer, action_dim)
     elif model_type in (
         ModelType.PYTORCH_DISCRETE_DQN.value,

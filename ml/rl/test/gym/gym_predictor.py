@@ -84,11 +84,6 @@ class GymDQNPredictor(GymPredictor):
         return reward_estimates
 
 
-class GymDDPGPredictor(GymPredictor):
-    def policy(self, states, add_action_noise=False):
-        return self.trainer.internal_prediction(states, add_action_noise)
-
-
 class GymSACPredictor(GymPredictor):
     def policy(self, states):
         actions = self.trainer.internal_prediction(states)

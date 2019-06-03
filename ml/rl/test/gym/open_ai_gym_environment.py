@@ -9,14 +9,7 @@ import gym
 import numpy as np
 from ml.rl.test.base.utils import only_continuous_normalizer
 from ml.rl.test.environment.environment import Environment
-from ml.rl.test.gym.gym_predictor import (
-    GymDDPGPredictor,
-    GymDQNPredictor,
-    GymPredictor,
-    GymSACPredictor,
-)
-from ml.rl.training.actor_predictor import ActorPredictor
-from ml.rl.training.ddpg_predictor import DDPGPredictor
+from ml.rl.test.gym.gym_predictor import GymDQNPredictor, GymPredictor, GymSACPredictor
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.training.rl_predictor_pytorch import RLPredictor
@@ -25,7 +18,6 @@ from ml.rl.training.rl_predictor_pytorch import RLPredictor
 class ModelType(enum.Enum):
     CONTINUOUS_ACTION = "continuous"
     SOFT_ACTOR_CRITIC = "soft_actor_critic"
-    DDPG_ACTOR_CRITIC = "ddpg_actor_critic"
     PYTORCH_DISCRETE_DQN = "pytorch_discrete_dqn"
     PYTORCH_PARAMETRIC_DQN = "pytorch_parametric_dqn"
 
@@ -197,17 +189,6 @@ class OpenAIGymEnvironment(Environment):
                 action_idx = predictor.policy(next_state)[0]
             action[action_idx] = 1.0
             return action, action_probability
-        elif isinstance(predictor, GymDDPGPredictor):
-            # FIXME: need to calculate action probability properly
-            action_probability = 0.0
-            if state_preprocessor:
-                next_state = state_preprocessor.forward(next_state)
-            if test:
-                return predictor.policy(next_state)[0], action_probability
-            return (
-                predictor.policy(next_state, add_action_noise=True)[0],
-                action_probability,
-            )
         elif isinstance(predictor, GymSACPredictor):
             # FIXME: need to calculate action probability properly
             # FIXME: also need to support adding noise on outputs when test is True
@@ -240,29 +221,6 @@ class OpenAIGymEnvironment(Environment):
             ).reshape(self.action_dim)
             action_idx = np.argmax(q_values)
             action[action_idx] = 1.0
-            return action, action_probability
-        elif isinstance(predictor, (DDPGPredictor, ActorPredictor)):
-            # FIXME need to calculate action probability properly
-            action_probability = 0.0
-            if not test and np.random.rand() < self.epsilon:
-                # FIXME: get sac/ddpg output with noise
-                raw_action = self.env.action_space.sample()
-                if self.action_type == EnvType.DISCRETE_ACTION:
-                    action[raw_action] = 1.0
-                else:
-                    action = raw_action
-                return action, action_probability
-
-            sparse_next_states = predictor.in_order_dense_to_sparse(next_state)
-            prediction = predictor.predict(sparse_next_states)[0]
-            if self.action_type == EnvType.DISCRETE_ACTION:
-                raw_action = (
-                    int(max(prediction, key=(lambda key: prediction[key])))
-                    - self.state_dim
-                )
-                action[raw_action] = 1.0
-            else:
-                action[:] = [prediction[k] for k in sorted(prediction.keys())]
             return action, action_probability
         else:
             raise NotImplementedError("Unknown predictor type")

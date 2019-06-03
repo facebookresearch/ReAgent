@@ -11,7 +11,6 @@ import torch
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -71,7 +70,7 @@ class EvaluationPageHandler(PageHandler):
                 edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
         elif isinstance(tdp, TrainingBatch):
             # TODO: Perhaps we can make an RLTrainer param to check if continuous?
-            if isinstance(self.trainer, (DDPGTrainer, SACTrainer)):
+            if isinstance(self.trainer, SACTrainer):
                 # TODO: Implement CPE for continuous algos
                 edp = None
             else:

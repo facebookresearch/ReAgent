@@ -185,7 +185,7 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
         return self.evaluate_predictions(prediction, all_states_prediction)
 
 
-class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
+class GridworldActorCriticEvaluator(GridworldContinuousEvaluator):
     def __init__(self, env, gamma) -> None:
         super().__init__(env, assume_optimal_policy=True, gamma=gamma)
         self.optimal_policy_samples = self._env.generate_samples(100, 0.0, self.gamma)
