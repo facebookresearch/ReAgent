@@ -80,6 +80,43 @@ def get_possible_actions(gym_env, model_type, terminal):
     return possible_next_actions, possible_next_actions_mask
 
 
+def create_epsilon(offline_train, rl_parameters, params):
+    if offline_train:
+        # take random actions during data collection
+        epsilon = 1.0
+    else:
+        epsilon = rl_parameters.epsilon
+    epsilon_decay, minimum_epsilon = 1.0, None
+    if "epsilon_decay" in params["run_details"]:
+        epsilon_decay = params["run_details"]["epsilon_decay"]
+        del params["run_details"]["epsilon_decay"]
+    if "minimum_epsilon" in params["run_details"]:
+        minimum_epsilon = params["run_details"]["minimum_epsilon"]
+        del params["run_details"]["minimum_epsilon"]
+    return epsilon, epsilon_decay, minimum_epsilon
+
+
+def create_replay_buffer(
+    env, params, model_type, offline_train, path_to_pickled_transitions
+) -> OpenAIGymMemoryPool:
+    """
+    Train on transitions generated from a random policy live or
+    read transitions from a pickle file and load into replay buffer.
+    """
+    replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
+    if path_to_pickled_transitions:
+        create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
+        replay_state_dim = replay_buffer.replay_memory[0][0].shape[0]
+        replay_action_dim = replay_buffer.replay_memory[0][1].shape[0]
+        assert replay_state_dim == env.state_dim
+        assert replay_action_dim == env.action_dim
+    elif offline_train:
+        create_random_policy_offline_dataset(
+            env, replay_buffer, params["run_details"]["max_steps"], model_type
+        )
+    return replay_buffer
+
+
 def train(
     c2_device,
     gym_env,
@@ -105,12 +142,10 @@ def train(
     max_episodes_to_run_after_solved=None,
     stop_training_after_solved=False,
     offline_train_epochs=3,
-    path_to_pickled_transitions=None,
     bcq_imitator_hyperparams=None,
 ):
     if offline_train:
         return train_gym_offline_rl(
-            c2_device,
             gym_env,
             replay_buffer,
             model_type,
@@ -121,7 +156,6 @@ def train(
             max_steps,
             avg_over_num_episodes,
             offline_train_epochs,
-            path_to_pickled_transitions,
             bcq_imitator_hyperparams,
         )
     else:
@@ -189,6 +223,11 @@ def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, mode
             possible_actions_mask,
             policy_id,
         )
+    logger.info(
+        "Generating {} transitions under random policy.".format(
+            replay_buffer.max_replay_memory_size
+        )
+    )
 
 
 def create_stored_policy_offline_dataset(replay_buffer, path):
@@ -202,10 +241,10 @@ def create_stored_policy_offline_dataset(replay_buffer, path):
     logger.info(
         "Transitions generated from {} different policies".format(len(unique_policies))
     )
+    logger.info("Loading {} transitions from {}".format(replay_buffer.size, path))
 
 
 def train_gym_offline_rl(
-    c2_device,
     gym_env,
     replay_buffer,
     model_type,
@@ -216,22 +255,8 @@ def train_gym_offline_rl(
     max_steps,
     avg_over_num_episodes,
     offline_train_epochs,
-    path_to_pickled_transitions,
     bcq_imitator_hyper_params,
 ):
-    """
-    Train on transitions generated from a random policy live or
-    read transitions from a pickle file and load into replay buffer.
-    """
-    if path_to_pickled_transitions is not None:
-        logger.info("Loading transitions from {}".format(path_to_pickled_transitions))
-        create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
-    else:
-        logger.info("Generating {} transitions under random policy.".format(max_steps))
-        create_random_policy_offline_dataset(
-            gym_env, replay_buffer, max_steps, model_type
-        )
-
     num_batch_per_epoch = replay_buffer.size // trainer.minibatch_size
     logger.info(
         "{} offline transitions in replay buffer.\n"
@@ -243,6 +268,7 @@ def train_gym_offline_rl(
             trainer.minibatch_size,
         )
     )
+    assert num_batch_per_epoch > 0, "The size of replay buffer is not sufficient"
 
     avg_reward_history, epoch_history = [], []
 
@@ -286,7 +312,7 @@ def train_gym_offline_rl(
                     test_run_name, avg_reward_history
                 )
             )
-            return avg_reward_history, epoch_history, trainer, predictor
+            return avg_reward_history, epoch_history, trainer, predictor, gym_env
 
         for _ in range(num_batch_per_epoch):
             samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
@@ -350,7 +376,7 @@ def train_gym_online_rl(
             episodes_since_solved += 1
 
         terminal = False
-        next_state = gym_env.transform_state(gym_env.env.reset())
+        next_state = gym_env.transform_state(gym_env.reset())
         next_action, next_action_probability = gym_env.policy(
             predictor, next_state, False
         )
@@ -374,7 +400,7 @@ def train_gym_online_rl(
             timeline_format_action, gym_action = _format_action_for_log_and_gym(
                 action, gym_env.action_type, model_type
             )
-            next_state, reward, terminal, _ = gym_env.env.step(gym_action)
+            next_state, reward, terminal, _ = gym_env.step(gym_action)
             next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
@@ -505,6 +531,11 @@ def train_gym_online_rl(
         else:
             gym_env.decay_epsilon()
 
+        if i % 10 == 0:
+            logger.info(
+                "Online RL episode {}, total_timesteps {}".format(i, total_timesteps)
+            )
+
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
@@ -574,6 +605,10 @@ def main(args):
     else:
         logger.setLevel(getattr(logging, args.log_level.upper()))
 
+    assert (
+        not args.path_to_pickled_transitions or args.offline_train
+    ), "path_to_pickled_transitions is provided so you must run offline training"
+
     with open(args.parameters, "r") as f:
         params = json.load(f)
 
@@ -626,20 +661,11 @@ def run_gym(
     rl_parameters = RLParameters(**params["rl"])
 
     env_type = params["env"]
-    if offline_train:
-        # take random actions during data collection
-        epsilon = 1.0
-    else:
-        epsilon = rl_parameters.epsilon
+    model_type = params["model_type"]
 
-    epsilon_decay, minimum_epsilon = 1.0, None
-    if "epsilon_decay" in params["run_details"]:
-        epsilon_decay = params["run_details"]["epsilon_decay"]
-        del params["run_details"]["epsilon_decay"]
-    if "minimum_epsilon" in params["run_details"]:
-        minimum_epsilon = params["run_details"]["minimum_epsilon"]
-        del params["run_details"]["minimum_epsilon"]
-
+    epsilon, epsilon_decay, minimum_epsilon = create_epsilon(
+        offline_train, rl_parameters, params
+    )
     env = OpenAIGymEnvironment(
         env_type,
         epsilon,
@@ -648,8 +674,9 @@ def run_gym(
         epsilon_decay,
         minimum_epsilon,
     )
-    replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
-    model_type = params["model_type"]
+    replay_buffer = create_replay_buffer(
+        env, params, model_type, offline_train, path_to_pickled_transitions
+    )
 
     use_gpu = gpu_id != USE_CPU
     trainer = create_trainer(params["model_type"], params, rl_parameters, use_gpu, env)
@@ -671,7 +698,6 @@ def run_gym(
         **params["run_details"],
         save_timesteps_to_dataset=save_timesteps_to_dataset,
         start_saving_from_score=start_saving_from_score,
-        path_to_pickled_transitions=path_to_pickled_transitions,
     )
 
 
@@ -864,6 +890,7 @@ def create_predictor(trainer, model_type, use_gpu, action_dim=None):
 
 
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     args = sys.argv
     main(args[1:])

@@ -1,7 +1,7 @@
 {
-  "env": "CartPole-v0",
+  "env": "Pocman-v0",
   "model_type": "pytorch_discrete_dqn",
-  "max_replay_memory_size": 10000,
+  "max_replay_memory_size": 100000,
   "use_gpu": false,
   "rl": {
     "gamma": 0.99,
@@ -31,7 +31,7 @@
     "test_every_ts": 500,
     "test_after_ts": 1,
     "num_train_batches": 1,
-    "avg_over_num_episodes": 100,
+    "avg_over_num_episodes": 10,
     "offline_train_epochs": 20
   }
 }

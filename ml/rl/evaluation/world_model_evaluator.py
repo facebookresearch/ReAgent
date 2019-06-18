@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
-from typing import Dict
+from typing import Dict, List
 
 import torch
-from ml.rl.preprocessing.feature_extractor import WorldModelFeatureExtractor
+from ml.rl.models.mdn_rnn import transpose
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from ml.rl.types import ExtraData, FeatureVector, MemoryNetworkInput, TrainingBatch
 
@@ -37,11 +37,20 @@ class FeatureImportanceEvaluator(object):
     """ Evaluate feature importance weights on data pages """
 
     def __init__(
-        self, trainer: MDNRNNTrainer, feature_extractor: WorldModelFeatureExtractor
+        self,
+        trainer: MDNRNNTrainer,
+        discrete_action: bool,
+        state_feature_num: int,
+        action_feature_num: int,
+        sorted_action_feature_start_indices: List[int],
+        sorted_state_feature_start_indices: List[int],
     ) -> None:
         self.trainer = trainer
-        self.feature_extractor = feature_extractor
-        self.discrete_action = self.feature_extractor.sorted_action_features is None
+        self.discrete_action = discrete_action
+        self.state_feature_num = state_feature_num
+        self.action_feature_num = action_feature_num
+        self.sorted_action_feature_start_indices = sorted_action_feature_start_indices
+        self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
     def evaluate(self, tdp: TrainingBatch):
         """ Calculate feature importance: setting each state/action feature to
@@ -52,20 +61,18 @@ class FeatureImportanceEvaluator(object):
         action_features = tdp.training_input.action.float_features
         batch_size, seq_len, state_dim = state_features.size()
         action_dim = action_features.size()[2]
-        action_feature_num = self.feature_extractor.action_feature_num
-        state_feature_num = self.feature_extractor.state_feature_num
+        action_feature_num = self.action_feature_num
+        state_feature_num = self.state_feature_num
         feature_importance = torch.zeros(action_feature_num + state_feature_num)
 
         orig_losses = self.trainer.get_loss(tdp, state_dim=state_dim, batch_first=True)
         orig_loss = orig_losses["loss"].cpu().detach().item()
         del orig_losses
 
-        action_feature_boundaries = (
-            self.feature_extractor.sorted_action_feature_start_indices + [action_dim]
-        )
-        state_feature_boundaries = (
-            self.feature_extractor.sorted_state_feature_start_indices + [state_dim]
-        )
+        action_feature_boundaries = self.sorted_action_feature_start_indices + [
+            action_dim
+        ]
+        state_feature_boundaries = self.sorted_state_feature_start_indices + [state_dim]
 
         for i in range(action_feature_num):
             action_features = tdp.training_input.action.float_features.reshape(
@@ -168,11 +175,14 @@ class FeatureSensitivityEvaluator(object):
     """ Evaluate state feature sensitivity caused by varying actions """
 
     def __init__(
-        self, trainer: MDNRNNTrainer, feature_extractor: WorldModelFeatureExtractor
+        self,
+        trainer: MDNRNNTrainer,
+        state_feature_num: int,
+        sorted_state_feature_start_indices: List[int],
     ) -> None:
         self.trainer = trainer
-        self.feature_extractor = feature_extractor
-        self.discrete_action = self.feature_extractor.sorted_action_features is None
+        self.state_feature_num = state_feature_num
+        self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
     def evaluate(self, tdp: TrainingBatch):
         """ Calculate state feature sensitivity due to actions:
@@ -181,24 +191,37 @@ class FeatureSensitivityEvaluator(object):
         self.trainer.mdnrnn.mdnrnn.eval()
 
         batch_size, seq_len, state_dim = tdp.training_input.next_state.size()
-        state_feature_num = self.feature_extractor.state_feature_num
+        state_feature_num = self.state_feature_num
         feature_sensitivity = torch.zeros(state_feature_num)
 
         mdnrnn_input = tdp.training_input
+        state, action, next_state, reward, not_terminal = transpose(
+            mdnrnn_input.state.float_features,
+            mdnrnn_input.action.float_features,
+            mdnrnn_input.next_state,
+            mdnrnn_input.reward,
+            mdnrnn_input.not_terminal,
+        )
+        mdnrnn_input = MemoryNetworkInput(
+            state=FeatureVector(float_features=state),
+            action=FeatureVector(float_features=action),
+            next_state=next_state,
+            reward=reward,
+            not_terminal=not_terminal,
+        )
+        # the input of mdnrnn has seq-len as the first dimension
         mdnrnn_output = self.trainer.mdnrnn(mdnrnn_input)
         predicted_next_state_means = mdnrnn_output.mus
 
         shuffled_mdnrnn_input = MemoryNetworkInput(
-            state=tdp.training_input.state,
+            state=FeatureVector(float_features=state),
             # shuffle the actions
             action=FeatureVector(
-                float_features=tdp.training_input.action.float_features[
-                    torch.randperm(batch_size)
-                ]
+                float_features=action[:, torch.randperm(batch_size), :]
             ),
-            next_state=tdp.training_input.next_state,
-            reward=tdp.training_input.reward,
-            not_terminal=tdp.training_input.not_terminal,
+            next_state=next_state,
+            reward=reward,
+            not_terminal=not_terminal,
         )
         shuffled_mdnrnn_output = self.trainer.mdnrnn(shuffled_mdnrnn_input)
         shuffled_predicted_next_state_means = shuffled_mdnrnn_output.mus
@@ -206,12 +229,10 @@ class FeatureSensitivityEvaluator(object):
         assert (
             predicted_next_state_means.size()
             == shuffled_predicted_next_state_means.size()
-            == (batch_size, seq_len, self.trainer.params.num_gaussians, state_dim)
+            == (seq_len, batch_size, self.trainer.params.num_gaussians, state_dim)
         )
 
-        state_feature_boundaries = (
-            self.feature_extractor.sorted_state_feature_start_indices + [state_dim]
-        )
+        state_feature_boundaries = self.sorted_state_feature_start_indices + [state_dim]
         for i in range(state_feature_num):
             boundary_start, boundary_end = (
                 state_feature_boundaries[i],

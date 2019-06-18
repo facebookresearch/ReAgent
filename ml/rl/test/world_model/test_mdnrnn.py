@@ -151,9 +151,9 @@ class TestMDNRNN(unittest.TestCase):
         for e in range(num_epochs):
             for i in range(num_batch):
                 training_batch = replay_buffer.sample_memories(
-                    batch_size, use_gpu=use_gpu, batch_first=use_gpu
+                    batch_size, use_gpu=use_gpu, batch_first=True
                 )
-                losses = trainer.train(training_batch, batch_first=use_gpu)
+                losses = trainer.train(training_batch, batch_first=True)
                 logger.info(
                     "{}-th epoch, {}-th minibatch: \n"
                     "loss={}, bce={}, gmm={}, mse={} \n"

@@ -61,17 +61,22 @@ class MDNRNN(_MDNRNNBase):
 
         :returns: parameters of the GMM prediction for the next state,
         gaussian prediction of the reward and logit prediction of
-        non-terminality.
+        non-terminality. And the RNN's outputs.
             - mus: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS, STATE_DIM) torch tensor
             - sigmas: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS, STATE_DIM) torch tensor
             - logpi: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS) torch tensor
             - reward: (SEQ_LEN, BATCH_SIZE) torch tensor
             - not_terminal: (SEQ_LEN, BATCH_SIZE) torch tensor
+            - last_step_hidden_and_cell: TUPLE(
+                (NUM_LAYERS, BATCH_SIZE, HIDDEN_SIZE),
+                (NUM_LAYERS, BATCH_SIZE, HIDDEN_SIZE)
+            ) torch tensor
+            - all_steps_hidden: (SEQ_LEN, BATCH_SIZE, HIDDEN_SIZE) torch tensor
         """
         seq_len, batch_size = actions.size(0), actions.size(1)
         ins = torch.cat([actions, states], dim=-1)
-        outs, new_hidden = self.rnn(ins, hidden)
-        gmm_outs = self.gmm_linear(outs)
+        all_steps_hidden, last_step_hidden_and_cell = self.rnn(ins, hidden)
+        gmm_outs = self.gmm_linear(all_steps_hidden)
 
         stride = self.num_gaussians * self.state_dim
 
@@ -92,7 +97,15 @@ class MDNRNN(_MDNRNNBase):
         reward = gmm_outs[:, :, -2]
         not_terminal = gmm_outs[:, :, -1]
 
-        return mus, sigmas, logpi, reward, not_terminal, new_hidden
+        return (
+            mus,
+            sigmas,
+            logpi,
+            reward,
+            not_terminal,
+            all_steps_hidden,
+            last_step_hidden_and_cell,
+        )
 
     def get_initial_hidden_state(self, batch_size=1):
         hidden = (

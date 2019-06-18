@@ -92,7 +92,7 @@ class GymEvaluator(Evaluator):
             sequence_number = 0
             last_end = len(states) - 1
 
-            state = self._env.transform_state(self._env.env.reset())
+            state = self._env.transform_state(self._env.reset())
             mdp_ids.append(str(episode))
             sequence_numbers.append(sequence_number)
             states.append(state)
@@ -106,7 +106,7 @@ class GymEvaluator(Evaluator):
                 actions.append(action)
                 propensities.append(propensity)
 
-                state, reward, terminal, _ = self._env.env.step(action)
+                state, reward, terminal, _ = self._env.step(action)
                 state = self._env.transform_state(state)
                 rewards.append(reward)
                 terminals.append(terminal)

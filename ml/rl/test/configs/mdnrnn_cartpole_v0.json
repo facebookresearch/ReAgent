@@ -11,6 +11,7 @@
     "seq_len": 3,
     "num_train_episodes": 300,
     "num_test_episodes": 30,
+    "num_state_embed_episodes": 200,
     "max_steps": 200,
     "train_epochs": 3,
     "early_stopping_patience": 2

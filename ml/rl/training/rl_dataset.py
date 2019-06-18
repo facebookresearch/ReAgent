@@ -3,9 +3,14 @@
 
 import gzip
 import json
+import logging
 import pickle
 
 import numpy as np
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class RLDataset:
@@ -42,21 +47,22 @@ class RLDataset:
                 for data in self.rows:
                     json.dump(data, f)
                     f.write("\n")
+        logger.info("RLDataset saved to {}".format(self.file_path))
 
     def insert(self, **kwargs):
         if self.use_pickle:
-            del kwargs["mdp_id"]
-            del kwargs["sequence_number"]
-            del kwargs["action_probability"]
-            del kwargs["timeline_format_action"]
+            kwargs.pop("mdp_id", None)
+            kwargs.pop("sequence_number", None)
+            kwargs.pop("action_probability", None)
+            kwargs.pop("timeline_format_action", None)
             self.insert_replay_buffer_format(**kwargs)
         else:
-            del kwargs["next_state"]
-            del kwargs["next_action"]
-            del kwargs["action"]
-            del kwargs["possible_next_actions"]
-            del kwargs["possible_next_actions_mask"]
-            del kwargs["policy_id"]
+            kwargs.pop("next_state", None)
+            kwargs.pop("next_action", None)
+            kwargs.pop("action", None)
+            kwargs.pop("possible_next_actions", None)
+            kwargs.pop("possible_next_actions_mask", None)
+            kwargs.pop("policy_id", None)
             self.insert_pre_timeline_format(**kwargs)
 
     def insert_replay_buffer_format(

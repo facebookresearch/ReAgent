@@ -261,5 +261,6 @@ class MemoryNetworkOutput(NamedTuple):
     logpi: ValueType
     reward: ValueType
     not_terminal: ValueType
-    next_lstm_hidden: ValueType
-    next_lstm_cell: ValueType
+    last_step_lstm_hidden: ValueType
+    last_step_lstm_cell: ValueType
+    all_steps_lstm_hidden: ValueType

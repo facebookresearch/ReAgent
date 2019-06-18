@@ -3,9 +3,10 @@
 
 import enum
 from functools import reduce
-from typing import Tuple, Union
+from typing import Dict, Tuple, Union
 
 import gym
+import ml.rl.test.gym.pomdp
 import numpy as np
 from ml.rl.test.base.utils import only_continuous_normalizer
 from ml.rl.test.environment.environment import Environment
@@ -136,11 +137,19 @@ class OpenAIGymEnvironment(Environment):
             max_value=self.env.action_space.high,
         )
 
+    def get_cur_state(self):
+        return self.env.env.state
+
     def reset(self):
-        return self.env.reset()
+        init_state = self.env.reset()
+        assert len(init_state) == self.state_dim
+        return init_state
 
     def step(self, action):
-        return self.env.step(action)
+        res = self.env.step(action)
+        next_state = res[0]
+        assert len(next_state) == self.state_dim
+        return res
 
     def policy(
         self,
@@ -258,7 +267,7 @@ class OpenAIGymEnvironment(Environment):
         avg_discounted_rewards = round(discounted_reward_sum / n, 2)
         return avg_rewards, avg_discounted_rewards
 
-    def transform_state(self, state):
+    def transform_state(self, state: np.ndarray) -> np.ndarray:
         if self.img:
             # Convert from Height-Width-Channel into Channel-Height-Width
             state = np.transpose(state, axes=[2, 0, 1])
@@ -284,7 +293,7 @@ class OpenAIGymEnvironment(Environment):
         :param state_preprocessor: State preprocessor to use to preprocess states
         """
         terminal = False
-        next_state = self.transform_state(self.env.reset())
+        next_state = self.transform_state(self.reset())
         next_action, _ = self.policy(predictor, next_state, test, state_preprocessor)
         reward_sum = 0
         discounted_reward_sum = 0
@@ -297,10 +306,9 @@ class OpenAIGymEnvironment(Environment):
 
             if self.action_type == EnvType.DISCRETE_ACTION:
                 action_index = np.argmax(action)
-                next_state, reward, terminal, _ = self.env.step(action_index)
+                next_state, reward, terminal, _ = self.step(action_index)
             else:
-                next_state, reward, terminal, _ = self.env.step(action)
-
+                next_state, reward, terminal, _ = self.step(action)
             next_state = self.transform_state(next_state)
             num_steps_taken += 1
             next_action, _ = self.policy(
@@ -312,10 +320,10 @@ class OpenAIGymEnvironment(Environment):
             if max_steps and num_steps_taken >= max_steps:
                 break
 
-        self.env.reset()
+        self.reset()
         return reward_sum, discounted_reward_sum
 
-    def _process_state(self, raw_state):
+    def _process_state(self, raw_state: np.ndarray) -> Dict:
         processed_state = {}
         for i in range(self.state_dim):
             processed_state[i] = raw_state[i]
