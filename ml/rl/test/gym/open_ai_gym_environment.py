@@ -6,8 +6,9 @@ from functools import reduce
 from typing import Dict, Tuple, Union
 
 import gym
-import ml.rl.test.gym.pomdp
+import ml.rl.test.gym.pomdp  # noqa
 import numpy as np
+from gym import Env
 from ml.rl.test.base.utils import only_continuous_normalizer
 from ml.rl.test.environment.environment import Environment
 from ml.rl.test.gym.gym_predictor import GymDQNPredictor, GymPredictor, GymSACPredictor
@@ -31,7 +32,7 @@ class EnvType(enum.Enum):
 class OpenAIGymEnvironment(Environment):
     def __init__(
         self,
-        gymenv,
+        gymenv: Union[str, Env],
         epsilon=0,
         softmax_policy=False,
         gamma=0.99,
@@ -41,7 +42,8 @@ class OpenAIGymEnvironment(Environment):
         """
         Creates an OpenAIGymEnvironment object.
 
-        :param gymenv: String identifier for desired environment.
+        :param gymenv: String identifier for desired environment or environment
+            object itself.
         :param epsilon: Fraction of the time the agent should select a random
             action during training.
         :param softmax_policy: 1 to use softmax selection policy or 0 to use
@@ -55,9 +57,8 @@ class OpenAIGymEnvironment(Environment):
         self.minimum_epsilon = minimum_epsilon
         self.softmax_policy = softmax_policy
         self.gamma = gamma
-        self.env_name_str = gymenv
-
         self._create_env(gymenv)
+
         if not self.img:
             self.state_features = [str(sf) for sf in range(self.state_dim)]
         if self.action_type == EnvType.DISCRETE_ACTION:
@@ -68,17 +69,23 @@ class OpenAIGymEnvironment(Environment):
         if self.minimum_epsilon is not None:
             self.epsilon = max(self.epsilon, self.minimum_epsilon)
 
-    def _create_env(self, gymenv):
+    def _create_env(self, gymenv: Union[str, Env]):
         """
         Creates a gym environment object and checks if it is supported. We
         support environments that supply Box(x, ) state representations and
         require Discrete(y) or Box(y,) action inputs.
 
-        :param gymenv: String identifier for desired environment.
+        :param gymenv: String identifier for desired environment or environment
+            object itself.
         """
-        if gymenv not in [e.id for e in gym.envs.registry.all()]:
-            raise Exception("Env {} not found in OpenAI Gym.".format(gymenv))
-        self.env = gym.make(gymenv)
+        if isinstance(gymenv, Env):
+            self.env = gymenv
+            self.env_name = gymenv.unwrapped.spec.id
+        else:
+            if gymenv not in [e.id for e in gym.envs.registry.all()]:
+                raise Exception("Env {} not found in OpenAI Gym.".format(gymenv))
+            self.env = gym.make(gymenv)
+            self.env_name = gymenv
 
         supports_state = isinstance(self.env.observation_space, gym.spaces.Box) and len(
             self.env.observation_space.shape
@@ -136,9 +143,6 @@ class OpenAIGymEnvironment(Environment):
             min_value=self.env.action_space.low,
             max_value=self.env.action_space.high,
         )
-
-    def get_cur_state(self):
-        return self.env.env.state
 
     def reset(self):
         init_state = self.env.reset()
@@ -309,6 +313,7 @@ class OpenAIGymEnvironment(Environment):
                 next_state, reward, terminal, _ = self.step(action_index)
             else:
                 next_state, reward, terminal, _ = self.step(action)
+
             next_state = self.transform_state(next_state)
             num_steps_taken += 1
             next_action, _ = self.policy(

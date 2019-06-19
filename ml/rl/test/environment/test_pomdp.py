@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import itertools
 import logging
 import time
 import unittest
 
 import numpy as np
-from ml.rl.test.gym.pomdp.pocman import ACTION_DICT, PocManEnv, random_action
+from ml.rl.test.gym.pomdp.pocman import PocManEnv
+from ml.rl.test.gym.pomdp.string_game import StringGameEnv
 
 
 logger = logging.getLogger(__name__)
@@ -17,22 +17,33 @@ class TestPOMDPEnvironment(unittest.TestCase):
     def setUp(self):
         logging.getLogger().setLevel(logging.DEBUG)
 
+    def test_string_game(self):
+        env = StringGameEnv()
+        env.seed(313)
+        mean_acc_reward = self._test_env(env)
+        assert 0.1 >= mean_acc_reward
+
     def test_pocman(self):
         env = PocManEnv()
         env.seed(313)
-        acc_rws = []
+        mean_acc_reward = self._test_env(env)
+        assert -80 <= mean_acc_reward <= -70
 
-        for e in range(200):
+    def _test_env(self, env):
+        acc_rws = []
+        num_test_episodes = 200
+
+        for e in range(num_test_episodes):
             start_time = time.time()
             env.reset()
             acc_rw = 0
-            for i in itertools.count():
+            for i in range(env.max_step):
                 env.print_internal_state()
-                action = random_action()
+                action = env.random_action()
                 ob, rw, done, info = env.step(action)
                 print(
                     "After action {}: reward {}, observation {} ({})".format(
-                        ACTION_DICT[action], rw, ob, env.print_ob(ob)
+                        env.print_action(action), rw, ob, env.print_ob(ob)
                     )
                 )
                 acc_rw += rw
@@ -49,4 +60,4 @@ class TestPOMDPEnvironment(unittest.TestCase):
 
         mean_acc_rw = np.mean(acc_rws)
         logger.debug("Average accumulated reward {}".format(mean_acc_rw))
-        assert -80 <= mean_acc_rw <= -70
+        return mean_acc_rw

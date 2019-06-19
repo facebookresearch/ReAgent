@@ -267,7 +267,9 @@ class Environment:
             # episode is over so we can get the episode values. `set_if_in_range`
             # will set episode values if they are in the range [0,N) and ignore
             # otherwise.
-            if not terminal and len(state_deque) == multi_steps:
+            # The steps between state and next_state can be less than
+            # or equal to `multi_steps`
+            if not terminal:
                 set_if_in_range = partial(
                     self.set_if_in_range, transition, num_transitions
                 )
@@ -283,9 +285,8 @@ class Environment:
                 set_if_in_range(possible_actions, possible_action_deque[0])
                 set_if_in_range(possible_next_actions, list(possible_next_action_deque))
                 transition += 1
-            # collect samples at the end of the episode. The steps between state
-            # and next_state can be less than or equal to `multi_steps`
-            if terminal:
+            # collect samples at the end of the episode.
+            else:
                 for _ in range(len(state_deque)):
                     set_if_in_range = partial(
                         self.set_if_in_range, transition, num_transitions

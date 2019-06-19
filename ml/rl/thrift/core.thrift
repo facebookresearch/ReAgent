@@ -222,4 +222,5 @@ struct MDNRNNParameters {
   9: double reward_loss_weight = 1.0,
   10: double next_state_loss_weight = 1.0,
   11: double not_terminal_loss_weight = 1.0,
+  12: bool fit_only_one_next_step = false,
 }

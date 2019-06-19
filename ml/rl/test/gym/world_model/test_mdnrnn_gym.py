@@ -32,7 +32,6 @@ class TestMDNRNNGym(unittest.TestCase):
         )
         self.verify_result(feature_importance_map, ["state1", "state3"])
         self.verify_result(feature_sensitivity_map, ["state1", "state3"])
-        print("")
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_mdnrnn_cartpole_gpu(self):

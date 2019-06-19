@@ -20,67 +20,7 @@ class TestEnvironment(unittest.TestCase):
         samples = env.generate_samples(
             num_samples, epsilon=1.0, discount_factor=0.9, multi_steps=num_steps
         )
-        for i in range(num_samples):
-            if samples.terminals[i][0]:
-                break
-            if i < num_samples - 1:
-                self.assertEqual(samples.mdp_ids[i], samples.mdp_ids[i + 1])
-                self.assertEqual(
-                    samples.sequence_numbers[i] + 1, samples.sequence_numbers[i + 1]
-                )
-            for j in range(len(samples.terminals[i])):
-                self.assertEqual(samples.rewards[i][j], samples.rewards[i + j][0])
-                self.assertDictEqual(
-                    samples.next_states[i][j], samples.next_states[i + j][0]
-                )
-                self.assertEqual(
-                    samples.next_actions[i][j], samples.next_actions[i + j][0]
-                )
-                self.assertEqual(samples.terminals[i][j], samples.terminals[i + j][0])
-                self.assertListEqual(
-                    samples.possible_next_actions[i][j],
-                    samples.possible_next_actions[i + j][0],
-                )
-                if samples.terminals[i][j]:
-                    continue
-                self.assertDictEqual(
-                    samples.next_states[i][j], samples.states[i + j + 1]
-                )
-                self.assertEqual(samples.next_actions[i][j], samples.actions[i + j + 1])
-                self.assertListEqual(
-                    samples.possible_next_actions[i][j],
-                    samples.possible_actions[i + j + 1],
-                )
-
-        single_step_samples = samples.to_single_step()
-        for i in range(num_samples):
-            if single_step_samples.terminals[i] is True:
-                break
-            self.assertEqual(single_step_samples.mdp_ids[i], samples.mdp_ids[i])
-            self.assertEqual(
-                single_step_samples.sequence_numbers[i], samples.sequence_numbers[i]
-            )
-            self.assertDictEqual(single_step_samples.states[i], samples.states[i])
-            self.assertEqual(single_step_samples.actions[i], samples.actions[i])
-            self.assertEqual(
-                single_step_samples.action_probabilities[i],
-                samples.action_probabilities[i],
-            )
-            self.assertEqual(single_step_samples.rewards[i], samples.rewards[i][0])
-            self.assertListEqual(
-                single_step_samples.possible_actions[i], samples.possible_actions[i]
-            )
-            self.assertDictEqual(
-                single_step_samples.next_states[i], samples.next_states[i][0]
-            )
-            self.assertEqual(
-                single_step_samples.next_actions[i], samples.next_actions[i][0]
-            )
-            self.assertEqual(single_step_samples.terminals[i], samples.terminals[i][0])
-            self.assertListEqual(
-                single_step_samples.possible_next_actions[i],
-                samples.possible_next_actions[i][0],
-            )
+        self._check_samples(samples, num_samples, num_steps, False)
 
     def test_gridworld_continuous_generate_samples(self):
         env = GridworldContinuous()
@@ -89,69 +29,7 @@ class TestEnvironment(unittest.TestCase):
         samples = env.generate_samples(
             num_samples, epsilon=1.0, discount_factor=0.9, multi_steps=num_steps
         )
-        for i in range(num_samples):
-            if samples.terminals[i][0]:
-                break
-            if i < num_samples - 1:
-                self.assertEqual(samples.mdp_ids[i], samples.mdp_ids[i + 1])
-                self.assertEqual(
-                    samples.sequence_numbers[i] + 1, samples.sequence_numbers[i + 1]
-                )
-            for j in range(len(samples.terminals[i])):
-                self.assertEqual(samples.rewards[i][j], samples.rewards[i + j][0])
-                self.assertDictEqual(
-                    samples.next_states[i][j], samples.next_states[i + j][0]
-                )
-                self.assertDictEqual(
-                    samples.next_actions[i][j], samples.next_actions[i + j][0]
-                )
-                self.assertEqual(samples.terminals[i][j], samples.terminals[i + j][0])
-                self.assertListEqual(
-                    samples.possible_next_actions[i][j],
-                    samples.possible_next_actions[i + j][0],
-                )
-                if samples.terminals[i][j]:
-                    continue
-                self.assertDictEqual(
-                    samples.next_states[i][j], samples.states[i + j + 1]
-                )
-                self.assertDictEqual(
-                    samples.next_actions[i][j], samples.actions[i + j + 1]
-                )
-                self.assertListEqual(
-                    samples.possible_next_actions[i][j],
-                    samples.possible_actions[i + j + 1],
-                )
-
-        single_step_samples = samples.to_single_step()
-        for i in range(num_samples):
-            if single_step_samples.terminals[i] is True:
-                break
-            self.assertEqual(single_step_samples.mdp_ids[i], samples.mdp_ids[i])
-            self.assertEqual(
-                single_step_samples.sequence_numbers[i], samples.sequence_numbers[i]
-            )
-            self.assertDictEqual(single_step_samples.states[i], samples.states[i])
-            self.assertDictEqual(single_step_samples.actions[i], samples.actions[i])
-            self.assertEqual(
-                single_step_samples.action_probabilities[i],
-                samples.action_probabilities[i],
-            )
-            self.assertEqual(single_step_samples.rewards[i], samples.rewards[i][0])
-            self.assertListEqual(
-                single_step_samples.possible_actions[i], samples.possible_actions[i]
-            )
-            self.assertDictEqual(
-                single_step_samples.next_states[i], samples.next_states[i][0]
-            )
-            self.assertDictEqual(
-                single_step_samples.next_actions[i], samples.next_actions[i][0]
-            )
-            self.assertEqual(single_step_samples.terminals[i], samples.terminals[i][0])
-            self.assertListEqual(
-                single_step_samples.possible_next_actions[i],
-                samples.possible_next_actions[i][0],
-            )
+        self._check_samples(samples, num_samples, num_steps, True)
 
     def test_open_ai_gym_generate_samples_multi_step(self):
         env = OpenAIGymEnvironment(
@@ -165,39 +43,83 @@ class TestEnvironment(unittest.TestCase):
         samples = env.generate_random_samples(
             num_samples, use_continuous_action=True, epsilon=1.0, multi_steps=num_steps
         )
+        self._check_samples(samples, num_samples, num_steps, True)
+
+    def _check_samples(self, samples, num_samples, num_steps, continuous_action):
+        if continuous_action:
+            assertActionEqual = self.assertDictEqual
+        else:
+            assertActionEqual = self.assertEqual
         for i in range(num_samples):
             if samples.terminals[i][0]:
                 break
-            if i < num_samples - 1:
-                self.assertEqual(samples.mdp_ids[i], samples.mdp_ids[i + 1])
+            self.assertEqual(samples.mdp_ids[i], samples.mdp_ids[i + 1])
+            if i >= num_steps - 1:
                 self.assertEqual(
                     samples.sequence_numbers[i] + 1, samples.sequence_numbers[i + 1]
                 )
-            for j in range(len(samples.terminals[i])):
-                self.assertEqual(samples.rewards[i][j], samples.rewards[i + j][0])
-                self.assertDictEqual(
-                    samples.next_states[i][j], samples.next_states[i + j][0]
+                for j in range(len(samples.terminals[i])):
+                    self.assertEqual(samples.rewards[i][j], samples.rewards[i + j][0])
+                    self.assertDictEqual(
+                        samples.next_states[i][j], samples.next_states[i + j][0]
+                    )
+                    assertActionEqual(
+                        samples.next_actions[i][j], samples.next_actions[i + j][0]
+                    )
+                    self.assertEqual(
+                        samples.terminals[i][j], samples.terminals[i + j][0]
+                    )
+                    self.assertListEqual(
+                        samples.possible_next_actions[i][j],
+                        samples.possible_next_actions[i + j][0],
+                    )
+                    if samples.terminals[i][j]:
+                        continue
+                    self.assertDictEqual(
+                        samples.next_states[i][j], samples.states[i + j + 1]
+                    )
+                    assertActionEqual(
+                        samples.next_actions[i][j], samples.actions[i + j + 1]
+                    )
+                    self.assertListEqual(
+                        samples.possible_next_actions[i][j],
+                        samples.possible_actions[i + j + 1],
+                    )
+            else:
+                self.assertEqual(
+                    samples.sequence_numbers[i], samples.sequence_numbers[i + 1]
                 )
-                self.assertDictEqual(
-                    samples.next_actions[i][j], samples.next_actions[i + j][0]
-                )
-                self.assertEqual(samples.terminals[i][j], samples.terminals[i + j][0])
-                self.assertListEqual(
-                    samples.possible_next_actions[i][j],
-                    samples.possible_next_actions[i + j][0],
-                )
-                if samples.terminals[i][j]:
-                    continue
-                self.assertDictEqual(
-                    samples.next_states[i][j], samples.states[i + j + 1]
-                )
-                self.assertDictEqual(
-                    samples.next_actions[i][j], samples.actions[i + j + 1]
-                )
-                self.assertListEqual(
-                    samples.possible_next_actions[i][j],
-                    samples.possible_actions[i + j + 1],
-                )
+                for j in range(1, len(samples.terminals[i])):
+                    self.assertEqual(
+                        samples.rewards[i][j], samples.rewards[i + num_steps - 1][0]
+                    )
+                    self.assertDictEqual(
+                        samples.next_states[i][j],
+                        samples.next_states[num_steps - 1 + j][0],
+                    )
+                    assertActionEqual(
+                        samples.next_actions[i][j],
+                        samples.next_actions[num_steps - 1 + j][0],
+                    )
+                    self.assertEqual(
+                        samples.terminals[i][j], samples.terminals[num_steps - 1 + j][0]
+                    )
+                    self.assertListEqual(
+                        samples.possible_next_actions[i][j],
+                        samples.possible_next_actions[num_steps - 1 + j][0],
+                    )
+                    if samples.terminals[i][j]:
+                        continue
+                    self.assertDictEqual(
+                        samples.next_states[i][j], samples.states[num_steps + j]
+                    )
+                    assertActionEqual(
+                        samples.next_actions[i][j], samples.actions[num_steps + j]
+                    )
+                    self.assertListEqual(
+                        samples.possible_next_actions[i][j],
+                        samples.possible_actions[num_steps + j],
+                    )
 
         single_step_samples = samples.to_single_step()
         for i in range(num_samples):
@@ -208,7 +130,7 @@ class TestEnvironment(unittest.TestCase):
                 single_step_samples.sequence_numbers[i], samples.sequence_numbers[i]
             )
             self.assertDictEqual(single_step_samples.states[i], samples.states[i])
-            self.assertDictEqual(single_step_samples.actions[i], samples.actions[i])
+            assertActionEqual(single_step_samples.actions[i], samples.actions[i])
             self.assertEqual(
                 single_step_samples.action_probabilities[i],
                 samples.action_probabilities[i],
@@ -220,7 +142,7 @@ class TestEnvironment(unittest.TestCase):
             self.assertDictEqual(
                 single_step_samples.next_states[i], samples.next_states[i][0]
             )
-            self.assertDictEqual(
+            assertActionEqual(
                 single_step_samples.next_actions[i], samples.next_actions[i][0]
             )
             self.assertEqual(single_step_samples.terminals[i], samples.terminals[i][0])

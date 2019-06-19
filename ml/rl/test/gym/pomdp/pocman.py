@@ -16,7 +16,22 @@ from gym.spaces import Box, Discrete
 logger = logging.getLogger(__name__)
 
 
-MICRO = dict(
+MINI = dict(  # noqa
+    _maze=np.array(
+        [[1, 1, 1, 1], [1, 0, 0, 1], [1, 0, 0, 1], [1, 1, 1, 1]], dtype=np.int8
+    ),
+    _num_ghosts=1,
+    _ghost_range=3,
+    _ghost_home=(3, 3),
+    _poc_home=(0, 0),
+    _smell_range=1,
+    _hear_range=2,
+    _power_duration=15,
+    _max_step=20,
+)
+
+
+MICRO = dict(  # noqa
     _maze=np.array(
         [
             [1, 3, 3, 2, 3, 3],
@@ -43,9 +58,9 @@ STATE_DIM = 10
 
 class Action:
     UP = 0
-    RIGHT = 1  # east
+    RIGHT = 1
     DOWN = 2
-    LEFT = 3  # west
+    LEFT = 3
 
 
 ACTIONS = [Action.UP, Action.RIGHT, Action.DOWN, Action.LEFT]
@@ -62,10 +77,6 @@ class Element:
     CLEAR_WALK_WAY = 1
     POWER = 2
     FOOD_PELLET = 3
-
-
-def random_action():
-    return np.random.randint(0, 4)
 
 
 def manhattan_distance(c1, c2):
@@ -91,6 +102,9 @@ class Position(NamedTuple):
 
     x: int
     y: int
+
+    def __eq__(self, pos1):
+        return isinstance(pos1, Position) and pos1.x == self.x and pos1.y == self.y
 
 
 class InternalState(object):
@@ -180,7 +194,7 @@ class Ghost(object):
 
     def reset(self):
         self.pos = self.home
-        self.direction = random_action()
+        self.direction = PocManEnv.random_action()
         self.move_type = "init"
 
 
@@ -188,8 +202,10 @@ def select_maze(maze):
     maze = maze.lower()
     if maze == "micro":
         return MICRO
+    if maze == "mini":
+        return MINI
     else:
-        raise NameError()
+        raise ValueError("Maze size can only be micro or mini. ")
 
 
 class PocManEnv(Env):
@@ -200,6 +216,7 @@ class PocManEnv(Env):
         self.observation_space = Box(low=0, high=1, shape=(STATE_DIM,))
         self._reward_range = 100
         self.step_cnt = 0
+        self.max_step = self.board["_max_step"]
 
     def seed(self, seed=None):
         np.random.seed(seed)
@@ -263,7 +280,7 @@ class PocManEnv(Env):
             ] = Element.CLEAR_WALK_WAY
             reward += 10
 
-        ob = self._make_ob(action)
+        ob = self._make_ob()
 
         return ob, reward, self.done, {"state": self.internal_state}
 
@@ -279,7 +296,7 @@ class PocManEnv(Env):
             return True
         return False
 
-    def _make_ob(self, action):
+    def _make_ob(self):
         """
         Return 10 state features of observation:
         4 features indicating whether the agent can see a ghost
@@ -293,8 +310,7 @@ class PocManEnv(Env):
         """
         ob = np.zeros(STATE_DIM)
         for i, action in enumerate(ACTIONS):
-            if self._see_ghost(action):
-                ob[i] = 1
+            ob[i] = self._see_ghost(action)
             next_pos = self.next_pos(self.internal_state.agent_pos, action)
             # If an agent couldn't move from the current position, then there is a wall
             if next_pos == self.internal_state.agent_pos:
@@ -306,18 +322,42 @@ class PocManEnv(Env):
         return ob
 
     def _see_ghost(self, action):
+        distances = []
         agent_pos = self.internal_state.agent_pos
         for ghost in self.internal_state.ghosts:
             if agent_pos.x != ghost.pos.x and agent_pos.y != ghost.pos.y:
                 continue
+            if agent_pos == ghost.pos:
+                distances.append(0)
+                break
             if (
-                (action == Action.UP and ghost.pos.x < agent_pos.x)
-                or (action == Action.DOWN and ghost.pos.x > agent_pos.x)
-                or (action == Action.LEFT and ghost.pos.y < agent_pos.y)
-                or (action == Action.RIGHT and ghost.pos.y > agent_pos.y)
+                (
+                    action == Action.UP
+                    and ghost.pos.x < agent_pos.x
+                    and ghost.pos.y == agent_pos.y
+                )
+                or (
+                    action == Action.DOWN
+                    and ghost.pos.x > agent_pos.x
+                    and ghost.pos.y == agent_pos.y
+                )
+                or (
+                    action == Action.LEFT
+                    and ghost.pos.y < agent_pos.y
+                    and ghost.pos.x == agent_pos.x
+                )
+                or (
+                    action == Action.RIGHT
+                    and ghost.pos.y > agent_pos.y
+                    and ghost.pos.x == agent_pos.x
+                )
             ) and not self._wall_between(agent_pos, ghost.pos):
-                return True
-        return False
+                distances.append(manhattan_distance(agent_pos, ghost.pos))
+        if not distances:
+            return -1
+        return 1
+        # the environment can also be adapted to return a real-valued distance
+        # return min(distances)
 
     def _smell_food(self):
         smell_range = self.board["_smell_range"]
@@ -345,7 +385,8 @@ class PocManEnv(Env):
         return False
 
     def _wall_between(self, pos1, pos2):
-        assert pos1 != pos2
+        if pos1 == pos2:
+            return False
         assert pos1.x == pos2.x or pos1.y == pos2.y
         if pos1.y == pos2.y:
             for i in range(min(pos1.x, pos2.x) + 1, max(pos1.x, pos2.x)):
@@ -360,11 +401,19 @@ class PocManEnv(Env):
     def _food_left(self):
         return np.sum(self.maze == Element.FOOD_PELLET)
 
+    @staticmethod
+    def random_action():
+        return np.random.randint(0, 4)
+
+    @staticmethod
+    def print_action(action):
+        return ACTION_DICT[action]
+
     def reset(self):
         self.done = False
         self.step_cnt = 0
         self._get_init_state()
-        ob = self._make_ob(random_action())
+        ob = self._make_ob()
         return ob
 
     def _get_init_state(self):
@@ -382,7 +431,7 @@ class PocManEnv(Env):
                 Ghost(
                     self,
                     pos,
-                    direction=random_action(),
+                    direction=self.random_action(),
                     ghost_range=self.board["_ghost_range"],
                 )
             )
@@ -435,7 +484,7 @@ class PocManEnv(Env):
     def print_ob(self, ob):
         ob_str = ""
         for i, action in enumerate(ACTIONS):
-            if ob[i] == 1:
+            if ob[i] >= 0:
                 ob_str += " SEE GHOST {},".format(ACTION_DICT[action])
         for i, action in enumerate(ACTIONS):
             if ob[i + len(ACTIONS)] == 1:

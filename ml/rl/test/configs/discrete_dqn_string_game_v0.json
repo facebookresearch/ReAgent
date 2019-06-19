@@ -1,7 +1,7 @@
 {
-  "env": "Pocman-v0",
+  "env": "StringGame-v0",
   "model_type": "pytorch_discrete_dqn",
-  "max_replay_memory_size": 100000,
+  "max_replay_memory_size": 20480,
   "use_gpu": false,
   "rl": {
     "gamma": 0.99,
@@ -25,13 +25,13 @@
   },
   "run_details": {
     "num_episodes": 200,
-    "max_steps": 200,
+    "max_steps": 6,
     "train_every_ts": 1,
     "train_after_ts": 1,
     "test_every_ts": 500,
     "test_after_ts": 1,
     "num_train_batches": 1,
     "avg_over_num_episodes": 10,
-    "offline_train_epochs": 50
+    "offline_train_epochs": 30
   }
 }

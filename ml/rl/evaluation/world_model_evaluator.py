@@ -45,6 +45,13 @@ class FeatureImportanceEvaluator(object):
         sorted_action_feature_start_indices: List[int],
         sorted_state_feature_start_indices: List[int],
     ) -> None:
+        """
+        :param sorted_action_feature_start_indices: the starting index of each
+            action feature in the action vector (need this because some features
+            (e.g., one-hot encoding enum) may take multiple components)
+        :param sorted_state_feature_start_indices: the starting index of each
+            state feature in the state vector
+        """
         self.trainer = trainer
         self.discrete_action = discrete_action
         self.state_feature_num = state_feature_num

@@ -43,9 +43,20 @@ def multi_step_sample_generator(
     num_transitions: int,
     max_steps: Optional[int],
     multi_steps: int,
+    ignore_shorter_samples_at_start: bool,
+    ignore_shorter_samples_at_end: bool,
 ):
     """
     Convert gym env multi-step sample format to mdn-rnn multi-step sample format
+
+    :param gym_env: The environment used to generate multi-step samples
+    :param num_transitions: # of samples to return
+    :param max_steps: An episode terminates when the horizon is beyond max_steps
+    :param multi_steps: # of steps of states and actions per sample
+    :param ignore_shorter_samples_at_start: Whether to keep samples of shorter steps
+        which are generated at the beginning of an episode
+    :param ignore_shorter_samples_at_end: Whether to keep samples of shorter steps
+        which are generated at the end of an episode
     """
     samples = gym_env.generate_random_samples(
         num_transitions=num_transitions,
@@ -65,8 +76,25 @@ def multi_step_sample_generator(
         episode_end = transition_terminal_index[i + 1]
 
         for j in range(episode_start, episode_end + 1):
-            if len(samples.terminals[j]) != multi_steps:
+            if (
+                ignore_shorter_samples_at_start
+                and len(samples.terminals[j]) < multi_steps
+                and (
+                    j == episode_start
+                    or len(samples.terminals[j - 1]) < len(samples.terminals[j])
+                )
+            ):
                 continue
+            if (
+                ignore_shorter_samples_at_end
+                and len(samples.terminals[j]) < multi_steps
+                and j > episode_start
+                and len(samples.terminals[j]) < len(samples.terminals[j - 1])
+            ):
+                continue
+
+            sample_steps = len(samples.terminals[j])
+
             state = dict_to_np(
                 samples.states[j], np_size=gym_env.state_dim, key_offset=0
             )
@@ -82,7 +110,7 @@ def multi_step_sample_generator(
                         np_size=gym_env.action_dim,
                         key_offset=gym_env.state_dim,
                     )
-                    for k in range(multi_steps)
+                    for k in range(sample_steps)
                 ]
             )
             next_states = np.float32(
@@ -92,23 +120,71 @@ def multi_step_sample_generator(
                         np_size=gym_env.state_dim,
                         key_offset=0,
                     )
-                    for k in range(multi_steps)
+                    for k in range(sample_steps)
                 ]
             )
             rewards = np.float32(samples.rewards[j])
             terminals = np.float32(samples.terminals[j])
             not_terminals = np.logical_not(terminals)
-            mdnrnn_state = np.vstack((state, next_states))[:-1]
-            mdnrnn_action = np.vstack((action, next_actions))[:-1]
+            ordered_states = np.vstack((state, next_states))
+            ordered_actions = np.vstack((action, next_actions))
+            mdnrnn_states = ordered_states[:-1]
+            mdnrnn_actions = ordered_actions[:-1]
+            mdnrnn_next_states = ordered_states[-multi_steps:]
+            mdnrnn_next_actions = ordered_actions[-multi_steps:]
 
-            assert mdnrnn_state.shape == (multi_steps, gym_env.state_dim)
-            assert mdnrnn_action.shape == (multi_steps, gym_env.action_dim)
-            assert rewards.shape == (multi_steps,)
-            assert next_states.shape == (multi_steps, gym_env.state_dim)
-            assert next_actions.shape == (multi_steps, gym_env.action_dim)
-            assert not_terminals.shape == (multi_steps,)
-
-            yield mdnrnn_state, mdnrnn_action, rewards, next_states, next_actions, not_terminals
+            # Padding zeros so that all samples have equal steps
+            # The general rule is to pad zeros at the end of sequences.
+            # In addition, if the sequence only has one step (i.e., the
+            # first state of an episode), pad one zero row ahead of the
+            # sequence, which enables embedding generated properly for
+            # one-step samples
+            sample_steps = len(mdnrnn_states)
+            num_padded_top_rows = 1 if multi_steps > 1 and sample_steps == 1 else 0
+            num_padded_bottom_rows = multi_steps - sample_steps - num_padded_top_rows
+            sample_steps_next = len(mdnrnn_next_states)
+            num_padded_top_rows_next = 0
+            num_padded_bottom_rows_next = multi_steps - sample_steps_next
+            yield (
+                np.pad(
+                    mdnrnn_states,
+                    ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
+                    "constant",
+                    constant_values=0.0,
+                ),
+                np.pad(
+                    mdnrnn_actions,
+                    ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
+                    "constant",
+                    constant_values=0.0,
+                ),
+                np.pad(
+                    rewards,
+                    ((num_padded_top_rows, num_padded_bottom_rows)),
+                    "constant",
+                    constant_values=0.0,
+                ),
+                np.pad(
+                    mdnrnn_next_states,
+                    ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
+                    "constant",
+                    constant_values=0.0,
+                ),
+                np.pad(
+                    mdnrnn_next_actions,
+                    ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
+                    "constant",
+                    constant_values=0.0,
+                ),
+                np.pad(
+                    not_terminals,
+                    ((num_padded_top_rows, num_padded_bottom_rows)),
+                    "constant",
+                    constant_values=0.0,
+                ),
+                sample_steps,
+                sample_steps_next,
+            )
 
 
 def get_replay_buffer(
@@ -126,11 +202,15 @@ def get_replay_buffer(
         next_states,
         _,
         not_terminals,
+        _,
+        _,
     ) in multi_step_sample_generator(
         gym_env,
         num_transitions=num_transitions,
         max_steps=max_step,
         multi_steps=seq_len,
+        ignore_shorter_samples_at_start=True,
+        ignore_shorter_samples_at_end=True,
     ):
         replay_buffer.insert_into_memory(
             mdnrnn_state, mdnrnn_action, next_states, rewards, not_terminals
@@ -155,6 +235,7 @@ def main(args):
     parser.add_argument(
         "-l",
         "--log_level",
+        choices=["debug", "info", "warning", "error", "critical"],
         help="If set, use logging level specified (debug, info, warning, error, "
         "critical). Else defaults to info.",
         default="info",
@@ -180,10 +261,7 @@ def main(args):
     )
     args = parser.parse_args(args)
 
-    if args.log_level not in ("debug", "info", "warning", "error", "critical"):
-        raise Exception("Logging level {} not valid level.".format(args.log_level))
-    else:
-        logger.setLevel(getattr(logging, args.log_level.upper()))
+    logger.setLevel(getattr(logging, args.log_level.upper()))
 
     with open(args.parameters, "r") as f:
         params = json.load(f)
@@ -267,14 +345,14 @@ def calculate_feature_importance(
         print(
             "action {}, feature importance: {}".format(i, feature_loss_vector[i].item())
         )
-        feature_importance_map["action" + str(i)] = feature_loss_vector[i].item()
+        feature_importance_map[f"action{i}"] = feature_loss_vector[i].item()
     for i in range(gym_env.state_dim):
         print(
             "state {}, feature importance: {}".format(
                 i, feature_loss_vector[i + gym_env.action_dim].item()
             )
         )
-        feature_importance_map["state" + str(i)] = feature_loss_vector[
+        feature_importance_map[f"state{i}"] = feature_loss_vector[
             i + gym_env.action_dim
         ].item()
     return feature_importance_map
@@ -295,7 +373,6 @@ def create_embed_rl_dataset(
     num_transitions = num_state_embed_episodes * max_steps
     device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    # batch-compute state embedding
     (
         state_batch,
         action_batch,
@@ -303,6 +380,8 @@ def create_embed_rl_dataset(
         next_state_batch,
         next_action_batch,
         not_terminal_batch,
+        step_batch,
+        next_step_batch,
     ) = map(
         list,
         zip(
@@ -310,7 +389,11 @@ def create_embed_rl_dataset(
                 gym_env=gym_env,
                 num_transitions=num_transitions,
                 max_steps=max_steps,
-                multi_steps=seq_len,
+                # +1 because MDNRNN embeds the first seq_len steps and then
+                # the embedded state will be concatenated with the last step
+                multi_steps=seq_len + 1,
+                ignore_shorter_samples_at_start=False,
+                ignore_shorter_samples_at_end=True,
             )
         ),
     )
@@ -340,19 +423,45 @@ def create_embed_rl_dataset(
         state=rlt.FeatureVector(float_features=next_mdnrnn_state),
         action=rlt.FeatureVector(float_features=next_mdnrnn_action),
     )
+    # batch-compute state embedding
     mdnrnn_output = trainer.mdnrnn(mdnrnn_input)
     next_mdnrnn_output = trainer.mdnrnn(next_mdnrnn_input)
 
     for i in range(len(state_batch)):
         # Embed the state as the hidden layer's output
         # until the previous step + current state
-        hidden_embed = mdnrnn_output.all_steps_lstm_hidden[-2, i, :].squeeze()
-        state_embed = np.hstack((hidden_embed.detach().numpy(), state_batch[i][-1]))
-        next_hidden_embed = next_mdnrnn_output.all_steps_lstm_hidden[-2, i, :].squeeze()
-        next_state_embed = np.hstack(
-            (next_hidden_embed.detach().numpy(), next_state_batch[i][-1])
+        hidden_idx = 0 if step_batch[i] == 1 else step_batch[i] - 2
+        next_hidden_idx = next_step_batch[i] - 2
+        hidden_embed = (
+            mdnrnn_output.all_steps_lstm_hidden[hidden_idx, i, :]
+            .squeeze()
+            .detach()
+            .numpy()
         )
-        terminal = 1 - not_terminal_batch[i][-1]
+        state_embed = np.hstack((hidden_embed, state_batch[i][hidden_idx + 1]))
+        next_hidden_embed = (
+            next_mdnrnn_output.all_steps_lstm_hidden[next_hidden_idx, i, :]
+            .squeeze()
+            .detach()
+            .numpy()
+        )
+        next_state_embed = np.hstack(
+            (next_hidden_embed, next_state_batch[i][next_hidden_idx + 1])
+        )
+
+        logger.debug(
+            "create_embed_rl_dataset:\nstate batch\n{}\naction batch\n{}\nlast "
+            "action: {},reward: {}\nstate embed {}\nnext state embed {}\n".format(
+                state_batch[i][: hidden_idx + 1],
+                action_batch[i][: hidden_idx + 1],
+                action_batch[i][hidden_idx + 1],
+                reward_batch[i][hidden_idx + 1],
+                state_embed,
+                next_state_embed,
+            )
+        )
+
+        terminal = 1 - not_terminal_batch[i][hidden_idx + 1]
         possible_actions, possible_actions_mask = get_possible_actions(
             gym_env, ModelType.PYTORCH_PARAMETRIC_DQN.value, False
         )
@@ -361,10 +470,10 @@ def create_embed_rl_dataset(
         )
         dataset.insert(
             state=state_embed,
-            action=action_batch[i][-1],
-            reward=reward_batch[i][-1],
+            action=action_batch[i][hidden_idx + 1],
+            reward=reward_batch[i][hidden_idx + 1],
             next_state=next_state_embed,
-            next_action=next_action_batch[i][-1],
+            next_action=next_action_batch[i][next_hidden_idx + 1],
             terminal=terminal,
             possible_next_actions=possible_next_actions,
             possible_next_actions_mask=possible_next_actions_mask,
@@ -473,7 +582,7 @@ def train_sgd(
                     np.mean(trainer.cum_mse),
                 )
             )
-        # earlystopping
+
         trainer.mdnrnn.mdnrnn.eval()
         valid_batch = valid_replay_buffer.sample_memories(
             valid_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
@@ -495,6 +604,7 @@ def train_sgd(
         )
         latest_loss = valid_loss_history[-1]["loss"]
         recent_valid_loss_hist = valid_loss_history[-1 - early_stopping_patience : -1]
+        # earlystopping
         if len(valid_loss_history) > early_stopping_patience and all(
             (latest_loss >= v["loss"] for v in recent_valid_loss_hist)
         ):
