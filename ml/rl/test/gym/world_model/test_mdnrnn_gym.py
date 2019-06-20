@@ -22,7 +22,9 @@ class TestMDNRNNGym(unittest.TestCase):
     @staticmethod
     def verify_result(result_dict: Dict[str, float], expected_top_features: List[str]):
         top_feature = max(result_dict, key=result_dict.get)
-        assert top_feature in expected_top_features
+        assert (
+            top_feature in expected_top_features
+        ), f"top_feature: {top_feature}, expected_top_features: {expected_top_features}"
 
     def test_mdnrnn_cartpole(self):
         with open(MDNRNN_CARTPOLE_JSON, "r") as f:
@@ -30,7 +32,7 @@ class TestMDNRNNGym(unittest.TestCase):
         _, _, feature_importance_map, feature_sensitivity_map, _ = self._test_mdnrnn(
             params, feature_importance=True, feature_sensitivity=True
         )
-        self.verify_result(feature_importance_map, ["state1", "state3"])
+        self.verify_result(feature_importance_map, ["state1", "state3", "action1"])
         self.verify_result(feature_sensitivity_map, ["state1", "state3"])
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")

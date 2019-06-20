@@ -21,7 +21,7 @@ DQN_STRING_GAME_JSON = "ml/rl/test/configs/discrete_dqn_string_game_v0.json"
 
 class TestStateEmbedGym(unittest.TestCase):
     def setUp(self):
-        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.INFO)
 
     @staticmethod
     def verify_result(reward_history: List[float], expected_reward: float):
