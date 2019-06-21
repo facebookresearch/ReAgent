@@ -58,6 +58,7 @@ class TestGridworldSAC(GridworldTestBase):
                 q_network_optimizer=OptimizerParameters(),
                 value_network_optimizer=OptimizerParameters(),
                 actor_network_optimizer=OptimizerParameters(),
+                alpha_optimizer=OptimizerParameters(),
                 logged_action_uniform_prior=logged_action_uniform_prior,
             ),
             q_network=FeedForwardParameters(

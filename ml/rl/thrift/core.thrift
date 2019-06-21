@@ -147,11 +147,13 @@ struct SACTrainingParameters {
   4: OptimizerParameters actor_network_optimizer = {},
   5: bool use_2_q_functions = true,
   # alpha in the paper; controlling explore & exploit
-  6: double entropy_temperature = 0.1,
+  6: optional double entropy_temperature,
   7: optional string warm_start_model_path,
   8: bool logged_action_uniform_prior = true,
   9: optional i32 minibatches_per_step,
   10: bool use_value_network = true,
+  11: optional double target_entropy,
+  12: optional OptimizerParameters alpha_optimizer
 }
 
 struct SACModelParameters {

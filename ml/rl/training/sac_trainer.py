@@ -74,7 +74,32 @@ class SACTrainer(RLTrainer):
             actor_network, parameters.training.actor_network_optimizer
         )
 
-        self.entropy_temperature = parameters.training.entropy_temperature
+        self.alpha_optimizer = None
+        if parameters.training.alpha_optimizer is not None:
+            if parameters.training.target_entropy is not None:
+                self.target_entropy = parameters.training.target_entropy
+            elif min_action_range_tensor_training is not None:
+                self.target_entropy = -np.prod(
+                    min_action_range_tensor_training.cpu().data.numpy().shape
+                ).item()
+            else:
+                self.target_entropy = -1
+
+            device = "cuda" if use_gpu else "cpu"
+            self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
+            self.alpha_optimizer = self._get_optimizer_func(
+                parameters.training.alpha_optimizer.optimizer
+            )(
+                [self.log_alpha],
+                lr=parameters.training.alpha_optimizer.learning_rate,
+                weight_decay=parameters.training.alpha_optimizer.l2_decay,
+            )
+
+        self.entropy_temperature = (
+            parameters.training.entropy_temperature
+            if parameters.training.entropy_temperature is not None
+            else 0.1
+        )
         self.logged_action_uniform_prior = (
             parameters.training.logged_action_uniform_prior
         )
@@ -143,6 +168,17 @@ class SACTrainer(RLTrainer):
         q1_value = self.q1_network(current_state_action).q_value
         if self.q2_network:
             q2_value = self.q2_network(current_state_action).q_value
+        actor_output = self.actor_network(rlt.StateInput(state=state))
+
+        # Optimize Alpha
+        if self.alpha_optimizer is not None:
+            alpha_loss = -(
+                self.log_alpha * (actor_output.log_prob + self.target_entropy).detach()
+            ).mean()
+            self.alpha_optimizer.zero_grad()
+            alpha_loss.backward()
+            self.alpha_optimizer.step()
+            self.entropy_temperature = self.log_alpha.exp()
 
         with torch.no_grad():
             if self.value_network is not None:
@@ -150,12 +186,14 @@ class SACTrainer(RLTrainer):
                     learning_input.next_state.float_features
                 )
             else:
-                actor_output = self.actor_network(
+                next_state_actor_output = self.actor_network(
                     rlt.StateInput(state=learning_input.next_state)
                 )
                 next_state_actor_action = rlt.StateAction(
                     state=learning_input.next_state,
-                    action=rlt.FeatureVector(float_features=actor_output.action),
+                    action=rlt.FeatureVector(
+                        float_features=next_state_actor_output.action
+                    ),
                 )
                 next_state_value = self.q1_network_target(
                     next_state_actor_action
@@ -168,7 +206,7 @@ class SACTrainer(RLTrainer):
                     next_state_value = torch.min(next_state_value, target_q2_value)
 
                 log_prob_a = self.actor_network.get_log_prob(
-                    learning_input.next_state, actor_output.action
+                    learning_input.next_state, next_state_actor_output.action
                 )
                 log_prob_a = log_prob_a.clamp(-20.0, 20.0)
                 next_state_value -= self.entropy_temperature * log_prob_a
@@ -192,8 +230,6 @@ class SACTrainer(RLTrainer):
         # & softmax of value. Due to reparameterization trick, it ends up being
         # log_prob(actor_action) - Q(s, actor_action)
         #
-
-        actor_output = self.actor_network(rlt.StateInput(state=state))
 
         state_actor_action = rlt.StateAction(
             state=state, action=rlt.FeatureVector(float_features=actor_output.action)
