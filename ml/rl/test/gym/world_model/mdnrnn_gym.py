@@ -436,6 +436,7 @@ def create_embed_rl_dataset(
             mdnrnn_output.all_steps_lstm_hidden[hidden_idx, i, :]
             .squeeze()
             .detach()
+            .cpu()
             .numpy()
         )
         state_embed = np.hstack((hidden_embed, state_batch[i][hidden_idx + 1]))
@@ -443,6 +444,7 @@ def create_embed_rl_dataset(
             next_mdnrnn_output.all_steps_lstm_hidden[next_hidden_idx, i, :]
             .squeeze()
             .detach()
+            .cpu()
             .numpy()
         )
         next_state_embed = np.hstack(
