@@ -594,7 +594,9 @@ class GridworldBase(Environment):
                 possible_next_actions_mask=possible_next_actions_mask[start:end],
                 time_diffs=time_diffs[start:end],
             )
-            tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
+            tdp.set_type(
+                torch.cuda.FloatTensor if use_gpu else torch.FloatTensor  # type: ignore
+            )
             tdps.append(tdp)
         return tdps
 

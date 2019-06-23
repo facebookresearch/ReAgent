@@ -202,7 +202,9 @@ class GridworldContinuous(GridworldBase):
                 ],
             )
             pnas_start = pnas_end
-            tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
+            tdp.set_type(
+                torch.cuda.FloatTensor if use_gpu else torch.FloatTensor  # type: ignore
+            )
             tdps.append(tdp)
         return tdps
 

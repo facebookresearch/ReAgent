@@ -47,7 +47,7 @@ class StateEmbedGymEnvironment(Env):
         self.max_embed_seq_len = max_embed_seq_len
         self.mdnrnn = mdnrnn
         self.embed_size = self.mdnrnn.num_hiddens
-        self.raw_state_dim = self.env.observation_space.shape[0]
+        self.raw_state_dim = self.env.observation_space.shape[0]  # type: ignore
         self.state_dim = self.embed_size + self.raw_state_dim
         if isinstance(self.env.action_space, gym.spaces.Discrete):
             self.action_type = EnvType.DISCRETE_ACTION
@@ -57,13 +57,13 @@ class StateEmbedGymEnvironment(Env):
             self.action_dim = self.env.action_space.shape[0]
 
         self.action_space = self.env.action_space
-        self.observation_space = Box(
+        self.observation_space = Box(  # type: ignore
             low=state_min_value, high=state_max_value, shape=(self.state_dim,)
         )
 
         self.cur_raw_state = None
-        self.recent_states = deque([], maxlen=self.max_embed_seq_len)
-        self.recent_actions = deque([], maxlen=self.max_embed_seq_len)
+        self.recent_states = deque([], maxlen=self.max_embed_seq_len)  # type: ignore
+        self.recent_actions = deque([], maxlen=self.max_embed_seq_len)  # type: ignore
 
     def embed_state(self, state):
         """ Embed state after either reset() or step() """

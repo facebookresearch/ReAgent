@@ -97,7 +97,9 @@ class WeightedSequentialDoublyRobustEstimator:
                     j_step,
                 )
             )
-        j_step_return_trajectories = np.array(j_step_return_trajectories)
+        j_step_return_trajectories = np.array(  # type: ignore
+            j_step_return_trajectories
+        )  # type: ignore
 
         j_step_returns = np.sum(j_step_return_trajectories, axis=1)
 
@@ -170,7 +172,9 @@ class WeightedSequentialDoublyRobustEstimator:
                     num_j_steps=sample_size,
                     j_step_returns=j_step_returns[random_idxs],
                     infinite_step_returns=infinite_step_returns,
-                    j_step_return_trajectories=j_step_return_trajectories[random_idxs],
+                    j_step_return_trajectories=j_step_return_trajectories[  # type: ignore
+                        random_idxs
+                    ],  # type: ignore
                 )
                 bootstrapped_means.append(wdr_estimate)
             weighted_doubly_robust_std_error = np.std(bootstrapped_means)

@@ -46,7 +46,7 @@ class FullyConnectedNetwork(nn.Module):
             )
             init.constant_(self.layers[i].bias, 0)
 
-    def forward(self, input) -> torch.FloatTensor:
+    def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
         """ Forward pass for generic feed-forward DNNs. Assumes activation names
         are valid pytorch activation names.
         :param input tensor

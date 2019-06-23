@@ -85,11 +85,11 @@ class SequentialDoublyRobustEstimator:
                 last_episode_end = episode_end
             i += 1
 
-        doubly_robusts = np.array(doubly_robusts)
+        doubly_robusts = np.array(doubly_robusts)  # type: ignore
         dr_score = float(np.mean(doubly_robusts))
         dr_score_std_error = bootstrapped_std_error_of_mean(doubly_robusts)
 
-        episode_values = np.array(episode_values)
+        episode_values = np.array(episode_values)  # type: ignore
         logged_policy_score = np.mean(episode_values)
         if logged_policy_score < 1e-6:
             logger.warning(

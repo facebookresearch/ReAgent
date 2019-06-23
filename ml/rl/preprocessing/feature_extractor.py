@@ -5,7 +5,7 @@ import abc
 import dataclasses
 from collections import OrderedDict
 from functools import partial
-from typing import Dict, List, NamedTuple, Optional, Type
+from typing import Dict, List, NamedTuple, Optional, Tuple, Type
 
 import numpy as np
 import torch
@@ -116,10 +116,12 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         """
         pass
 
-    def create_const(self, init_net, name, value, dtype=core.DataType.FLOAT):
-        blob = init_net.NextScopedBlob(name)
+    def create_const(  # type: ignore
+        self, init_net, name, value, dtype=core.DataType.FLOAT  # type: ignore
+    ) -> core.BlobReference:
+        blob: core.BlobReference = init_net.NextScopedBlob(name)
         if not isinstance(value, list):
-            shape = []
+            shape: List[int] = []
             value = [value]
         else:
             shape = [len(value)]
@@ -281,7 +283,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
 
     def create_empty_range(self, init_net: core.Net) -> core.BlobReference:
         return self.create_const(
-            init_net, "empty_range", [0, 0], dtype=core.DataType.INT32
+            init_net, "empty_range", [0, 0], dtype=core.DataType.INT32  # type: ignore
         )
 
     def extract_id_list_features_ranges(
@@ -397,12 +399,12 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             offset = net.Cast(
                 net.Slice(ranges, ["offset"], starts=[0, 0, 0], ends=[-1, -1, 1]),
                 ["float_offset"],
-                to=core.DataType.FLOAT,
+                to=core.DataType.FLOAT,  # type: ignore
             )
             length = net.Cast(
                 net.Slice(ranges, ["length"], starts=[0, 0, 1], ends=[-1, -1, 2]),
                 ["float_length"],
-                to=core.DataType.FLOAT,
+                to=core.DataType.FLOAT,  # type: ignore
             )
 
             zero_offset = net.ConstantFill(length, ["zero_offset"], value=0.0)
@@ -425,12 +427,12 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
                     broadcast=1,
                 ),
                 ["new_offset"],
-                to=core.DataType.INT32,
+                to=core.DataType.INT32,  # type: ignore
             )
             new_length = net.Cast(
                 net.Min([length, max_length_blob], "float_new_length"),
                 ["new_length"],
-                to=core.DataType.INT32,
+                to=core.DataType.INT32,  # type: ignore
             )
             # Stitch these back togther
             new_range, _ = net.Concat(
@@ -447,11 +449,15 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             )
             # Finally, we make the dense output
             keys_to_extract = list(range(max_length))
-            dense_values, _presence_mask = net.SparseToDenseMask(
+            values_with_mask: Tuple[
+                core.BlobReference, core.BlobReference
+            ] = net.SparseToDenseMask(
                 [lengths_range_fill, gathered_values, zero_val, gathered_lengths],
                 ["dense_values", "presence_mask"],
                 mask=keys_to_extract,
             )
+            dense_values, _presence_mask = values_with_mask
+
         return dense_values
 
     def create_id_mapping(
@@ -469,9 +475,9 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
             mapping_data,
             shape=[len(mapping)],
             values=mapping,
-            dtype=core.DataType.INT64,
+            dtype=core.DataType.INT64,  # type: ignore
         )
-        handler = init_net.NextScopedBlob("mapping_{}".format(name))
+        handler: core.BlobReference = init_net.NextScopedBlob("mapping_{}".format(name))
         init_net.LongIndexCreate([], handler, max_elements=len(mapping))
         init_net.IndexLoad([handler, mapping_data], [handler])
         init_net.IndexFreeze(handler, handler)
@@ -497,7 +503,11 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         Map raw ID to index (into embedding lookup table, usually)
         """
         with core.NameScope("mapping_{}".format(name)):
-            return net.IndexGet([map_handler, raw_ids], ["mapped_ids"])
+            retval: core.BlobReference = net.IndexGet(
+                [map_handler, raw_ids], ["mapped_ids"]
+            )
+            assert type(retval) == core.BlobReference
+            return retval
 
     def map_sequence_id_features(
         self,
@@ -562,7 +572,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
 
             state_sequence_features[seq_name] = state_seq
 
-        return self.sequence_features_type(**state_sequence_features)
+        return self.sequence_features_type(**state_sequence_features)  # type: ignore
 
     def read_actions_to_mask(
         self, net, name, num_actions, action, action_size_plus_one

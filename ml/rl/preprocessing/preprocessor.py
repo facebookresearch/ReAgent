@@ -41,7 +41,7 @@ class Preprocessor(Module):
         if use_gpu and cuda_available:
             logger.info("Using GPU: GPU requested and available.")
             self.use_gpu = True
-            self.dtype = torch.cuda.FloatTensor
+            self.dtype = torch.cuda.FloatTensor  # type: ignore
         else:
             logger.info("NOT Using GPU: GPU not requested or not available.")
             self.use_gpu = False
@@ -89,9 +89,11 @@ class Preprocessor(Module):
             if feature_type == ENUM:
                 # Process one-at-a-time
                 for j in range(begin_index, end_index):
-                    norm_params = self.normalization_parameters[self.sorted_features[j]]
+                    enum_norm_params = self.normalization_parameters[
+                        self.sorted_features[j]
+                    ]
                     func = getattr(self, "_create_parameters_" + feature_type)
-                    func(j, norm_params)
+                    func(j, enum_norm_params)
             else:
                 norm_params = []
                 for f in self.sorted_features[begin_index:end_index]:
@@ -111,7 +113,7 @@ class Preprocessor(Module):
         if isinstance(input, np.ndarray):
             input = torch.from_numpy(input).type(self.dtype)
         if isinstance(input, rlt.FeatureVector):
-            input = input.float_features.type(self.dtype)
+            input = input.float_features.type(self.dtype)  # type: ignore
 
         # ONNX doesn't support != yet
         not_missing_input = (
@@ -139,14 +141,14 @@ class Preprocessor(Module):
                     self._check_preprocessing_output(new_output, [norm_params])
                     outputs.append(new_output)
             else:
-                norm_params = []
+                norm_params_list: List[NormalizationParameters] = []
                 for f in self.sorted_features[begin_index:end_index]:
-                    norm_params.append(self.normalization_parameters[f])
+                    norm_params_list.append(self.normalization_parameters[f])
                 new_output = self._preprocess_feature_multi_column(
-                    begin_index, input[:, begin_index:end_index], norm_params
+                    begin_index, input[:, begin_index:end_index], norm_params_list
                 )
                 new_output *= not_missing_input[:, begin_index:end_index]
-                self._check_preprocessing_output(new_output, norm_params)
+                self._check_preprocessing_output(new_output, norm_params_list)
                 outputs.append(new_output)
 
         def wrap(output):
@@ -156,9 +158,11 @@ class Preprocessor(Module):
                 return output
 
         if len(outputs) == 1:
-            return wrap(torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE))
+            return wrap(
+                torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+            )  # type: ignore
 
-        return wrap(
+        return wrap(  # type: ignore
             torch.clamp(torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
         )
 
@@ -173,7 +177,7 @@ class Preprocessor(Module):
 
         feature_type = norm_params.feature_type
         func = getattr(self, "_preprocess_" + feature_type)
-        return func(begin_index, input, norm_params)
+        return func(begin_index, input, norm_params)  # type: ignore
 
     def _preprocess_feature_multi_column(
         self,
@@ -186,7 +190,7 @@ class Preprocessor(Module):
 
         feature_type = norm_params[0].feature_type
         func = getattr(self, "_preprocess_" + feature_type)
-        return func(begin_index, input, norm_params)
+        return func(begin_index, input, norm_params)  # type: ignore
 
     def _create_parameters_BINARY(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -214,8 +218,8 @@ class Preprocessor(Module):
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
         clamped_input = torch.clamp(input, 0.01, 0.99)
-        return self.negative_one_tensor * (
-            ((self.one_tensor / clamped_input) - self.one_tensor).log()
+        return self.negative_one_tensor * (  # type: ignore
+            ((self.one_tensor / clamped_input) - self.one_tensor).log()  # type: ignore
         )
 
     def _create_parameters_CONTINUOUS_ACTION(
@@ -236,7 +240,9 @@ class Preprocessor(Module):
             "scaling_factor",
             (torch.ones(len(norm_params)).type(self.dtype) - EPS)
             * 2
-            / torch.tensor([p.max_value - p.min_value for p in norm_params]).type(
+            / torch.tensor(
+                [p.max_value - p.min_value for p in norm_params]  # type: ignore
+            ).type(  # type: ignore
                 self.dtype
             ),
         )
@@ -253,7 +259,7 @@ class Preprocessor(Module):
         continuous_action = (
             input - min_serving_value
         ) * scaling_factor + min_training_value
-        return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)
+        return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)  # type: ignore
 
     def _create_parameters_CONTINUOUS(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -278,7 +284,9 @@ class Preprocessor(Module):
         means = self._fetch_parameter(begin_index, "means")
         stddevs = self._fetch_parameter(begin_index, "stddevs")
         continuous_output = (input - means) / stddevs
-        return torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+        return torch.clamp(
+            continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+        )  # type: ignore
 
     def _create_parameters_BOXCOX(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -290,7 +298,7 @@ class Preprocessor(Module):
         )
         for p in norm_params:
             assert (
-                abs(p.boxcox_lambda) > 1e-6
+                abs(p.boxcox_lambda) > 1e-6  # type: ignore
             ), "Invalid value for boxcox lambda: " + str(p.boxcox_lambda)
         self._create_parameter(
             begin_index,
@@ -326,12 +334,14 @@ class Preprocessor(Module):
         F = len(norm_params)
 
         num_quantiles = torch.tensor(
-            [[float(len(p.quantiles)) - 1 for p in norm_params]]
+            [[float(len(p.quantiles)) - 1 for p in norm_params]]  # type: ignore
         ).type(self.dtype)
         self._create_parameter(begin_index, "num_quantiles", num_quantiles)
 
         max_num_quantile_boundaries = int(
-            torch.max(torch.tensor([len(p.quantiles) for p in norm_params]))
+            torch.max(
+                torch.tensor([len(p.quantiles) for p in norm_params])  # type: ignore
+            ).item()  # type: ignore
         )
         B = max_num_quantile_boundaries
 
@@ -348,12 +358,16 @@ class Preprocessor(Module):
         max_quantile_boundaries = torch.zeros([1, len(norm_params)]).type(self.dtype)
         min_quantile_boundaries = torch.zeros([1, len(norm_params)]).type(self.dtype)
         for i, p in enumerate(norm_params):
-            quantile_boundaries[0, i, :] = p.quantiles[-1]
-            quantile_boundaries[0, i, 0 : len(p.quantiles)] = torch.tensor(
+            quantile_boundaries[0, i, :] = p.quantiles[-1]  # type: ignore
+            quantile_boundaries[
+                0, i, 0 : len(p.quantiles)  # type: ignore
+            ] = torch.tensor(  # type: ignore
                 p.quantiles
-            ).type(self.dtype)
-            max_quantile_boundaries[0, i] = max(p.quantiles)
-            min_quantile_boundaries[0, i] = min(p.quantiles)
+            ).type(
+                self.dtype
+            )
+            max_quantile_boundaries[0, i] = max(p.quantiles)  # type: ignore
+            min_quantile_boundaries[0, i] = min(p.quantiles)  # type: ignore
 
         quantile_boundaries = quantile_boundaries.type(self.dtype)
         max_quantile_boundaries = max_quantile_boundaries.type(self.dtype)
@@ -506,22 +520,24 @@ class Preprocessor(Module):
         return p
 
     def _fetch_parameter(self, begin_index: int, name: str) -> Parameter:
-        return getattr(self, "_auto_parameter_" + str(begin_index) + "_" + name)
+        return getattr(
+            self, "_auto_parameter_" + str(begin_index) + "_" + name
+        )  # type: ignore
 
     def _manual_broadcast_matrix_scalar(
         self, t1: torch.Tensor, s1: torch.Tensor, fn
     ) -> torch.Tensor:
         # Some ONNX ops don't support broadcasting so we need to do some matrix magic
-        return fn(t1, (t1 * self.zero_tensor) + s1).float()
+        return fn(t1, (t1 * self.zero_tensor) + s1).float()  # type: ignore
 
     def _manual_broadcast_column_vec_row_vec(
         self, t1: torch.Tensor, t2: torch.Tensor, fn
     ) -> torch.Tensor:
         # Some ONNX ops don't support broadcasting so we need to do some matrix magic
         t2_ones = t2 / t2
-        t1_mask = t1.mm(t2_ones)
+        t1_mask = t1.mm(t2_ones)  # type: ignore
 
-        return fn(t1_mask, t2).float()
+        return fn(t1_mask, t2).float()  # type: ignore
 
     def _check_preprocessing_output(self, batch, norm_params):
         """
@@ -546,13 +562,3 @@ class Preprocessor(Module):
                     feature_type, min_value, MIN_FEATURE_VALUE
                 )
             )
-
-
-class PreprocesserAndForwardPassContainer(nn.Module):
-    def __init__(self, preprocessor_module, forward_pass_module):
-        super().__init__()
-        self.add_module("preprocess", preprocessor_module)
-        self.add_module("forward_pass", forward_pass_module)
-
-    def forward(self, input) -> torch.FloatTensor:
-        return self.forward_pass.forward(self.preprocess.forward(input))

@@ -77,7 +77,7 @@ class ModelBase(nn.Module):
     def derived_input_blob_names(self) -> List[str]:
         return self.derive_blob_names(self.input_prototype())
 
-    def derive_blob_names(self, named_tuple):
+    def derive_blob_names(self, named_tuple) -> List[str]:
         """
         Deriving blob names from the object structure. The names of members of
         namedtuple/dataclass from the root to each tensor forms its qualified name.
@@ -105,7 +105,7 @@ class ModelBase(nn.Module):
             elif isinstance(d, torch.Tensor):
                 return [""]
             elif d is None:
-                return [None]
+                return [None]  # type: ignore
             else:
                 raise ValueError()
 
@@ -299,7 +299,7 @@ class ONNXExportModel(nn.Module):
     flattened inputs to ONNX and structured input to `ModelBase`.
     """
 
-    def __init__(self, m):
+    def __init__(self, m: ModelBase):
         super().__init__()
         self.m = m
         self.input_prototype = m.input_prototype()

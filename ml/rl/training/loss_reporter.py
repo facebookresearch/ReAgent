@@ -135,8 +135,7 @@ def merge_tensor_namedtuple_list(l, cls):
         assert len(not_none_vals) == 0 or len(not_none_vals) == len(vals)
         if not not_none_vals:
             return None
-        with torch.no_grad():
-            return torch.cat(not_none_vals, dim=0)
+        return torch.cat(not_none_vals, dim=0)
 
     return cls(**{f: merge_tensor(f) for f in cls._fields})
 
@@ -207,6 +206,7 @@ class LossReporter(object):
         if len(self.incoming_stats) >= self.loss_report_interval:
             self.flush()
 
+    @torch.no_grad()  # type: ignore
     def flush(self):
         if not len(self.incoming_stats):
             logger.info("Nothing to report")

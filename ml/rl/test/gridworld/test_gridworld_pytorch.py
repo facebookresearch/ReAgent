@@ -26,7 +26,6 @@ from ml.rl.thrift.core.ttypes import (
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.rl_exporter import DQNExporter
-from torch import distributed
 
 
 class TestGridworld(GridworldTestBase):

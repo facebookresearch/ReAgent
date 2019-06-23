@@ -99,7 +99,7 @@ def single_process_main(gpu_index, *args):
 
     preprocess_handler = DqnPreprocessHandler(
         Preprocessor(state_normalization, False),
-        np.array(model_params.actions),
+        model_params.actions,
         PandasSparseToDenseProcessor(),
     )
 

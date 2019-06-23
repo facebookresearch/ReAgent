@@ -67,8 +67,8 @@ def multi_step_sample_generator(
 
     transition_terminal_index = [-1]
     for i in range(1, len(samples.mdp_ids)):
-        if samples.terminals[i][0] is True:
-            assert len(samples.terminals[i]) == 1
+        if samples.terminals[i][0] is True:  # type: ignore
+            assert len(samples.terminals[i]) == 1  # type: ignore
             transition_terminal_index.append(i)
 
     for i in range(len(transition_terminal_index) - 1):
@@ -78,22 +78,24 @@ def multi_step_sample_generator(
         for j in range(episode_start, episode_end + 1):
             if (
                 ignore_shorter_samples_at_start
-                and len(samples.terminals[j]) < multi_steps
+                and len(samples.terminals[j]) < multi_steps  # type: ignore
                 and (
                     j == episode_start
-                    or len(samples.terminals[j - 1]) < len(samples.terminals[j])
+                    or len(samples.terminals[j - 1])  # type: ignore
+                    < len(samples.terminals[j])  # type: ignore
                 )
             ):
                 continue
             if (
                 ignore_shorter_samples_at_end
-                and len(samples.terminals[j]) < multi_steps
+                and len(samples.terminals[j]) < multi_steps  # type: ignore
                 and j > episode_start
-                and len(samples.terminals[j]) < len(samples.terminals[j - 1])
+                and len(samples.terminals[j])  # type: ignore
+                < len(samples.terminals[j - 1])  # type: ignore
             ):
                 continue
 
-            sample_steps = len(samples.terminals[j])
+            sample_steps = len(samples.terminals[j])  # type: ignore
 
             state = dict_to_np(
                 samples.states[j], np_size=gym_env.state_dim, key_offset=0
@@ -103,7 +105,7 @@ def multi_step_sample_generator(
                 np_size=gym_env.action_dim,
                 key_offset=gym_env.state_dim,
             )
-            next_actions = np.float32(
+            next_actions = np.float32(  # type: ignore
                 [
                     dict_to_np(
                         samples.next_actions[j][k],
@@ -113,7 +115,7 @@ def multi_step_sample_generator(
                     for k in range(sample_steps)
                 ]
             )
-            next_states = np.float32(
+            next_states = np.float32(  # type: ignore
                 [
                     dict_to_np(
                         samples.next_states[j][k],
@@ -123,8 +125,8 @@ def multi_step_sample_generator(
                     for k in range(sample_steps)
                 ]
             )
-            rewards = np.float32(samples.rewards[j])
-            terminals = np.float32(samples.terminals[j])
+            rewards = np.float32(samples.rewards[j])  # type: ignore
+            terminals = np.float32(samples.terminals[j])  # type: ignore
             not_terminals = np.logical_not(terminals)
             ordered_states = np.vstack((state, next_states))
             ordered_actions = np.vstack((action, next_actions))
@@ -193,7 +195,7 @@ def get_replay_buffer(
     max_step: Optional[int],
     gym_env: OpenAIGymEnvironment,
 ):
-    num_transitions = num_episodes * max_step
+    num_transitions = num_episodes * max_step  # type: ignore
     replay_buffer = MDNRNNMemoryPool(max_replay_memory_size=num_transitions)
     for (
         mdnrnn_state,
@@ -370,8 +372,8 @@ def create_embed_rl_dataset(
 ):
     old_mdnrnn_mode = trainer.mdnrnn.mdnrnn.training
     trainer.mdnrnn.mdnrnn.eval()
-    num_transitions = num_state_embed_episodes * max_steps
-    device = torch.device("cuda") if use_gpu else torch.device("cpu")
+    num_transitions = num_state_embed_episodes * max_steps  # type: ignore
+    device = torch.device("cuda") if use_gpu else torch.device("cpu")  # type: ignore
 
     (
         state_batch,
@@ -430,8 +432,8 @@ def create_embed_rl_dataset(
     for i in range(len(state_batch)):
         # Embed the state as the hidden layer's output
         # until the previous step + current state
-        hidden_idx = 0 if step_batch[i] == 1 else step_batch[i] - 2
-        next_hidden_idx = next_step_batch[i] - 2
+        hidden_idx = 0 if step_batch[i] == 1 else step_batch[i] - 2  # type: ignore
+        next_hidden_idx = next_step_batch[i] - 2  # type: ignore
         hidden_embed = (
             mdnrnn_output.all_steps_lstm_hidden[hidden_idx, i, :]
             .squeeze()
@@ -439,7 +441,9 @@ def create_embed_rl_dataset(
             .cpu()
             .numpy()
         )
-        state_embed = np.hstack((hidden_embed, state_batch[i][hidden_idx + 1]))
+        state_embed = np.hstack(
+            (hidden_embed, state_batch[i][hidden_idx + 1])  # type: ignore
+        )  # type: ignore
         next_hidden_embed = (
             next_mdnrnn_output.all_steps_lstm_hidden[next_hidden_idx, i, :]
             .squeeze()
@@ -448,22 +452,25 @@ def create_embed_rl_dataset(
             .numpy()
         )
         next_state_embed = np.hstack(
-            (next_hidden_embed, next_state_batch[i][next_hidden_idx + 1])
+            (
+                next_hidden_embed,
+                next_state_batch[i][next_hidden_idx + 1],  # type: ignore
+            )  # type: ignore
         )
 
         logger.debug(
             "create_embed_rl_dataset:\nstate batch\n{}\naction batch\n{}\nlast "
             "action: {},reward: {}\nstate embed {}\nnext state embed {}\n".format(
-                state_batch[i][: hidden_idx + 1],
-                action_batch[i][: hidden_idx + 1],
-                action_batch[i][hidden_idx + 1],
-                reward_batch[i][hidden_idx + 1],
+                state_batch[i][: hidden_idx + 1],  # type: ignore
+                action_batch[i][: hidden_idx + 1],  # type: ignore
+                action_batch[i][hidden_idx + 1],  # type: ignore
+                reward_batch[i][hidden_idx + 1],  # type: ignore
                 state_embed,
                 next_state_embed,
             )
         )
 
-        terminal = 1 - not_terminal_batch[i][hidden_idx + 1]
+        terminal = 1 - not_terminal_batch[i][hidden_idx + 1]  # type: ignore
         possible_actions, possible_actions_mask = get_possible_actions(
             gym_env, ModelType.PYTORCH_PARAMETRIC_DQN.value, False
         )
@@ -472,10 +479,10 @@ def create_embed_rl_dataset(
         )
         dataset.insert(
             state=state_embed,
-            action=action_batch[i][hidden_idx + 1],
-            reward=reward_batch[i][hidden_idx + 1],
+            action=action_batch[i][hidden_idx + 1],  # type: ignore
+            reward=reward_batch[i][hidden_idx + 1],  # type: ignore
             next_state=next_state_embed,
-            next_action=next_action_batch[i][next_hidden_idx + 1],
+            next_action=next_action_batch[i][next_hidden_idx + 1],  # type: ignore
             terminal=terminal,
             possible_next_actions=possible_next_actions,
             possible_next_actions_mask=possible_next_actions_mask,

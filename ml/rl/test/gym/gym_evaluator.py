@@ -5,11 +5,12 @@ import logging
 from typing import List, Tuple, Union
 
 import numpy as np
+import torch
 from ml.rl.evaluation.evaluator import Evaluator
-from ml.rl.test.gym.gym_predictor import GymPredictor
 from ml.rl.test.gym.open_ai_gym_environment import EnvType
+from ml.rl.training.off_policy_predictor import RLPredictor
+from ml.rl.training.on_policy_predictor import OnPolicyPredictor
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
-from ml.rl.training.rl_predictor_pytorch import RLPredictor
 
 
 logger = logging.getLogger(__name__)
@@ -46,17 +47,19 @@ class GymEvaluator(Evaluator):
             logged_terminals,
         ) = self._generate_samples(500, 0.05)
 
-        self.logged_mdp_ids = np.array(logged_mdp_ids).reshape(-1, 1)
-        self.logged_sequence_numbers = np.array(logged_sequence_numbers).reshape(-1, 1)
-        self.logged_states = np.array(logged_states).astype(np.float32)
-        self.logged_propensities = (
-            np.array(logged_propensities).astype(np.float32).reshape(-1, 1)
+        self.logged_mdp_ids = logged_mdp_ids
+        self.logged_sequence_numbers = torch.tensor(logged_sequence_numbers).reshape(
+            -1, 1
         )
-        self.logged_rewards = np.array(logged_rewards).astype(np.float32).reshape(-1, 1)
-        self.logged_values = np.array(logged_values).astype(np.float32).reshape(-1, 1)
-        self.logged_terminals = np.array(logged_terminals).reshape(-1, 1)
-        self.logged_actions_one_hot = np.zeros(
-            shape=[len(self.logged_actions), self._env.action_dim], dtype=np.float32
+        self.logged_states = torch.stack(logged_states)
+        self.logged_propensities = (
+            torch.tensor(logged_propensities).float().reshape(-1, 1)
+        )
+        self.logged_rewards = torch.tensor(logged_rewards).float().reshape(-1, 1)
+        self.logged_values = torch.tensor(logged_values).float().reshape(-1, 1)
+        self.logged_terminals = torch.tensor(logged_terminals).reshape(-1, 1)
+        self.logged_actions_one_hot = torch.zeros(
+            [len(self.logged_actions), self._env.action_dim]
         )
         for i, action in enumerate(self.logged_actions):
             self.logged_actions_one_hot[i, action] = 1.0
@@ -68,7 +71,7 @@ class GymEvaluator(Evaluator):
     ) -> Tuple[
         List[str],
         List[int],
-        List[object],
+        List[torch.Tensor],
         List[int],
         List[float],
         List[float],
@@ -81,7 +84,7 @@ class GymEvaluator(Evaluator):
 
         mdp_ids: List[str] = []
         sequence_numbers: List[int] = []
-        states: List[object] = []
+        states: List[torch.Tensor] = []
         actions: List[int] = []
         propensities: List[float] = []
         rewards: List[float] = []
@@ -141,7 +144,7 @@ class GymEvaluator(Evaluator):
         )
 
     def evaluate_on_episodes(
-        self, num_episodes, predictor: Union[RLPredictor, GymPredictor, None]
+        self, num_episodes, predictor: Union[RLPredictor, OnPolicyPredictor, None]
     ):
         """
         Simulate real episodes and evaluate average rewards and
@@ -157,9 +160,23 @@ class GymEvaluator(Evaluator):
         if self._env.action_type == EnvType.CONTINUOUS_ACTION:
             raise NotImplementedError()
         # test only float features
-        predictions = predictor.predict(self.logged_states).astype(np.float32)
-        estimated_reward_values = predictor.estimate_reward(self.logged_states)
-        if isinstance(predictor.trainer, ParametricDQNTrainer):
+        if predictor.discrete_action():  # type: ignore
+            predictions = predictor.predict(  # type: ignore
+                self.logged_states
+            )
+            estimated_reward_values = predictor.estimate_reward(self.logged_states)
+        else:
+            num_states = self.logged_states.size()[0]
+            action_tiled = torch.repeat_interleave(
+                torch.eye(self._env.action_dim), repeats=num_states, axis=0
+            )
+
+            predictions = predictor.predict(  # type: ignore
+                self.logged_states, action_tiled
+            )
+            estimated_reward_values = predictor.estimate_reward(
+                self.logged_states, action_tiled
+            )
             predictions = predictions.reshape([-1, self._env.action_dim])
             estimated_reward_values = estimated_reward_values.reshape(
                 [-1, self._env.action_dim]
@@ -175,8 +192,8 @@ class GymEvaluator(Evaluator):
             logged_reward = self.logged_rewards[i][0]
             estimated_reward = estimated_reward_values[i][logged_action]
             reward_error_sum += abs(logged_reward - estimated_reward)
-        value_error_mean = value_error_sum / np.sum(np.abs(self.logged_values))
-        reward_error_mean = reward_error_sum / np.sum(np.abs(self.logged_rewards))
+        value_error_mean = value_error_sum / torch.sum(torch.abs(self.logged_values))
+        reward_error_mean = reward_error_sum / torch.sum(torch.abs(self.logged_rewards))
 
         logger.info("EVAL Q-Value MAE ERROR: {0:.3f}".format(value_error_mean))
         self.mc_loss.append(value_error_mean)

@@ -88,7 +88,7 @@ class DqnPreprocessHandler(PreprocessHandler):
         not_terminal = torch.from_numpy(
             np.max(pnas_mask, 1).astype(np.float32).reshape(-1, 1)
         ).float()
-        pnas_mask = torch.from_numpy(pnas_mask)
+        pnas_mask_torch = torch.from_numpy(pnas_mask)
 
         possible_next_state_actions = None
         possible_state_actions = None
@@ -103,7 +103,7 @@ class DqnPreprocessHandler(PreprocessHandler):
             possible_actions_mask=pas_mask,
             next_states=tdp.next_states,
             next_actions=next_actions,
-            possible_next_actions_mask=pnas_mask,
+            possible_next_actions_mask=pnas_mask_torch,
             not_terminal=not_terminal,
             time_diffs=tdp.time_diffs,
             possible_actions_state_concat=possible_state_actions,
@@ -164,9 +164,14 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
             np.array([len(pna) > 0 for pna in batch["possible_next_actions"]]).astype(
                 np.float32
             )
-        ).reshape(-1, 1)
+        ).reshape(
+            -1, 1
+        )  # type: ignore
         pnas = self.sparse_to_dense_processor(sorted_action_features_str, flat_pnas)
         pnas = self.action_preprocessor.forward(pnas)
+
+        assert tdp.next_states is not None
+
         tiled_next_state_features_dense = tdp.next_states.repeat(
             1, max_action_size
         ).reshape(-1, tdp.next_states.shape[1])
@@ -189,12 +194,14 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
         pas = self.sparse_to_dense_processor(sorted_action_features_str, flat_pas)
         pas = self.action_preprocessor.forward(pas)
 
-        tiled_state_features_dense = tdp.states.repeat(1, max_action_size).reshape(
-            -1, tdp.states.shape[1]
-        )
+        tiled_state_features_dense = tdp.states.repeat(  # type: ignore
+            1, max_action_size  # type: ignore
+        ).reshape(  # type: ignore
+            -1, tdp.states.shape[1]  # type: ignore
+        )  # type: ignore
 
-        possible_state_actions = torch.cat(
-            (tiled_state_features_dense, pas.cpu()), dim=1
+        possible_state_actions = torch.cat(  # type: ignore
+            (tiled_state_features_dense, pas.cpu()), dim=1  # type: ignore
         )
 
         return TrainingDataPage(

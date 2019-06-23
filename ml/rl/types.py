@@ -13,7 +13,7 @@ than dictionary; so, this should be good overall.
 
 import dataclasses
 from dataclasses import dataclass
-from typing import Any, Dict, List, NamedTuple, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 import numpy as np
 import torch
@@ -130,7 +130,7 @@ class SequenceFeatures:
     @classmethod
     def prototype(cls: Type[U]) -> U:
         fields = dataclasses.fields(cls)
-        return cls(**{f.name: f.type.prototype() for f in fields})  # noqa
+        return cls(**{f.name: f.type.prototype() for f in fields})  # type: ignore
 
 
 @dataclass
@@ -264,3 +264,13 @@ class MemoryNetworkOutput(NamedTuple):
     last_step_lstm_hidden: ValueType
     last_step_lstm_cell: ValueType
     all_steps_lstm_hidden: ValueType
+
+
+class DqnPolicyActionSet(NamedTuple):
+    greedy: int
+    softmax: int
+
+
+class SacPolicyActionSet(NamedTuple):
+    greedy: torch.Tensor
+    greedy_propensity: float

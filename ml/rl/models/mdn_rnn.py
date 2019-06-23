@@ -116,9 +116,9 @@ class MDNRNN(_MDNRNNBase):
 
 
 class MDNRNNMemorySample(NamedTuple):
-    state: np.array
-    action: np.array
-    next_state: np.array
+    state: np.ndarray
+    action: np.ndarray
+    next_state: np.ndarray
     reward: float
     not_terminal: float
 

@@ -95,21 +95,21 @@ class Evaluator(object):
                     action: float(value_means[i])
                     for i, action in enumerate(self.action_names)
                 }
-                value_stds = edp.optimal_q_values.std(dim=0)
+                value_stds = edp.optimal_q_values.std(dim=0)  # type: ignore
                 cpe_details.q_value_stds = {
                     action: float(value_stds[i])
                     for i, action in enumerate(self.action_names)
                 }
             if edp.eval_action_idxs is not None:
                 cpe_details.action_distribution = {
-                    action: float((edp.eval_action_idxs == i).sum())
+                    action: float((edp.eval_action_idxs == i).sum())  # type: ignore
                     / edp.eval_action_idxs.shape[0]
                     for i, action in enumerate(self.action_names)
                 }
 
         # Compute MC Loss on Aggregate Reward
         cpe_details.mc_loss = float(
-            torch.mean(torch.abs(edp.logged_values - edp.model_values))
+            torch.mean(torch.abs(edp.logged_values - edp.model_values))  # type: ignore
         )
 
         return cpe_details

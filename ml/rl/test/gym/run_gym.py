@@ -17,7 +17,6 @@ from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.test.base.utils import write_lists_to_csv
-from ml.rl.test.gym.gym_predictor import GymDQNPredictor, GymSACPredictor
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
@@ -35,6 +34,11 @@ from ml.rl.thrift.core.ttypes import (
     SACModelParameters,
     SACTrainingParameters,
     TrainingParameters,
+)
+from ml.rl.training.on_policy_predictor import (
+    ContinuousActionOnPolicyPredictor,
+    DiscreteDQNOnPolicyPredictor,
+    ParametricDQNOnPolicyPredictor,
 )
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
@@ -58,17 +62,24 @@ def dict_to_np(d, np_size, key_offset):
     return x
 
 
+def dict_to_torch(d, np_size, key_offset):
+    x = torch.zeros(np_size)
+    for key in d:
+        x[key - key_offset] = d[key]
+    return x
+
+
 def get_possible_actions(gym_env, model_type, terminal):
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
         possible_next_actions = None
-        possible_next_actions_mask = [
-            0 if terminal else 1 for __ in range(gym_env.action_dim)
-        ]
+        possible_next_actions_mask = torch.tensor(
+            [0 if terminal else 1 for __ in range(gym_env.action_dim)]
+        )
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
-        possible_next_actions = np.eye(gym_env.action_dim)
-        possible_next_actions_mask = [
-            0 if terminal else 1 for __ in range(gym_env.action_dim)
-        ]
+        possible_next_actions = torch.eye(gym_env.action_dim)
+        possible_next_actions_mask = torch.tensor(
+            [0 if terminal else 1 for __ in range(gym_env.action_dim)]
+        )
     elif model_type == ModelType.CONTINUOUS_ACTION.value:
         possible_next_actions = None
         possible_next_actions_mask = None
@@ -195,11 +206,13 @@ def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, mode
     )
     policy_id = 0
     for i in range(len(samples.mdp_ids)):
-        state = dict_to_np(samples.states[i], gym_env.state_dim, 0)
-        action = dict_to_np(samples.actions[i], gym_env.action_dim, gym_env.state_dim)
-        reward = np.float32(samples.rewards[i])
-        next_state = dict_to_np(samples.next_states[i], gym_env.state_dim, 0)
-        next_action = dict_to_np(
+        state = dict_to_torch(samples.states[i], gym_env.state_dim, 0)
+        action = dict_to_torch(
+            samples.actions[i], gym_env.action_dim, gym_env.state_dim
+        )
+        reward = float(samples.rewards[i])
+        next_state = dict_to_torch(samples.next_states[i], gym_env.state_dim, 0)
+        next_action = dict_to_torch(
             samples.next_actions[i], gym_env.action_dim, gym_env.state_dim
         )
         terminal = samples.terminals[i]
@@ -319,8 +332,8 @@ def train_gym_offline_rl(
             samples.set_type(trainer.dtype)
             trainer.train(samples)
 
-        batch_td_loss = np.mean(
-            [stat.td_loss for stat in trainer.loss_reporter.incoming_stats]
+        batch_td_loss = float(
+            torch.mean([stat.td_loss for stat in trainer.loss_reporter.incoming_stats])
         )
         trainer.loss_reporter.flush()
         logger.info(
@@ -420,10 +433,10 @@ def train_gym_online_rl(
             )
 
             replay_buffer.insert_into_memory(
-                np.float32(state),
+                state,
                 action,
-                np.float32(reward),
-                np.float32(next_state),
+                reward,
+                next_state,
                 next_action,
                 terminal,
                 possible_next_actions,
@@ -841,13 +854,11 @@ def _get_sac_trainer_params(env, sac_model_params, use_gpu):
 
     min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
     max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
-    action_range_low = env.action_space.low.astype(np.float32)
-    action_range_high = env.action_space.high.astype(np.float32)
-    min_action_range_tensor_serving = torch.from_numpy(action_range_low).unsqueeze(
-        dim=0
+    min_action_range_tensor_serving = (
+        torch.from_numpy(env.action_space.low).float().unsqueeze(dim=0)
     )
-    max_action_range_tensor_serving = torch.from_numpy(action_range_high).unsqueeze(
-        dim=0
+    max_action_range_tensor_serving = (
+        torch.from_numpy(env.action_space.high).float().unsqueeze(dim=0)
     )
 
     if use_gpu:
@@ -877,7 +888,7 @@ def _get_sac_trainer_params(env, sac_model_params, use_gpu):
 
 def _format_action_for_log_and_gym(action, env_type, model_type):
     if env_type == EnvType.DISCRETE_ACTION:
-        action_index = np.argmax(action)
+        action_index = torch.argmax(action).item()
         if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
             return str(action_index), int(action_index)
         else:
@@ -887,19 +898,19 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
 
 def create_predictor(trainer, model_type, use_gpu, action_dim=None):
     if model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        predictor = GymSACPredictor(trainer, action_dim)
-    elif model_type in (
-        ModelType.PYTORCH_DISCRETE_DQN.value,
-        ModelType.PYTORCH_PARAMETRIC_DQN.value,
-    ):
-        predictor = GymDQNPredictor(trainer, action_dim)
-    else:
-        raise NotImplementedError()
+        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim)
+    elif model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
+        predictor = DiscreteDQNOnPolicyPredictor(trainer, action_dim)
+    elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
+        predictor = ParametricDQNOnPolicyPredictor(trainer, action_dim)
     return predictor
 
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    from ml.rl import debug_on_error
+
+    debug_on_error.start()
     args = sys.argv
     main(args[1:])

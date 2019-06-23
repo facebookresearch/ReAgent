@@ -88,16 +88,17 @@ class DQNTrainer(DQNTrainerBase):
     def num_actions(self) -> int:
         return len(self._actions)
 
+    @torch.no_grad()  # type: ignore
     def get_detached_q_values(
         self, state
     ) -> Tuple[rlt.AllActionQValues, Optional[rlt.AllActionQValues]]:
         """ Gets the q values from the model and target networks """
-        with torch.no_grad():
-            input = rlt.StateInput(state=state)
-            q_values = self.q_network(input).q_values
-            q_values_target = self.q_network_target(input).q_values
+        input = rlt.StateInput(state=state)
+        q_values = self.q_network(input).q_values
+        q_values_target = self.q_network_target(input).q_values
         return q_values, q_values_target
 
+    @torch.no_grad()  # type: ignore
     def train(self, training_batch):
         if isinstance(training_batch, TrainingDataPage):
             if self.maxq_learning:
@@ -150,17 +151,20 @@ class DQNTrainer(DQNTrainerBase):
 
         target_q_values = rewards + (discount_tensor * filtered_next_q_vals)
 
-        # Get Q-value of action taken
-        current_state = rlt.StateInput(state=learning_input.state)
-        all_q_values = self.q_network(current_state).q_values
-        self.all_action_scores = all_q_values.detach()
-        q_values = torch.sum(all_q_values * learning_input.action, 1, keepdim=True)
+        with torch.enable_grad():
+            # Get Q-value of action taken
+            current_state = rlt.StateInput(state=learning_input.state)
+            all_q_values = self.q_network(current_state).q_values
+            self.all_action_scores = all_q_values.detach()
+            q_values = torch.sum(all_q_values * learning_input.action, 1, keepdim=True)
 
-        loss = self.q_network_loss(q_values, target_q_values)
-        self.loss = loss.detach()
+            loss = self.q_network_loss(q_values, target_q_values)
+            self.loss = loss.detach()
 
-        loss.backward()
-        self._maybe_run_optimizer(self.q_network_optimizer, self.minibatches_per_step)
+            loss.backward()
+            self._maybe_run_optimizer(
+                self.q_network_optimizer, self.minibatches_per_step
+            )
 
         # Use the soft update rule to update target network
         self._maybe_soft_update(
@@ -168,9 +172,8 @@ class DQNTrainer(DQNTrainerBase):
         )
 
         # Get Q-values of next states, used in computing cpe
-        with torch.no_grad():
-            next_state = rlt.StateInput(state=learning_input.next_state)
-            all_next_action_scores = self.q_network(next_state).q_values.detach()
+        next_state = rlt.StateInput(state=learning_input.next_state)
+        all_next_action_scores = self.q_network(next_state).q_values.detach()
 
         logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self.calculate_cpes(
@@ -212,6 +215,7 @@ class DQNTrainer(DQNTrainerBase):
             model_action_idxs=model_action_idxs,
         )
 
+    @torch.no_grad()  # type: ignore
     def calculate_cpes(
         self,
         training_batch,
@@ -241,50 +245,51 @@ class DQNTrainer(DQNTrainerBase):
             self.rl_temperature,
         )
 
-        ######### Train separate reward network for CPE evaluation #############
-        # FIXME: the reward network should be outputing a tensor, not a q-value object
-        reward_estimates = self.reward_network(states).q_values
-        reward_estimates_for_logged_actions = reward_estimates.gather(
-            1, self.reward_idx_offsets + logged_action_idxs
-        )
-        reward_loss = F.mse_loss(
-            reward_estimates_for_logged_actions, metrics_reward_concat_real_vals
-        )
-        reward_loss.backward()
-        self._maybe_run_optimizer(
-            self.reward_network_optimizer, self.minibatches_per_step
-        )
-
-        ######### Train separate q-network for CPE evaluation #############
-        metric_q_values = self.q_network_cpe(states).q_values.gather(
-            1, self.reward_idx_offsets + logged_action_idxs
-        )
-        all_metrics_target_q_values = torch.chunk(
-            self.q_network_cpe_target(next_states).q_values.detach(),
-            len(self.metrics_to_score),
-            dim=1,
-        )
-        target_metric_q_values = []
-        for i, per_metric_target_q_values in enumerate(all_metrics_target_q_values):
-            per_metric_next_q_values = torch.sum(
-                per_metric_target_q_values * model_propensities_next_states,
-                1,
-                keepdim=True,
+        with torch.enable_grad():
+            ######### Train separate reward network for CPE evaluation #############
+            # FIXME: the reward network should be outputing a tensor, not a q-value object
+            reward_estimates = self.reward_network(states).q_values
+            reward_estimates_for_logged_actions = reward_estimates.gather(
+                1, self.reward_idx_offsets + logged_action_idxs
             )
-            per_metric_next_q_values = per_metric_next_q_values * not_done_mask
-            per_metric_target_q_values = metrics_reward_concat_real_vals[
-                :, i : i + 1
-            ] + (discount_tensor * per_metric_next_q_values)
-            target_metric_q_values.append(per_metric_target_q_values)
+            reward_loss = F.mse_loss(
+                reward_estimates_for_logged_actions, metrics_reward_concat_real_vals
+            )
+            reward_loss.backward()
+            self._maybe_run_optimizer(
+                self.reward_network_optimizer, self.minibatches_per_step
+            )
 
-        target_metric_q_values = torch.cat(target_metric_q_values, dim=1)
-        metric_q_value_loss = self.q_network_loss(
-            metric_q_values, target_metric_q_values
-        )
-        metric_q_value_loss.backward()
-        self._maybe_run_optimizer(
-            self.q_network_cpe_optimizer, self.minibatches_per_step
-        )
+            ######### Train separate q-network for CPE evaluation #############
+            metric_q_values = self.q_network_cpe(states).q_values.gather(
+                1, self.reward_idx_offsets + logged_action_idxs
+            )
+            all_metrics_target_q_values = torch.chunk(
+                self.q_network_cpe_target(next_states).q_values.detach(),
+                len(self.metrics_to_score),
+                dim=1,
+            )
+            target_metric_q_values = []
+            for i, per_metric_target_q_values in enumerate(all_metrics_target_q_values):
+                per_metric_next_q_values = torch.sum(
+                    per_metric_target_q_values * model_propensities_next_states,
+                    1,
+                    keepdim=True,
+                )
+                per_metric_next_q_values = per_metric_next_q_values * not_done_mask
+                per_metric_target_q_values = metrics_reward_concat_real_vals[
+                    :, i : i + 1
+                ] + (discount_tensor * per_metric_next_q_values)
+                target_metric_q_values.append(per_metric_target_q_values)
+
+            target_metric_q_values = torch.cat(target_metric_q_values, dim=1)
+            metric_q_value_loss = self.q_network_loss(
+                metric_q_values, target_metric_q_values
+            )
+            metric_q_value_loss.backward()
+            self._maybe_run_optimizer(
+                self.q_network_cpe_optimizer, self.minibatches_per_step
+            )
 
         # Use the soft update rule to update target network
         self._maybe_soft_update(
@@ -310,17 +315,16 @@ class DQNTrainer(DQNTrainerBase):
         ]
         return reward_loss, model_rewards, model_propensities
 
+    @torch.no_grad()  # type: ignore
     def internal_prediction(self, input):
         """
         Only used by Gym
         """
         self.q_network.eval()
-        with torch.no_grad():
-            input = torch.from_numpy(np.array(input)).type(self.dtype)
-            q_values = self.q_network(
-                rlt.StateInput(rlt.FeatureVector(float_features=input))
-            )
-            q_values = q_values.q_values.cpu()
+        q_values = self.q_network(
+            rlt.StateInput(rlt.FeatureVector(float_features=input))
+        )
+        q_values = q_values.q_values.cpu()
         self.q_network.train()
 
         if self.bcq:
@@ -330,17 +334,16 @@ class DQNTrainer(DQNTrainerBase):
             action_off_policy *= self.ACTION_NOT_POSSIBLE_VAL
             q_values += action_off_policy
 
-        return q_values.data.numpy()
+        return q_values
 
+    @torch.no_grad()  # type: ignore
     def internal_reward_estimation(self, input):
         """
         Only used by Gym
         """
         self.reward_network.eval()
-        with torch.no_grad():
-            input = torch.from_numpy(np.array(input)).type(self.dtype)
-            reward_estimates = self.reward_network(
-                rlt.StateInput(rlt.FeatureVector(float_features=input))
-            )
+        reward_estimates = self.reward_network(
+            rlt.StateInput(rlt.FeatureVector(float_features=input))
+        )
         self.reward_network.train()
-        return reward_estimates.q_values.cpu().data.numpy()
+        return reward_estimates.q_values.cpu()

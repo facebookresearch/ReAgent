@@ -4,7 +4,7 @@
 import logging
 import time
 from collections import OrderedDict
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class PageHandler:
-    def handle(self, tdp: TrainingDataPage) -> None:
+    def handle(self, tdp) -> None:
         raise NotImplementedError()
 
     def finish(self) -> None:
@@ -48,7 +48,7 @@ class EvaluationPageHandler(PageHandler):
     def __init__(self, trainer, evaluator, reporter):
         self.trainer = trainer
         self.evaluator = evaluator
-        self.evaluation_data: EvaluationDataPage = None
+        self.evaluation_data: Optional[EvaluationDataPage] = None
         self.reporter = reporter
         self.results: List[CpeDetails] = []
 
@@ -85,8 +85,10 @@ class EvaluationPageHandler(PageHandler):
             return
         # Making sure the data is sorted for CPE
         self.evaluation_data = self.evaluation_data.sort()
-        self.evaluation_data = self.evaluation_data.compute_values(self.trainer.gamma)
-        self.evaluation_data.validate()
+        self.evaluation_data = self.evaluation_data.compute_values(  # type: ignore
+            self.trainer.gamma
+        )  # type: ignore
+        self.evaluation_data.validate()  # type: ignore
         start_time = time.time()
         evaluation_details = self.evaluator.evaluate_post_training(self.evaluation_data)
         self.reporter.report(evaluation_details)
@@ -131,13 +133,15 @@ class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
     """ Train a baseline model based on randomly shuffled data """
 
     def handle(self, tdp: TrainingBatch) -> None:
-        batch_size, _, _ = tdp.training_input.next_state.size()
+        batch_size, _, _ = tdp.training_input.next_state.size()  # type: ignore
         tdp = TrainingBatch(
             training_input=MemoryNetworkInput(
                 state=tdp.training_input.state,
                 action=tdp.training_input.action,
                 # shuffle the data
-                next_state=tdp.training_input.next_state[torch.randperm(batch_size)],
+                next_state=tdp.training_input.next_state[  # type: ignore
+                    torch.randperm(batch_size)
+                ],  # type: ignore
                 reward=tdp.training_input.reward[torch.randperm(batch_size)],
                 not_terminal=tdp.training_input.not_terminal[
                     torch.randperm(batch_size)

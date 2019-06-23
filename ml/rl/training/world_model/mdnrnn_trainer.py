@@ -109,7 +109,7 @@ class MDNRNNTrainer:
         if batch_first:
             state, action, next_state, reward, not_terminal = transpose(
                 learning_input.state.float_features,
-                learning_input.action.float_features,
+                learning_input.action.float_features,  # type: ignore
                 learning_input.next_state,
                 learning_input.reward,
                 learning_input.not_terminal,

@@ -63,8 +63,8 @@ class RLTrainer:
         if use_gpu and cuda_available:
             logger.info("Using GPU: GPU requested and available.")
             self.use_gpu = True
-            self.dtype = torch.cuda.FloatTensor
-            self.dtypelong = torch.cuda.LongTensor
+            self.dtype = torch.cuda.FloatTensor  # type: ignore
+            self.dtypelong = torch.cuda.LongTensor  # type: ignore
         else:
             logger.info("NOT Using GPU: GPU not requested or not available.")
             self.use_gpu = False
@@ -91,6 +91,7 @@ class RLTrainer:
                 "{} optimizer not implemented".format(optimizer_name)
             )
 
+    @torch.no_grad()  # type: ignore
     def _soft_update(self, network, target_network, tau) -> None:
         """ Target network update logic as defined in DDPG paper
         updated_params = tau * network_params + (1 - tau) * target_network_params
@@ -106,6 +107,7 @@ class RLTrainer:
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 
+    @torch.no_grad()  # type: ignore
     def _maybe_soft_update(
         self, network, target_network, tau, minibatches_per_step
     ) -> None:
@@ -123,7 +125,7 @@ class RLTrainer:
         optimizer.step()
         optimizer.zero_grad()
 
-    def train(self, training_samples, evaluator=None) -> None:
+    def train(self, training_samples) -> None:
         raise NotImplementedError()
 
     def state_dict(self):
@@ -139,33 +141,33 @@ class RLTrainer:
         """
         raise NotImplementedError
 
+    @torch.no_grad()  # type: ignore
     def internal_prediction(self, input):
         """ Q-network forward pass method for internal domains.
         :param input input to network
         """
         self.q_network.eval()
-        with torch.no_grad():
-            input = torch.from_numpy(np.array(input)).type(self.dtype)
-            q_values = self.q_network(input)
+        input = torch.from_numpy(np.array(input)).type(self.dtype)
+        q_values = self.q_network(input)
         self.q_network.train()
-        return q_values.cpu().data.numpy()
+        return q_values.cpu()
 
+    @torch.no_grad()  # type: ignore
     def internal_reward_estimation(self, input):
         """ Reward-network forward pass for internal domains. """
         self.reward_network.eval()
-        with torch.no_grad():
-            input = torch.from_numpy(np.array(input)).type(self.dtype)
-            reward_estimates = self.reward_network(input)
+        input = torch.from_numpy(np.array(input)).type(self.dtype)
+        reward_estimates = self.reward_network(input)
         self.reward_network.train()
-        return reward_estimates.cpu().data.numpy()
+        return reward_estimates.cpu()
 
 
 def rescale_torch_tensor(
-    tensor: torch.tensor,
-    new_min: torch.tensor,
-    new_max: torch.tensor,
-    prev_min: torch.tensor,
-    prev_max: torch.tensor,
+    tensor: torch.Tensor,
+    new_min: torch.Tensor,
+    new_max: torch.Tensor,
+    prev_min: torch.Tensor,
+    prev_max: torch.Tensor,
 ):
     """
     Rescale column values in N X M torch tensor to be in new range.

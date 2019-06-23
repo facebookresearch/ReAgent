@@ -30,7 +30,17 @@ class CpeEstimateSet(NamedTuple):
     weighted_doubly_robust: Optional[CpeEstimate] = None
     magic: Optional[CpeEstimate] = None
 
+    def check_estimates_exist(self):
+        assert self.direct_method is not None
+        assert self.inverse_propensity is not None
+        assert self.doubly_robust is not None
+        assert self.sequential_doubly_robust is not None
+        assert self.weighted_doubly_robust is not None
+        assert self.magic is not None
+
     def log(self):
+        self.check_estimates_exist()
+
         logger.info(
             "Reward Inverse Propensity Score : normalized {0:.3f} +/- {0:.3f} raw {1:.3f} +/- {1:.3f}".format(
                 self.inverse_propensity.normalized,
@@ -84,6 +94,8 @@ class CpeEstimateSet(NamedTuple):
         )
 
     def log_to_tensorboard(self, metric_name: str) -> None:
+        self.check_estimates_exist()
+
         def none_to_zero(x: Optional[float]) -> float:
             if x is None or math.isnan(x):
                 return 0.0
@@ -92,25 +104,25 @@ class CpeEstimateSet(NamedTuple):
         for name, value in [
             (
                 "CPE/{}/Direct_Method_Reward".format(metric_name),
-                self.direct_method.normalized,
+                self.direct_method.normalized,  # type: ignore
             ),
             (
                 "CPE/{}/IPS_Reward".format(metric_name),
-                self.inverse_propensity.normalized,
+                self.inverse_propensity.normalized,  # type: ignore
             ),
             (
                 "CPE/{}/Doubly_Robust_Reward".format(metric_name),
-                self.doubly_robust.normalized,
+                self.doubly_robust.normalized,  # type: ignore
             ),
             (
                 "CPE/{}/Sequential_Doubly_Robust".format(metric_name),
-                self.sequential_doubly_robust.normalized,
+                self.sequential_doubly_robust.normalized,  # type: ignore
             ),
             (
                 "CPE/{}/Weighted_Sequential_Doubly_Robust".format(metric_name),
-                self.weighted_doubly_robust.normalized,
+                self.weighted_doubly_robust.normalized,  # type: ignore
             ),
-            ("CPE/{}/MAGIC".format(metric_name), self.magic.normalized),
+            ("CPE/{}/MAGIC".format(metric_name), self.magic.normalized),  # type: ignore
         ]:
             SummaryWriterContext.add_scalar(name, none_to_zero(value))
 
