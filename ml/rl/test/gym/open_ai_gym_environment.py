@@ -206,7 +206,33 @@ class OpenAIGymEnvironment(Environment):
         if state_preprocessor:
             state = state_preprocessor.forward(state)
 
-        if predictor.policy_net():  # type: ignore
+        if isinstance(predictor, DQNPredictor):
+            action_probability = 1.0 if test else 1.0 - self.epsilon
+            # Use DQNPredictor directly - useful to test caffe2 predictor
+            # assumes state preprocessor already part of predictor net.
+            sparse_states = predictor.in_order_dense_to_sparse(state)
+            q_values = predictor.predict(sparse_states)
+            action_idx = int(max(q_values[0], key=q_values[0].get)) - self.state_dim
+            action[action_idx] = 1.0
+            return action, action_probability
+        elif isinstance(predictor, ParametricDQNPredictor):
+            # Needs to get a list of candidate actions if actions are continuous
+            if self.action_type == EnvType.CONTINUOUS_ACTION:
+                raise NotImplementedError()
+            action_probability = 1.0 if test else 1.0 - self.epsilon
+            state = np.repeat(state, repeats=self.action_dim, axis=0)
+            sparse_states = predictor.in_order_dense_to_sparse(state)
+            sparse_actions = [
+                {str(i + self.state_dim): 1} for i in range(self.action_dim)
+            ]
+            q_values = predictor.predict(sparse_states, sparse_actions)
+            q_values = np.fromiter(
+                map(lambda x: x["Q"], q_values), np.float  # type: ignore
+            ).reshape(self.action_dim)
+            action_idx = np.argmax(q_values)
+            action[action_idx] = 1.0
+            return action, action_probability
+        elif predictor.policy_net():  # type: ignore
             action_set = predictor.policy(state)  # type: ignore
             action, action_probability = action_set.greedy, action_set.greedy_propensity
             action = action[0, :]
