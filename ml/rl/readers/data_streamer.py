@@ -103,12 +103,12 @@ def _worker_loop(
             del samples
 
 
-def _pin_memory_loop(in_queue, out_queue, done_event, pin_memory, device_id):
+def _pin_memory_loop(in_queue, out_queue, done_event, pin_memory_param, device_id):
     """
     This is copied from dataloader. It uses a different `pin_memory()`.
     It'd probably be best to merge.
     """
-    if pin_memory:
+    if pin_memory_param:
         torch.cuda.set_device(device_id)
 
     while True:
@@ -125,7 +125,7 @@ def _pin_memory_loop(in_queue, out_queue, done_event, pin_memory, device_id):
             continue
         idx, batch = r
         try:
-            if pin_memory:
+            if pin_memory_param:
                 batch = pin_memory(batch)
         except Exception:
             out_queue.put((idx, ExceptionWrapper(sys.exc_info())))
