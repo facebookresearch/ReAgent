@@ -18,7 +18,12 @@ class TestEnvironment(unittest.TestCase):
         num_samples = 1000
         num_steps = 5
         samples = env.generate_samples(
-            num_samples, epsilon=1.0, discount_factor=0.9, multi_steps=num_steps
+            num_samples,
+            epsilon=1.0,
+            discount_factor=0.9,
+            multi_steps=num_steps,
+            include_shorter_samples_at_start=True,
+            include_shorter_samples_at_end=True,
         )
         self._check_samples(samples, num_samples, num_steps, False)
 
@@ -27,7 +32,12 @@ class TestEnvironment(unittest.TestCase):
         num_samples = 1000
         num_steps = 5
         samples = env.generate_samples(
-            num_samples, epsilon=1.0, discount_factor=0.9, multi_steps=num_steps
+            num_samples,
+            epsilon=1.0,
+            discount_factor=0.9,
+            multi_steps=num_steps,
+            include_shorter_samples_at_start=True,
+            include_shorter_samples_at_end=True,
         )
         self._check_samples(samples, num_samples, num_steps, True)
 
@@ -41,7 +51,12 @@ class TestEnvironment(unittest.TestCase):
         num_samples = 1000
         num_steps = 5
         samples = env.generate_random_samples(
-            num_samples, use_continuous_action=True, epsilon=1.0, multi_steps=num_steps
+            num_samples,
+            use_continuous_action=True,
+            epsilon=1.0,
+            multi_steps=num_steps,
+            include_shorter_samples_at_start=True,
+            include_shorter_samples_at_end=True,
         )
         self._check_samples(samples, num_samples, num_steps, True)
 

@@ -43,8 +43,8 @@ def multi_step_sample_generator(
     num_transitions: int,
     max_steps: Optional[int],
     multi_steps: int,
-    ignore_shorter_samples_at_start: bool,
-    ignore_shorter_samples_at_end: bool,
+    include_shorter_samples_at_start: bool,
+    include_shorter_samples_at_end: bool,
 ):
     """
     Convert gym env multi-step sample format to mdn-rnn multi-step sample format
@@ -53,9 +53,9 @@ def multi_step_sample_generator(
     :param num_transitions: # of samples to return
     :param max_steps: An episode terminates when the horizon is beyond max_steps
     :param multi_steps: # of steps of states and actions per sample
-    :param ignore_shorter_samples_at_start: Whether to keep samples of shorter steps
+    :param include_shorter_samples_at_start: Whether to keep samples of shorter steps
         which are generated at the beginning of an episode
-    :param ignore_shorter_samples_at_end: Whether to keep samples of shorter steps
+    :param include_shorter_samples_at_end: Whether to keep samples of shorter steps
         which are generated at the end of an episode
     """
     samples = gym_env.generate_random_samples(
@@ -63,130 +63,95 @@ def multi_step_sample_generator(
         use_continuous_action=True,
         max_step=max_steps,
         multi_steps=multi_steps,
+        include_shorter_samples_at_start=include_shorter_samples_at_start,
+        include_shorter_samples_at_end=include_shorter_samples_at_end,
     )
 
-    transition_terminal_index = [-1]
-    for i in range(1, len(samples.mdp_ids)):
-        if samples.terminals[i][0] is True:  # type: ignore
-            assert len(samples.terminals[i]) == 1  # type: ignore
-            transition_terminal_index.append(i)
-
-    for i in range(len(transition_terminal_index) - 1):
-        episode_start = transition_terminal_index[i] + 1
-        episode_end = transition_terminal_index[i + 1]
-
-        for j in range(episode_start, episode_end + 1):
-            if (
-                ignore_shorter_samples_at_start
-                and len(samples.terminals[j]) < multi_steps  # type: ignore
-                and (
-                    j == episode_start
-                    or len(samples.terminals[j - 1])  # type: ignore
-                    < len(samples.terminals[j])  # type: ignore
+    for j in range(num_transitions):
+        sample_steps = len(samples.terminals[j])  # type: ignore
+        state = dict_to_np(samples.states[j], np_size=gym_env.state_dim, key_offset=0)
+        action = dict_to_np(
+            samples.actions[j], np_size=gym_env.action_dim, key_offset=gym_env.state_dim
+        )
+        next_actions = np.float32(  # type: ignore
+            [
+                dict_to_np(
+                    samples.next_actions[j][k],
+                    np_size=gym_env.action_dim,
+                    key_offset=gym_env.state_dim,
                 )
-            ):
-                continue
-            if (
-                ignore_shorter_samples_at_end
-                and len(samples.terminals[j]) < multi_steps  # type: ignore
-                and j > episode_start
-                and len(samples.terminals[j])  # type: ignore
-                < len(samples.terminals[j - 1])  # type: ignore
-            ):
-                continue
+                for k in range(sample_steps)
+            ]
+        )
+        next_states = np.float32(  # type: ignore
+            [
+                dict_to_np(
+                    samples.next_states[j][k], np_size=gym_env.state_dim, key_offset=0
+                )
+                for k in range(sample_steps)
+            ]
+        )
+        rewards = np.float32(samples.rewards[j])  # type: ignore
+        terminals = np.float32(samples.terminals[j])  # type: ignore
+        not_terminals = np.logical_not(terminals)
+        ordered_states = np.vstack((state, next_states))
+        ordered_actions = np.vstack((action, next_actions))
+        mdnrnn_states = ordered_states[:-1]
+        mdnrnn_actions = ordered_actions[:-1]
+        mdnrnn_next_states = ordered_states[-multi_steps:]
+        mdnrnn_next_actions = ordered_actions[-multi_steps:]
 
-            sample_steps = len(samples.terminals[j])  # type: ignore
-
-            state = dict_to_np(
-                samples.states[j], np_size=gym_env.state_dim, key_offset=0
-            )
-            action = dict_to_np(
-                samples.actions[j],
-                np_size=gym_env.action_dim,
-                key_offset=gym_env.state_dim,
-            )
-            next_actions = np.float32(  # type: ignore
-                [
-                    dict_to_np(
-                        samples.next_actions[j][k],
-                        np_size=gym_env.action_dim,
-                        key_offset=gym_env.state_dim,
-                    )
-                    for k in range(sample_steps)
-                ]
-            )
-            next_states = np.float32(  # type: ignore
-                [
-                    dict_to_np(
-                        samples.next_states[j][k],
-                        np_size=gym_env.state_dim,
-                        key_offset=0,
-                    )
-                    for k in range(sample_steps)
-                ]
-            )
-            rewards = np.float32(samples.rewards[j])  # type: ignore
-            terminals = np.float32(samples.terminals[j])  # type: ignore
-            not_terminals = np.logical_not(terminals)
-            ordered_states = np.vstack((state, next_states))
-            ordered_actions = np.vstack((action, next_actions))
-            mdnrnn_states = ordered_states[:-1]
-            mdnrnn_actions = ordered_actions[:-1]
-            mdnrnn_next_states = ordered_states[-multi_steps:]
-            mdnrnn_next_actions = ordered_actions[-multi_steps:]
-
-            # Padding zeros so that all samples have equal steps
-            # The general rule is to pad zeros at the end of sequences.
-            # In addition, if the sequence only has one step (i.e., the
-            # first state of an episode), pad one zero row ahead of the
-            # sequence, which enables embedding generated properly for
-            # one-step samples
-            sample_steps = len(mdnrnn_states)
-            num_padded_top_rows = 1 if multi_steps > 1 and sample_steps == 1 else 0
-            num_padded_bottom_rows = multi_steps - sample_steps - num_padded_top_rows
-            sample_steps_next = len(mdnrnn_next_states)
-            num_padded_top_rows_next = 0
-            num_padded_bottom_rows_next = multi_steps - sample_steps_next
-            yield (
-                np.pad(
-                    mdnrnn_states,
-                    ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
-                    "constant",
-                    constant_values=0.0,
-                ),
-                np.pad(
-                    mdnrnn_actions,
-                    ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
-                    "constant",
-                    constant_values=0.0,
-                ),
-                np.pad(
-                    rewards,
-                    ((num_padded_top_rows, num_padded_bottom_rows)),
-                    "constant",
-                    constant_values=0.0,
-                ),
-                np.pad(
-                    mdnrnn_next_states,
-                    ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
-                    "constant",
-                    constant_values=0.0,
-                ),
-                np.pad(
-                    mdnrnn_next_actions,
-                    ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
-                    "constant",
-                    constant_values=0.0,
-                ),
-                np.pad(
-                    not_terminals,
-                    ((num_padded_top_rows, num_padded_bottom_rows)),
-                    "constant",
-                    constant_values=0.0,
-                ),
-                sample_steps,
-                sample_steps_next,
-            )
+        # Padding zeros so that all samples have equal steps
+        # The general rule is to pad zeros at the end of sequences.
+        # In addition, if the sequence only has one step (i.e., the
+        # first state of an episode), pad one zero row ahead of the
+        # sequence, which enables embedding generated properly for
+        # one-step samples
+        num_padded_top_rows = 1 if multi_steps > 1 and sample_steps == 1 else 0
+        num_padded_bottom_rows = multi_steps - sample_steps - num_padded_top_rows
+        sample_steps_next = len(mdnrnn_next_states)
+        num_padded_top_rows_next = 0
+        num_padded_bottom_rows_next = multi_steps - sample_steps_next
+        yield (
+            np.pad(
+                mdnrnn_states,
+                ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                mdnrnn_actions,
+                ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                rewards,
+                ((num_padded_top_rows, num_padded_bottom_rows)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                mdnrnn_next_states,
+                ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                mdnrnn_next_actions,
+                ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                not_terminals,
+                ((num_padded_top_rows, num_padded_bottom_rows)),
+                "constant",
+                constant_values=0.0,
+            ),
+            sample_steps,
+            sample_steps_next,
+        )
 
 
 def get_replay_buffer(
@@ -211,8 +176,8 @@ def get_replay_buffer(
         num_transitions=num_transitions,
         max_steps=max_step,
         multi_steps=seq_len,
-        ignore_shorter_samples_at_start=True,
-        ignore_shorter_samples_at_end=True,
+        include_shorter_samples_at_start=False,
+        include_shorter_samples_at_end=False,
     ):
         mdnrnn_state, mdnrnn_action, next_states, rewards, not_terminals = (
             torch.tensor(mdnrnn_state),
@@ -401,8 +366,8 @@ def create_embed_rl_dataset(
                 # +1 because MDNRNN embeds the first seq_len steps and then
                 # the embedded state will be concatenated with the last step
                 multi_steps=seq_len + 1,
-                ignore_shorter_samples_at_start=False,
-                ignore_shorter_samples_at_end=True,
+                include_shorter_samples_at_start=True,
+                include_shorter_samples_at_end=False,
             )
         ),
     )
@@ -457,7 +422,10 @@ def create_embed_rl_dataset(
             .cpu()
         )
         next_state_embed = torch.cat(
-            (next_hidden_embed, torch.tensor(next_state_batch[i][next_hidden_idx + 1]))  # type: ignore
+            (
+                next_hidden_embed,
+                torch.tensor(next_state_batch[i][next_hidden_idx + 1]),  # type: ignore
+            )
         )
 
         logger.debug(

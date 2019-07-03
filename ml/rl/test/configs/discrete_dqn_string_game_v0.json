@@ -32,6 +32,6 @@
     "test_after_ts": 1,
     "num_train_batches": 1,
     "avg_over_num_episodes": 10,
-    "offline_train_epochs": 30
+    "offline_train_epochs": 25
   }
 }

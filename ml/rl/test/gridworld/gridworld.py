@@ -19,12 +19,16 @@ class Gridworld(GridworldBase):
         epsilon,
         discount_factor,
         multi_steps: Optional[int] = None,
+        include_shorter_samples_at_start: bool = False,
+        include_shorter_samples_at_end: bool = True,
     ) -> Union[Samples, MultiStepSamples]:
         return self.generate_random_samples(
             num_transitions,
             use_continuous_action=False,
             epsilon=epsilon,
             multi_steps=multi_steps,
+            include_shorter_samples_at_start=include_shorter_samples_at_start,
+            include_shorter_samples_at_end=include_shorter_samples_at_end,
         )
 
     def preprocess_samples(

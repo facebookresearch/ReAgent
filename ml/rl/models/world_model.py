@@ -26,10 +26,6 @@ class MemoryNetwork(ModelBase):
         self.num_hidden_layers = num_hidden_layers
         self.num_gaussians = num_gaussians
 
-    @property
-    def device(self):
-        return next(self.mdnrnn.parameters()).device
-
     def get_distributed_data_parallel_model(self):
         return _DistributedDataParallelMemoryNetwork(self)
 

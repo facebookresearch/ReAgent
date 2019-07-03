@@ -124,6 +124,7 @@ class TestGridworldSAC(GridworldTestBase):
             q1_network,
             actor_network,
             parameters,
+            use_gpu=use_gpu,
             value_network=value_network,
             q2_network=q2_network,
         )

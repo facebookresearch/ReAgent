@@ -287,7 +287,7 @@ class LossReporter(object):
 
         self.incoming_stats.clear()
 
-    def get_last_n_td_loss(self, n):
+    def get_td_loss_after_n(self, n):
         return self.td_loss[n:]
 
     def get_recent_td_loss(self):

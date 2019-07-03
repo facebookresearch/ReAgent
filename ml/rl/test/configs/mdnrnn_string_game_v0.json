@@ -13,11 +13,11 @@
   },
   "run_details": {
     "seq_len": 3,
-    "num_train_episodes": 10000,
+    "num_train_episodes": 4000,
     "num_test_episodes": 100,
-    "num_state_embed_episodes": 2500,
+    "num_state_embed_episodes": 1800,
     "max_steps": 6,
-    "train_epochs": 5,
-    "early_stopping_patience": 5
+    "train_epochs": 6,
+    "early_stopping_patience": 6
   }
 }

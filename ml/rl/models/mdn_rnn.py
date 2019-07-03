@@ -74,6 +74,9 @@ class MDNRNN(_MDNRNNBase):
             ) torch tensor
             - all_steps_hidden: (SEQ_LEN, BATCH_SIZE, HIDDEN_SIZE) torch tensor
         """
+        device = next(self.parameters()).device
+        actions = actions.to(device)
+        states = states.to(device)
         seq_len, batch_size = actions.size(0), actions.size(1)
         ins = torch.cat([actions, states], dim=-1)
         all_steps_hidden, last_step_hidden_and_cell = self.rnn(ins, hidden)
