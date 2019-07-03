@@ -20,9 +20,10 @@ class OnPolicyPredictor(object):
     Use the classes in off_policy_predictor.py
     """
 
-    def __init__(self, trainer, action_dim: int):
+    def __init__(self, trainer, action_dim: int, use_gpu: bool):
         self.trainer = trainer
         self.action_dim = action_dim
+        self.use_gpu = use_gpu
 
     def policy_net(self) -> bool:
         """
@@ -42,6 +43,8 @@ class DiscreteDQNOnPolicyPredictor(OnPolicyPredictor):
         self, state: torch.Tensor, possible_actions_presence: torch.Tensor
     ) -> DqnPolicyActionSet:
         assert state.size()[0] == 1, "Only pass in one state when getting a policy"
+        if self.use_gpu:
+            state = state.cuda()
         q_scores = self.predict(state)
         assert q_scores.shape[0] == 1
 
@@ -82,6 +85,9 @@ class ParametricDQNOnPolicyPredictor(OnPolicyPredictor):
         assert possible_actions.size()[1] == self.action_dim
         assert possible_actions.size()[0] == possible_actions_presence.size()[0]
 
+        if self.use_gpu:
+            states = states.cuda()
+            possible_actions = possible_actions.cuda()
         q_scores = self.predict(states, possible_actions)
 
         # set impossible actions so low that they can't be picked

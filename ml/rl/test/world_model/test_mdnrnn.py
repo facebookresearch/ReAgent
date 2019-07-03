@@ -91,12 +91,12 @@ class TestMDNRNN(unittest.TestCase):
 
         possible_actions = torch.eye(action_dim)
         for _ in range(num_episodes):
-            cur_state_mem = np.zeros((seq_len, state_dim))
-            next_state_mem = np.zeros((seq_len, state_dim))
-            action_mem = np.zeros((seq_len, action_dim))
-            reward_mem = np.zeros(seq_len)
-            not_terminal_mem = np.zeros(seq_len)
-            next_mus_mem = np.zeros((seq_len, simulated_num_gaussians, state_dim))
+            cur_state_mem = torch.zeros((seq_len, state_dim))
+            next_state_mem = torch.zeros((seq_len, state_dim))
+            action_mem = torch.zeros((seq_len, action_dim))
+            reward_mem = torch.zeros(seq_len)
+            not_terminal_mem = torch.zeros(seq_len)
+            next_mus_mem = torch.zeros((seq_len, simulated_num_gaussians, state_dim))
 
             swm.init_hidden(batch_size=1)
             next_state = torch.randn((1, 1, state_dim))
@@ -116,12 +116,12 @@ class TestMDNRNN(unittest.TestCase):
                 index = Categorical(next_pi).sample((1,)).long().item()
                 next_state = next_mus[0, 0, index].view(1, 1, state_dim)
 
-                cur_state_mem[s] = cur_state.detach().numpy()
-                action_mem[s] = action.numpy()
-                reward_mem[s] = reward.detach().numpy()
+                cur_state_mem[s] = cur_state.detach()
+                action_mem[s] = action
+                reward_mem[s] = reward.detach()
                 not_terminal_mem[s] = not_terminal
-                next_state_mem[s] = next_state.detach().numpy()
-                next_mus_mem[s] = next_mus.detach().numpy()
+                next_state_mem[s] = next_state.detach()
+                next_mus_mem[s] = next_mus.detach()
 
             replay_buffer.insert_into_memory(
                 cur_state_mem, action_mem, next_state_mem, reward_mem, not_terminal_mem

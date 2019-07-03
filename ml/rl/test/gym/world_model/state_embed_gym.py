@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import argparse
-import functools
 import json
 import logging
 import sys
@@ -14,7 +13,6 @@ import torch
 from gym import Env
 from gym.spaces import Box
 from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.test.base.utils import only_continuous_normalizer
 from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 from ml.rl.test.gym.run_gym import (
@@ -27,7 +25,6 @@ from ml.rl.test.gym.run_gym import (
 from ml.rl.test.gym.world_model.mdnrnn_gym import create_embed_rl_dataset, mdnrnn_gym
 from ml.rl.thrift.core.ttypes import RLParameters
 from ml.rl.training.rl_dataset import RLDataset
-from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
 logger = logging.getLogger(__name__)
@@ -80,15 +77,20 @@ class StateEmbedGymEnvironment(Env):
             mdnrnn_state = np.array(list(self.recent_states))
             mdnrnn_action = np.array(list(self.recent_actions))
 
-        mdnrnn_state = torch.tensor(mdnrnn_state, dtype=torch.float).unsqueeze(1)
-        mdnrnn_action = torch.tensor(mdnrnn_action, dtype=torch.float).unsqueeze(1)
+        device = self.mdnrnn.device
+        mdnrnn_state = torch.tensor(
+            mdnrnn_state, dtype=torch.float, device=device
+        ).unsqueeze(1)
+        mdnrnn_action = torch.tensor(
+            mdnrnn_action, dtype=torch.float, device=device
+        ).unsqueeze(1)
         mdnrnn_input = rlt.StateAction(
             state=rlt.FeatureVector(float_features=mdnrnn_state),
             action=rlt.FeatureVector(float_features=mdnrnn_action),
         )
         mdnrnn_output = self.mdnrnn(mdnrnn_input)
         hidden_embed = (
-            mdnrnn_output.all_steps_lstm_hidden[-1].squeeze().detach().numpy()
+            mdnrnn_output.all_steps_lstm_hidden[-1].squeeze().detach().cpu().numpy()
         )
         state_embed = np.hstack((hidden_embed, state))
         self.mdnrnn.mdnrnn.train(old_mdnrnn_mode)
@@ -213,9 +215,9 @@ def run_gym(
     for row in embed_rl_dataset.rows:
         replay_buffer.insert_into_memory(**row)
 
-    state_mem = np.array([m[0] for m in replay_buffer.replay_memory])
-    state_min_value = np.amin(state_mem)
-    state_max_value = np.amax(state_mem)
+    state_mem = torch.cat([m[0] for m in replay_buffer.replay_memory])
+    state_min_value = torch.min(state_mem).item()
+    state_max_value = torch.max(state_mem).item()
     state_embed_env = StateEmbedGymEnvironment(
         gym_env, mdnrnn, max_embed_seq_len, state_min_value, state_max_value
     )

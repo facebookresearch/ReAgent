@@ -9,6 +9,7 @@ import numpy as np
 import torch
 from caffe2.python import workspace
 from ml.rl.test.gym.open_ai_gym_environment import ModelType
+from ml.rl.torch_utils import stack
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -62,8 +63,8 @@ class OpenAIGymMemoryPool:
             for col, value in zip(cols, memory):
                 col.append(value)
 
-        states = torch.stack(cols[0])
-        next_states = torch.stack(cols[3])
+        states = stack(cols[0])
+        next_states = stack(cols[3])
 
         assert states.dim() == 2
         assert next_states.dim() == 2
@@ -71,8 +72,8 @@ class OpenAIGymMemoryPool:
         if model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
             num_possible_actions = len(cols[7][0])
 
-            actions = torch.stack(cols[1])
-            next_actions = torch.stack(cols[4])
+            actions = stack(cols[1])
+            next_actions = stack(cols[4])
 
             tiled_states = states.repeat(1, num_possible_actions).reshape(
                 -1, states.shape[1]
@@ -81,18 +82,16 @@ class OpenAIGymMemoryPool:
             possible_actions_state_concat = torch.cat(
                 (tiled_states, possible_actions), dim=1
             )
-            possible_actions_mask = torch.stack(cols[9])
-
-            possible_next_actions = torch.cat(cols[6])
+            possible_actions_mask = stack(cols[9])
 
             tiled_next_states = next_states.repeat(1, num_possible_actions).reshape(
                 -1, next_states.shape[1]
             )
-
+            possible_next_actions = torch.cat(cols[6])
             possible_next_actions_state_concat = torch.cat(
                 (tiled_next_states, possible_next_actions), dim=1
             )
-            possible_next_actions_mask = torch.stack(cols[7])
+            possible_next_actions_mask = stack(cols[7])
         else:
             possible_actions = None
             possible_actions_state_concat = None
@@ -101,27 +100,31 @@ class OpenAIGymMemoryPool:
             if cols[7] is None or cols[7][0] is None:
                 possible_next_actions_mask = None
             else:
-                possible_next_actions_mask = torch.stack(cols[7])
+                possible_next_actions_mask = stack(cols[7])
             if cols[9] is None or cols[9][0] is None:
                 possible_actions_mask = None
             else:
-                possible_actions_mask = torch.stack(cols[9])
+                possible_actions_mask = stack(cols[9])
 
-            actions = torch.stack(cols[1])
-            next_actions = torch.stack(cols[4])
+            actions = stack(cols[1])
+            next_actions = stack(cols[4])
 
             assert len(actions.size()) == 2
             assert len(next_actions.size()) == 2
+
+        rewards = torch.tensor(cols[2], dtype=torch.float32).reshape(-1, 1)
+        not_terminal = (1 - torch.tensor(cols[5], dtype=torch.int32)).reshape(-1, 1)
+        time_diffs = torch.tensor(cols[10], dtype=torch.int32).reshape(-1, 1)
 
         return TrainingDataPage(
             states=states,
             actions=actions,
             propensities=None,
-            rewards=torch.tensor(cols[2], dtype=torch.float32).reshape(-1, 1),
+            rewards=rewards,
             next_states=next_states,
             next_actions=next_actions,
-            not_terminal=(1 - torch.tensor(cols[5], dtype=torch.int32)).reshape(-1, 1),
-            time_diffs=torch.tensor(cols[10], dtype=torch.int32).reshape(-1, 1),
+            not_terminal=not_terminal,
+            time_diffs=time_diffs,
             possible_actions_mask=possible_actions_mask,
             possible_actions_state_concat=possible_actions_state_concat,
             possible_next_actions_mask=possible_next_actions_mask,

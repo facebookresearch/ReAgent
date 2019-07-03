@@ -333,7 +333,11 @@ def train_gym_offline_rl(
             trainer.train(samples)
 
         batch_td_loss = float(
-            torch.mean([stat.td_loss for stat in trainer.loss_reporter.incoming_stats])
+            torch.mean(
+                torch.tensor(
+                    [stat.td_loss for stat in trainer.loss_reporter.incoming_stats]
+                )
+            )
         )
         trainer.loss_reporter.flush()
         logger.info(
@@ -898,11 +902,11 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
 
 def create_predictor(trainer, model_type, use_gpu, action_dim=None):
     if model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim)
+        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim, use_gpu)
     elif model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
-        predictor = DiscreteDQNOnPolicyPredictor(trainer, action_dim)
+        predictor = DiscreteDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
-        predictor = ParametricDQNOnPolicyPredictor(trainer, action_dim)
+        predictor = ParametricDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
     return predictor
 
 

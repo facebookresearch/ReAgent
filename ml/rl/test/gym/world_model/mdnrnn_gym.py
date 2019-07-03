@@ -214,6 +214,13 @@ def get_replay_buffer(
         ignore_shorter_samples_at_start=True,
         ignore_shorter_samples_at_end=True,
     ):
+        mdnrnn_state, mdnrnn_action, next_states, rewards, not_terminals = (
+            torch.tensor(mdnrnn_state),
+            torch.tensor(mdnrnn_action),
+            torch.tensor(next_states),
+            torch.tensor(rewards),
+            torch.tensor(not_terminals),
+        )
         replay_buffer.insert_into_memory(
             mdnrnn_state, mdnrnn_action, next_states, rewards, not_terminals
         )
@@ -439,23 +446,18 @@ def create_embed_rl_dataset(
             .squeeze()
             .detach()
             .cpu()
-            .numpy()
         )
-        state_embed = np.hstack(
-            (hidden_embed, state_batch[i][hidden_idx + 1])  # type: ignore
-        )  # type: ignore
+        state_embed = torch.cat(
+            (hidden_embed, torch.tensor(state_batch[i][hidden_idx + 1]))  # type: ignore
+        )
         next_hidden_embed = (
             next_mdnrnn_output.all_steps_lstm_hidden[next_hidden_idx, i, :]
             .squeeze()
             .detach()
             .cpu()
-            .numpy()
         )
-        next_state_embed = np.hstack(
-            (
-                next_hidden_embed,
-                next_state_batch[i][next_hidden_idx + 1],  # type: ignore
-            )  # type: ignore
+        next_state_embed = torch.cat(
+            (next_hidden_embed, torch.tensor(next_state_batch[i][next_hidden_idx + 1]))  # type: ignore
         )
 
         logger.debug(
@@ -479,14 +481,16 @@ def create_embed_rl_dataset(
         )
         dataset.insert(
             state=state_embed,
-            action=action_batch[i][hidden_idx + 1],  # type: ignore
+            action=torch.tensor(action_batch[i][hidden_idx + 1]),  # type: ignore
             reward=reward_batch[i][hidden_idx + 1],  # type: ignore
             next_state=next_state_embed,
-            next_action=next_action_batch[i][next_hidden_idx + 1],  # type: ignore
-            terminal=terminal,
+            next_action=torch.tensor(
+                next_action_batch[i][next_hidden_idx + 1]  # type: ignore
+            ),
+            terminal=torch.tensor(terminal),
             possible_next_actions=possible_next_actions,
             possible_next_actions_mask=possible_next_actions_mask,
-            time_diff=1,
+            time_diff=torch.tensor(1),
             possible_actions=possible_actions,
             possible_actions_mask=possible_actions_mask,
             policy_id=0,

@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as f
 from ml.rl import types as rlt
+from ml.rl.torch_utils import stack
 from torch.distributions.normal import Normal
 
 
@@ -146,10 +147,10 @@ class MDNRNNMemoryPool:
         sample_indices = np.random.randint(self.memory_size, size=batch_size)
         device = torch.device("cuda") if use_gpu else torch.device("cpu")
         # state/next state shape: batch_size x seq_len x state_dim
-        # action shape: # state shape: batch_size x seq_len x action_dim
+        # action shape: batch_size x seq_len x action_dim
         # reward/not_terminal shape: batch_size x seq_len
         state, action, next_state, reward, not_terminal = map(
-            lambda x: torch.tensor(x, dtype=torch.float, device=device),
+            lambda x: stack(x).float().to(device),
             zip(*self.deque_sample(sample_indices)),
         )
 
