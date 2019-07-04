@@ -10,6 +10,8 @@ def stack(mems):
     than torch.cat + view
     Submitted an issue for investigation:
     https://github.com/pytorch/pytorch/issues/22462
+
+    FIXME: Remove this function after the issue above is resolved
     """
     shape = (-1, *mems[0].shape)
     return torch.cat(mems).view(*shape)

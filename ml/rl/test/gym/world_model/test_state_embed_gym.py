@@ -7,6 +7,7 @@ import unittest
 from typing import List
 
 import torch
+from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.test.gym.world_model.state_embed_gym import (
     create_mdnrnn_trainer_and_embed_dataset,
     run_gym,
@@ -22,6 +23,7 @@ DQN_STRING_GAME_JSON = "ml/rl/test/configs/discrete_dqn_string_game_v0.json"
 class TestStateEmbedGym(unittest.TestCase):
     def setUp(self):
         logging.getLogger().setLevel(logging.INFO)
+        SummaryWriterContext._reset_globals()
 
     @staticmethod
     def verify_result(reward_history: List[float], expected_reward: float):
