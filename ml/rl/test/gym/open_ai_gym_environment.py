@@ -21,6 +21,7 @@ from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 class ModelType(enum.Enum):
     CONTINUOUS_ACTION = "continuous"
     SOFT_ACTOR_CRITIC = "soft_actor_critic"
+    TD3 = "td3"
     PYTORCH_DISCRETE_DQN = "pytorch_discrete_dqn"
     PYTORCH_PARAMETRIC_DQN = "pytorch_parametric_dqn"
 

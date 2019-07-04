@@ -52,7 +52,7 @@ class OpenAIGymMemoryPool:
         cols = [[], [], [], [], [], [], [], [], [], [], [], []]
 
         if chunk is None:
-            indices = torch.randperm(len(self.replay_memory))[:batch_size]
+            indices = np.random.randint(0, len(self.replay_memory), size=batch_size)
         else:
             start_idx = chunk * batch_size
             end_idx = start_idx + batch_size

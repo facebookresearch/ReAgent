@@ -6,13 +6,12 @@ import json
 import logging
 import pickle
 import sys
-from copy import deepcopy
 
 import numpy as np
 import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
-from ml.rl.models.actor import GaussianFullyConnectedActor
+from ml.rl.models.actor import FullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.normalization import get_num_output_features
@@ -33,6 +32,8 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     SACModelParameters,
     SACTrainingParameters,
+    TD3ModelParameters,
+    TD3TrainingParameters,
     TrainingParameters,
 )
 from ml.rl.training.on_policy_predictor import (
@@ -42,6 +43,7 @@ from ml.rl.training.on_policy_predictor import (
 )
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
+from ml.rl.training.td3_trainer import TD3Trainer
 from ml.rl.workflow.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
@@ -80,10 +82,11 @@ def get_possible_actions(gym_env, model_type, terminal):
         possible_next_actions_mask = torch.tensor(
             [0 if terminal else 1 for __ in range(gym_env.action_dim)]
         )
-    elif model_type == ModelType.CONTINUOUS_ACTION.value:
-        possible_next_actions = None
-        possible_next_actions_mask = None
-    elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+    elif model_type in (
+        ModelType.CONTINUOUS_ACTION.value,
+        ModelType.SOFT_ACTOR_CRITIC.value,
+        ModelType.TD3.value,
+    ):
         possible_next_actions = None
         possible_next_actions_mask = None
     else:
@@ -382,6 +385,8 @@ def train_gym_online_rl(
     solved = False
     policy_id = 0
 
+    reward_sum = 0
+
     for i in range(num_episodes):
         if (
             max_episodes_to_run_after_solved is not None
@@ -397,6 +402,7 @@ def train_gym_online_rl(
         next_action, next_action_probability = gym_env.policy(
             predictor, next_state, False
         )
+
         reward_sum = 0
         ep_timesteps = 0
 
@@ -776,6 +782,32 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         trainer = create_parametric_dqn_trainer_from_params(
             trainer_params, env.normalization, env.normalization_action, use_gpu
         )
+
+    elif model_type == ModelType.TD3.value:
+        trainer_params = TD3ModelParameters(
+            rl=rl_parameters,
+            training=TD3TrainingParameters(
+                minibatch_size=params["td3_training"]["minibatch_size"],
+                q_network_optimizer=OptimizerParameters(
+                    **params["td3_training"]["q_network_optimizer"]
+                ),
+                actor_network_optimizer=OptimizerParameters(
+                    **params["td3_training"]["actor_network_optimizer"]
+                ),
+                use_2_q_functions=params["td3_training"]["use_2_q_functions"],
+                exploration_noise=params["td3_training"]["exploration_noise"],
+                initial_exploration_ts=params["td3_training"]["initial_exploration_ts"],
+                target_policy_smoothing=params["td3_training"][
+                    "target_policy_smoothing"
+                ],
+                noise_clip=params["td3_training"]["noise_clip"],
+                delayed_policy_update=params["td3_training"]["delayed_policy_update"],
+            ),
+            q_network=FeedForwardParameters(**params["td3_q_training"]),
+            actor_network=FeedForwardParameters(**params["td3_actor_training"]),
+        )
+        trainer = get_td3_trainer(env, trainer_params, use_gpu)
+
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
         value_network = None
         value_network_optimizer = None
@@ -819,6 +851,61 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         raise NotImplementedError("Model of type {} not supported".format(model_type))
 
     return trainer
+
+
+def get_td3_trainer(env, parameters, use_gpu):
+    state_dim = get_num_output_features(env.normalization)
+    action_dim = get_num_output_features(env.normalization_action)
+    q1_network = FullyConnectedParametricDQN(
+        state_dim,
+        action_dim,
+        parameters.q_network.layers,
+        parameters.q_network.activations,
+    )
+    q2_network = None
+    if parameters.training.use_2_q_functions:
+        q2_network = FullyConnectedParametricDQN(
+            state_dim,
+            action_dim,
+            parameters.q_network.layers,
+            parameters.q_network.activations,
+        )
+    actor_network = FullyConnectedActor(
+        state_dim,
+        action_dim,
+        parameters.actor_network.layers,
+        parameters.actor_network.activations,
+    )
+
+    min_action_range_tensor_training = torch.full((1, action_dim), -1)
+    max_action_range_tensor_training = torch.full((1, action_dim), 1)
+    min_action_range_tensor_serving = torch.FloatTensor(env.action_space.low).unsqueeze(
+        dim=0
+    )
+    max_action_range_tensor_serving = torch.FloatTensor(
+        env.action_space.high
+    ).unsqueeze(dim=0)
+
+    if use_gpu:
+        q1_network.cuda()
+        if q2_network:
+            q2_network.cuda()
+        actor_network.cuda()
+
+        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
+        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
+        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
+        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
+
+    trainer_args = [q1_network, actor_network, parameters]
+    trainer_kwargs = {
+        "q2_network": q2_network,
+        "min_action_range_tensor_training": min_action_range_tensor_training,
+        "max_action_range_tensor_training": max_action_range_tensor_training,
+        "min_action_range_tensor_serving": min_action_range_tensor_serving,
+        "max_action_range_tensor_serving": max_action_range_tensor_serving,
+    }
+    return TD3Trainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
 
 
 def get_sac_trainer(env, parameters, use_gpu):
@@ -901,8 +988,8 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
 
 
 def create_predictor(trainer, model_type, use_gpu, action_dim=None):
-    if model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim, use_gpu)
+    if model_type in (ModelType.TD3.value, ModelType.SOFT_ACTOR_CRITIC.value):
+        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim)
     elif model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
         predictor = DiscreteDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:

@@ -350,15 +350,15 @@ class SACTrainer(RLTrainer):
             return True
         return False
 
-    @torch.no_grad()  # type: ignore
-    def internal_prediction(self, states):
+    def internal_prediction(self, states, test=False):
         """ Returns list of actions output from actor network
         :param states states as list of states to produce actions for
         """
         self.actor_network.eval()
-        actions = self.actor_network(
-            rlt.StateInput(rlt.FeatureVector(float_features=states))
-        )
+        with torch.no_grad():
+            actions = self.actor_network(
+                rlt.StateInput(rlt.FeatureVector(float_features=states))
+            )
         # clamp actions to make sure actions are in the range
         clamped_actions = torch.max(
             torch.min(actions.action, self.max_action_range_tensor_training),
