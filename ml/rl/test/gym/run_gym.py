@@ -989,7 +989,7 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
 
 def create_predictor(trainer, model_type, use_gpu, action_dim=None):
     if model_type in (ModelType.TD3.value, ModelType.SOFT_ACTOR_CRITIC.value):
-        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim)
+        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim, use_gpu)
     elif model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
         predictor = DiscreteDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
