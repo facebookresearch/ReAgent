@@ -103,12 +103,12 @@ def _worker_loop(
             del samples
 
 
-def _pin_memory_loop(in_queue, out_queue, done_event, pin_memory, device_id):
+def _pin_memory_loop(in_queue, out_queue, done_event, pin_memory_param, device_id):
     """
-    This is copied from dataloader. It uses a different `pin_memory_batch()`.
+    This is copied from dataloader. It uses a different `pin_memory()`.
     It'd probably be best to merge.
     """
-    if pin_memory:
+    if pin_memory_param:
         torch.cuda.set_device(device_id)
 
     while True:
@@ -125,15 +125,15 @@ def _pin_memory_loop(in_queue, out_queue, done_event, pin_memory, device_id):
             continue
         idx, batch = r
         try:
-            if pin_memory:
-                batch = pin_memory_batch(batch)
+            if pin_memory_param:
+                batch = pin_memory(batch)
         except Exception:
             out_queue.put((idx, ExceptionWrapper(sys.exc_info())))
         else:
             out_queue.put((idx, batch))
 
 
-def pin_memory_batch(batch):
+def pin_memory(batch):
     """
     This is ripped off from dataloader. The only difference is that it preserves
     the type of Mapping so that the OrderedDict is maintained.
@@ -144,13 +144,13 @@ def pin_memory_batch(batch):
         return batch
     elif isinstance(batch, NamedTuple) or hasattr(batch, "_asdict"):
         return type(batch)(
-            **{name: pin_memory_batch(value) for name, value in batch._asdict().items()}
+            **{name: pin_memory(value) for name, value in batch._asdict().items()}
         )
     elif isinstance(batch, collections.Mapping):
         # NB: preserving OrderedDict
-        return type(batch)((k, pin_memory_batch(sample)) for k, sample in batch.items())
+        return type(batch)((k, pin_memory(sample)) for k, sample in batch.items())
     elif isinstance(batch, collections.Sequence):
-        return [pin_memory_batch(sample) for sample in batch]
+        return [pin_memory(sample) for sample in batch]
     else:
         return batch
 
@@ -249,7 +249,7 @@ class _DataStreamerIter(object):
         if self.num_workers == 0:  # same-process loading
             batch = next(self.data_reader_iter)  # May raise StopIteration
             if self.pin_memory:
-                batch = pin_memory_batch(batch)
+                batch = pin_memory(batch)
             return batch
 
         if self.batches_outstanding == 0:

@@ -4,6 +4,7 @@
 from typing import Dict
 
 import torch
+from ml.rl.models.base import ModelBase
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
@@ -28,7 +29,7 @@ def create_dqn_trainer_from_params(
 ):
     metrics_to_score = metrics_to_score or []
     if model.rainbow.dueling_architecture:
-        q_network = DuelingQNetwork(
+        q_network: ModelBase = DuelingQNetwork(
             layers=[get_num_output_features(normalization_parameters)]
             + model.training.layers[1:-1]
             + [len(model.actions)],

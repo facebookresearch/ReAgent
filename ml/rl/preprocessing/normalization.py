@@ -20,10 +20,10 @@ from thrift.transport.TTransport import TMemoryBuffer
 # This is required to run the code internally and externally, sigh...
 try:
     # Apache Thrift
-    from thrift.protocol.TJSONProtocol import TSimpleJSONProtocol
+    from thrift.protocol.TJSONProtocol import TSimpleJSONProtocol  # type: ignore
 except ImportError:
     # Facebook Thrift
-    from thrift.protocol.TSimpleJSONProtocol import TSimpleJSONProtocol
+    from thrift.protocol.TSimpleJSONProtocol import TSimpleJSONProtocol  # type: ignore
 
 
 logger = logging.getLogger(__name__)
@@ -235,6 +235,7 @@ def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
         params = NormalizationParameters(**json.loads(feature_parameters))
         # Check for negative enum IDs
         if params.feature_type == identify_types.ENUM:
+            assert params.possible_values is not None
             for x in params.possible_values:
                 if x < 0:
                     logger.fatal(

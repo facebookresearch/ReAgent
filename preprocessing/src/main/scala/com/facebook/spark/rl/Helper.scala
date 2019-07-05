@@ -40,13 +40,15 @@ object Helper {
   def getDataTypes(sqlContext: SQLContext,
                    tableName: String,
                    columnNames: List[String]): Map[String, String] = {
+    // null check is required because jackson doesn't care about default values
+    val notNullColumnNames = Option(columnNames).getOrElse(List[String]())
     val dt = sqlContext.sparkSession.catalog
       .listColumns(tableName)
       .collect
-      .filter(column => columnNames.contains(column.name))
+      .filter(column => notNullColumnNames.contains(column.name))
       .map(column => column.name -> column.dataType)
       .toMap
-    assert(dt.size == columnNames.size)
+    assert(dt.size == notNullColumnNames.size)
     dt
   }
 

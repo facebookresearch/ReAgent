@@ -1,0 +1,23 @@
+{
+  "env": "Pocman-v0",
+  "mdnrnn": {
+    "hidden_size": 50,
+    "num_hidden_layers": 2,
+    "minibatch_size": 1024,
+    "learning_rate": 0.001,
+    "num_gaussians": 5,
+    "reward_loss_weight": 1.0,
+    "next_state_loss_weight": 1.0,
+    "not_terminal_loss_weight": 0.0,
+    "fit_only_one_next_step": true
+  },
+  "run_details": {
+    "seq_len": 3,
+    "num_train_episodes": 1000,
+    "num_test_episodes": 100,
+    "num_state_embed_episodes": 2500,
+    "max_steps": 200,
+    "train_epochs": 10,
+    "early_stopping_patience": 10
+  }
+}

@@ -3,11 +3,13 @@
 
 import logging
 import random
+from typing import Optional
 
 import numpy as np
 import torch
 from caffe2.python import workspace
 from ml.rl.test.gym.open_ai_gym_environment import ModelType
+from ml.rl.torch_utils import stack
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
@@ -39,6 +41,10 @@ class OpenAIGymMemoryPool:
         Samples transitions from replay memory uniformly at random by default
         or pass chunk for deterministic sample.
 
+        *Note*: 1-D vectors such as state & action get stacked to make a 2-D
+        matrix, while a 2-D matrix such as possible_actions (in the parametric
+        case) get concatenated to make a bigger 2-D matrix
+
         :param batch_size: Number of sampled transitions to return.
         :param model_type: Model type (discrete, parametric).
         :param chunk: Index of chunk of data (for deterministic sampling).
@@ -46,7 +52,7 @@ class OpenAIGymMemoryPool:
         cols = [[], [], [], [], [], [], [], [], [], [], [], []]
 
         if chunk is None:
-            indices = np.random.permutation(len(self.replay_memory))[:batch_size]
+            indices = np.random.randint(0, len(self.replay_memory), size=batch_size)
         else:
             start_idx = chunk * batch_size
             end_idx = start_idx + batch_size
@@ -57,46 +63,35 @@ class OpenAIGymMemoryPool:
             for col, value in zip(cols, memory):
                 col.append(value)
 
-        states = torch.tensor(cols[0], dtype=torch.float32)
-        next_states = torch.tensor(cols[3], dtype=torch.float32)
+        states = stack(cols[0])
+        next_states = stack(cols[3])
+
+        assert states.dim() == 2
+        assert next_states.dim() == 2
 
         if model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
             num_possible_actions = len(cols[7][0])
 
-            actions = torch.tensor(cols[1], dtype=torch.float32)
-            possible_actions = []
-            for pa_matrix in cols[8]:
-                logger.info("PA" + str(pa_matrix))
-                for row in pa_matrix:
-                    possible_actions.append(row)
+            actions = stack(cols[1])
+            next_actions = stack(cols[4])
 
             tiled_states = states.repeat(1, num_possible_actions).reshape(
                 -1, states.shape[1]
             )
-            possible_actions = torch.tensor(possible_actions, dtype=torch.float32)
+            possible_actions = torch.cat(cols[8])
             possible_actions_state_concat = torch.cat(
                 (tiled_states, possible_actions), dim=1
             )
-            possible_actions_mask = torch.tensor(cols[9], dtype=torch.float32)
-
-            next_actions = torch.tensor(cols[4], dtype=torch.float32)
-            possible_next_actions = []
-            for pna_matrix in cols[6]:
-                for row in pna_matrix:
-                    logger.info("PNA" + str(row))
-                    possible_next_actions.append(row)
+            possible_actions_mask = stack(cols[9])
 
             tiled_next_states = next_states.repeat(1, num_possible_actions).reshape(
                 -1, next_states.shape[1]
             )
-
-            possible_next_actions = torch.tensor(
-                possible_next_actions, dtype=torch.float32
-            )
+            possible_next_actions = torch.cat(cols[6])
             possible_next_actions_state_concat = torch.cat(
                 (tiled_next_states, possible_next_actions), dim=1
             )
-            possible_next_actions_mask = torch.tensor(cols[7], dtype=torch.float32)
+            possible_next_actions_mask = stack(cols[7])
         else:
             possible_actions = None
             possible_actions_state_concat = None
@@ -105,26 +100,31 @@ class OpenAIGymMemoryPool:
             if cols[7] is None or cols[7][0] is None:
                 possible_next_actions_mask = None
             else:
-                possible_next_actions_mask = torch.tensor(cols[7], dtype=torch.float32)
+                possible_next_actions_mask = stack(cols[7])
             if cols[9] is None or cols[9][0] is None:
                 possible_actions_mask = None
             else:
-                possible_actions_mask = torch.tensor(cols[9], dtype=torch.float32)
+                possible_actions_mask = stack(cols[9])
 
-            actions = torch.tensor(cols[1], dtype=torch.float32)
-            next_actions = torch.tensor(cols[4], dtype=torch.float32)
+            actions = stack(cols[1])
+            next_actions = stack(cols[4])
+
+            assert len(actions.size()) == 2
+            assert len(next_actions.size()) == 2
+
+        rewards = torch.tensor(cols[2], dtype=torch.float32).reshape(-1, 1)
+        not_terminal = (1 - torch.tensor(cols[5], dtype=torch.int32)).reshape(-1, 1)
+        time_diffs = torch.tensor(cols[10], dtype=torch.int32).reshape(-1, 1)
 
         return TrainingDataPage(
             states=states,
             actions=actions,
             propensities=None,
-            rewards=torch.tensor(cols[2], dtype=torch.float32).reshape(-1, 1),
+            rewards=rewards,
             next_states=next_states,
             next_actions=next_actions,
-            not_terminal=torch.from_numpy(
-                np.logical_not(np.array(cols[5]), dtype=np.bool).astype(np.int32)
-            ).reshape(-1, 1),
-            time_diffs=torch.tensor(cols[10], dtype=torch.int32).reshape(-1, 1),
+            not_terminal=not_terminal,
+            time_diffs=time_diffs,
             possible_actions_mask=possible_actions_mask,
             possible_actions_state_concat=possible_actions_state_concat,
             possible_next_actions_mask=possible_next_actions_mask,
@@ -133,18 +133,18 @@ class OpenAIGymMemoryPool:
 
     def insert_into_memory(
         self,
-        state,
-        action,
-        reward,
-        next_state,
-        next_action,
-        terminal,
-        possible_next_actions,
-        possible_next_actions_mask,
-        time_diff,
-        possible_actions,
-        possible_actions_mask,
-        policy_id,
+        state: torch.Tensor,
+        action: torch.Tensor,
+        reward: float,
+        next_state: torch.Tensor,
+        next_action: torch.Tensor,
+        terminal: bool,
+        possible_next_actions: Optional[torch.Tensor],
+        possible_next_actions_mask: Optional[torch.Tensor],
+        time_diff: float,
+        possible_actions: Optional[torch.Tensor],
+        possible_actions_mask: Optional[torch.Tensor],
+        policy_id: str,
     ):
         """
         Inserts transition into replay memory in such a way that retrieving

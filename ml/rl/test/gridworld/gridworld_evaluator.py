@@ -6,8 +6,6 @@ from typing import List, Union
 
 import numpy as np
 import numpy.testing as npt
-import torch
-from ml.rl.caffe_utils import softmax
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import GridworldBase
@@ -61,7 +59,7 @@ class GridworldEvaluator(Evaluator):
         self.estimated_ltv_values = np.zeros(
             [len(self.logged_states), len(self._env.ACTIONS)], dtype=np.float32
         )
-        for action in range(len(self._env.ACTIONS)):
+        for action in range(len(self._env.ACTIONS)):  # type: ignore
             self.estimated_ltv_values[:, action] = self._env.true_values_for_sample(
                 self.logged_states,
                 [self._env.index_to_action(action)] * len(self.logged_states),
@@ -71,7 +69,7 @@ class GridworldEvaluator(Evaluator):
         self.estimated_reward_values = np.zeros(
             [len(self.logged_states), len(self._env.ACTIONS)], dtype=np.float32
         )
-        for action in range(len(self._env.ACTIONS)):
+        for action in range(len(self._env.ACTIONS)):  # type: ignore
             self.estimated_reward_values[:, action] = self._env.true_rewards_for_sample(
                 self.logged_states,
                 [self._env.index_to_action(action)] * len(self.logged_states),
@@ -185,7 +183,7 @@ class GridworldContinuousEvaluator(GridworldEvaluator):
         return self.evaluate_predictions(prediction, all_states_prediction)
 
 
-class GridworldDDPGEvaluator(GridworldContinuousEvaluator):
+class GridworldActorCriticEvaluator(GridworldContinuousEvaluator):
     def __init__(self, env, gamma) -> None:
         super().__init__(env, assume_optimal_policy=True, gamma=gamma)
         self.optimal_policy_samples = self._env.generate_samples(100, 0.0, self.gamma)

@@ -59,8 +59,7 @@ class BatchStats(NamedTuple):
             assert len(val.shape) == 1 or (
                 len(val.shape) == 2 and val.shape[1] == 1
             ), "Unexpected shape for {}: {}".format(field, val.shape)
-            SummaryWriterContext.add_histogram(log_key, val)
-            SummaryWriterContext.add_scalar("{}/mean".format(log_key), val.mean())
+            self._log_histogram_and_mean(log_key, val)
 
         for field, log_key in [
             ("model_propensities", "propensities/model"),
@@ -73,22 +72,28 @@ class BatchStats(NamedTuple):
             if (
                 len(val.shape) == 1 or (len(val.shape) == 2 and val.shape[1] == 1)
             ) and not actions:
-                SummaryWriterContext.add_histogram(log_key, val)
-                SummaryWriterContext.add_scalar("{}/mean".format(log_key), val.mean())
+                self._log_histogram_and_mean(log_key, val)
             elif len(val.shape) == 2 and val.shape[1] == len(actions):
                 for i, action in enumerate(actions):
-                    SummaryWriterContext.add_histogram(
-                        "{}/{}".format(log_key, action), val[:, i]
-                    )
-                    SummaryWriterContext.add_scalar(
-                        "{}/{}/mean".format(log_key, action), val[:, i].mean()
-                    )
+                    self._log_histogram_and_mean(f"{log_key}/{action}", val[:, i])
             else:
                 raise ValueError(
                     "Unexpected shape for {}: {}; actions: {}".format(
                         field, val.shape, actions
                     )
                 )
+
+    def _log_histogram_and_mean(self, log_key, val):
+        try:
+            SummaryWriterContext.add_histogram(log_key, val)
+            SummaryWriterContext.add_scalar(f"{log_key}/mean", val.mean())
+        except ValueError:
+            logger.warning(
+                f"Cannot create histogram for key: {log_key}; "
+                "this is likely because you have NULL value in your input; "
+                f"value: {val}"
+            )
+            raise
 
     @staticmethod
     def add_custom_scalars(action_names: Optional[List[str]]):
@@ -130,8 +135,7 @@ def merge_tensor_namedtuple_list(l, cls):
         assert len(not_none_vals) == 0 or len(not_none_vals) == len(vals)
         if not not_none_vals:
             return None
-        with torch.no_grad():
-            return torch.cat(not_none_vals, dim=0)
+        return torch.cat(not_none_vals, dim=0)
 
     return cls(**{f: merge_tensor(f) for f in cls._fields})
 
@@ -202,6 +206,7 @@ class LossReporter(object):
         if len(self.incoming_stats) >= self.loss_report_interval:
             self.flush()
 
+    @torch.no_grad()  # type: ignore
     def flush(self):
         if not len(self.incoming_stats):
             logger.info("Nothing to report")
@@ -282,7 +287,7 @@ class LossReporter(object):
 
         self.incoming_stats.clear()
 
-    def get_last_n_td_loss(self, n):
+    def get_td_loss_after_n(self, n):
         return self.td_loss[n:]
 
     def get_recent_td_loss(self):

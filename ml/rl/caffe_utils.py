@@ -97,7 +97,8 @@ class C2(metaclass=C2Meta):
         prefix = "{}:{}:{}:{}".format(
             C2._net.Name(), os.path.basename(tb[0].filename), tb[0].lineno, prefix
         )
-        return C2._net.NextBlob(prefix)
+        retval: str = C2._net.NextBlob(prefix)
+        return retval
 
 
 class StackedArray(object):

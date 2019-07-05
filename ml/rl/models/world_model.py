@@ -36,17 +36,24 @@ class MemoryNetwork(ModelBase):
         )
 
     def forward(self, input):
-        mus, sigmas, logpi, rewards, not_terminals, next_hiddens = self.mdnrnn(
-            input.action.float_features, input.state.float_features
-        )
+        (
+            mus,
+            sigmas,
+            logpi,
+            rewards,
+            not_terminals,
+            all_steps_hidden,
+            last_step_hidden_and_cell,
+        ) = self.mdnrnn(input.action.float_features, input.state.float_features)
         return rlt.MemoryNetworkOutput(
             mus=mus,
             sigmas=sigmas,
             logpi=logpi,
             reward=rewards,
             not_terminal=not_terminals,
-            next_lstm_hidden=next_hiddens[0],
-            next_lstm_cell=next_hiddens[1],
+            last_step_lstm_hidden=last_step_hidden_and_cell[0],
+            last_step_lstm_cell=last_step_hidden_and_cell[1],
+            all_steps_lstm_hidden=all_steps_hidden,
         )
 
 
@@ -75,15 +82,22 @@ class _DistributedDataParallelMemoryNetwork(ModelBase):
         return self.mem_net.cpu_model()
 
     def forward(self, input):
-        mus, sigmas, logpi, rewards, not_terminals, next_hiddens = self.data_parallel(
-            input.action.float_features, input.state.float_features
-        )
+        (
+            mus,
+            sigmas,
+            logpi,
+            rewards,
+            not_terminals,
+            all_steps_hidden,
+            last_step_hidden_and_cell,
+        ) = self.data_parallel(input.action.float_features, input.state.float_features)
         return rlt.MemoryNetworkOutput(
             mus=mus,
             sigmas=sigmas,
             logpi=logpi,
             reward=rewards,
             terminal=not_terminals,
-            next_lstm_hidden=next_hiddens[0],
-            next_lstm_cell=next_hiddens[1],
+            next_lstm_hidden=last_step_hidden_and_cell[0],
+            next_lstm_cell=last_step_hidden_and_cell[1],
+            all_steps_lstm_hidden=all_steps_hidden,
         )

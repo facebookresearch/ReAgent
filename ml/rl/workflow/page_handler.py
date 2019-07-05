@@ -4,14 +4,13 @@
 import logging
 import time
 from collections import OrderedDict
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.training.ddpg_trainer import DDPGTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class PageHandler:
-    def handle(self, tdp: TrainingDataPage) -> None:
+    def handle(self, tdp) -> None:
         raise NotImplementedError()
 
     def finish(self) -> None:
@@ -49,7 +48,7 @@ class EvaluationPageHandler(PageHandler):
     def __init__(self, trainer, evaluator, reporter):
         self.trainer = trainer
         self.evaluator = evaluator
-        self.evaluation_data: EvaluationDataPage = None
+        self.evaluation_data: Optional[EvaluationDataPage] = None
         self.reporter = reporter
         self.results: List[CpeDetails] = []
 
@@ -71,7 +70,7 @@ class EvaluationPageHandler(PageHandler):
                 edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
         elif isinstance(tdp, TrainingBatch):
             # TODO: Perhaps we can make an RLTrainer param to check if continuous?
-            if isinstance(self.trainer, (DDPGTrainer, SACTrainer)):
+            if isinstance(self.trainer, SACTrainer):
                 # TODO: Implement CPE for continuous algos
                 edp = None
             else:
@@ -86,8 +85,10 @@ class EvaluationPageHandler(PageHandler):
             return
         # Making sure the data is sorted for CPE
         self.evaluation_data = self.evaluation_data.sort()
-        self.evaluation_data = self.evaluation_data.compute_values(self.trainer.gamma)
-        self.evaluation_data.validate()
+        self.evaluation_data = self.evaluation_data.compute_values(  # type: ignore
+            self.trainer.gamma
+        )  # type: ignore
+        self.evaluation_data.validate()  # type: ignore
         start_time = time.time()
         evaluation_details = self.evaluator.evaluate_post_training(self.evaluation_data)
         self.reporter.report(evaluation_details)
@@ -132,13 +133,15 @@ class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
     """ Train a baseline model based on randomly shuffled data """
 
     def handle(self, tdp: TrainingBatch) -> None:
-        batch_size, _, _ = tdp.training_input.next_state.size()
+        batch_size, _, _ = tdp.training_input.next_state.size()  # type: ignore
         tdp = TrainingBatch(
             training_input=MemoryNetworkInput(
                 state=tdp.training_input.state,
                 action=tdp.training_input.action,
                 # shuffle the data
-                next_state=tdp.training_input.next_state[torch.randperm(batch_size)],
+                next_state=tdp.training_input.next_state[  # type: ignore
+                    torch.randperm(batch_size)
+                ],  # type: ignore
                 reward=tdp.training_input.reward[torch.randperm(batch_size)],
                 not_terminal=tdp.training_input.not_terminal[
                     torch.randperm(batch_size)

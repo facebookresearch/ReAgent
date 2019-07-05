@@ -140,17 +140,46 @@ struct OptimizerParameters {
   3: double l2_decay = 0.01,
 }
 
+struct TD3TrainingParameters {
+  1: i32 minibatch_size = 64,
+  2: OptimizerParameters q_network_optimizer = {},
+  3: OptimizerParameters actor_network_optimizer = {},
+  4: bool use_2_q_functions = true,
+  5: double exploration_noise = 0.2,
+  6: i32 initial_exploration_ts = 1000,
+  7: double target_policy_smoothing = 0.2,
+  8: double noise_clip = 0.5,
+  9: i32 delayed_policy_update = 2,
+  10: optional string warm_start_model_path,
+  11: optional i32 minibatches_per_step,
+}
+
+struct TD3ModelParameters {
+  1: RLParameters rl = {
+    "maxq_learning": false,
+    "tensorboard_logging_freq": 100,
+  },
+  2: TD3TrainingParameters training = {},
+  3: FeedForwardParameters q_network = {},
+  4: FeedForwardParameters actor_network = {},
+  5: optional StateFeatureParameters state_feature_params,
+  6: EvaluationParameters evaluation = {},
+}
+
 struct SACTrainingParameters {
   1: i32 minibatch_size = 1024,
   2: OptimizerParameters q_network_optimizer = {},
-  3: OptimizerParameters value_network_optimizer = {},
+  3: optional OptimizerParameters value_network_optimizer,
   4: OptimizerParameters actor_network_optimizer = {},
   5: bool use_2_q_functions = true,
   # alpha in the paper; controlling explore & exploit
-  6: double entropy_temperature = 0.1,
+  6: optional double entropy_temperature,
   7: optional string warm_start_model_path,
   8: bool logged_action_uniform_prior = true,
   9: optional i32 minibatches_per_step,
+  10: bool use_value_network = true,
+  11: optional double target_entropy,
+  12: optional OptimizerParameters alpha_optimizer
 }
 
 struct SACModelParameters {
@@ -160,7 +189,7 @@ struct SACModelParameters {
   },
   2: SACTrainingParameters training = {},
   3: FeedForwardParameters q_network = {},
-  4: FeedForwardParameters value_network = {},
+  4: optional FeedForwardParameters value_network,
   5: FeedForwardParameters actor_network = {},
   8: optional StateFeatureParameters state_feature_params,
   9: EvaluationParameters evaluation = {},
@@ -221,4 +250,5 @@ struct MDNRNNParameters {
   9: double reward_loss_weight = 1.0,
   10: double next_state_loss_weight = 1.0,
   11: double not_terminal_loss_weight = 1.0,
+  12: bool fit_only_one_next_step = false,
 }

@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import random
-import tempfile
 import unittest
 
 import numpy as np
@@ -17,15 +16,12 @@ from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluato
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.thrift.core.ttypes import (
     ContinuousActionModelParameters,
-    FactorizationParameters,
-    FeedForwardParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_exporter import ParametricDQNExporter
-from torch import distributed
 
 
 class TestGridworldParametric(GridworldTestBase):

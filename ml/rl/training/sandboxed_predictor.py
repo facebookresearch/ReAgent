@@ -9,7 +9,7 @@ from caffe2.python.predictor.predictor_exporter import (
     prepare_prediction_net,
     save_to_db,
 )
-from ml.rl.training.rl_predictor_pytorch import RLPredictor
+from ml.rl.training.off_policy_predictor import RLPredictor
 
 
 logger = logging.getLogger(__name__)

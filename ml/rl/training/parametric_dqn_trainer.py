@@ -45,16 +45,17 @@ class ParametricDQNTrainer(DQNTrainerBase):
             self.reward_network.parameters(), lr=parameters.training.learning_rate
         )
 
+    @torch.no_grad()  # type: ignore
     def get_detached_q_values(
         self, state, action
     ) -> Tuple[rlt.SingleQValue, rlt.SingleQValue]:
         """ Gets the q values from the model and target networks """
-        with torch.no_grad():
-            input = rlt.StateAction(state=state, action=action)
-            q_values = self.q_network(input)
-            q_values_target = self.q_network_target(input)
+        input = rlt.StateAction(state=state, action=action)
+        q_values = self.q_network(input)
+        q_values_target = self.q_network_target(input)
         return q_values, q_values_target
 
+    @torch.no_grad()  # type: ignore
     def train(self, training_batch) -> None:
         if isinstance(training_batch, TrainingDataPage):
             if self.maxq_learning:
@@ -96,31 +97,35 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         target_q_values = reward + (discount_tensor * filtered_max_q_vals)
 
-        # Get Q-value of action taken
-        current_state_action = rlt.StateAction(
-            state=learning_input.state, action=learning_input.action
-        )
-        q_values = self.q_network(current_state_action).q_value
-        self.all_action_scores = q_values.detach()
+        with torch.enable_grad():
+            # Get Q-value of action taken
+            current_state_action = rlt.StateAction(
+                state=learning_input.state, action=learning_input.action
+            )
+            q_values = self.q_network(current_state_action).q_value
+            self.all_action_scores = q_values.detach()
 
-        value_loss = self.q_network_loss(q_values, target_q_values)
-        self.loss = value_loss.detach()
+            value_loss = self.q_network_loss(q_values, target_q_values)
+            self.loss = value_loss.detach()
 
-        value_loss.backward()
-        self._maybe_run_optimizer(self.q_network_optimizer, self.minibatches_per_step)
+            value_loss.backward()
+            self._maybe_run_optimizer(
+                self.q_network_optimizer, self.minibatches_per_step
+            )
 
         # Use the soft update rule to update target network
         self._maybe_soft_update(
             self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
         )
 
-        # get reward estimates
-        reward_estimates = self.reward_network(current_state_action).q_value
-        reward_loss = F.mse_loss(reward_estimates, reward)
-        reward_loss.backward()
-        self._maybe_run_optimizer(
-            self.reward_network_optimizer, self.minibatches_per_step
-        )
+        with torch.enable_grad():
+            # get reward estimates
+            reward_estimates = self.reward_network(current_state_action).q_value
+            reward_loss = F.mse_loss(reward_estimates, reward)
+            reward_loss.backward()
+            self._maybe_run_optimizer(
+                self.reward_network_optimizer, self.minibatches_per_step
+            )
 
         self.loss_reporter.report(
             td_loss=self.loss,
@@ -128,36 +133,32 @@ class ParametricDQNTrainer(DQNTrainerBase):
             model_values_on_logged_actions=self.all_action_scores,
         )
 
+    @torch.no_grad()  # type: ignore
     def internal_prediction(self, state, action):
         """
         Only used by Gym
         """
         self.q_network.eval()
-        with torch.no_grad():
-            state = torch.from_numpy(np.array(state)).type(self.dtype)
-            action = torch.from_numpy(np.array(action)).type(self.dtype)
-            q_values = self.q_network(
-                rlt.StateAction(
-                    state=rlt.FeatureVector(float_features=state),
-                    action=rlt.FeatureVector(float_features=action),
-                )
+        q_values = self.q_network(
+            rlt.StateAction(
+                state=rlt.FeatureVector(float_features=state),
+                action=rlt.FeatureVector(float_features=action),
             )
+        )
         self.q_network.train()
-        return q_values.q_value.cpu().data.numpy()
+        return q_values.q_value.cpu()
 
+    @torch.no_grad()  # type: ignore
     def internal_reward_estimation(self, state, action):
         """
         Only used by Gym
         """
         self.reward_network.eval()
-        with torch.no_grad():
-            state = torch.from_numpy(np.array(state)).type(self.dtype)
-            action = torch.from_numpy(np.array(action)).type(self.dtype)
-            reward_estimates = self.reward_network(
-                rlt.StateAction(
-                    state=rlt.FeatureVector(float_features=state),
-                    action=rlt.FeatureVector(float_features=action),
-                )
+        reward_estimates = self.reward_network(
+            rlt.StateAction(
+                state=rlt.FeatureVector(float_features=state),
+                action=rlt.FeatureVector(float_features=action),
             )
+        )
         self.reward_network.train()
-        return reward_estimates.q_value.cpu().data.numpy()
+        return reward_estimates.q_value.cpu()

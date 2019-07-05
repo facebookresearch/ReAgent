@@ -7,7 +7,7 @@ import torch
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from torch.distributions import Dirichlet
+from torch.distributions import Dirichlet  # type: ignore
 from torch.distributions.normal import Normal
 
 
@@ -148,18 +148,18 @@ class GaussianFullyConnectedActor(ModelBase):
         """
         return ((1 + x).log() - (1 - x).log()) / 2
 
+    @torch.no_grad()  # type: ignore
     def get_log_prob(self, state, squashed_action):
         """
         Action is expected to be squashed with tanh
         """
-        with torch.no_grad():
-            loc, scale_log = self._get_loc_and_scale_log(state)
-            # This is not getting exported; we can use it
-            n = Normal(loc, scale_log.exp())
-            raw_action = self._atanh(squashed_action)
-            log_prob = torch.sum(
-                n.log_prob(raw_action) - self._squash_correction(squashed_action), dim=1
-            ).reshape(-1, 1)
+        loc, scale_log = self._get_loc_and_scale_log(state)
+        # This is not getting exported; we can use it
+        n = Normal(loc, scale_log.exp())
+        raw_action = self._atanh(squashed_action)
+        log_prob = torch.sum(
+            n.log_prob(raw_action) - self._squash_correction(squashed_action), dim=1
+        ).reshape(-1, 1)
 
         return log_prob
 
@@ -203,10 +203,10 @@ class DirichletFullyConnectedActor(ModelBase):
         """
         return self.fc(state.float_features) + self.EPSILON
 
+    @torch.no_grad()  # type: ignore
     def get_log_prob(self, state, action):
-        with torch.no_grad():
-            concentration = self._get_concentration(state)
-            log_prob = Dirichlet(concentration).log_prob(action)
+        concentration = self._get_concentration(state)
+        log_prob = Dirichlet(concentration).log_prob(action)
         return log_prob
 
     def forward(self, input):

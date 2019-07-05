@@ -2,8 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+from typing import NamedTuple, Union
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -53,14 +53,14 @@ class DuelingQNetwork(ModelBase):
 
         self.parametric_action = action_dim > 0
         # Split last layer into a value & advantage stream
-        self.advantage = nn.Sequential(
+        self.advantage = nn.Sequential(  # type: ignore
             nn.Linear(int(layers[-2] + action_dim), int(layers[-2] / 2)),
-            nn.ReLU(),
+            nn.ReLU(),  # type: ignore
             nn.Linear(int(layers[-2] / 2), layers[-1]),
         )
-        self.value = nn.Sequential(
+        self.value = nn.Sequential(  # type: ignore
             nn.Linear(int(layers[-2]), int(layers[-2] / 2)),
-            nn.ReLU(),
+            nn.ReLU(),  # type: ignore
             nn.Linear(int(layers[-2] / 2), 1),
         )
         self._name = "unnamed"
@@ -78,7 +78,7 @@ class DuelingQNetwork(ModelBase):
                 state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
             )
 
-    def forward(self, input) -> torch.FloatTensor:
+    def forward(self, input) -> Union[NamedTuple, torch.FloatTensor]:  # type: ignore
         output_tensor = False
         if isinstance(input, torch.Tensor):
             # Maintaining backward compatibility for a bit
@@ -153,8 +153,8 @@ class DuelingQNetwork(ModelBase):
                     )
 
         if output_tensor:
-            return q_value
+            return q_value  # type: ignore
         elif self.parametric_action:
-            return rlt.SingleQValue(q_value=q_value)
+            return rlt.SingleQValue(q_value=q_value)  # type: ignore
         else:
-            return rlt.AllActionQValues(q_values=q_value)
+            return rlt.AllActionQValues(q_values=q_value)  # type: ignore

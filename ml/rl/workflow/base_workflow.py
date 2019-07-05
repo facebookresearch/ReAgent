@@ -92,7 +92,7 @@ class BaseWorkflow:
             )
 
             if hasattr(self.trainer, "q_network_cpe"):
-                # TODO: Add CPE support to DDPG/SAC, Parametric DQN (once moved to modular)
+                # TODO: Add CPE support to SAC
                 eval_dataset.reset_iterator()
                 data_streamer = DataStreamer(
                     eval_dataset, pin_memory=self.trainer.use_gpu

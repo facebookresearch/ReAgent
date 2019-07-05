@@ -1,20 +1,31 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-
+"""
+Learn a world model on gym environments
+"""
 import argparse
 import json
 import logging
 import sys
+from typing import Dict, Optional
 
+import ml.rl.types as rlt
 import numpy as np
-from caffe2.proto import caffe2_pb2
-from caffe2.python import core
-from ml.rl.evaluation.world_model_evaluator import FeatureImportanceEvaluator
+import torch
+from ml.rl.evaluation.world_model_evaluator import (
+    FeatureImportanceEvaluator,
+    FeatureSensitivityEvaluator,
+)
 from ml.rl.models.mdn_rnn import MDNRNNMemoryPool
 from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
-from ml.rl.test.gym.run_gym import dict_to_np
+from ml.rl.test.gym.open_ai_gym_environment import (
+    EnvType,
+    ModelType,
+    OpenAIGymEnvironment,
+)
+from ml.rl.test.gym.run_gym import dict_to_np, get_possible_actions
 from ml.rl.thrift.core.ttypes import MDNRNNParameters
+from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
@@ -23,73 +34,161 @@ logger = logging.getLogger(__name__)
 USE_CPU = -1
 
 
-def get_replay_buffer(num_episodes, seq_len, max_step, gym_env):
-    num_transitions = num_episodes * max_step
+def loss_to_num(losses):
+    return {k: v.item() for k, v in losses.items()}
+
+
+def multi_step_sample_generator(
+    gym_env: OpenAIGymEnvironment,
+    num_transitions: int,
+    max_steps: Optional[int],
+    multi_steps: int,
+    include_shorter_samples_at_start: bool,
+    include_shorter_samples_at_end: bool,
+):
+    """
+    Convert gym env multi-step sample format to mdn-rnn multi-step sample format
+
+    :param gym_env: The environment used to generate multi-step samples
+    :param num_transitions: # of samples to return
+    :param max_steps: An episode terminates when the horizon is beyond max_steps
+    :param multi_steps: # of steps of states and actions per sample
+    :param include_shorter_samples_at_start: Whether to keep samples of shorter steps
+        which are generated at the beginning of an episode
+    :param include_shorter_samples_at_end: Whether to keep samples of shorter steps
+        which are generated at the end of an episode
+    """
     samples = gym_env.generate_random_samples(
         num_transitions=num_transitions,
         use_continuous_action=True,
-        max_step=max_step,
-        multi_steps=seq_len,
+        max_step=max_steps,
+        multi_steps=multi_steps,
+        include_shorter_samples_at_start=include_shorter_samples_at_start,
+        include_shorter_samples_at_end=include_shorter_samples_at_end,
     )
 
+    for j in range(num_transitions):
+        sample_steps = len(samples.terminals[j])  # type: ignore
+        state = dict_to_np(samples.states[j], np_size=gym_env.state_dim, key_offset=0)
+        action = dict_to_np(
+            samples.actions[j], np_size=gym_env.action_dim, key_offset=gym_env.state_dim
+        )
+        next_actions = np.float32(  # type: ignore
+            [
+                dict_to_np(
+                    samples.next_actions[j][k],
+                    np_size=gym_env.action_dim,
+                    key_offset=gym_env.state_dim,
+                )
+                for k in range(sample_steps)
+            ]
+        )
+        next_states = np.float32(  # type: ignore
+            [
+                dict_to_np(
+                    samples.next_states[j][k], np_size=gym_env.state_dim, key_offset=0
+                )
+                for k in range(sample_steps)
+            ]
+        )
+        rewards = np.float32(samples.rewards[j])  # type: ignore
+        terminals = np.float32(samples.terminals[j])  # type: ignore
+        not_terminals = np.logical_not(terminals)
+        ordered_states = np.vstack((state, next_states))
+        ordered_actions = np.vstack((action, next_actions))
+        mdnrnn_states = ordered_states[:-1]
+        mdnrnn_actions = ordered_actions[:-1]
+        mdnrnn_next_states = ordered_states[-multi_steps:]
+        mdnrnn_next_actions = ordered_actions[-multi_steps:]
+
+        # Padding zeros so that all samples have equal steps
+        # The general rule is to pad zeros at the end of sequences.
+        # In addition, if the sequence only has one step (i.e., the
+        # first state of an episode), pad one zero row ahead of the
+        # sequence, which enables embedding generated properly for
+        # one-step samples
+        num_padded_top_rows = 1 if multi_steps > 1 and sample_steps == 1 else 0
+        num_padded_bottom_rows = multi_steps - sample_steps - num_padded_top_rows
+        sample_steps_next = len(mdnrnn_next_states)
+        num_padded_top_rows_next = 0
+        num_padded_bottom_rows_next = multi_steps - sample_steps_next
+        yield (
+            np.pad(
+                mdnrnn_states,
+                ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                mdnrnn_actions,
+                ((num_padded_top_rows, num_padded_bottom_rows), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                rewards,
+                ((num_padded_top_rows, num_padded_bottom_rows)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                mdnrnn_next_states,
+                ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                mdnrnn_next_actions,
+                ((num_padded_top_rows_next, num_padded_bottom_rows_next), (0, 0)),
+                "constant",
+                constant_values=0.0,
+            ),
+            np.pad(
+                not_terminals,
+                ((num_padded_top_rows, num_padded_bottom_rows)),
+                "constant",
+                constant_values=0.0,
+            ),
+            sample_steps,
+            sample_steps_next,
+        )
+
+
+def get_replay_buffer(
+    num_episodes: int,
+    seq_len: int,
+    max_step: Optional[int],
+    gym_env: OpenAIGymEnvironment,
+):
+    num_transitions = num_episodes * max_step  # type: ignore
     replay_buffer = MDNRNNMemoryPool(max_replay_memory_size=num_transitions)
-    # convert RL sample format to MDN-RNN sample format
-    transition_terminal_index = [-1]
-    for i in range(1, len(samples.mdp_ids)):
-        if samples.terminals[i][0] is True:
-            assert len(samples.terminals[i]) == 1
-            transition_terminal_index.append(i)
-
-    for i in range(len(transition_terminal_index) - 1):
-        episode_start = transition_terminal_index[i] + 1
-        episode_end = transition_terminal_index[i + 1]
-
-        for j in range(episode_start, episode_end + 1):
-            if len(samples.terminals[j]) != seq_len:
-                continue
-            state = dict_to_np(
-                samples.states[j], np_size=gym_env.state_dim, key_offset=0
-            )
-            action = dict_to_np(
-                samples.actions[j],
-                np_size=gym_env.action_dim,
-                key_offset=gym_env.state_dim,
-            )
-            next_actions = np.float32(
-                [
-                    dict_to_np(
-                        samples.next_actions[j][k],
-                        np_size=gym_env.action_dim,
-                        key_offset=gym_env.state_dim,
-                    )
-                    for k in range(seq_len)
-                ]
-            )
-            next_states = np.float32(
-                [
-                    dict_to_np(
-                        samples.next_states[j][k],
-                        np_size=gym_env.state_dim,
-                        key_offset=0,
-                    )
-                    for k in range(seq_len)
-                ]
-            )
-            rewards = np.float32(samples.rewards[j])
-            terminals = np.float32(samples.terminals[j])
-            not_terminals = np.logical_not(terminals)
-            mdnrnn_state = np.vstack((state, next_states))[:-1]
-            mdnrnn_action = np.vstack((action, next_actions))[:-1]
-
-            assert mdnrnn_state.shape == (seq_len, gym_env.state_dim)
-            assert mdnrnn_action.shape == (seq_len, gym_env.action_dim)
-            assert rewards.shape == (seq_len,)
-            assert next_states.shape == (seq_len, gym_env.state_dim)
-            assert not_terminals.shape == (seq_len,)
-
-            replay_buffer.insert_into_memory(
-                mdnrnn_state, mdnrnn_action, next_states, rewards, not_terminals
-            )
+    for (
+        mdnrnn_state,
+        mdnrnn_action,
+        rewards,
+        next_states,
+        _,
+        not_terminals,
+        _,
+        _,
+    ) in multi_step_sample_generator(
+        gym_env,
+        num_transitions=num_transitions,
+        max_steps=max_step,
+        multi_steps=seq_len,
+        include_shorter_samples_at_start=False,
+        include_shorter_samples_at_end=False,
+    ):
+        mdnrnn_state, mdnrnn_action, next_states, rewards, not_terminals = (
+            torch.tensor(mdnrnn_state),
+            torch.tensor(mdnrnn_action),
+            torch.tensor(next_states),
+            torch.tensor(rewards),
+            torch.tensor(not_terminals),
+        )
+        replay_buffer.insert_into_memory(
+            mdnrnn_state, mdnrnn_action, next_states, rewards, not_terminals
+        )
 
     return replay_buffer
 
@@ -110,6 +209,7 @@ def main(args):
     parser.add_argument(
         "-l",
         "--log_level",
+        choices=["debug", "info", "warning", "error", "critical"],
         help="If set, use logging level specified (debug, info, warning, error, "
         "critical). Else defaults to info.",
         default="info",
@@ -118,83 +218,305 @@ def main(args):
         "-f",
         "--feature_importance",
         action="store_true",
-        help="If set, will calculate feature importance after the training",
+        help="If set, feature importance will be calculated after the training",
+    )
+    parser.add_argument(
+        "-s",
+        "--feature_sensitivity",
+        action="store_true",
+        help="If set, state feature sensitivity by varying actions will be"
+        " calculated after the training",
+    )
+    parser.add_argument(
+        "-e",
+        "--save_embedding_to_path",
+        help="If a file path is provided, save a RLDataset with states embedded"
+        " by the trained world model",
     )
     args = parser.parse_args(args)
 
-    if args.log_level not in ("debug", "info", "warning", "error", "critical"):
-        raise Exception("Logging level {} not valid level.".format(args.log_level))
-    else:
-        logger.setLevel(getattr(logging, args.log_level.upper()))
+    logger.setLevel(getattr(logging, args.log_level.upper()))
 
     with open(args.parameters, "r") as f:
         params = json.load(f)
 
-    mdnrnn_gym(params, args.gpu_id, args.feature_importance)
+    use_gpu = args.gpu_id != USE_CPU
+    mdnrnn_gym(
+        params,
+        use_gpu,
+        args.feature_importance,
+        args.feature_sensitivity,
+        args.save_embedding_to_path,
+    )
 
 
-def mdnrnn_gym(params, gpu_id, feature_importance):
+def mdnrnn_gym(
+    params: Dict,
+    use_gpu: bool,
+    feature_importance: bool = False,
+    feature_sensitivity: bool = False,
+    save_embedding_to_path: Optional[str] = None,
+):
     logger.info("Running gym with params")
     logger.info(params)
 
     env_type = params["env"]
     env = OpenAIGymEnvironment(env_type, epsilon=1.0, softmax_policy=True, gamma=0.99)
 
-    use_gpu = gpu_id != USE_CPU
-    if use_gpu:
-        raise NotImplementedError()
-
-    trainer = create_trainer(params, env)
-    c2_device = core.DeviceOption(
-        caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, int(gpu_id)
-    )
+    trainer = create_trainer(params, env, use_gpu)
     _, _, trainer = train_sgd(
-        c2_device,
         env,
         trainer,
+        use_gpu,
         "{} test run".format(env_type),
         params["mdnrnn"]["minibatch_size"],
         **params["run_details"],
     )
+    feature_importance_map, feature_sensitivity_map, dataset = None, None, None
     if feature_importance:
-        calculate_feature_importance(env, trainer, **params["run_details"])
+        feature_importance_map = calculate_feature_importance(
+            env, trainer, use_gpu, **params["run_details"]
+        )
+    if feature_sensitivity:
+        feature_sensitivity_map = calculate_feature_sensitivity_by_actions(
+            env, trainer, use_gpu, **params["run_details"]
+        )
+    if save_embedding_to_path:
+        dataset = RLDataset(save_embedding_to_path)
+        create_embed_rl_dataset(env, trainer, dataset, use_gpu, **params["run_details"])
+        dataset.save()
+    return env, trainer, feature_importance_map, feature_sensitivity_map, dataset
 
 
 def calculate_feature_importance(
-    gym_env, trainer, seq_len=5, num_test_episodes=100, max_steps=None, **kwargs
+    gym_env: OpenAIGymEnvironment,
+    trainer: MDNRNNTrainer,
+    use_gpu: bool,
+    seq_len: int = 5,
+    num_test_episodes: int = 100,
+    max_steps: Optional[int] = None,
+    **kwargs,
 ):
-    feature_importance_evaluator = FeatureImportanceEvaluator(trainer)
+    feature_importance_evaluator = FeatureImportanceEvaluator(
+        trainer,
+        discrete_action=gym_env.action_type == EnvType.DISCRETE_ACTION,
+        state_feature_num=gym_env.state_dim,
+        action_feature_num=gym_env.action_dim,
+        sorted_action_feature_start_indices=list(range(gym_env.action_dim)),
+        sorted_state_feature_start_indices=list(range(gym_env.state_dim)),
+    )
     test_replay_buffer = get_replay_buffer(
         num_test_episodes, seq_len, max_steps, gym_env
     )
-    test_batch = test_replay_buffer.sample_memories(test_replay_buffer.memory_size)
+    test_batch = test_replay_buffer.sample_memories(
+        test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
+    )
     feature_loss_vector = feature_importance_evaluator.evaluate(test_batch)[
         "feature_loss_increase"
     ]
+    feature_importance_map = {}
     for i in range(gym_env.action_dim):
         print(
             "action {}, feature importance: {}".format(i, feature_loss_vector[i].item())
         )
+        feature_importance_map[f"action{i}"] = feature_loss_vector[i].item()
     for i in range(gym_env.state_dim):
         print(
             "state {}, feature importance: {}".format(
                 i, feature_loss_vector[i + gym_env.action_dim].item()
             )
         )
+        feature_importance_map[f"state{i}"] = feature_loss_vector[
+            i + gym_env.action_dim
+        ].item()
+    return feature_importance_map
+
+
+def create_embed_rl_dataset(
+    gym_env: OpenAIGymEnvironment,
+    trainer: MDNRNNTrainer,
+    dataset: RLDataset,
+    use_gpu: bool = False,
+    seq_len: int = 5,
+    num_state_embed_episodes: int = 100,
+    max_steps: Optional[int] = None,
+    **kwargs,
+):
+    old_mdnrnn_mode = trainer.mdnrnn.mdnrnn.training
+    trainer.mdnrnn.mdnrnn.eval()
+    num_transitions = num_state_embed_episodes * max_steps  # type: ignore
+    device = torch.device("cuda") if use_gpu else torch.device("cpu")  # type: ignore
+
+    (
+        state_batch,
+        action_batch,
+        reward_batch,
+        next_state_batch,
+        next_action_batch,
+        not_terminal_batch,
+        step_batch,
+        next_step_batch,
+    ) = map(
+        list,
+        zip(
+            *multi_step_sample_generator(
+                gym_env=gym_env,
+                num_transitions=num_transitions,
+                max_steps=max_steps,
+                # +1 because MDNRNN embeds the first seq_len steps and then
+                # the embedded state will be concatenated with the last step
+                multi_steps=seq_len + 1,
+                include_shorter_samples_at_start=True,
+                include_shorter_samples_at_end=False,
+            )
+        ),
+    )
+
+    def concat_batch(batch):
+        return torch.cat(
+            [
+                torch.tensor(
+                    np.expand_dims(x, axis=1), dtype=torch.float, device=device
+                )
+                for x in batch
+            ],
+            dim=1,
+        )
+
+    # shape: seq_len x batch_size x feature_dim
+    mdnrnn_state = concat_batch(state_batch)
+    next_mdnrnn_state = concat_batch(next_state_batch)
+    mdnrnn_action = concat_batch(action_batch)
+    next_mdnrnn_action = concat_batch(next_action_batch)
+
+    mdnrnn_input = rlt.StateAction(
+        state=rlt.FeatureVector(float_features=mdnrnn_state),
+        action=rlt.FeatureVector(float_features=mdnrnn_action),
+    )
+    next_mdnrnn_input = rlt.StateAction(
+        state=rlt.FeatureVector(float_features=next_mdnrnn_state),
+        action=rlt.FeatureVector(float_features=next_mdnrnn_action),
+    )
+    # batch-compute state embedding
+    mdnrnn_output = trainer.mdnrnn(mdnrnn_input)
+    next_mdnrnn_output = trainer.mdnrnn(next_mdnrnn_input)
+
+    for i in range(len(state_batch)):
+        # Embed the state as the hidden layer's output
+        # until the previous step + current state
+        hidden_idx = 0 if step_batch[i] == 1 else step_batch[i] - 2  # type: ignore
+        next_hidden_idx = next_step_batch[i] - 2  # type: ignore
+        hidden_embed = (
+            mdnrnn_output.all_steps_lstm_hidden[hidden_idx, i, :]
+            .squeeze()
+            .detach()
+            .cpu()
+        )
+        state_embed = torch.cat(
+            (hidden_embed, torch.tensor(state_batch[i][hidden_idx + 1]))  # type: ignore
+        )
+        next_hidden_embed = (
+            next_mdnrnn_output.all_steps_lstm_hidden[next_hidden_idx, i, :]
+            .squeeze()
+            .detach()
+            .cpu()
+        )
+        next_state_embed = torch.cat(
+            (
+                next_hidden_embed,
+                torch.tensor(next_state_batch[i][next_hidden_idx + 1]),  # type: ignore
+            )
+        )
+
+        logger.debug(
+            "create_embed_rl_dataset:\nstate batch\n{}\naction batch\n{}\nlast "
+            "action: {},reward: {}\nstate embed {}\nnext state embed {}\n".format(
+                state_batch[i][: hidden_idx + 1],  # type: ignore
+                action_batch[i][: hidden_idx + 1],  # type: ignore
+                action_batch[i][hidden_idx + 1],  # type: ignore
+                reward_batch[i][hidden_idx + 1],  # type: ignore
+                state_embed,
+                next_state_embed,
+            )
+        )
+
+        terminal = 1 - not_terminal_batch[i][hidden_idx + 1]  # type: ignore
+        possible_actions, possible_actions_mask = get_possible_actions(
+            gym_env, ModelType.PYTORCH_PARAMETRIC_DQN.value, False
+        )
+        possible_next_actions, possible_next_actions_mask = get_possible_actions(
+            gym_env, ModelType.PYTORCH_PARAMETRIC_DQN.value, terminal
+        )
+        dataset.insert(
+            state=state_embed,
+            action=torch.tensor(action_batch[i][hidden_idx + 1]),  # type: ignore
+            reward=reward_batch[i][hidden_idx + 1],  # type: ignore
+            next_state=next_state_embed,
+            next_action=torch.tensor(
+                next_action_batch[i][next_hidden_idx + 1]  # type: ignore
+            ),
+            terminal=torch.tensor(terminal),
+            possible_next_actions=possible_next_actions,
+            possible_next_actions_mask=possible_next_actions_mask,
+            time_diff=torch.tensor(1),
+            possible_actions=possible_actions,
+            possible_actions_mask=possible_actions_mask,
+            policy_id=0,
+        )
+    logger.info(
+        "Insert {} transitions into a state embed dataset".format(len(state_batch))
+    )
+    trainer.mdnrnn.mdnrnn.train(old_mdnrnn_mode)
+    return dataset
+
+
+def calculate_feature_sensitivity_by_actions(
+    gym_env: OpenAIGymEnvironment,
+    trainer: MDNRNNTrainer,
+    use_gpu: bool,
+    seq_len: int = 5,
+    num_test_episodes: int = 100,
+    max_steps: Optional[int] = None,
+    **kwargs,
+):
+    feature_sensitivity_evaluator = FeatureSensitivityEvaluator(
+        trainer,
+        state_feature_num=gym_env.state_dim,
+        sorted_state_feature_start_indices=list(range(gym_env.state_dim)),
+    )
+    test_replay_buffer = get_replay_buffer(
+        num_test_episodes, seq_len, max_steps, gym_env
+    )
+    test_batch = test_replay_buffer.sample_memories(
+        test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
+    )
+    feature_sensitivity_vector = feature_sensitivity_evaluator.evaluate(test_batch)[
+        "feature_sensitivity"
+    ]
+    feature_sensitivity_map = {}
+    for i in range(gym_env.state_dim):
+        feature_sensitivity_map["state" + str(i)] = feature_sensitivity_vector[i].item()
+        print(
+            "state {}, feature sensitivity: {}".format(
+                i, feature_sensitivity_vector[i].item()
+            )
+        )
+    return feature_sensitivity_map
 
 
 def train_sgd(
-    c2_device,
-    gym_env,
-    trainer,
-    test_run_name,
-    minibatch_size,
-    seq_len=5,
-    num_train_episodes=300,
-    num_test_episodes=100,
-    max_steps=None,
-    train_epochs=100,
-    early_stopping_patience=3,
+    gym_env: OpenAIGymEnvironment,
+    trainer: MDNRNNTrainer,
+    use_gpu: bool,
+    test_run_name: str,
+    minibatch_size: int,
+    seq_len: int = 5,
+    num_train_episodes: int = 300,
+    num_test_episodes: int = 100,
+    max_steps: Optional[int] = None,
+    train_epochs: int = 100,
+    early_stopping_patience: int = 3,
+    **kwargs,
 ):
     train_replay_buffer = get_replay_buffer(
         num_train_episodes, seq_len, max_steps, gym_env
@@ -221,8 +543,10 @@ def train_sgd(
 
     for i_epoch in range(train_epochs):
         for i_batch in range(num_batch_per_epoch):
-            training_batch = train_replay_buffer.sample_memories(minibatch_size)
-            losses = trainer.train(training_batch)
+            training_batch = train_replay_buffer.sample_memories(
+                minibatch_size, use_gpu=use_gpu, batch_first=True
+            )
+            losses = trainer.train(training_batch, batch_first=True)
             logger.info(
                 "{}-th epoch, {}-th minibatch: \n"
                 "loss={}, bce={}, gmm={}, mse={} \n"
@@ -239,12 +563,15 @@ def train_sgd(
                     np.mean(trainer.cum_mse),
                 )
             )
-        # earlystopping
+
         trainer.mdnrnn.mdnrnn.eval()
         valid_batch = valid_replay_buffer.sample_memories(
-            valid_replay_buffer.memory_size
+            valid_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
         )
-        valid_losses = trainer.get_loss(valid_batch, state_dim=gym_env.state_dim)
+        valid_losses = trainer.get_loss(
+            valid_batch, state_dim=gym_env.state_dim, batch_first=True
+        )
+        valid_losses = loss_to_num(valid_losses)
         valid_loss_history.append(valid_losses)
         trainer.mdnrnn.mdnrnn.train()
         logger.info(
@@ -258,14 +585,20 @@ def train_sgd(
         )
         latest_loss = valid_loss_history[-1]["loss"]
         recent_valid_loss_hist = valid_loss_history[-1 - early_stopping_patience : -1]
+        # earlystopping
         if len(valid_loss_history) > early_stopping_patience and all(
             (latest_loss >= v["loss"] for v in recent_valid_loss_hist)
         ):
             break
 
     trainer.mdnrnn.mdnrnn.eval()
-    test_batch = test_replay_buffer.sample_memories(test_replay_buffer.memory_size)
-    test_losses = trainer.get_loss(test_batch, state_dim=gym_env.state_dim)
+    test_batch = test_replay_buffer.sample_memories(
+        test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
+    )
+    test_losses = trainer.get_loss(
+        test_batch, state_dim=gym_env.state_dim, batch_first=True
+    )
+    test_losses = loss_to_num(test_losses)
     logger.info(
         "Test loss: {}, bce={}, gmm={}, mse={}".format(
             test_losses["loss"],
@@ -278,7 +611,7 @@ def train_sgd(
     return test_losses, valid_loss_history, trainer
 
 
-def create_trainer(params, env):
+def create_trainer(params: Dict, env: OpenAIGymEnvironment, use_gpu: bool):
     mdnrnn_params = MDNRNNParameters(**params["mdnrnn"])
     mdnrnn_net = MemoryNetwork(
         state_dim=env.state_dim,
@@ -287,6 +620,9 @@ def create_trainer(params, env):
         num_hidden_layers=mdnrnn_params.num_hidden_layers,
         num_gaussians=mdnrnn_params.num_gaussians,
     )
+    if use_gpu and torch.cuda.is_available():
+        mdnrnn_net = mdnrnn_net.cuda()
+
     cum_loss_hist_len = (
         params["run_details"]["num_train_episodes"]
         * params["run_details"]["max_steps"]
@@ -299,6 +635,7 @@ def create_trainer(params, env):
 
 
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     args = sys.argv
     main(args[1:])

@@ -6,22 +6,16 @@ import json
 import logging
 import pickle
 import sys
-from copy import deepcopy
 
 import numpy as np
 import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
-from ml.rl.models.actor import GaussianFullyConnectedActor
+from ml.rl.models.actor import FullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.test.base.utils import write_lists_to_csv
-from ml.rl.test.gym.gym_predictor import (
-    GymDDPGPredictor,
-    GymDQNPredictor,
-    GymSACPredictor,
-)
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
@@ -31,9 +25,6 @@ from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 from ml.rl.thrift.core.ttypes import (
     CNNParameters,
     ContinuousActionModelParameters,
-    DDPGModelParameters,
-    DDPGNetworkParameters,
-    DDPGTrainingParameters,
     DiscreteActionModelParameters,
     FeedForwardParameters,
     OptimizerParameters,
@@ -41,11 +32,18 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     SACModelParameters,
     SACTrainingParameters,
+    TD3ModelParameters,
+    TD3TrainingParameters,
     TrainingParameters,
 )
-from ml.rl.training.ddpg_trainer import ActorNetModel, CriticNetModel, DDPGTrainer
+from ml.rl.training.on_policy_predictor import (
+    ContinuousActionOnPolicyPredictor,
+    DiscreteDQNOnPolicyPredictor,
+    ParametricDQNOnPolicyPredictor,
+)
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.sac_trainer import SACTrainer
+from ml.rl.training.td3_trainer import TD3Trainer
 from ml.rl.workflow.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
@@ -66,26 +64,71 @@ def dict_to_np(d, np_size, key_offset):
     return x
 
 
+def dict_to_torch(d, np_size, key_offset):
+    x = torch.zeros(np_size)
+    for key in d:
+        x[key - key_offset] = d[key]
+    return x
+
+
 def get_possible_actions(gym_env, model_type, terminal):
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
         possible_next_actions = None
-        possible_next_actions_mask = [
-            0 if terminal else 1 for __ in range(gym_env.action_dim)
-        ]
+        possible_next_actions_mask = torch.tensor(
+            [0 if terminal else 1 for __ in range(gym_env.action_dim)]
+        )
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
-        possible_next_actions = np.eye(gym_env.action_dim)
-        possible_next_actions_mask = [
-            0 if terminal else 1 for __ in range(gym_env.action_dim)
-        ]
-    elif model_type == ModelType.CONTINUOUS_ACTION.value:
-        possible_next_actions = None
-        possible_next_actions_mask = None
-    elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+        possible_next_actions = torch.eye(gym_env.action_dim)
+        possible_next_actions_mask = torch.tensor(
+            [0 if terminal else 1 for __ in range(gym_env.action_dim)]
+        )
+    elif model_type in (
+        ModelType.CONTINUOUS_ACTION.value,
+        ModelType.SOFT_ACTOR_CRITIC.value,
+        ModelType.TD3.value,
+    ):
         possible_next_actions = None
         possible_next_actions_mask = None
     else:
         raise NotImplementedError()
     return possible_next_actions, possible_next_actions_mask
+
+
+def create_epsilon(offline_train, rl_parameters, params):
+    if offline_train:
+        # take random actions during data collection
+        epsilon = 1.0
+    else:
+        epsilon = rl_parameters.epsilon
+    epsilon_decay, minimum_epsilon = 1.0, None
+    if "epsilon_decay" in params["run_details"]:
+        epsilon_decay = params["run_details"]["epsilon_decay"]
+        del params["run_details"]["epsilon_decay"]
+    if "minimum_epsilon" in params["run_details"]:
+        minimum_epsilon = params["run_details"]["minimum_epsilon"]
+        del params["run_details"]["minimum_epsilon"]
+    return epsilon, epsilon_decay, minimum_epsilon
+
+
+def create_replay_buffer(
+    env, params, model_type, offline_train, path_to_pickled_transitions
+) -> OpenAIGymMemoryPool:
+    """
+    Train on transitions generated from a random policy live or
+    read transitions from a pickle file and load into replay buffer.
+    """
+    replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
+    if path_to_pickled_transitions:
+        create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
+        replay_state_dim = replay_buffer.replay_memory[0][0].shape[0]
+        replay_action_dim = replay_buffer.replay_memory[0][1].shape[0]
+        assert replay_state_dim == env.state_dim
+        assert replay_action_dim == env.action_dim
+    elif offline_train:
+        create_random_policy_offline_dataset(
+            env, replay_buffer, params["run_details"]["max_steps"], model_type
+        )
+    return replay_buffer
 
 
 def train(
@@ -113,12 +156,10 @@ def train(
     max_episodes_to_run_after_solved=None,
     stop_training_after_solved=False,
     offline_train_epochs=3,
-    path_to_pickled_transitions=None,
     bcq_imitator_hyperparams=None,
 ):
     if offline_train:
         return train_gym_offline_rl(
-            c2_device,
             gym_env,
             replay_buffer,
             model_type,
@@ -129,7 +170,6 @@ def train(
             max_steps,
             avg_over_num_episodes,
             offline_train_epochs,
-            path_to_pickled_transitions,
             bcq_imitator_hyperparams,
         )
     else:
@@ -169,11 +209,13 @@ def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, mode
     )
     policy_id = 0
     for i in range(len(samples.mdp_ids)):
-        state = dict_to_np(samples.states[i], gym_env.state_dim, 0)
-        action = dict_to_np(samples.actions[i], gym_env.action_dim, gym_env.state_dim)
-        reward = np.float32(samples.rewards[i])
-        next_state = dict_to_np(samples.next_states[i], gym_env.state_dim, 0)
-        next_action = dict_to_np(
+        state = dict_to_torch(samples.states[i], gym_env.state_dim, 0)
+        action = dict_to_torch(
+            samples.actions[i], gym_env.action_dim, gym_env.state_dim
+        )
+        reward = float(samples.rewards[i])
+        next_state = dict_to_torch(samples.next_states[i], gym_env.state_dim, 0)
+        next_action = dict_to_torch(
             samples.next_actions[i], gym_env.action_dim, gym_env.state_dim
         )
         terminal = samples.terminals[i]
@@ -197,6 +239,11 @@ def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, mode
             possible_actions_mask,
             policy_id,
         )
+    logger.info(
+        "Generating {} transitions under random policy.".format(
+            replay_buffer.max_replay_memory_size
+        )
+    )
 
 
 def create_stored_policy_offline_dataset(replay_buffer, path):
@@ -210,10 +257,10 @@ def create_stored_policy_offline_dataset(replay_buffer, path):
     logger.info(
         "Transitions generated from {} different policies".format(len(unique_policies))
     )
+    logger.info("Loading {} transitions from {}".format(replay_buffer.size, path))
 
 
 def train_gym_offline_rl(
-    c2_device,
     gym_env,
     replay_buffer,
     model_type,
@@ -224,22 +271,8 @@ def train_gym_offline_rl(
     max_steps,
     avg_over_num_episodes,
     offline_train_epochs,
-    path_to_pickled_transitions,
     bcq_imitator_hyper_params,
 ):
-    """
-    Train on transitions generated from a random policy live or
-    read transitions from a pickle file and load into replay buffer.
-    """
-    if path_to_pickled_transitions is not None:
-        logger.info("Loading transitions from {}".format(path_to_pickled_transitions))
-        create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
-    else:
-        logger.info("Generating {} transitions under random policy.".format(max_steps))
-        create_random_policy_offline_dataset(
-            gym_env, replay_buffer, max_steps, model_type
-        )
-
     num_batch_per_epoch = replay_buffer.size // trainer.minibatch_size
     logger.info(
         "{} offline transitions in replay buffer.\n"
@@ -251,6 +284,7 @@ def train_gym_offline_rl(
             trainer.minibatch_size,
         )
     )
+    assert num_batch_per_epoch > 0, "The size of replay buffer is not sufficient"
 
     avg_reward_history, epoch_history = [], []
 
@@ -294,15 +328,19 @@ def train_gym_offline_rl(
                     test_run_name, avg_reward_history
                 )
             )
-            return avg_reward_history, epoch_history, trainer, predictor
+            return avg_reward_history, epoch_history, trainer, predictor, gym_env
 
         for _ in range(num_batch_per_epoch):
             samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
             samples.set_type(trainer.dtype)
             trainer.train(samples)
 
-        batch_td_loss = np.mean(
-            [stat.td_loss for stat in trainer.loss_reporter.incoming_stats]
+        batch_td_loss = float(
+            torch.mean(
+                torch.tensor(
+                    [stat.td_loss for stat in trainer.loss_reporter.incoming_stats]
+                )
+            )
         )
         trainer.loss_reporter.flush()
         logger.info(
@@ -347,6 +385,8 @@ def train_gym_online_rl(
     solved = False
     policy_id = 0
 
+    reward_sum = 0
+
     for i in range(num_episodes):
         if (
             max_episodes_to_run_after_solved is not None
@@ -358,10 +398,11 @@ def train_gym_online_rl(
             episodes_since_solved += 1
 
         terminal = False
-        next_state = gym_env.transform_state(gym_env.env.reset())
+        next_state = gym_env.transform_state(gym_env.reset())
         next_action, next_action_probability = gym_env.policy(
             predictor, next_state, False
         )
+
         reward_sum = 0
         ep_timesteps = 0
 
@@ -382,7 +423,7 @@ def train_gym_online_rl(
             timeline_format_action, gym_action = _format_action_for_log_and_gym(
                 action, gym_env.action_type, model_type
             )
-            next_state, reward, terminal, _ = gym_env.env.step(gym_action)
+            next_state, reward, terminal, _ = gym_env.step(gym_action)
             next_state = gym_env.transform_state(next_state)
 
             ep_timesteps += 1
@@ -402,10 +443,10 @@ def train_gym_online_rl(
             )
 
             replay_buffer.insert_into_memory(
-                np.float32(state),
+                state,
                 action,
-                np.float32(reward),
-                np.float32(next_state),
+                reward,
+                next_state,
                 next_action,
                 terminal,
                 possible_next_actions,
@@ -513,6 +554,11 @@ def train_gym_online_rl(
         else:
             gym_env.decay_epsilon()
 
+        if i % 10 == 0:
+            logger.info(
+                "Online RL episode {}, total_timesteps {}".format(i, total_timesteps)
+            )
+
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
     )
@@ -582,6 +628,10 @@ def main(args):
     else:
         logger.setLevel(getattr(logging, args.log_level.upper()))
 
+    assert (
+        not args.path_to_pickled_transitions or args.offline_train
+    ), "path_to_pickled_transitions is provided so you must run offline training"
+
     with open(args.parameters, "r") as f:
         params = json.load(f)
 
@@ -634,20 +684,11 @@ def run_gym(
     rl_parameters = RLParameters(**params["rl"])
 
     env_type = params["env"]
-    if offline_train:
-        # take random actions during data collection
-        epsilon = 1.0
-    else:
-        epsilon = rl_parameters.epsilon
+    model_type = params["model_type"]
 
-    epsilon_decay, minimum_epsilon = 1.0, None
-    if "epsilon_decay" in params["run_details"]:
-        epsilon_decay = params["run_details"]["epsilon_decay"]
-        del params["run_details"]["epsilon_decay"]
-    if "minimum_epsilon" in params["run_details"]:
-        minimum_epsilon = params["run_details"]["minimum_epsilon"]
-        del params["run_details"]["minimum_epsilon"]
-
+    epsilon, epsilon_decay, minimum_epsilon = create_epsilon(
+        offline_train, rl_parameters, params
+    )
     env = OpenAIGymEnvironment(
         env_type,
         epsilon,
@@ -656,8 +697,9 @@ def run_gym(
         epsilon_decay,
         minimum_epsilon,
     )
-    replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
-    model_type = params["model_type"]
+    replay_buffer = create_replay_buffer(
+        env, params, model_type, offline_train, path_to_pickled_transitions
+    )
 
     use_gpu = gpu_id != USE_CPU
     trainer = create_trainer(params["model_type"], params, rl_parameters, use_gpu, env)
@@ -679,7 +721,6 @@ def run_gym(
         **params["run_details"],
         save_timesteps_to_dataset=save_timesteps_to_dataset,
         start_saving_from_score=start_saving_from_score,
-        path_to_pickled_transitions=path_to_pickled_transitions,
     )
 
 
@@ -741,87 +782,67 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
         trainer = create_parametric_dqn_trainer_from_params(
             trainer_params, env.normalization, env.normalization_action, use_gpu
         )
-    elif model_type == ModelType.CONTINUOUS_ACTION.value:
-        training_parameters = params["shared_training"]
-        if isinstance(training_parameters, dict):
-            training_parameters = DDPGTrainingParameters(**training_parameters)
 
-        actor_parameters = params["actor_training"]
-        if isinstance(actor_parameters, dict):
-            actor_parameters = DDPGNetworkParameters(**actor_parameters)
-
-        critic_parameters = params["critic_training"]
-        if isinstance(critic_parameters, dict):
-            critic_parameters = DDPGNetworkParameters(**critic_parameters)
-
-        trainer_params = DDPGModelParameters(
+    elif model_type == ModelType.TD3.value:
+        trainer_params = TD3ModelParameters(
             rl=rl_parameters,
-            shared_training=training_parameters,
-            actor_training=actor_parameters,
-            critic_training=critic_parameters,
-        )
-
-        action_range_low = env.action_space.low.astype(np.float32)
-        action_range_high = env.action_space.high.astype(np.float32)
-
-        state_dim = get_num_output_features(env.normalization)
-        action_dim = get_num_output_features(env.normalization_action)
-
-        # Build Actor Network
-        actor_network = ActorNetModel(
-            layers=(
-                [state_dim] + trainer_params.actor_training.layers[1:-1] + [action_dim]
+            training=TD3TrainingParameters(
+                minibatch_size=params["td3_training"]["minibatch_size"],
+                q_network_optimizer=OptimizerParameters(
+                    **params["td3_training"]["q_network_optimizer"]
+                ),
+                actor_network_optimizer=OptimizerParameters(
+                    **params["td3_training"]["actor_network_optimizer"]
+                ),
+                use_2_q_functions=params["td3_training"]["use_2_q_functions"],
+                exploration_noise=params["td3_training"]["exploration_noise"],
+                initial_exploration_ts=params["td3_training"]["initial_exploration_ts"],
+                target_policy_smoothing=params["td3_training"][
+                    "target_policy_smoothing"
+                ],
+                noise_clip=params["td3_training"]["noise_clip"],
+                delayed_policy_update=params["td3_training"]["delayed_policy_update"],
             ),
-            activations=trainer_params.actor_training.activations,
-            fl_init=trainer_params.shared_training.final_layer_init,
-            state_dim=state_dim,
-            action_dim=action_dim,
-            use_gpu=use_gpu,
-            use_all_avail_gpus=False,
+            q_network=FeedForwardParameters(**params["td3_q_training"]),
+            actor_network=FeedForwardParameters(**params["td3_actor_training"]),
         )
-
-        # Build Critic Network
-        critic_network = CriticNetModel(
-            # Ensure dims match input state and scalar output
-            layers=[state_dim] + trainer_params.critic_training.layers[1:-1] + [1],
-            activations=trainer_params.critic_training.activations,
-            fl_init=trainer_params.shared_training.final_layer_init,
-            state_dim=state_dim,
-            action_dim=action_dim,
-            use_gpu=use_gpu,
-            use_all_avail_gpus=False,
-        )
-
-        trainer = DDPGTrainer(
-            actor_network,
-            critic_network,
-            trainer_params,
-            env.normalization,
-            env.normalization_action,
-            torch.from_numpy(action_range_low).unsqueeze(dim=0),
-            torch.from_numpy(action_range_high).unsqueeze(dim=0),
-            use_gpu,
-        )
+        trainer = get_td3_trainer(env, trainer_params, use_gpu)
 
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+        value_network = None
+        value_network_optimizer = None
+        alpha_optimizer = None
+        if params["sac_training"]["use_value_network"]:
+            value_network = FeedForwardParameters(**params["sac_value_training"])
+            value_network_optimizer = OptimizerParameters(
+                **params["sac_training"]["value_network_optimizer"]
+            )
+        if "alpha_optimizer" in params["sac_training"]:
+            alpha_optimizer = OptimizerParameters(
+                **params["sac_training"]["alpha_optimizer"]
+            )
+        entropy_temperature = params["sac_training"].get("entropy_temperature", None)
+        target_entropy = params["sac_training"].get("target_entropy", None)
+
         trainer_params = SACModelParameters(
             rl=rl_parameters,
             training=SACTrainingParameters(
                 minibatch_size=params["sac_training"]["minibatch_size"],
                 use_2_q_functions=params["sac_training"]["use_2_q_functions"],
+                use_value_network=params["sac_training"]["use_value_network"],
                 q_network_optimizer=OptimizerParameters(
                     **params["sac_training"]["q_network_optimizer"]
                 ),
-                value_network_optimizer=OptimizerParameters(
-                    **params["sac_training"]["value_network_optimizer"]
-                ),
+                value_network_optimizer=value_network_optimizer,
                 actor_network_optimizer=OptimizerParameters(
                     **params["sac_training"]["actor_network_optimizer"]
                 ),
-                entropy_temperature=params["sac_training"]["entropy_temperature"],
+                entropy_temperature=entropy_temperature,
+                target_entropy=target_entropy,
+                alpha_optimizer=alpha_optimizer,
             ),
             q_network=FeedForwardParameters(**params["sac_q_training"]),
-            value_network=FeedForwardParameters(**params["sac_value_training"]),
+            value_network=value_network,
             actor_network=FeedForwardParameters(**params["sac_actor_training"]),
         )
         trainer = get_sac_trainer(env, trainer_params, use_gpu)
@@ -832,9 +853,64 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
     return trainer
 
 
+def get_td3_trainer(env, parameters, use_gpu):
+    state_dim = get_num_output_features(env.normalization)
+    action_dim = get_num_output_features(env.normalization_action)
+    q1_network = FullyConnectedParametricDQN(
+        state_dim,
+        action_dim,
+        parameters.q_network.layers,
+        parameters.q_network.activations,
+    )
+    q2_network = None
+    if parameters.training.use_2_q_functions:
+        q2_network = FullyConnectedParametricDQN(
+            state_dim,
+            action_dim,
+            parameters.q_network.layers,
+            parameters.q_network.activations,
+        )
+    actor_network = FullyConnectedActor(
+        state_dim,
+        action_dim,
+        parameters.actor_network.layers,
+        parameters.actor_network.activations,
+    )
+
+    min_action_range_tensor_training = torch.full((1, action_dim), -1)
+    max_action_range_tensor_training = torch.full((1, action_dim), 1)
+    min_action_range_tensor_serving = torch.FloatTensor(env.action_space.low).unsqueeze(
+        dim=0
+    )
+    max_action_range_tensor_serving = torch.FloatTensor(
+        env.action_space.high
+    ).unsqueeze(dim=0)
+
+    if use_gpu:
+        q1_network.cuda()
+        if q2_network:
+            q2_network.cuda()
+        actor_network.cuda()
+
+        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
+        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
+        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
+        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
+
+    trainer_args = [q1_network, actor_network, parameters]
+    trainer_kwargs = {
+        "q2_network": q2_network,
+        "min_action_range_tensor_training": min_action_range_tensor_training,
+        "max_action_range_tensor_training": max_action_range_tensor_training,
+        "min_action_range_tensor_serving": min_action_range_tensor_serving,
+        "max_action_range_tensor_serving": max_action_range_tensor_serving,
+    }
+    return TD3Trainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
+
+
 def get_sac_trainer(env, parameters, use_gpu):
     trainer_args, trainer_kwargs = _get_sac_trainer_params(env, parameters, use_gpu)
-    return SACTrainer(*trainer_args, **trainer_kwargs)
+    return SACTrainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
 
 
 def _get_sac_trainer_params(env, sac_model_params, use_gpu):
@@ -854,42 +930,44 @@ def _get_sac_trainer_params(env, sac_model_params, use_gpu):
             sac_model_params.q_network.layers,
             sac_model_params.q_network.activations,
         )
-    value_network = FullyConnectedNetwork(
-        [state_dim] + sac_model_params.value_network.layers + [1],
-        sac_model_params.value_network.activations + ["linear"],
-    )
+    value_network = None
+    if sac_model_params.training.use_value_network:
+        value_network = FullyConnectedNetwork(
+            [state_dim] + sac_model_params.value_network.layers + [1],
+            sac_model_params.value_network.activations + ["linear"],
+        )
     actor_network = GaussianFullyConnectedActor(
         state_dim,
         action_dim,
         sac_model_params.actor_network.layers,
         sac_model_params.actor_network.activations,
     )
+
+    min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
+    max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
+    min_action_range_tensor_serving = (
+        torch.from_numpy(env.action_space.low).float().unsqueeze(dim=0)
+    )
+    max_action_range_tensor_serving = (
+        torch.from_numpy(env.action_space.high).float().unsqueeze(dim=0)
+    )
+
     if use_gpu:
         q1_network.cuda()
         if q2_network:
             q2_network.cuda()
-        value_network.cuda()
+        if value_network:
+            value_network.cuda()
         actor_network.cuda()
-    value_network_target = deepcopy(value_network)
-    min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
-    max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
-    action_range_low = env.action_space.low.astype(np.float32)
-    action_range_high = env.action_space.high.astype(np.float32)
-    min_action_range_tensor_serving = torch.from_numpy(action_range_low).unsqueeze(
-        dim=0
-    )
-    max_action_range_tensor_serving = torch.from_numpy(action_range_high).unsqueeze(
-        dim=0
-    )
 
-    trainer_args = [
-        q1_network,
-        value_network,
-        value_network_target,
-        actor_network,
-        sac_model_params,
-    ]
+        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
+        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
+        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
+        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
+
+    trainer_args = [q1_network, actor_network, sac_model_params]
     trainer_kwargs = {
+        "value_network": value_network,
         "q2_network": q2_network,
         "min_action_range_tensor_training": min_action_range_tensor_training,
         "max_action_range_tensor_training": max_action_range_tensor_training,
@@ -901,7 +979,7 @@ def _get_sac_trainer_params(env, sac_model_params, use_gpu):
 
 def _format_action_for_log_and_gym(action, env_type, model_type):
     if env_type == EnvType.DISCRETE_ACTION:
-        action_index = np.argmax(action)
+        action_index = torch.argmax(action).item()
         if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
             return str(action_index), int(action_index)
         else:
@@ -910,21 +988,20 @@ def _format_action_for_log_and_gym(action, env_type, model_type):
 
 
 def create_predictor(trainer, model_type, use_gpu, action_dim=None):
-    if model_type == ModelType.CONTINUOUS_ACTION.value:
-        predictor = GymDDPGPredictor(trainer, action_dim)
-    elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        predictor = GymSACPredictor(trainer, action_dim)
-    elif model_type in (
-        ModelType.PYTORCH_DISCRETE_DQN.value,
-        ModelType.PYTORCH_PARAMETRIC_DQN.value,
-    ):
-        predictor = GymDQNPredictor(trainer, action_dim)
-    else:
-        raise NotImplementedError()
+    if model_type in (ModelType.TD3.value, ModelType.SOFT_ACTOR_CRITIC.value):
+        predictor = ContinuousActionOnPolicyPredictor(trainer, action_dim, use_gpu)
+    elif model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
+        predictor = DiscreteDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
+    elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
+        predictor = ParametricDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
     return predictor
 
 
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    from ml.rl import debug_on_error
+
+    debug_on_error.start()
     args = sys.argv
     main(args[1:])

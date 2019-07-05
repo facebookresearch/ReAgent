@@ -8,7 +8,6 @@ import unittest
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
-from ml.rl.training.ddpg_trainer import DDPGTrainer
 
 
 class GridworldTestBase(unittest.TestCase):

@@ -18,11 +18,7 @@ logger = logging.getLogger(__name__)
 
 class MDNRNNTrainer:
     def __init__(
-        self,
-        mdnrnn_network: MemoryNetwork,
-        params: MDNRNNParameters,
-        cum_loss_hist=100,
-        fit_only_one_next_step=False,
+        self, mdnrnn_network: MemoryNetwork, params: MDNRNNParameters, cum_loss_hist=100
     ):
         self.mdnrnn = mdnrnn_network
         self.params = params
@@ -34,7 +30,6 @@ class MDNRNNTrainer:
         self.cum_bce: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.fit_only_one_next_step = fit_only_one_next_step
 
     def train(self, training_batch, batch_first=False):
         assert (
@@ -114,7 +109,7 @@ class MDNRNNTrainer:
         if batch_first:
             state, action, next_state, reward, not_terminal = transpose(
                 learning_input.state.float_features,
-                learning_input.action.float_features,
+                learning_input.action.float_features,  # type: ignore
                 learning_input.next_state,
                 learning_input.reward,
                 learning_input.not_terminal,
@@ -142,7 +137,7 @@ class MDNRNNTrainer:
         next_state = learning_input.next_state
         not_terminal = learning_input.not_terminal
         reward = learning_input.reward
-        if self.fit_only_one_next_step:
+        if self.params.fit_only_one_next_step:
             next_state, not_terminal, reward, mus, sigmas, logpi, nts, rs = tuple(
                 map(
                     lambda x: x[-1:],

@@ -20,6 +20,7 @@ Usage:
 
 import contextlib
 import logging
+from typing import Any, Dict, List
 
 from tensorboardX import SummaryWriter
 
@@ -57,9 +58,9 @@ class SummaryWriterContextMeta(type):
 
 
 class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
-    _writer_stacks = []
+    _writer_stacks: List[SummaryWriter] = []
     _global_step = 0
-    _custom_scalars = {}
+    _custom_scalars: Dict[str, Any] = {}
 
     @classmethod
     def _reset_globals(cls):

@@ -124,6 +124,8 @@ class Environment:
         epsilon: float = 1.0,
         multi_steps: Optional[int] = None,
         max_step: Optional[int] = None,
+        include_shorter_samples_at_start: bool = False,
+        include_shorter_samples_at_end: bool = True,
     ) -> Union[Samples, MultiStepSamples]:
         """ Generate samples:
             [
@@ -142,6 +144,10 @@ class Environment:
         :param multi_steps: An integer decides how many steps of transitions
             contained in each sample. Only used if you want to train multi-step RL.
         :param max_step: An episode terminates after max_step number of steps
+        :param include_shorter_samples_at_start: Whether to return samples of shorter
+            steps at the beginning of an episode.
+        :param include_shorter_samples_at_end: Whether to return samples of shorter
+            steps at the end of an episode.
         """
         return_single_step_samples = False
         if multi_steps is None:
@@ -267,7 +273,9 @@ class Environment:
             # episode is over so we can get the episode values. `set_if_in_range`
             # will set episode values if they are in the range [0,N) and ignore
             # otherwise.
-            if not terminal and len(state_deque) == multi_steps:
+            if not terminal and (
+                include_shorter_samples_at_start or len(terminal_deque) == multi_steps
+            ):
                 set_if_in_range = partial(
                     self.set_if_in_range, transition, num_transitions
                 )
@@ -283,10 +291,14 @@ class Environment:
                 set_if_in_range(possible_actions, possible_action_deque[0])
                 set_if_in_range(possible_next_actions, list(possible_next_action_deque))
                 transition += 1
-            # collect samples at the end of the episode. The steps between state
-            # and next_state can be less than or equal to `multi_steps`
+            # collect samples at the end of the episode.
             if terminal:
-                for _ in range(len(state_deque)):
+                num_samples_at_end = 0
+                if include_shorter_samples_at_end:
+                    num_samples_at_end = len(state_deque)
+                elif len(terminal_deque) == multi_steps:
+                    num_samples_at_end = 1
+                for _ in range(num_samples_at_end):
                     set_if_in_range = partial(
                         self.set_if_in_range, transition, num_transitions
                     )

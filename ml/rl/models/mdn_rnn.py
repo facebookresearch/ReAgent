@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as f
 from ml.rl import types as rlt
+from ml.rl.torch_utils import stack
 from torch.distributions.normal import Normal
 
 
@@ -61,17 +62,25 @@ class MDNRNN(_MDNRNNBase):
 
         :returns: parameters of the GMM prediction for the next state,
         gaussian prediction of the reward and logit prediction of
-        non-terminality.
+        non-terminality. And the RNN's outputs.
             - mus: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS, STATE_DIM) torch tensor
             - sigmas: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS, STATE_DIM) torch tensor
             - logpi: (SEQ_LEN, BATCH_SIZE, NUM_GAUSSIANS) torch tensor
             - reward: (SEQ_LEN, BATCH_SIZE) torch tensor
             - not_terminal: (SEQ_LEN, BATCH_SIZE) torch tensor
+            - last_step_hidden_and_cell: TUPLE(
+                (NUM_LAYERS, BATCH_SIZE, HIDDEN_SIZE),
+                (NUM_LAYERS, BATCH_SIZE, HIDDEN_SIZE)
+            ) torch tensor
+            - all_steps_hidden: (SEQ_LEN, BATCH_SIZE, HIDDEN_SIZE) torch tensor
         """
+        device = next(self.parameters()).device
+        actions = actions.to(device)
+        states = states.to(device)
         seq_len, batch_size = actions.size(0), actions.size(1)
         ins = torch.cat([actions, states], dim=-1)
-        outs, new_hidden = self.rnn(ins, hidden)
-        gmm_outs = self.gmm_linear(outs)
+        all_steps_hidden, last_step_hidden_and_cell = self.rnn(ins, hidden)
+        gmm_outs = self.gmm_linear(all_steps_hidden)
 
         stride = self.num_gaussians * self.state_dim
 
@@ -92,7 +101,15 @@ class MDNRNN(_MDNRNNBase):
         reward = gmm_outs[:, :, -2]
         not_terminal = gmm_outs[:, :, -1]
 
-        return mus, sigmas, logpi, reward, not_terminal, new_hidden
+        return (
+            mus,
+            sigmas,
+            logpi,
+            reward,
+            not_terminal,
+            all_steps_hidden,
+            last_step_hidden_and_cell,
+        )
 
     def get_initial_hidden_state(self, batch_size=1):
         hidden = (
@@ -103,9 +120,9 @@ class MDNRNN(_MDNRNNBase):
 
 
 class MDNRNNMemorySample(NamedTuple):
-    state: np.array
-    action: np.array
-    next_state: np.array
+    state: np.ndarray
+    action: np.ndarray
+    next_state: np.ndarray
     reward: float
     not_terminal: float
 
@@ -133,10 +150,10 @@ class MDNRNNMemoryPool:
         sample_indices = np.random.randint(self.memory_size, size=batch_size)
         device = torch.device("cuda") if use_gpu else torch.device("cpu")
         # state/next state shape: batch_size x seq_len x state_dim
-        # action shape: # state shape: batch_size x seq_len x action_dim
+        # action shape: batch_size x seq_len x action_dim
         # reward/not_terminal shape: batch_size x seq_len
         state, action, next_state, reward, not_terminal = map(
-            lambda x: torch.tensor(x, dtype=torch.float, device=device),
+            lambda x: stack(x).float().to(device),
             zip(*self.deque_sample(sample_indices)),
         )
 

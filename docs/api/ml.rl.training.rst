@@ -118,7 +118,7 @@ ml.rl.training.rl\_exporter module
 ml.rl.training.rl\_predictor\_pytorch module
 --------------------------------------------
 
-.. automodule:: ml.rl.training.rl_predictor_pytorch
+.. automodule:: ml.rl.training.off_policy_predictor
     :members:
     :undoc-members:
     :show-inheritance:
