@@ -11,8 +11,11 @@ import numpy as np
 import torch
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
+from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
+from ml.rl.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import get_num_output_features
+from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
@@ -23,6 +26,7 @@ from ml.rl.thrift.core.ttypes import (
     RLParameters,
     TrainingParameters,
 )
+from ml.rl.torch_utils import export_module_to_buffer
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.rl_exporter import DQNExporter
@@ -244,3 +248,55 @@ class TestGridworld(GridworldTestBase):
 
     def test_predictor_export_modular(self):
         self._test_predictor_export()
+
+    def test_predictor_torch_export(self):
+        """Verify that q-values before model export equal q-values after
+        model export. Meant to catch issues with export logic."""
+        environment = Gridworld()
+        samples = Samples(
+            mdp_ids=["0"],
+            sequence_numbers=[0],
+            sequence_number_ordinals=[1],
+            states=[{0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 15: 1.0, 24: 1.0}],
+            actions=["D"],
+            action_probabilities=[0.5],
+            rewards=[0],
+            possible_actions=[["R", "D"]],
+            next_states=[{5: 1.0}],
+            next_actions=["U"],
+            terminals=[False],
+            possible_next_actions=[["R", "U", "D"]],
+        )
+        tdps = environment.preprocess_samples(samples, 1)
+        assert len(tdps) == 1, "Invalid number of data pages"
+
+        trainer, exporter = self.get_modular_sarsa_trainer_exporter(
+            environment, {}, False
+        )
+        input = rlt.StateInput(state=rlt.FeatureVector(float_features=tdps[0].states))
+
+        pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
+
+        preprocessor = Preprocessor(environment.normalization, False)
+        serving_module = DiscreteDqnPredictorWrapper(
+            state_preprocessor=preprocessor,
+            value_network=trainer.q_network.cpu_model().fc,
+            action_names=environment.ACTIONS,
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            buf = export_module_to_buffer(serving_module)
+            tmp_path = os.path.join(tmpdirname, "model")
+            with open(tmp_path, "wb") as f:
+                f.write(buf.getvalue())
+                f.close()
+                predictor = DiscreteDqnTorchPredictor(torch.jit.load(tmp_path))
+
+        post_export_q_values = predictor.predict([samples.states[0]])
+
+        for i, action in enumerate(environment.ACTIONS):
+            self.assertAlmostEqual(
+                float(pre_export_q_values[0][i]),
+                float(post_export_q_values[0][action]),
+                places=4,
+            )

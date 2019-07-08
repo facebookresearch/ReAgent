@@ -18,7 +18,6 @@ from ml.rl.workflow.page_handler import (
     TrainingPageHandler,
     feed_pages,
 )
-from ml.rl.workflow.preprocess_handler import PreprocessHandler
 from torch import distributed
 
 
@@ -26,10 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class BaseWorkflow:
-    def __init__(
-        self, preprocess_handler: PreprocessHandler, trainer, evaluator, minibatch_size
-    ):
-        self.preprocess_handler = preprocess_handler
+    def __init__(self, batch_preprocessor, trainer, evaluator, minibatch_size):
+        self.batch_preprocessor = batch_preprocessor
         self.trainer = trainer
         self.evaluator = evaluator
         self.minibatch_size = minibatch_size
@@ -73,13 +70,6 @@ class BaseWorkflow:
         for epoch in range(epochs):
             train_dataset.reset_iterator()
             data_streamer = DataStreamer(train_dataset, pin_memory=self.trainer.use_gpu)
-            preprocess_handler = self.preprocess_handler
-            dtype = self.trainer.dtype
-
-            def preprocess(batch):
-                tdp = preprocess_handler.preprocess(batch)
-                tdp.set_type(dtype)
-                return tdp
 
             feed_pages(
                 data_streamer,
@@ -88,7 +78,7 @@ class BaseWorkflow:
                 self.minibatch_size,
                 self.trainer.use_gpu,
                 TrainingPageHandler(self.trainer),
-                batch_preprocessor=preprocess,
+                batch_preprocessor=self.batch_preprocessor,
             )
 
             if hasattr(self.trainer, "q_network_cpe"):
@@ -107,7 +97,7 @@ class BaseWorkflow:
                     self.minibatch_size,
                     self.trainer.use_gpu,
                     eval_page_handler,
-                    batch_preprocessor=preprocess,
+                    batch_preprocessor=self.batch_preprocessor,
                 )
 
                 SummaryWriterContext.increase_global_step()

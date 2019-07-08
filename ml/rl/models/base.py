@@ -129,7 +129,10 @@ class ModelBase(nn.Module):
         # This is not ideal but makes exporting simple
         return deepcopy(self).cpu()
 
-    def export_to_buffer(self) -> BytesIO:
+    def serving_model(self):
+        raise NotImplementedError
+
+    def export_onnx_to_buffer(self) -> BytesIO:
         """
         Export the instance to BytesIO buffer
         """
@@ -144,8 +147,8 @@ class ModelBase(nn.Module):
         )
         return write_buffer
 
-    def get_caffe2_model(self):
-        model_protobuf = onnx.load(BytesIO(self.export_to_buffer().getvalue()))
+    def get_caffe2_model_from_onnx(self):
+        model_protobuf = onnx.load(BytesIO(self.export_onnx_to_buffer().getvalue()))
         input_blobs = [i.name for i in model_protobuf.graph.input]
         output_blobs = [o.name for o in model_protobuf.graph.output]
         return (
@@ -172,7 +175,7 @@ class ModelBase(nn.Module):
             feature_extractor: An instance of FeatureExtractorBase
         """
         # 1. Get Caffe2 model
-        c2_model, input_blobs, output_blobs = self.get_caffe2_model()
+        c2_model, input_blobs, output_blobs = self.get_caffe2_model_from_onnx()
         ws = c2_model.workspace
 
         # Initializing constants in the model

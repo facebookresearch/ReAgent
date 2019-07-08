@@ -77,22 +77,24 @@ class DiscreteDQNOnPolicyPredictor(OnPolicyPredictor):
 class ParametricDQNOnPolicyPredictor(OnPolicyPredictor):
     def policy(
         self,
-        states: torch.Tensor,
+        states_tiled: torch.Tensor,
         possible_actions_with_presence: Tuple[torch.Tensor, torch.Tensor],
     ):
         possible_actions, possible_actions_presence = possible_actions_with_presence
-        assert states.size()[0] == 1
+        assert states_tiled.size()[0] == possible_actions.size()[0]
         assert possible_actions.size()[1] == self.action_dim
         assert possible_actions.size()[0] == possible_actions_presence.size()[0]
 
         if self.use_gpu:
-            states = states.cuda()
+            states_tiled = states_tiled.cuda()
             possible_actions = possible_actions.cuda()
-        q_scores = self.predict(states, possible_actions)
+        q_scores = self.predict(states_tiled, possible_actions).reshape(
+            [1, self.action_dim]
+        )
 
         # set impossible actions so low that they can't be picked
         q_scores -= (
-            1.0 - possible_actions_presence.reshape(1, -1)  # type: ignore
+            1.0 - possible_actions_presence.reshape(1, self.action_dim)  # type: ignore
         ) * 1e10
 
         q_scores_softmax_numpy = masked_softmax(
@@ -110,21 +112,13 @@ class ParametricDQNOnPolicyPredictor(OnPolicyPredictor):
             softmax=int(np.random.choice(q_scores.size()[1], p=q_scores_softmax_numpy)),
         )
 
-    def predict(self, state: torch.Tensor, possible_actions: torch.Tensor):
-        num_actions = self.action_dim
-        state_tiled = torch.repeat_interleave(state, repeats=num_actions, axis=0)
-        input = (state_tiled, possible_actions)
-        q_scores = self.trainer.internal_prediction(*input).reshape(1, -1)
-        return q_scores
+    def predict(self, states_tiled: torch.Tensor, possible_actions: torch.Tensor):
+        return self.trainer.internal_prediction(states_tiled, possible_actions)
 
-    def estimate_reward(self, states: torch.Tensor, possible_actions: torch.Tensor):
-        num_actions = self.action_dim
-        states_tiled = torch.repeat_interleave(states, repeats=num_actions, axis=0)
-        input = (states_tiled, possible_actions)
-        reward_estimates = self.trainer.internal_reward_estimation(*input).reshape(
-            -1, num_actions
-        )
-        return reward_estimates
+    def estimate_reward(
+        self, states_tiled: torch.Tensor, possible_actions: torch.Tensor
+    ):
+        return self.trainer.internal_reward_estimation(states_tiled, possible_actions)
 
     def policy_net(self) -> bool:
         return False

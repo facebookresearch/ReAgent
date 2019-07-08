@@ -850,12 +850,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
-            o.state.float_features.numpy(),
+            o.state.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
-            o.next_state.float_features.numpy(),
+            o.next_state.float_features.value.numpy(),
             rtol=1e-6,
         )
 
@@ -934,12 +934,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
-            o.state.float_features.numpy(),
+            o.state.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
-            o.next_state.float_features.numpy(),
+            o.next_state.float_features.value.numpy(),
             rtol=1e-6,
         )
 
@@ -1054,12 +1054,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
-            o.state.float_features.numpy(),
+            o.state.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
-            o.next_state.float_features.numpy(),
+            o.next_state.float_features.value.numpy(),
             rtol=1e-6,
         )
 
@@ -1118,12 +1118,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_allclose(
             self.expected_action_features(normalize),
-            o.action.float_features.numpy(),
+            o.action.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_possible_actions_features(normalize),
-            o.possible_actions.float_features.numpy(),
+            o.possible_actions.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_array_equal(
@@ -1131,7 +1131,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_allclose(
             self.expected_possible_next_actions_features(normalize),
-            o.possible_next_actions.float_features.numpy(),
+            o.possible_next_actions.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_array_equal(
@@ -1140,12 +1140,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
-            o.state.float_features.numpy(),
+            o.state.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_tiled_next_state_features(normalize),
-            o.tiled_next_state.float_features.numpy(),
+            o.tiled_next_state.float_features.value.numpy(),
             rtol=1e-6,
         )
 
@@ -1193,22 +1193,22 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         npt.assert_allclose(
             self.expected_action_features(normalize),
-            o.action.float_features.numpy(),
+            o.action.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_next_action_features(normalize),
-            o.next_action.float_features.numpy(),
+            o.next_action.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
-            o.state.float_features.numpy(),
+            o.state.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
-            o.next_state.float_features.numpy(),
+            o.next_state.float_features.value.numpy(),
             rtol=1e-6,
         )
 
@@ -1232,7 +1232,9 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         expected_output_record = (
             schema.Struct(
                 ("state_features", schema.Scalar()),
+                ("state_features_presence", schema.Scalar()),
                 ("next_state_features", schema.Scalar()),
+                ("next_state_features_presence", schema.Scalar()),
                 ("action", schema.Scalar()),
                 ("next_action", schema.Scalar()),
                 ("possible_actions_mask", schema.Scalar()),
@@ -1265,7 +1267,9 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         expected_output_record = (
             schema.Struct(
                 ("state_features", schema.Scalar()),
+                ("state_features_presence", schema.Scalar()),
                 ("next_state_features", schema.Scalar()),
+                ("next_state_features_presence", schema.Scalar()),
                 ("action", schema.Scalar()),
                 ("next_action", schema.Scalar()),
             )
@@ -1305,13 +1309,19 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         expected_output_record = (
             schema.Struct(
                 ("state_features", schema.Scalar()),
+                ("state_features_presence", schema.Scalar()),
                 ("next_state_features", schema.Scalar()),
+                ("next_state_features_presence", schema.Scalar()),
                 ("action", schema.Scalar()),
+                ("action_presence", schema.Scalar()),
                 ("next_action", schema.Scalar()),
+                ("next_action_presence", schema.Scalar()),
                 ("possible_actions_mask", schema.Scalar()),
                 ("possible_next_actions_mask", schema.Scalar()),
                 ("possible_actions", schema.Scalar()),
+                ("possible_actions_presence", schema.Scalar()),
                 ("possible_next_actions", schema.Scalar()),
+                ("possible_next_actions_presence", schema.Scalar()),
             )
             + self.pass_through_columns()
         )
@@ -1348,9 +1358,13 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         expected_output_record = (
             schema.Struct(
                 ("state_features", schema.Scalar()),
+                ("state_features_presence", schema.Scalar()),
                 ("next_state_features", schema.Scalar()),
+                ("next_state_features_presence", schema.Scalar()),
                 ("action", schema.Scalar()),
                 ("next_action", schema.Scalar()),
+                ("action_presence", schema.Scalar()),
+                ("next_action_presence", schema.Scalar()),
             )
             + self.pass_through_columns()
         )

@@ -9,7 +9,9 @@ import numpy as np
 import torch
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
+from ml.rl.preprocessing.batch_preprocessor import DiscreteDqnBatchPreprocessor
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
@@ -30,7 +32,7 @@ from ml.rl.workflow.helpers import (
     parse_args,
     update_model_for_warm_start,
 )
-from ml.rl.workflow.preprocess_handler import DqnPreprocessHandler, PreprocessHandler
+from ml.rl.workflow.preprocess_handler import DiscreteDqnPreprocessHandler
 from ml.rl.workflow.transitional import create_dqn_trainer_from_params
 from tensorboardX import SummaryWriter
 from torch import multiprocessing
@@ -43,7 +45,6 @@ class DqnWorkflow(BaseWorkflow):
     def __init__(
         self,
         model_params: DiscreteActionModelParameters,
-        preprocess_handler: PreprocessHandler,
         state_normalization: Dict[int, NormalizationParameters],
         use_gpu: bool,
         use_all_avail_gpus: bool,
@@ -71,7 +72,10 @@ class DqnWorkflow(BaseWorkflow):
         )
 
         super().__init__(
-            preprocess_handler, trainer, evaluator, model_params.training.minibatch_size
+            DiscreteDqnBatchPreprocessor(Preprocessor(state_normalization, use_gpu)),
+            trainer,
+            evaluator,
+            model_params.training.minibatch_size,
         )
 
 
@@ -82,12 +86,14 @@ def single_process_main(gpu_index, *args):
         params["use_gpu"], params["use_all_avail_gpus"]
     )
 
+    action_names = params["actions"]
+
     rl_parameters = RLParameters(**params["rl"])
     training_parameters = TrainingParameters(**params["training"])
     rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
 
     model_params = DiscreteActionModelParameters(
-        actions=params["actions"],
+        actions=action_names,
         rl=rl_parameters,
         training=training_parameters,
         rainbow=rainbow_parameters,
@@ -96,12 +102,6 @@ def single_process_main(gpu_index, *args):
 
     writer = SummaryWriter(log_dir=params["model_output_path"])
     logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
-
-    preprocess_handler = DqnPreprocessHandler(
-        Preprocessor(state_normalization, False),
-        model_params.actions,
-        PandasSparseToDenseProcessor(),
-    )
 
     if params["use_all_avail_gpus"]:
         BaseWorkflow.init_multiprocessing(
@@ -114,17 +114,25 @@ def single_process_main(gpu_index, *args):
 
     workflow = DqnWorkflow(
         model_params,
-        preprocess_handler,
         state_normalization,
         params["use_gpu"],
         params["use_all_avail_gpus"],
     )
 
+    sorted_features, _ = sort_features_by_normalization(state_normalization)
+    preprocess_handler = DiscreteDqnPreprocessHandler(
+        action_names, PandasSparseToDenseProcessor(sorted_features)
+    )
+
     train_dataset = JSONDatasetReader(
-        params["training_data_path"], batch_size=training_parameters.minibatch_size
+        params["training_data_path"],
+        batch_size=training_parameters.minibatch_size,
+        preprocess_handler=preprocess_handler,
     )
     eval_dataset = JSONDatasetReader(
-        params["eval_data_path"], batch_size=training_parameters.minibatch_size
+        params["eval_data_path"],
+        batch_size=training_parameters.minibatch_size,
+        preprocess_handler=preprocess_handler,
     )
 
     with summary_writer_context(writer):

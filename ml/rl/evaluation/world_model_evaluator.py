@@ -117,7 +117,8 @@ class FeatureImportanceEvaluator(object):
                     ),  # type: ignore
                     next_state=tdp.training_input.next_state,
                     reward=tdp.training_input.reward,
-                    not_terminal=tdp.training_input.not_terminal,
+                    time_diff=torch.ones_like(tdp.training_input.reward).float(),
+                    not_terminal=tdp.training_input.not_terminal,  # type: ignore
                 ),
                 extras=ExtraData(),
             )
@@ -146,10 +147,11 @@ class FeatureImportanceEvaluator(object):
             new_tdp = TrainingBatch(
                 training_input=MemoryNetworkInput(  # type: ignore
                     state=FeatureVector(float_features=state_features),  # type: ignore
-                    action=tdp.training_input.action,
+                    action=tdp.training_input.action,  # type: ignore
                     next_state=tdp.training_input.next_state,
                     reward=tdp.training_input.reward,
-                    not_terminal=tdp.training_input.not_terminal,
+                    time_diff=torch.ones_like(tdp.training_input.reward).float(),
+                    not_terminal=tdp.training_input.not_terminal,  # type: ignore
                 ),
                 extras=ExtraData(),
             )
@@ -215,20 +217,21 @@ class FeatureSensitivityEvaluator(object):
             mdnrnn_input.action.float_features,  # type: ignore
             mdnrnn_input.next_state,
             mdnrnn_input.reward,
-            mdnrnn_input.not_terminal,
+            mdnrnn_input.not_terminal,  # type: ignore
         )
-        mdnrnn_input = MemoryNetworkInput(
+        mdnrnn_input = MemoryNetworkInput(  # type: ignore
             state=FeatureVector(float_features=state),
             action=FeatureVector(float_features=action),
             next_state=next_state,
             reward=reward,
             not_terminal=not_terminal,
+            time_diff=torch.ones_like(reward),
         )
         # the input of mdnrnn has seq-len as the first dimension
         mdnrnn_output = self.trainer.mdnrnn(mdnrnn_input)
         predicted_next_state_means = mdnrnn_output.mus
 
-        shuffled_mdnrnn_input = MemoryNetworkInput(
+        shuffled_mdnrnn_input = MemoryNetworkInput(  # type: ignore
             state=FeatureVector(float_features=state),
             # shuffle the actions
             action=FeatureVector(
@@ -237,6 +240,7 @@ class FeatureSensitivityEvaluator(object):
             next_state=next_state,
             reward=reward,
             not_terminal=not_terminal,
+            time_diff=torch.ones_like(reward).float(),
         )
         shuffled_mdnrnn_output = self.trainer.mdnrnn(shuffled_mdnrnn_input)
         shuffled_predicted_next_state_means = shuffled_mdnrnn_output.mus

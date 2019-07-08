@@ -3,7 +3,7 @@
 
 import logging
 import math
-from typing import NamedTuple, Optional, Union
+from typing import NamedTuple, Optional, Union, cast
 
 import ml.rl.types as mt
 import numpy as np
@@ -11,7 +11,7 @@ import torch
 from ml.rl.caffe_utils import masked_softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
-from ml.rl.types import MaxQLearningInput
+from ml.rl.types import DiscreteDqnInput, ParametricDqnInput, PolicyNetworkInput
 
 
 logger = logging.getLogger(__name__)
@@ -66,24 +66,56 @@ class EvaluationDataPage(NamedTuple):
 
     @classmethod
     def create_from_training_batch(cls, tdb: mt.TrainingBatch, trainer: DQNTrainer):
-        assert type(tdb.training_input) == MaxQLearningInput
-        training_input: MaxQLearningInput = tdb.training_input  # type: ignore
-        assert training_input.reward is not None
-        assert training_input.possible_actions_mask is not None
+        assert tdb.training_input.reward is not None
 
-        return EvaluationDataPage.create_from_tensors(  # type: ignore
-            trainer,
-            tdb.extras.mdp_id,
-            tdb.extras.sequence_number,
-            training_input.state,
-            training_input.action,
-            tdb.extras.action_probability,
-            training_input.reward,  # type: ignore
-            training_input.possible_actions_mask,  # type: ignore
-            training_input.possible_actions,  # type: ignore
-            tdb.extras.max_num_actions,
-            metrics=tdb.extras.metrics,
-        )
+        if type(tdb.training_input) == DiscreteDqnInput:
+            discrete_training_input = cast(DiscreteDqnInput, tdb.training_input)
+
+            return EvaluationDataPage.create_from_tensors(  # type: ignore
+                trainer,
+                tdb.extras.mdp_id,
+                tdb.extras.sequence_number,
+                discrete_training_input.state,
+                discrete_training_input.action,
+                tdb.extras.action_probability,
+                discrete_training_input.reward,  # type: ignore
+                discrete_training_input.possible_actions_mask,  # type: ignore
+                None,  # type: ignore
+                tdb.extras.max_num_actions,
+                metrics=tdb.extras.metrics,
+            )
+        elif type(tdb.training_input) == ParametricDqnInput:
+            parametric_training_input = cast(ParametricDqnInput, tdb.training_input)
+
+            return EvaluationDataPage.create_from_tensors(  # type: ignore
+                trainer,
+                tdb.extras.mdp_id,
+                tdb.extras.sequence_number,
+                parametric_training_input.state,
+                parametric_training_input.action,
+                tdb.extras.action_probability,
+                parametric_training_input.reward,  # type: ignore
+                parametric_training_input.possible_actions_mask,  # type: ignore
+                parametric_training_input.possible_actions,  # type: ignore
+                tdb.extras.max_num_actions,
+                metrics=tdb.extras.metrics,
+            )
+        elif type(tdb.training_input) == PolicyNetworkInput:
+            policy_training_input = cast(PolicyNetworkInput, tdb.training_input)
+
+            return EvaluationDataPage.create_from_tensors(  # type: ignore
+                trainer,
+                tdb.extras.mdp_id,
+                tdb.extras.sequence_number,
+                policy_training_input.state,
+                policy_training_input.action,
+                tdb.extras.action_probability,
+                policy_training_input.reward,  # type: ignore
+                None,  # type: ignore
+                None,  # type: ignore
+                0,
+                metrics=tdb.extras.metrics,
+            )
 
     @classmethod  # type: ignore
     @torch.no_grad()  # type: ignore

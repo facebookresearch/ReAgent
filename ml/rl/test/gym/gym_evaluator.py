@@ -167,20 +167,19 @@ class GymEvaluator(Evaluator):
             estimated_reward_values = predictor.estimate_reward(self.logged_states)
         else:
             num_states = self.logged_states.size()[0]
+            states_tiled = torch.repeat_interleave(
+                self.logged_states, repeats=self._env.action_dim, axis=0
+            )
             action_tiled = torch.repeat_interleave(
                 torch.eye(self._env.action_dim), repeats=num_states, axis=0
             )
 
             predictions = predictor.predict(  # type: ignore
-                self.logged_states, action_tiled
-            )
+                states_tiled, action_tiled
+            ).reshape([-1, self._env.action_dim])
             estimated_reward_values = predictor.estimate_reward(
-                self.logged_states, action_tiled
-            )
-            predictions = predictions.reshape([-1, self._env.action_dim])
-            estimated_reward_values = estimated_reward_values.reshape(
-                [-1, self._env.action_dim]
-            )
+                states_tiled, action_tiled
+            ).reshape([-1, self._env.action_dim])
 
         value_error_sum = 0.0
         reward_error_sum = 0.0

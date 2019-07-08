@@ -114,8 +114,8 @@ class GridworldEvaluator(Evaluator):
 
     def evaluate_predictions(self, prediction, all_states_prediction):
         for i, a in enumerate(self._env.ACTIONS):
-            print("Predicted Q-values for all states and action={}".format(a))
-            print(all_states_prediction[:, i].reshape(5, 5), "\n")
+            logger.info("Predicted Q-values for all states and action={}".format(a))
+            logger.info(all_states_prediction[:, i].reshape(5, 5), "\n")
 
         error_sum = 0.0
         num_error_prints = 0
@@ -127,7 +127,7 @@ class GridworldEvaluator(Evaluator):
             if num_error_prints < 10 and error > self.ABS_ERR_THRES * (
                 GridworldBase.REWARD_SCALE ** 2
             ):
-                print(
+                logger.info(
                     "GOT {}-th STATE (POS: {}) and ACTION {} WRONG. Logged Q-Value: {}, Predicted Q-Value: {}".format(
                         x,
                         self._env._pos(list(self.logged_states[x].keys())[0]),
@@ -138,7 +138,7 @@ class GridworldEvaluator(Evaluator):
                 )
                 num_error_prints += 1
                 if num_error_prints == 10:
-                    print("MAX ERRORS PRINTED")
+                    logger.info("MAX ERRORS PRINTED")
             error_sum += error
         error_mean = error_sum / float(len(self.logged_states))
 
@@ -149,7 +149,7 @@ class GridworldEvaluator(Evaluator):
 class GridworldContinuousEvaluator(GridworldEvaluator):
     def evaluate(self, predictor):
         prediction_single_action = predictor.predict(
-            float_state_features=self.logged_states, actions=self.logged_actions
+            self.logged_states, self.logged_actions
         )
 
         # Convert action string to integer

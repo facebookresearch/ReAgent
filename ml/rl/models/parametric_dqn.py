@@ -41,6 +41,16 @@ class ParametricDQNWithPreprocessing(ModelBase):
         )
 
 
+class StateActionJoinWrapper(torch.nn.Module):
+    def __init__(self, innerModule):
+        super().__init__()
+        self.innerModule = innerModule
+
+    def forward(self, state, action):
+        cat_input = torch.cat((state, action), dim=1)
+        return self.innerModule(cat_input)
+
+
 class FullyConnectedParametricDQN(ModelBase):
     def __init__(self, state_dim, action_dim, sizes, activations, use_batch_norm=False):
         super().__init__()
@@ -74,6 +84,9 @@ class FullyConnectedParametricDQN(ModelBase):
         )
         q_value = self.fc(cat_input)
         return rlt.SingleQValue(q_value=q_value)
+
+    def serving_model(self):
+        return StateActionJoinWrapper(self.cpu_model().fc)
 
 
 class _DistributedDataParallelFullyConnectedParametricDQN(ModelBase):

@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Tuple, cast
 
 import numpy as np
 import torch
@@ -13,7 +13,6 @@ from ml.rl.preprocessing.normalization import (
     EPS,
     MAX_FEATURE_VALUE,
     MIN_FEATURE_VALUE,
-    MISSING_VALUE,
     NormalizationParameters,
 )
 from torch.nn import Module, Parameter
@@ -25,16 +24,14 @@ logger = logging.getLogger(__name__)
 class Preprocessor(Module):
     def __init__(
         self,
-        normalization_parameters: Dict[str, NormalizationParameters],
+        normalization_parameters: Dict[int, NormalizationParameters],
         use_gpu: bool,
-        typed_output: bool = False,
     ) -> None:
         super().__init__()
         self.normalization_parameters = normalization_parameters
-        self.sorted_features, self.sorted_feature_boundaries = (
+        self.feature_id_to_index, self.sorted_features, self.sorted_feature_boundaries = (
             self._sort_features_by_normalization()
         )
-        self.typed_output = typed_output
 
         cuda_available = torch.cuda.is_available()
         logger.info("CUDA availability: {}".format(cuda_available))
@@ -63,9 +60,6 @@ class Preprocessor(Module):
         )
         self.negative_one_tensor = Parameter(
             torch.tensor([-1.0]).type(self.dtype), requires_grad=False
-        )
-        self.missing_tensor = Parameter(
-            torch.tensor([MISSING_VALUE]).type(self.dtype), requires_grad=False
         )
         self.min_tensor = Parameter(
             torch.tensor([-1e20]).type(self.dtype), requires_grad=False
@@ -101,25 +95,21 @@ class Preprocessor(Module):
                 func = getattr(self, "_create_parameters_" + feature_type)
                 func(begin_index, norm_params)
 
-    def input_prototype(self):
-        return rlt.FeatureVector(
-            float_features=torch.randn(1, len(self.normalization_parameters))
+    def input_prototype(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        return (
+            torch.randn(1, len(self.normalization_parameters)),
+            torch.ones(1, len(self.normalization_parameters)).byte(),
         )
 
-    def forward(self, input) -> torch.FloatTensor:
+    def forward(
+        self, input: torch.Tensor, input_presence_byte: torch.ByteTensor
+    ) -> torch.Tensor:
         """ Preprocess the input matrix
         :param input tensor
         """
-        if isinstance(input, np.ndarray):
-            input = torch.from_numpy(input).type(self.dtype)
-        if isinstance(input, rlt.FeatureVector):
-            input = input.float_features.type(self.dtype)  # type: ignore
-
-        # ONNX doesn't support != yet
-        not_missing_input = (
-            self.one_tensor.float() - (input == self.missing_tensor).float()
-        )
         feature_starts = self._get_type_boundaries()
+
+        input_presence = input_presence_byte.float()
 
         outputs = []
         for i, feature_type in enumerate(FEATURE_TYPES):
@@ -137,7 +127,7 @@ class Preprocessor(Module):
                     new_output = self._preprocess_feature_single_column(
                         j, input[:, j : j + 1], norm_params
                     )
-                    new_output *= not_missing_input[:, j : j + 1]
+                    new_output *= input_presence[:, j : j + 1]
                     self._check_preprocessing_output(new_output, [norm_params])
                     outputs.append(new_output)
             else:
@@ -147,23 +137,15 @@ class Preprocessor(Module):
                 new_output = self._preprocess_feature_multi_column(
                     begin_index, input[:, begin_index:end_index], norm_params_list
                 )
-                new_output *= not_missing_input[:, begin_index:end_index]
+                new_output *= input_presence[:, begin_index:end_index]
                 self._check_preprocessing_output(new_output, norm_params_list)
                 outputs.append(new_output)
 
-        def wrap(output):
-            if self.typed_output:
-                return rlt.FeatureVector(float_features=output)
-            else:
-                return output
-
         if len(outputs) == 1:
-            return wrap(
-                torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
-            )  # type: ignore
+            return torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
 
-        return wrap(  # type: ignore
-            torch.clamp(torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+        return torch.clamp(
+            torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
         )
 
     def _preprocess_feature_single_column(
@@ -172,9 +154,6 @@ class Preprocessor(Module):
         input: torch.Tensor,
         norm_params: NormalizationParameters,
     ) -> torch.Tensor:
-        if isinstance(input, np.ndarray):
-            input = torch.from_numpy(input).type(self.dtype)
-
         feature_type = norm_params.feature_type
         func = getattr(self, "_preprocess_" + feature_type)
         return func(begin_index, input, norm_params)  # type: ignore
@@ -185,9 +164,6 @@ class Preprocessor(Module):
         input: torch.Tensor,
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
-        if isinstance(input, np.ndarray):
-            input = torch.from_numpy(input).type(self.dtype)
-
         feature_type = norm_params[0].feature_type
         func = getattr(self, "_preprocess_" + feature_type)
         return func(begin_index, input, norm_params)  # type: ignore
@@ -284,9 +260,7 @@ class Preprocessor(Module):
         means = self._fetch_parameter(begin_index, "means")
         stddevs = self._fetch_parameter(begin_index, "stddevs")
         continuous_output = (input - means) / stddevs
-        return torch.clamp(
-            continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
-        )  # type: ignore
+        return torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
 
     def _create_parameters_BOXCOX(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -482,6 +456,7 @@ class Preprocessor(Module):
         Helper function to return a sorted list from a normalization map.
         Also returns the starting index for each feature type"""
         # Sort features by feature type
+        feature_id_to_index = {}
         sorted_features = []
         feature_starts = []
         assert isinstance(
@@ -492,8 +467,9 @@ class Preprocessor(Module):
             for feature in sorted(self.normalization_parameters.keys()):
                 norm = self.normalization_parameters[feature]
                 if norm.feature_type == feature_type:
+                    feature_id_to_index[feature] = len(sorted_features)
                     sorted_features.append(feature)
-        return sorted_features, feature_starts
+        return feature_id_to_index, sorted_features, feature_starts
 
     def _get_type_boundaries(self) -> List[int]:
         feature_starts = []
@@ -520,9 +496,9 @@ class Preprocessor(Module):
         return p
 
     def _fetch_parameter(self, begin_index: int, name: str) -> Parameter:
-        return getattr(
-            self, "_auto_parameter_" + str(begin_index) + "_" + name
-        )  # type: ignore
+        return cast(
+            Parameter, getattr(self, "_auto_parameter_" + str(begin_index) + "_" + name)
+        )
 
     def _manual_broadcast_matrix_scalar(
         self, t1: torch.Tensor, s1: torch.Tensor, fn
@@ -550,13 +526,13 @@ class Preprocessor(Module):
         if feature_type == "CONTINUOUS":
             # Continuous features may be in range (-inf, inf)
             pass
-        elif float(max_value) > MAX_FEATURE_VALUE:
+        elif max_value > MAX_FEATURE_VALUE:
             raise Exception(
                 "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
                     feature_type, max_value, MAX_FEATURE_VALUE
                 )
             )
-        elif float(min_value) < MIN_FEATURE_VALUE:
+        elif min_value < MIN_FEATURE_VALUE:
             raise Exception(
                 "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
                     feature_type, min_value, MIN_FEATURE_VALUE

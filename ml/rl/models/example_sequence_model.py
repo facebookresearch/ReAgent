@@ -19,7 +19,7 @@ HISTORY_LENGTH = 5
 
 @dataclass
 class VideoIDFeatures(rlt.IdFeatureBase):
-    page_id: rlt.ValueType
+    page_id: torch.Tensor
 
     @classmethod
     def get_feature_config(cls) -> Dict[str, rlt.IdFeatureConfig]:

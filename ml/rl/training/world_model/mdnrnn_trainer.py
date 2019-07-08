@@ -112,18 +112,19 @@ class MDNRNNTrainer:
                 learning_input.action.float_features,  # type: ignore
                 learning_input.next_state,
                 learning_input.reward,
-                learning_input.not_terminal,
+                learning_input.not_terminal,  # type: ignore
             )
-            learning_input = rlt.MemoryNetworkInput(
+            learning_input = rlt.MemoryNetworkInput(  # type: ignore
                 state=rlt.FeatureVector(float_features=state),
-                action=rlt.FeatureVector(float_features=action),
-                next_state=next_state,
                 reward=reward,
+                time_diff=torch.ones_like(reward).float(),
+                action=rlt.FeatureVector(float_features=action),
                 not_terminal=not_terminal,
+                next_state=next_state,
             )
 
         mdnrnn_input = rlt.StateAction(
-            state=learning_input.state, action=learning_input.action
+            state=learning_input.state, action=learning_input.action  # type: ignore
         )
         mdnrnn_output = self.mdnrnn(mdnrnn_input)
         mus, sigmas, logpi, rs, nts = (
@@ -135,7 +136,7 @@ class MDNRNNTrainer:
         )
 
         next_state = learning_input.next_state
-        not_terminal = learning_input.not_terminal
+        not_terminal = learning_input.not_terminal  # type: ignore
         reward = learning_input.reward
         if self.params.fit_only_one_next_step:
             next_state, not_terminal, reward, mus, sigmas, logpi, nts, rs = tuple(

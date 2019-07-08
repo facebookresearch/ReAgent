@@ -129,17 +129,20 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         init_net.AddExternalOutput(blob)
         return blob
 
-    def extract_float_features(self, net, name, field, keys_to_extract, missing_scalar):
+    def extract_float_features(
+        self, net, name, field, keys_to_extract, missing_scalar
+    ) -> Tuple[str, str]:
         """
         Helper function to extract matrix from stacked  sparse tensors
         """
         with core.NameScope(name):
-            float_features, _presence_mask = net.SparseToDenseMask(
+            float_features, presence_mask = net.SparseToDenseMask(
                 [field.keys(), field.values(), missing_scalar, field.lengths()],
-                ["float_features", "presence_mask"],
+                [net.NextBlob("float_features"), net.NextBlob("presence_mask")],
                 mask=keys_to_extract,
+                return_presence_mask=True,
             )
-        return float_features
+        return (float_features, presence_mask)
 
     def get_state_sequence_features_schema(
         self,
@@ -455,6 +458,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
                 [lengths_range_fill, gathered_values, zero_val, gathered_lengths],
                 ["dense_values", "presence_mask"],
                 mask=keys_to_extract,
+                return_presence_mask=True,
             )
             dense_values, _presence_mask = values_with_mask
 
@@ -594,6 +598,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
         data = ws.fetch_blob(str(b()))
         if not isinstance(data, np.ndarray):
             # Blob uninitialized, return None and handle downstream
+            assert False, "Missing blob: " + str(b)
             return None
         if to_torch:
             return torch.tensor(data)
@@ -614,16 +619,22 @@ def id_score_list_schema():
 
 class InputColumn(object):
     STATE_FEATURES = "state_features"
+    STATE_FEATURES_PRESENCE = "state_features_presence"
     STATE_ID_LIST_FEATURES = "state_id_list_features"
     STATE_ID_SCORE_LIST_FEATURES = "state_id_score_list_features"
     NEXT_STATE_FEATURES = "next_state_features"
+    NEXT_STATE_FEATURES_PRESENCE = "next_state_features_presence"
     NEXT_STATE_ID_LIST_FEATURES = "next_state_id_list_features"
     NEXT_STATE_ID_SCORE_LIST_FEATURES = "next_state_id_score_list_features"
     ACTION = "action"
+    ACTION_PRESENCE = "action_presence"
     NEXT_ACTION = "next_action"
+    NEXT_ACTION_PRESENCE = "next_action_presence"
     POSSIBLE_ACTIONS = "possible_actions"
+    POSSIBLE_ACTIONS_PRESENCE = "possible_actions_presence"
     POSSIBLE_ACTIONS_MASK = "possible_actions_mask"
     POSSIBLE_NEXT_ACTIONS = "possible_next_actions"
+    POSSIBLE_NEXT_ACTIONS_PRESENCE = "possible_next_actions_presence"
     POSSIBLE_NEXT_ACTIONS_MASK = "possible_next_actions_mask"
     NOT_TERMINAL = "not_terminal"
     STEP = "step"
@@ -689,42 +700,67 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
     def extract(self, ws, extract_record):
         fetch = partial(self.fetch, ws)
 
-        def fetch_action(b):
-            if self.sorted_action_features is None:
-                return fetch(b)
-            else:
-                return rlt.FeatureVector(float_features=fetch(b))
-
-        def fetch_possible_actions(b):
-            if self.sorted_action_features is not None:
-                return rlt.FeatureVector(float_features=fetch(b))
-            else:
-                return None
-
-        state_features = {"float_features": fetch(extract_record.state_features)}
-        next_state_features = {
-            "float_features": fetch(extract_record.next_state_features)
-        }
-        if self.has_sequence_features:
-            state_features["sequence_features"] = self.fetch_state_sequence_features(
-                extract_record.state_sequence_features, fetch
+        def fetch_possible_actions(
+            possible_actions_blob, possible_actions_presence_blob
+        ):
+            return rlt.FeatureVector(
+                float_features=rlt.ValuePresence(
+                    value=fetch(possible_actions_blob),
+                    presence=fetch(possible_actions_presence_blob),
+                )
             )
-            next_state_features[
-                "sequence_features"
-            ] = self.fetch_state_sequence_features(
-                extract_record.next_state_sequence_features, fetch
+
+        state = rlt.FeatureVector(
+            float_features=rlt.ValuePresence(
+                value=fetch(extract_record.state_features),
+                presence=fetch(extract_record.state_features_presence),
+            )
+        )
+
+        next_state = rlt.FeatureVector(
+            float_features=rlt.ValuePresence(
+                value=fetch(extract_record.next_state_features),
+                presence=fetch(extract_record.next_state_features_presence),
+            )
+        )
+
+        if self.has_sequence_features:
+            state = state._replace(
+                sequence_features=self.fetch_state_sequence_features(
+                    extract_record.state_sequence_features, fetch
+                )
+            )
+            next_state = next_state._replace(
+                sequence_features=self.fetch_state_sequence_features(
+                    extract_record.next_state_sequence_features, fetch
+                )
             )
         if self.use_time_since_first:
-            state_features["time_since_first"] = fetch(extract_record.time_since_first)
-            next_state_features["time_since_first"] = fetch(
-                extract_record.next_time_since_first
+            state = state._replace(
+                time_since_first=fetch(extract_record.time_since_first)
+            )
+            next_state = next_state._replace(
+                time_since_first=fetch(extract_record.next_time_since_first)
             )
 
-        state = rlt.FeatureVector(**state_features)
-        next_state = rlt.FeatureVector(**next_state_features)
-
-        action = fetch_action(extract_record.action)
-        next_action = fetch_action(extract_record.next_action)
+        if self.sorted_action_features is None:
+            # Action is a one-hot vector of discrete actions
+            action = fetch(extract_record.action)
+            next_action = fetch(extract_record.next_action)
+        else:
+            # Action is a set of continuous features
+            action = rlt.FeatureVector(
+                float_features=rlt.ValuePresence(
+                    value=fetch(extract_record.action),
+                    presence=fetch(extract_record.action_presence),
+                )
+            )
+            next_action = rlt.FeatureVector(
+                float_features=rlt.ValuePresence(
+                    value=fetch(extract_record.next_action),
+                    presence=fetch(extract_record.next_action_presence),
+                )
+            )
         max_num_actions = None
         step = None
         if self.multi_steps is not None:
@@ -734,6 +770,20 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         # is_terminal should be filled by preprocessor
         not_terminal = fetch(extract_record.not_terminal).reshape(-1, 1)
         time_diff = fetch(extract_record.time_diff).reshape(-1, 1)
+
+        if self.sorted_action_features is not None and self.max_num_actions is not None:
+            tiled_next_state = rlt.FeatureVector(
+                float_features=rlt.ValuePresence(
+                    value=next_state.float_features.value.repeat(
+                        1, self.max_num_actions
+                    ).reshape(-1, next_state.float_features.value.shape[1]),
+                    presence=next_state.float_features.presence.repeat(
+                        1, self.max_num_actions
+                    ).reshape(-1, next_state.float_features.value.shape[1]),
+                )
+            )
+        else:
+            tiled_next_state = None
 
         if self.include_possible_actions:
             # TODO: this will need to be more complicated to support sparse features
@@ -751,47 +801,54 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
             if self.sorted_action_features is not None:
                 possible_actions = fetch_possible_actions(
-                    extract_record.possible_actions
+                    extract_record.possible_actions,
+                    extract_record.possible_actions_presence,
                 )
                 possible_next_actions = fetch_possible_actions(
-                    extract_record.possible_next_actions
-                )
-                tiled_next_state = rlt.FeatureVector(
-                    float_features=next_state.float_features.repeat(
-                        1, self.max_num_actions
-                    ).reshape(-1, next_state.float_features.shape[1])
+                    extract_record.possible_next_actions,
+                    extract_record.possible_next_actions_presence,
                 )
                 max_num_actions = self.max_num_actions
-            else:
-                possible_actions = None
-                possible_next_actions = None
-                tiled_next_state = None
 
-            training_input = rlt.MaxQLearningInput(
-                state=state,
-                action=action,
-                next_state=next_state,
-                tiled_next_state=tiled_next_state,
-                possible_actions=possible_actions,
-                possible_actions_mask=possible_actions_mask,
-                possible_next_actions=possible_next_actions,
-                possible_next_actions_mask=possible_next_actions_mask,
-                next_action=next_action,
-                reward=reward,
-                not_terminal=not_terminal,
-                step=step,
-                time_diff=time_diff,
-            )
+                training_input = rlt.ParametricDqnInput(
+                    state=state,
+                    reward=reward,
+                    time_diff=time_diff,
+                    action=action,
+                    next_action=next_action,
+                    not_terminal=not_terminal,
+                    next_state=next_state,
+                    tiled_next_state=tiled_next_state,
+                    possible_actions=possible_actions,
+                    possible_actions_mask=possible_actions_mask,
+                    possible_next_actions=possible_next_actions,
+                    possible_next_actions_mask=possible_next_actions_mask,
+                    step=step,
+                )
+            else:
+                training_input = rlt.DiscreteDqnInput(
+                    state=state,
+                    reward=reward,
+                    time_diff=time_diff,
+                    action=action,
+                    next_action=next_action,
+                    not_terminal=not_terminal,
+                    next_state=next_state,
+                    possible_actions_mask=possible_actions_mask,
+                    possible_next_actions_mask=possible_next_actions_mask,
+                    step=step,
+                )
         else:
             training_input = rlt.SARSAInput(
                 state=state,
-                action=action,
-                next_state=next_state,
-                next_action=next_action,
                 reward=reward,
-                not_terminal=not_terminal,
-                step=step,
                 time_diff=time_diff,
+                action=action,
+                next_action=next_action,
+                not_terminal=not_terminal,
+                next_state=next_state,
+                tiled_next_state=tiled_next_state,
+                step=step,
             )
 
         mdp_id = fetch(extract_record.mdp_id, to_torch=False)
@@ -876,14 +933,14 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
 
         input_record = net.set_input_record(input_schema)
 
-        state = self.extract_float_features(
+        state, state_presence = self.extract_float_features(
             net,
             "state",
             input_record[InputColumn.STATE_FEATURES],
             self.sorted_state_features,
             missing_scalar,
         )
-        next_state = self.extract_float_features(
+        next_state, next_state_presence = self.extract_float_features(
             net,
             "next_state",
             input_record[InputColumn.NEXT_STATE_FEATURES],
@@ -959,14 +1016,14 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             next_state_sequence_float_features = {}
 
         if self.sorted_action_features:
-            action = self.extract_float_features(
+            action, action_presence = self.extract_float_features(
                 net,
                 InputColumn.ACTION,
                 input_record[InputColumn.ACTION],
                 self.sorted_action_features,
                 missing_scalar,
             )
-            next_action = self.extract_float_features(
+            next_action, next_action_presence = self.extract_float_features(
                 net,
                 InputColumn.NEXT_ACTION,
                 input_record[InputColumn.NEXT_ACTION],
@@ -974,14 +1031,14 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 missing_scalar,
             )
             if self.include_possible_actions:
-                possible_action_features = self.extract_float_features(
+                possible_action_features, possible_action_features_presence = self.extract_float_features(
                     net,
                     InputColumn.POSSIBLE_ACTIONS,
                     input_record[InputColumn.POSSIBLE_ACTIONS]["values"],
                     self.sorted_action_features,
                     missing_scalar,
                 )
-                possible_next_action_features = self.extract_float_features(
+                possible_next_action_features, possible_next_action_features_presence = self.extract_float_features(
                     net,
                     InputColumn.POSSIBLE_NEXT_ACTIONS,
                     input_record[InputColumn.POSSIBLE_NEXT_ACTIONS]["values"],
@@ -1061,7 +1118,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         if self.metrics_to_score:
             metrics_to_score_idxs = list(range(len(self.metrics_to_score)))
             missing_metric = self.create_const(init_net, "MISSING_METRIC", 0.0)
-            metrics = self.extract_float_features(
+            metrics, metrics_presence = self.extract_float_features(
                 net,
                 InputColumn.METRICS,
                 input_record[InputColumn.METRICS],
@@ -1087,7 +1144,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 [time_since_first, float_time_diff],
                 net.NextScopedBlob("float_next_time_since_first"),
             )
-            if self.time_since_first_normalization_parameters:
+            if self.time_since_first_normalization_parameters and self.normalize:
                 C2.set_net_and_init_net(net, init_net)
                 time_since_first, _ = PreprocessorNet().normalize_dense_matrix(
                     time_since_first,
@@ -1106,14 +1163,23 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 C2.set_net_and_init_net(None, None)
 
         output_schema = schema.Struct(
+            (InputColumn.STATE_FEATURES, state),
+            (InputColumn.STATE_FEATURES_PRESENCE, state_presence),
+            (InputColumn.NEXT_STATE_FEATURES, next_state),
+            (InputColumn.NEXT_STATE_FEATURES_PRESENCE, next_state_presence),
+            (InputColumn.ACTION, action),
+            (InputColumn.NEXT_ACTION, next_action),
+        )
+
+        if self.sorted_action_features:
+            output_schema += schema.Struct(
+                (InputColumn.ACTION_PRESENCE, action_presence),
+                (InputColumn.NEXT_ACTION_PRESENCE, next_action_presence),
+            )
+
+        output_schema += schema.Struct(
             *(
                 [
-                    (InputColumn.STATE_FEATURES, state),
-                    (InputColumn.NEXT_STATE_FEATURES, next_state),
-                    (InputColumn.ACTION, action),
-                    (InputColumn.NEXT_ACTION, next_action),
-                ]
-                + [
                     (col_name, input_record[col_name])
                     for col_name, _col_type in pass_through_columns
                 ]
@@ -1159,7 +1225,15 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             if self.sorted_action_features is not None:
                 output_schema += schema.Struct(
                     (InputColumn.POSSIBLE_ACTIONS, possible_action_features),
+                    (
+                        InputColumn.POSSIBLE_ACTIONS_PRESENCE,
+                        possible_action_features_presence,
+                    ),
                     (InputColumn.POSSIBLE_NEXT_ACTIONS, possible_next_action_features),
+                    (
+                        InputColumn.POSSIBLE_NEXT_ACTIONS_PRESENCE,
+                        possible_next_action_features_presence,
+                    ),
                 )
 
         if self.metrics_to_score:
@@ -1305,7 +1379,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
 
         input_record = net.set_input_record(input_schema)
 
-        state = self.extract_float_features(
+        state, state_presence = self.extract_float_features(
             net,
             "state",
             input_record.float_features,
@@ -1351,7 +1425,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             )
 
         if self.sorted_action_features:
-            action = self.extract_float_features(
+            action, action_presence = self.extract_float_features(
                 net,
                 "action",
                 input_record.float_features,
@@ -1387,7 +1461,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
                 dims=[1],
             )
 
-            if self.time_since_first_normalization_parameters:
+            if self.time_since_first_normalization_parameters and self.normalize:
                 C2.set_net_and_init_net(net, init_net)
                 time_since_first, _ = PreprocessorNet().normalize_dense_matrix(
                     time_since_first,
@@ -1494,12 +1568,15 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
             .reshape(-1, self.seq_len)
             .float()
         )
+        # TODO: Replace with true time diff
+        time_diff = torch.ones_like(reward).float()
         training_input = rlt.MemoryNetworkInput(
             state=state,
-            action=action,
-            next_state=next_state,
             reward=reward,
+            time_diff=time_diff,
+            action=action,
             not_terminal=not_terminal,
+            next_state=next_state,
         )
         return rlt.TrainingBatch(training_input=training_input, extras=None)
 
@@ -1529,14 +1606,14 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
         )
         input_record = net.set_input_record(input_schema)
 
-        state = self.extract_float_features(
+        state, state_presence = self.extract_float_features(
             net,
             "state",
             input_record[InputColumn.STATE_FEATURES].value,
             self.sorted_state_features,
             missing_scalar,
         )
-        next_state = self.extract_float_features(
+        next_state, next_state_presence = self.extract_float_features(
             net,
             "next_state",
             input_record[InputColumn.NEXT_STATE_FEATURES].value,
@@ -1545,7 +1622,7 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
         )
 
         if self.sorted_action_features:
-            action = self.extract_float_features(
+            action, action_presence = self.extract_float_features(
                 net,
                 InputColumn.ACTION,
                 input_record[InputColumn.ACTION].value,

@@ -1,16 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-"""
-EXPERIMENTAL
-
-These generic types define common interface between modules. Above all, these
-facilitates model exporting through ONNX. ONNX doesn't trace dictionary so we
-use NamedTuple to act in place of dictionaries. NamedTuple is also more compact
-than dictionary; so, this should be good overall.
-
-"""
-
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
@@ -21,10 +11,14 @@ from caffe2.python import core
 
 
 """
-We use a mix of frameworks in our system. Therefore, we can't pinpoint the exact
-type of value
+A state/action consists of a list of feature vectors and a boolean presence mask
 """
-ValueType = Union[torch.Tensor, core.BlobReference, np.ndarray]
+
+
+@dataclass
+class ValuePresence:
+    value: torch.Tensor
+    presence: Optional[torch.ByteTensor]
 
 
 @dataclass
@@ -40,7 +34,7 @@ class IdFeatureConfig:
 @dataclass
 class IdFeatureBase:
     """
-    User should subclass this class and define each ID feature as a field w/ ValueType
+    User should subclass this class and define each ID feature as a field w/ torch.Tensor
     as the type of the field.
     """
 
@@ -68,7 +62,7 @@ class FloatFeatureInfo:
 @dataclass
 class SequenceFeatureBase:
     id_features: Optional[IdFeatureBase]
-    float_features: Optional[ValueType]
+    float_features: Optional[ValuePresence]
 
     @classmethod
     # TODO: This should be marked as abstractmethod but mypi doesn't like it.
@@ -146,7 +140,7 @@ class ModelFeatureConfig:
 
 
 class FeatureVector(NamedTuple):
-    float_features: Optional[ValueType] = None
+    float_features: ValuePresence
     # sequence_features should ideally be Mapping[str, IdListFeature]; however,
     # that doesn't work well with ONNX.
     # User is expected to dynamically define the type of id_list_features based
@@ -155,17 +149,17 @@ class FeatureVector(NamedTuple):
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
-    time_since_first: Optional[ValueType] = None
+    time_since_first: Optional[torch.Tensor] = None
 
 
-DiscreteAction = ValueType
+DiscreteAction = torch.ByteTensor
 
 ParametricAction = FeatureVector
 
 
 class ActorOutput(NamedTuple):
-    action: ValueType
-    log_prob: Optional[ValueType] = None
+    action: torch.Tensor
+    log_prob: Optional[torch.Tensor] = None
 
 
 Action = Union[
@@ -188,63 +182,108 @@ class StateAction(NamedTuple):
     action: Action
 
 
-class MaxQLearningInput(NamedTuple):
+class BaseInput(NamedTuple):
     state: State
+    reward: torch.Tensor
+    time_diff: torch.Tensor
+    next_state: State
+    step: Optional[torch.Tensor] = None
+
+
+class DiscreteDqnInput(NamedTuple):
+    state: State
+    reward: torch.Tensor
+    time_diff: torch.Tensor
+    action: DiscreteAction
+    next_action: DiscreteAction
+    not_terminal: torch.Tensor
+    possible_actions_mask: torch.Tensor
+    possible_next_actions_mask: torch.Tensor
+    next_state: State
+    step: Optional[torch.Tensor] = None
+
+
+class ParametricDqnInput(NamedTuple):
+    state: State
+    reward: torch.Tensor
+    time_diff: torch.Tensor
+    action: ParametricAction
+    next_action: ParametricAction
+    not_terminal: torch.Tensor
+    possible_actions: ParametricAction
+    possible_actions_mask: torch.Tensor
+    possible_next_actions: ParametricAction
+    possible_next_actions_mask: torch.Tensor
+    next_state: State
+    tiled_next_state: State
+    step: Optional[torch.Tensor] = None
+
+
+class PolicyNetworkInput(NamedTuple):
+    state: State
+    reward: torch.Tensor
+    time_diff: torch.Tensor
     action: Action
     next_action: Action
-    next_state: Optional[State]  # Available in case of discrete action
-    tiled_next_state: Optional[State]  # Available in case of parametric action
-    possible_actions: Optional[Action]
-    possible_actions_mask: ValueType
-    possible_next_actions: Optional[Action]
-    possible_next_actions_mask: ValueType
-    reward: ValueType
-    not_terminal: ValueType
-    step: Optional[ValueType]
-    time_diff: ValueType
+    not_terminal: torch.Tensor
+    next_state: State
+    step: Optional[torch.Tensor] = None
 
 
 class SARSAInput(NamedTuple):
     state: State
+    reward: torch.Tensor
+    time_diff: torch.Tensor
     action: Action
-    next_state: State
     next_action: Action
-    reward: ValueType
-    not_terminal: ValueType
-    step: Optional[ValueType]
-    time_diff: ValueType
+    not_terminal: torch.Tensor
+    next_state: Optional[State] = None  # Available in case of discrete action
+    tiled_next_state: Optional[State] = None  # Available in case of parametric action
+    step: Optional[torch.Tensor] = None
 
 
 class MemoryNetworkInput(NamedTuple):
     state: State
+    reward: torch.Tensor
+    time_diff: torch.Tensor
     action: Action
-    next_state: ValueType
-    reward: ValueType
-    not_terminal: ValueType
+    not_terminal: torch.Tensor
+    next_state: Optional[State] = None  # Available in case of discrete action
+    tiled_next_state: Optional[State] = None  # Available in case of parametric action
+    step: Optional[torch.Tensor] = None
 
 
 class ExtraData(NamedTuple):
-    mdp_id: Optional[ValueType] = None
-    sequence_number: Optional[ValueType] = None
-    action_probability: Optional[ValueType] = None
+    mdp_id: Optional[
+        np.ndarray
+    ] = None  # Need to use a numpy array because torch doesn't support strings
+    sequence_number: Optional[torch.Tensor] = None
+    action_probability: Optional[torch.Tensor] = None
     max_num_actions: Optional[int] = None
-    metrics: Optional[ValueType] = None
+    metrics: Optional[torch.Tensor] = None
 
 
 class TrainingBatch(NamedTuple):
-    training_input: Union[MaxQLearningInput, SARSAInput, MemoryNetworkInput]
+    training_input: Union[
+        BaseInput,
+        DiscreteDqnInput,
+        ParametricDqnInput,
+        SARSAInput,
+        MemoryNetworkInput,
+        PolicyNetworkInput,
+    ]
     extras: Any
 
-    def __len__(self):
-        return self.training_input.state.float_features.size()[0]
+    def batch_size(self):
+        return self.training_input.state.float_features.value.size()[0]
 
 
 class SingleQValue(NamedTuple):
-    q_value: ValueType
+    q_value: torch.Tensor
 
 
 class AllActionQValues(NamedTuple):
-    q_values: ValueType
+    q_values: torch.Tensor
 
 
 class CappedContinuousAction(NamedTuple):
@@ -252,18 +291,18 @@ class CappedContinuousAction(NamedTuple):
     Continuous action in range [-1, 1], e.g., the output of DDPG actor
     """
 
-    action: ValueType
+    action: torch.Tensor
 
 
 class MemoryNetworkOutput(NamedTuple):
-    mus: ValueType
-    sigmas: ValueType
-    logpi: ValueType
-    reward: ValueType
-    not_terminal: ValueType
-    last_step_lstm_hidden: ValueType
-    last_step_lstm_cell: ValueType
-    all_steps_lstm_hidden: ValueType
+    mus: torch.Tensor
+    sigmas: torch.Tensor
+    logpi: torch.Tensor
+    reward: torch.Tensor
+    not_terminal: torch.Tensor
+    last_step_lstm_hidden: torch.Tensor
+    last_step_lstm_cell: torch.Tensor
+    all_steps_lstm_hidden: torch.Tensor
 
 
 class DqnPolicyActionSet(NamedTuple):
