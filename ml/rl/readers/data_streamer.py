@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import collections
+import dataclasses
 import queue
 import random
 import sys
@@ -145,6 +146,13 @@ def pin_memory(batch):
     elif isinstance(batch, NamedTuple) or hasattr(batch, "_asdict"):
         return type(batch)(
             **{name: pin_memory(value) for name, value in batch._asdict().items()}
+        )
+    elif dataclasses.is_dataclass(batch):
+        return type(batch)(
+            **{
+                name: pin_memory(value)
+                for name, value in dataclasses.asdict(batch).items()
+            }
         )
     elif isinstance(batch, collections.Mapping):
         # NB: preserving OrderedDict
