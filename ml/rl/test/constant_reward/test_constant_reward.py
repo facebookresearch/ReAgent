@@ -8,6 +8,7 @@ import unittest
 import numpy as np
 import torch
 from ml.rl.tensorboardX import SummaryWriterContext
+from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.test.constant_reward.env import Env
 from ml.rl.thrift.core.ttypes import (
     DiscreteActionModelParameters,
@@ -21,7 +22,7 @@ from ml.rl.workflow.transitional import create_dqn_trainer_from_params
 logger = logging.getLogger(__name__)
 
 
-class TestConstantReward(unittest.TestCase):
+class TestConstantReward(HorizonTestBase):
     def _train(self, model_params, env):
         np.random.seed(0)
         random.seed(0)
@@ -70,11 +71,7 @@ class TestConstantReward(unittest.TestCase):
         self.action_dims = 2
         self.num_samples = 1024 * 10  # multiple of minibatch_size (1024)
         self.epochs = 24
-        SummaryWriterContext._reset_globals()
         super().setUp()
-
-    def tearDown(self):
-        SummaryWriterContext._reset_globals()
 
     def test_trainer_maxq(self):
         env = Env(self.state_dims, self.action_dims)

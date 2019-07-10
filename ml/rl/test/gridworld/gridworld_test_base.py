@@ -5,12 +5,12 @@ import os
 import tempfile
 import unittest
 
-from ml.rl.tensorboardX import SummaryWriterContext
+from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 
 
-class GridworldTestBase(unittest.TestCase):
+class GridworldTestBase(HorizonTestBase):
     def setUp(self):
         self.check_tolerance = True
         self.test_save_load = True
@@ -19,10 +19,7 @@ class GridworldTestBase(unittest.TestCase):
             GridworldBase.REWARD_SCALE ** 2
         )
         self.run_pre_training_eval = True
-        SummaryWriterContext._reset_globals()
-
-    def tearDown(self):
-        SummaryWriterContext._reset_globals()
+        super().setUp()
 
     def evaluate_gridworld(
         self, environment, evaluator, trainer, exporter, use_gpu, one_hot_action=True
