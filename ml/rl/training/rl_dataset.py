@@ -132,7 +132,7 @@ class RLDataset:
         assert isinstance(terminal, bool)
         assert possible_actions is None or isinstance(
             possible_actions, (list, np.ndarray)
-        )
+        ), f"Expecting list/np.ndarray; got {type(possible_actions)}"
         assert isinstance(time_diff, int)
         assert isinstance(action_probability, float)
 
