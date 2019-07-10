@@ -70,9 +70,9 @@ class TestOutputTransformer(OutputTransformerBase):
 
 
 class TestBase(unittest.TestCase):
-    def test_export_to_buffer(self):
+    def test_export_onnx_to_buffer(self):
         model = Model()
-        buffer = model.export_to_buffer()
+        buffer = model.export_onnx_to_buffer()
         protobuf_model = onnx.load(BytesIO(buffer.getvalue()))
         self.assertEqual(4, len(protobuf_model.graph.input))  # 2 inputs + 2 params
         self.assertEqual(4, len(protobuf_model.graph.output))

@@ -245,8 +245,11 @@ class OpenAIGymEnvironment(Environment):
                     state, torch.ones([1, self.action_dim])
                 )
             else:
+                states_tiled = torch.repeat_interleave(
+                    state, repeats=self.action_dim, axis=0
+                )
                 policy_action_set = predictor.policy(  # type: ignore
-                    state,
+                    states_tiled,
                     (torch.eye(self.action_dim), torch.ones((self.action_dim, 1))),
                 )
 

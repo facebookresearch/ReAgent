@@ -505,18 +505,22 @@ class GridworldBase(Environment):
             samples = shuffle_samples(samples)
 
         logger.info("Preprocessing...")
-        sparse_to_dense_processor = Caffe2SparseToDenseProcessor()
+        sorted_features, _ = sort_features_by_normalization(self.normalization)
+        sparse_to_dense_processor = Caffe2SparseToDenseProcessor(sorted_features)
 
         if self.sparse_to_dense_net is None:
             self.sparse_to_dense_net = core.Net("gridworld_sparse_to_dense")
             C2.set_net(self.sparse_to_dense_net)
             saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-            sorted_features, _ = sort_features_by_normalization(self.normalization)
-            self.state_matrix, _ = sparse_to_dense_processor(sorted_features, saa)
+            self.state_matrix, self.state_matrix_presence, _ = sparse_to_dense_processor(
+                saa
+            )
             saa = StackedAssociativeArray.from_dict_list(
                 samples.next_states, "next_states"
             )
-            self.next_state_matrix, _ = sparse_to_dense_processor(sorted_features, saa)
+            self.next_state_matrix, self.next_state_matrix_presence, _ = sparse_to_dense_processor(
+                saa
+            )
             C2.set_net(None)
         else:
             StackedAssociativeArray.from_dict_list(samples.states, "states")
@@ -568,11 +572,17 @@ class GridworldBase(Environment):
         logger.info("Preprocessing...")
         preprocessor = Preprocessor(self.normalization, False)
 
-        states_ndarray = workspace.FetchBlob(self.state_matrix)
-        states_ndarray = preprocessor.forward(states_ndarray)
+        states_ndarray = preprocessor(
+            torch.from_numpy(workspace.FetchBlob(self.state_matrix)),
+            torch.from_numpy(workspace.FetchBlob(self.state_matrix_presence)).float(),
+        )
 
-        next_states_ndarray = workspace.FetchBlob(self.next_state_matrix)
-        next_states_ndarray = preprocessor.forward(next_states_ndarray)
+        next_states_ndarray = preprocessor(
+            torch.from_numpy(workspace.FetchBlob(self.next_state_matrix)),
+            torch.from_numpy(
+                workspace.FetchBlob(self.next_state_matrix_presence)
+            ).float(),
+        )
 
         logger.info("Batching...")
         tdps = []

@@ -158,3 +158,6 @@ class DuelingQNetwork(ModelBase):
             return rlt.SingleQValue(q_value=q_value)  # type: ignore
         else:
             return rlt.AllActionQValues(q_values=q_value)  # type: ignore
+
+    def serving_model(self):
+        return self.cpu_model()

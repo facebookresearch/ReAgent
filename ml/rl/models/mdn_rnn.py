@@ -164,9 +164,10 @@ class MDNRNNMemoryPool:
 
         training_input = rlt.MemoryNetworkInput(
             state=rlt.FeatureVector(float_features=state),
+            reward=reward,
+            time_diff=torch.ones_like(reward).float(),
             action=rlt.FeatureVector(float_features=action),
             next_state=next_state,
-            reward=reward,
             not_terminal=not_terminal,
         )
         return rlt.TrainingBatch(training_input=training_input, extras=None)

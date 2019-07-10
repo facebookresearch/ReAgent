@@ -8,6 +8,7 @@ from typing import Dict, List
 
 import numpy as np
 import six
+import torch
 from ml.rl import types as rlt
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.normalization import (
@@ -22,8 +23,8 @@ from scipy import special, stats
 
 @dataclass
 class ABIdFeatures(rlt.IdFeatureBase):
-    a_id: rlt.ValueType
-    b_id: rlt.ValueType
+    a_id: torch.Tensor
+    b_id: torch.Tensor
 
     @classmethod
     def get_feature_config(cls) -> Dict[str, rlt.IdFeatureConfig]:
@@ -35,7 +36,7 @@ class ABIdFeatures(rlt.IdFeatureBase):
 
 @dataclass
 class CIdFeatures(rlt.IdFeatureBase):
-    c_id: rlt.ValueType
+    c_id: torch.Tensor
 
     @classmethod
     def get_feature_config(cls) -> Dict[str, rlt.IdFeatureConfig]:

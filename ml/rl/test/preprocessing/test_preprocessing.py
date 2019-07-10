@@ -61,10 +61,12 @@ class TestPreprocessing(unittest.TestCase):
 
         preprocessor = Preprocessor(normalization_parameters, False)
         sorted_features, _ = sort_features_by_normalization(normalization_parameters)
-        input_matrix = np.zeros([10000, len(sorted_features)], dtype=np.float32)
+        input_matrix = torch.zeros([10000, len(sorted_features)])
         for i, feature in enumerate(sorted_features):
-            input_matrix[:, i] = feature_value_map[feature]
-        normalized_feature_matrix = preprocessor.forward(input_matrix)
+            input_matrix[:, i] = torch.from_numpy(feature_value_map[feature])
+        normalized_feature_matrix = preprocessor(
+            input_matrix, (input_matrix != MISSING_VALUE).float()
+        )
 
         normalized_features = {}
         on_column = 0
@@ -178,7 +180,10 @@ class TestPreprocessing(unittest.TestCase):
         inputs[:, feature_ids.index(1)] = [12, 4, 2, 2]
         inputs[:, feature_ids.index(2)] = [1.0, 2.0, 3.0, 3.0]
         inputs[:, feature_ids.index(3)] = [15, 3, 15, normalization.MISSING_VALUE]
-        normalized_feature_matrix = preprocessor.forward(inputs)
+        inputs = torch.from_numpy(inputs)
+        normalized_feature_matrix = preprocessor(
+            inputs, (inputs != MISSING_VALUE).float()
+        )
 
         np.testing.assert_allclose(
             np.array(
@@ -235,62 +240,6 @@ class TestPreprocessing(unittest.TestCase):
                         getattr(normalization_parameters[k], field),
                     )
 
-    def test_preprocessing_network_onnx(self):
-        feature_value_map = read_data()
-
-        for feature_name, feature_values in feature_value_map.items():
-            normalization_parameters = normalization.identify_parameter(
-                feature_name,
-                feature_values,
-                feature_type=self._feature_type_override(feature_name),
-            )
-            feature_values[
-                0
-            ] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
-            feature_values_matrix = np.expand_dims(feature_values, -1)
-
-            preprocessor = Preprocessor({feature_name: normalization_parameters}, False)
-            normalized_feature_values = preprocessor.forward(feature_values_matrix)
-
-            input_blob, output_blob, netdef = PytorchCaffe2Converter.pytorch_net_to_caffe2_netdef(
-                preprocessor, 1, False, float_input=True
-            )
-
-            preproc_workspace = netdef.workspace
-
-            preproc_workspace.FeedBlob(input_blob, feature_values_matrix)
-
-            preproc_workspace.RunNetOnce(core.Net(netdef.init_net))
-            preproc_workspace.RunNetOnce(core.Net(netdef.predict_net))
-
-            normalized_feature_values_onnx = netdef.workspace.FetchBlob(output_blob)
-            tolerance = 0.0001
-            non_matching = np.where(
-                np.logical_not(
-                    np.isclose(
-                        normalized_feature_values,
-                        normalized_feature_values_onnx,
-                        rtol=tolerance,
-                        atol=tolerance,
-                    )
-                )
-            )
-            self.assertTrue(
-                np.all(
-                    np.isclose(
-                        normalized_feature_values,
-                        normalized_feature_values_onnx,
-                        rtol=tolerance,
-                        atol=tolerance,
-                    )
-                ),
-                "{} does not match: {} \n!=\n {}".format(
-                    feature_name,
-                    normalized_feature_values[non_matching].tolist()[0:10],
-                    normalized_feature_values_onnx[non_matching].tolist()[0:10],
-                ),
-            )
-
     def test_quantile_boundary_logic(self):
         """Test quantile logic when feaure value == quantile boundary."""
         input = torch.tensor([[0.0], [80.0], [100.0]])
@@ -331,8 +280,10 @@ class TestPreprocessing(unittest.TestCase):
             preprocessor = Preprocessor(
                 {feature_name: normalization_parameters[feature_name]}, False
             )
-            feature_values_matrix = np.expand_dims(feature_values, -1)
-            normalized_feature_values = preprocessor.forward(feature_values_matrix)
+            feature_values_matrix = torch.from_numpy(np.expand_dims(feature_values, -1))
+            normalized_feature_values = preprocessor(
+                feature_values_matrix, (feature_values_matrix != MISSING_VALUE).float()
+            )
             name_preprocessed_blob_map[feature_name] = normalized_feature_values.numpy()
 
         test_features = NumpyFeatureProcessor.preprocess(

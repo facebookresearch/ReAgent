@@ -137,8 +137,8 @@ class SACTrainer(RLTrainer):
         IMPORTANT: the input action here is assumed to be preprocessed to match the
         range of the output of the actor.
         """
-        if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
-            training_batch = training_batch.as_parametric_sarsa_training_batch()
+        if hasattr(training_batch, "as_policy_network_training_batch"):
+            training_batch = training_batch.as_policy_network_training_batch()
 
         learning_input = training_batch.training_input
         self.minibatch += 1

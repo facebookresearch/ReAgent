@@ -7,16 +7,11 @@ from unittest.mock import MagicMock, call
 
 import torch
 from ml.rl.tensorboardX import SummaryWriterContext, summary_writer_context
+from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from tensorboardX import SummaryWriter
 
 
-class TestSummaryWriterContext(unittest.TestCase):
-    def setUp(self):
-        SummaryWriterContext._reset_globals()
-
-    def tearDown(self):
-        SummaryWriterContext._reset_globals()
-
+class TestSummaryWriterContext(HorizonTestBase):
     def test_noop(self):
         self.assertIsNone(SummaryWriterContext.add_scalar("test", torch.ones(1)))
 

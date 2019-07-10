@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+from io import BytesIO
+
 import torch
 
 
@@ -15,3 +17,10 @@ def stack(mems):
     """
     shape = (-1, *mems[0].shape)
     return torch.cat(mems).view(*shape)
+
+
+def export_module_to_buffer(module) -> BytesIO:
+    # traced_script_module = torch.jit.trace(module, module.input_prototype())
+    write_buffer = BytesIO()
+    torch.jit.save(module, write_buffer)
+    return write_buffer

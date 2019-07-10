@@ -13,7 +13,6 @@ from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
-from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.types import ExtraData, MemoryNetworkInput, TrainingBatch
 
 
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class PageHandler:
-    def handle(self, tdp) -> None:
+    def handle(self, tdp: TrainingBatch) -> None:
         raise NotImplementedError()
 
     def finish(self) -> None:
@@ -36,7 +35,7 @@ class TrainingPageHandler(PageHandler):
         self.accumulated_tdp = None
         self.trainer = trainer
 
-    def handle(self, tdp: TrainingDataPage) -> None:
+    def handle(self, tdp: TrainingBatch) -> None:
         SummaryWriterContext.increase_global_step()
         self.trainer.train(tdp)
 
@@ -52,22 +51,22 @@ class EvaluationPageHandler(PageHandler):
         self.reporter = reporter
         self.results: List[CpeDetails] = []
 
-    def handle(self, tdp: TrainingDataPage) -> None:
+    def handle(self, tdp: TrainingBatch) -> None:
         if not self.trainer.calc_cpe_in_training:
             return
-        if isinstance(tdp, TrainingDataPage):
+        if isinstance(tdp, TrainingBatch):
             if isinstance(self.trainer, DQNTrainer):
-                # This is required until we get rid of TrainingDataPage
+                # This is required until we get rid of TrainingBatch
                 if self.trainer.maxq_learning:
                     edp = EvaluationDataPage.create_from_training_batch(
-                        tdp.as_discrete_maxq_training_batch(), self.trainer
+                        tdp, self.trainer
                     )
                 else:
                     edp = EvaluationDataPage.create_from_training_batch(
-                        tdp.as_discrete_sarsa_training_batch(), self.trainer
+                        tdp, self.trainer
                     )
             else:
-                edp = EvaluationDataPage.create_from_tdp(tdp, self.trainer)
+                edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
         elif isinstance(tdp, TrainingBatch):
             # TODO: Perhaps we can make an RLTrainer param to check if continuous?
             if isinstance(self.trainer, SACTrainer):
@@ -137,13 +136,16 @@ class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
         tdp = TrainingBatch(
             training_input=MemoryNetworkInput(
                 state=tdp.training_input.state,
-                action=tdp.training_input.action,
+                action=tdp.training_input.action,  # type: ignore
+                time_diff=torch.ones_like(
+                    tdp.training_input.reward[torch.randperm(batch_size)]
+                ).float(),
                 # shuffle the data
                 next_state=tdp.training_input.next_state[  # type: ignore
                     torch.randperm(batch_size)
                 ],  # type: ignore
                 reward=tdp.training_input.reward[torch.randperm(batch_size)],
-                not_terminal=tdp.training_input.not_terminal[
+                not_terminal=tdp.training_input.not_terminal[  # type: ignore
                     torch.randperm(batch_size)
                 ],
             ),
@@ -165,7 +167,7 @@ class ImitatorPageHandler(PageHandler):
         self.results: List[Dict] = []
         self.train = train
 
-    def handle(self, tdp: TrainingDataPage) -> None:
+    def handle(self, tdp: TrainingBatch) -> None:
         losses = self.trainer.train(tdp, train=self.train)
         self.results.append(losses)
 

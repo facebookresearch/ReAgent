@@ -8,7 +8,9 @@ from typing import Dict
 import torch
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.models.output_transformer import ParametricActionOutputTransformer
+from ml.rl.preprocessing.batch_preprocessor import ParametricDqnBatchPreprocessor
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
@@ -46,7 +48,6 @@ class ParametricDqnWorkflow(BaseWorkflow):
     def __init__(
         self,
         model_params: ContinuousActionModelParameters,
-        preprocess_handler: PreprocessHandler,
         state_normalization: Dict[int, NormalizationParameters],
         action_normalization: Dict[int, NormalizationParameters],
         use_gpu: bool,
@@ -76,7 +77,13 @@ class ParametricDqnWorkflow(BaseWorkflow):
         )
 
         super().__init__(
-            preprocess_handler, trainer, evaluator, model_params.training.minibatch_size
+            ParametricDqnBatchPreprocessor(
+                Preprocessor(state_normalization, use_gpu),
+                Preprocessor(action_normalization, use_gpu),
+            ),
+            trainer,
+            evaluator,
+            model_params.training.minibatch_size,
         )
 
 
@@ -100,12 +107,6 @@ def single_process_main(gpu_index, *args):
     writer = SummaryWriter(log_dir=params["model_output_path"])
     logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
 
-    preprocess_handler = ParametricDqnPreprocessHandler(
-        Preprocessor(state_normalization, False),
-        Preprocessor(action_normalization, False),
-        PandasSparseToDenseProcessor(),
-    )
-
     if params["use_all_avail_gpus"]:
         BaseWorkflow.init_multiprocessing(
             int(params["num_processes_per_node"]),
@@ -117,17 +118,27 @@ def single_process_main(gpu_index, *args):
 
     workflow = ParametricDqnWorkflow(
         model_params,
-        preprocess_handler,
         state_normalization,
         action_normalization,
         params["use_gpu"],
         params["use_all_avail_gpus"],
     )
 
-    train_dataset = JSONDatasetReader(
-        params["training_data_path"], batch_size=training_parameters.minibatch_size
+    state_sorted_features, _ = sort_features_by_normalization(state_normalization)
+    action_sorted_features, _ = sort_features_by_normalization(action_normalization)
+    preprocess_handler = ParametricDqnPreprocessHandler(
+        PandasSparseToDenseProcessor(state_sorted_features),
+        PandasSparseToDenseProcessor(action_sorted_features),
     )
-    eval_dataset = JSONDatasetReader(params["eval_data_path"], batch_size=16)
+
+    train_dataset = JSONDatasetReader(
+        params["training_data_path"],
+        batch_size=training_parameters.minibatch_size,
+        preprocess_handler=preprocess_handler,
+    )
+    eval_dataset = JSONDatasetReader(
+        params["eval_data_path"], batch_size=16, preprocess_handler=preprocess_handler
+    )
 
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))

@@ -25,7 +25,7 @@ class JSONDatasetReaderIter(ReaderIter):
     def read_batch(self) -> Optional[OrderedDict]:
         if self.batch_read == self.total_batches:
             return None
-        ret = OrderedDict(self.reader.read_batch())
+        ret = self.reader.read_batch()
         self.batch_read += 1
         return ret
 
@@ -33,11 +33,12 @@ class JSONDatasetReaderIter(ReaderIter):
 class JSONDatasetReader(ReaderBase):
     """Create the reader for a JSON training dataset."""
 
-    def __init__(self, path, batch_size=None, converter=None):
+    def __init__(self, path, batch_size=None, preprocess_handler=None):
         super().__init__(batch_size=batch_size)
         self.path = os.path.expanduser(path)
         self.file_type = path.split(".")[-1]
         self.len = self.line_count()
+        self.preprocess_handler = preprocess_handler
         self.reset_iterator()
 
     def reset_iterator(self):
@@ -55,10 +56,12 @@ class JSONDatasetReader(ReaderBase):
         except StopIteration:
             # No more data to read
             return None
-        return x.to_dict(orient="list")
+        return self.preprocess_handler.preprocess(x.to_dict(orient="list"))
 
     def read_all(self):
-        return pd.read_json(self.path, lines=True).to_dict(orient="list")
+        return self.preprocess_handler.preprocess(
+            pd.read_json(self.path, lines=True).to_dict(orient="list")
+        )
 
     def __len__(self):
         return self.len

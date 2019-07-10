@@ -113,7 +113,7 @@ class RLTrainer:
     ) -> None:
         if self.minibatch % minibatches_per_step != 0:
             return
-        return self._soft_update(network, target_network, tau)
+        self._soft_update(network, target_network, tau)
 
     def _maybe_run_optimizer(self, optimizer, minibatches_per_step) -> None:
         if self.minibatch % minibatches_per_step != 0:

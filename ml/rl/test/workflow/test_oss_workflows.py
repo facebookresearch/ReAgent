@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 import torch
-from ml.rl.tensorboardX import SummaryWriterContext
+from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.workflow import dqn_workflow, parametric_dqn_workflow
@@ -17,13 +17,7 @@ from ml.rl.workflow import dqn_workflow, parametric_dqn_workflow
 curr_dir = os.path.dirname(__file__)
 
 
-class TestOSSWorkflows(unittest.TestCase):
-    def setUp(self):
-        SummaryWriterContext._reset_globals()
-
-    def tearDown(self):
-        SummaryWriterContext._reset_globals()
-
+class TestOSSWorkflows(HorizonTestBase):
     def _test_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
         """Run DQN workflow to ensure no crashes, algorithm correctness
         not tested here."""
