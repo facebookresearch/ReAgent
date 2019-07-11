@@ -64,8 +64,6 @@ RUN rm requirements.txt
 # Install open ai gym
 RUN pip install "gym[classic_control,box2d,atari]"
 
-RUN if [ -n "${USE_GPU}"]; then conda install cudatoolkit=9.0 -c pytorch; fi
-
 # Set JAVA_HOME for Spark
 ENV JAVA_HOME ${HOME}/miniconda
 
