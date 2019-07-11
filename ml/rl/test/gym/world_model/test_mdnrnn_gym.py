@@ -3,9 +3,11 @@
 
 import json
 import logging
+import random
 import unittest
 from typing import Dict, List
 
+import numpy as np
 import torch
 from ml.rl.test.gym.world_model.mdnrnn_gym import mdnrnn_gym
 
@@ -18,6 +20,9 @@ MDNRNN_CARTPOLE_JSON = "ml/rl/test/configs/mdnrnn_cartpole_v0.json"
 class TestMDNRNNGym(unittest.TestCase):
     def setUp(self):
         logging.getLogger().setLevel(logging.DEBUG)
+        np.random.seed(0)
+        torch.manual_seed(0)
+        random.seed(0)
 
     @staticmethod
     def verify_result(result_dict: Dict[str, float], expected_top_features: List[str]):
