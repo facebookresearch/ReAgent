@@ -154,7 +154,9 @@ class RLDataset:
         elif len(possible_actions) == 0:
             # Parametric action with no possible actions
             pass
-        elif isinstance(possible_actions[0], int):
+        elif isinstance(possible_actions, torch.Tensor) and isinstance(
+            possible_actions[0].item(), int
+        ):
             # Discrete action domain
             possible_actions = [
                 str(idx) for idx, val in enumerate(possible_actions) if val == 1
@@ -173,8 +175,9 @@ class RLDataset:
                         if v == 0:
                             del a[k]
         else:
-            print(possible_actions)
-            raise NotImplementedError()
+            raise NotImplementedError(
+                f"Got {type(possible_actions)}, value: {possible_actions}"
+            )
 
         self.rows.append(
             {
