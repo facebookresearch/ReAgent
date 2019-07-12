@@ -90,7 +90,7 @@ class TestGridworldTD3(GridworldTestBase):
                 q2_network.cuda()
             actor_network.cuda()
 
-        return TD3Trainer(q1_network, actor_network, parameters, q2_network=q2_network)
+        return TD3Trainer(q1_network, actor_network, parameters, q2_network=q2_network, use_gpu=use_gpu)
 
     def get_critic_exporter(self, trainer, environment):
         feature_extractor = PredictorFeatureExtractor(
