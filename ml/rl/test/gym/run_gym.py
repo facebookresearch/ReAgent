@@ -657,7 +657,7 @@ def main(args):
             params["run_details"]["avg_over_num_episodes"], predictor, test=False
         )
         logger.info(
-            "Final policy scores {} with ε={} and {} with ε=0 over {} eps.".format(
+            "Final policy scores {} with epsilon={} and {} with epsilon=0 over {} eps.".format(
                 final_score_explore,
                 env.epsilon,
                 final_score_exploit,
