@@ -56,12 +56,16 @@ class JSONDatasetReader(ReaderBase):
         except StopIteration:
             # No more data to read
             return None
-        return self.preprocess_handler.preprocess(x.to_dict(orient="list"))
+        return self._maybe_preprocess(x)
 
     def read_all(self):
-        return self.preprocess_handler.preprocess(
-            pd.read_json(self.path, lines=True).to_dict(orient="list")
-        )
+        return self._maybe_preprocess(pd.read_json(self.path, lines=True))
+
+    def _maybe_preprocess(self, x):
+        x = x.to_dict(orient="list")
+        if self.preprocess_handler is not None:
+            x = self.preprocess_handler.preprocess(x)
+        return x
 
     def __len__(self):
         return self.len
