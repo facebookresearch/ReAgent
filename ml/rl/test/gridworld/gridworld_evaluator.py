@@ -114,8 +114,8 @@ class GridworldEvaluator(Evaluator):
 
     def evaluate_predictions(self, prediction, all_states_prediction):
         for i, a in enumerate(self._env.ACTIONS):
-            logger.info("Predicted Q-values for all states and action={}".format(a))
-            logger.info(all_states_prediction[:, i].reshape(5, 5), "\n")
+            logger.info(f"Predicted Q-values for all states and action={a}")
+            logger.info(all_states_prediction[:, i].reshape(5, 5))
 
         error_sum = 0.0
         num_error_prints = 0
