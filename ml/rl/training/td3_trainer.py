@@ -110,6 +110,17 @@ class TD3Trainer(RLTrainer):
 
         action = self._maybe_scale_action_in_train(action)
 
+        max_action = (
+            self.max_action_range_tensor_training
+            if self.max_action_range_tensor_training
+            else torch.ones(action.float_features.shape).type(self.dtype)
+        )
+        min_action = (
+            self.min_action_range_tensor_serving
+            if self.min_action_range_tensor_serving
+            else -torch.ones(action.float_features.shape).type(self.dtype)
+        )
+
         # Compute current value estimates
         current_state_action = rlt.StateAction(state=state, action=action)
         q1_value = self.q1_network(current_state_action).q_value
@@ -125,10 +136,7 @@ class TD3Trainer(RLTrainer):
             next_actor += (
                 torch.randn_like(next_actor) * self.target_policy_smoothing
             ).clamp(-self.noise_clip, self.noise_clip)
-            next_actor = torch.max(
-                torch.min(next_actor, self.max_action_range_tensor_training),
-                self.min_action_range_tensor_training,
-            )
+            next_actor = torch.max(torch.min(next_actor, max_action), min_action)
             next_state_actor = rlt.StateAction(
                 state=next_state, action=rlt.FeatureVector(float_features=next_actor)
             )
