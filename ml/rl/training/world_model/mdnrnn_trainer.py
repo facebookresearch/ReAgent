@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class MDNRNNTrainer:
+    """ Trainer for MDN-RNN """
+
     def __init__(
         self, mdnrnn_network: MemoryNetwork, params: MDNRNNParameters, cum_loss_hist=100
     ):
@@ -85,7 +87,7 @@ class MDNRNNTrainer:
             are averaged both on the batch and the sequence dimensions (the two first
             dimensions).
 
-        :param training_batch
+        :param training_batch:
             training_batch.learning_input has these fields:
             - state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
             - action: (BATCH_SIZE, SEQ_LEN, ACTION_DIM) torch tensor

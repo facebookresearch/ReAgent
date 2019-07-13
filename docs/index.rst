@@ -20,10 +20,10 @@ Horizon: Applied Reinforcement Learning Platform
 Overview
 ~~~~~~~~
 
-Horizon is an open source end-to-end platform for applied reinforcement learning (RL) developed and used at Facebook. 
-Horizon is built in Python and uses PyTorch for modeling and training and Caffe2 for model serving. The platform contains 
-workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training, 
-counterfactual policy evaluation, and optimized serving. For more detailed information about Horizon see the white 
+Horizon is an open source end-to-end platform for applied reinforcement learning (RL) developed and used at Facebook.
+Horizon is built in Python and uses PyTorch for modeling and training and Caffe2 for model serving. The platform contains
+workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training,
+counterfactual policy evaluation, and optimized serving. For more detailed information about Horizon see the white
 paper `here <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
 The source code is available `here <https://github.com/facebookresearch/Horizon>`_.
 
@@ -76,6 +76,13 @@ Table of Contents
 
     Workflow <api/ml.rl.workflow>
     Preprocessing <api/ml.rl.preprocessing>
+    Simulators <api/ml.rl.simulators>
+    Thrift <api/ml.rl.thrift>
     Training <api/ml.rl.training>
+    All Modules <api/modules>
+
+.. toctree::
+    :caption: Others
+
     Github <https://github.com/facebookresearch/Horizon>
     License <license>
