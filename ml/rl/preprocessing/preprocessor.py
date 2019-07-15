@@ -142,10 +142,16 @@ class Preprocessor(Module):
                 outputs.append(new_output)
 
         if len(outputs) == 1:
-            return torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+            return cast(
+                torch.Tensor,
+                torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE),
+            )
 
-        return torch.clamp(
-            torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+        return cast(
+            torch.Tensor,
+            torch.clamp(
+                torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+            ),
         )
 
     def _preprocess_feature_single_column(
@@ -260,7 +266,10 @@ class Preprocessor(Module):
         means = self._fetch_parameter(begin_index, "means")
         stddevs = self._fetch_parameter(begin_index, "stddevs")
         continuous_output = (input - means) / stddevs
-        return torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+        return cast(
+            torch.Tensor,
+            torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE),
+        )
 
     def _create_parameters_BOXCOX(
         self, begin_index: int, norm_params: List[NormalizationParameters]

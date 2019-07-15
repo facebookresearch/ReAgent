@@ -6,7 +6,11 @@ from typing import Dict, List
 import torch
 from ml.rl.models.mdn_rnn import transpose
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-from ml.rl.types import ExtraData, FeatureVector, MemoryNetworkInput, TrainingBatch
+from ml.rl.types import (
+    ExtraData,
+    PreprocessedMemoryNetworkInput,
+    PreprocessedTrainingBatch,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +23,7 @@ class LossEvaluator(object):
         self.trainer = trainer
         self.state_dim = state_dim
 
-    def evaluate(self, tdp: TrainingBatch) -> Dict:
+    def evaluate(self, tdp: PreprocessedTrainingBatch) -> Dict:
         self.trainer.mdnrnn.mdnrnn.eval()
         losses = self.trainer.get_loss(tdp, state_dim=self.state_dim, batch_first=True)
         detached_losses = {
@@ -59,13 +63,13 @@ class FeatureImportanceEvaluator(object):
         self.sorted_action_feature_start_indices = sorted_action_feature_start_indices
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
-    def evaluate(self, tdp: TrainingBatch):
+    def evaluate(self, tdp: PreprocessedTrainingBatch):
         """ Calculate feature importance: setting each state/action feature to
         the mean value and observe loss increase. """
         self.trainer.mdnrnn.mdnrnn.eval()
 
-        state_features = tdp.training_input.state.float_features
-        action_features = tdp.training_input.action.float_features  # type: ignore
+        state_features = tdp.training_input.state
+        action_features = tdp.training_input.action  # type: ignore
         batch_size, seq_len, state_dim = state_features.size()  # type: ignore
         action_dim = action_features.size()[2]  # type: ignore
         action_feature_num = self.action_feature_num
@@ -82,7 +86,7 @@ class FeatureImportanceEvaluator(object):
         state_feature_boundaries = self.sorted_state_feature_start_indices + [state_dim]
 
         for i in range(action_feature_num):
-            action_features = tdp.training_input.action.float_features.reshape(  # type: ignore
+            action_features = tdp.training_input.action.reshape(  # type: ignore
                 (batch_size * seq_len, action_dim)
             ).data.clone()
 
@@ -109,16 +113,15 @@ class FeatureImportanceEvaluator(object):
             action_features = action_features.reshape(  # type: ignore
                 (batch_size, seq_len, action_dim)
             )  # type: ignore
-            new_tdp = TrainingBatch(
-                training_input=MemoryNetworkInput(  # type: ignore
+            new_tdp = PreprocessedTrainingBatch(
+                training_input=PreprocessedMemoryNetworkInput(  # type: ignore
                     state=tdp.training_input.state,
-                    action=FeatureVector(  # type: ignore
-                        float_features=action_features
-                    ),  # type: ignore
+                    action=action_features,
                     next_state=tdp.training_input.next_state,
                     reward=tdp.training_input.reward,
                     time_diff=torch.ones_like(tdp.training_input.reward).float(),
                     not_terminal=tdp.training_input.not_terminal,  # type: ignore
+                    step=None,
                 ),
                 extras=ExtraData(),
             )
@@ -129,7 +132,7 @@ class FeatureImportanceEvaluator(object):
             del losses
 
         for i in range(state_feature_num):
-            state_features = tdp.training_input.state.float_features.reshape(  # type: ignore
+            state_features = tdp.training_input.state.reshape(  # type: ignore
                 (batch_size * seq_len, state_dim)
             ).data.clone()
             boundary_start, boundary_end = (
@@ -144,14 +147,15 @@ class FeatureImportanceEvaluator(object):
             state_features = state_features.reshape(  # type: ignore
                 (batch_size, seq_len, state_dim)
             )  # type: ignore
-            new_tdp = TrainingBatch(
-                training_input=MemoryNetworkInput(  # type: ignore
-                    state=FeatureVector(float_features=state_features),  # type: ignore
+            new_tdp = PreprocessedTrainingBatch(
+                training_input=PreprocessedMemoryNetworkInput(  # type: ignore
+                    state=state_features,
                     action=tdp.training_input.action,  # type: ignore
                     next_state=tdp.training_input.next_state,
                     reward=tdp.training_input.reward,
                     time_diff=torch.ones_like(tdp.training_input.reward).float(),
                     not_terminal=tdp.training_input.not_terminal,  # type: ignore
+                    step=None,
                 ),
                 extras=ExtraData(),
             )
@@ -199,7 +203,7 @@ class FeatureSensitivityEvaluator(object):
         self.state_feature_num = state_feature_num
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
-    def evaluate(self, tdp: TrainingBatch):
+    def evaluate(self, tdp: PreprocessedTrainingBatch):
         """ Calculate state feature sensitivity due to actions:
         randomly permutating actions and see how much the prediction of next
         state feature deviates. """
@@ -213,34 +217,34 @@ class FeatureSensitivityEvaluator(object):
 
         mdnrnn_input = tdp.training_input
         state, action, next_state, reward, not_terminal = transpose(
-            mdnrnn_input.state.float_features,
-            mdnrnn_input.action.float_features,  # type: ignore
+            mdnrnn_input.state,
+            mdnrnn_input.action,  # type: ignore
             mdnrnn_input.next_state,
             mdnrnn_input.reward,
             mdnrnn_input.not_terminal,  # type: ignore
         )
-        mdnrnn_input = MemoryNetworkInput(  # type: ignore
-            state=FeatureVector(float_features=state),
-            action=FeatureVector(float_features=action),
+        mdnrnn_input = PreprocessedMemoryNetworkInput(  # type: ignore
+            state=state,
+            action=action,
             next_state=next_state,
             reward=reward,
             not_terminal=not_terminal,
             time_diff=torch.ones_like(reward),
+            step=None,
         )
         # the input of mdnrnn has seq-len as the first dimension
         mdnrnn_output = self.trainer.mdnrnn(mdnrnn_input)
         predicted_next_state_means = mdnrnn_output.mus
 
-        shuffled_mdnrnn_input = MemoryNetworkInput(  # type: ignore
-            state=FeatureVector(float_features=state),
+        shuffled_mdnrnn_input = PreprocessedMemoryNetworkInput(  # type: ignore
+            state=state,
             # shuffle the actions
-            action=FeatureVector(
-                float_features=action[:, torch.randperm(batch_size), :]
-            ),
+            action=action[:, torch.randperm(batch_size), :],
             next_state=next_state,
             reward=reward,
             not_terminal=not_terminal,
             time_diff=torch.ones_like(reward).float(),
+            step=None,
         )
         shuffled_mdnrnn_output = self.trainer.mdnrnn(shuffled_mdnrnn_input)
         shuffled_predicted_next_state_means = shuffled_mdnrnn_output.mus

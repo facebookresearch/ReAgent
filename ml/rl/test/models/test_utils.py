@@ -83,8 +83,4 @@ def _flatten_named_tuple(nt):
             for e in _flatten_named_tuple(getattr(nt, field.name))
             if e is not None
         ]
-    if not hasattr(nt, "_asdict"):
-        # This is not a NamedTuple
-        return [nt]
-    nt = nt._asdict()
-    return [e for v in nt.values() for e in _flatten_named_tuple(v) if e is not None]
+    return [nt]

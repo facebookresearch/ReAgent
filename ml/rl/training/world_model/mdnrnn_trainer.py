@@ -33,19 +33,18 @@ class MDNRNNTrainer:
 
     def train(self, training_batch, batch_first=False):
         assert (
-            type(training_batch) is rlt.TrainingBatch
-            and type(training_batch.training_input) is rlt.MemoryNetworkInput
+            type(training_batch) is rlt.PreprocessedTrainingBatch
+            and type(training_batch.training_input)
+            is rlt.PreprocessedMemoryNetworkInput
+        ), "{} {}".format(
+            str(type(training_batch)), str(type(training_batch.training_input))
         )
 
         self.minibatch += 1
         if batch_first:
-            batch_size, seq_len, state_dim = (
-                training_batch.training_input.state.float_features.shape
-            )
+            batch_size, seq_len, state_dim = training_batch.training_input.state.shape
         else:
-            seq_len, batch_size, state_dim = (
-                training_batch.training_input.state.float_features.shape
-            )
+            seq_len, batch_size, state_dim = training_batch.training_input.state.shape
 
         self.mdnrnn.mdnrnn.train()
         self.optimizer.zero_grad()
@@ -69,7 +68,7 @@ class MDNRNNTrainer:
 
     def get_loss(
         self,
-        training_batch: rlt.TrainingBatch,
+        training_batch: rlt.PreprocessedTrainingBatch,
         state_dim: Optional[int] = None,
         batch_first: bool = False,
     ):
@@ -108,22 +107,23 @@ class MDNRNNTrainer:
         # mdnrnn's input should have seq_len as the first dimension
         if batch_first:
             state, action, next_state, reward, not_terminal = transpose(
-                learning_input.state.float_features,
-                learning_input.action.float_features,  # type: ignore
+                learning_input.state,
+                learning_input.action,  # type: ignore
                 learning_input.next_state,
                 learning_input.reward,
                 learning_input.not_terminal,  # type: ignore
             )
-            learning_input = rlt.MemoryNetworkInput(  # type: ignore
-                state=rlt.FeatureVector(float_features=state),
+            learning_input = rlt.PreprocessedMemoryNetworkInput(  # type: ignore
+                state=state,
                 reward=reward,
                 time_diff=torch.ones_like(reward).float(),
-                action=rlt.FeatureVector(float_features=action),
+                action=action,
                 not_terminal=not_terminal,
                 next_state=next_state,
+                step=None,
             )
 
-        mdnrnn_input = rlt.StateAction(
+        mdnrnn_input = rlt.PreprocessedStateAction(
             state=learning_input.state, action=learning_input.action  # type: ignore
         )
         mdnrnn_output = self.mdnrnn(mdnrnn_input)

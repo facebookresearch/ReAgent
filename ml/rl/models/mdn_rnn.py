@@ -162,15 +162,16 @@ class MDNRNNMemoryPool:
                 state, action, next_state, reward, not_terminal
             )
 
-        training_input = rlt.MemoryNetworkInput(
-            state=rlt.FeatureVector(float_features=state),
+        training_input = rlt.PreprocessedMemoryNetworkInput(
+            state=state,
             reward=reward,
             time_diff=torch.ones_like(reward).float(),
-            action=rlt.FeatureVector(float_features=action),
+            action=action,
             next_state=next_state,
             not_terminal=not_terminal,
+            step=None,
         )
-        return rlt.TrainingBatch(training_input=training_input, extras=None)
+        return rlt.PreprocessedTrainingBatch(training_input=training_input, extras=None)
 
     def insert_into_memory(self, state, action, next_state, reward, not_terminal):
         self.replay_memory.append(

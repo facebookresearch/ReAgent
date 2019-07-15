@@ -9,7 +9,7 @@ from ml.rl.models.bcq import BatchConstrainedDQN
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.test.models.test_utils import check_save_load
-from ml.rl.types import FeatureVector, StateInput
+from ml.rl.types import FeatureVector, PreprocessedState
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class TestBCQ(unittest.TestCase):
         )
 
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.state.float_features.shape)
+        self.assertEqual((1, state_dim), input.state.shape)
         q_values = model(input)
         self.assertEqual((1, action_dim), q_values.q_values.shape)
 
@@ -61,7 +61,7 @@ class TestBCQ(unittest.TestCase):
     def test_forward_pass(self):
         state_dim = 1
         action_dim = 2
-        input = StateInput(state=FeatureVector(float_features=torch.tensor([[2.0]])))
+        input = PreprocessedState(state=torch.tensor([[2.0]]))
         bcq_drop_threshold = 0.20
 
         q_network = FullyConnectedDQN(
@@ -91,7 +91,7 @@ class TestBCQ(unittest.TestCase):
         imitator_network.state_dict()["layers.1.bias"].data.copy_(im_net_layer_1_b)
 
         imitator_probs = torch.nn.functional.softmax(
-            imitator_network(input.state.float_features), dim=1
+            imitator_network(input.state), dim=1
         )
         bcq_mask = imitator_probs < bcq_drop_threshold
         assert bcq_mask[0][0] == 1

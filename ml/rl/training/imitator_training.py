@@ -35,10 +35,7 @@ class ImitatorTrainer(RLTrainer):
     @torch.no_grad()  # type: ignore
     def train(self, training_batch, train=True):
         if isinstance(training_batch, TrainingDataPage):
-            if self.maxq_learning:
-                training_batch = training_batch.as_discrete_maxq_training_batch()
-            else:
-                training_batch = training_batch.as_discrete_sarsa_training_batch()
+            training_batch = training_batch.as_discrete_maxq_training_batch()
         learning_input = training_batch.training_input
 
         with torch.enable_grad():

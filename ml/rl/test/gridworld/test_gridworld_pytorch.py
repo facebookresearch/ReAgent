@@ -229,7 +229,7 @@ class TestGridworld(GridworldTestBase):
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
             environment, {}, False
         )
-        input = rlt.StateInput(state=rlt.FeatureVector(float_features=tdps[0].states))
+        input = rlt.PreprocessedState(tdps[0].states)
 
         pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
 
@@ -273,7 +273,7 @@ class TestGridworld(GridworldTestBase):
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
             environment, {}, False
         )
-        input = rlt.StateInput(state=rlt.FeatureVector(float_features=tdps[0].states))
+        input = rlt.PreprocessedState(tdps[0].states)
 
         pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
 

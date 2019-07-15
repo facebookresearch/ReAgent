@@ -74,7 +74,7 @@ class ExampleSequenceModel(ModelBase):
         self.linear = nn.Linear(10 + self.state_dim, 1)
 
     def input_prototype(self):
-        return rlt.StateInput(
+        return rlt.PreprocessedState(
             state=rlt.FeatureVector(
                 float_features=torch.randn(1, self.state_dim),
                 sequence_features=SequenceFeatures.prototype(),

@@ -389,13 +389,9 @@ def create_embed_rl_dataset(
     mdnrnn_action = concat_batch(action_batch)
     next_mdnrnn_action = concat_batch(next_action_batch)
 
-    mdnrnn_input = rlt.StateAction(
-        state=rlt.FeatureVector(float_features=mdnrnn_state),
-        action=rlt.FeatureVector(float_features=mdnrnn_action),
-    )
-    next_mdnrnn_input = rlt.StateAction(
-        state=rlt.FeatureVector(float_features=next_mdnrnn_state),
-        action=rlt.FeatureVector(float_features=next_mdnrnn_action),
+    mdnrnn_input = rlt.PreprocessedStateAction(state=mdnrnn_state, action=mdnrnn_action)
+    next_mdnrnn_input = rlt.PreprocessedStateAction(
+        state=next_mdnrnn_state, action=next_mdnrnn_action
     )
     # batch-compute state embedding
     mdnrnn_output = trainer.mdnrnn(mdnrnn_input)

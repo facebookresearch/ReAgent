@@ -11,16 +11,20 @@ import torch
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
-from ml.rl.types import ExtraData, MemoryNetworkInput, TrainingBatch
+from ml.rl.training.td3_trainer import TD3Trainer
+from ml.rl.types import (
+    ExtraData,
+    PreprocessedMemoryNetworkInput,
+    PreprocessedTrainingBatch,
+)
 
 
 logger = logging.getLogger(__name__)
 
 
 class PageHandler:
-    def handle(self, tdp: TrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         raise NotImplementedError()
 
     def finish(self) -> None:
@@ -35,7 +39,7 @@ class TrainingPageHandler(PageHandler):
         self.accumulated_tdp = None
         self.trainer = trainer
 
-    def handle(self, tdp: TrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         SummaryWriterContext.increase_global_step()
         self.trainer.train(tdp)
 
@@ -51,29 +55,15 @@ class EvaluationPageHandler(PageHandler):
         self.reporter = reporter
         self.results: List[CpeDetails] = []
 
-    def handle(self, tdp: TrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         if not self.trainer.calc_cpe_in_training:
             return
-        if isinstance(tdp, TrainingBatch):
-            if isinstance(self.trainer, DQNTrainer):
-                # This is required until we get rid of TrainingBatch
-                if self.trainer.maxq_learning:
-                    edp = EvaluationDataPage.create_from_training_batch(
-                        tdp, self.trainer
-                    )
-                else:
-                    edp = EvaluationDataPage.create_from_training_batch(
-                        tdp, self.trainer
-                    )
-            else:
-                edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
-        elif isinstance(tdp, TrainingBatch):
-            # TODO: Perhaps we can make an RLTrainer param to check if continuous?
-            if isinstance(self.trainer, SACTrainer):
-                # TODO: Implement CPE for continuous algos
-                edp = None
-            else:
-                edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
+        # TODO: Perhaps we can make an RLTrainer param to check if continuous?
+        if isinstance(self.trainer, (SACTrainer, TD3Trainer)):
+            # TODO: Implement CPE for continuous algos
+            edp = None
+        else:
+            edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
         if self.evaluation_data is None:
             self.evaluation_data = edp
         else:
@@ -112,7 +102,7 @@ class WorldModelPageHandler(PageHandler):
     def refresh_results(self) -> None:
         self.results: List[Dict] = []
 
-    def get_mean_loss(self, loss_name="loss", axis=None) -> float:
+    def get_mean_loss(self, loss_name="loss", axis=None):
         """
         :param loss_name: possible loss names: 'loss' (referring to total loss),
             'bce' (loss for predicting not_terminal), 'gmm' (loss for next state
@@ -123,7 +113,7 @@ class WorldModelPageHandler(PageHandler):
 
 
 class WorldModelTrainingPageHandler(WorldModelPageHandler):
-    def handle(self, tdp: TrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         losses = self.trainer_or_evaluator.train(tdp, batch_first=True)
         self.results.append(losses)
 
@@ -131,10 +121,10 @@ class WorldModelTrainingPageHandler(WorldModelPageHandler):
 class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
     """ Train a baseline model based on randomly shuffled data """
 
-    def handle(self, tdp: TrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         batch_size, _, _ = tdp.training_input.next_state.size()  # type: ignore
-        tdp = TrainingBatch(
-            training_input=MemoryNetworkInput(
+        tdp = PreprocessedTrainingBatch(
+            training_input=PreprocessedMemoryNetworkInput(
                 state=tdp.training_input.state,
                 action=tdp.training_input.action,  # type: ignore
                 time_diff=torch.ones_like(
@@ -148,6 +138,7 @@ class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
                 not_terminal=tdp.training_input.not_terminal[  # type: ignore
                     torch.randperm(batch_size)
                 ],
+                step=None,
             ),
             extras=ExtraData(),
         )
@@ -156,7 +147,7 @@ class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
 
 
 class WorldModelEvaluationPageHandler(WorldModelPageHandler):
-    def handle(self, tdp: TrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         losses = self.trainer_or_evaluator.evaluate(tdp)
         self.results.append(losses)
 
@@ -167,7 +158,7 @@ class ImitatorPageHandler(PageHandler):
         self.results: List[Dict] = []
         self.train = train
 
-    def handle(self, tdp: TrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         losses = self.trainer.train(tdp, train=self.train)
         self.results.append(losses)
 
@@ -176,8 +167,8 @@ class ImitatorPageHandler(PageHandler):
 
 
 def get_actual_minibatch_size(batch, minibatch_size_preset):
-    if isinstance(batch, TrainingBatch):
-        batch_size = len(batch)
+    if isinstance(batch, PreprocessedTrainingBatch):
+        batch_size = batch.batch_size()
     elif isinstance(batch, OrderedDict):
         first_key = next(iter(batch.keys()))
         batch_size = len(batch[first_key])
@@ -219,7 +210,6 @@ def feed_pages(
                 )
             )
 
-        # TODO: This preprocessing should go into background as well
         if batch_preprocessor:
             batch = batch_preprocessor(batch)
         page_handler.handle(batch)

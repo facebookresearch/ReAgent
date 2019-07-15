@@ -39,12 +39,10 @@ class FullyConnectedDQN(ModelBase):
         return _DistributedDataParallelFullyConnectedDQN(self)
 
     def input_prototype(self):
-        return rlt.StateInput(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
-        )
+        return rlt.PreprocessedState(state=torch.randn(1, self.state_dim))
 
-    def forward(self, input):
-        q_values = self.fc(input.state.float_features)
+    def forward(self, input: rlt.PreprocessedState):
+        q_values = self.fc(input.state)
         return rlt.AllActionQValues(q_values=q_values)
 
     def serving_model(self):
@@ -63,9 +61,7 @@ class _DistributedDataParallelFullyConnectedDQN(ModelBase):
         self.fc_dqn = fc_dqn
 
     def input_prototype(self):
-        return rlt.StateInput(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
-        )
+        return rlt.PreprocessedState(state=torch.randn(1, self.state_dim))
 
     def cpu_model(self):
         return self.fc_dqn.cpu_model()

@@ -93,7 +93,7 @@ class DQNTrainer(DQNTrainerBase):
         self, state
     ) -> Tuple[rlt.AllActionQValues, Optional[rlt.AllActionQValues]]:
         """ Gets the q values from the model and target networks """
-        input = rlt.StateInput(state=state)
+        input = rlt.PreprocessedState(state=state)
         q_values = self.q_network(input).q_values
         q_values_target = self.q_network_target(input).q_values
         return q_values, q_values_target
@@ -101,10 +101,7 @@ class DQNTrainer(DQNTrainerBase):
     @torch.no_grad()  # type: ignore
     def train(self, training_batch):
         if isinstance(training_batch, TrainingDataPage):
-            if self.maxq_learning:
-                training_batch = training_batch.as_discrete_maxq_training_batch()
-            else:
-                training_batch = training_batch.as_discrete_sarsa_training_batch()
+            training_batch = training_batch.as_discrete_maxq_training_batch()
 
         learning_input = training_batch.training_input
         boosted_rewards = self.boost_rewards(
@@ -153,7 +150,7 @@ class DQNTrainer(DQNTrainerBase):
 
         with torch.enable_grad():
             # Get Q-value of action taken
-            current_state = rlt.StateInput(state=learning_input.state)
+            current_state = rlt.PreprocessedState(state=learning_input.state)
             all_q_values = self.q_network(current_state).q_values
             self.all_action_scores = all_q_values.detach()
             q_values = torch.sum(all_q_values * learning_input.action, 1, keepdim=True)
@@ -172,7 +169,7 @@ class DQNTrainer(DQNTrainerBase):
         )
 
         # Get Q-values of next states, used in computing cpe
-        next_state = rlt.StateInput(state=learning_input.next_state)
+        next_state = rlt.PreprocessedState(state=learning_input.next_state)
         all_next_action_scores = self.q_network(next_state).q_values.detach()
 
         logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
@@ -321,9 +318,7 @@ class DQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.q_network.eval()
-        q_values = self.q_network(
-            rlt.StateInput(rlt.FeatureVector(float_features=input))
-        )
+        q_values = self.q_network(rlt.PreprocessedState(input))
         q_values = q_values.q_values.cpu()
         self.q_network.train()
 
@@ -342,8 +337,6 @@ class DQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.reward_network.eval()
-        reward_estimates = self.reward_network(
-            rlt.StateInput(rlt.FeatureVector(float_features=input))
-        )
+        reward_estimates = self.reward_network(rlt.PreprocessedState(input))
         self.reward_network.train()
         return reward_estimates.q_values.cpu()

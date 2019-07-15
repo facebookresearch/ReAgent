@@ -79,7 +79,7 @@ class StateEmbedGymEnvironment(Env):
 
         mdnrnn_state = torch.tensor(mdnrnn_state, dtype=torch.float).unsqueeze(1)
         mdnrnn_action = torch.tensor(mdnrnn_action, dtype=torch.float).unsqueeze(1)
-        mdnrnn_input = rlt.StateAction(
+        mdnrnn_input = rlt.PreprocessedStateAction(
             state=rlt.FeatureVector(float_features=mdnrnn_state),
             action=rlt.FeatureVector(float_features=mdnrnn_action),
         )

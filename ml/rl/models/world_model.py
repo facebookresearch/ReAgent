@@ -30,9 +30,9 @@ class MemoryNetwork(ModelBase):
         return _DistributedDataParallelMemoryNetwork(self)
 
     def input_prototype(self):
-        return rlt.StateAction(
-            state=rlt.FeatureVector(float_features=torch.randn(1, 1, self.state_dim)),
-            action=rlt.FeatureVector(float_features=torch.randn(1, 1, self.action_dim)),
+        return rlt.PreprocessedStateAction(
+            state=torch.randn(1, 1, self.state_dim),
+            action=torch.randn(1, 1, self.action_dim),
         )
 
     def forward(self, input):
@@ -44,7 +44,7 @@ class MemoryNetwork(ModelBase):
             not_terminals,
             all_steps_hidden,
             last_step_hidden_and_cell,
-        ) = self.mdnrnn(input.action.float_features, input.state.float_features)
+        ) = self.mdnrnn(input.action, input.state)
         return rlt.MemoryNetworkOutput(
             mus=mus,
             sigmas=sigmas,
@@ -73,7 +73,7 @@ class _DistributedDataParallelMemoryNetwork(ModelBase):
         self.mem_net = mem_net
 
     def input_prototype(self):
-        return rlt.StateAction(
+        return rlt.PreprocessedStateAction(
             state=rlt.FeatureVector(float_features=torch.randn(1, 1, self.state_dim)),
             action=rlt.FeatureVector(float_features=torch.randn(1, 1, self.action_dim)),
         )

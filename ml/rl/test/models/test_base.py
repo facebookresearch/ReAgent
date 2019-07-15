@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import dataclasses
 import logging
 import os
 import tempfile
@@ -24,13 +25,14 @@ from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.identify_types import CONTINUOUS
 from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.test.models.test_utils import check_save_load
-from ml.rl.types import FeatureVector, StateAction
+from ml.rl.types import FeatureVector, PreprocessedStateAction
 
 
 logger = logging.getLogger(__name__)
 
 
-class ModelOutput(NamedTuple):
+@dataclasses.dataclass
+class ModelOutput:
     # These should be torch.Tensor but the type checking failed when I used it
     sum: Any
     mul: Any
@@ -44,17 +46,16 @@ class Model(ModelBase):
         self.linear = nn.Linear(4, 1)
 
     def input_prototype(self):
-        return StateAction(
-            state=FeatureVector(float_features=torch.randn([1, 4])),
-            action=FeatureVector(float_features=torch.randn([1, 4])),
+        return PreprocessedStateAction(
+            state=torch.randn([1, 4]), action=torch.randn([1, 4])
         )
 
     def forward(self, sa):
         return ModelOutput(
-            sa.state.float_features + sa.action.float_features,
-            sa.state.float_features * sa.action.float_features,
-            sa.state.float_features + 1,
-            self.linear(sa.state.float_features),
+            sa.state + sa.action,
+            sa.state * sa.action,
+            sa.state + 1,
+            self.linear(sa.state),
         )
 
 
@@ -76,8 +77,8 @@ class TestBase(unittest.TestCase):
         protobuf_model = onnx.load(BytesIO(buffer.getvalue()))
         self.assertEqual(4, len(protobuf_model.graph.input))  # 2 inputs + 2 params
         self.assertEqual(4, len(protobuf_model.graph.output))
-        self.assertEqual("state:float_features", protobuf_model.graph.input[0].name)
-        self.assertEqual("action:float_features", protobuf_model.graph.input[1].name)
+        self.assertEqual("state", protobuf_model.graph.input[0].name)
+        self.assertEqual("action", protobuf_model.graph.input[1].name)
 
     def test_get_predictor_export_meta_and_workspace(self):
         model = Model()
@@ -126,8 +127,8 @@ class TestBase(unittest.TestCase):
             # Load the model from DB file and run it
             net = prepare_prediction_net(db_path, db_type)
 
-            state_features = input_prototype.state.float_features
-            action_features = input_prototype.action.float_features
+            state_features = input_prototype.state
+            action_features = input_prototype.action
             float_features_values = (
                 torch.cat((state_features, action_features), dim=1).reshape(-1).numpy()
             )
@@ -144,12 +145,14 @@ class TestBase(unittest.TestCase):
             net_plus_one = workspace.FetchBlob("plus_one")
             net_linear = workspace.FetchBlob("linear")
 
-            model_sum, model_mul, model_plus_one, model_linear = model(input_prototype)
+            model_result = model(input_prototype)
 
-            npt.assert_array_equal(model_sum.numpy(), net_sum)
-            npt.assert_array_equal(model_mul.numpy(), net_mul)
-            npt.assert_array_equal(model_plus_one.numpy(), net_plus_one)
-            npt.assert_allclose(model_linear.detach().numpy(), net_linear, rtol=1e-4)
+            npt.assert_array_equal(model_result.sum.numpy(), net_sum)
+            npt.assert_array_equal(model_result.mul.numpy(), net_mul)
+            npt.assert_array_equal(model_result.plus_one.numpy(), net_plus_one)
+            npt.assert_allclose(
+                model_result.linear.detach().numpy(), net_linear, rtol=1e-4
+            )
 
     def test_get_predictor_export_meta_and_workspace_full(self):
         model = Model()
@@ -200,8 +203,8 @@ class TestBase(unittest.TestCase):
             # Load the model from DB file and run it
             net = prepare_prediction_net(db_path, db_type)
 
-            state_features = input_prototype.state.float_features
-            action_features = input_prototype.action.float_features
+            state_features = input_prototype.state
+            action_features = input_prototype.action
             float_features_values = (
                 torch.cat((state_features, action_features), dim=1).reshape(-1).numpy()
             )
@@ -214,7 +217,7 @@ class TestBase(unittest.TestCase):
 
             workspace.RunNet(net)
 
-            model_sum, model_mul, model_plus_one, model_linear = model(input_prototype)
+            model_result = model(input_prototype)
 
             lengths = workspace.FetchBlob(
                 "output/string_weighted_multi_categorical_features.lengths"
@@ -240,5 +243,5 @@ class TestBase(unittest.TestCase):
                 np.array([b"TestAction"], dtype=np.object), values_keys
             )
             npt.assert_array_equal(
-                model_linear.detach().numpy().reshape(-1), values_values
+                model_result.linear.detach().numpy().reshape(-1), values_values
             )

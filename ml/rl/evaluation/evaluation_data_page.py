@@ -5,13 +5,11 @@ import logging
 import math
 from typing import NamedTuple, Optional, Union, cast
 
-import ml.rl.types as mt
 import numpy as np
 import torch
+from ml.rl import types as rlt
 from ml.rl.caffe_utils import masked_softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.training_data_page import TrainingDataPage
-from ml.rl.types import DiscreteDqnInput, ParametricDqnInput, PolicyNetworkInput
 
 
 logger = logging.getLogger(__name__)
@@ -42,34 +40,15 @@ class EvaluationDataPage(NamedTuple):
     possible_actions_state_concat: Optional[torch.Tensor] = None
 
     @classmethod
-    def create_from_tdp(cls, tdp: TrainingDataPage, trainer: DQNTrainer):
-        assert tdp.mdp_ids is not None
-        assert tdp.sequence_numbers is not None
-        assert tdp.states is not None
-        assert tdp.actions is not None
-        assert tdp.propensities is not None
-        assert tdp.rewards is not None
-        assert tdp.possible_actions_mask is not None
-
-        return EvaluationDataPage.create_from_tensors(
-            trainer,
-            tdp.mdp_ids,
-            tdp.sequence_numbers,
-            tdp.states,
-            tdp.actions,
-            tdp.propensities,
-            tdp.rewards,
-            tdp.possible_actions_mask,
-            max_num_actions=tdp.max_num_actions,
-            metrics=tdp.metrics,
-        )
-
-    @classmethod
-    def create_from_training_batch(cls, tdb: mt.TrainingBatch, trainer: DQNTrainer):
+    def create_from_training_batch(
+        cls, tdb: rlt.PreprocessedTrainingBatch, trainer: DQNTrainer
+    ):
         assert tdb.training_input.reward is not None
 
-        if type(tdb.training_input) == DiscreteDqnInput:
-            discrete_training_input = cast(DiscreteDqnInput, tdb.training_input)
+        if type(tdb.training_input) == rlt.PreprocessedDiscreteDqnInput:
+            discrete_training_input = cast(
+                rlt.PreprocessedDiscreteDqnInput, tdb.training_input
+            )
 
             return EvaluationDataPage.create_from_tensors(  # type: ignore
                 trainer,
@@ -84,8 +63,10 @@ class EvaluationDataPage(NamedTuple):
                 tdb.extras.max_num_actions,
                 metrics=tdb.extras.metrics,
             )
-        elif type(tdb.training_input) == ParametricDqnInput:
-            parametric_training_input = cast(ParametricDqnInput, tdb.training_input)
+        elif type(tdb.training_input) == rlt.PreprocessedParametricDqnInput:
+            parametric_training_input = cast(
+                rlt.PreprocessedParametricDqnInput, tdb.training_input
+            )
 
             return EvaluationDataPage.create_from_tensors(  # type: ignore
                 trainer,
@@ -100,8 +81,10 @@ class EvaluationDataPage(NamedTuple):
                 tdb.extras.max_num_actions,
                 metrics=tdb.extras.metrics,
             )
-        elif type(tdb.training_input) == PolicyNetworkInput:
-            policy_training_input = cast(PolicyNetworkInput, tdb.training_input)
+        elif type(tdb.training_input) == rlt.PreprocessedPolicyNetworkInput:
+            policy_training_input = cast(
+                rlt.PreprocessedPolicyNetworkInput, tdb.training_input
+            )
 
             return EvaluationDataPage.create_from_tensors(  # type: ignore
                 trainer,
@@ -124,12 +107,12 @@ class EvaluationDataPage(NamedTuple):
         trainer: DQNTrainer,
         mdp_ids: np.ndarray,
         sequence_numbers: torch.Tensor,
-        states: Union[mt.State, torch.Tensor],
-        actions: Union[mt.Action, torch.Tensor],
+        states: torch.Tensor,
+        actions: torch.Tensor,
         propensities: torch.Tensor,
         rewards: torch.Tensor,
         possible_actions_mask: torch.Tensor,
-        possible_actions: Optional[mt.FeatureVector] = None,
+        possible_actions: Optional[torch.Tensor] = None,
         max_num_actions: Optional[int] = None,
         metrics: Optional[torch.Tensor] = None,
     ):
@@ -141,18 +124,12 @@ class EvaluationDataPage(NamedTuple):
 
         if max_num_actions:
             # Parametric model CPE
-            state_action_pairs = mt.StateAction(  # type: ignore
+            state_action_pairs = rlt.PreprocessedStateAction(  # type: ignore
                 state=states, action=actions
             )
-            tiled_state = mt.FeatureVector(
-                states.float_features.repeat(  # type: ignore
-                    1, max_num_actions
-                ).reshape(  # type: ignore
-                    -1, states.float_features.shape[1]  # type: ignore
-                )
-            )
+            tiled_state = states.repeat(1, max_num_actions).reshape(-1, states.shape[1])
             # Get Q-value of action taken
-            possible_actions_state_concat = mt.StateAction(  # type: ignore
+            possible_actions_state_concat = rlt.PreprocessedStateAction(  # type: ignore
                 state=tiled_state, action=possible_actions  # type: ignore
             )
 
@@ -209,9 +186,6 @@ class EvaluationDataPage(NamedTuple):
             model_metrics_values = None
             model_metrics_values_for_logged_action = None
         else:
-            if isinstance(states, mt.State):
-                states = mt.StateInput(state=states)  # type: ignore
-
             num_actions = trainer.num_actions
             action_mask = actions.float()  # type: ignore
 
@@ -221,9 +195,11 @@ class EvaluationDataPage(NamedTuple):
 
             # Discrete actions
             rewards = trainer.boost_rewards(rewards, actions)  # type: ignore
-            model_values = trainer.q_network_cpe(states).q_values[:, 0:num_actions]
+            model_values = trainer.q_network_cpe(
+                rlt.PreprocessedState(state=states)
+            ).q_values[:, 0:num_actions]
             optimal_q_values = trainer.get_detached_q_values(
-                states.state  # type: ignore
+                states  # type: ignore
             )[  # type: ignore
                 0
             ]  # type: ignore
@@ -249,7 +225,9 @@ class EvaluationDataPage(NamedTuple):
                 model_values * action_mask, dim=1, keepdim=True
             )
 
-            rewards_and_metric_rewards = trainer.reward_network(states)
+            rewards_and_metric_rewards = trainer.reward_network(
+                rlt.PreprocessedState(state=states)
+            )
 
             # In case we reuse the modular for Q-network
             if hasattr(rewards_and_metric_rewards, "q_values"):
@@ -281,7 +259,9 @@ class EvaluationDataPage(NamedTuple):
                 model_metrics_for_logged_action = None
                 model_metrics_values_for_logged_action = None
             else:
-                model_metrics_values = trainer.q_network_cpe(states)
+                model_metrics_values = trainer.q_network_cpe(
+                    rlt.PreprocessedState(state=states)
+                )
                 # Backward compatility
                 if hasattr(model_metrics_values, "q_values"):
                     model_metrics_values = model_metrics_values.q_values

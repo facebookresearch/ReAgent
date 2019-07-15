@@ -573,23 +573,6 @@ class FeatureExtractorTestBase(unittest.TestCase):
 class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
     SEQ_LEN = 3
 
-    def expected_state_features(self, normalize):
-        dense = super().expected_state_features(normalize)
-        dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
-        return dense
-
-    def expected_next_state_features(self, normalize):
-        dense = super(
-            TestWorldModelFeatureExtractor, self
-        ).expected_next_state_features(normalize)
-        dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
-        return dense
-
-    def expected_action_features(self, normalize):
-        dense = super().expected_action_features(normalize)
-        dense = dense.reshape((1, dense.shape[0], dense.shape[1]))
-        return dense
-
     def setup_state_features(self, ws, field):
         lengths = np.array([1], dtype=np.int32)
         values_lengths = np.array([3, 0, 5], dtype=np.int32)
@@ -669,21 +652,21 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         ws.run(net)
         res = extractor.extract(ws, net.output_record())
         o = res.training_input
-        npt.assert_array_equal(reward.reshape(1, 3), o.reward.numpy())
-        npt.assert_array_equal(not_terminal.reshape(1, 3), o.not_terminal.numpy())
+        npt.assert_array_equal(reward.reshape(3), o.reward.numpy())
+        npt.assert_array_equal(not_terminal.reshape(3), o.not_terminal.numpy())
         npt.assert_allclose(
             self.expected_action_features(normalize),
-            o.action.float_features.numpy(),
+            o.action.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
-            o.state.float_features.numpy(),
+            o.state.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
-            o.next_state.numpy(),
+            o.next_state.float_features.value.numpy(),
             rtol=1e-6,
         )
 
@@ -713,20 +696,19 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         ws.run(net)
         res = extractor.extract(ws, net.output_record())
         o = res.training_input
-        npt.assert_array_equal(reward.reshape(1, 3), o.reward.numpy())
-        npt.assert_array_equal(not_terminal.reshape(1, 3), o.not_terminal.numpy())
+        npt.assert_array_equal(reward, o.reward.numpy())
+        npt.assert_array_equal(not_terminal, o.not_terminal.numpy())
         npt.assert_array_equal(
-            action.reshape(-1, 3, 1) == np.arange(num_actions),
-            o.action.float_features.numpy(),
+            action.reshape(-1, 1) == np.arange(num_actions), o.action.numpy()
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
-            o.state.float_features.numpy(),
+            o.state.float_features.value.numpy(),
             rtol=1e-6,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
-            o.next_state.numpy(),
+            o.next_state.float_features.value.numpy(),
             rtol=1e-6,
         )
 
@@ -1003,66 +985,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         )
         self.assertEqual(expected_float_only.id_features, float_only.id_features)
 
-    def test_extract_sarsa_discrete_action(self):
-        self._test_extract_sarsa_discrete_action(normalize=False)
-
-    def test_extract_sarsa_discrete_action_normalize(self):
-        self._test_extract_sarsa_discrete_action(normalize=True)
-
-    def _test_extract_sarsa_discrete_action(self, normalize):
-        num_actions = 2
-        extractor = TrainingFeatureExtractor(
-            state_normalization_parameters=self.get_state_normalization_parameters(),
-            include_possible_actions=False,
-            normalize=normalize,
-            max_num_actions=num_actions,
-        )
-        # Setup
-        ws, net = self.create_ws_and_net(extractor)
-        input_record = net.input_record()
-        self.setup_state_features(ws, input_record.state_features)
-        self.setup_next_state_features(ws, input_record.next_state_features)
-        action = self.setup_action(ws, input_record.action)
-        next_action = self.setup_next_action(ws, input_record.next_action)
-        reward = self.setup_reward(ws, input_record.reward)
-        not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
-        time_diff = self.setup_time_diff(ws, input_record.time_diff)
-        mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
-        sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
-        extra_data = self.setup_extra_data(ws, input_record)
-        # Run
-        ws.run(net)
-        res = extractor.extract(ws, net.output_record())
-        o = res.training_input
-        e = res.extras
-        npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
-        npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
-        npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
-        npt.assert_array_equal(
-            sequence_number.reshape(-1, 1), e.sequence_number.numpy()
-        )
-        npt.assert_array_equal(mdp_id.reshape(-1, 1), e.mdp_id)
-        npt.assert_array_equal(
-            extra_data.action_probability.reshape(-1, 1),
-            res.extras.action_probability.numpy(),
-        )
-        npt.assert_array_equal(
-            action.reshape(-1, 1) == np.arange(num_actions), o.action.numpy()
-        )
-        npt.assert_array_equal(
-            next_action.reshape(-1, 1) == np.arange(num_actions), o.next_action.numpy()
-        )
-        npt.assert_allclose(
-            self.expected_state_features(normalize),
-            o.state.float_features.value.numpy(),
-            rtol=1e-6,
-        )
-        npt.assert_allclose(
-            self.expected_next_state_features(normalize),
-            o.next_state.float_features.value.numpy(),
-            rtol=1e-6,
-        )
-
     def test_extract_max_q_parametric_action(self):
         self._test_extract_max_q_parametric_action(normalize=False)
 
@@ -1149,69 +1071,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             rtol=1e-6,
         )
 
-    def test_extract_sarsa_parametric_action(self):
-        self._test_extract_sarsa_parametric_action(normalize=False)
-
-    def test_extract_sarsa_parametric_action_normalize(self):
-        self._test_extract_sarsa_parametric_action(normalize=True)
-
-    def _test_extract_sarsa_parametric_action(self, normalize):
-        extractor = TrainingFeatureExtractor(
-            state_normalization_parameters=self.get_state_normalization_parameters(),
-            action_normalization_parameters=self.get_action_normalization_parameters(),
-            include_possible_actions=False,
-            normalize=normalize,
-        )
-        # Setup
-        ws, net = self.create_ws_and_net(extractor)
-        input_record = net.input_record()
-        self.setup_state_features(ws, input_record.state_features)
-        self.setup_next_state_features(ws, input_record.next_state_features)
-        self.setup_action_features(ws, input_record.action)
-        self.setup_next_action_features(ws, input_record.next_action)
-        reward = self.setup_reward(ws, input_record.reward)
-        not_terminal = self.setup_not_terminal(ws, input_record.not_terminal)
-        time_diff = self.setup_time_diff(ws, input_record.time_diff)
-        mdp_id = self.setup_mdp_id(ws, input_record.mdp_id)
-        sequence_number = self.setup_seq_num(ws, input_record.sequence_number)
-        extra_data = self.setup_extra_data(ws, input_record)
-        # Run
-        ws.run(net)
-        res = extractor.extract(ws, net.output_record())
-        o = res.training_input
-        e = res.extras
-        npt.assert_array_equal(reward.reshape(-1, 1), o.reward.numpy())
-        npt.assert_array_equal(time_diff.reshape(-1, 1), o.time_diff.numpy())
-        npt.assert_array_equal(not_terminal.reshape(-1, 1), o.not_terminal.numpy())
-        npt.assert_array_equal(
-            sequence_number.reshape(-1, 1), e.sequence_number.numpy()
-        )
-        npt.assert_array_equal(mdp_id.reshape(-1, 1), e.mdp_id)
-        npt.assert_array_equal(
-            extra_data.action_probability.reshape(-1, 1),
-            res.extras.action_probability.numpy(),
-        )
-        npt.assert_allclose(
-            self.expected_action_features(normalize),
-            o.action.float_features.value.numpy(),
-            rtol=1e-6,
-        )
-        npt.assert_allclose(
-            self.expected_next_action_features(normalize),
-            o.next_action.float_features.value.numpy(),
-            rtol=1e-6,
-        )
-        npt.assert_allclose(
-            self.expected_state_features(normalize),
-            o.state.float_features.value.numpy(),
-            rtol=1e-6,
-        )
-        npt.assert_allclose(
-            self.expected_next_state_features(normalize),
-            o.next_state.float_features.value.numpy(),
-            rtol=1e-6,
-        )
-
     def test_create_net_max_q_discrete_action(self):
         extractor = TrainingFeatureExtractor(
             state_normalization_parameters=self.get_state_normalization_parameters(),
@@ -1247,36 +1106,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             expected_input_record,
             expected_output_record,
             positional_match=False,
-        )
-
-    def test_create_net_sarsa_discrete_action(self):
-        extractor = TrainingFeatureExtractor(
-            state_normalization_parameters=self.get_state_normalization_parameters(),
-            include_possible_actions=False,
-            max_num_actions=2,
-        )
-        expected_input_record = (
-            schema.Struct(
-                ("state_features", map_schema()),
-                ("next_state_features", map_schema()),
-                ("action", schema.Scalar()),
-                ("next_action", schema.Scalar()),
-            )
-            + self.pass_through_columns()
-        )
-        expected_output_record = (
-            schema.Struct(
-                ("state_features", schema.Scalar()),
-                ("state_features_presence", schema.Scalar()),
-                ("next_state_features", schema.Scalar()),
-                ("next_state_features_presence", schema.Scalar()),
-                ("action", schema.Scalar()),
-                ("next_action", schema.Scalar()),
-            )
-            + self.pass_through_columns()
-        )
-        self.check_create_net_spec(
-            extractor, expected_input_record, expected_output_record
         )
 
     def test_create_net_max_q_parametric_action(self):
@@ -1330,46 +1159,6 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             expected_input_record,
             expected_output_record,
             positional_match=False,
-        )
-
-    def test_create_net_sarsa_parametric_action(self):
-        self._test_create_net_sarsa_parametric_action(normalize=False)
-
-    def test_create_net_sarsa_parametric_action_normalize(self):
-        self._test_create_net_sarsa_parametric_action(normalize=True)
-
-    def _test_create_net_sarsa_parametric_action(self, normalize):
-        extractor = TrainingFeatureExtractor(
-            state_normalization_parameters=self.get_state_normalization_parameters(),
-            action_normalization_parameters=self.get_action_normalization_parameters(),
-            include_possible_actions=False,
-            normalize=normalize,
-            max_num_actions=2,
-        )
-        expected_input_record = (
-            schema.Struct(
-                ("state_features", map_schema()),
-                ("next_state_features", map_schema()),
-                ("action", map_schema()),
-                ("next_action", map_schema()),
-            )
-            + self.pass_through_columns()
-        )
-        expected_output_record = (
-            schema.Struct(
-                ("state_features", schema.Scalar()),
-                ("state_features_presence", schema.Scalar()),
-                ("next_state_features", schema.Scalar()),
-                ("next_state_features_presence", schema.Scalar()),
-                ("action", schema.Scalar()),
-                ("next_action", schema.Scalar()),
-                ("action_presence", schema.Scalar()),
-                ("next_action_presence", schema.Scalar()),
-            )
-            + self.pass_through_columns()
-        )
-        self.check_create_net_spec(
-            extractor, expected_input_record, expected_output_record
         )
 
 

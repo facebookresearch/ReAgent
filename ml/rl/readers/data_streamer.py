@@ -143,9 +143,12 @@ def pin_memory(batch):
         return batch.pin_memory().cuda(non_blocking=True)
     elif isinstance(batch, string_classes):
         return batch
-    elif isinstance(batch, NamedTuple) or hasattr(batch, "_asdict"):
+    elif dataclasses.is_dataclass(batch):
         return type(batch)(
-            **{name: pin_memory(value) for name, value in batch._asdict().items()}
+            **{
+                name: pin_memory(value)
+                for name, value in dataclasses.asdict(batch).items()
+            }
         )
     elif dataclasses.is_dataclass(batch):
         return type(batch)(
