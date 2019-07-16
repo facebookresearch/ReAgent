@@ -39,7 +39,7 @@ class ImitatorTrainer(RLTrainer):
         learning_input = training_batch.training_input
 
         with torch.enable_grad():
-            action_preds = self.imitator(learning_input.state.float_features)
+            action_preds = self.imitator(learning_input.state)
             # Classification label is index of action with value 1
             pred_action_idxs = torch.max(action_preds, dim=1)[1]
             actual_action_idxs = torch.max(learning_input.action, dim=1)[1]

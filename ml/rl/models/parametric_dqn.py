@@ -110,8 +110,6 @@ class _DistributedDataParallelFullyConnectedParametricDQN(ModelBase):
         return self.fc_parametric_dqn.cpu_model()
 
     def forward(self, input):
-        cat_input = torch.cat(
-            (input.state.float_features, input.action.float_features), dim=1
-        )
+        cat_input = torch.cat((input.state, input.action), dim=1)
         q_value = self.data_parallel(cat_input)
         return rlt.SingleQValue(q_value=q_value)
