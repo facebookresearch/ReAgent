@@ -131,7 +131,7 @@ class DQNTrainer(DQNTrainerBase):
             if self.bcq:
                 action_on_policy = get_valid_actions_from_imitator(
                     self.bcq_imitator,
-                    learning_input.next_state.float_features,
+                    learning_input.next_state,
                     self.bcq_drop_threshold,
                 )
                 possible_next_actions_mask *= action_on_policy
@@ -188,9 +188,7 @@ class DQNTrainer(DQNTrainerBase):
 
         if self.bcq:
             action_on_policy = get_valid_actions_from_imitator(
-                self.bcq_imitator,
-                learning_input.state.float_features,
-                self.bcq_drop_threshold,
+                self.bcq_imitator, learning_input.state, self.bcq_drop_threshold
             )
             possible_actions_mask *= action_on_policy
 

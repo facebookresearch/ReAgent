@@ -144,19 +144,14 @@ def pin_memory(batch):
     elif isinstance(batch, string_classes):
         return batch
     elif dataclasses.is_dataclass(batch):
-        return type(batch)(
+        retval = dataclasses.replace(
+            batch,
             **{
-                name: pin_memory(value)
-                for name, value in dataclasses.asdict(batch).items()
+                field.name: pin_memory(getattr(batch, field.name))
+                for field in dataclasses.fields(batch)
             }
         )
-    elif dataclasses.is_dataclass(batch):
-        return type(batch)(
-            **{
-                name: pin_memory(value)
-                for name, value in dataclasses.asdict(batch).items()
-            }
-        )
+        return retval
     elif isinstance(batch, collections.Mapping):
         # NB: preserving OrderedDict
         return type(batch)((k, pin_memory(sample)) for k, sample in batch.items())
