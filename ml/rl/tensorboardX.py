@@ -30,6 +30,9 @@ logger = logging.getLogger(__name__)
 
 class SummaryWriterContextMeta(type):
     def __getattr__(cls, func):
+        if func.startswith("__"):
+            return super().__getattr__(func)
+
         if not cls._writer_stacks:
 
             def noop(*args, **kwargs):

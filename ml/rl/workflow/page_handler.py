@@ -17,6 +17,7 @@ from ml.rl.types import (
     ExtraData,
     PreprocessedMemoryNetworkInput,
     PreprocessedTrainingBatch,
+    RawTrainingBatch,
 )
 
 
@@ -167,13 +168,13 @@ class ImitatorPageHandler(PageHandler):
 
 
 def get_actual_minibatch_size(batch, minibatch_size_preset):
-    if isinstance(batch, PreprocessedTrainingBatch):
+    if isinstance(batch, (PreprocessedTrainingBatch, RawTrainingBatch)):
         batch_size = batch.batch_size()
     elif isinstance(batch, OrderedDict):
         first_key = next(iter(batch.keys()))
         batch_size = len(batch[first_key])
     else:
-        batch_size = minibatch_size_preset
+        raise NotImplementedError()
     return batch_size
 
 

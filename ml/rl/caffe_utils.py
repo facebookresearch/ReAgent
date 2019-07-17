@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 class C2Meta(type):
     def __getattr__(cls, method_name):
+        if method_name.startswith("__"):
+            return super().__getattr__(method_name)
+
         def method(*inputs, **kwargs):
             tb = traceback.extract_stack(limit=2)
             blob_prefix = "{}:{}:{}".format(
