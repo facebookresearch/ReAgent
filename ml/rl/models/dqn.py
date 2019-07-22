@@ -67,7 +67,7 @@ class _DistributedDataParallelFullyConnectedDQN(ModelBase):
         return self.fc_dqn.cpu_model()
 
     def forward(self, input):
-        q_values = self.data_parallel(input.state)
+        q_values = self.data_parallel(input.state.float_features)
         return rlt.AllActionQValues(q_values=q_values)
 
     def serving_model(self):
