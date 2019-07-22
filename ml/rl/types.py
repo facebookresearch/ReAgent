@@ -14,6 +14,24 @@ class BaseDataClass:
     def _replace(self, **kwargs):
         return cast(type(self), dataclasses.replace(self, **kwargs))
 
+    def pin_memory(self):
+        pinned_memory = {}
+        for field in dataclasses.fields(self):
+            f = getattr(self, field.name)
+            if isinstance(f, (torch.Tensor, BaseDataClass)):
+                pinned_memory[field.name] = f.pin_memory()
+        return self._replace(**pinned_memory)
+
+    def cuda(self):
+        cuda_tensor = {}
+        for field in dataclasses.fields(self):
+            f = getattr(self, field.name)
+            if isinstance(f, torch.Tensor):
+                cuda_tensor[field.name] = f.cuda(non_blocking=True)
+            elif isinstance(f, BaseDataClass):
+                cuda_tensor[field.name] = f.cuda()
+        return self._replace(**cuda_tensor)
+
 
 @dataclass
 class ValuePresence(BaseDataClass):

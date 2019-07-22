@@ -193,6 +193,8 @@ def feed_pages(
     last_percent_reported = -1
 
     for batch in data_streamer:
+        if use_gpu:
+            batch = batch.cuda()
         batch_size = get_actual_minibatch_size(batch, minibatch_size)
         num_rows_processed += batch_size
 
