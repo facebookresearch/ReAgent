@@ -21,7 +21,7 @@ class TestDuelingQNetwork(unittest.TestCase):
             use_batch_norm=True,
         )
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.state.shape)
+        self.assertEqual((1, state_dim), input.state.float_features.shape)
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         q_values = model(input)
@@ -37,8 +37,8 @@ class TestDuelingQNetwork(unittest.TestCase):
             action_dim=action_dim,
         )
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.state.shape)
-        self.assertEqual((1, action_dim), input.action.shape)
+        self.assertEqual((1, state_dim), input.state.float_features.shape)
+        self.assertEqual((1, action_dim), input.action.float_features.shape)
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         q_values = model(input)

@@ -46,16 +46,16 @@ class Model(ModelBase):
         self.linear = nn.Linear(4, 1)
 
     def input_prototype(self):
-        return PreprocessedStateAction(
+        return PreprocessedStateAction.from_tensors(
             state=torch.randn([1, 4]), action=torch.randn([1, 4])
         )
 
     def forward(self, sa):
+        state = sa.state.float_features
+        action = sa.action.float_features
+
         return ModelOutput(
-            sa.state + sa.action,
-            sa.state * sa.action,
-            sa.state + 1,
-            self.linear(sa.state),
+            state + action, state * action, state + 1, self.linear(state)
         )
 
 
@@ -77,8 +77,8 @@ class TestBase(unittest.TestCase):
         protobuf_model = onnx.load(BytesIO(buffer.getvalue()))
         self.assertEqual(4, len(protobuf_model.graph.input))  # 2 inputs + 2 params
         self.assertEqual(4, len(protobuf_model.graph.output))
-        self.assertEqual("state", protobuf_model.graph.input[0].name)
-        self.assertEqual("action", protobuf_model.graph.input[1].name)
+        self.assertEqual("state:float_features", protobuf_model.graph.input[0].name)
+        self.assertEqual("action:float_features", protobuf_model.graph.input[1].name)
 
     def test_get_predictor_export_meta_and_workspace(self):
         model = Model()
@@ -127,8 +127,8 @@ class TestBase(unittest.TestCase):
             # Load the model from DB file and run it
             net = prepare_prediction_net(db_path, db_type)
 
-            state_features = input_prototype.state
-            action_features = input_prototype.action
+            state_features = input_prototype.state.float_features
+            action_features = input_prototype.action.float_features
             float_features_values = (
                 torch.cat((state_features, action_features), dim=1).reshape(-1).numpy()
             )
@@ -203,8 +203,8 @@ class TestBase(unittest.TestCase):
             # Load the model from DB file and run it
             net = prepare_prediction_net(db_path, db_type)
 
-            state_features = input_prototype.state
-            action_features = input_prototype.action
+            state_features = input_prototype.state.float_features
+            action_features = input_prototype.action.float_features
             float_features_values = (
                 torch.cat((state_features, action_features), dim=1).reshape(-1).numpy()
             )

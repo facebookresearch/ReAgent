@@ -178,18 +178,54 @@ class ActorOutput(BaseDataClass):
 
 
 @dataclass
+class PreprocessedFeatureVector(BaseDataClass):
+    float_features: torch.Tensor
+    # Experimental: sticking this here instead of putting it in float_features
+    # because a lot of places derive the shape of float_features from
+    # normalization parameters.
+    time_since_first: Optional[torch.Tensor] = None
+
+
+@dataclass
 class PreprocessedState(BaseDataClass):
     """
     This class makes it easier to plug modules into predictor
     """
 
-    state: torch.Tensor
+    state: PreprocessedFeatureVector
+
+    @classmethod
+    def from_tensor(cls, state: torch.Tensor):
+        assert isinstance(state, torch.Tensor)
+        return cls(state=PreprocessedFeatureVector(float_features=state))
+
+    def __init__(self, state):
+        super().__init__()
+        if isinstance(state, torch.Tensor):
+            raise ValueError("Use from_tensor()")
+        self.state = state
 
 
 @dataclass
 class PreprocessedStateAction(BaseDataClass):
-    state: torch.Tensor
-    action: torch.Tensor
+    state: PreprocessedFeatureVector
+    action: PreprocessedFeatureVector
+
+    @classmethod
+    def from_tensors(cls, state: torch.Tensor, action: torch.Tensor):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(action, torch.Tensor)
+        return cls(
+            state=PreprocessedFeatureVector(float_features=state),
+            action=PreprocessedFeatureVector(float_features=action),
+        )
+
+    def __init__(self, state, action):
+        super().__init__()
+        if isinstance(state, torch.Tensor) or isinstance(action, torch.Tensor):
+            raise ValueError(f"Use from_tensors() {type(state)} {type(action)}")
+        self.state = state
+        self.action = action
 
 
 @dataclass
@@ -212,8 +248,8 @@ class CommonInput(BaseDataClass):
 
 @dataclass
 class PreprocessedBaseInput(CommonInput):
-    state: torch.Tensor
-    next_state: torch.Tensor
+    state: PreprocessedFeatureVector
+    next_state: PreprocessedFeatureVector
 
 
 @dataclass
@@ -226,19 +262,19 @@ class PreprocessedDiscreteDqnInput(PreprocessedBaseInput):
 
 @dataclass
 class PreprocessedParametricDqnInput(PreprocessedBaseInput):
-    action: torch.Tensor
-    next_action: torch.Tensor
-    possible_actions: torch.Tensor
+    action: PreprocessedFeatureVector
+    next_action: PreprocessedFeatureVector
+    possible_actions: PreprocessedFeatureVector
     possible_actions_mask: torch.ByteTensor
-    possible_next_actions: torch.Tensor
+    possible_next_actions: PreprocessedFeatureVector
     possible_next_actions_mask: torch.ByteTensor
-    tiled_next_state: torch.Tensor
+    tiled_next_state: PreprocessedFeatureVector
 
 
 @dataclass
 class PreprocessedPolicyNetworkInput(PreprocessedBaseInput):
-    action: torch.Tensor
-    next_action: torch.Tensor
+    action: PreprocessedFeatureVector
+    next_action: PreprocessedFeatureVector
 
 
 @dataclass
@@ -259,7 +295,11 @@ class RawDiscreteDqnInput(RawBaseInput):
     possible_actions_mask: torch.ByteTensor
     possible_next_actions_mask: torch.ByteTensor
 
-    def preprocess(self, state: torch.Tensor, next_state: torch.Tensor):
+    def preprocess(
+        self, state: PreprocessedFeatureVector, next_state: PreprocessedFeatureVector
+    ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
         return PreprocessedDiscreteDqnInput(
             self.reward,
             self.time_diff,
@@ -267,6 +307,22 @@ class RawDiscreteDqnInput(RawBaseInput):
             self.not_terminal.float(),
             state,
             next_state,
+            self.action.float(),
+            self.next_action.float(),
+            self.possible_actions_mask.float(),
+            self.possible_next_actions_mask.float(),
+        )
+
+    def preprocess_tensors(self, state: torch.Tensor, next_state: torch.Tensor):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+        return PreprocessedDiscreteDqnInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal.float(),
+            PreprocessedFeatureVector(float_features=state),
+            PreprocessedFeatureVector(float_features=next_state),
             self.action.float(),
             self.next_action.float(),
             self.possible_actions_mask.float(),
@@ -286,14 +342,22 @@ class RawParametricDqnInput(RawBaseInput):
 
     def preprocess(
         self,
-        state: torch.Tensor,
-        next_state: torch.Tensor,
-        action: torch.Tensor,
-        next_action: torch.Tensor,
-        possible_actions: torch.Tensor,
-        possible_next_actions: torch.Tensor,
-        tiled_next_state: torch.Tensor,
+        state: PreprocessedFeatureVector,
+        next_state: PreprocessedFeatureVector,
+        action: PreprocessedFeatureVector,
+        next_action: PreprocessedFeatureVector,
+        possible_actions: PreprocessedFeatureVector,
+        possible_next_actions: PreprocessedFeatureVector,
+        tiled_next_state: PreprocessedFeatureVector,
     ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
+        assert isinstance(action, PreprocessedFeatureVector)
+        assert isinstance(next_action, PreprocessedFeatureVector)
+        assert isinstance(possible_actions, PreprocessedFeatureVector)
+        assert isinstance(possible_next_actions, PreprocessedFeatureVector)
+        assert isinstance(tiled_next_state, PreprocessedFeatureVector)
+
         return PreprocessedParametricDqnInput(
             self.reward,
             self.time_diff,
@@ -310,6 +374,39 @@ class RawParametricDqnInput(RawBaseInput):
             tiled_next_state,
         )
 
+    def preprocess_tensors(
+        self,
+        state: torch.Tensor,
+        next_state: torch.Tensor,
+        action: torch.Tensor,
+        next_action: torch.Tensor,
+        possible_actions: torch.Tensor,
+        possible_next_actions: torch.Tensor,
+        tiled_next_state: torch.Tensor,
+    ):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+        assert isinstance(action, torch.Tensor)
+        assert isinstance(next_action, torch.Tensor)
+        assert isinstance(possible_actions, torch.Tensor)
+        assert isinstance(possible_next_actions, torch.Tensor)
+        assert isinstance(tiled_next_state, torch.Tensor)
+        return PreprocessedParametricDqnInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal,
+            PreprocessedFeatureVector(float_features=state),
+            PreprocessedFeatureVector(float_features=next_state),
+            PreprocessedFeatureVector(float_features=action),
+            PreprocessedFeatureVector(float_features=next_action),
+            PreprocessedFeatureVector(float_features=possible_actions),
+            self.possible_actions_mask,
+            PreprocessedFeatureVector(float_features=possible_next_actions),
+            self.possible_next_actions_mask,
+            PreprocessedFeatureVector(float_features=tiled_next_state),
+        )
+
 
 @dataclass
 class RawPolicyNetworkInput(RawBaseInput):
@@ -318,11 +415,15 @@ class RawPolicyNetworkInput(RawBaseInput):
 
     def preprocess(
         self,
-        state: torch.Tensor,
-        next_state: torch.Tensor,
-        action: torch.Tensor,
-        next_action: torch.Tensor,
+        state: PreprocessedFeatureVector,
+        next_state: PreprocessedFeatureVector,
+        action: PreprocessedFeatureVector,
+        next_action: PreprocessedFeatureVector,
     ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
+        assert isinstance(action, PreprocessedFeatureVector)
+        assert isinstance(next_action, PreprocessedFeatureVector)
         return PreprocessedPolicyNetworkInput(
             self.reward,
             self.time_diff,
@@ -334,6 +435,28 @@ class RawPolicyNetworkInput(RawBaseInput):
             next_action,
         )
 
+    def preprocess_tensors(
+        self,
+        state: torch.Tensor,
+        next_state: torch.Tensor,
+        action: torch.Tensor,
+        next_action: torch.Tensor,
+    ):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+        assert isinstance(action, torch.Tensor)
+        assert isinstance(next_action, torch.Tensor)
+        return PreprocessedPolicyNetworkInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal,
+            PreprocessedFeatureVector(float_features=state),
+            PreprocessedFeatureVector(float_features=next_state),
+            PreprocessedFeatureVector(float_features=action),
+            PreprocessedFeatureVector(float_features=next_action),
+        )
+
 
 @dataclass
 class RawMemoryNetworkInput(RawBaseInput):
@@ -341,11 +464,14 @@ class RawMemoryNetworkInput(RawBaseInput):
 
     def preprocess(
         self,
-        state: torch.Tensor,
-        next_state: torch.Tensor,
+        state: PreprocessedFeatureVector,
+        next_state: PreprocessedFeatureVector,
         action: Optional[torch.Tensor] = None,
     ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
         if action is not None:
+            assert isinstance(action, torch.Tensor)
             return PreprocessedMemoryNetworkInput(
                 self.reward,
                 self.time_diff,
@@ -364,6 +490,38 @@ class RawMemoryNetworkInput(RawBaseInput):
                 self.not_terminal,
                 state,
                 next_state,
+                self.action.float(),
+            )
+
+    def preprocess_tensors(
+        self,
+        state: torch.Tensor,
+        next_state: torch.Tensor,
+        action: Optional[torch.Tensor] = None,
+    ):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+
+        if action is not None:
+            assert isinstance(action, torch.Tensor)
+            return PreprocessedMemoryNetworkInput(
+                self.reward,
+                self.time_diff,
+                self.step,
+                self.not_terminal,
+                PreprocessedFeatureVector(float_features=state),
+                PreprocessedFeatureVector(float_features=next_state),
+                action,
+            )
+        else:
+            assert isinstance(self.action, torch.ByteTensor)
+            return PreprocessedMemoryNetworkInput(
+                self.reward,
+                self.time_diff,
+                self.step,
+                self.not_terminal,
+                PreprocessedFeatureVector(float_features=state),
+                PreprocessedFeatureVector(float_features=next_state),
                 self.action.float(),
             )
 
@@ -391,7 +549,7 @@ class PreprocessedTrainingBatch(BaseDataClass):
     extras: Any
 
     def batch_size(self):
-        return self.training_input.state.size()[0]
+        return self.training_input.state.float_features.size()[0]
 
 
 @dataclass
@@ -427,15 +585,6 @@ class SingleQValue(BaseDataClass):
 @dataclass
 class AllActionQValues(BaseDataClass):
     q_values: torch.Tensor
-
-
-@dataclass
-class CappedContinuousAction(BaseDataClass):
-    """
-    Continuous action in range [-1, 1], e.g., the output of DDPG actor
-    """
-
-    action: torch.Tensor
 
 
 @dataclass

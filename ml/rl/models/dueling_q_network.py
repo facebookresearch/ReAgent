@@ -67,26 +67,20 @@ class DuelingQNetwork(ModelBase):
 
     def input_prototype(self):
         if self.parametric_action:
-            return rlt.PreprocessedStateAction(
+            return rlt.PreprocessedStateAction.from_tensors(
                 state=torch.randn(1, self.state_dim),
                 action=torch.randn(1, self.action_dim),
             )
         else:
-            return rlt.PreprocessedState(state=torch.randn(1, self.state_dim))
+            return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def forward(self, input) -> Union[NamedTuple, torch.FloatTensor]:  # type: ignore
         output_tensor = False
-        if isinstance(input, torch.Tensor):
-            # Maintaining backward compatibility for a bit
-            state_dim = self.layers[0].in_features
-            state = input[:, :state_dim]
-            action = input[:, state_dim:]
-            output_tensor = True
-        elif self.parametric_action:
-            state = input.state
-            action = input.action
+        if self.parametric_action:
+            state = input.state.float_features
+            action = input.action.float_features
         else:
-            state = input.state
+            state = input.state.float_features
             action = None
 
         x = state

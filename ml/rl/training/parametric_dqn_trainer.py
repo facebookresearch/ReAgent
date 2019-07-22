@@ -137,7 +137,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         """
         self.q_network.eval()
         q_values = self.q_network(
-            rlt.PreprocessedStateAction(state=state, action=action)
+            rlt.PreprocessedStateAction.from_tensors(state=state, action=action)
         )
         self.q_network.train()
         return q_values.q_value.cpu()
@@ -149,7 +149,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         """
         self.reward_network.eval()
         reward_estimates = self.reward_network(
-            rlt.PreprocessedStateAction(state=state, action=action)
+            rlt.PreprocessedStateAction.from_tensors(state=state, action=action)
         )
         self.reward_network.train()
         return reward_estimates.q_value.cpu()

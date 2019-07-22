@@ -109,7 +109,7 @@ class TD3Trainer(RLTrainer):
         reward = learning_input.reward
         not_done_mask = learning_input.not_terminal
 
-        action = self._maybe_scale_action_in_train(action)
+        action = self._maybe_scale_action_in_train(action.float_features)
 
         max_action = (
             self.max_action_range_tensor_training
@@ -123,7 +123,9 @@ class TD3Trainer(RLTrainer):
         )
 
         # Compute current value estimates
-        current_state_action = rlt.PreprocessedStateAction(state=state, action=action)
+        current_state_action = rlt.PreprocessedStateAction(
+            state=state, action=rlt.PreprocessedFeatureVector(float_features=action)
+        )
         q1_value = self.q1_network(current_state_action).q_value
         if self.q2_network:
             q2_value = self.q2_network(current_state_action).q_value
@@ -139,7 +141,8 @@ class TD3Trainer(RLTrainer):
             ).clamp(-self.noise_clip, self.noise_clip)
             next_actor = torch.max(torch.min(next_actor, max_action), min_action)
             next_state_actor = rlt.PreprocessedStateAction(
-                state=next_state, action=next_actor
+                state=next_state,
+                action=rlt.PreprocessedFeatureVector(float_features=next_actor),
             )
             next_state_value = self.q1_network_target(next_state_actor).q_value
 
@@ -166,7 +169,10 @@ class TD3Trainer(RLTrainer):
         # Only update actor and target networks after a fixed number of Q updates
         if self.minibatch % self.delayed_policy_update == 0:
             actor_loss = -self.q1_network(
-                rlt.PreprocessedStateAction(state=state, action=actor_action)
+                rlt.PreprocessedStateAction(
+                    state=state,
+                    action=rlt.PreprocessedFeatureVector(float_features=actor_action),
+                )
             ).q_value.mean()
             actor_loss.backward()
             self._maybe_run_optimizer(

@@ -123,7 +123,7 @@ class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
     """ Train a baseline model based on randomly shuffled data """
 
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        batch_size, _, _ = tdp.training_input.next_state.size()  # type: ignore
+        batch_size, _, _ = tdp.training_input.next_state.float_features.size()
         tdp = PreprocessedTrainingBatch(
             training_input=PreprocessedMemoryNetworkInput(
                 state=tdp.training_input.state,
@@ -132,9 +132,11 @@ class WorldModelRandomTrainingPageHandler(WorldModelPageHandler):
                     tdp.training_input.reward[torch.randperm(batch_size)]
                 ).float(),
                 # shuffle the data
-                next_state=tdp.training_input.next_state[  # type: ignore
-                    torch.randperm(batch_size)
-                ],  # type: ignore
+                next_state=tdp.training_input.next_state._replace(
+                    float_features=tdp.training_input.next_state.float_features[
+                        torch.randperm(batch_size)
+                    ]
+                ),
                 reward=tdp.training_input.reward[torch.randperm(batch_size)],
                 not_terminal=tdp.training_input.not_terminal[  # type: ignore
                     torch.randperm(batch_size)

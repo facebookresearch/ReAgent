@@ -31,8 +31,12 @@ class MemoryNetwork(ModelBase):
 
     def input_prototype(self):
         return rlt.PreprocessedStateAction(
-            state=torch.randn(1, 1, self.state_dim),
-            action=torch.randn(1, 1, self.action_dim),
+            state=rlt.PreprocessedFeatureVector(
+                float_features=torch.randn(1, 1, self.state_dim)
+            ),
+            action=rlt.PreprocessedFeatureVector(
+                float_features=torch.randn(1, 1, self.action_dim)
+            ),
         )
 
     def forward(self, input):
@@ -44,7 +48,7 @@ class MemoryNetwork(ModelBase):
             not_terminals,
             all_steps_hidden,
             last_step_hidden_and_cell,
-        ) = self.mdnrnn(input.action, input.state)
+        ) = self.mdnrnn(input.action.float_features, input.state.float_features)
         return rlt.MemoryNetworkOutput(
             mus=mus,
             sigmas=sigmas,

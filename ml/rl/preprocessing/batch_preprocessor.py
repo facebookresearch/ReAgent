@@ -31,7 +31,7 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
             training_input.next_state.float_features.value,
             training_input.next_state.float_features.presence,
         )
-        new_training_input = training_input.preprocess(
+        new_training_input = training_input.preprocess_tensors(
             state=preprocessed_state, next_state=preprocessed_next_state
         )
         return batch.preprocess(new_training_input)
@@ -52,10 +52,16 @@ class SequentialDiscreteDqnBatchPreprocessor(DiscreteDqnBatchPreprocessor):
         assert isinstance(training_input, rlt.PreprocessedMemoryNetworkInput)
         preprocessed_batch = preprocessed_batch._replace(
             training_input=training_input._replace(
-                state=training_input.state.reshape(-1, self.seq_len, self.state_dim),
+                state=rlt.PreprocessedFeatureVector(
+                    float_features=training_input.state.float_features.reshape(
+                        -1, self.seq_len, self.state_dim
+                    )
+                ),
                 action=training_input.action.reshape(-1, self.seq_len, self.action_dim),
-                next_state=training_input.next_state.reshape(
-                    -1, self.seq_len, self.state_dim
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=training_input.next_state.float_features.reshape(
+                        -1, self.seq_len, self.state_dim
+                    )
                 ),
                 reward=training_input.reward.reshape(-1, self.seq_len),
                 not_terminal=preprocessed_batch.training_input.not_terminal.reshape(
@@ -95,7 +101,7 @@ class ParametricDqnBatchPreprocessor(BatchPreprocessor):
         if is_memory_network:
             assert isinstance(training_input, rlt.RawMemoryNetworkInput)
             return batch.preprocess(
-                training_input=training_input.preprocess(
+                training_input=training_input.preprocess_tensors(
                     state=preprocessed_state,
                     next_state=preprocessed_next_state,
                     action=preprocessed_action,
@@ -120,7 +126,7 @@ class ParametricDqnBatchPreprocessor(BatchPreprocessor):
                 training_input.possible_next_actions.float_features.presence,
             )
             return batch.preprocess(
-                training_input=training_input.preprocess(
+                training_input=training_input.preprocess_tensors(
                     state=preprocessed_state,
                     next_state=preprocessed_next_state,
                     action=preprocessed_action,
@@ -154,10 +160,16 @@ class SequentialParametricDqnBatchPreprocessor(ParametricDqnBatchPreprocessor):
         assert isinstance(training_input, rlt.PreprocessedMemoryNetworkInput)
         preprocessed_batch = preprocessed_batch._replace(
             training_input=training_input._replace(
-                state=training_input.state.reshape(-1, self.seq_len, self.state_dim),
+                state=rlt.PreprocessedFeatureVector(
+                    float_features=training_input.state.float_features.reshape(
+                        -1, self.seq_len, self.state_dim
+                    )
+                ),
                 action=training_input.action.reshape(-1, self.seq_len, self.action_dim),
-                next_state=training_input.next_state.reshape(
-                    -1, self.seq_len, self.state_dim
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=training_input.next_state.float_features.reshape(
+                        -1, self.seq_len, self.state_dim
+                    )
                 ),
                 reward=training_input.reward.reshape(-1, self.seq_len),
                 not_terminal=training_input.not_terminal.reshape(-1, self.seq_len),
@@ -194,7 +206,7 @@ class PolicyNetworkBatchPreprocessor(BatchPreprocessor):
             training_input.next_action.float_features.presence,
         )
         return batch.preprocess(
-            training_input=training_input.preprocess(
+            training_input=training_input.preprocess_tensors(
                 state=preprocessed_state,
                 next_state=preprocessed_next_state,
                 action=preprocessed_action,

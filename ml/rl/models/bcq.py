@@ -17,11 +17,11 @@ class BatchConstrainedDQN(ModelBase):
         self.bcq_drop_threshold = bcq_drop_threshold
 
     def input_prototype(self):
-        return rlt.PreprocessedState(state=torch.randn(1, self.state_dim))
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def forward(self, input):
         q_values = self.q_network(input)
-        imitator_outputs = self.imitator_network(input.state)
+        imitator_outputs = self.imitator_network(input.state.float_features)
         imitator_probs = torch.nn.functional.softmax(imitator_outputs, dim=1)
         filter_values = imitator_probs / imitator_probs.max(keepdim=True, dim=1)[0]
         invalid_actions = (filter_values < self.bcq_drop_threshold).float()

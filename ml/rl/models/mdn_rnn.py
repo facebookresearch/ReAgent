@@ -163,11 +163,11 @@ class MDNRNNMemoryPool:
             )
 
         training_input = rlt.PreprocessedMemoryNetworkInput(
-            state=state,
+            state=rlt.PreprocessedFeatureVector(float_features=state),
             reward=reward,
             time_diff=torch.ones_like(reward).float(),
             action=action,
-            next_state=next_state,
+            next_state=rlt.PreprocessedFeatureVector(float_features=next_state),
             not_terminal=not_terminal,
             step=None,
         )

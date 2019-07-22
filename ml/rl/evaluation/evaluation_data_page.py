@@ -107,12 +107,12 @@ class EvaluationDataPage(NamedTuple):
         trainer: DQNTrainer,
         mdp_ids: np.ndarray,
         sequence_numbers: torch.Tensor,
-        states: torch.Tensor,
-        actions: torch.Tensor,
+        states: rlt.PreprocessedFeatureVector,
+        actions: rlt.PreprocessedFeatureVector,
         propensities: torch.Tensor,
         rewards: torch.Tensor,
         possible_actions_mask: torch.Tensor,
-        possible_actions: Optional[torch.Tensor] = None,
+        possible_actions: Optional[rlt.PreprocessedFeatureVector] = None,
         max_num_actions: Optional[int] = None,
         metrics: Optional[torch.Tensor] = None,
     ):
@@ -124,13 +124,17 @@ class EvaluationDataPage(NamedTuple):
 
         if max_num_actions:
             # Parametric model CPE
-            state_action_pairs = rlt.PreprocessedStateAction(  # type: ignore
+            state_action_pairs = rlt.PreprocessedStateAction(
                 state=states, action=actions
             )
-            tiled_state = states.repeat(1, max_num_actions).reshape(-1, states.shape[1])
+            tiled_state = states.float_features.repeat(1, max_num_actions).reshape(
+                -1, states.float_features.shape[1]
+            )
+            assert possible_actions is not None
             # Get Q-value of action taken
-            possible_actions_state_concat = rlt.PreprocessedStateAction(  # type: ignore
-                state=tiled_state, action=possible_actions  # type: ignore
+            possible_actions_state_concat = rlt.PreprocessedStateAction(
+                state=rlt.PreprocessedFeatureVector(float_features=tiled_state),
+                action=possible_actions,
             )
 
             # Parametric actions

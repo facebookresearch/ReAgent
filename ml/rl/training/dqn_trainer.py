@@ -316,7 +316,7 @@ class DQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.q_network.eval()
-        q_values = self.q_network(rlt.PreprocessedState(input))
+        q_values = self.q_network(rlt.PreprocessedState.from_tensor(input))
         q_values = q_values.q_values.cpu()
         self.q_network.train()
 
@@ -335,6 +335,6 @@ class DQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.reward_network.eval()
-        reward_estimates = self.reward_network(rlt.PreprocessedState(input))
+        reward_estimates = self.reward_network(rlt.PreprocessedState.from_tensor(input))
         self.reward_network.train()
         return reward_estimates.q_values.cpu()

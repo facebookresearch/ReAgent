@@ -19,10 +19,12 @@ class ActorWithPreprocessing(ModelBase):
 
     def forward(self, input):
         preprocessed_state = self.state_preprocessor(input.state)
-        return self.actor_network(rlt.PreprocessedState(state=preprocessed_state))
+        return self.actor_network(rlt.PreprocessedState.from_tensor(preprocessed_state))
 
     def input_prototype(self):
-        return rlt.PreprocessedState(state=self.state_preprocessor.input_prototype())
+        return rlt.PreprocessedState.from_tensor(
+            self.state_preprocessor.input_prototype()
+        )
 
 
 class FullyConnectedActor(ModelBase):
@@ -53,10 +55,10 @@ class FullyConnectedActor(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.PreprocessedState(state=torch.randn(1, self.state_dim))
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def forward(self, input):
-        action = self.fc(input.state)
+        action = self.fc(input.state.float_features)
         return rlt.ActorOutput(action=action)
 
 
@@ -93,7 +95,7 @@ class GaussianFullyConnectedActor(ModelBase):
         self._log_min_max = (-20.0, 2.0)
 
     def input_prototype(self):
-        return rlt.PreprocessedState(state=torch.randn(1, self.state_dim))
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def _log_prob(self, r, scale_log):
         """
@@ -120,7 +122,7 @@ class GaussianFullyConnectedActor(ModelBase):
         return (1 - squashed_action ** 2 + self.eps).log()
 
     def _get_loc_and_scale_log(self, state):
-        loc_scale = self.fc(state)
+        loc_scale = self.fc(state.float_features)
         loc = loc_scale[::, : self.action_dim]
         scale_log = loc_scale[::, self.action_dim :].clamp(*self._log_min_max)
         return loc, scale_log
@@ -188,14 +190,14 @@ class DirichletFullyConnectedActor(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.PreprocessedState(state=torch.randn(1, self.state_dim))
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def _get_concentration(self, state):
         """
         Get concentration of distribution.
         https://stats.stackexchange.com/questions/244917/what-exactly-is-the-alpha-in-the-dirichlet-distribution
         """
-        return self.fc(state) + self.EPSILON
+        return self.fc(state.float_features) + self.EPSILON
 
     @torch.no_grad()  # type: ignore
     def get_log_prob(self, state, action):

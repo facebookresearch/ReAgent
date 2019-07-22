@@ -150,12 +150,14 @@ class SACTrainer(RLTrainer):
         not_done_mask = learning_input.not_terminal
 
         if self._should_scale_action_in_train():
-            action = rescale_torch_tensor(
-                action,
-                new_min=self.min_action_range_tensor_training,
-                new_max=self.max_action_range_tensor_training,
-                prev_min=self.min_action_range_tensor_serving,
-                prev_max=self.max_action_range_tensor_serving,
+            action = action._replace(
+                float_features=rescale_torch_tensor(
+                    action.float_features,
+                    new_min=self.min_action_range_tensor_training,
+                    new_max=self.max_action_range_tensor_training,
+                    prev_min=self.min_action_range_tensor_serving,
+                    prev_max=self.max_action_range_tensor_serving,
+                )
             )
 
         with torch.enable_grad():
@@ -186,7 +188,7 @@ class SACTrainer(RLTrainer):
             with torch.no_grad():
                 if self.value_network is not None:
                     next_state_value = self.value_network_target(
-                        learning_input.next_state
+                        learning_input.next_state.float_features
                     )
                 else:
                     next_state_actor_output = self.actor_network(
@@ -194,7 +196,9 @@ class SACTrainer(RLTrainer):
                     )
                     next_state_actor_action = rlt.PreprocessedStateAction(
                         state=learning_input.next_state,
-                        action=next_state_actor_output.action,
+                        action=rlt.PreprocessedFeatureVector(
+                            float_features=next_state_actor_output.action
+                        ),
                     )
                     next_state_value = self.q1_network_target(
                         next_state_actor_action
@@ -235,7 +239,10 @@ class SACTrainer(RLTrainer):
             #
 
             state_actor_action = rlt.PreprocessedStateAction(
-                state=state, action=actor_output.action
+                state=state,
+                action=rlt.PreprocessedFeatureVector(
+                    float_features=actor_output.action
+                ),
             )
             q1_actor_value = self.q1_network(state_actor_action).q_value
             min_q_actor_value = q1_actor_value
@@ -259,7 +266,7 @@ class SACTrainer(RLTrainer):
             #
 
             if self.value_network is not None:
-                state_value = self.value_network(state)
+                state_value = self.value_network(state.float_features)
 
                 if self.logged_action_uniform_prior:
                     log_prob_a = torch.zeros_like(min_q_actor_value)
@@ -353,7 +360,7 @@ class SACTrainer(RLTrainer):
         """
         self.actor_network.eval()
         with torch.no_grad():
-            actions = self.actor_network(rlt.PreprocessedState(states))
+            actions = self.actor_network(rlt.PreprocessedState.from_tensor(states))
         # clamp actions to make sure actions are in the range
         clamped_actions = torch.max(
             torch.min(actions.action, self.max_action_range_tensor_training),

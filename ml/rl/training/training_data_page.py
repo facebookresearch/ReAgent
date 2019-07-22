@@ -77,16 +77,26 @@ class TrainingDataPage(object):
         state_dim = self.states.shape[1]
         return rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedParametricDqnInput(
-                state=self.states,
-                action=self.actions,
-                next_state=self.next_states,
-                next_action=self.next_actions,
-                tiled_next_state=self.possible_next_actions_state_concat[:, :state_dim],
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
+                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
+                next_action=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_actions
+                ),
+                tiled_next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, :state_dim
+                    ]
+                ),
                 possible_actions=None,
                 possible_actions_mask=self.possible_actions_mask,
-                possible_next_actions=self.possible_next_actions_state_concat[
-                    :, state_dim:
-                ],
+                possible_next_actions=rlt.PreprocessedFeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, state_dim:
+                    ]
+                ),
                 possible_next_actions_mask=self.possible_next_actions_mask,
                 reward=self.rewards,
                 not_terminal=self.not_terminal,
@@ -99,10 +109,14 @@ class TrainingDataPage(object):
     def as_policy_network_training_batch(self):
         return rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedPolicyNetworkInput(
-                state=self.states,
-                action=self.actions,
-                next_state=self.next_states,
-                next_action=self.next_actions,
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
+                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
+                next_action=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_actions
+                ),
                 reward=self.rewards,
                 not_terminal=self.not_terminal,
                 step=self.step,
@@ -114,9 +128,11 @@ class TrainingDataPage(object):
     def as_discrete_maxq_training_batch(self):
         return rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedDiscreteDqnInput(
-                state=self.states,
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
                 action=self.actions,
-                next_state=self.next_states,
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
                 next_action=self.next_actions,
                 possible_actions_mask=self.possible_actions_mask,
                 possible_next_actions_mask=self.possible_next_actions_mask,

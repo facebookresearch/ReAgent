@@ -33,13 +33,13 @@ class ParametricDQNWithPreprocessing(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.PreprocessedStateAction(
+        return rlt.PreprocessedStateAction.from_tensors(
             state=self.state_preprocessor.input_prototype()
             if self.state_preprocessor
-            else self.q_network.input_prototype().state,
+            else self.q_network.input_prototype().state.float_features,
             action=self.action_preprocessor.input_prototype()
             if self.action_preprocessor
-            else self.q_network.input_prototype().action,
+            else self.q_network.input_prototype().action.float_features,
         )
 
 
@@ -75,12 +75,14 @@ class FullyConnectedParametricDQN(ModelBase):
         return _DistributedDataParallelFullyConnectedParametricDQN(self)
 
     def input_prototype(self):
-        return rlt.PreprocessedStateAction(
+        return rlt.PreprocessedStateAction.from_tensors(
             state=torch.randn(1, self.state_dim), action=torch.randn(1, self.action_dim)
         )
 
     def forward(self, input):
-        cat_input = torch.cat((input.state, input.action), dim=1)
+        cat_input = torch.cat(
+            (input.state.float_features, input.action.float_features), dim=1
+        )
         q_value = self.fc(cat_input)
         return rlt.SingleQValue(q_value=q_value)
 
@@ -102,7 +104,7 @@ class _DistributedDataParallelFullyConnectedParametricDQN(ModelBase):
         self.fc_parametric_dqn = fc_parametric_dqn
 
     def input_prototype(self):
-        return rlt.PreprocessedStateAction(
+        return rlt.PreprocessedStateAction.from_tensors(
             state=torch.randn(1, self.state_dim), action=torch.randn(1, self.action_dim)
         )
 
@@ -110,6 +112,8 @@ class _DistributedDataParallelFullyConnectedParametricDQN(ModelBase):
         return self.fc_parametric_dqn.cpu_model()
 
     def forward(self, input):
-        cat_input = torch.cat((input.state, input.action), dim=1)
+        cat_input = torch.cat(
+            (input.state.float_features, input.action.float_features), dim=1
+        )
         q_value = self.data_parallel(cat_input)
         return rlt.SingleQValue(q_value=q_value)
