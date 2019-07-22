@@ -389,8 +389,10 @@ def create_embed_rl_dataset(
     mdnrnn_action = concat_batch(action_batch)
     next_mdnrnn_action = concat_batch(next_action_batch)
 
-    mdnrnn_input = rlt.PreprocessedStateAction(state=mdnrnn_state, action=mdnrnn_action)
-    next_mdnrnn_input = rlt.PreprocessedStateAction(
+    mdnrnn_input = rlt.PreprocessedStateAction.from_tensors(
+        state=mdnrnn_state, action=mdnrnn_action
+    )
+    next_mdnrnn_input = rlt.PreprocessedStateAction.from_tensors(
         state=next_mdnrnn_state, action=next_mdnrnn_action
     )
     # batch-compute state embedding
