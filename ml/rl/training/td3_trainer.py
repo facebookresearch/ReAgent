@@ -4,7 +4,6 @@ import copy
 import logging
 
 import ml.rl.types as rlt
-import numpy as np
 import torch
 import torch.nn.functional as F
 from ml.rl.tensorboardX import SummaryWriterContext
@@ -97,8 +96,8 @@ class TD3Trainer(RLTrainer):
         IMPORTANT: the input action here is assumed to be preprocessed to match the
         range of the output of the actor.
         """
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_parametric_maxq_training_batch()
+        if hasattr(training_batch, "as_policy_network_training_batch"):
+            training_batch = training_batch.as_policy_network_training_batch()
 
         learning_input = training_batch.training_input
         self.minibatch += 1
@@ -246,8 +245,9 @@ class TD3Trainer(RLTrainer):
         """
         self.actor_network.eval()
         with torch.no_grad():
-            state_examples = torch.from_numpy(np.array(states)).type(self.dtype)
-            actions = self.actor_network(rlt.PreprocessedState(state_examples)).action
+            actions = self.actor_network(
+                rlt.PreprocessedState.from_tensor(states)
+            ).action
 
         if not test:
             if self.minibatch < self.initial_exploration_ts:

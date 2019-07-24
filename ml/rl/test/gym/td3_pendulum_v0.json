@@ -23,11 +23,11 @@
       "learning_rate": 0.001
     }
   },
-  "td3_q_training": {
+  "critic_training": {
     "layers": [128, 64],
     "activations": ["relu", "relu"]
   },
-  "td3_actor_training": {
+  "actor_training": {
     "layers": [128, 64],
     "activations": ["relu", "relu"]
   },

@@ -803,8 +803,8 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
                 noise_clip=params["td3_training"]["noise_clip"],
                 delayed_policy_update=params["td3_training"]["delayed_policy_update"],
             ),
-            q_network=FeedForwardParameters(**params["td3_q_training"]),
-            actor_network=FeedForwardParameters(**params["td3_actor_training"]),
+            q_network=FeedForwardParameters(**params["critic_training"]),
+            actor_network=FeedForwardParameters(**params["actor_training"]),
         )
         trainer = get_td3_trainer(env, trainer_params, use_gpu)
 
@@ -841,9 +841,9 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
                 target_entropy=target_entropy,
                 alpha_optimizer=alpha_optimizer,
             ),
-            q_network=FeedForwardParameters(**params["sac_q_training"]),
+            q_network=FeedForwardParameters(**params["critic_training"]),
             value_network=value_network,
-            actor_network=FeedForwardParameters(**params["sac_actor_training"]),
+            actor_network=FeedForwardParameters(**params["actor_training"]),
         )
         trainer = get_sac_trainer(env, trainer_params, use_gpu)
 
