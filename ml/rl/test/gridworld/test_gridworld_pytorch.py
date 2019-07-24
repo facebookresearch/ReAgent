@@ -12,7 +12,10 @@ import torch
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
 from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
-from ml.rl.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
+from ml.rl.prediction.predictor_wrapper import (
+    DiscreteDqnPredictorWrapper,
+    DiscreteDqnWithPreprocessor,
+)
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.preprocessing.preprocessor import Preprocessor
@@ -278,10 +281,11 @@ class TestGridworld(GridworldTestBase):
         pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
 
         preprocessor = Preprocessor(environment.normalization, False)
+        cpu_q_network = trainer.q_network.cpu_model()
+        cpu_q_network.eval()
+        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(cpu_q_network, preprocessor)
         serving_module = DiscreteDqnPredictorWrapper(
-            state_preprocessor=preprocessor,
-            value_network=trainer.q_network.cpu_model().fc,
-            action_names=environment.ACTIONS,
+            dqn_with_preprocessor, action_names=environment.ACTIONS
         )
 
         with tempfile.TemporaryDirectory() as tmpdirname:
