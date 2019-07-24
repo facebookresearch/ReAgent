@@ -117,9 +117,6 @@ class ModelBase(nn.Module):
         # This is not ideal but makes exporting simple
         return deepcopy(self).cpu()
 
-    def serving_model(self):
-        raise NotImplementedError
-
     def export_onnx_to_buffer(self) -> BytesIO:
         """
         Export the instance to BytesIO buffer
