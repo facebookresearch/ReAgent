@@ -482,7 +482,7 @@ class RawMemoryNetworkInput(RawBaseInput):
                 action,
             )
         else:
-            assert isinstance(self.action, torch.ByteTensor)
+            assert self.action.dtype == torch.uint8
             return PreprocessedMemoryNetworkInput(
                 self.reward,
                 self.time_diff,
@@ -514,7 +514,7 @@ class RawMemoryNetworkInput(RawBaseInput):
                 action,
             )
         else:
-            assert isinstance(self.action, torch.ByteTensor)
+            assert self.action.dtype == torch.uint8
             return PreprocessedMemoryNetworkInput(
                 self.reward,
                 self.time_diff,
