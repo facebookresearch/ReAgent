@@ -36,7 +36,7 @@ class BaseDataClass:
 @dataclass
 class ValuePresence(BaseDataClass):
     value: torch.Tensor
-    presence: Optional[torch.ByteTensor]
+    presence: Optional[torch.Tensor]
 
 
 @dataclass
@@ -265,9 +265,9 @@ class PreprocessedParametricDqnInput(PreprocessedBaseInput):
     action: PreprocessedFeatureVector
     next_action: PreprocessedFeatureVector
     possible_actions: PreprocessedFeatureVector
-    possible_actions_mask: torch.ByteTensor
+    possible_actions_mask: torch.Tensor
     possible_next_actions: PreprocessedFeatureVector
-    possible_next_actions_mask: torch.ByteTensor
+    possible_next_actions_mask: torch.Tensor
     tiled_next_state: PreprocessedFeatureVector
 
 
@@ -290,10 +290,10 @@ class RawBaseInput(CommonInput):
 
 @dataclass
 class RawDiscreteDqnInput(RawBaseInput):
-    action: torch.ByteTensor
-    next_action: torch.ByteTensor
-    possible_actions_mask: torch.ByteTensor
-    possible_next_actions_mask: torch.ByteTensor
+    action: torch.Tensor
+    next_action: torch.Tensor
+    possible_actions_mask: torch.Tensor
+    possible_next_actions_mask: torch.Tensor
 
     def preprocess(
         self, state: PreprocessedFeatureVector, next_state: PreprocessedFeatureVector
@@ -335,9 +335,9 @@ class RawParametricDqnInput(RawBaseInput):
     action: FeatureVector
     next_action: FeatureVector
     possible_actions: FeatureVector
-    possible_actions_mask: torch.ByteTensor
+    possible_actions_mask: torch.Tensor
     possible_next_actions: FeatureVector
-    possible_next_actions_mask: torch.ByteTensor
+    possible_next_actions_mask: torch.Tensor
     tiled_next_state: FeatureVector
 
     def preprocess(
@@ -460,7 +460,7 @@ class RawPolicyNetworkInput(RawBaseInput):
 
 @dataclass
 class RawMemoryNetworkInput(RawBaseInput):
-    action: Union[FeatureVector, torch.ByteTensor]
+    action: Union[FeatureVector, torch.Tensor]
 
     def preprocess(
         self,
@@ -482,6 +482,7 @@ class RawMemoryNetworkInput(RawBaseInput):
                 action,
             )
         else:
+            assert isinstance(self.action, torch.Tensor)
             assert self.action.dtype == torch.uint8
             return PreprocessedMemoryNetworkInput(
                 self.reward,
@@ -514,6 +515,7 @@ class RawMemoryNetworkInput(RawBaseInput):
                 action,
             )
         else:
+            assert isinstance(self.action, torch.Tensor)
             assert self.action.dtype == torch.uint8
             return PreprocessedMemoryNetworkInput(
                 self.reward,
