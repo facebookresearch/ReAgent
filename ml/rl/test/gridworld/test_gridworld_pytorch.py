@@ -138,8 +138,9 @@ class TestGridworld(GridworldTestBase):
 
         if use_gpu:
             q_network = q_network.cuda()
-            reward_network = reward_network.cuda()
-            q_network_cpe = q_network_cpe.cuda()
+            if not categorical:
+                reward_network = reward_network.cuda()
+                q_network_cpe = q_network_cpe.cuda()
             if use_all_avail_gpus and not categorical:
                 q_network = q_network.get_distributed_data_parallel_model()
                 reward_network = reward_network.get_distributed_data_parallel_model()
