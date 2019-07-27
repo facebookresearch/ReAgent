@@ -169,3 +169,17 @@ class TrainingDataPage(object):
                     setattr(self, x, t.type(dtype).long())
                 else:
                     setattr(self, x, t.type(dtype))
+
+    def set_device(self, device):
+        for x in TrainingDataPage.__slots__:
+            if x in ("mdp_ids", "sequence_numbers", "max_num_actions"):
+                continue  # Torch does not support tensors of strings
+            t = getattr(self, x)
+            if t is not None:
+                assert isinstance(t, torch.Tensor), (
+                    x + " is not a torch tensor (is " + str(type(t)) + ")"
+                )
+                if x == "possible_next_actions_lengths":
+                    setattr(self, x, t.to(device=device).long())
+                else:
+                    setattr(self, x, t.to(device=device).float())

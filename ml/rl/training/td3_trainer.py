@@ -113,12 +113,12 @@ class TD3Trainer(RLTrainer):
         max_action = (
             self.max_action_range_tensor_training
             if self.max_action_range_tensor_training
-            else torch.ones(action.shape).type(self.dtype)
+            else torch.ones(action.shape, device=self.device)
         )
         min_action = (
             self.min_action_range_tensor_serving
             if self.min_action_range_tensor_serving
-            else -torch.ones(action.shape).type(self.dtype)
+            else -torch.ones(action.shape, device=self.device)
         )
 
         # Compute current value estimates

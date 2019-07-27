@@ -69,10 +69,16 @@ class DQNTrainer(DQNTrainerBase):
             )
             num_output_nodes = len(self.metrics_to_score) * self.num_actions
             self.reward_idx_offsets = torch.arange(
-                0, num_output_nodes, self.num_actions
-            ).type(self.dtypelong)
+                0,
+                num_output_nodes,
+                self.num_actions,
+                device=self.device,
+                dtype=torch.long,
+            )
+        else:
+            self.reward_network = None
 
-        self.reward_boosts = torch.zeros([1, len(self._actions)]).type(self.dtype)
+        self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
             for k in parameters.rl.reward_boost.keys():
                 i = self._actions.index(k)
@@ -83,6 +89,18 @@ class DQNTrainer(DQNTrainerBase):
         if self.bcq:
             self.bcq_drop_threshold = parameters.rainbow.bcq_drop_threshold
             self.bcq_imitator = imitator
+
+    def warm_start_components(self):
+        components = ["q_network", "q_network_target", "q_network_optimizer"]
+        if self.reward_network is not None:
+            components += [
+                "reward_network",
+                "reward_network_optimizer",
+                "q_network_cpe",
+                "q_network_cpe_target",
+                "q_network_cpe_optimizer",
+            ]
+        return components
 
     @property
     def num_actions(self) -> int:

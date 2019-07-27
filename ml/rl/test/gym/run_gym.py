@@ -332,7 +332,7 @@ def train_gym_offline_rl(
 
         for _ in range(num_batch_per_epoch):
             samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
-            samples.set_type(trainer.dtype)
+            samples.set_device(trainer.device)
             trainer.train(samples)
 
         batch_td_loss = float(
@@ -491,7 +491,7 @@ def train_gym_online_rl(
                     samples = replay_buffer.sample_memories(
                         trainer.minibatch_size, model_type
                     )
-                    samples.set_type(trainer.dtype)
+                    samples.set_device(trainer.device)
                     trainer.train(samples)
                     # Every time we train, the policy changes
                     policy_id += 1

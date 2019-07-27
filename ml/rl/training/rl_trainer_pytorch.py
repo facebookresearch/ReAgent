@@ -63,13 +63,11 @@ class RLTrainer:
         if use_gpu and cuda_available:
             logger.info("Using GPU: GPU requested and available.")
             self.use_gpu = True
-            self.dtype = torch.cuda.FloatTensor  # type: ignore
-            self.dtypelong = torch.cuda.LongTensor  # type: ignore
+            self.device = torch.device("cuda")  # type: ignore
         else:
             logger.info("NOT Using GPU: GPU not requested or not available.")
             self.use_gpu = False
-            self.dtype = torch.FloatTensor
-            self.dtypelong = torch.LongTensor
+            self.device = torch.device("cpu")  # type: ignore
 
         self.loss_reporter = LossReporter(actions)
 
@@ -135,7 +133,7 @@ class RLTrainer:
         for c in self.warm_start_components():
             getattr(self, c).load_state_dict(state_dict[c])
 
-    def warm_start_components(self):
+    def warm_start_components(self) -> List[str]:
         """
         The trainer should specify what members to save and load
         """
@@ -147,7 +145,7 @@ class RLTrainer:
         :param input input to network
         """
         self.q_network.eval()
-        input = torch.from_numpy(np.array(input)).type(self.dtype)
+        input = torch.from_numpy(np.array(input), device=self.device)
         q_values = self.q_network(input)
         self.q_network.train()
         return q_values.cpu()
@@ -156,7 +154,7 @@ class RLTrainer:
     def internal_reward_estimation(self, input):
         """ Reward-network forward pass for internal domains. """
         self.reward_network.eval()
-        input = torch.from_numpy(np.array(input)).type(self.dtype)
+        input = torch.from_numpy(np.array(input), device=self.device)
         reward_estimates = self.reward_network(input)
         self.reward_network.train()
         return reward_estimates.cpu()

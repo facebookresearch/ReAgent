@@ -47,11 +47,11 @@ class C51Trainer(RLTrainer):
         self.qmin = parameters.rainbow.qmin
         self.qmax = parameters.rainbow.qmax
         self.num_atoms = parameters.rainbow.num_atoms
-        self.support = torch.linspace(self.qmin, self.qmax, self.num_atoms).type(
-            self.dtype
+        self.support = torch.linspace(
+            self.qmin, self.qmax, self.num_atoms, device=self.device
         )
 
-        self.reward_boosts = torch.zeros([1, len(self._actions)]).type(self.dtype)
+        self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
             for k in parameters.rl.reward_boost.keys():
                 i = self._actions.index(k)
@@ -110,9 +110,9 @@ class C51Trainer(RLTrainer):
 
         # Since index_add_ doesn't work with multiple dimensions
         # we operate on the flattened tensors
-        offset = self.num_atoms * torch.arange(rewards.shape[0]).reshape(-1, 1).repeat(
-            1, self.num_atoms
-        ).type(self.dtypelong)
+        offset = self.num_atoms * torch.arange(
+            rewards.shape[0], device=self.device, dtype=torch.long
+        ).reshape(-1, 1).repeat(1, self.num_atoms)
 
         m = torch.zeros_like(next_dist)
         m.reshape(-1).index_add_(
