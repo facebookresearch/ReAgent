@@ -531,7 +531,8 @@ class Preprocessor(Module):
         :param norm_params: list of normalization parameters
         """
         feature_type = norm_params[0].feature_type
-        min_value, max_value = batch.min(), batch.max()
+        min_value, max_value = batch.min().item(), batch.max().item()
+
         if feature_type == "CONTINUOUS":
             # Continuous features may be in range (-inf, inf)
             pass
