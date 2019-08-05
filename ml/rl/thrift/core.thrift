@@ -38,6 +38,7 @@ struct RainbowDQNParameters {
   8: double qmax = 200,
   # C51's performance degrades with l2_regularization != 0.
   9: double c51_l2_decay=0,
+  10: bool quantile = false
 }
 
 struct CNNParameters {

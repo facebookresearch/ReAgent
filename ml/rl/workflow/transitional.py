@@ -4,11 +4,11 @@
 from typing import Dict
 
 import torch
-from ml.rl.models.base import ModelBase
 from ml.rl.models.categorical_dqn import CategoricalDQN
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
+from ml.rl.models.quantile_dqn import QuantileDQN
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
@@ -20,6 +20,7 @@ from ml.rl.thrift.core.ttypes import (
 from ml.rl.training.c51_trainer import C51Trainer
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.training.qrdqn_trainer import QRDQNTrainer
 
 
 def create_dqn_trainer_from_params(
@@ -30,8 +31,18 @@ def create_dqn_trainer_from_params(
     metrics_to_score=None,
 ):
     metrics_to_score = metrics_to_score or []
-    if model.rainbow.categorical:
-        q_network = CategoricalDQN(
+
+    if model.rainbow.quantile:
+        q_network = QuantileDQN(
+            state_dim=get_num_output_features(normalization_parameters),
+            action_dim=len(model.actions),
+            num_atoms=model.rainbow.num_atoms,
+            sizes=model.training.layers[1:-1],
+            activations=model.training.activations[:-1],
+            dropout_ratio=model.training.dropout_ratio,
+        )
+    elif model.rainbow.categorical:
+        q_network = CategoricalDQN(  # type: ignore
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             num_atoms=model.rainbow.num_atoms,
@@ -88,7 +99,11 @@ def create_dqn_trainer_from_params(
 
         q_network_cpe_target = q_network_cpe.get_target_network()
 
-    if use_all_avail_gpus and not model.rainbow.categorical:
+    if (
+        use_all_avail_gpus
+        and not model.rainbow.categorical
+        and not model.rainbow.quantile
+    ):
         q_network = q_network.get_distributed_data_parallel_model()
         reward_network = (
             reward_network.get_distributed_data_parallel_model()
@@ -101,7 +116,22 @@ def create_dqn_trainer_from_params(
             else None
         )
 
-    if model.rainbow.categorical:
+    if model.rainbow.quantile:
+        assert (
+            not use_all_avail_gpus
+        ), "use_all_avail_gpus not implemented for distributional RL"
+        return QRDQNTrainer(
+            q_network,
+            q_network_target,
+            model,
+            use_gpu,
+            metrics_to_score=metrics_to_score,
+        )
+
+    elif model.rainbow.categorical:
+        assert (
+            not use_all_avail_gpus
+        ), "use_all_avail_gpus not implemented for distributional RL"
         return C51Trainer(
             q_network,
             q_network_target,

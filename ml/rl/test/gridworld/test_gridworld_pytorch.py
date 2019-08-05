@@ -12,6 +12,7 @@ import torch
 from ml.rl.models.categorical_dqn import CategoricalDQN
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
+from ml.rl.models.quantile_dqn import QuantileDQN
 from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
 from ml.rl.prediction.predictor_wrapper import (
     DiscreteDqnPredictorWrapper,
@@ -34,6 +35,7 @@ from ml.rl.torch_utils import export_module_to_buffer
 from ml.rl.training.c51_trainer import C51Trainer
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.qrdqn_trainer import QRDQNTrainer
 from ml.rl.training.rl_exporter import DQNExporter
 
 
@@ -46,7 +48,7 @@ class TestGridworld(GridworldTestBase):
         super().setUp()
 
     def get_sarsa_parameters(
-        self, environment, reward_shape, dueling, categorical, clip_grad_norm
+        self, environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
     ):
         rl_parameters = RLParameters(
             gamma=DISCOUNT,
@@ -70,6 +72,7 @@ class TestGridworld(GridworldTestBase):
                 double_q_learning=True,
                 dueling_architecture=dueling,
                 categorical=categorical,
+                quantile=quantile,
             ),
         )
 
@@ -78,6 +81,7 @@ class TestGridworld(GridworldTestBase):
         environment,
         dueling,
         categorical,
+        quantile,
         use_gpu=False,
         use_all_avail_gpus=False,
         clip_grad_norm=None,
@@ -87,6 +91,7 @@ class TestGridworld(GridworldTestBase):
             {},
             dueling,
             categorical,
+            quantile,
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
             clip_grad_norm=clip_grad_norm,
@@ -98,15 +103,35 @@ class TestGridworld(GridworldTestBase):
         reward_shape,
         dueling,
         categorical,
+        quantile,
         use_gpu=False,
         use_all_avail_gpus=False,
         clip_grad_norm=None,
     ):
         parameters = self.get_sarsa_parameters(
-            environment, reward_shape, dueling, categorical, clip_grad_norm
+            environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
         )
 
-        if not categorical:
+        if quantile:
+            q_network = QuantileDQN(
+                state_dim=get_num_output_features(environment.normalization),
+                action_dim=len(environment.ACTIONS),
+                num_atoms=50,
+                sizes=parameters.training.layers[1:-1],
+                activations=parameters.training.activations[:-1],
+            )
+            parameters.rainbow.num_atoms = 50
+        elif categorical:
+            q_network = CategoricalDQN(
+                state_dim=get_num_output_features(environment.normalization),
+                action_dim=len(environment.ACTIONS),
+                num_atoms=51,
+                qmin=-100,
+                qmax=200,
+                sizes=parameters.training.layers[1:-1],
+                activations=parameters.training.activations[:-1],
+            )
+        else:
             q_network = FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
@@ -125,20 +150,10 @@ class TestGridworld(GridworldTestBase):
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
-        else:
-            q_network = CategoricalDQN(
-                state_dim=get_num_output_features(environment.normalization),
-                action_dim=len(environment.ACTIONS),
-                num_atoms=51,
-                qmin=-100,
-                qmax=200,
-                sizes=parameters.training.layers[1:-1],
-                activations=parameters.training.activations[:-1],
-            )
 
         if use_gpu:
             q_network = q_network.cuda()
-            if not categorical:
+            if not categorical and not quantile:
                 reward_network = reward_network.cuda()
                 q_network_cpe = q_network_cpe.cuda()
             if use_all_avail_gpus and not categorical:
@@ -146,7 +161,15 @@ class TestGridworld(GridworldTestBase):
                 reward_network = reward_network.get_distributed_data_parallel_model()
                 q_network_cpe = q_network_cpe.get_distributed_data_parallel_model()
 
-        if not categorical:
+        if quantile:
+            trainer = QRDQNTrainer(
+                q_network, q_network.get_target_network(), parameters, use_gpu
+            )
+        elif categorical:
+            trainer = C51Trainer(
+                q_network, q_network.get_target_network(), parameters, use_gpu
+            )
+        else:
             trainer = DQNTrainer(
                 q_network,
                 q_network.get_target_network(),
@@ -156,10 +179,6 @@ class TestGridworld(GridworldTestBase):
                 q_network_cpe=q_network_cpe,
                 q_network_cpe_target=q_network_cpe.get_target_network(),
             )
-        else:
-            trainer = C51Trainer(
-                q_network, q_network.get_target_network(), parameters, use_gpu
-            )
         return trainer
 
     def get_modular_sarsa_trainer_exporter(
@@ -168,18 +187,20 @@ class TestGridworld(GridworldTestBase):
         reward_shape,
         dueling,
         categorical,
+        quantile,
         use_gpu=False,
         use_all_avail_gpus=False,
         clip_grad_norm=None,
     ):
         parameters = self.get_sarsa_parameters(
-            environment, reward_shape, dueling, categorical, clip_grad_norm
+            environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
         )
         trainer = self.get_modular_sarsa_trainer_reward_boost(
             environment,
             reward_shape,
             dueling,
             categorical,
+            quantile,
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
             clip_grad_norm=clip_grad_norm,
@@ -195,6 +216,7 @@ class TestGridworld(GridworldTestBase):
         self,
         dueling=False,
         categorical=False,
+        quantile=False,
         use_gpu=False,
         use_all_avail_gpus=False,
         clip_grad_norm=None,
@@ -206,6 +228,7 @@ class TestGridworld(GridworldTestBase):
             {},
             dueling,
             categorical,
+            quantile,
             use_gpu,
             use_all_avail_gpus,
             clip_grad_norm,
@@ -232,6 +255,13 @@ class TestGridworld(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_categorical_gpu_modular(self):
         self._test_evaluator_ground_truth(categorical=True, use_gpu=True)
+
+    def test_evaluator_ground_truth_quantile_modular(self):
+        self._test_evaluator_ground_truth(quantile=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_quantile_gpu_modular(self):
+        self._test_evaluator_ground_truth(quantile=True, use_gpu=True)
 
     def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
         environment = Gridworld()
@@ -272,7 +302,7 @@ class TestGridworld(GridworldTestBase):
         tdps = environment.preprocess_samples(samples, 1)
 
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
-            environment, {}, False, False
+            environment, {}, False, False, False
         )
         input = rlt.PreprocessedState.from_tensor(tdps[0].states)
 
@@ -316,7 +346,7 @@ class TestGridworld(GridworldTestBase):
         assert len(tdps) == 1, "Invalid number of data pages"
 
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
-            environment, {}, False, False
+            environment, {}, False, False, False
         )
         input = rlt.PreprocessedState.from_tensor(tdps[0].states)
 
