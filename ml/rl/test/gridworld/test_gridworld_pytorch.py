@@ -267,7 +267,13 @@ class TestGridworld(GridworldTestBase):
         environment = Gridworld()
         reward_boost = {"L": 100, "R": 200, "U": 300, "D": 400}
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
-            environment, reward_boost, False, False, use_gpu, use_all_avail_gpus
+            environment,
+            reward_boost,
+            dueling=False,
+            categorical=False,
+            quantile=False,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
         )
         evaluator = GridworldEvaluator(
             env=environment, assume_optimal_policy=False, gamma=DISCOUNT
