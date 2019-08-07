@@ -605,6 +605,8 @@ class MemoryNetworkOutput(BaseDataClass):
 class DqnPolicyActionSet(BaseDataClass):
     greedy: int
     softmax: int
+    greedy_act_name: Optional[str] = None
+    softmax_act_name: Optional[str] = None
 
 
 @dataclass

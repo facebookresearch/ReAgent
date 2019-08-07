@@ -531,18 +531,18 @@ class Preprocessor(Module):
         :param norm_params: list of normalization parameters
         """
         feature_type = norm_params[0].feature_type
-        min_value, max_value = batch.min().item(), batch.max().item()
+        min_value, max_value = batch.min(), batch.max()
 
         if feature_type == "CONTINUOUS":
             # Continuous features may be in range (-inf, inf)
             pass
-        elif max_value > MAX_FEATURE_VALUE:
+        elif max_value.gt(MAX_FEATURE_VALUE):
             raise Exception(
                 "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
                     feature_type, max_value, MAX_FEATURE_VALUE
                 )
             )
-        elif min_value < MIN_FEATURE_VALUE:
+        elif min_value.lt(MIN_FEATURE_VALUE):
             raise Exception(
                 "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
                     feature_type, min_value, MIN_FEATURE_VALUE
