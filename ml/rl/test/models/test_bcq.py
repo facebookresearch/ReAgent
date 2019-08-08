@@ -9,7 +9,7 @@ from ml.rl.models.bcq import BatchConstrainedDQN
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.test.models.test_utils import check_save_load
-from ml.rl.types import FeatureVector, StateInput
+from ml.rl.types import FeatureVector, PreprocessedState
 
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class TestBCQ(unittest.TestCase):
     def test_forward_pass(self):
         state_dim = 1
         action_dim = 2
-        input = StateInput(state=FeatureVector(float_features=torch.tensor([[2.0]])))
+        input = PreprocessedState.from_tensor(state=torch.tensor([[2.0]]))
         bcq_drop_threshold = 0.20
 
         q_network = FullyConnectedDQN(

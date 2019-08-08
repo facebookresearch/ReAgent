@@ -38,16 +38,23 @@ class DiscreteDqnTorchPredictor:
         return retval
 
     def policy(
-        self, state: torch.Tensor, possible_actions_presence: torch.Tensor
+        self,
+        state: torch.Tensor,
+        state_feature_presence: Optional[torch.Tensor] = None,
+        possible_actions_presence: Optional[torch.Tensor] = None,
     ) -> DqnPolicyActionSet:
         assert state.size()[0] == 1, "Only pass in one state when getting a policy"
         assert (
             self.softmax_temperature is not None
         ), "Please set the softmax temperature before calling policy()"
-        state_feature_presence = torch.ones_like(state)
-        _, q_scores = self.model((state, state_feature_presence))
+
+        if state_feature_presence is None:
+            state_feature_presence = torch.ones_like(state)
+        action_names, q_scores = self.model((state, state_feature_presence))
         assert q_scores.shape[0] == 1
 
+        if possible_actions_presence is None:
+            possible_actions_presence = torch.ones_like(q_scores)
         # set impossible actions so low that they can't be picked
         q_scores -= (1.0 - possible_actions_presence) * 1e10  # type: ignore
 
@@ -60,9 +67,14 @@ class DiscreteDqnTorchPredictor:
         )
         if np.isnan(q_scores_softmax).any() or np.max(q_scores_softmax) < 1e-3:
             q_scores_softmax[:] = 1.0 / q_scores_softmax.shape[0]
+        greedy_act_idx = int(torch.argmax(q_scores))
+        softmax_act_idx = int(np.random.choice(q_scores.size()[1], p=q_scores_softmax))
+
         return DqnPolicyActionSet(
-            greedy=int(torch.argmax(q_scores)),
-            softmax=int(np.random.choice(q_scores.size()[1], p=q_scores_softmax)),
+            greedy=greedy_act_idx,
+            softmax=softmax_act_idx,
+            greedy_act_name=action_names[greedy_act_idx],
+            softmax_act_name=action_names[softmax_act_idx],
         )
 
     def policy_net(self) -> bool:
@@ -143,6 +155,7 @@ class ParametricDqnTorchPredictor:
             or np.max(q_scores_softmax_numpy) < 1e-3
         ):
             q_scores_softmax_numpy[:] = 1.0 / q_scores_softmax_numpy.shape[0]
+
         return DqnPolicyActionSet(
             greedy=int(torch.argmax(q_scores)),
             softmax=int(np.random.choice(q_scores.size()[1], p=q_scores_softmax_numpy)),

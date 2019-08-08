@@ -32,6 +32,13 @@ struct RainbowDQNParameters {
   3: bool bcq = false,
   # 0 = max q-learning, 1 = imitation learning
   4: double bcq_drop_threshold = 0.1,
+  5: bool categorical = false,
+  6: i32 num_atoms = 51,
+  7: double qmin = -100,
+  8: double qmax = 200,
+  # C51's performance degrades with l2_regularization != 0.
+  9: double c51_l2_decay=0,
+  10: bool quantile = false
 }
 
 struct CNNParameters {

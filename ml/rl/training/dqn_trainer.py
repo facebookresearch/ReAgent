@@ -69,10 +69,16 @@ class DQNTrainer(DQNTrainerBase):
             )
             num_output_nodes = len(self.metrics_to_score) * self.num_actions
             self.reward_idx_offsets = torch.arange(
-                0, num_output_nodes, self.num_actions
-            ).type(self.dtypelong)
+                0,
+                num_output_nodes,
+                self.num_actions,
+                device=self.device,
+                dtype=torch.long,
+            )
+        else:
+            self.reward_network = None
 
-        self.reward_boosts = torch.zeros([1, len(self._actions)]).type(self.dtype)
+        self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
             for k in parameters.rl.reward_boost.keys():
                 i = self._actions.index(k)
@@ -84,6 +90,18 @@ class DQNTrainer(DQNTrainerBase):
             self.bcq_drop_threshold = parameters.rainbow.bcq_drop_threshold
             self.bcq_imitator = imitator
 
+    def warm_start_components(self):
+        components = ["q_network", "q_network_target", "q_network_optimizer"]
+        if self.reward_network is not None:
+            components += [
+                "reward_network",
+                "reward_network_optimizer",
+                "q_network_cpe",
+                "q_network_cpe_target",
+                "q_network_cpe_optimizer",
+            ]
+        return components
+
     @property
     def num_actions(self) -> int:
         return len(self._actions)
@@ -93,7 +111,7 @@ class DQNTrainer(DQNTrainerBase):
         self, state
     ) -> Tuple[rlt.AllActionQValues, Optional[rlt.AllActionQValues]]:
         """ Gets the q values from the model and target networks """
-        input = rlt.StateInput(state=state)
+        input = rlt.PreprocessedState(state=state)
         q_values = self.q_network(input).q_values
         q_values_target = self.q_network_target(input).q_values
         return q_values, q_values_target
@@ -101,10 +119,7 @@ class DQNTrainer(DQNTrainerBase):
     @torch.no_grad()  # type: ignore
     def train(self, training_batch):
         if isinstance(training_batch, TrainingDataPage):
-            if self.maxq_learning:
-                training_batch = training_batch.as_discrete_maxq_training_batch()
-            else:
-                training_batch = training_batch.as_discrete_sarsa_training_batch()
+            training_batch = training_batch.as_discrete_maxq_training_batch()
 
         learning_input = training_batch.training_input
         boosted_rewards = self.boost_rewards(
@@ -134,7 +149,7 @@ class DQNTrainer(DQNTrainerBase):
             if self.bcq:
                 action_on_policy = get_valid_actions_from_imitator(
                     self.bcq_imitator,
-                    learning_input.next_state.float_features,
+                    learning_input.next_state,
                     self.bcq_drop_threshold,
                 )
                 possible_next_actions_mask *= action_on_policy
@@ -153,7 +168,7 @@ class DQNTrainer(DQNTrainerBase):
 
         with torch.enable_grad():
             # Get Q-value of action taken
-            current_state = rlt.StateInput(state=learning_input.state)
+            current_state = rlt.PreprocessedState(state=learning_input.state)
             all_q_values = self.q_network(current_state).q_values
             self.all_action_scores = all_q_values.detach()
             q_values = torch.sum(all_q_values * learning_input.action, 1, keepdim=True)
@@ -172,7 +187,7 @@ class DQNTrainer(DQNTrainerBase):
         )
 
         # Get Q-values of next states, used in computing cpe
-        next_state = rlt.StateInput(state=learning_input.next_state)
+        next_state = rlt.PreprocessedState(state=learning_input.next_state)
         all_next_action_scores = self.q_network(next_state).q_values.detach()
 
         logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
@@ -191,9 +206,7 @@ class DQNTrainer(DQNTrainerBase):
 
         if self.bcq:
             action_on_policy = get_valid_actions_from_imitator(
-                self.bcq_imitator,
-                learning_input.state.float_features,
-                self.bcq_drop_threshold,
+                self.bcq_imitator, learning_input.state, self.bcq_drop_threshold
             )
             possible_actions_mask *= action_on_policy
 
@@ -321,9 +334,7 @@ class DQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.q_network.eval()
-        q_values = self.q_network(
-            rlt.StateInput(rlt.FeatureVector(float_features=input))
-        )
+        q_values = self.q_network(rlt.PreprocessedState.from_tensor(input))
         q_values = q_values.q_values.cpu()
         self.q_network.train()
 
@@ -342,8 +353,6 @@ class DQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.reward_network.eval()
-        reward_estimates = self.reward_network(
-            rlt.StateInput(rlt.FeatureVector(float_features=input))
-        )
+        reward_estimates = self.reward_network(rlt.PreprocessedState.from_tensor(input))
         self.reward_network.train()
         return reward_estimates.q_values.cpu()

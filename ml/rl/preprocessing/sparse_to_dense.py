@@ -73,7 +73,7 @@ class PandasSparseToDenseProcessor(SparseToDenseProcessor):
     ):
         super().__init__(sorted_features, set_missing_value_to_zero)
 
-    def process(self, sparse_data) -> Tuple[torch.Tensor, torch.ByteTensor]:
+    def process(self, sparse_data) -> Tuple[torch.Tensor, torch.Tensor]:
         missing_value = normalization.MISSING_VALUE
         if self.set_missing_value_to_zero:
             missing_value = 0.0
@@ -104,7 +104,7 @@ class PythonSparseToDenseProcessor(SparseToDenseProcessor):
 
     def process(
         self, sparse_data: List[Dict[int, float]]
-    ) -> Tuple[torch.Tensor, torch.ByteTensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         dense_data = torch.ones([len(sparse_data), len(self.feature_id_to_index)])
         dense_presence = torch.zeros(
             [len(sparse_data), len(self.feature_id_to_index)]

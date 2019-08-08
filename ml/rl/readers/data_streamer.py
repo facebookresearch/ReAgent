@@ -143,20 +143,22 @@ def pin_memory(batch):
         return batch.pin_memory().cuda(non_blocking=True)
     elif isinstance(batch, string_classes):
         return batch
-    elif isinstance(batch, NamedTuple) or hasattr(batch, "_asdict"):
-        return type(batch)(
-            **{name: pin_memory(value) for name, value in batch._asdict().items()}
-        )
     elif dataclasses.is_dataclass(batch):
-        return type(batch)(
+        return dataclasses.replace(
+            batch,
             **{
-                name: pin_memory(value)
-                for name, value in dataclasses.asdict(batch).items()
+                field.name: pin_memory(getattr(batch, field.name))
+                for field in dataclasses.fields(batch)
             }
         )
     elif isinstance(batch, collections.Mapping):
         # NB: preserving OrderedDict
         return type(batch)((k, pin_memory(sample)) for k, sample in batch.items())
+    elif isinstance(batch, NamedTuple) or hasattr(batch, "_asdict"):
+        # This is mainly for WorkerDone
+        return type(batch)(
+            **{name: pin_memory(value) for name, value in batch._asdict().items()}
+        )
     elif isinstance(batch, collections.Sequence):
         return [pin_memory(sample) for sample in batch]
     else:

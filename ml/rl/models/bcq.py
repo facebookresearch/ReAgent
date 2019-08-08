@@ -17,9 +17,7 @@ class BatchConstrainedDQN(ModelBase):
         self.bcq_drop_threshold = bcq_drop_threshold
 
     def input_prototype(self):
-        return rlt.StateInput(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
-        )
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def forward(self, input):
         q_values = self.q_network(input)

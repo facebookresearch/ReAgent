@@ -35,14 +35,11 @@ class ImitatorTrainer(RLTrainer):
     @torch.no_grad()  # type: ignore
     def train(self, training_batch, train=True):
         if isinstance(training_batch, TrainingDataPage):
-            if self.maxq_learning:
-                training_batch = training_batch.as_discrete_maxq_training_batch()
-            else:
-                training_batch = training_batch.as_discrete_sarsa_training_batch()
+            training_batch = training_batch.as_discrete_maxq_training_batch()
         learning_input = training_batch.training_input
 
         with torch.enable_grad():
-            action_preds = self.imitator(learning_input.state.float_features)
+            action_preds = self.imitator(learning_input.state)
             # Classification label is index of action with value 1
             pred_action_idxs = torch.max(action_preds, dim=1)[1]
             actual_action_idxs = torch.max(learning_input.action, dim=1)[1]

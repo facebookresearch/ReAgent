@@ -3,9 +3,11 @@
 
 import json
 import logging
+import random
 import unittest
 from typing import List
 
+import numpy as np
 import torch
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.test.gym.world_model.state_embed_gym import (
@@ -23,6 +25,9 @@ DQN_STRING_GAME_JSON = "ml/rl/test/configs/discrete_dqn_string_game_v0.json"
 class TestStateEmbedGym(HorizonTestBase):
     def setUp(self):
         logging.getLogger().setLevel(logging.INFO)
+        torch.manual_seed(0)
+        np.random.seed(0)
+        random.seed(0)
         super().setUp()
 
     @staticmethod

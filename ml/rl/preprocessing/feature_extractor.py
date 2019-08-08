@@ -687,6 +687,8 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
         else:
             self.sorted_action_features = None
         self.include_possible_actions = include_possible_actions
+        if action_normalization_parameters is None:
+            self.include_possible_actions = True  # TODO: Delete SARSA in a future diff
         self.normalize = normalize
         self.max_num_actions = max_num_actions
         self.set_missing_value_to_zero = set_missing_value_to_zero
@@ -810,7 +812,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 )
                 max_num_actions = self.max_num_actions
 
-                training_input = rlt.ParametricDqnInput(
+                training_input = rlt.RawParametricDqnInput(
                     state=state,
                     reward=reward,
                     time_diff=time_diff,
@@ -826,7 +828,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                     step=step,
                 )
             else:
-                training_input = rlt.DiscreteDqnInput(
+                training_input = rlt.RawDiscreteDqnInput(
                     state=state,
                     reward=reward,
                     time_diff=time_diff,
@@ -839,7 +841,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                     step=step,
                 )
         else:
-            training_input = rlt.SARSAInput(
+            training_input = rlt.RawPolicyNetworkInput(
                 state=state,
                 reward=reward,
                 time_diff=time_diff,
@@ -847,7 +849,6 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
                 next_action=next_action,
                 not_terminal=not_terminal,
                 next_state=next_state,
-                tiled_next_state=tiled_next_state,
                 step=step,
             )
 
@@ -867,7 +868,7 @@ class TrainingFeatureExtractor(FeatureExtractorBase):
             metrics=metrics,
         )
 
-        return rlt.TrainingBatch(training_input=training_input, extras=extras)
+        return rlt.RawTrainingBatch(training_input=training_input, extras=extras)
 
     def create_net(self):
         net = core.Net("feature_extractor")
@@ -1308,7 +1309,7 @@ class PredictorFeatureExtractor(FeatureExtractorBase):
             action = None
         else:
             action = rlt.FeatureVector(float_features=fetch(extract_record.action))
-        return rlt.StateAction(state=state, action=action)
+        return rlt.RawStateAction(state=state, action=action)
 
     def create_net(self):
         net = core.Net("feature_extractor")
@@ -1550,35 +1551,40 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
     def extract(self, ws, extract_record):
         fetch = partial(self.fetch, ws)
         state = rlt.FeatureVector(
-            float_features=fetch(extract_record.state_features).reshape(
-                -1, self.seq_len, self.state_dim
+            float_features=rlt.ValuePresence(
+                value=fetch(extract_record.state_features),
+                presence=fetch(extract_record.state_features_presence),
             )
         )
-        action = rlt.FeatureVector(
-            float_features=fetch(extract_record.action).reshape(
-                -1, self.seq_len, self.action_dim
+        if self.sorted_action_features:
+            action = rlt.FeatureVector(
+                float_features=rlt.ValuePresence(
+                    value=fetch(extract_record.action),
+                    presence=fetch(extract_record.action_presence),
+                )
+            )
+        else:
+            action = fetch(extract_record.action).byte()
+        next_state = rlt.FeatureVector(
+            float_features=rlt.ValuePresence(
+                value=fetch(extract_record.next_state_features),
+                presence=fetch(extract_record.next_state_features_presence),
             )
         )
-        next_state = fetch(extract_record.next_state_features).reshape(
-            -1, self.seq_len, self.state_dim
-        )
-        reward = fetch(extract_record.reward["values"]).reshape(-1, self.seq_len)
-        not_terminal = (
-            fetch(extract_record.not_terminal["values"])
-            .reshape(-1, self.seq_len)
-            .float()
-        )
+        reward = fetch(extract_record.reward["values"])
+        not_terminal = fetch(extract_record.not_terminal["values"]).float()
         # TODO: Replace with true time diff
         time_diff = torch.ones_like(reward).float()
-        training_input = rlt.MemoryNetworkInput(
+        training_input = rlt.RawMemoryNetworkInput(
             state=state,
             reward=reward,
             time_diff=time_diff,
             action=action,
             not_terminal=not_terminal,
             next_state=next_state,
+            step=None,
         )
-        return rlt.TrainingBatch(training_input=training_input, extras=None)
+        return rlt.RawTrainingBatch(training_input=training_input, extras=None)
 
     def create_net(self):
         net = core.Net("feature_extractor")
@@ -1643,6 +1649,7 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
                 input_record[InputColumn.ACTION].value,
                 action_size_plus_one,
             )
+            action_presence = action
 
         if self.normalize:
             C2.set_net_and_init_net(net, init_net)
@@ -1674,8 +1681,11 @@ class WorldModelFeatureExtractor(FeatureExtractorBase):
             *(
                 [
                     (InputColumn.STATE_FEATURES, state),
+                    (InputColumn.STATE_FEATURES_PRESENCE, state_presence),
                     (InputColumn.NEXT_STATE_FEATURES, next_state),
+                    (InputColumn.NEXT_STATE_FEATURES_PRESENCE, next_state_presence),
                     (InputColumn.ACTION, action),
+                    (InputColumn.ACTION_PRESENCE, action_presence),
                 ]
                 + [
                     (col_name, input_record[col_name])

@@ -102,7 +102,7 @@ class Preprocessor(Module):
         )
 
     def forward(
-        self, input: torch.Tensor, input_presence_byte: torch.ByteTensor
+        self, input: torch.Tensor, input_presence_byte: torch.Tensor
     ) -> torch.Tensor:
         """ Preprocess the input matrix
         :param input tensor
@@ -142,10 +142,16 @@ class Preprocessor(Module):
                 outputs.append(new_output)
 
         if len(outputs) == 1:
-            return torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+            return cast(
+                torch.Tensor,
+                torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE),
+            )
 
-        return torch.clamp(
-            torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+        return cast(
+            torch.Tensor,
+            torch.clamp(
+                torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+            ),
         )
 
     def _preprocess_feature_single_column(
@@ -260,7 +266,10 @@ class Preprocessor(Module):
         means = self._fetch_parameter(begin_index, "means")
         stddevs = self._fetch_parameter(begin_index, "stddevs")
         continuous_output = (input - means) / stddevs
-        return torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE)
+        return cast(
+            torch.Tensor,
+            torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE),
+        )
 
     def _create_parameters_BOXCOX(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -523,16 +532,17 @@ class Preprocessor(Module):
         """
         feature_type = norm_params[0].feature_type
         min_value, max_value = batch.min(), batch.max()
+
         if feature_type == "CONTINUOUS":
             # Continuous features may be in range (-inf, inf)
             pass
-        elif max_value > MAX_FEATURE_VALUE:
+        elif max_value.gt(MAX_FEATURE_VALUE):
             raise Exception(
                 "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
                     feature_type, max_value, MAX_FEATURE_VALUE
                 )
             )
-        elif min_value < MIN_FEATURE_VALUE:
+        elif min_value.lt(MIN_FEATURE_VALUE):
             raise Exception(
                 "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
                     feature_type, min_value, MIN_FEATURE_VALUE

@@ -4,12 +4,12 @@ import copy
 import logging
 
 import ml.rl.types as rlt
-import numpy as np
 import torch
 import torch.nn.functional as F
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.thrift.core.ttypes import TD3ModelParameters
 from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
+from ml.rl.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
@@ -96,8 +96,8 @@ class TD3Trainer(RLTrainer):
         IMPORTANT: the input action here is assumed to be preprocessed to match the
         range of the output of the actor.
         """
-        if hasattr(training_batch, "as_parametric_sarsa_training_batch"):
-            training_batch = training_batch.as_parametric_sarsa_training_batch()
+        if hasattr(training_batch, "as_policy_network_training_batch"):
+            training_batch = training_batch.as_policy_network_training_batch()
 
         learning_input = training_batch.training_input
         self.minibatch += 1
@@ -108,29 +108,40 @@ class TD3Trainer(RLTrainer):
         reward = learning_input.reward
         not_done_mask = learning_input.not_terminal
 
-        action = self._maybe_scale_action_in_train(action)
+        action = self._maybe_scale_action_in_train(action.float_features)
+
+        max_action = (
+            self.max_action_range_tensor_training
+            if self.max_action_range_tensor_training
+            else torch.ones(action.shape, device=self.device)
+        )
+        min_action = (
+            self.min_action_range_tensor_serving
+            if self.min_action_range_tensor_serving
+            else -torch.ones(action.shape, device=self.device)
+        )
 
         # Compute current value estimates
-        current_state_action = rlt.StateAction(state=state, action=action)
+        current_state_action = rlt.PreprocessedStateAction(
+            state=state, action=rlt.PreprocessedFeatureVector(float_features=action)
+        )
         q1_value = self.q1_network(current_state_action).q_value
         if self.q2_network:
             q2_value = self.q2_network(current_state_action).q_value
-        actor_action = self.actor_network(rlt.StateInput(state=state)).action
+        actor_action = self.actor_network(rlt.PreprocessedState(state=state)).action
 
         # Generate target = r + y * min (Q1(s',pi(s')), Q2(s',pi(s')))
         with torch.no_grad():
             next_actor = self.actor_network_target(
-                rlt.StateInput(state=next_state)
+                rlt.PreprocessedState(state=next_state)
             ).action
             next_actor += (
                 torch.randn_like(next_actor) * self.target_policy_smoothing
             ).clamp(-self.noise_clip, self.noise_clip)
-            next_actor = torch.max(
-                torch.min(next_actor, self.max_action_range_tensor_training),
-                self.min_action_range_tensor_training,
-            )
-            next_state_actor = rlt.StateAction(
-                state=next_state, action=rlt.FeatureVector(float_features=next_actor)
+            next_actor = torch.max(torch.min(next_actor, max_action), min_action)
+            next_state_actor = rlt.PreprocessedStateAction(
+                state=next_state,
+                action=rlt.PreprocessedFeatureVector(float_features=next_actor),
             )
             next_state_value = self.q1_network_target(next_state_actor).q_value
 
@@ -157,8 +168,9 @@ class TD3Trainer(RLTrainer):
         # Only update actor and target networks after a fixed number of Q updates
         if self.minibatch % self.delayed_policy_update == 0:
             actor_loss = -self.q1_network(
-                rlt.StateAction(
-                    state=state, action=rlt.FeatureVector(float_features=actor_action)
+                rlt.PreprocessedStateAction(
+                    state=state,
+                    action=rlt.PreprocessedFeatureVector(float_features=actor_action),
                 )
             ).q_value.mean()
             actor_loss.backward()
@@ -218,14 +230,12 @@ class TD3Trainer(RLTrainer):
             and self.min_action_range_tensor_serving is not None
             and self.max_action_range_tensor_serving is not None
         ):
-            action = rlt.FeatureVector(
-                rescale_torch_tensor(
-                    action.float_features,
-                    new_min=self.min_action_range_tensor_training,
-                    new_max=self.max_action_range_tensor_training,
-                    prev_min=self.min_action_range_tensor_serving,
-                    prev_max=self.max_action_range_tensor_serving,
-                )
+            action = rescale_torch_tensor(
+                action,
+                new_min=self.min_action_range_tensor_training,
+                new_max=self.max_action_range_tensor_training,
+                prev_min=self.min_action_range_tensor_serving,
+                prev_max=self.max_action_range_tensor_serving,
             )
         return action
 
@@ -235,9 +245,8 @@ class TD3Trainer(RLTrainer):
         """
         self.actor_network.eval()
         with torch.no_grad():
-            state_examples = torch.from_numpy(np.array(states)).type(self.dtype)
             actions = self.actor_network(
-                rlt.StateInput(rlt.FeatureVector(float_features=state_examples))
+                rlt.PreprocessedState.from_tensor(states)
             ).action
 
         if not test:

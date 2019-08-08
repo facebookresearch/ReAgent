@@ -5,24 +5,15 @@ from typing import Dict, List, cast
 
 import numpy as np
 import torch
+from ml.rl import types as rlt
 from ml.rl.preprocessing.sparse_to_dense import SparseToDenseProcessor
-from ml.rl.types import (
-    BaseInput,
-    DiscreteDqnInput,
-    ExtraData,
-    FeatureVector,
-    ParametricDqnInput,
-    PolicyNetworkInput,
-    TrainingBatch,
-    ValuePresence,
-)
 
 
 class PreprocessHandler:
     def __init__(self, sparse_to_dense_processor: SparseToDenseProcessor):
         self.sparse_to_dense_processor = sparse_to_dense_processor
 
-    def preprocess(self, batch) -> TrainingBatch:
+    def preprocess(self, batch) -> rlt.RawTrainingBatch:
         state_features_dense, state_features_dense_presence = self.sparse_to_dense_processor(
             batch["state_features"]
         )
@@ -43,24 +34,26 @@ class PreprocessHandler:
         else:
             propensities = torch.ones(rewards.shape, dtype=torch.float32)
 
-        return TrainingBatch(
-            training_input=BaseInput(
-                state=FeatureVector(
-                    float_features=ValuePresence(
+        return rlt.RawTrainingBatch(
+            training_input=rlt.RawBaseInput(  # type: ignore
+                state=rlt.FeatureVector(
+                    float_features=rlt.ValuePresence(
                         value=state_features_dense,
                         presence=state_features_dense_presence,
                     )
                 ),
-                next_state=FeatureVector(
-                    float_features=ValuePresence(
+                next_state=rlt.FeatureVector(
+                    float_features=rlt.ValuePresence(
                         value=next_state_features_dense,
                         presence=next_state_features_dense_presence,
                     )
                 ),
                 reward=rewards,
                 time_diff=time_diffs,
+                step=None,
+                not_terminal=None,
             ),
-            extras=ExtraData(
+            extras=rlt.ExtraData(
                 mdp_id=mdp_ids,
                 sequence_number=sequence_numbers,
                 action_probability=propensities,
@@ -83,22 +76,22 @@ class DiscreteDqnPreprocessHandler(PreprocessHandler):
             (actions == action_names_tiled).astype(np.float32), dtype=torch.float32
         )
 
-    def preprocess(self, batch) -> TrainingBatch:
+    def preprocess(self, batch) -> rlt.RawTrainingBatch:
         training_batch = super().preprocess(batch)
         actions = self.read_actions(batch["action"])
         pas_mask = torch.from_numpy(
             np.array(batch["possible_actions"], dtype=np.float32)
-        )
+        ).byte()
 
         next_actions = self.read_actions(batch["next_action"])
         pnas_mask = np.array(batch["possible_next_actions"], dtype=np.float32)
         not_terminal = torch.from_numpy(
             np.max(pnas_mask, 1).astype(np.float32).reshape(-1, 1)
         ).float()
-        pnas_mask_torch = torch.from_numpy(pnas_mask)
+        pnas_mask_torch = torch.from_numpy(pnas_mask).byte()
 
-        base_input = cast(BaseInput, training_batch.training_input)
-        training_input = DiscreteDqnInput(
+        base_input = training_batch.training_input
+        training_input = rlt.RawDiscreteDqnInput(
             state=base_input.state,
             reward=base_input.reward,
             time_diff=base_input.time_diff,
@@ -108,6 +101,7 @@ class DiscreteDqnPreprocessHandler(PreprocessHandler):
             next_state=base_input.next_state,
             possible_actions_mask=pas_mask,
             possible_next_actions_mask=pnas_mask_torch,
+            step=None,
         )
         return training_batch._replace(training_input=training_input)
 
@@ -121,7 +115,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
         super().__init__(state_sparse_to_dense)
         self.action_sparse_to_dense = action_sparse_to_dense
 
-    def preprocess(self, batch) -> TrainingBatch:
+    def preprocess(self, batch) -> rlt.RawTrainingBatch:
         training_batch = super().preprocess(batch)
 
         actions, actions_presence = self.action_sparse_to_dense(batch["action"])
@@ -137,7 +131,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
                 ([1] * len(l) + [0] * (max_action_size - len(l)))
                 for l in batch["possible_next_actions"]
             ]
-        )
+        ).byte()
         flat_pnas: List[Dict[int, float]] = []
         for pa in batch["possible_next_actions"]:
             flat_pnas.extend(pa)
@@ -151,7 +145,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
         ).reshape(-1, 1)
         pnas, pnas_presence = self.action_sparse_to_dense(flat_pnas)
 
-        base_input = cast(BaseInput, training_batch.training_input)
+        base_input = cast(rlt.RawBaseInput, training_batch.training_input)
         tiled_next_state = torch.repeat_interleave(
             base_input.next_state.float_features.value, max_action_size, dim=0
         )
@@ -164,7 +158,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
                 ([1] * len(l) + [0] * (max_action_size - len(l)))
                 for l in batch["possible_actions"]
             ]
-        )
+        ).byte()
         flat_pas: List[Dict[int, float]] = []
         for pa in batch["possible_actions"]:
             flat_pas.extend(pa)
@@ -173,35 +167,36 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
         pas, pas_presence = self.action_sparse_to_dense(flat_pas)
 
         return training_batch._replace(
-            training_input=ParametricDqnInput(
+            training_input=rlt.RawParametricDqnInput(
                 state=base_input.state,
                 reward=base_input.reward,
                 time_diff=base_input.time_diff,
-                action=FeatureVector(
-                    float_features=ValuePresence(
+                action=rlt.FeatureVector(
+                    float_features=rlt.ValuePresence(
                         value=actions, presence=actions_presence
                     )
                 ),
-                next_action=FeatureVector(
-                    float_features=ValuePresence(
+                next_action=rlt.FeatureVector(
+                    float_features=rlt.ValuePresence(
                         value=next_actions, presence=next_actions_presence
                     )
                 ),
                 not_terminal=not_terminal,
                 next_state=base_input.next_state,
-                tiled_next_state=FeatureVector(
-                    float_features=ValuePresence(
+                tiled_next_state=rlt.FeatureVector(
+                    float_features=rlt.ValuePresence(
                         value=tiled_next_state, presence=tiled_next_state_presence
                     )
                 ),
-                possible_actions=FeatureVector(
-                    float_features=ValuePresence(value=pas, presence=pas_presence)
+                possible_actions=rlt.FeatureVector(
+                    float_features=rlt.ValuePresence(value=pas, presence=pas_presence)
                 ),
                 possible_actions_mask=pas_mask,
-                possible_next_actions=FeatureVector(
-                    float_features=ValuePresence(value=pnas, presence=pnas_presence)
+                possible_next_actions=rlt.FeatureVector(
+                    float_features=rlt.ValuePresence(value=pnas, presence=pnas_presence)
                 ),
                 possible_next_actions_mask=pnas_mask,
+                step=None,
             )
         )
 
@@ -215,7 +210,7 @@ class ContinuousPreprocessHandler(PreprocessHandler):
         super().__init__(state_sparse_to_dense)
         self.action_sparse_to_dense = action_sparse_to_dense
 
-    def preprocess(self, batch) -> TrainingBatch:
+    def preprocess(self, batch) -> rlt.RawTrainingBatch:
         training_batch = super().preprocess(batch)
 
         actions = self.action_sparse_to_dense(batch["action"])
@@ -225,9 +220,9 @@ class ContinuousPreprocessHandler(PreprocessHandler):
             np.array(batch["next_action"], dtype=np.bool).astype(np.float32)
         ).reshape(-1, 1)
 
-        base_input = cast(BaseInput, training_batch.training_input)
+        base_input = cast(rlt.RawBaseInput, training_batch.training_input)
         return training_batch._replace(
-            training_input=PolicyNetworkInput(
+            training_input=rlt.RawPolicyNetworkInput(
                 state=base_input.state,
                 action=actions,
                 next_state=base_input.next_state,
@@ -235,5 +230,6 @@ class ContinuousPreprocessHandler(PreprocessHandler):
                 reward=base_input.reward,
                 not_terminal=not_terminal,
                 time_diff=base_input.time_diff,
+                step=None,
             )
         )

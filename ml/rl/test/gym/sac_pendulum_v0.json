@@ -24,7 +24,7 @@
     },
     "entropy_temperature": 0.1
   },
-  "sac_q_training": {
+  "critic_training": {
     "layers": [128, 64],
     "activations": ["relu", "relu"]
   },
@@ -32,7 +32,7 @@
     "layers": [128, 64],
     "activations": ["relu", "relu"]
   },
-  "sac_actor_training": {
+  "actor_training": {
     "layers": [128, 64],
     "activations": ["relu", "relu"]
   },

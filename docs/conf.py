@@ -5,20 +5,20 @@
 # http://www.sphinx-doc.org/en/master/config
 
 # -- Path setup --------------------------------------------------------------
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
+import os
+import sys
 
-# sys.path.insert(0, os.path.abspath("../"))
+
+sys.path.insert(0, os.path.abspath("../"))
 
 
 # -- Project information -----------------------------------------------------
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 project = "Horizon"
@@ -61,6 +61,7 @@ autodoc_mock_imports = [
     "sklearn",
     "ml.rl.thrift",
     "ml.rl.test",
+    "onnx",
 ]
 
 # -- Options for HTML output -------------------------------------------------

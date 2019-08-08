@@ -332,7 +332,7 @@ def train_gym_offline_rl(
 
         for _ in range(num_batch_per_epoch):
             samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
-            samples.set_type(trainer.dtype)
+            samples.set_device(trainer.device)
             trainer.train(samples)
 
         batch_td_loss = float(
@@ -491,7 +491,7 @@ def train_gym_online_rl(
                     samples = replay_buffer.sample_memories(
                         trainer.minibatch_size, model_type
                     )
-                    samples.set_type(trainer.dtype)
+                    samples.set_device(trainer.device)
                     trainer.train(samples)
                     # Every time we train, the policy changes
                     policy_id += 1
@@ -657,7 +657,7 @@ def main(args):
             params["run_details"]["avg_over_num_episodes"], predictor, test=False
         )
         logger.info(
-            "Final policy scores {} with ε={} and {} with ε=0 over {} eps.".format(
+            "Final policy scores {} with epsilon={} and {} with epsilon=0 over {} eps.".format(
                 final_score_explore,
                 env.epsilon,
                 final_score_exploit,
@@ -803,8 +803,8 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
                 noise_clip=params["td3_training"]["noise_clip"],
                 delayed_policy_update=params["td3_training"]["delayed_policy_update"],
             ),
-            q_network=FeedForwardParameters(**params["td3_q_training"]),
-            actor_network=FeedForwardParameters(**params["td3_actor_training"]),
+            q_network=FeedForwardParameters(**params["critic_training"]),
+            actor_network=FeedForwardParameters(**params["actor_training"]),
         )
         trainer = get_td3_trainer(env, trainer_params, use_gpu)
 
@@ -841,9 +841,9 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
                 target_entropy=target_entropy,
                 alpha_optimizer=alpha_optimizer,
             ),
-            q_network=FeedForwardParameters(**params["sac_q_training"]),
+            q_network=FeedForwardParameters(**params["critic_training"]),
             value_network=value_network,
-            actor_network=FeedForwardParameters(**params["sac_actor_training"]),
+            actor_network=FeedForwardParameters(**params["actor_training"]),
         )
         trainer = get_sac_trainer(env, trainer_params, use_gpu)
 

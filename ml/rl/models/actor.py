@@ -19,10 +19,12 @@ class ActorWithPreprocessing(ModelBase):
 
     def forward(self, input):
         preprocessed_state = self.state_preprocessor(input.state)
-        return self.actor_network(rlt.StateInput(state=preprocessed_state))
+        return self.actor_network(rlt.PreprocessedState.from_tensor(preprocessed_state))
 
     def input_prototype(self):
-        return rlt.StateInput(state=self.state_preprocessor.input_prototype())
+        return rlt.PreprocessedState.from_tensor(
+            self.state_preprocessor.input_prototype()
+        )
 
 
 class FullyConnectedActor(ModelBase):
@@ -53,9 +55,7 @@ class FullyConnectedActor(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.StateInput(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
-        )
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def forward(self, input):
         action = self.fc(input.state.float_features)
@@ -95,9 +95,7 @@ class GaussianFullyConnectedActor(ModelBase):
         self._log_min_max = (-20.0, 2.0)
 
     def input_prototype(self):
-        return rlt.StateInput(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
-        )
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def _log_prob(self, r, scale_log):
         """
@@ -192,9 +190,7 @@ class DirichletFullyConnectedActor(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.StateInput(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim))
-        )
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
     def _get_concentration(self, state):
         """

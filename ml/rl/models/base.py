@@ -6,7 +6,7 @@ import dataclasses
 from collections import OrderedDict
 from copy import deepcopy
 from io import BytesIO
-from typing import List, NamedTuple, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import caffe2.python.onnx.backend
 import onnx
@@ -23,17 +23,7 @@ class ModelBase(nn.Module):
     A base class to support exporting through ONNX
     """
 
-    def forward(self, input: NamedTuple) -> NamedTuple:
-        """
-        Args:
-            input: An (nested) NamedTuple of torch.Tensor
-
-        Returns:
-            An NamedTuple of torch.Tensor
-        """
-        raise NotImplementedError
-
-    def input_prototype(self) -> NamedTuple:
+    def input_prototype(self) -> Any:
         """
         This function provides the input for ONNX graph tracing.
 
@@ -85,8 +75,6 @@ class ModelBase(nn.Module):
         """
 
         def name_helper(d):
-            if hasattr(d, "_asdict"):
-                d = d._asdict()
             if dataclasses.is_dataclass(d):
                 fields = dataclasses.fields(d)
                 return [
@@ -128,9 +116,6 @@ class ModelBase(nn.Module):
         """
         # This is not ideal but makes exporting simple
         return deepcopy(self).cpu()
-
-    def serving_model(self):
-        raise NotImplementedError
 
     def export_onnx_to_buffer(self) -> BytesIO:
         """
@@ -326,7 +311,7 @@ class ONNXExportModel(nn.Module):
 
         return derived_names
 
-    def structurize_input(self, args) -> NamedTuple:
+    def structurize_input(self, args) -> Any:
         """
         Put args into input_prototype
 
@@ -345,9 +330,6 @@ class ONNXExportModel(nn.Module):
         """
 
         def helper(st):
-            if hasattr(st, "_asdict"):
-                st = st._asdict()
-
             if dataclasses.is_dataclass(st):
                 fields = dataclasses.fields(st)
                 return tuple(
@@ -360,7 +342,7 @@ class ONNXExportModel(nn.Module):
             elif st is None:
                 return (None,)
             else:
-                raise ValueError()
+                raise ValueError(str(type(st)))
 
         return tuple(filter(lambda x: x is not None, helper(st)))
 

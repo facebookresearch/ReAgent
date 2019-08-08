@@ -73,37 +73,26 @@ class TrainingDataPage(object):
         self.step = step
         self.max_num_actions = max_num_actions
 
-    def as_parametric_sarsa_training_batch(self):
-        return rlt.TrainingBatch(
-            training_input=rlt.SARSAInput(
-                state=rlt.FeatureVector(float_features=self.states),
-                reward=self.rewards,
-                time_diff=self.time_diffs,
-                action=rlt.FeatureVector(float_features=self.actions),
-                next_action=rlt.FeatureVector(float_features=self.next_actions),
-                not_terminal=self.not_terminal,
-                next_state=rlt.FeatureVector(float_features=self.next_states),
-                step=self.step,
-            ),
-            extras=rlt.ExtraData(),
-        )
-
     def as_parametric_maxq_training_batch(self):
         state_dim = self.states.shape[1]
-        return rlt.TrainingBatch(
-            training_input=rlt.ParametricDqnInput(
-                state=rlt.FeatureVector(float_features=self.states),
-                action=rlt.FeatureVector(float_features=self.actions),
-                next_state=rlt.FeatureVector(float_features=self.next_states),
-                next_action=rlt.FeatureVector(float_features=self.next_actions),
-                tiled_next_state=rlt.FeatureVector(
+        return rlt.PreprocessedTrainingBatch(
+            training_input=rlt.PreprocessedParametricDqnInput(
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
+                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
+                next_action=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_actions
+                ),
+                tiled_next_state=rlt.PreprocessedFeatureVector(
                     float_features=self.possible_next_actions_state_concat[
                         :, :state_dim
                     ]
                 ),
                 possible_actions=None,
                 possible_actions_mask=self.possible_actions_mask,
-                possible_next_actions=rlt.FeatureVector(
+                possible_next_actions=rlt.PreprocessedFeatureVector(
                     float_features=self.possible_next_actions_state_concat[
                         :, state_dim:
                     ]
@@ -118,12 +107,16 @@ class TrainingDataPage(object):
         )
 
     def as_policy_network_training_batch(self):
-        return rlt.TrainingBatch(
-            training_input=rlt.PolicyNetworkInput(
-                state=rlt.FeatureVector(float_features=self.states),
-                action=rlt.FeatureVector(float_features=self.actions),
-                next_state=rlt.FeatureVector(float_features=self.next_states),
-                next_action=rlt.FeatureVector(float_features=self.next_actions),
+        return rlt.PreprocessedTrainingBatch(
+            training_input=rlt.PreprocessedPolicyNetworkInput(
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
+                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
+                next_action=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_actions
+                ),
                 reward=self.rewards,
                 not_terminal=self.not_terminal,
                 step=self.step,
@@ -132,33 +125,14 @@ class TrainingDataPage(object):
             extras=rlt.ExtraData(),
         )
 
-    def as_discrete_sarsa_training_batch(self):
-        return rlt.TrainingBatch(
-            training_input=rlt.SARSAInput(
-                state=rlt.FeatureVector(float_features=self.states),
-                reward=self.rewards,
-                time_diff=self.time_diffs,
-                action=self.actions,
-                next_action=self.next_actions,
-                not_terminal=self.not_terminal,
-                next_state=rlt.FeatureVector(float_features=self.next_states),
-                step=self.step,
-            ),
-            extras=rlt.ExtraData(
-                mdp_id=self.mdp_ids,
-                sequence_number=self.sequence_numbers,
-                action_probability=self.propensities,
-                max_num_actions=self.max_num_actions,
-                metrics=self.metrics,
-            ),
-        )
-
     def as_discrete_maxq_training_batch(self):
-        return rlt.TrainingBatch(
-            training_input=rlt.DiscreteDqnInput(
-                state=rlt.FeatureVector(float_features=self.states),
+        return rlt.PreprocessedTrainingBatch(
+            training_input=rlt.PreprocessedDiscreteDqnInput(
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
                 action=self.actions,
-                next_state=rlt.FeatureVector(float_features=self.next_states),
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
                 next_action=self.next_actions,
                 possible_actions_mask=self.possible_actions_mask,
                 possible_next_actions_mask=self.possible_next_actions_mask,
@@ -195,3 +169,17 @@ class TrainingDataPage(object):
                     setattr(self, x, t.type(dtype).long())
                 else:
                     setattr(self, x, t.type(dtype))
+
+    def set_device(self, device):
+        for x in TrainingDataPage.__slots__:
+            if x in ("mdp_ids", "sequence_numbers", "max_num_actions"):
+                continue  # Torch does not support tensors of strings
+            t = getattr(self, x)
+            if t is not None:
+                assert isinstance(t, torch.Tensor), (
+                    x + " is not a torch tensor (is " + str(type(t)) + ")"
+                )
+                if x == "possible_next_actions_lengths":
+                    setattr(self, x, t.to(device=device).long())
+                else:
+                    setattr(self, x, t.to(device=device).float())

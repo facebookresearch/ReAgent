@@ -50,7 +50,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         self, state, action
     ) -> Tuple[rlt.SingleQValue, rlt.SingleQValue]:
         """ Gets the q values from the model and target networks """
-        input = rlt.StateAction(state=state, action=action)
+        input = rlt.PreprocessedStateAction(state=state, action=action)
         q_values = self.q_network(input)
         q_values_target = self.q_network_target(input)
         return q_values, q_values_target
@@ -58,10 +58,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
     @torch.no_grad()  # type: ignore
     def train(self, training_batch) -> None:
         if isinstance(training_batch, TrainingDataPage):
-            if self.maxq_learning:
-                training_batch = training_batch.as_parametric_maxq_training_batch()
-            else:
-                training_batch = training_batch.as_parametric_sarsa_training_batch()
+            training_batch = training_batch.as_parametric_maxq_training_batch()
 
         learning_input = training_batch.training_input
         self.minibatch += 1
@@ -99,7 +96,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         with torch.enable_grad():
             # Get Q-value of action taken
-            current_state_action = rlt.StateAction(
+            current_state_action = rlt.PreprocessedStateAction(
                 state=learning_input.state, action=learning_input.action
             )
             q_values = self.q_network(current_state_action).q_value
@@ -140,10 +137,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         """
         self.q_network.eval()
         q_values = self.q_network(
-            rlt.StateAction(
-                state=rlt.FeatureVector(float_features=state),
-                action=rlt.FeatureVector(float_features=action),
-            )
+            rlt.PreprocessedStateAction.from_tensors(state=state, action=action)
         )
         self.q_network.train()
         return q_values.q_value.cpu()
@@ -155,10 +149,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         """
         self.reward_network.eval()
         reward_estimates = self.reward_network(
-            rlt.StateAction(
-                state=rlt.FeatureVector(float_features=state),
-                action=rlt.FeatureVector(float_features=action),
-            )
+            rlt.PreprocessedStateAction.from_tensors(state=state, action=action)
         )
         self.reward_network.train()
         return reward_estimates.q_value.cpu()

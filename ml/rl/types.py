@@ -3,26 +3,44 @@
 
 import dataclasses
 from dataclasses import dataclass
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 import numpy as np
 import torch
-from caffe2.python import core
-
-
-"""
-A state/action consists of a list of feature vectors and a boolean presence mask
-"""
 
 
 @dataclass
-class ValuePresence:
+class BaseDataClass:
+    def _replace(self, **kwargs):
+        return cast(type(self), dataclasses.replace(self, **kwargs))
+
+    def pin_memory(self):
+        pinned_memory = {}
+        for field in dataclasses.fields(self):
+            f = getattr(self, field.name)
+            if isinstance(f, (torch.Tensor, BaseDataClass)):
+                pinned_memory[field.name] = f.pin_memory()
+        return self._replace(**pinned_memory)
+
+    def cuda(self):
+        cuda_tensor = {}
+        for field in dataclasses.fields(self):
+            f = getattr(self, field.name)
+            if isinstance(f, torch.Tensor):
+                cuda_tensor[field.name] = f.cuda(non_blocking=True)
+            elif isinstance(f, BaseDataClass):
+                cuda_tensor[field.name] = f.cuda()
+        return self._replace(**cuda_tensor)
+
+
+@dataclass
+class ValuePresence(BaseDataClass):
     value: torch.Tensor
-    presence: Optional[torch.ByteTensor]
+    presence: Optional[torch.Tensor]
 
 
 @dataclass
-class IdFeatureConfig:
+class IdFeatureConfig(BaseDataClass):
     """
     This describes how to map raw features to model features
     """
@@ -32,7 +50,7 @@ class IdFeatureConfig:
 
 
 @dataclass
-class IdFeatureBase:
+class IdFeatureBase(BaseDataClass):
     """
     User should subclass this class and define each ID feature as a field w/ torch.Tensor
     as the type of the field.
@@ -54,13 +72,13 @@ T = TypeVar("T", bound="SequenceFeatureBase")
 
 
 @dataclass
-class FloatFeatureInfo:
+class FloatFeatureInfo(BaseDataClass):
     name: str
     feature_id: int
 
 
 @dataclass
-class SequenceFeatureBase:
+class SequenceFeatureBase(BaseDataClass):
     id_features: Optional[IdFeatureBase]
     float_features: Optional[ValuePresence]
 
@@ -115,7 +133,7 @@ U = TypeVar("U", bound="SequenceFeatures")
 
 
 @dataclass
-class SequenceFeatures:
+class SequenceFeatures(BaseDataClass):
     """
     A stub-class for sequence features in the model. All fileds should be subclass of
     SequenceFeatureBase above.
@@ -128,18 +146,19 @@ class SequenceFeatures:
 
 
 @dataclass
-class IdMapping:
+class IdMapping(BaseDataClass):
     ids: List[int]
 
 
 @dataclass
-class ModelFeatureConfig:
+class ModelFeatureConfig(BaseDataClass):
     float_feature_infos: List[FloatFeatureInfo]
     id_mapping_config: Dict[str, IdMapping]
     sequence_features_type: Optional[Type[SequenceFeatures]]
 
 
-class FeatureVector(NamedTuple):
+@dataclass
+class FeatureVector(BaseDataClass):
     float_features: ValuePresence
     # sequence_features should ideally be Mapping[str, IdListFeature]; however,
     # that doesn't work well with ONNX.
@@ -152,108 +171,365 @@ class FeatureVector(NamedTuple):
     time_since_first: Optional[torch.Tensor] = None
 
 
-DiscreteAction = torch.ByteTensor
-
-ParametricAction = FeatureVector
-
-
-class ActorOutput(NamedTuple):
+@dataclass
+class ActorOutput(BaseDataClass):
     action: torch.Tensor
     log_prob: Optional[torch.Tensor] = None
 
 
-Action = Union[
-    DiscreteAction, ParametricAction
-]  # One-hot vector for discrete action DQN and feature vector for everyone else
+@dataclass
+class PreprocessedFeatureVector(BaseDataClass):
+    float_features: torch.Tensor
+    # Experimental: sticking this here instead of putting it in float_features
+    # because a lot of places derive the shape of float_features from
+    # normalization parameters.
+    time_since_first: Optional[torch.Tensor] = None
 
-State = FeatureVector
 
-
-class StateInput(NamedTuple):
+@dataclass
+class PreprocessedState(BaseDataClass):
     """
     This class makes it easier to plug modules into predictor
     """
 
-    state: State
+    state: PreprocessedFeatureVector
+
+    @classmethod
+    def from_tensor(cls, state: torch.Tensor):
+        assert isinstance(state, torch.Tensor)
+        return cls(state=PreprocessedFeatureVector(float_features=state))
+
+    def __init__(self, state):
+        super().__init__()
+        if isinstance(state, torch.Tensor):
+            raise ValueError("Use from_tensor()")
+        self.state = state
 
 
-class StateAction(NamedTuple):
-    state: State
-    action: Action
+@dataclass
+class PreprocessedStateAction(BaseDataClass):
+    state: PreprocessedFeatureVector
+    action: PreprocessedFeatureVector
+
+    @classmethod
+    def from_tensors(cls, state: torch.Tensor, action: torch.Tensor):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(action, torch.Tensor)
+        return cls(
+            state=PreprocessedFeatureVector(float_features=state),
+            action=PreprocessedFeatureVector(float_features=action),
+        )
+
+    def __init__(self, state, action):
+        super().__init__()
+        if isinstance(state, torch.Tensor) or isinstance(action, torch.Tensor):
+            raise ValueError(f"Use from_tensors() {type(state)} {type(action)}")
+        self.state = state
+        self.action = action
 
 
-class BaseInput(NamedTuple):
-    state: State
+@dataclass
+class RawStateAction(BaseDataClass):
+    state: FeatureVector
+    action: FeatureVector
+
+
+@dataclass
+class CommonInput(BaseDataClass):
+    """
+    Base class for all inputs, both raw and preprocessed
+    """
+
     reward: torch.Tensor
     time_diff: torch.Tensor
-    next_state: State
-    step: Optional[torch.Tensor] = None
-
-
-class DiscreteDqnInput(NamedTuple):
-    state: State
-    reward: torch.Tensor
-    time_diff: torch.Tensor
-    action: DiscreteAction
-    next_action: DiscreteAction
+    step: Optional[torch.Tensor]
     not_terminal: torch.Tensor
+
+
+@dataclass
+class PreprocessedBaseInput(CommonInput):
+    state: PreprocessedFeatureVector
+    next_state: PreprocessedFeatureVector
+
+
+@dataclass
+class PreprocessedDiscreteDqnInput(PreprocessedBaseInput):
+    action: torch.Tensor
+    next_action: torch.Tensor
     possible_actions_mask: torch.Tensor
     possible_next_actions_mask: torch.Tensor
-    next_state: State
-    step: Optional[torch.Tensor] = None
 
 
-class ParametricDqnInput(NamedTuple):
-    state: State
-    reward: torch.Tensor
-    time_diff: torch.Tensor
-    action: ParametricAction
-    next_action: ParametricAction
-    not_terminal: torch.Tensor
-    possible_actions: ParametricAction
+@dataclass
+class PreprocessedParametricDqnInput(PreprocessedBaseInput):
+    action: PreprocessedFeatureVector
+    next_action: PreprocessedFeatureVector
+    possible_actions: PreprocessedFeatureVector
     possible_actions_mask: torch.Tensor
-    possible_next_actions: ParametricAction
+    possible_next_actions: PreprocessedFeatureVector
     possible_next_actions_mask: torch.Tensor
-    next_state: State
-    tiled_next_state: State
-    step: Optional[torch.Tensor] = None
+    tiled_next_state: PreprocessedFeatureVector
 
 
-class PolicyNetworkInput(NamedTuple):
-    state: State
-    reward: torch.Tensor
-    time_diff: torch.Tensor
-    action: Action
-    next_action: Action
-    not_terminal: torch.Tensor
-    next_state: State
-    step: Optional[torch.Tensor] = None
+@dataclass
+class PreprocessedPolicyNetworkInput(PreprocessedBaseInput):
+    action: PreprocessedFeatureVector
+    next_action: PreprocessedFeatureVector
 
 
-class SARSAInput(NamedTuple):
-    state: State
-    reward: torch.Tensor
-    time_diff: torch.Tensor
-    action: Action
-    next_action: Action
-    not_terminal: torch.Tensor
-    next_state: Optional[State] = None  # Available in case of discrete action
-    tiled_next_state: Optional[State] = None  # Available in case of parametric action
-    step: Optional[torch.Tensor] = None
+@dataclass
+class PreprocessedMemoryNetworkInput(PreprocessedBaseInput):
+    action: Union[torch.Tensor, torch.Tensor]
 
 
-class MemoryNetworkInput(NamedTuple):
-    state: State
-    reward: torch.Tensor
-    time_diff: torch.Tensor
-    action: Action
-    not_terminal: torch.Tensor
-    next_state: Optional[State] = None  # Available in case of discrete action
-    tiled_next_state: Optional[State] = None  # Available in case of parametric action
-    step: Optional[torch.Tensor] = None
+@dataclass
+class RawBaseInput(CommonInput):
+    state: FeatureVector
+    next_state: FeatureVector
 
 
-class ExtraData(NamedTuple):
+@dataclass
+class RawDiscreteDqnInput(RawBaseInput):
+    action: torch.Tensor
+    next_action: torch.Tensor
+    possible_actions_mask: torch.Tensor
+    possible_next_actions_mask: torch.Tensor
+
+    def preprocess(
+        self, state: PreprocessedFeatureVector, next_state: PreprocessedFeatureVector
+    ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
+        return PreprocessedDiscreteDqnInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal.float(),
+            state,
+            next_state,
+            self.action.float(),
+            self.next_action.float(),
+            self.possible_actions_mask.float(),
+            self.possible_next_actions_mask.float(),
+        )
+
+    def preprocess_tensors(self, state: torch.Tensor, next_state: torch.Tensor):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+        return PreprocessedDiscreteDqnInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal.float(),
+            PreprocessedFeatureVector(float_features=state),
+            PreprocessedFeatureVector(float_features=next_state),
+            self.action.float(),
+            self.next_action.float(),
+            self.possible_actions_mask.float(),
+            self.possible_next_actions_mask.float(),
+        )
+
+
+@dataclass
+class RawParametricDqnInput(RawBaseInput):
+    action: FeatureVector
+    next_action: FeatureVector
+    possible_actions: FeatureVector
+    possible_actions_mask: torch.Tensor
+    possible_next_actions: FeatureVector
+    possible_next_actions_mask: torch.Tensor
+    tiled_next_state: FeatureVector
+
+    def preprocess(
+        self,
+        state: PreprocessedFeatureVector,
+        next_state: PreprocessedFeatureVector,
+        action: PreprocessedFeatureVector,
+        next_action: PreprocessedFeatureVector,
+        possible_actions: PreprocessedFeatureVector,
+        possible_next_actions: PreprocessedFeatureVector,
+        tiled_next_state: PreprocessedFeatureVector,
+    ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
+        assert isinstance(action, PreprocessedFeatureVector)
+        assert isinstance(next_action, PreprocessedFeatureVector)
+        assert isinstance(possible_actions, PreprocessedFeatureVector)
+        assert isinstance(possible_next_actions, PreprocessedFeatureVector)
+        assert isinstance(tiled_next_state, PreprocessedFeatureVector)
+
+        return PreprocessedParametricDqnInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal,
+            state,
+            next_state,
+            action,
+            next_action,
+            possible_actions,
+            self.possible_actions_mask,
+            possible_next_actions,
+            self.possible_next_actions_mask,
+            tiled_next_state,
+        )
+
+    def preprocess_tensors(
+        self,
+        state: torch.Tensor,
+        next_state: torch.Tensor,
+        action: torch.Tensor,
+        next_action: torch.Tensor,
+        possible_actions: torch.Tensor,
+        possible_next_actions: torch.Tensor,
+        tiled_next_state: torch.Tensor,
+    ):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+        assert isinstance(action, torch.Tensor)
+        assert isinstance(next_action, torch.Tensor)
+        assert isinstance(possible_actions, torch.Tensor)
+        assert isinstance(possible_next_actions, torch.Tensor)
+        assert isinstance(tiled_next_state, torch.Tensor)
+        return PreprocessedParametricDqnInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal,
+            PreprocessedFeatureVector(float_features=state),
+            PreprocessedFeatureVector(float_features=next_state),
+            PreprocessedFeatureVector(float_features=action),
+            PreprocessedFeatureVector(float_features=next_action),
+            PreprocessedFeatureVector(float_features=possible_actions),
+            self.possible_actions_mask,
+            PreprocessedFeatureVector(float_features=possible_next_actions),
+            self.possible_next_actions_mask,
+            PreprocessedFeatureVector(float_features=tiled_next_state),
+        )
+
+
+@dataclass
+class RawPolicyNetworkInput(RawBaseInput):
+    action: FeatureVector
+    next_action: FeatureVector
+
+    def preprocess(
+        self,
+        state: PreprocessedFeatureVector,
+        next_state: PreprocessedFeatureVector,
+        action: PreprocessedFeatureVector,
+        next_action: PreprocessedFeatureVector,
+    ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
+        assert isinstance(action, PreprocessedFeatureVector)
+        assert isinstance(next_action, PreprocessedFeatureVector)
+        return PreprocessedPolicyNetworkInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal,
+            state,
+            next_state,
+            action,
+            next_action,
+        )
+
+    def preprocess_tensors(
+        self,
+        state: torch.Tensor,
+        next_state: torch.Tensor,
+        action: torch.Tensor,
+        next_action: torch.Tensor,
+    ):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+        assert isinstance(action, torch.Tensor)
+        assert isinstance(next_action, torch.Tensor)
+        return PreprocessedPolicyNetworkInput(
+            self.reward,
+            self.time_diff,
+            self.step,
+            self.not_terminal,
+            PreprocessedFeatureVector(float_features=state),
+            PreprocessedFeatureVector(float_features=next_state),
+            PreprocessedFeatureVector(float_features=action),
+            PreprocessedFeatureVector(float_features=next_action),
+        )
+
+
+@dataclass
+class RawMemoryNetworkInput(RawBaseInput):
+    action: Union[FeatureVector, torch.Tensor]
+
+    def preprocess(
+        self,
+        state: PreprocessedFeatureVector,
+        next_state: PreprocessedFeatureVector,
+        action: Optional[torch.Tensor] = None,
+    ):
+        assert isinstance(state, PreprocessedFeatureVector)
+        assert isinstance(next_state, PreprocessedFeatureVector)
+        if action is not None:
+            assert isinstance(action, torch.Tensor)
+            return PreprocessedMemoryNetworkInput(
+                self.reward,
+                self.time_diff,
+                self.step,
+                self.not_terminal,
+                state,
+                next_state,
+                action,
+            )
+        else:
+            assert isinstance(self.action, torch.Tensor)
+            assert self.action.dtype == torch.uint8
+            return PreprocessedMemoryNetworkInput(
+                self.reward,
+                self.time_diff,
+                self.step,
+                self.not_terminal,
+                state,
+                next_state,
+                self.action.float(),
+            )
+
+    def preprocess_tensors(
+        self,
+        state: torch.Tensor,
+        next_state: torch.Tensor,
+        action: Optional[torch.Tensor] = None,
+    ):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(next_state, torch.Tensor)
+
+        if action is not None:
+            assert isinstance(action, torch.Tensor)
+            return PreprocessedMemoryNetworkInput(
+                self.reward,
+                self.time_diff,
+                self.step,
+                self.not_terminal,
+                PreprocessedFeatureVector(float_features=state),
+                PreprocessedFeatureVector(float_features=next_state),
+                action,
+            )
+        else:
+            assert isinstance(self.action, torch.Tensor)
+            assert self.action.dtype == torch.uint8
+            return PreprocessedMemoryNetworkInput(
+                self.reward,
+                self.time_diff,
+                self.step,
+                self.not_terminal,
+                PreprocessedFeatureVector(float_features=state),
+                PreprocessedFeatureVector(float_features=next_state),
+                self.action.float(),
+            )
+
+
+@dataclass
+class ExtraData(BaseDataClass):
     mdp_id: Optional[
         np.ndarray
     ] = None  # Need to use a numpy array because torch doesn't support strings
@@ -263,38 +539,58 @@ class ExtraData(NamedTuple):
     metrics: Optional[torch.Tensor] = None
 
 
-class TrainingBatch(NamedTuple):
+@dataclass
+class PreprocessedTrainingBatch(BaseDataClass):
     training_input: Union[
-        BaseInput,
-        DiscreteDqnInput,
-        ParametricDqnInput,
-        SARSAInput,
-        MemoryNetworkInput,
-        PolicyNetworkInput,
+        PreprocessedBaseInput,
+        PreprocessedDiscreteDqnInput,
+        PreprocessedParametricDqnInput,
+        PreprocessedMemoryNetworkInput,
+        PreprocessedPolicyNetworkInput,
+    ]
+    extras: Any
+
+    def batch_size(self):
+        return self.training_input.state.float_features.size()[0]
+
+
+@dataclass
+class RawTrainingBatch(BaseDataClass):
+    training_input: Union[
+        RawBaseInput, RawDiscreteDqnInput, RawParametricDqnInput, RawPolicyNetworkInput
     ]
     extras: Any
 
     def batch_size(self):
         return self.training_input.state.float_features.value.size()[0]
 
+    def preprocess(
+        self,
+        training_input: Union[
+            PreprocessedBaseInput,
+            PreprocessedDiscreteDqnInput,
+            PreprocessedParametricDqnInput,
+            PreprocessedMemoryNetworkInput,
+            PreprocessedPolicyNetworkInput,
+        ],
+    ) -> PreprocessedTrainingBatch:
+        return PreprocessedTrainingBatch(
+            training_input=training_input, extras=self.extras
+        )
 
-class SingleQValue(NamedTuple):
+
+@dataclass
+class SingleQValue(BaseDataClass):
     q_value: torch.Tensor
 
 
-class AllActionQValues(NamedTuple):
+@dataclass
+class AllActionQValues(BaseDataClass):
     q_values: torch.Tensor
 
 
-class CappedContinuousAction(NamedTuple):
-    """
-    Continuous action in range [-1, 1], e.g., the output of DDPG actor
-    """
-
-    action: torch.Tensor
-
-
-class MemoryNetworkOutput(NamedTuple):
+@dataclass
+class MemoryNetworkOutput(BaseDataClass):
     mus: torch.Tensor
     sigmas: torch.Tensor
     logpi: torch.Tensor
@@ -305,11 +601,15 @@ class MemoryNetworkOutput(NamedTuple):
     all_steps_lstm_hidden: torch.Tensor
 
 
-class DqnPolicyActionSet(NamedTuple):
+@dataclass
+class DqnPolicyActionSet(BaseDataClass):
     greedy: int
     softmax: int
+    greedy_act_name: Optional[str] = None
+    softmax_act_name: Optional[str] = None
 
 
-class SacPolicyActionSet(NamedTuple):
+@dataclass
+class SacPolicyActionSet:
     greedy: torch.Tensor
     greedy_propensity: float

@@ -27,28 +27,20 @@ class ParametricDQNWithPreprocessing(ModelBase):
             else input.action
         )
         return self.q_network(
-            rlt.StateAction(state=preprocessed_state, action=preprocessed_action)
+            rlt.PreprocessedStateAction(
+                state=preprocessed_state, action=preprocessed_action
+            )
         )
 
     def input_prototype(self):
-        return rlt.StateAction(
+        return rlt.PreprocessedStateAction.from_tensors(
             state=self.state_preprocessor.input_prototype()
             if self.state_preprocessor
-            else self.q_network.input_prototype().state,
+            else self.q_network.input_prototype().state.float_features,
             action=self.action_preprocessor.input_prototype()
             if self.action_preprocessor
-            else self.q_network.input_prototype().action,
+            else self.q_network.input_prototype().action.float_features,
         )
-
-
-class StateActionJoinWrapper(torch.nn.Module):
-    def __init__(self, innerModule):
-        super().__init__()
-        self.innerModule = innerModule
-
-    def forward(self, state, action):
-        cat_input = torch.cat((state, action), dim=1)
-        return self.innerModule(cat_input)
 
 
 class FullyConnectedParametricDQN(ModelBase):
@@ -73,9 +65,8 @@ class FullyConnectedParametricDQN(ModelBase):
         return _DistributedDataParallelFullyConnectedParametricDQN(self)
 
     def input_prototype(self):
-        return rlt.StateAction(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim)),
-            action=rlt.FeatureVector(float_features=torch.randn(1, self.action_dim)),
+        return rlt.PreprocessedStateAction.from_tensors(
+            state=torch.randn(1, self.state_dim), action=torch.randn(1, self.action_dim)
         )
 
     def forward(self, input):
@@ -84,9 +75,6 @@ class FullyConnectedParametricDQN(ModelBase):
         )
         q_value = self.fc(cat_input)
         return rlt.SingleQValue(q_value=q_value)
-
-    def serving_model(self):
-        return StateActionJoinWrapper(self.cpu_model().fc)
 
 
 class _DistributedDataParallelFullyConnectedParametricDQN(ModelBase):
@@ -103,9 +91,8 @@ class _DistributedDataParallelFullyConnectedParametricDQN(ModelBase):
         self.fc_parametric_dqn = fc_parametric_dqn
 
     def input_prototype(self):
-        return rlt.StateAction(
-            state=rlt.FeatureVector(float_features=torch.randn(1, self.state_dim)),
-            action=rlt.FeatureVector(float_features=torch.randn(1, self.action_dim)),
+        return rlt.PreprocessedStateAction.from_tensors(
+            state=torch.randn(1, self.state_dim), action=torch.randn(1, self.action_dim)
         )
 
     def cpu_model(self):
