@@ -165,11 +165,7 @@ class OpenAIGymEnvironment(Environment):
         return res
 
     def policy(
-        self,
-        predictor: Union[RLPredictor, OnPolicyPredictor, None],
-        state,
-        test,
-        state_preprocessor=None,
+        self, predictor: Union[RLPredictor, OnPolicyPredictor, None], state, test
     ) -> Tuple[torch.Tensor, float]:
         """
         Selects the next action.
@@ -181,7 +177,6 @@ class OpenAIGymEnvironment(Environment):
             For discrete action problems, the exploration policy is epsilon-greedy.
             For continuous action problems, the exploration is achieved by adding
             noise to action outputs.
-        :param state_preprocessor: State preprocessor to use to preprocess states
         """
         assert len(state.size()) == 1
 
@@ -203,9 +198,6 @@ class OpenAIGymEnvironment(Environment):
             return raw_action, action_probability
 
         action = torch.zeros([self.action_dim])
-
-        if state_preprocessor:
-            state = state_preprocessor.forward(state)
 
         if isinstance(predictor, DQNPredictor):
             action_probability = 1.0 if test else 1.0 - self.epsilon
@@ -242,7 +234,7 @@ class OpenAIGymEnvironment(Environment):
             action_probability = 1.0 if test else 1.0 - self.epsilon
             if predictor.discrete_action():  # type: ignore
                 policy_action_set = predictor.policy(  # type: ignore
-                    state, torch.ones([1, self.action_dim])
+                    state, possible_actions_presence=torch.ones([1, self.action_dim])
                 )
             else:
                 states_tiled = torch.repeat_interleave(
@@ -266,7 +258,6 @@ class OpenAIGymEnvironment(Environment):
         max_steps=None,
         test=False,
         render=False,
-        state_preprocessor=None,
     ):
         """
         Runs an episode of the environment n times and returns the average
@@ -278,13 +269,12 @@ class OpenAIGymEnvironment(Environment):
         :param max_steps: Max number of timesteps before ending episode.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         :param render: Whether or not to render the episode.
-        :param state_preprocessor: State preprocessor to use to preprocess states
         """
         reward_sum = 0.0
         discounted_reward_sum = 0.0
         for _ in range(n):
             ep_rew_sum, ep_raw_discounted_sum = self.run_episode(
-                predictor, max_steps, test, render, state_preprocessor
+                predictor, max_steps, test, render
             )
             reward_sum += ep_rew_sum
             discounted_reward_sum += ep_raw_discounted_sum
@@ -305,7 +295,6 @@ class OpenAIGymEnvironment(Environment):
         max_steps=None,
         test=False,
         render=False,
-        state_preprocessor=None,
     ):
         """
         Runs an episode of the environment and returns the sum of rewards
@@ -316,11 +305,10 @@ class OpenAIGymEnvironment(Environment):
         :param max_steps: Max number of timesteps before ending episode.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
         :param render: Whether or not to render the episode.
-        :param state_preprocessor: State preprocessor to use to preprocess states
         """
         terminal = False
         next_state = self.transform_state(self.reset())
-        next_action, _ = self.policy(predictor, next_state, test, state_preprocessor)
+        next_action, _ = self.policy(predictor, next_state, test)
         reward_sum = 0.0
         discounted_reward_sum = 0
         num_steps_taken = 0
@@ -338,9 +326,7 @@ class OpenAIGymEnvironment(Environment):
 
             next_state = self.transform_state(next_state_numpy)
             num_steps_taken += 1
-            next_action, _ = self.policy(
-                predictor, next_state, test, state_preprocessor
-            )
+            next_action, _ = self.policy(predictor, next_state, test)
             reward_sum += float(reward)
             discounted_reward_sum += reward * self.gamma ** (num_steps_taken - 1)
 
