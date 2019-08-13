@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from ml.rl.caffe_utils import masked_softmax
 from ml.rl.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
-from ml.rl.types import DqnPolicyActionSet, SacPolicyActionSet
+from ml.rl.types import DqnPolicyActionSet
 
 
 logger = logging.getLogger(__name__)
@@ -51,17 +51,30 @@ class DiscreteDqnTorchPredictor:
         if state_feature_presence is None:
             state_feature_presence = torch.ones_like(state)
         action_names, q_scores = self.model((state, state_feature_presence))
-        assert q_scores.shape[0] == 1
+
+        return self.policy_given_q_values(
+            q_scores, action_names, self.softmax_temperature, possible_actions_presence
+        )
+
+    @staticmethod
+    def policy_given_q_values(
+        q_scores: torch.Tensor,
+        action_names: List[str],
+        softmax_temperature: float,
+        possible_actions_presence: Optional[torch.Tensor] = None,
+    ) -> DqnPolicyActionSet:
+        assert q_scores.shape[0] == 1 and len(q_scores.shape) == 2
 
         if possible_actions_presence is None:
             possible_actions_presence = torch.ones_like(q_scores)
+        possible_actions_presence = possible_actions_presence.reshape(1, -1)
+        assert possible_actions_presence.shape == q_scores.shape
+
         # set impossible actions so low that they can't be picked
         q_scores -= (1.0 - possible_actions_presence) * 1e10  # type: ignore
 
         q_scores_softmax = (
-            masked_softmax(
-                q_scores, possible_actions_presence, self.softmax_temperature
-            )
+            masked_softmax(q_scores, possible_actions_presence, softmax_temperature)
             .detach()
             .numpy()[0]
         )
@@ -136,16 +149,26 @@ class ParametricDqnTorchPredictor:
         )
         q_scores = q_scores.reshape(1, -1)
 
+        return self.policy_given_q_values(
+            q_scores, self.softmax_temperature, possible_actions_presence
+        )
+
+    @staticmethod
+    def policy_given_q_values(
+        q_scores: torch.Tensor,
+        softmax_temperature: float,
+        possible_actions_presence: torch.Tensor,
+    ) -> DqnPolicyActionSet:
+        assert q_scores.shape[0] == 1 and len(q_scores.shape) == 2
+        possible_actions_presence = possible_actions_presence.reshape(1, -1)
+        assert possible_actions_presence.shape == q_scores.shape
+
         # set impossible actions so low that they can't be picked
-        q_scores -= (
-            1.0 - possible_actions_presence.reshape(1, -1)  # type: ignore
-        ) * 1e10
+        q_scores -= (1.0 - possible_actions_presence) * 1e10
 
         q_scores_softmax_numpy = (
             masked_softmax(
-                q_scores.reshape(1, -1),
-                possible_actions_presence.reshape(1, -1),
-                self.softmax_temperature,
+                q_scores.reshape(1, -1), possible_actions_presence, softmax_temperature
             )
             .detach()
             .numpy()[0]
