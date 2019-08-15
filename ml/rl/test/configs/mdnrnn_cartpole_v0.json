@@ -5,6 +5,9 @@
     "num_hidden_layers": 2,
     "minibatch_size": 1024,
     "learning_rate": 0.005,
+    "not_terminal_loss_weight": 1,
+    "next_state_loss_weight": 1,
+    "reward_loss_weight": 1,
     "num_gaussians": 1
   },
   "run_details": {

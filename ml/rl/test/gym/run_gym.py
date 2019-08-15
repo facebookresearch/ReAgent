@@ -5,16 +5,14 @@ import argparse
 import json
 import logging
 import pickle
+import random
 import sys
+from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
-from ml.rl.models.actor import FullyConnectedActor, GaussianFullyConnectedActor
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.test.base.utils import write_lists_to_csv
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
@@ -23,10 +21,12 @@ from ml.rl.test.gym.open_ai_gym_environment import (
 )
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 from ml.rl.thrift.core.ttypes import (
+    CEMParameters,
     CNNParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
     FeedForwardParameters,
+    MDNRNNParameters,
     OptimizerParameters,
     RainbowDQNParameters,
     RLParameters,
@@ -37,16 +37,20 @@ from ml.rl.thrift.core.ttypes import (
     TrainingParameters,
 )
 from ml.rl.training.on_policy_predictor import (
+    CEMPlanningPredictor,
     ContinuousActionOnPolicyPredictor,
     DiscreteDQNOnPolicyPredictor,
+    OnPolicyPredictor,
     ParametricDQNOnPolicyPredictor,
 )
 from ml.rl.training.rl_dataset import RLDataset
-from ml.rl.training.sac_trainer import SACTrainer
-from ml.rl.training.td3_trainer import TD3Trainer
+from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.workflow.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
+    get_cem_trainer,
+    get_sac_trainer,
+    get_td3_trainer,
 )
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
@@ -86,6 +90,7 @@ def get_possible_actions(gym_env, model_type, terminal):
         ModelType.CONTINUOUS_ACTION.value,
         ModelType.SOFT_ACTOR_CRITIC.value,
         ModelType.TD3.value,
+        ModelType.CEM.value,
     ):
         possible_next_actions = None
         possible_next_actions_mask = None
@@ -156,6 +161,7 @@ def train(
     max_episodes_to_run_after_solved=None,
     stop_training_after_solved=False,
     offline_train_epochs=3,
+    offline_num_batches_per_epoch=None,
     bcq_imitator_hyperparams=None,
 ):
     if offline_train:
@@ -170,33 +176,33 @@ def train(
             max_steps,
             avg_over_num_episodes,
             offline_train_epochs,
+            offline_num_batches_per_epoch,
             bcq_imitator_hyperparams,
         )
-    else:
-        return train_gym_online_rl(
-            c2_device,
-            gym_env,
-            replay_buffer,
-            model_type,
-            trainer,
-            predictor,
-            test_run_name,
-            score_bar,
-            num_episodes,
-            max_steps,
-            train_every_ts,
-            train_after_ts,
-            test_every_ts,
-            test_after_ts,
-            num_train_batches,
-            avg_over_num_episodes,
-            render,
-            save_timesteps_to_dataset,
-            start_saving_from_score,
-            solved_reward_threshold,
-            max_episodes_to_run_after_solved,
-            stop_training_after_solved,
-        )
+    return train_gym_online_rl(
+        c2_device,
+        gym_env,
+        replay_buffer,
+        model_type,
+        trainer,
+        predictor,
+        test_run_name,
+        score_bar,
+        num_episodes,
+        max_steps,
+        train_every_ts,
+        train_after_ts,
+        test_every_ts,
+        test_after_ts,
+        num_train_batches,
+        avg_over_num_episodes,
+        render,
+        save_timesteps_to_dataset,
+        start_saving_from_score,
+        solved_reward_threshold,
+        max_episodes_to_run_after_solved,
+        stop_training_after_solved,
+    )
 
 
 def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, model_type):
@@ -261,19 +267,23 @@ def create_stored_policy_offline_dataset(replay_buffer, path):
 
 
 def train_gym_offline_rl(
-    gym_env,
-    replay_buffer,
-    model_type,
-    trainer,
-    predictor,
-    test_run_name,
-    score_bar,
-    max_steps,
-    avg_over_num_episodes,
-    offline_train_epochs,
-    bcq_imitator_hyper_params,
+    gym_env: OpenAIGymEnvironment,
+    replay_buffer: OpenAIGymMemoryPool,
+    model_type: str,
+    trainer: RLTrainer,
+    predictor: OnPolicyPredictor,
+    test_run_name: str,
+    score_bar: Optional[float],
+    max_steps: int,
+    avg_over_num_episodes: int,
+    offline_train_epochs: int,
+    num_batch_per_epoch: Optional[int],
+    bcq_imitator_hyper_params: Optional[Dict[str, Any]] = None,
 ):
-    num_batch_per_epoch = replay_buffer.size // trainer.minibatch_size
+    if num_batch_per_epoch is None:
+        num_batch_per_epoch = replay_buffer.size // trainer.minibatch_size
+    assert num_batch_per_epoch > 0, "The size of replay buffer is not sufficient"
+
     logger.info(
         "{} offline transitions in replay buffer.\n"
         "Training will take {} epochs, with each epoch having {} mini-batches"
@@ -284,12 +294,12 @@ def train_gym_offline_rl(
             trainer.minibatch_size,
         )
     )
-    assert num_batch_per_epoch > 0, "The size of replay buffer is not sufficient"
 
     avg_reward_history, epoch_history = [], []
 
     # Pre-train a GBDT imitator if doing batch constrained q-learning in Gym
-    if trainer.bcq:
+    if getattr(trainer, "bcq", None):
+        assert bcq_imitator_hyper_params is not None
         gbdt = GradientBoostingClassifier(
             n_estimators=bcq_imitator_hyper_params["gbdt_trees"],
             max_depth=bcq_imitator_hyper_params["max_depth"],
@@ -306,10 +316,28 @@ def train_gym_offline_rl(
                 train_score, test_score
             )
         )
-        trainer.bcq_imitator = gbdt.predict_proba
+        trainer.bcq_imitator = gbdt.predict_proba  # type: ignore
 
     # Offline training
     for i_epoch in range(offline_train_epochs):
+        for _ in range(num_batch_per_epoch):
+            samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
+            samples.set_device(trainer.device)
+            trainer.train(samples)
+
+        batch_td_loss = float(
+            torch.mean(
+                torch.tensor(
+                    [stat.td_loss for stat in trainer.loss_reporter.incoming_stats]
+                )
+            )
+        )
+        trainer.loss_reporter.flush()
+        logger.info(
+            "Average TD loss: {} in epoch {}".format(batch_td_loss, i_epoch + 1)
+        )
+
+        # test model performance for this epoch
         avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
             avg_over_num_episodes, predictor, test=True
         )
@@ -329,23 +357,6 @@ def train_gym_offline_rl(
                 )
             )
             return avg_reward_history, epoch_history, trainer, predictor, gym_env
-
-        for _ in range(num_batch_per_epoch):
-            samples = replay_buffer.sample_memories(trainer.minibatch_size, model_type)
-            samples.set_device(trainer.device)
-            trainer.train(samples)
-
-        batch_td_loss = float(
-            torch.mean(
-                torch.tensor(
-                    [stat.td_loss for stat in trainer.loss_reporter.incoming_stats]
-                )
-            )
-        )
-        trainer.loss_reporter.flush()
-        logger.info(
-            "Average TD loss: {} in epoch {}".format(batch_td_loss, i_epoch + 1)
-        )
 
     logger.info(
         "Avg. reward history for {}: {}".format(test_run_name, avg_reward_history)
@@ -384,8 +395,6 @@ def train_gym_online_rl(
     episodes_since_solved = 0
     solved = False
     policy_id = 0
-
-    reward_sum = 0
 
     for i in range(num_episodes):
         if (
@@ -621,12 +630,24 @@ def main(args):
         type=str,
         default=None,
     )
+    parser.add_argument(
+        "--seed",
+        help="Seed for the test (numpy, torch, and gym).",
+        type=int,
+        default=None,
+    )
+
     args = parser.parse_args(args)
 
     if args.log_level not in ("debug", "info", "warning", "error", "critical"):
         raise Exception("Logging level {} not valid level.".format(args.log_level))
     else:
-        logger.setLevel(getattr(logging, args.log_level.upper()))
+        logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
+
+    if args.seed is not None:
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        random.seed(args.seed)
 
     assert (
         not args.path_to_pickled_transitions or args.offline_train
@@ -642,6 +663,7 @@ def main(args):
         args.offline_train,
         args.score_bar,
         args.gpu_id,
+        args.seed,
         dataset,
         args.start_saving_from_score,
         args.path_to_pickled_transitions,
@@ -675,6 +697,7 @@ def run_gym(
     offline_train,
     score_bar,
     gpu_id,
+    seed=None,
     save_timesteps_to_dataset=None,
     start_saving_from_score=None,
     path_to_pickled_transitions=None,
@@ -696,6 +719,7 @@ def run_gym(
         rl_parameters.gamma,
         epsilon_decay,
         minimum_epsilon,
+        seed,
     )
     replay_buffer = create_replay_buffer(
         env, params, model_type, offline_train, path_to_pickled_transitions
@@ -846,135 +870,15 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             actor_network=FeedForwardParameters(**params["actor_training"]),
         )
         trainer = get_sac_trainer(env, trainer_params, use_gpu)
-
+    elif model_type == ModelType.CEM.value:
+        trainer_params = CEMParameters(**params["cem"])
+        trainer_params.mdnrnn = MDNRNNParameters(**params["cem"]["mdnrnn"])
+        trainer_params.rl = rl_parameters
+        trainer = get_cem_trainer(env, trainer_params, use_gpu)
     else:
         raise NotImplementedError("Model of type {} not supported".format(model_type))
 
     return trainer
-
-
-def get_td3_trainer(env, parameters, use_gpu):
-    state_dim = get_num_output_features(env.normalization)
-    action_dim = get_num_output_features(env.normalization_action)
-    q1_network = FullyConnectedParametricDQN(
-        state_dim,
-        action_dim,
-        parameters.q_network.layers,
-        parameters.q_network.activations,
-    )
-    q2_network = None
-    if parameters.training.use_2_q_functions:
-        q2_network = FullyConnectedParametricDQN(
-            state_dim,
-            action_dim,
-            parameters.q_network.layers,
-            parameters.q_network.activations,
-        )
-    actor_network = FullyConnectedActor(
-        state_dim,
-        action_dim,
-        parameters.actor_network.layers,
-        parameters.actor_network.activations,
-    )
-
-    min_action_range_tensor_training = torch.full((1, action_dim), -1)
-    max_action_range_tensor_training = torch.full((1, action_dim), 1)
-    min_action_range_tensor_serving = torch.FloatTensor(env.action_space.low).unsqueeze(
-        dim=0
-    )
-    max_action_range_tensor_serving = torch.FloatTensor(
-        env.action_space.high
-    ).unsqueeze(dim=0)
-
-    if use_gpu:
-        q1_network.cuda()
-        if q2_network:
-            q2_network.cuda()
-        actor_network.cuda()
-
-        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
-        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
-        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
-        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
-
-    trainer_args = [q1_network, actor_network, parameters]
-    trainer_kwargs = {
-        "q2_network": q2_network,
-        "min_action_range_tensor_training": min_action_range_tensor_training,
-        "max_action_range_tensor_training": max_action_range_tensor_training,
-        "min_action_range_tensor_serving": min_action_range_tensor_serving,
-        "max_action_range_tensor_serving": max_action_range_tensor_serving,
-    }
-    return TD3Trainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
-
-
-def get_sac_trainer(env, parameters, use_gpu):
-    trainer_args, trainer_kwargs = _get_sac_trainer_params(env, parameters, use_gpu)
-    return SACTrainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
-
-
-def _get_sac_trainer_params(env, sac_model_params, use_gpu):
-    state_dim = get_num_output_features(env.normalization)
-    action_dim = get_num_output_features(env.normalization_action)
-    q1_network = FullyConnectedParametricDQN(
-        state_dim,
-        action_dim,
-        sac_model_params.q_network.layers,
-        sac_model_params.q_network.activations,
-    )
-    q2_network = None
-    if sac_model_params.training.use_2_q_functions:
-        q2_network = FullyConnectedParametricDQN(
-            state_dim,
-            action_dim,
-            sac_model_params.q_network.layers,
-            sac_model_params.q_network.activations,
-        )
-    value_network = None
-    if sac_model_params.training.use_value_network:
-        value_network = FullyConnectedNetwork(
-            [state_dim] + sac_model_params.value_network.layers + [1],
-            sac_model_params.value_network.activations + ["linear"],
-        )
-    actor_network = GaussianFullyConnectedActor(
-        state_dim,
-        action_dim,
-        sac_model_params.actor_network.layers,
-        sac_model_params.actor_network.activations,
-    )
-
-    min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
-    max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
-    min_action_range_tensor_serving = (
-        torch.from_numpy(env.action_space.low).float().unsqueeze(dim=0)
-    )
-    max_action_range_tensor_serving = (
-        torch.from_numpy(env.action_space.high).float().unsqueeze(dim=0)
-    )
-
-    if use_gpu:
-        q1_network.cuda()
-        if q2_network:
-            q2_network.cuda()
-        if value_network:
-            value_network.cuda()
-        actor_network.cuda()
-
-        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
-        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
-        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
-        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
-
-    trainer_args = [q1_network, actor_network, sac_model_params]
-    trainer_kwargs = {
-        "value_network": value_network,
-        "q2_network": q2_network,
-        "min_action_range_tensor_training": min_action_range_tensor_training,
-        "max_action_range_tensor_training": max_action_range_tensor_training,
-        "min_action_range_tensor_serving": min_action_range_tensor_serving,
-        "max_action_range_tensor_serving": max_action_range_tensor_serving,
-    }
-    return trainer_args, trainer_kwargs
 
 
 def _format_action_for_log_and_gym(action, env_type, model_type):
@@ -994,12 +898,12 @@ def create_predictor(trainer, model_type, use_gpu, action_dim=None):
         predictor = DiscreteDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
         predictor = ParametricDQNOnPolicyPredictor(trainer, action_dim, use_gpu)
+    elif model_type == ModelType.CEM.value:
+        predictor = CEMPlanningPredictor(trainer, action_dim, use_gpu)
     return predictor
 
 
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     from ml.rl import debug_on_error
 
     debug_on_error.start()

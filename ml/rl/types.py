@@ -604,12 +604,20 @@ class MemoryNetworkOutput(BaseDataClass):
 @dataclass
 class DqnPolicyActionSet(BaseDataClass):
     greedy: int
-    softmax: int
+    softmax: Optional[int] = None
     greedy_act_name: Optional[str] = None
     softmax_act_name: Optional[str] = None
 
 
 @dataclass
-class SacPolicyActionSet:
+class SacPolicyActionSet(BaseDataClass):
     greedy: torch.Tensor
     greedy_propensity: float
+
+
+@dataclass
+class PlanningPolicyOutput(BaseDataClass):
+    # best action to take next
+    next_best_continuous_action: Optional[torch.Tensor] = None
+    next_best_discrete_action_one_hot: Optional[torch.Tensor] = None
+    next_best_discrete_action_idx: Optional[int] = None

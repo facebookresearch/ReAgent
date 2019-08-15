@@ -138,7 +138,9 @@ class MDNRNNMemoryPool:
             s = self.replay_memory[i]
             yield s.state, s.action, s.next_state, s.reward, s.not_terminal
 
-    def sample_memories(self, batch_size, use_gpu=False, batch_first=False):
+    def sample_memories(
+        self, batch_size, use_gpu=False, batch_first=False
+    ) -> rlt.PreprocessedTrainingBatch:
         """
         :param batch_size: number of samples to return
         :param use_gpu: whether to put samples on gpu
@@ -148,7 +150,9 @@ class MDNRNNMemoryPool:
             MDN-RNN consumes data with SEQ_LEN as the first dimension.
         """
         sample_indices = np.random.randint(self.memory_size, size=batch_size)
-        device = torch.device("cuda") if use_gpu else torch.device("cpu")
+        device = (
+            torch.device("cuda") if use_gpu else torch.device("cpu")  # type: ignore
+        )
         # state/next state shape: batch_size x seq_len x state_dim
         # action shape: batch_size x seq_len x action_dim
         # reward/not_terminal shape: batch_size x seq_len

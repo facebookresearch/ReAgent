@@ -25,11 +25,11 @@ class ParametricDQNTrainer(DQNTrainerBase):
         parameters: ContinuousActionModelParameters,
         use_gpu: bool = False,
     ) -> None:
+        DQNTrainerBase.__init__(self, parameters, use_gpu=use_gpu)
+
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1
-
-        DQNTrainerBase.__init__(self, parameters, use_gpu=use_gpu)
 
         self.q_network = q_network
         self.q_network_target = q_network_target

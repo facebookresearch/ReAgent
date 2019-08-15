@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -36,6 +36,25 @@ class OnPolicyPredictor(object):
         Return True if this predictor is for a discrete action network
         """
         raise NotImplementedError()
+
+
+class CEMPlanningPredictor(OnPolicyPredictor):
+    def policy(
+        self,
+        states: torch.Tensor,
+        possible_actions_presence: Optional[torch.Tensor] = None,
+    ) -> Union[SacPolicyActionSet, DqnPolicyActionSet]:
+        assert self.policy_net() or possible_actions_presence is not None
+        # For now, CEM planner doesn't take into accounts possible_actions
+        # (i.e., it plans for all actions in each of N future steps.)
+        return self.trainer.internal_prediction(states)
+
+    def policy_net(self) -> bool:
+        return not self.trainer.cem_planner_network.discrete_action
+
+    def discrete_action(self) -> bool:
+        assert not self.policy_net()
+        return True
 
 
 class DiscreteDQNOnPolicyPredictor(OnPolicyPredictor):

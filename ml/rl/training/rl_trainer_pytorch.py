@@ -31,6 +31,7 @@ class RLTrainer:
         actions: Optional[List[str]] = None,
     ):
         self.minibatch = 0
+        self.minibatch_size: Optional[int] = None
         self.parameters = parameters
         self.rl_temperature = float(parameters.rl.temperature)
         self.maxq_learning = parameters.rl.maxq_learning
@@ -158,22 +159,3 @@ class RLTrainer:
         reward_estimates = self.reward_network(input)
         self.reward_network.train()
         return reward_estimates.cpu()
-
-
-def rescale_torch_tensor(
-    tensor: torch.Tensor,
-    new_min: torch.Tensor,
-    new_max: torch.Tensor,
-    prev_min: torch.Tensor,
-    prev_max: torch.Tensor,
-):
-    """
-    Rescale column values in N X M torch tensor to be in new range.
-    Each column m in input tensor will be rescaled from range
-    [prev_min[m], prev_max[m]] to [new_min[m], new_max[m]]
-    """
-    assert tensor.shape[1] == new_min.shape[1] == new_max.shape[1]
-    assert tensor.shape[1] == prev_min.shape[1] == prev_max.shape[1]
-    prev_range = prev_max - prev_min
-    new_range = new_max - new_min
-    return ((tensor - prev_min) / prev_range) * new_range + new_min

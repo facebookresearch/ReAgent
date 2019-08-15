@@ -8,8 +8,8 @@ import torch
 import torch.nn.functional as F
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.thrift.core.ttypes import TD3ModelParameters
-from ml.rl.training.rl_trainer_pytorch import RLTrainer, rescale_torch_tensor
-from ml.rl.training.training_data_page import TrainingDataPage
+from ml.rl.torch_utils import rescale_torch_tensor
+from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
 
 logger = logging.getLogger(__name__)
@@ -42,9 +42,10 @@ class TD3Trainer(RLTrainer):
             min_action_range_tensor_serving / max_action_range_tensor_serving:
                 min / max value of actions at serving time
         """
+        super().__init__(parameters, use_gpu=use_gpu)
+
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1
-        super().__init__(parameters, use_gpu=use_gpu)
 
         self.q1_network = q1_network
         self.q1_network_target = copy.deepcopy(self.q1_network)

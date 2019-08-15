@@ -20,7 +20,10 @@ class MDNRNNTrainer:
     """ Trainer for MDN-RNN """
 
     def __init__(
-        self, mdnrnn_network: MemoryNetwork, params: MDNRNNParameters, cum_loss_hist=100
+        self,
+        mdnrnn_network: MemoryNetwork,
+        params: MDNRNNParameters,
+        cum_loss_hist: int = 100,
     ):
         self.mdnrnn = mdnrnn_network
         self.params = params
@@ -33,7 +36,9 @@ class MDNRNNTrainer:
         self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
 
-    def train(self, training_batch, batch_first=False):
+    def train(
+        self, training_batch: rlt.PreprocessedTrainingBatch, batch_first: bool = False
+    ):
         assert (
             type(training_batch) is rlt.PreprocessedTrainingBatch
             and type(training_batch.training_input)
@@ -64,10 +69,10 @@ class MDNRNNTrainer:
             "bce": losses["bce"].cpu().detach().item(),
             "mse": losses["mse"].cpu().detach().item(),
         }
-        self.cum_loss += [detached_losses["loss"]]
-        self.cum_gmm += [detached_losses["gmm"]]
-        self.cum_bce += [detached_losses["bce"]]
-        self.cum_mse += [detached_losses["mse"]]
+        self.cum_loss.append(detached_losses["loss"])
+        self.cum_gmm.append(detached_losses["gmm"])
+        self.cum_bce.append(detached_losses["bce"])
+        self.cum_mse.append(detached_losses["mse"])
         del losses
 
         return detached_losses
@@ -79,11 +84,10 @@ class MDNRNNTrainer:
         batch_first: bool = False,
     ):
         """
-        Compute losses.
-
-        The loss that is computed is:
-            (GMMLoss(next_state, GMMPredicted) + MSE(reward, predicted_reward) +
-            BCE(not_terminal, logit_not_terminal)) / (STATE_DIM + 2)
+        Compute losses:
+            GMMLoss(next_state, GMMPredicted) / (STATE_DIM + 2)
+            + MSE(reward, predicted_reward)
+            + BCE(not_terminal, logit_not_terminal)
 
         The STATE_DIM + 2 factor is here to counteract the fact that the GMMLoss scales
             approximately linearily with STATE_DIM, the feature size of states. All losses
