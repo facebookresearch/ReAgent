@@ -14,3 +14,4 @@ thrift==0.11.0
 thrift-cpp==0.10.0
 scikit-learn==0.21.3
 xgboost==0.90
+python==3.7
