@@ -1,6 +1,9 @@
 # Project files
 .vscode
 
+# Spark binary
+spark*hadoop*.tgz
+
 # Test data
 cartpole_discrete
 cartpole_discrete_timeline

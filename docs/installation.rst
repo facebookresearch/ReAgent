@@ -28,12 +28,6 @@ Install dependencies:
 
    conda install --file requirements.txt
 
-Install ONNX using pip, which builds the latest version from source:
-
-.. code-block::
-
-   pip install onnx
-
 Set JAVA_HOME to the location of your anaconda install
 
 .. code-block::
