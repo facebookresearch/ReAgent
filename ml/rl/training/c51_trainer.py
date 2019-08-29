@@ -22,11 +22,6 @@ class C51Trainer(RLTrainer):
         use_gpu=False,
         metrics_to_score=None,
     ) -> None:
-        self.double_q_learning = parameters.rainbow.double_q_learning
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
-        self._actions = parameters.actions if parameters.actions is not None else []
-
         RLTrainer.__init__(
             self,
             parameters,
@@ -34,6 +29,11 @@ class C51Trainer(RLTrainer):
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,
         )
+
+        self.double_q_learning = parameters.rainbow.double_q_learning
+        self.minibatch_size = parameters.training.minibatch_size
+        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        self._actions = parameters.actions if parameters.actions is not None else []
 
         self.q_network = q_network
         self.q_network_target = q_network_target
