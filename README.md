@@ -10,6 +10,8 @@ Horizon is an open source end-to-end platform for applied reinforcement learning
 - Discrete-Action [DQN](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf)
 - Parametric-Action DQN
 - [Double DQN](https://arxiv.org/abs/1509.06461), [Dueling DQN](https://arxiv.org/abs/1511.06581), [Dueling Double DQN](https://arxiv.org/abs/1710.02298)
+- Distributional RL: [C51](https://arxiv.org/abs/1707.06887) and [QR-DQN](https://arxiv.org/abs/1710.10044)
+- [Twin Delayed DDPG](https://arxiv.org/abs/1802.09477) (TD3)
 - [Soft Actor-Critic](https://arxiv.org/abs/1801.01290) (SAC)
 
 #### Installation
