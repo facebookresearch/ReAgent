@@ -256,9 +256,6 @@ class TestGridworld(GridworldTestBase):
     def test_evaluator_ground_truth_categorical_gpu_modular(self):
         self._test_evaluator_ground_truth(categorical=True, use_gpu=True)
 
-    def test_evaluator_ground_truth_quantile_modular(self):
-        self._test_evaluator_ground_truth(quantile=True)
-
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_quantile_gpu_modular(self):
         self._test_evaluator_ground_truth(quantile=True, use_gpu=True)

@@ -321,8 +321,12 @@ class RawDiscreteDqnInput(RawBaseInput):
             self.time_diff,
             self.step,
             self.not_terminal.float(),
-            PreprocessedFeatureVector(float_features=state),
-            PreprocessedFeatureVector(float_features=next_state),
+            PreprocessedFeatureVector(
+                float_features=state, time_since_first=self.state.time_since_first
+            ),
+            PreprocessedFeatureVector(
+                float_features=next_state, time_since_first=self.state.time_since_first
+            ),
             self.action.float(),
             self.next_action.float(),
             self.possible_actions_mask.float(),
