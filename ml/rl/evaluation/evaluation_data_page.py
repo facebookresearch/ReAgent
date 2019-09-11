@@ -3,7 +3,7 @@
 
 import logging
 import math
-from typing import NamedTuple, Optional, Union, cast
+from typing import NamedTuple, Optional, cast
 
 import numpy as np
 import torch

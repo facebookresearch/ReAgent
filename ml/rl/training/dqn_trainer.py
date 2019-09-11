@@ -56,7 +56,9 @@ class DQNTrainer(DQNTrainerBase):
             assert reward_network is not None, "reward_network is required for CPE"
             self.reward_network = reward_network
             self.reward_network_optimizer = self.optimizer_func(
-                self.reward_network.parameters(), lr=parameters.training.learning_rate
+                self.reward_network.parameters(),
+                lr=parameters.training.learning_rate,
+                weight_decay=parameters.training.l2_decay,
             )
             assert (
                 q_network_cpe is not None and q_network_cpe_target is not None

@@ -2,14 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-import math
 from typing import List, Optional
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.nn.init as init
 from ml.rl.training.loss_reporter import LossReporter
 
 

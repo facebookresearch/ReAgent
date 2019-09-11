@@ -42,7 +42,9 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         self.reward_network = reward_network
         self.reward_network_optimizer = self.optimizer_func(
-            self.reward_network.parameters(), lr=parameters.training.learning_rate
+            self.reward_network.parameters(),
+            lr=parameters.training.learning_rate,
+            weight_decay=parameters.training.l2_decay,
         )
 
     @torch.no_grad()  # type: ignore
@@ -104,7 +106,6 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
             value_loss = self.q_network_loss(q_values, target_q_values)
             self.loss = value_loss.detach()
-
             value_loss.backward()
             self._maybe_run_optimizer(
                 self.q_network_optimizer, self.minibatches_per_step
