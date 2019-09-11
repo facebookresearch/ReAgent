@@ -117,7 +117,7 @@ def create_epsilon(offline_train, rl_parameters, params):
 
 def create_replay_buffer(
     env, params, model_type, offline_train, path_to_pickled_transitions
-) -> OpenAIGymMemoryPool:
+):
     """
     Train on transitions generated from a random policy live or
     read transitions from a pickle file and load into replay buffer.
@@ -163,6 +163,7 @@ def train(
     offline_train_epochs=3,
     offline_num_batches_per_epoch=None,
     bcq_imitator_hyperparams=None,
+    reward_shape_func=None,
 ):
     if offline_train:
         return train_gym_offline_rl(
@@ -179,30 +180,32 @@ def train(
             offline_num_batches_per_epoch,
             bcq_imitator_hyperparams,
         )
-    return train_gym_online_rl(
-        c2_device,
-        gym_env,
-        replay_buffer,
-        model_type,
-        trainer,
-        predictor,
-        test_run_name,
-        score_bar,
-        num_episodes,
-        max_steps,
-        train_every_ts,
-        train_after_ts,
-        test_every_ts,
-        test_after_ts,
-        num_train_batches,
-        avg_over_num_episodes,
-        render,
-        save_timesteps_to_dataset,
-        start_saving_from_score,
-        solved_reward_threshold,
-        max_episodes_to_run_after_solved,
-        stop_training_after_solved,
-    )
+    else:
+        return train_gym_online_rl(
+            c2_device,
+            gym_env,
+            replay_buffer,
+            model_type,
+            trainer,
+            predictor,
+            test_run_name,
+            score_bar,
+            num_episodes,
+            max_steps,
+            train_every_ts,
+            train_after_ts,
+            test_every_ts,
+            test_after_ts,
+            num_train_batches,
+            avg_over_num_episodes,
+            render,
+            save_timesteps_to_dataset,
+            start_saving_from_score,
+            solved_reward_threshold,
+            max_episodes_to_run_after_solved,
+            stop_training_after_solved,
+            reward_shape_func,
+        )
 
 
 def create_random_policy_offline_dataset(gym_env, replay_buffer, max_steps, model_type):
@@ -387,11 +390,12 @@ def train_gym_online_rl(
     solved_reward_threshold,
     max_episodes_to_run_after_solved,
     stop_training_after_solved,
+    reward_shape_func,
 ):
     """Train off of dynamic set of transitions generated on-policy."""
     total_timesteps = 0
     avg_reward_history, timestep_history = [], []
-    best_episode_score_seeen = -1e20
+    best_episode_score_seen = -1e20
     episodes_since_solved = 0
     solved = False
     policy_id = 0
@@ -433,7 +437,11 @@ def train_gym_online_rl(
                 action, gym_env.action_type, model_type
             )
             next_state, reward, terminal, _ = gym_env.step(gym_action)
+
             next_state = gym_env.transform_state(next_state)
+
+            if reward_shape_func:
+                reward = reward_shape_func(next_state, ep_timesteps)
 
             ep_timesteps += 1
             total_timesteps += 1
@@ -468,7 +476,7 @@ def train_gym_online_rl(
 
             if save_timesteps_to_dataset and (
                 start_saving_from_score is None
-                or best_episode_score_seeen >= start_saving_from_score
+                or best_episode_score_seen >= start_saving_from_score
             ):
                 save_timesteps_to_dataset.insert(
                     mdp_id=i,
@@ -510,12 +518,12 @@ def train_gym_online_rl(
                 avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
                     avg_over_num_episodes, predictor, test=True
                 )
-                if avg_rewards > best_episode_score_seeen:
-                    best_episode_score_seeen = avg_rewards
+                if avg_rewards > best_episode_score_seen:
+                    best_episode_score_seen = avg_rewards
 
                 if (
                     solved_reward_threshold is not None
-                    and best_episode_score_seeen > solved_reward_threshold
+                    and best_episode_score_seen > solved_reward_threshold
                 ):
                     solved = True
 
@@ -701,6 +709,8 @@ def run_gym(
     save_timesteps_to_dataset=None,
     start_saving_from_score=None,
     path_to_pickled_transitions=None,
+    warm_trainer=None,
+    reward_shape_func=None,
 ):
     logger.info("Running gym with params")
     logger.info(params)
@@ -726,7 +736,11 @@ def run_gym(
     )
 
     use_gpu = gpu_id != USE_CPU
-    trainer = create_trainer(params["model_type"], params, rl_parameters, use_gpu, env)
+    trainer = (
+        warm_trainer
+        if warm_trainer
+        else create_trainer(model_type, params, rl_parameters, use_gpu, env)
+    )
     predictor = create_predictor(trainer, model_type, use_gpu, env.action_dim)
 
     c2_device = core.DeviceOption(
@@ -745,6 +759,7 @@ def run_gym(
         **params["run_details"],
         save_timesteps_to_dataset=save_timesteps_to_dataset,
         start_saving_from_score=start_saving_from_score,
+        reward_shape_func=reward_shape_func,
     )
 
 

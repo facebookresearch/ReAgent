@@ -31,17 +31,19 @@ class DQNTrainer(DQNTrainerBase):
         metrics_to_score=None,
         imitator=None,
     ) -> None:
+
+        self._actions = parameters.actions if parameters.actions is not None else []
+
         DQNTrainerBase.__init__(
             self,
             parameters,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
-            actions=parameters.actions,
+            actions=self._actions,
         )
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1
-        self._actions = parameters.actions if parameters.actions is not None else []
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -215,6 +217,7 @@ class DQNTrainer(DQNTrainerBase):
             self.all_action_scores,
             possible_actions_mask if self.maxq_learning else learning_input.action,
         )[1]
+
         self.loss_reporter.report(
             td_loss=self.loss,
             reward_loss=reward_loss,
