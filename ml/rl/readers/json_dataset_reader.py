@@ -8,6 +8,7 @@ import os
 from collections import OrderedDict
 from typing import Optional
 
+# @manual=third-party//pandas:pandas-py
 import pandas as pd
 from ml.rl.readers.base import ReaderBase, ReaderIter
 
