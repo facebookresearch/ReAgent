@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class C51Trainer(RLTrainer):
+    """
+    Implementation of 51 Categorical DQN (C51)
+
+    See https://arxiv.org/abs/1707.06887 for details
+    """
+
     def __init__(
         self,
         q_network,

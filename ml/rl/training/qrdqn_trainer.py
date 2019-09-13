@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class QRDQNTrainer(RLTrainer):
+    """
+    Implementation of QR-DQN (Quantile Regression Deep Q-Nework)
+
+    See https://arxiv.org/abs/1710.10044 for details
+    """
+
     def __init__(
         self,
         q_network,
