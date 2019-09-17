@@ -107,9 +107,9 @@ class QRDQNTrainer(DQNTrainerBase):
         if self.maxq_learning:
             # Select distribution corresponding to max valued action
             next_q_values = (
-                self.q_network(next_state)
+                self.q_network(next_state).q_values
                 if self.double_q_learning
-                else next_qf.mean(2)
+                else next_qf.mean(dim=2)
             )
             next_action = self.argmax_with_mask(
                 next_q_values, possible_next_actions_mask
