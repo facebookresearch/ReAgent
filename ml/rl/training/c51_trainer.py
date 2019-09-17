@@ -176,10 +176,6 @@ class C51Trainer(RLTrainer):
 
         return q_values
 
-    @property
-    def num_actions(self) -> int:
-        return len(self._actions)
-
     @torch.no_grad()  # type: ignore
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor

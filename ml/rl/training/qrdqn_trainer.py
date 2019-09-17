@@ -6,14 +6,14 @@ import logging
 import ml.rl.types as rlt
 import torch
 from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
+from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
 
 
-class QRDQNTrainer(RLTrainer):
+class QRDQNTrainer(DQNTrainerBase):
     """
     Implementation of QR-DQN (Quantile Regression Deep Q-Nework)
 
@@ -27,9 +27,11 @@ class QRDQNTrainer(RLTrainer):
         parameters: DiscreteActionModelParameters,
         use_gpu=False,
         metrics_to_score=None,
+        reward_network=None,
+        q_network_cpe=None,
+        q_network_cpe_target=None,
     ) -> None:
-        RLTrainer.__init__(
-            self,
+        super().__init__(
             parameters,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
@@ -56,6 +58,10 @@ class QRDQNTrainer(RLTrainer):
             / float(self.num_atoms)
         ).view(1, -1)
 
+        self._initialize_cpe(
+            parameters, reward_network, q_network_cpe, q_network_cpe_target
+        )
+
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
             for k in parameters.rl.reward_boost.keys():
@@ -63,7 +69,16 @@ class QRDQNTrainer(RLTrainer):
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
     def warm_start_components(self):
-        return ["q_network", "q_network_target", "q_network_optimizer"]
+        components = ["q_network", "q_network_target", "q_network_optimizer"]
+        if self.reward_network is not None:
+            components += [
+                "reward_network",
+                "reward_network_optimizer",
+                "q_network_cpe",
+                "q_network_cpe_target",
+                "q_network_cpe_optimizer",
+            ]
+        return components
 
     @torch.no_grad()  # type: ignore
     def train(self, training_batch):
@@ -130,16 +145,35 @@ class QRDQNTrainer(RLTrainer):
             self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
         )
 
+        # Get Q-values of next states, used in computing cpe
+        all_next_action_scores = self.q_network(next_state).q_values.detach()
+
+        logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
+        reward_loss, model_rewards, model_propensities = self._calculate_cpes(
+            training_batch,
+            state,
+            next_state,
+            all_q_values,
+            all_next_action_scores,
+            logged_action_idxs,
+            discount_tensor,
+            not_done_mask,
+        )
+
         model_action_idxs = self.argmax_with_mask(
             all_q_values,
             possible_actions_mask if self.maxq_learning else learning_input.action,
         )
         self.loss_reporter.report(
             td_loss=loss,
-            logged_actions=learning_input.action.argmax(dim=1, keepdim=True),
+            logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,
+            logged_values=None,  # Compute at end of each epoch for CPE
+            model_propensities=model_propensities,
+            model_rewards=model_rewards,
             model_values=all_q_values,
+            model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=model_action_idxs,
         )
 
@@ -154,10 +188,6 @@ class QRDQNTrainer(RLTrainer):
         self.q_network.train()
 
         return q_values
-
-    @property
-    def num_actions(self) -> int:
-        return len(self._actions)
 
     @torch.no_grad()  # type: ignore
     def boost_rewards(
@@ -180,3 +210,11 @@ class QRDQNTrainer(RLTrainer):
     # Used to prevent warning when a.shape != b.shape
     def huber(self, x):
         return torch.where(x.abs() < 1, 0.5 * x.pow(2), x.abs() - 0.5)
+
+    @torch.no_grad()  # type: ignore
+    def get_detached_q_values(self, state):
+        """ Gets the q values from the model and target networks """
+        input = rlt.PreprocessedState(state=state)
+        q_values = self.q_network(input).q_values
+        q_values_target = self.q_network_target(input).q_values
+        return q_values, q_values_target

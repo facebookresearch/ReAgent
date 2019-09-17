@@ -7,6 +7,7 @@ from typing import List, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
+from ml.rl.caffe_utils import masked_softmax
 from ml.rl.training.loss_reporter import LossReporter
 
 
@@ -29,6 +30,7 @@ class RLTrainer:
     ):
         self.minibatch = 0
         self.minibatch_size: Optional[int] = None
+        self.minibatches_per_step: Optional[int] = None
         self.parameters = parameters
         self.rl_temperature = float(parameters.rl.temperature)
         self.maxq_learning = parameters.rl.maxq_learning
@@ -68,6 +70,42 @@ class RLTrainer:
             self.device = torch.device("cpu")  # type: ignore
 
         self.loss_reporter = LossReporter(actions)
+        self._actions = actions
+
+    @property
+    def num_actions(self) -> int:
+        assert self._actions is not None, "Not a discrete action DQN"
+        return len(self._actions)
+
+    def _initialize_cpe(
+        self, parameters, reward_network, q_network_cpe, q_network_cpe_target
+    ) -> None:
+        if self.calc_cpe_in_training:
+            assert reward_network is not None, "reward_network is required for CPE"
+            self.reward_network = reward_network
+            self.reward_network_optimizer = self.optimizer_func(
+                self.reward_network.parameters(),
+                lr=parameters.training.learning_rate,
+                weight_decay=parameters.training.l2_decay,
+            )
+            assert (
+                q_network_cpe is not None and q_network_cpe_target is not None
+            ), "q_network_cpe and q_network_cpe_target are required for CPE"
+            self.q_network_cpe = q_network_cpe
+            self.q_network_cpe_target = q_network_cpe_target
+            self.q_network_cpe_optimizer = self.optimizer_func(
+                self.q_network_cpe.parameters(), lr=parameters.training.learning_rate
+            )
+            num_output_nodes = len(self.metrics_to_score) * self.num_actions
+            self.reward_idx_offsets = torch.arange(
+                0,
+                num_output_nodes,
+                self.num_actions,
+                device=self.device,
+                dtype=torch.long,
+            )
+        else:
+            self.reward_network = None
 
     def _set_optimizer(self, optimizer_name):
         self.optimizer_func = self._get_optimizer_func(optimizer_name)
@@ -156,3 +194,105 @@ class RLTrainer:
         reward_estimates = self.reward_network(input)
         self.reward_network.train()
         return reward_estimates.cpu()
+
+    @torch.no_grad()  # type: ignore
+    def _calculate_cpes(
+        self,
+        training_batch,
+        states,
+        next_states,
+        all_action_scores,
+        all_next_action_scores,
+        logged_action_idxs,
+        discount_tensor,
+        not_done_mask,
+    ):
+        if not self.calc_cpe_in_training:
+            return None, None, None
+
+        if training_batch.extras.metrics is None:
+            metrics_reward_concat_real_vals = training_batch.training_input.reward
+        else:
+            metrics_reward_concat_real_vals = torch.cat(
+                (training_batch.training_input.reward, training_batch.extras.metrics),
+                dim=1,
+            )
+
+        model_propensities_next_states = masked_softmax(
+            all_next_action_scores,
+            training_batch.training_input.possible_next_actions_mask
+            if self.maxq_learning
+            else training_batch.training_input.next_action,
+            self.rl_temperature,
+        )
+
+        with torch.enable_grad():
+            ######### Train separate reward network for CPE evaluation #############
+            # FIXME: the reward network should be outputing a tensor,
+            # not a q-value object
+            reward_estimates = self.reward_network(states).q_values
+            reward_estimates_for_logged_actions = reward_estimates.gather(
+                1, self.reward_idx_offsets + logged_action_idxs
+            )
+            reward_loss = F.mse_loss(
+                reward_estimates_for_logged_actions, metrics_reward_concat_real_vals
+            )
+            reward_loss.backward()
+            self._maybe_run_optimizer(
+                self.reward_network_optimizer, self.minibatches_per_step
+            )
+
+            ######### Train separate q-network for CPE evaluation #############
+            metric_q_values = self.q_network_cpe(states).q_values.gather(
+                1, self.reward_idx_offsets + logged_action_idxs
+            )
+            all_metrics_target_q_values = torch.chunk(
+                self.q_network_cpe_target(next_states).q_values.detach(),
+                len(self.metrics_to_score),
+                dim=1,
+            )
+            target_metric_q_values = []
+            for i, per_metric_target_q_values in enumerate(all_metrics_target_q_values):
+                per_metric_next_q_values = torch.sum(
+                    per_metric_target_q_values * model_propensities_next_states,
+                    1,
+                    keepdim=True,
+                )
+                per_metric_next_q_values = per_metric_next_q_values * not_done_mask
+                per_metric_target_q_values = metrics_reward_concat_real_vals[
+                    :, i : i + 1
+                ] + (discount_tensor * per_metric_next_q_values)
+                target_metric_q_values.append(per_metric_target_q_values)
+
+            target_metric_q_values = torch.cat(target_metric_q_values, dim=1)
+            metric_q_value_loss = self.q_network_loss(
+                metric_q_values, target_metric_q_values
+            )
+            metric_q_value_loss.backward()
+            self._maybe_run_optimizer(
+                self.q_network_cpe_optimizer, self.minibatches_per_step
+            )
+
+        # Use the soft update rule to update target network
+        self._maybe_soft_update(
+            self.q_network_cpe,
+            self.q_network_cpe_target,
+            self.tau,
+            self.minibatches_per_step,
+        )
+
+        model_propensities = masked_softmax(
+            all_action_scores,
+            training_batch.training_input.possible_actions_mask
+            if self.maxq_learning
+            else training_batch.training_input.action,
+            self.rl_temperature,
+        )
+        model_rewards = reward_estimates[
+            :,
+            torch.arange(
+                self.reward_idx_offsets[0],
+                self.reward_idx_offsets[0] + self.num_actions,
+            ),
+        ]
+        return reward_loss, model_rewards, model_propensities

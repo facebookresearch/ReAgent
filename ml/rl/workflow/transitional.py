@@ -138,6 +138,9 @@ def create_dqn_trainer_from_params(
             model,
             use_gpu,
             metrics_to_score=metrics_to_score,
+            reward_network=reward_network,
+            q_network_cpe=q_network_cpe,
+            q_network_cpe_target=q_network_cpe_target,
         )
 
     elif model.rainbow.categorical:
