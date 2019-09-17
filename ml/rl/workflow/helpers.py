@@ -61,7 +61,7 @@ def save_model_to_file(model, path):
         }
         torch.save(state, path)
     else:
-        raise ("Model of type {} not a valid model".format(type(model)))
+        raise ValueError("Model of type {} not a valid model".format(type(model)))
 
 
 def update_model_for_warm_start(model, path=None):

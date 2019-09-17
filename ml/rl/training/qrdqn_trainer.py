@@ -62,6 +62,9 @@ class QRDQNTrainer(RLTrainer):
                 i = self._actions.index(k)
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
+    def warm_start_components(self):
+        return ["q_network", "q_network_target", "q_network_optimizer"]
+
     @torch.no_grad()  # type: ignore
     def train(self, training_batch):
         if isinstance(training_batch, TrainingDataPage):
