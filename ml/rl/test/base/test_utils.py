@@ -7,7 +7,7 @@ import numpy as np
 import numpy.testing as npt
 import torch
 from ml.rl.caffe_utils import masked_softmax
-from ml.rl.training.rl_trainer_pytorch import rescale_torch_tensor
+from ml.rl.torch_utils import rescale_torch_tensor
 
 
 class TestUtils(unittest.TestCase):

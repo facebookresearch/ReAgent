@@ -259,3 +259,18 @@ struct MDNRNNParameters {
   11: double not_terminal_loss_weight = 1.0,
   12: bool fit_only_one_next_step = false,
 }
+
+
+struct CEMParameters {
+  1: MDNRNNParameters mdnrnn,
+  2: RLParameters rl,
+  3: i32 plan_horizon_length,
+  4: i32 num_world_models,
+  5: i32 cem_population_size,
+  6: i32 cem_num_iterations,
+  7: i32 ensemble_population_size,
+  8: i32 num_elites,
+  9: double alpha = 0.25,
+  10: double epsilon = 0.001,
+  11: EvaluationParameters evaluation = {},
+}

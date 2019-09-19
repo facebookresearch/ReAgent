@@ -85,6 +85,14 @@ class SequentialDoublyRobustEstimator:
                 last_episode_end = episode_end
             i += 1
 
+        assert len(doubly_robusts) > 0, (
+            f"No valid doubly robusts data is generated. "
+            f"Logged_rewards={logged_rewards}, importance_weight={importance_weight},"
+            f" estimated_q_values_for_logged_action={estimated_q_values_for_logged_action}"
+            f" estimated_state_values={estimated_state_values}, gamma={self.gamma}"
+            f" Did you specify wrong metric names?"
+        )
+
         doubly_robusts = np.array(doubly_robusts)  # type: ignore
         dr_score = float(np.mean(doubly_robusts))
         dr_score_std_error = bootstrapped_std_error_of_mean(doubly_robusts)

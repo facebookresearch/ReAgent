@@ -11,6 +11,8 @@ import numpy as np
 import torch
 from ml.rl.models.categorical_dqn import CategoricalDQN
 from ml.rl.models.dqn import FullyConnectedDQN
+from ml.rl.models.dueling_q_network import DuelingQNetwork
+from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
 from ml.rl.models.quantile_dqn import QuantileDQN
 from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
@@ -58,7 +60,7 @@ class TestGridworld(GridworldTestBase):
         )
         training_parameters = TrainingParameters(
             layers=[-1, 128, -1] if dueling else [-1, -1],
-            activations=["relu", "linear"] if dueling else ["linear"],
+            activations=["relu", "relu"] if dueling else ["linear"],
             minibatch_size=self.minibatch_size,
             learning_rate=0.05,
             optimizer="ADAM",
@@ -73,6 +75,7 @@ class TestGridworld(GridworldTestBase):
                 dueling_architecture=dueling,
                 categorical=categorical,
                 quantile=quantile,
+                num_atoms=5,
             ),
         )
 
@@ -89,9 +92,9 @@ class TestGridworld(GridworldTestBase):
         return self.get_modular_sarsa_trainer_reward_boost(
             environment,
             {},
-            dueling,
-            categorical,
-            quantile,
+            dueling=dueling,
+            categorical=categorical,
+            quantile=quantile,
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
             clip_grad_norm=clip_grad_norm,
@@ -108,42 +111,65 @@ class TestGridworld(GridworldTestBase):
         use_all_avail_gpus=False,
         clip_grad_norm=None,
     ):
+        assert not quantile or not categorical
         parameters = self.get_sarsa_parameters(
             environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
         )
 
         if quantile:
-            q_network = QuantileDQN(
-                state_dim=get_num_output_features(environment.normalization),
-                action_dim=len(environment.ACTIONS),
-                num_atoms=50,
-                sizes=parameters.training.layers[1:-1],
-                activations=parameters.training.activations[:-1],
-            )
-            parameters.rainbow.num_atoms = 50
+            if dueling:
+                q_network = DuelingQuantileDQN(
+                    layers=[get_num_output_features(environment.normalization)]
+                    + parameters.training.layers[1:-1]
+                    + [len(environment.ACTIONS)],
+                    activations=parameters.training.activations,
+                    num_atoms=parameters.rainbow.num_atoms,
+                )
+            else:
+                q_network = QuantileDQN(
+                    state_dim=get_num_output_features(environment.normalization),
+                    action_dim=len(environment.ACTIONS),
+                    num_atoms=parameters.rainbow.num_atoms,
+                    sizes=parameters.training.layers[1:-1],
+                    activations=parameters.training.activations[:-1],
+                )
         elif categorical:
+            assert not dueling
             q_network = CategoricalDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
-                num_atoms=51,
+                num_atoms=parameters.rainbow.num_atoms,
                 qmin=-100,
                 qmax=200,
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
         else:
-            q_network = FullyConnectedDQN(
-                state_dim=get_num_output_features(environment.normalization),
-                action_dim=len(environment.ACTIONS),
-                sizes=parameters.training.layers[1:-1],
-                activations=parameters.training.activations[:-1],
-            )
+            if dueling:
+                q_network = DuelingQNetwork(
+                    layers=[get_num_output_features(environment.normalization)]
+                    + parameters.training.layers[1:-1]
+                    + [len(environment.ACTIONS)],
+                    activations=parameters.training.activations,
+                )
+            else:
+                q_network = FullyConnectedDQN(
+                    state_dim=get_num_output_features(environment.normalization),
+                    action_dim=len(environment.ACTIONS),
+                    sizes=parameters.training.layers[1:-1],
+                    activations=parameters.training.activations[:-1],
+                )
+
+        q_network_cpe, q_network_cpe_target, reward_network = None, None, None
+
+        if parameters.evaluation.calc_cpe_in_training:
             q_network_cpe = FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
+            q_network_cpe_target = q_network_cpe.get_target_network()
             reward_network = FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
@@ -153,17 +179,27 @@ class TestGridworld(GridworldTestBase):
 
         if use_gpu:
             q_network = q_network.cuda()
-            if not categorical and not quantile:
+            if parameters.evaluation.calc_cpe_in_training:
                 reward_network = reward_network.cuda()
                 q_network_cpe = q_network_cpe.cuda()
+                q_network_cpe_target = q_network_cpe_target.cuda()
             if use_all_avail_gpus and not categorical:
                 q_network = q_network.get_distributed_data_parallel_model()
                 reward_network = reward_network.get_distributed_data_parallel_model()
                 q_network_cpe = q_network_cpe.get_distributed_data_parallel_model()
+                q_network_cpe_target = (
+                    q_network_cpe_target.get_distributed_data_parallel_model()
+                )
 
         if quantile:
             trainer = QRDQNTrainer(
-                q_network, q_network.get_target_network(), parameters, use_gpu
+                q_network,
+                q_network.get_target_network(),
+                parameters,
+                use_gpu,
+                reward_network=reward_network,
+                q_network_cpe=q_network_cpe,
+                q_network_cpe_target=q_network_cpe_target,
             )
         elif categorical:
             trainer = C51Trainer(
@@ -177,7 +213,7 @@ class TestGridworld(GridworldTestBase):
                 parameters,
                 use_gpu,
                 q_network_cpe=q_network_cpe,
-                q_network_cpe_target=q_network_cpe.get_target_network(),
+                q_network_cpe_target=q_network_cpe_target,
             )
         return trainer
 
@@ -198,9 +234,9 @@ class TestGridworld(GridworldTestBase):
         trainer = self.get_modular_sarsa_trainer_reward_boost(
             environment,
             reward_shape,
-            dueling,
-            categorical,
-            quantile,
+            dueling=dueling,
+            categorical=categorical,
+            quantile=quantile,
             use_gpu=use_gpu,
             use_all_avail_gpus=use_all_avail_gpus,
             clip_grad_norm=clip_grad_norm,
@@ -226,12 +262,12 @@ class TestGridworld(GridworldTestBase):
         trainer, exporter = self.get_modular_sarsa_trainer_exporter(
             environment,
             {},
-            dueling,
-            categorical,
-            quantile,
-            use_gpu,
-            use_all_avail_gpus,
-            clip_grad_norm,
+            dueling=dueling,
+            categorical=categorical,
+            quantile=quantile,
+            use_gpu=use_gpu,
+            use_all_avail_gpus=use_all_avail_gpus,
+            clip_grad_norm=clip_grad_norm,
         )
         self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
 
@@ -262,6 +298,13 @@ class TestGridworld(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_quantile_gpu_modular(self):
         self._test_evaluator_ground_truth(quantile=True, use_gpu=True)
+
+    def test_evaluator_ground_truth_dueling_quantile_modular(self):
+        self._test_evaluator_ground_truth(dueling=True, quantile=True)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_evaluator_ground_truth_dueling_quantile_gpu_modular(self):
+        self._test_evaluator_ground_truth(dueling=True, quantile=True, use_gpu=True)
 
     def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
         environment = Gridworld()

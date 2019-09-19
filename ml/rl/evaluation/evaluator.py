@@ -6,6 +6,7 @@ from collections import Counter
 from typing import Dict, List, Optional
 
 import torch
+import torch.nn.functional as F
 from ml.rl.evaluation.cpe import CpeDetails, CpeEstimateSet
 from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
@@ -106,12 +107,10 @@ class Evaluator(object):
                     / edp.eval_action_idxs.shape[0]
                     for i, action in enumerate(self.action_names)
                 }
-
         # Compute MC Loss on Aggregate Reward
         cpe_details.mc_loss = float(
-            torch.mean(torch.abs(edp.logged_values - edp.model_values))  # type: ignore
+            F.mse_loss(edp.logged_values, edp.model_values_for_logged_action)
         )
-
         return cpe_details
 
     def score_cpe(self, metric_name, edp: EvaluationDataPage):

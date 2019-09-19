@@ -159,7 +159,7 @@ def get_replay_buffer(
     seq_len: int,
     max_step: Optional[int],
     gym_env: OpenAIGymEnvironment,
-):
+) -> MDNRNNMemoryPool:
     num_transitions = num_episodes * max_step  # type: ignore
     replay_buffer = MDNRNNMemoryPool(max_replay_memory_size=num_transitions)
     for (

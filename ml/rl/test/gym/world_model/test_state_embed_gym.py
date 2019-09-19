@@ -34,16 +34,6 @@ class TestStateEmbedGym(HorizonTestBase):
     def verify_result(reward_history: List[float], expected_reward: float):
         assert reward_history[-1] >= expected_reward
 
-    def test_string_game(self):
-        with open(MDNRNN_STRING_GAME_JSON, "r") as f:
-            mdnrnn_params = json.load(f)
-        with open(DQN_STRING_GAME_JSON, "r") as f:
-            rl_params = json.load(f)
-        avg_reward_history = self._test_state_embed(
-            mdnrnn_params, rl_params, use_gpu=False
-        )
-        self.verify_result(avg_reward_history, 10)
-
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_string_game_gpu(self):
         with open(MDNRNN_STRING_GAME_JSON, "r") as f:
@@ -55,7 +45,8 @@ class TestStateEmbedGym(HorizonTestBase):
         )
         self.verify_result(avg_reward_history, 10)
 
-    def _test_state_embed(self, mdnrnn_params, rl_params, use_gpu=False):
+    @staticmethod
+    def _test_state_embed(mdnrnn_params, rl_params, use_gpu=False):
         env, mdnrnn_trainer, embed_rl_dataset = create_mdnrnn_trainer_and_embed_dataset(
             mdnrnn_params, use_gpu
         )

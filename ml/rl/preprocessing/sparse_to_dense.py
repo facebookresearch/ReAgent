@@ -6,6 +6,8 @@ import logging
 from typing import Dict, List, Tuple
 
 import numpy as np
+
+# @manual=third-party//pandas:pandas-py
 import pandas as pd
 import torch
 from caffe2.python import workspace

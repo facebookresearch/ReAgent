@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class C51Trainer(RLTrainer):
+    """
+    Implementation of 51 Categorical DQN (C51)
+
+    See https://arxiv.org/abs/1707.06887 for details
+    """
+
     def __init__(
         self,
         q_network,
@@ -22,11 +28,6 @@ class C51Trainer(RLTrainer):
         use_gpu=False,
         metrics_to_score=None,
     ) -> None:
-        self.double_q_learning = parameters.rainbow.double_q_learning
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
-        self._actions = parameters.actions if parameters.actions is not None else []
-
         RLTrainer.__init__(
             self,
             parameters,
@@ -34,6 +35,11 @@ class C51Trainer(RLTrainer):
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,
         )
+
+        self.double_q_learning = parameters.rainbow.double_q_learning
+        self.minibatch_size = parameters.training.minibatch_size
+        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        self._actions = parameters.actions if parameters.actions is not None else []
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -169,10 +175,6 @@ class C51Trainer(RLTrainer):
         self.q_network.train()
 
         return q_values
-
-    @property
-    def num_actions(self) -> int:
-        return len(self._actions)
 
     @torch.no_grad()  # type: ignore
     def boost_rewards(

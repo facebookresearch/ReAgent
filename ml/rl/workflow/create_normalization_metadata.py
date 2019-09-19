@@ -7,6 +7,7 @@ import os
 import sys
 from collections import defaultdict
 
+# @manual=third-party//pandas:pandas-py
 import pandas as pd
 from ml.rl.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,

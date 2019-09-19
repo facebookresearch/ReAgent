@@ -15,3 +15,4 @@ thrift==0.10.0
 thrift-cpp==0.10.0
 dataclasses==0.6
 scikit-learn==0.20.0
+xgboost==0.90

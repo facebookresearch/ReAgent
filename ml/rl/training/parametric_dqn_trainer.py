@@ -25,11 +25,11 @@ class ParametricDQNTrainer(DQNTrainerBase):
         parameters: ContinuousActionModelParameters,
         use_gpu: bool = False,
     ) -> None:
+        DQNTrainerBase.__init__(self, parameters, use_gpu=use_gpu)
+
         self.double_q_learning = parameters.rainbow.double_q_learning
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1
-
-        DQNTrainerBase.__init__(self, parameters, use_gpu=use_gpu)
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -42,7 +42,9 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         self.reward_network = reward_network
         self.reward_network_optimizer = self.optimizer_func(
-            self.reward_network.parameters(), lr=parameters.training.learning_rate
+            self.reward_network.parameters(),
+            lr=parameters.training.learning_rate,
+            weight_decay=parameters.training.l2_decay,
         )
 
     @torch.no_grad()  # type: ignore
@@ -104,7 +106,6 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
             value_loss = self.q_network_loss(q_values, target_q_values)
             self.loss = value_loss.detach()
-
             value_loss.backward()
             self._maybe_run_optimizer(
                 self.q_network_optimizer, self.minibatches_per_step

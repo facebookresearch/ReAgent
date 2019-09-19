@@ -2,20 +2,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-from gym.envs.registration import register, registry
+from ml.rl.test.environment import register_if_not_exists
 from ml.rl.test.gym.pomdp.pocman import PocManEnv  # noqa
 from ml.rl.test.gym.pomdp.string_game import StringGameEnv  # noqa
 
 
 logger = logging.getLogger(__name__)
-
-
-def register_if_not_exists(id, entry_point):
-    """
-    Preventing tests from failing trying to re-register environments
-    """
-    if id not in registry.env_specs:
-        register(id=id, entry_point=entry_point)
 
 
 register_if_not_exists(

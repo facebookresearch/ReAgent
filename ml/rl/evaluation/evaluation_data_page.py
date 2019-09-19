@@ -3,7 +3,7 @@
 
 import logging
 import math
-from typing import NamedTuple, Optional, Union, cast
+from typing import NamedTuple, Optional, cast
 
 import numpy as np
 import torch
@@ -38,6 +38,7 @@ class EvaluationDataPage(NamedTuple):
     model_metrics_values: Optional[torch.Tensor] = None
     model_metrics_values_for_logged_action: Optional[torch.Tensor] = None
     possible_actions_state_concat: Optional[torch.Tensor] = None
+    contexts: Optional[torch.Tensor] = None
 
     @classmethod
     def create_from_training_batch(

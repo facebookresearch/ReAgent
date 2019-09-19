@@ -2,8 +2,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import enum
+import logging
 from functools import reduce
-from typing import Dict, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import gym
 import ml.rl.test.gym.pomdp  # noqa
@@ -18,12 +19,16 @@ from ml.rl.training.on_policy_predictor import OnPolicyPredictor
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 
 
+logger = logging.getLogger(__name__)
+
+
 class ModelType(enum.Enum):
     CONTINUOUS_ACTION = "continuous"
     SOFT_ACTOR_CRITIC = "soft_actor_critic"
     TD3 = "td3"
     PYTORCH_DISCRETE_DQN = "pytorch_discrete_dqn"
     PYTORCH_PARAMETRIC_DQN = "pytorch_parametric_dqn"
+    CEM = "cross_entropy_method"
 
 
 class EnvType(enum.Enum):
@@ -41,6 +46,7 @@ class OpenAIGymEnvironment(Environment):
         gamma=0.99,
         epsilon_decay=1,
         minimum_epsilon=None,
+        random_seed: Optional[int] = None,
     ):
         """
         Creates an OpenAIGymEnvironment object.
@@ -54,6 +60,7 @@ class OpenAIGymEnvironment(Environment):
         :param gamma: Discount rate
         :param epsilon_decay: How much to decay epsilon over each iteration in training.
         :param minimum_epsilon: Lower bound of epsilon.
+        :param random_seed: The random seed for the environment
         """
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
@@ -63,7 +70,7 @@ class OpenAIGymEnvironment(Environment):
         self.action_type: EnvType = EnvType.UNKNOWN
         self.state_dim = -1
         self.action_dim = -1
-        self._create_env(gymenv)
+        self._create_env(gymenv, random_seed)
         assert self.action_type is not EnvType.UNKNOWN
 
         if not self.img:
@@ -78,7 +85,7 @@ class OpenAIGymEnvironment(Environment):
         if self.minimum_epsilon is not None:
             self.epsilon = max(self.epsilon, self.minimum_epsilon)
 
-    def _create_env(self, gymenv: Union[str, Env]):
+    def _create_env(self, gymenv: Union[str, Env], random_seed: Optional[int]):
         """
         Creates a gym environment object and checks if it is supported. We
         support environments that supply Box(x, ) state representations and
@@ -95,6 +102,8 @@ class OpenAIGymEnvironment(Environment):
                 raise Exception("Env {} not found in OpenAI Gym.".format(gymenv))
             self.env = gym.make(gymenv)
             self.env_name = gymenv
+            if random_seed is not None:
+                self.env.seed(random_seed)
 
         supports_state = isinstance(self.env.observation_space, gym.spaces.Box) and len(
             self.env.observation_space.shape
@@ -307,13 +316,18 @@ class OpenAIGymEnvironment(Environment):
         :param render: Whether or not to render the episode.
         """
         terminal = False
-        next_state = self.transform_state(self.reset())
+        next_state_numpy = self.reset()
+        next_state = self.transform_state(next_state_numpy)
         next_action, _ = self.policy(predictor, next_state, test)
         reward_sum = 0.0
         discounted_reward_sum = 0
         num_steps_taken = 0
 
         while not terminal:
+            # czxttkl
+            logger.debug(
+                f"OpenAIGym: {num_steps_taken}-th step, state: {next_state_numpy}"
+            )
             action = next_action
             if render:
                 self.env.render()
@@ -321,8 +335,16 @@ class OpenAIGymEnvironment(Environment):
             if self.action_type == EnvType.DISCRETE_ACTION:
                 action_index = int(torch.argmax(action))
                 next_state_numpy, reward, terminal, _ = self.step(action_index)
+                # czxttkl
+                logger.debug(
+                    f"OpenAIGym: take action {action_index}, reward: {reward}, terminal: {terminal}"
+                )
             else:
                 next_state_numpy, reward, terminal, _ = self.step(action.numpy())
+                # czxttkl
+                logger.debug(
+                    f"OpenAIGym: take action {action.numpy()}, reward: {reward}, terminal: {terminal}"
+                )
 
             next_state = self.transform_state(next_state_numpy)
             num_steps_taken += 1
