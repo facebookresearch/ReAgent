@@ -8,9 +8,9 @@ protobuf==3.6.1
 pytest-xdist==1.24.0
 pytorch
 scipy==1.1.0
-tensorboard==1.13.1
+tensorboard==1.14
 tensorboardX==1.6
-tensorflow==1.13.1
+tensorflow==1.14
 thrift==0.10.0
 thrift-cpp==0.10.0
 dataclasses==0.6
