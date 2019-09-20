@@ -56,7 +56,7 @@ ADD requirements.txt requirements.txt
 ADD preprocessing/pom.xml /tmp/pom.xml
 
 # Install dependencies
-RUN conda install --file requirements.txt -c pytorch-nightly
+RUN conda install --file requirements.txt
 RUN rm requirements.txt
 
 # Install open ai gym
