@@ -8,7 +8,6 @@ from typing import List, NamedTuple, Optional
 import numpy as np
 import torch
 from ml.rl.tensorboardX import SummaryWriterContext
-from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
