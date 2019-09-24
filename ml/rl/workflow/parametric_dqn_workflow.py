@@ -36,8 +36,8 @@ from ml.rl.workflow.preprocess_handler import (
     PreprocessHandler,
 )
 from ml.rl.workflow.transitional import create_parametric_dqn_trainer_from_params
-from tensorboardX import SummaryWriter
 from torch import multiprocessing
+from torch.utils.tensorboard import SummaryWriter
 
 
 logger = logging.getLogger(__name__)

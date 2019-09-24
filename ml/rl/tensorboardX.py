@@ -22,7 +22,7 @@ import contextlib
 import logging
 from typing import Any, Dict, List
 
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
