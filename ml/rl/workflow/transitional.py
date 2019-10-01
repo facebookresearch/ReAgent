@@ -189,7 +189,7 @@ def create_parametric_dqn_trainer_from_params(
     )
     q_network_target = q_network.get_target_network()
 
-    if use_gpu and torch.cuda.is_available():
+    if use_gpu:
         q_network = q_network.cuda()
         q_network_target = q_network_target.cuda()
         reward_network = reward_network.cuda()
@@ -378,7 +378,7 @@ def create_world_model_trainer(
         num_hidden_layers=mdnrnn_params.num_hidden_layers,
         num_gaussians=mdnrnn_params.num_gaussians,
     )
-    if use_gpu and torch.cuda.is_available():
+    if use_gpu:
         mdnrnn_net = mdnrnn_net.cuda()
     mdnrnn_trainer = MDNRNNTrainer(mdnrnn_network=mdnrnn_net, params=mdnrnn_params)
     return mdnrnn_trainer

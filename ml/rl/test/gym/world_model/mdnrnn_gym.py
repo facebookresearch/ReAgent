@@ -618,7 +618,7 @@ def create_trainer(params: Dict, env: OpenAIGymEnvironment, use_gpu: bool):
         num_hidden_layers=mdnrnn_params.num_hidden_layers,
         num_gaussians=mdnrnn_params.num_gaussians,
     )
-    if use_gpu and torch.cuda.is_available():
+    if use_gpu:
         mdnrnn_net = mdnrnn_net.cuda()
 
     cum_loss_hist_len = (

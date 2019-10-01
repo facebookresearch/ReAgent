@@ -142,7 +142,7 @@ class TestMDNRNN(unittest.TestCase):
             num_hidden_layers=mdnrnn_params.num_hidden_layers,
             num_gaussians=mdnrnn_params.num_gaussians,
         )
-        if use_gpu and torch.cuda.is_available():
+        if use_gpu:
             mdnrnn_net = mdnrnn_net.cuda()
         trainer = MDNRNNTrainer(
             mdnrnn_network=mdnrnn_net, params=mdnrnn_params, cum_loss_hist=num_batch
