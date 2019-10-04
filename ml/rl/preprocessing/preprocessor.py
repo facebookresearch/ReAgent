@@ -174,6 +174,19 @@ class Preprocessor(Module):
         func = getattr(self, "_preprocess_" + feature_type)
         return func(begin_index, input, norm_params)  # type: ignore
 
+    def _create_parameters_DO_NOT_PREPROCESS(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        pass
+
+    def _preprocess_DO_NOT_PREPROCESS(
+        self,
+        begin_index: int,
+        input: torch.Tensor,
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        return input
+
     def _create_parameters_BINARY(
         self, begin_index: int, norm_params: List[NormalizationParameters]
     ):
