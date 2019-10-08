@@ -75,6 +75,13 @@ class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
         cls._global_step += 1
 
     @classmethod
+    def add_histogram(cls, key, val, *args, **kwargs):
+        try:
+            return cls.__getattr__("add_histogram")(key, val, *args, **kwargs)
+        except ValueError:
+            logger.warning(f"Cannot create histogram for {key}, got values: {val}")
+
+    @classmethod
     def add_custom_scalars(cls, writer):
         """
         Call this once you are satisfied setting up custom scalar

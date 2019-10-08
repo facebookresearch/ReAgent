@@ -63,6 +63,12 @@ class TestSummaryWriterContext(HorizonTestBase):
             ), summary_writer_context(writer):
                 SummaryWriterContext.add_scalar("test", torch.ones(1))
 
+    def test_swallowing_histogram_value_error(self):
+        with TemporaryDirectory() as tmp_dir:
+            writer = SummaryWriter(tmp_dir)
+            with summary_writer_context(writer):
+                SummaryWriterContext.add_histogram("bad_histogram", torch.ones(100, 1))
+
     def test_global_step(self):
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
