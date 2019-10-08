@@ -187,6 +187,9 @@ struct SACTrainingParameters {
   10: bool use_value_network = true,
   11: optional double target_entropy,
   12: optional OptimizerParameters alpha_optimizer
+  13: optional double action_embedding_kld_weight,
+  14: optional list<double> action_embedding_mean,
+  15: optional list<double> action_embedding_variance,
 }
 
 struct SACModelParameters {
