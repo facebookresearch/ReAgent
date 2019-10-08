@@ -55,6 +55,7 @@ struct CNNParameters {
 struct FeedForwardParameters {
   1: list<i32> layers = [256, 128],
   2: list<string> activations = ['relu', 'relu'],
+  3: optional bool use_layer_norm,
 }
 
 struct FactorizationParameters {

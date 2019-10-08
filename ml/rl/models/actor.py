@@ -4,6 +4,7 @@
 import math
 
 import torch
+import torch.nn as nn
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
@@ -71,6 +72,7 @@ class GaussianFullyConnectedActor(ModelBase):
         activations,
         scale=0.05,
         use_batch_norm=False,
+        use_layer_norm=False,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -87,7 +89,12 @@ class GaussianFullyConnectedActor(ModelBase):
             [state_dim] + sizes + [action_dim * 2],
             activations + ["linear"],
             use_batch_norm=use_batch_norm,
+            use_layer_norm=use_layer_norm,
         )
+        self.use_layer_norm = use_layer_norm
+        if self.use_layer_norm:
+            self.loc_layer_norm = nn.LayerNorm(action_dim)
+            self.scale_layer_norm = nn.LayerNorm(action_dim)
 
         # used to calculate log-prob
         self.const = math.log(math.sqrt(2 * math.pi))
@@ -124,7 +131,13 @@ class GaussianFullyConnectedActor(ModelBase):
     def _get_loc_and_scale_log(self, state):
         loc_scale = self.fc(state.float_features)
         loc = loc_scale[::, : self.action_dim]
-        scale_log = loc_scale[::, self.action_dim :].clamp(*self._log_min_max)
+        scale_log = loc_scale[::, self.action_dim :]
+
+        if self.use_layer_norm:
+            loc = self.loc_layer_norm(loc)
+            scale_log = self.scale_layer_norm(scale_log)
+
+        scale_log = scale_log.clamp(*self._log_min_max)
         return loc, scale_log
 
     def forward(self, input):
