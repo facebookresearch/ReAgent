@@ -5,21 +5,28 @@
 import unittest
 
 import ml.rl.types as rlt
+from ml.rl.models.actor import FullyConnectedActor
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.prediction.predictor_wrapper import (
+    ActorPredictorWrapper,
+    ActorWithPreprocessor,
     DiscreteDqnPredictorWrapper,
     DiscreteDqnWithPreprocessor,
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
 )
-from ml.rl.preprocessing.identify_types import CONTINUOUS
+from ml.rl.preprocessing.identify_types import CONTINUOUS, DO_NOT_PREPROCESS
 from ml.rl.preprocessing.normalization import NormalizationParameters
 from ml.rl.preprocessing.preprocessor import Preprocessor
 
 
 def _cont_norm():
     return NormalizationParameters(feature_type=CONTINUOUS, mean=0.0, stddev=1.0)
+
+
+def _do_not_preprocess_norm():
+    return NormalizationParameters(feature_type=DO_NOT_PREPROCESS, mean=0.0, stddev=1.0)
 
 
 class TestPredictorWrapper(unittest.TestCase):
@@ -76,3 +83,28 @@ class TestPredictorWrapper(unittest.TestCase):
             )
         ).q_value
         self.assertTrue((expected_output == q_value).all())
+
+    def test_actor_wrapper(self):
+        state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
+        action_normalization_parameters = {
+            i: _do_not_preprocess_norm() for i in range(101, 105)
+        }
+        state_preprocessor = Preprocessor(state_normalization_parameters, False)
+
+        # Test with FullyConnectedActor to make behavior deterministic
+        actor = FullyConnectedActor(
+            state_dim=len(state_normalization_parameters),
+            action_dim=len(action_normalization_parameters),
+            sizes=[16],
+            activations=["relu"],
+        )
+        actor_with_preprocessor = ActorWithPreprocessor(actor, state_preprocessor)
+        wrapper = ActorPredictorWrapper(actor_with_preprocessor)
+        input_prototype = actor_with_preprocessor.input_prototype()
+        action = wrapper(*input_prototype)
+        self.assertEqual(action.shape, (1, len(action_normalization_parameters)))
+
+        expected_output = actor(
+            rlt.PreprocessedState.from_tensor(state_preprocessor(*input_prototype[0]))
+        ).action
+        self.assertTrue((expected_output == action).all())

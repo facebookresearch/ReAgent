@@ -13,6 +13,7 @@ from torch.distributions import Dirichlet  # type: ignore
 from torch.distributions.normal import Normal
 
 
+# TODO: Delete this class
 class ActorWithPreprocessing(ModelBase):
     def __init__(self, actor_network, state_preprocessor):
         super().__init__()
