@@ -133,6 +133,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         self.loss_reporter.report(
             td_loss=self.loss,
             reward_loss=reward_loss,
+            logged_rewards=reward,
             model_values_on_logged_actions=self.all_action_scores,
         )
 
