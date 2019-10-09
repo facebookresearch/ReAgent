@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 
 class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
-    ABS_ERR_THRES = 0.02
+    # absolute error threshold for q-values if the reward
+    # for reaching the goal state were 1
+    ABS_ERR_THRES = 0.1
 
     def __init__(
         self,
@@ -124,8 +126,9 @@ class GridworldEvaluator(Evaluator):
             logged_value = self.logged_values[x][0]
             target_value = prediction[x][int_action]
             error = abs(logged_value - target_value)
-            if num_error_prints < 10 and error > self.ABS_ERR_THRES * (
-                GridworldBase.REWARD_SCALE ** 2
+            if (
+                num_error_prints < 10
+                and error > self.ABS_ERR_THRES * GridworldBase.REWARD_SCALE
             ):
                 logger.info(
                     "GOT {}-th STATE (POS: {}) and ACTION {} WRONG. Logged Q-Value: {}, Predicted Q-Value: {}".format(

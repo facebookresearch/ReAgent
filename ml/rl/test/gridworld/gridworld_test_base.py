@@ -3,7 +3,6 @@
 
 import os
 import tempfile
-import unittest
 
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase
@@ -15,8 +14,8 @@ class GridworldTestBase(HorizonTestBase):
         self.check_tolerance = True
         self.test_save_load = True
         self.num_epochs = 5
-        self.tolerance_threshold = GridworldEvaluator.ABS_ERR_THRES * (
-            GridworldBase.REWARD_SCALE ** 2
+        self.tolerance_threshold = (
+            GridworldEvaluator.ABS_ERR_THRES * GridworldBase.REWARD_SCALE
         )
         self.run_pre_training_eval = True
         super().setUp()
