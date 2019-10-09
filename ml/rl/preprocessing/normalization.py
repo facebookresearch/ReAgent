@@ -3,27 +3,18 @@
 
 import json
 import logging
-from collections import namedtuple
+from dataclasses import asdict
 from typing import Dict
 
 import numpy as np
 import six
 import torch
+from ml.rl.parameters import NormalizationParameters
 from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
-from ml.rl.thrift.core.ttypes import NormalizationParameters
 from scipy import stats
 from scipy.stats.mstats import mquantiles
 from thrift.transport.TTransport import TMemoryBuffer
-
-
-# This is required to run the code internally and externally, sigh...
-try:
-    # Apache Thrift
-    from thrift.protocol.TJSONProtocol import TSimpleJSONProtocol  # type: ignore
-except ImportError:
-    # Facebook Thrift
-    from thrift.protocol.TSimpleJSONProtocol import TSimpleJSONProtocol  # type: ignore
 
 
 logger = logging.getLogger(__name__)
@@ -90,8 +81,8 @@ def identify_parameter(
         len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
     ), "insufficient information to identify parameter"
 
-    min_value = np.min(values)
-    max_value = np.max(values)
+    min_value = float(np.min(values))
+    max_value = float(np.max(values))
 
     if feature_type == identify_types.DO_NOT_PREPROCESS:
         mean = float(np.mean(values))
@@ -120,7 +111,7 @@ def identify_parameter(
                 # than the original data and is normal enough to apply
                 # effectively.
 
-                stddev = np.std(candidate_values, ddof=1)
+                stddev = float(np.std(candidate_values, ddof=1))
                 # Unclear whether this happens in practice or not
                 if (
                     np.isfinite(stddev)
@@ -169,7 +160,7 @@ def identify_parameter(
         values /= stddev
 
     if feature_type == identify_types.ENUM:
-        possible_values = np.unique(values.astype(int)).tolist()
+        possible_values = np.unique(values.astype(int)).astype(int).tolist()
 
     return NormalizationParameters(
         feature_type,
@@ -250,10 +241,7 @@ def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
 
 
 def serialize_one(feature_parameters):
-    trans = TMemoryBuffer()
-    proto = TSimpleJSONProtocol(trans)
-    feature_parameters.write(proto)
-    return trans.getvalue().decode("utf-8").replace("\n", "")
+    return json.dumps(asdict(feature_parameters))
 
 
 def serialize(parameters):

@@ -9,6 +9,8 @@ from typing import List
 
 import numpy as np
 import torch
+from ml.rl.json_serialize import json_to_object
+from ml.rl.parameters import OpenAiGymParameters
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.test.gym.world_model.state_embed_gym import (
     create_mdnrnn_trainer_and_embed_dataset,
@@ -37,23 +39,24 @@ class TestStateEmbedGym(HorizonTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_string_game_gpu(self):
         with open(MDNRNN_STRING_GAME_JSON, "r") as f:
-            mdnrnn_params = json.load(f)
+            mdnrnn_params = json_to_object(f.read(), OpenAiGymParameters)
+            mdnrnn_params = mdnrnn_params._replace(use_gpu=True)
         with open(DQN_STRING_GAME_JSON, "r") as f:
-            rl_params = json.load(f)
-        avg_reward_history = self._test_state_embed(
-            mdnrnn_params, rl_params, use_gpu=True
-        )
+            rl_params = json_to_object(f.read(), OpenAiGymParameters)
+            rl_params = rl_params._replace(use_gpu=True)
+        avg_reward_history = self._test_state_embed(mdnrnn_params, rl_params)
         self.verify_result(avg_reward_history, 10)
 
     @staticmethod
-    def _test_state_embed(mdnrnn_params, rl_params, use_gpu=False):
+    def _test_state_embed(
+        mdnrnn_params: OpenAiGymParameters, rl_params: OpenAiGymParameters
+    ):
         env, mdnrnn_trainer, embed_rl_dataset = create_mdnrnn_trainer_and_embed_dataset(
-            mdnrnn_params, use_gpu
+            mdnrnn_params, rl_params.use_gpu
         )
-        max_embed_seq_len = mdnrnn_params["run_details"]["seq_len"]
+        max_embed_seq_len = mdnrnn_params.run_details.seq_len
         avg_reward_history, _, _, _, _ = run_gym(
             rl_params,
-            use_gpu,
             None,  # score bar
             embed_rl_dataset,
             env.env,

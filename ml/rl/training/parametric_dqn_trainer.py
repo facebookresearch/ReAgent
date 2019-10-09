@@ -8,7 +8,7 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.thrift.core.ttypes import ContinuousActionModelParameters
+from ml.rl.parameters import ContinuousActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage
 

@@ -657,17 +657,17 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_action_features(normalize),
             o.action.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
             o.state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
             o.next_state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
     def test_extract_discrete_action(self):
@@ -704,12 +704,12 @@ class TestWorldModelFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_state_features(normalize),
             o.state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
             o.next_state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
 
@@ -797,12 +797,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
             npt.assert_allclose(
                 self.expected_time_since_first(normalize_time_since_first),
                 o.state.time_since_first.numpy(),
-                rtol=1e-6,
+                rtol=1e-4,
             )
             npt.assert_allclose(
                 self.expected_next_time_since_first(normalize_time_since_first),
                 o.next_state.time_since_first.numpy(),
-                rtol=1e-6,
+                rtol=1e-4,
             )
         else:
             self.assertIsNone(o.state.time_since_first)
@@ -833,12 +833,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_state_features(normalize),
             o.state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
             o.next_state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
     def test_extract_max_q_discrete_action_with_sequence(self):
@@ -917,12 +917,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_state_features(normalize),
             o.state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_next_state_features(normalize),
             o.next_state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
         # Check state sequence features
@@ -1041,12 +1041,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_action_features(normalize),
             o.action.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_possible_actions_features(normalize),
             o.possible_actions.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_array_equal(
             possible_actions_mask[1], o.possible_actions_mask.numpy().flatten()
@@ -1054,7 +1054,7 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_possible_next_actions_features(normalize),
             o.possible_next_actions.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_array_equal(
             possible_next_actions_mask[1],
@@ -1063,12 +1063,12 @@ class TestTrainingFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_state_features(normalize),
             o.state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_tiled_next_state_features(normalize),
             o.tiled_next_state.float_features.value.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
     def test_create_net_max_q_discrete_action(self):
@@ -1239,13 +1239,13 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_state_features(normalize),
             res.state.float_features.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         if use_time_since_first:
             npt.assert_allclose(
                 self.expected_time_since_first(normalize_time_since_first),
                 res.state.time_since_first.numpy(),
-                rtol=1e-6,
+                rtol=1e-4,
             )
         else:
             self.assertIsNone(res.state.time_since_first)
@@ -1274,7 +1274,7 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             super().expected_state_features(normalize=True),
             res.state.float_features.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         # Check state sequence features
         expected_state_sequence_features = self.expected_state_sequence_features()
@@ -1327,12 +1327,12 @@ class TestPredictorFeatureExtractor(FeatureExtractorTestBase):
         npt.assert_allclose(
             self.expected_action_features(normalize),
             res.action.float_features.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
         npt.assert_allclose(
             self.expected_state_features(normalize),
             res.state.float_features.numpy(),
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
     def test_create_net_sarsa_no_action(self):

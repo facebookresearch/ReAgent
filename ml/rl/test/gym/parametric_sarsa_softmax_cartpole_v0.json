@@ -6,7 +6,7 @@
     "gamma": 0.99,
     "target_update_rate": 0.2,
     
-    "maxq_learning": 0,
+    "maxq_learning": false,
     "epsilon": 0,
     "temperature": 0.35,
     "softmax_policy": 1

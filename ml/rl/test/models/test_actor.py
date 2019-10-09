@@ -156,7 +156,7 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
         action = model(input)
         squashed_action = action.action.detach()
         action_log_prob = model.get_log_prob(input.state, squashed_action)
-        npt.assert_allclose(action.log_prob.detach(), action_log_prob, rtol=1e-6)
+        npt.assert_allclose(action.log_prob.detach(), action_log_prob, rtol=1e-4)
 
 
 class TestDirichletFullyConnectedActor(unittest.TestCase):

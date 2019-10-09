@@ -9,6 +9,8 @@ from typing import Dict, List
 
 import numpy as np
 import torch
+from ml.rl.json_serialize import json_to_object
+from ml.rl.parameters import OpenAiGymParameters
 from ml.rl.test.gym.world_model.mdnrnn_gym import mdnrnn_gym
 
 
@@ -33,7 +35,7 @@ class TestMDNRNNGym(unittest.TestCase):
 
     def test_mdnrnn_cartpole(self):
         with open(MDNRNN_CARTPOLE_JSON, "r") as f:
-            params = json.load(f)
+            params = json_to_object(f.read(), OpenAiGymParameters)
         _, _, feature_importance_map, feature_sensitivity_map, _ = self._test_mdnrnn(
             params, feature_importance=True, feature_sensitivity=True
         )
@@ -43,7 +45,7 @@ class TestMDNRNNGym(unittest.TestCase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_mdnrnn_cartpole_gpu(self):
         with open(MDNRNN_CARTPOLE_JSON, "r") as f:
-            params = json.load(f)
+            params = json_to_object(f.read(), OpenAiGymParameters)
         _, _, feature_importance_map, feature_sensitivity_map, _ = self._test_mdnrnn(
             params, use_gpu=True, feature_importance=True, feature_sensitivity=True
         )
@@ -51,6 +53,10 @@ class TestMDNRNNGym(unittest.TestCase):
         self.verify_result(feature_sensitivity_map, ["state1", "state3"])
 
     def _test_mdnrnn(
-        self, params, use_gpu=False, feature_importance=False, feature_sensitivity=False
+        self,
+        params: OpenAiGymParameters,
+        use_gpu=False,
+        feature_importance=False,
+        feature_sensitivity=False,
     ):
-        return mdnrnn_gym(params, use_gpu, feature_importance, feature_sensitivity)
+        return mdnrnn_gym(params, feature_importance, feature_sensitivity)

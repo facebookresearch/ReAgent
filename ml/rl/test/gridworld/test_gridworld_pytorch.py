@@ -15,6 +15,12 @@ from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
 from ml.rl.models.quantile_dqn import QuantileDQN
+from ml.rl.parameters import (
+    DiscreteActionModelParameters,
+    RainbowDQNParameters,
+    RLParameters,
+    TrainingParameters,
+)
 from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
 from ml.rl.prediction.predictor_wrapper import (
     DiscreteDqnPredictorWrapper,
@@ -27,12 +33,6 @@ from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.thrift.core.ttypes import (
-    DiscreteActionModelParameters,
-    RainbowDQNParameters,
-    RLParameters,
-    TrainingParameters,
-)
 from ml.rl.torch_utils import export_module_to_buffer
 from ml.rl.training.c51_trainer import C51Trainer
 from ml.rl.training.dqn_predictor import DQNPredictor
@@ -162,7 +162,7 @@ class TestGridworld(GridworldTestBase):
 
         q_network_cpe, q_network_cpe_target, reward_network = None, None, None
 
-        if parameters.evaluation.calc_cpe_in_training:
+        if parameters.evaluation and parameters.evaluation.calc_cpe_in_training:
             q_network_cpe = FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),

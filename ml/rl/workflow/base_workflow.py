@@ -9,10 +9,10 @@ import time
 from typing import Dict
 
 import torch
+from ml.rl.parameters import NormalizationParameters
 from ml.rl.preprocessing import normalization
 from ml.rl.readers.data_streamer import DataStreamer
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.thrift.core.ttypes import NormalizationParameters
 from ml.rl.workflow.page_handler import (
     EvaluationPageHandler,
     TrainingPageHandler,

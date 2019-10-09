@@ -8,7 +8,7 @@ import numpy.testing as npt
 import torch
 import torch.nn as nn
 from ml.rl.models.no_soft_update_embedding import NoSoftUpdateEmbedding
-from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters, RLParameters
+from ml.rl.parameters import DiscreteActionModelParameters, RLParameters
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
 

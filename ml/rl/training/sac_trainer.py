@@ -7,8 +7,8 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
+from ml.rl.parameters import SACModelParameters
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.torch_utils import rescale_torch_tensor
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
@@ -357,7 +357,7 @@ class SACTrainer(RLTrainer):
 
         # Logging at the end to schedule all the cuda operations first
         if (
-            self.tensorboard_logging_freq is not None
+            self.tensorboard_logging_freq != 0
             and self.minibatch % self.tensorboard_logging_freq == 0
         ):
             SummaryWriterContext.add_histogram("q1/logged_state_value", q1_value)

@@ -15,7 +15,7 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 from ml.rl.models.cem_planner import CEMPlannerNetwork
-from ml.rl.thrift.core.ttypes import CEMParameters
+from ml.rl.parameters import CEMParameters
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer

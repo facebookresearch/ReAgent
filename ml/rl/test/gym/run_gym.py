@@ -13,6 +13,25 @@ import numpy as np
 import torch
 from caffe2.proto import caffe2_pb2
 from caffe2.python import core
+from ml.rl.json_serialize import json_to_object
+from ml.rl.parameters import (
+    CEMParameters,
+    CNNParameters,
+    ContinuousActionModelParameters,
+    DiscreteActionModelParameters,
+    FeedForwardParameters,
+    MDNRNNParameters,
+    OpenAiGymParameters,
+    OptimizerParameters,
+    RainbowDQNParameters,
+    RLParameters,
+    OpenAiRunDetails,
+    SACModelParameters,
+    SACTrainingParameters,
+    TD3ModelParameters,
+    TD3TrainingParameters,
+    TrainingParameters,
+)
 from ml.rl.test.base.utils import write_lists_to_csv
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
@@ -20,22 +39,6 @@ from ml.rl.test.gym.open_ai_gym_environment import (
     OpenAIGymEnvironment,
 )
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
-from ml.rl.thrift.core.ttypes import (
-    CEMParameters,
-    CNNParameters,
-    ContinuousActionModelParameters,
-    DiscreteActionModelParameters,
-    FeedForwardParameters,
-    MDNRNNParameters,
-    OptimizerParameters,
-    RainbowDQNParameters,
-    RLParameters,
-    SACModelParameters,
-    SACTrainingParameters,
-    TD3ModelParameters,
-    TD3TrainingParameters,
-    TrainingParameters,
-)
 from ml.rl.training.on_policy_predictor import (
     CEMPlanningPredictor,
     ContinuousActionOnPolicyPredictor,
@@ -57,8 +60,6 @@ from sklearn.model_selection import train_test_split
 
 
 logger = logging.getLogger(__name__)
-
-USE_CPU = -1
 
 
 def dict_to_np(d, np_size, key_offset):
@@ -106,12 +107,9 @@ def create_epsilon(offline_train, rl_parameters, params):
     else:
         epsilon = rl_parameters.epsilon
     epsilon_decay, minimum_epsilon = 1.0, None
-    if "epsilon_decay" in params["run_details"]:
-        epsilon_decay = params["run_details"]["epsilon_decay"]
-        del params["run_details"]["epsilon_decay"]
-    if "minimum_epsilon" in params["run_details"]:
-        minimum_epsilon = params["run_details"]["minimum_epsilon"]
-        del params["run_details"]["minimum_epsilon"]
+    if params.run_details.epsilon_decay is not None:
+        epsilon_decay = params.run_details.epsilon_decay
+    minimum_epsilon = params.run_details.minimum_epsilon
     return epsilon, epsilon_decay, minimum_epsilon
 
 
@@ -122,7 +120,7 @@ def create_replay_buffer(
     Train on transitions generated from a random policy live or
     read transitions from a pickle file and load into replay buffer.
     """
-    replay_buffer = OpenAIGymMemoryPool(params["max_replay_memory_size"])
+    replay_buffer = OpenAIGymMemoryPool(params.max_replay_memory_size)
     if path_to_pickled_transitions:
         create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
         replay_state_dim = replay_buffer.replay_memory[0][0].shape[0]
@@ -131,7 +129,7 @@ def create_replay_buffer(
         assert replay_action_dim == env.action_dim
     elif offline_train:
         create_random_policy_offline_dataset(
-            env, replay_buffer, params["run_details"]["max_steps"], model_type
+            env, replay_buffer, params.run_details.max_steps, model_type
         )
     return replay_buffer
 
@@ -146,26 +144,20 @@ def train(
     predictor,
     test_run_name,
     score_bar,
-    num_episodes=301,
-    max_steps=None,
-    train_every_ts=100,
-    train_after_ts=10,
-    test_every_ts=100,
-    test_after_ts=10,
-    num_train_batches=1,
-    avg_over_num_episodes=100,
-    render=False,
+    run_details: OpenAiRunDetails,
     save_timesteps_to_dataset=None,
     start_saving_from_score=None,
     solved_reward_threshold=None,
     max_episodes_to_run_after_solved=None,
     stop_training_after_solved=False,
-    offline_train_epochs=3,
-    offline_num_batches_per_epoch=None,
     bcq_imitator_hyperparams=None,
     reward_shape_func=None,
 ):
     if offline_train:
+        assert (
+            run_details.max_steps is not None
+            and run_details.offline_train_epochs is not None
+        ), "Missing fields required for offline training: {}".format(str(run_details))
         return train_gym_offline_rl(
             gym_env,
             replay_buffer,
@@ -174,10 +166,10 @@ def train(
             predictor,
             test_run_name,
             score_bar,
-            max_steps,
-            avg_over_num_episodes,
-            offline_train_epochs,
-            offline_num_batches_per_epoch,
+            run_details.max_steps,
+            run_details.avg_over_num_episodes,
+            run_details.offline_train_epochs,
+            run_details.offline_num_batches_per_epoch,
             bcq_imitator_hyperparams,
         )
     else:
@@ -190,15 +182,15 @@ def train(
             predictor,
             test_run_name,
             score_bar,
-            num_episodes,
-            max_steps,
-            train_every_ts,
-            train_after_ts,
-            test_every_ts,
-            test_after_ts,
-            num_train_batches,
-            avg_over_num_episodes,
-            render,
+            run_details.num_episodes,
+            run_details.max_steps,
+            run_details.train_every_ts,
+            run_details.train_after_ts,
+            run_details.test_every_ts,
+            run_details.test_after_ts,
+            run_details.num_train_batches,
+            run_details.avg_over_num_episodes,
+            run_details.render,
             save_timesteps_to_dataset,
             start_saving_from_score,
             solved_reward_threshold,
@@ -598,7 +590,7 @@ def main(args):
         "-g",
         "--gpu_id",
         help="If set, will use GPU with specified ID. Otherwise will use CPU.",
-        default=USE_CPU,
+        default=-1,
     )
     parser.add_argument(
         "-l",
@@ -662,7 +654,9 @@ def main(args):
     ), "path_to_pickled_transitions is provided so you must run offline training"
 
     with open(args.parameters, "r") as f:
-        params = json.load(f)
+        params = json_to_object(f.read(), OpenAiGymParameters)
+    if args.use_gpu != -1:
+        params = params._replace(use_gpu=True)
 
     dataset = RLDataset(args.file_path) if args.file_path else None
 
@@ -670,7 +664,6 @@ def main(args):
         params,
         args.offline_train,
         args.score_bar,
-        args.gpu_id,
         args.seed,
         dataset,
         args.start_saving_from_score,
@@ -681,17 +674,17 @@ def main(args):
         dataset.save()
         logger.info("Saving dataset to {}".format(args.file_path))
         final_score_exploit, _ = env.run_ep_n_times(
-            params["run_details"]["avg_over_num_episodes"], predictor, test=True
+            params.run_details.avg_over_num_episodes, predictor, test=True
         )
         final_score_explore, _ = env.run_ep_n_times(
-            params["run_details"]["avg_over_num_episodes"], predictor, test=False
+            params.run_details.avg_over_num_episodes, predictor, test=False
         )
         logger.info(
             "Final policy scores {} with epsilon={} and {} with epsilon=0 over {} eps.".format(
                 final_score_explore,
                 env.epsilon,
                 final_score_exploit,
-                params["run_details"]["avg_over_num_episodes"],
+                params.run_details.avg_over_num_episodes,
             )
         )
 
@@ -701,10 +694,9 @@ def main(args):
 
 
 def run_gym(
-    params,
+    params: OpenAiGymParameters,
     offline_train,
     score_bar,
-    gpu_id,
     seed=None,
     save_timesteps_to_dataset=None,
     start_saving_from_score=None,
@@ -712,12 +704,14 @@ def run_gym(
     warm_trainer=None,
     reward_shape_func=None,
 ):
+    use_gpu = params.use_gpu
     logger.info("Running gym with params")
     logger.info(params)
-    rl_parameters = RLParameters(**params["rl"])
+    assert params.rl is not None
+    rl_parameters = params.rl
 
-    env_type = params["env"]
-    model_type = params["model_type"]
+    env_type = params.env
+    model_type = params.model_type
 
     epsilon, epsilon_decay, minimum_epsilon = create_epsilon(
         offline_train, rl_parameters, params
@@ -735,17 +729,10 @@ def run_gym(
         env, params, model_type, offline_train, path_to_pickled_transitions
     )
 
-    use_gpu = gpu_id != USE_CPU
-    trainer = (
-        warm_trainer
-        if warm_trainer
-        else create_trainer(model_type, params, rl_parameters, use_gpu, env)
-    )
+    trainer = warm_trainer if warm_trainer else create_trainer(params, env)
     predictor = create_predictor(trainer, model_type, use_gpu, env.action_dim)
 
-    c2_device = core.DeviceOption(
-        caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU, int(gpu_id)
-    )
+    c2_device = core.DeviceOption(caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU)
     return train(
         c2_device,
         env,
@@ -756,56 +743,53 @@ def run_gym(
         predictor,
         "{} test run".format(env_type),
         score_bar,
-        **params["run_details"],
+        params.run_details,
         save_timesteps_to_dataset=save_timesteps_to_dataset,
         start_saving_from_score=start_saving_from_score,
         reward_shape_func=reward_shape_func,
     )
 
 
-def create_trainer(model_type, params, rl_parameters, use_gpu, env):
+def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
+    use_gpu = params.use_gpu
+    model_type = params.model_type
+    assert params.rl is not None
+    rl_parameters = params.rl
+
     if model_type == ModelType.PYTORCH_DISCRETE_DQN.value:
-        training_parameters = params["training"]
-        if isinstance(training_parameters, dict):
-            training_parameters = TrainingParameters(**training_parameters)
-        rainbow_parameters = params["rainbow"]
-        if isinstance(rainbow_parameters, dict):
-            rainbow_parameters = RainbowDQNParameters(**rainbow_parameters)
+        assert params.training is not None
+        training_parameters = params.training
+        assert params.rainbow is not None
         if env.img:
             assert (
                 training_parameters.cnn_parameters is not None
             ), "Missing CNN parameters for image input"
-            if isinstance(training_parameters.cnn_parameters, dict):
-                training_parameters.cnn_parameters = CNNParameters(
-                    **training_parameters.cnn_parameters
-                )
             training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
-            training_parameters.cnn_parameters.input_height = env.height
-            training_parameters.cnn_parameters.input_width = env.width
-            training_parameters.cnn_parameters.num_input_channels = (
-                env.num_input_channels
+            training_parameters._replace(
+                cnn_parameters=training_parameters.cnn_parameters._replace(
+                    input_height=env.height,
+                    input_width=env.width,
+                    num_input_channels=env.num_input_channels,
+                )
             )
         else:
             assert (
                 training_parameters.cnn_parameters is None
             ), "Extra CNN parameters for non-image input"
-        trainer_params = DiscreteActionModelParameters(
+        discrete_trainer_params = DiscreteActionModelParameters(
             actions=env.actions,
             rl=rl_parameters,
             training=training_parameters,
-            rainbow=rainbow_parameters,
+            rainbow=params.rainbow,
         )
         trainer = create_dqn_trainer_from_params(
-            trainer_params, env.normalization, use_gpu
+            discrete_trainer_params, env.normalization, use_gpu
         )
 
     elif model_type == ModelType.PYTORCH_PARAMETRIC_DQN.value:
-        training_parameters = params["training"]
-        if isinstance(training_parameters, dict):
-            training_parameters = TrainingParameters(**training_parameters)
-        rainbow_parameters = params["rainbow"]
-        if isinstance(rainbow_parameters, dict):
-            rainbow_parameters = RainbowDQNParameters(**rainbow_parameters)
+        assert params.training is not None
+        training_parameters = params.training
+        assert params.rainbow is not None
         if env.img:
             assert (
                 training_parameters.cnn_parameters is not None
@@ -815,81 +799,48 @@ def create_trainer(model_type, params, rl_parameters, use_gpu, env):
             assert (
                 training_parameters.cnn_parameters is None
             ), "Extra CNN parameters for non-image input"
-        trainer_params = ContinuousActionModelParameters(
-            rl=rl_parameters, training=training_parameters, rainbow=rainbow_parameters
+        continuous_trainer_params = ContinuousActionModelParameters(
+            rl=rl_parameters, training=training_parameters, rainbow=params.rainbow
         )
         trainer = create_parametric_dqn_trainer_from_params(
-            trainer_params, env.normalization, env.normalization_action, use_gpu
+            continuous_trainer_params,
+            env.normalization,
+            env.normalization_action,
+            use_gpu,
         )
 
     elif model_type == ModelType.TD3.value:
-        trainer_params = TD3ModelParameters(
+        assert params.td3_training is not None
+        assert params.critic_training is not None
+        assert params.actor_training is not None
+        td3_trainer_params = TD3ModelParameters(
             rl=rl_parameters,
-            training=TD3TrainingParameters(
-                minibatch_size=params["td3_training"]["minibatch_size"],
-                q_network_optimizer=OptimizerParameters(
-                    **params["td3_training"]["q_network_optimizer"]
-                ),
-                actor_network_optimizer=OptimizerParameters(
-                    **params["td3_training"]["actor_network_optimizer"]
-                ),
-                use_2_q_functions=params["td3_training"]["use_2_q_functions"],
-                exploration_noise=params["td3_training"]["exploration_noise"],
-                initial_exploration_ts=params["td3_training"]["initial_exploration_ts"],
-                target_policy_smoothing=params["td3_training"][
-                    "target_policy_smoothing"
-                ],
-                noise_clip=params["td3_training"]["noise_clip"],
-                delayed_policy_update=params["td3_training"]["delayed_policy_update"],
-            ),
-            q_network=FeedForwardParameters(**params["critic_training"]),
-            actor_network=FeedForwardParameters(**params["actor_training"]),
+            training=params.td3_training,
+            q_network=params.critic_training,
+            actor_network=params.actor_training,
         )
-        trainer = get_td3_trainer(env, trainer_params, use_gpu)
+        trainer = get_td3_trainer(env, td3_trainer_params, use_gpu)
 
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
+        assert params.sac_training is not None
+        assert params.critic_training is not None
+        assert params.actor_training is not None
         value_network = None
-        value_network_optimizer = None
-        alpha_optimizer = None
-        if params["sac_training"]["use_value_network"]:
-            value_network = FeedForwardParameters(**params["sac_value_training"])
-            value_network_optimizer = OptimizerParameters(
-                **params["sac_training"]["value_network_optimizer"]
-            )
-        if "alpha_optimizer" in params["sac_training"]:
-            alpha_optimizer = OptimizerParameters(
-                **params["sac_training"]["alpha_optimizer"]
-            )
-        entropy_temperature = params["sac_training"].get("entropy_temperature", None)
-        target_entropy = params["sac_training"].get("target_entropy", None)
+        if params.sac_training.use_value_network:
+            value_network = params.sac_value_training
 
-        trainer_params = SACModelParameters(
+        sac_trainer_params = SACModelParameters(
             rl=rl_parameters,
-            training=SACTrainingParameters(
-                minibatch_size=params["sac_training"]["minibatch_size"],
-                use_2_q_functions=params["sac_training"]["use_2_q_functions"],
-                use_value_network=params["sac_training"]["use_value_network"],
-                q_network_optimizer=OptimizerParameters(
-                    **params["sac_training"]["q_network_optimizer"]
-                ),
-                value_network_optimizer=value_network_optimizer,
-                actor_network_optimizer=OptimizerParameters(
-                    **params["sac_training"]["actor_network_optimizer"]
-                ),
-                entropy_temperature=entropy_temperature,
-                target_entropy=target_entropy,
-                alpha_optimizer=alpha_optimizer,
-            ),
-            q_network=FeedForwardParameters(**params["critic_training"]),
+            training=params.sac_training,
+            q_network=params.critic_training,
             value_network=value_network,
-            actor_network=FeedForwardParameters(**params["actor_training"]),
+            actor_network=params.actor_training,
         )
-        trainer = get_sac_trainer(env, trainer_params, use_gpu)
+        trainer = get_sac_trainer(env, sac_trainer_params, use_gpu)
     elif model_type == ModelType.CEM.value:
-        trainer_params = CEMParameters(**params["cem"])
-        trainer_params.mdnrnn = MDNRNNParameters(**params["cem"]["mdnrnn"])
-        trainer_params.rl = rl_parameters
-        trainer = get_cem_trainer(env, trainer_params, use_gpu)
+        assert params.cem is not None
+        cem_trainer_params = params.cem._replace(rl=params.rl)
+        trainer = get_cem_trainer(env, cem_trainer_params, use_gpu)
     else:
         raise NotImplementedError("Model of type {} not supported".format(model_type))
 

@@ -19,7 +19,7 @@ class GridworldEvaluator(Evaluator):
     SOFTMAX_TEMPERATURE = 1e-6
     # absolute error threshold for q-values if the reward
     # for reaching the goal state were 1
-    ABS_ERR_THRES = 0.1
+    ABS_ERR_THRES = 0.125
 
     def __init__(
         self,

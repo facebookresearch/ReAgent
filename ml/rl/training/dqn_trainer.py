@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from ml.rl.caffe_utils import masked_softmax
-from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
+from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.imitator_training import get_valid_actions_from_imitator
 from ml.rl.training.training_data_page import TrainingDataPage
