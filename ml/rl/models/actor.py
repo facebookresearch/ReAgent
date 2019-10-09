@@ -8,6 +8,7 @@ import torch.nn as nn
 from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from ml.rl.tensorboardX import SummaryWriterContext
 from torch.distributions import Dirichlet  # type: ignore
 from torch.distributions.normal import Normal
 
@@ -148,9 +149,21 @@ class GaussianFullyConnectedActor(ModelBase):
             # ONNX doesn't like reshape either..
             return rlt.ActorOutput(action=action)
         # Since each dim are independent, log-prob is simply sum
-        log_prob = torch.sum(
-            self._log_prob(r, scale_log) - self._squash_correction(action), dim=1
-        )
+        log_prob = self._log_prob(r, scale_log)
+        squash_correction = self._squash_correction(action)
+        if SummaryWriterContext._global_step % 1000 == 0:
+            SummaryWriterContext.add_histogram("actor/forward/loc", loc.detach().cpu())
+            SummaryWriterContext.add_histogram(
+                "actor/forward/scale_log", scale_log.detach().cpu()
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/forward/log_prob", log_prob.detach().cpu()
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/forward/squash_correction", squash_correction.detach().cpu()
+            )
+        log_prob = torch.sum(log_prob - squash_correction, dim=1)
+
         return rlt.ActorOutput(action=action, log_prob=log_prob.reshape(-1, 1))
 
     def _atanh(self, x):
@@ -168,9 +181,23 @@ class GaussianFullyConnectedActor(ModelBase):
         # This is not getting exported; we can use it
         n = Normal(loc, scale_log.exp())
         raw_action = self._atanh(squashed_action)
-        log_prob = torch.sum(
-            n.log_prob(raw_action) - self._squash_correction(squashed_action), dim=1
-        ).reshape(-1, 1)
+
+        log_prob = n.log_prob(raw_action)
+        squash_correction = self._squash_correction(squashed_action)
+        if SummaryWriterContext._global_step % 1000 == 0:
+            SummaryWriterContext.add_histogram(
+                "actor/get_log_prob/loc", loc.detach().cpu()
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/get_log_prob/scale_log", scale_log.detach().cpu()
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/get_log_prob/log_prob", log_prob.detach().cpu()
+            )
+            SummaryWriterContext.add_histogram(
+                "actor/get_log_prob/squash_correction", squash_correction.detach().cpu()
+            )
+        log_prob = torch.sum(log_prob - squash_correction, dim=1).reshape(-1, 1)
 
         return log_prob
 
