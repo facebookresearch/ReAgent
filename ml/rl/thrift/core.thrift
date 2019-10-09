@@ -205,7 +205,8 @@ struct SACModelParameters {
   8: optional StateFeatureParameters state_feature_params,
   9: EvaluationParameters evaluation = {},
   # constrain action output to sum to 1 (using dirichlet distribution)
-  10: bool constrain_action_sum = false
+  10: bool constrain_action_sum = false,
+  11: optional bool do_not_preprocess_action,
 }
 
 struct KNNDQNModelParameters {
