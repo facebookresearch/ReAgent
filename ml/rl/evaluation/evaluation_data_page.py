@@ -3,13 +3,14 @@
 
 import logging
 import math
-from typing import NamedTuple, Optional, cast
+from typing import NamedTuple, Optional, Union, cast
 
 import numpy as np
 import torch
 from ml.rl import types as rlt
 from ml.rl.caffe_utils import masked_softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class EvaluationDataPage(NamedTuple):
                 rlt.PreprocessedDiscreteDqnInput, tdb.training_input
             )
 
-            return EvaluationDataPage.create_from_tensors(  # type: ignore
+            return EvaluationDataPage.create_from_tensors_dqn(  # type: ignore
                 trainer,
                 tdb.extras.mdp_id,
                 tdb.extras.sequence_number,
@@ -60,8 +61,6 @@ class EvaluationDataPage(NamedTuple):
                 tdb.extras.action_probability,
                 discrete_training_input.reward,  # type: ignore
                 discrete_training_input.possible_actions_mask,  # type: ignore
-                None,  # type: ignore
-                tdb.extras.max_num_actions,
                 metrics=tdb.extras.metrics,
             )
         elif type(tdb.training_input) == rlt.PreprocessedParametricDqnInput:
@@ -69,7 +68,7 @@ class EvaluationDataPage(NamedTuple):
                 rlt.PreprocessedParametricDqnInput, tdb.training_input
             )
 
-            return EvaluationDataPage.create_from_tensors(  # type: ignore
+            return EvaluationDataPage.create_from_tensors_parametric_dqn(  # type: ignore
                 trainer,
                 tdb.extras.mdp_id,
                 tdb.extras.sequence_number,
@@ -82,28 +81,135 @@ class EvaluationDataPage(NamedTuple):
                 tdb.extras.max_num_actions,
                 metrics=tdb.extras.metrics,
             )
-        elif type(tdb.training_input) == rlt.PreprocessedPolicyNetworkInput:
-            policy_training_input = cast(
-                rlt.PreprocessedPolicyNetworkInput, tdb.training_input
-            )
-
-            return EvaluationDataPage.create_from_tensors(  # type: ignore
-                trainer,
-                tdb.extras.mdp_id,
-                tdb.extras.sequence_number,
-                policy_training_input.state,
-                policy_training_input.action,
-                tdb.extras.action_probability,
-                policy_training_input.reward,  # type: ignore
-                None,  # type: ignore
-                None,  # type: ignore
-                0,
-                metrics=tdb.extras.metrics,
-            )
 
     @classmethod  # type: ignore
     @torch.no_grad()  # type: ignore
-    def create_from_tensors(
+    def create_from_tensors_parametric_dqn(
+        cls,
+        trainer: ParametricDQNTrainer,
+        mdp_ids: np.ndarray,
+        sequence_numbers: torch.Tensor,
+        states: rlt.PreprocessedFeatureVector,
+        actions: rlt.PreprocessedFeatureVector,
+        propensities: torch.Tensor,
+        rewards: torch.Tensor,
+        possible_actions_mask: torch.Tensor,
+        possible_actions: rlt.PreprocessedFeatureVector,
+        max_num_actions: int,
+        metrics: Optional[torch.Tensor] = None,
+    ):
+        # Switch to evaluation mode for the network
+        old_q_train_state = trainer.q_network.training
+        old_reward_train_state = trainer.reward_network.training
+        trainer.q_network.train(False)
+        trainer.reward_network.train(False)
+
+        num_actions = possible_actions_mask.shape[1]
+        state_action_pairs = rlt.PreprocessedStateAction(state=states, action=actions)
+        tiled_state = states.float_features.repeat(1, max_num_actions).reshape(
+            -1, states.float_features.shape[1]
+        )
+        assert possible_actions is not None
+        # Get Q-value of action taken
+        possible_actions_state_concat = rlt.PreprocessedStateAction(
+            state=rlt.PreprocessedFeatureVector(float_features=tiled_state),
+            action=possible_actions,
+        )
+
+        # FIXME: model_values, model_values_for_logged_action, and model_metrics_values
+        # should be calculated using q_network_cpe (as in discrete dqn).
+        # q_network_cpe has not been added in parametric dqn yet.
+        model_values = trainer.q_network(
+            possible_actions_state_concat
+        ).q_value  # type: ignore
+        optimal_q_values, _ = trainer.get_detached_q_values(
+            possible_actions_state_concat.state, possible_actions_state_concat.action
+        )
+        eval_action_idxs = None
+
+        assert (
+            model_values.shape[1] == 1
+            and model_values.shape[0]
+            == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
+        ), (
+            "Invalid shapes: "
+            + str(model_values.shape)
+            + " != "
+            + str(possible_actions_mask.shape)
+        )
+        model_values = model_values.reshape(possible_actions_mask.shape)
+        optimal_q_values = optimal_q_values.reshape(possible_actions_mask.shape)
+        model_propensities = masked_softmax(
+            optimal_q_values, possible_actions_mask, trainer.rl_temperature
+        )
+
+        rewards_and_metric_rewards = trainer.reward_network(
+            possible_actions_state_concat
+        ).q_value  # type: ignore
+        model_rewards = rewards_and_metric_rewards[:, :1]
+        assert (
+            model_rewards.shape[0] * model_rewards.shape[1]
+            == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
+        ), (
+            "Invalid shapes: "
+            + str(model_rewards.shape)
+            + " != "
+            + str(possible_actions_mask.shape)
+        )
+        model_rewards = model_rewards.reshape(possible_actions_mask.shape)
+
+        model_metrics = rewards_and_metric_rewards[:, 1:]
+        model_metrics = model_metrics.reshape(possible_actions_mask.shape[0], -1)
+
+        model_values_for_logged_action = trainer.q_network(state_action_pairs).q_value
+        model_rewards_and_metrics_for_logged_action = trainer.reward_network(
+            state_action_pairs
+        ).q_value
+        model_rewards_for_logged_action = model_rewards_and_metrics_for_logged_action[
+            :, :1
+        ]
+
+        action_mask = (model_values == model_values_for_logged_action).float()
+        num_metrics = model_metrics.shape[1] // num_actions
+
+        model_metrics_values = None
+        model_metrics_for_logged_action = None
+        model_metrics_values_for_logged_action = None
+        if num_metrics > 0:
+            # FIXME: calculate model_metrics_values when q_network_cpe is added
+            # to parametric dqn
+            model_metrics_values = model_values.repeat(1, num_metrics)
+
+        trainer.q_network.train(old_q_train_state)  # type: ignore
+        trainer.reward_network.train(old_reward_train_state)  # type: ignore
+
+        return cls(
+            mdp_id=mdp_ids,
+            sequence_number=sequence_numbers,
+            logged_propensities=propensities,
+            logged_rewards=rewards,
+            action_mask=action_mask,
+            model_rewards=model_rewards,
+            model_rewards_for_logged_action=model_rewards_for_logged_action,
+            model_values=model_values,
+            model_values_for_logged_action=model_values_for_logged_action,
+            model_metrics_values=model_metrics_values,
+            model_metrics_values_for_logged_action=model_metrics_values_for_logged_action,
+            model_propensities=model_propensities,
+            logged_metrics=metrics,
+            model_metrics=model_metrics,
+            model_metrics_for_logged_action=model_metrics_for_logged_action,
+            # Will compute later
+            logged_values=None,
+            logged_metrics_values=None,
+            possible_actions_mask=possible_actions_mask,
+            optimal_q_values=optimal_q_values,
+            eval_action_idxs=eval_action_idxs,
+        )
+
+    @classmethod  # type: ignore
+    @torch.no_grad()  # type: ignore
+    def create_from_tensors_dqn(
         cls,
         trainer: DQNTrainer,
         mdp_ids: np.ndarray,
@@ -113,205 +219,127 @@ class EvaluationDataPage(NamedTuple):
         propensities: torch.Tensor,
         rewards: torch.Tensor,
         possible_actions_mask: torch.Tensor,
-        possible_actions: Optional[rlt.PreprocessedFeatureVector] = None,
-        max_num_actions: Optional[int] = None,
         metrics: Optional[torch.Tensor] = None,
     ):
         # Switch to evaluation mode for the network
         old_q_train_state = trainer.q_network.training
         old_reward_train_state = trainer.reward_network.training
+        old_q_cpe_train_state = trainer.q_network_cpe.training
         trainer.q_network.train(False)
         trainer.reward_network.train(False)
+        trainer.q_network_cpe.train(False)
 
-        if max_num_actions:
-            # Parametric model CPE
-            state_action_pairs = rlt.PreprocessedStateAction(
-                state=states, action=actions
-            )
-            tiled_state = states.float_features.repeat(1, max_num_actions).reshape(
-                -1, states.float_features.shape[1]
-            )
-            assert possible_actions is not None
-            # Get Q-value of action taken
-            possible_actions_state_concat = rlt.PreprocessedStateAction(
-                state=rlt.PreprocessedFeatureVector(float_features=tiled_state),
-                action=possible_actions,
-            )
+        num_actions = trainer.num_actions
+        action_mask = actions.float()  # type: ignore
 
-            # Parametric actions
-            # FIXME: model_values and model propensities should be calculated
-            # as in discrete dqn model
-            model_values = trainer.q_network(
-                possible_actions_state_concat
-            ).q_value  # type: ignore
-            optimal_q_values = model_values
-            eval_action_idxs = None
+        # Discrete actions
+        rewards = trainer.boost_rewards(rewards, actions)  # type: ignore
+        model_values = trainer.q_network_cpe(
+            rlt.PreprocessedState(state=states)
+        ).q_values[:, 0:num_actions]
+        optimal_q_values, _ = trainer.get_detached_q_values(
+            states  # type: ignore
+        )
+        eval_action_idxs = trainer.get_max_q_values(  # type: ignore
+            optimal_q_values, possible_actions_mask
+        )[1]
+        model_propensities = masked_softmax(
+            optimal_q_values, possible_actions_mask, trainer.rl_temperature
+        )
+        assert model_values.shape == actions.shape, (  # type: ignore
+            "Invalid shape: "
+            + str(model_values.shape)  # type: ignore
+            + " != "
+            + str(actions.shape)  # type: ignore
+        )
+        assert model_values.shape == possible_actions_mask.shape, (  # type: ignore
+            "Invalid shape: "
+            + str(model_values.shape)  # type: ignore
+            + " != "
+            + str(possible_actions_mask.shape)  # type: ignore
+        )
+        model_values_for_logged_action = torch.sum(
+            model_values * action_mask, dim=1, keepdim=True
+        )
 
-            assert (
-                model_values.shape[0] * model_values.shape[1]
-                == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
-            ), (
-                "Invalid shapes: "
-                + str(model_values.shape)
-                + " != "
-                + str(possible_actions_mask.shape)
-            )
-            model_values = model_values.reshape(possible_actions_mask.shape)
-            model_propensities = masked_softmax(
-                model_values, possible_actions_mask, trainer.rl_temperature
-            )
+        rewards_and_metric_rewards = trainer.reward_network(
+            rlt.PreprocessedState(state=states)
+        )
 
-            model_rewards = trainer.reward_network(
-                possible_actions_state_concat
-            ).q_value  # type: ignore
-            assert (
-                model_rewards.shape[0] * model_rewards.shape[1]
-                == possible_actions_mask.shape[0] * possible_actions_mask.shape[1]
-            ), (
-                "Invalid shapes: "
-                + str(model_rewards.shape)
-                + " != "
-                + str(possible_actions_mask.shape)
-            )
-            model_rewards = model_rewards.reshape(possible_actions_mask.shape)
+        # In case we reuse the modular for Q-network
+        if hasattr(rewards_and_metric_rewards, "q_values"):
+            rewards_and_metric_rewards = rewards_and_metric_rewards.q_values
 
-            model_values_for_logged_action = trainer.q_network(
-                state_action_pairs
-            ).q_value
-            model_rewards_for_logged_action = trainer.reward_network(
-                state_action_pairs
-            ).q_value
+        model_rewards = rewards_and_metric_rewards[:, 0:num_actions]
+        assert model_rewards.shape == actions.shape, (  # type: ignore
+            "Invalid shape: "
+            + str(model_rewards.shape)  # type: ignore
+            + " != "
+            + str(actions.shape)  # type: ignore
+        )
+        model_rewards_for_logged_action = torch.sum(
+            model_rewards * action_mask, dim=1, keepdim=True
+        )
 
-            action_mask = (
-                torch.abs(model_values - model_values_for_logged_action) < 1e-3
-            ).float()
+        model_metrics = rewards_and_metric_rewards[:, num_actions:]
 
-            model_metrics = None
-            model_metrics_for_logged_action = None
+        assert model_metrics.shape[1] % num_actions == 0, (
+            "Invalid metrics shape: "
+            + str(model_metrics.shape)
+            + " "
+            + str(num_actions)
+        )
+        num_metrics = model_metrics.shape[1] // num_actions
+
+        if num_metrics == 0:
             model_metrics_values = None
+            model_metrics_for_logged_action = None
             model_metrics_values_for_logged_action = None
         else:
-            num_actions = trainer.num_actions
-            action_mask = actions.float()  # type: ignore
-
-            # Switch to evaluation mode for the network
-            old_q_cpe_train_state = trainer.q_network_cpe.training
-            trainer.q_network_cpe.train(False)
-
-            # Discrete actions
-            rewards = trainer.boost_rewards(rewards, actions)  # type: ignore
-            model_values = trainer.q_network_cpe(
-                rlt.PreprocessedState(state=states)
-            ).q_values[:, 0:num_actions]
-            optimal_q_values = trainer.get_detached_q_values(
-                states  # type: ignore
-            )[  # type: ignore
-                0
-            ]  # type: ignore
-            eval_action_idxs = trainer.get_max_q_values(  # type: ignore
-                optimal_q_values, possible_actions_mask
-            )[1]
-            model_propensities = masked_softmax(
-                optimal_q_values, possible_actions_mask, trainer.rl_temperature
-            )
-            assert model_values.shape == actions.shape, (  # type: ignore
-                "Invalid shape: "
-                + str(model_values.shape)  # type: ignore
-                + " != "
-                + str(actions.shape)  # type: ignore
-            )
-            assert model_values.shape == possible_actions_mask.shape, (  # type: ignore
-                "Invalid shape: "
-                + str(model_values.shape)  # type: ignore
-                + " != "
-                + str(possible_actions_mask.shape)  # type: ignore
-            )
-            model_values_for_logged_action = torch.sum(
-                model_values * action_mask, dim=1, keepdim=True
-            )
-
-            rewards_and_metric_rewards = trainer.reward_network(
+            model_metrics_values = trainer.q_network_cpe(
                 rlt.PreprocessedState(state=states)
             )
-
-            # In case we reuse the modular for Q-network
-            if hasattr(rewards_and_metric_rewards, "q_values"):
-                rewards_and_metric_rewards = rewards_and_metric_rewards.q_values
-
-            model_rewards = rewards_and_metric_rewards[:, 0:num_actions]
-            assert model_rewards.shape == actions.shape, (  # type: ignore
+            # Backward compatility
+            if hasattr(model_metrics_values, "q_values"):
+                model_metrics_values = model_metrics_values.q_values
+            model_metrics_values = model_metrics_values[:, num_actions:]
+            assert (
+                model_metrics_values.shape[1] == num_actions * num_metrics
+            ), (  # type: ignore
                 "Invalid shape: "
-                + str(model_rewards.shape)  # type: ignore
+                + str(model_metrics_values.shape[1])  # type: ignore
                 + " != "
-                + str(actions.shape)  # type: ignore
-            )
-            model_rewards_for_logged_action = torch.sum(
-                model_rewards * action_mask, dim=1, keepdim=True
+                + str(actions.shape[1] * num_metrics)  # type: ignore
             )
 
-            model_metrics = rewards_and_metric_rewards[:, num_actions:]
-
-            assert model_metrics.shape[1] % num_actions == 0, (
-                "Invalid metrics shape: "
-                + str(model_metrics.shape)
-                + " "
-                + str(num_actions)
-            )
-            num_metrics = model_metrics.shape[1] // num_actions
-
-            if num_metrics == 0:
-                model_metrics_values = None
-                model_metrics_for_logged_action = None
-                model_metrics_values_for_logged_action = None
-            else:
-                model_metrics_values = trainer.q_network_cpe(
-                    rlt.PreprocessedState(state=states)
-                )
-                # Backward compatility
-                if hasattr(model_metrics_values, "q_values"):
-                    model_metrics_values = model_metrics_values.q_values
-                model_metrics_values = model_metrics_values[:, num_actions:]
-                assert (
-                    model_metrics_values.shape[1] == num_actions * num_metrics
-                ), (  # type: ignore
-                    "Invalid shape: "
-                    + str(model_metrics_values.shape[1])  # type: ignore
-                    + " != "
-                    + str(actions.shape[1] * num_metrics)  # type: ignore
-                )
-
-                model_metrics_for_logged_action_list = []
-                model_metrics_values_for_logged_action_list = []
-                for metric_index in range(num_metrics):
-                    metric_start = metric_index * num_actions
-                    metric_end = (metric_index + 1) * num_actions
-                    model_metrics_for_logged_action_list.append(
-                        torch.sum(
-                            model_metrics[:, metric_start:metric_end] * action_mask,
-                            dim=1,
-                            keepdim=True,
-                        )
+            model_metrics_for_logged_action_list = []
+            model_metrics_values_for_logged_action_list = []
+            for metric_index in range(num_metrics):
+                metric_start = metric_index * num_actions
+                metric_end = (metric_index + 1) * num_actions
+                model_metrics_for_logged_action_list.append(
+                    torch.sum(
+                        model_metrics[:, metric_start:metric_end] * action_mask,
+                        dim=1,
+                        keepdim=True,
                     )
+                )
 
-                    model_metrics_values_for_logged_action_list.append(
-                        torch.sum(
-                            model_metrics_values[:, metric_start:metric_end]
-                            * action_mask,
-                            dim=1,
-                            keepdim=True,
-                        )
+                model_metrics_values_for_logged_action_list.append(
+                    torch.sum(
+                        model_metrics_values[:, metric_start:metric_end] * action_mask,
+                        dim=1,
+                        keepdim=True,
                     )
-                model_metrics_for_logged_action = torch.cat(
-                    model_metrics_for_logged_action_list, dim=1
                 )
-                model_metrics_values_for_logged_action = torch.cat(
-                    model_metrics_values_for_logged_action_list, dim=1
-                )
+            model_metrics_for_logged_action = torch.cat(
+                model_metrics_for_logged_action_list, dim=1
+            )
+            model_metrics_values_for_logged_action = torch.cat(
+                model_metrics_values_for_logged_action_list, dim=1
+            )
 
-            # Switch back to the old mode
-            trainer.q_network_cpe.train(old_q_cpe_train_state)  # type: ignore
-
-        # Switch back to the old mode
+        trainer.q_network_cpe.train(old_q_cpe_train_state)  # type: ignore
         trainer.q_network.train(old_q_train_state)  # type: ignore
         trainer.reward_network.train(old_reward_train_state)  # type: ignore
 

@@ -55,7 +55,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         input = rlt.PreprocessedStateAction(state=state, action=action)
         q_values = self.q_network(input)
         q_values_target = self.q_network_target(input)
-        return q_values, q_values_target
+        return q_values.q_value, q_values_target.q_value
 
     @torch.no_grad()  # type: ignore
     def train(self, training_batch) -> None:
@@ -81,8 +81,8 @@ class ParametricDQNTrainer(DQNTrainerBase):
             )
             # Compute max a' Q(s', a') over all possible actions using target network
             next_q_values, _ = self.get_max_q_values_with_target(
-                all_next_q_values.q_value,
-                all_next_q_values_target.q_value,
+                all_next_q_values,
+                all_next_q_values_target,
                 learning_input.possible_next_actions_mask.float(),
             )
         else:
@@ -90,7 +90,6 @@ class ParametricDQNTrainer(DQNTrainerBase):
             _, next_q_values = self.get_detached_q_values(
                 learning_input.next_state, learning_input.next_action
             )
-            next_q_values = next_q_values.q_value
 
         filtered_max_q_vals = next_q_values * not_done_mask.float()
 
@@ -117,9 +116,15 @@ class ParametricDQNTrainer(DQNTrainerBase):
         )
 
         with torch.enable_grad():
+            if training_batch.extras.metrics is not None:
+                metrics_reward_concat_real_vals = torch.cat(
+                    (reward, training_batch.extras.metrics), dim=1
+                )
+            else:
+                metrics_reward_concat_real_vals = reward
             # get reward estimates
             reward_estimates = self.reward_network(current_state_action).q_value
-            reward_loss = F.mse_loss(reward_estimates, reward)
+            reward_loss = F.mse_loss(reward_estimates, metrics_reward_concat_real_vals)
             reward_loss.backward()
             self._maybe_run_optimizer(
                 self.reward_network_optimizer, self.minibatches_per_step
