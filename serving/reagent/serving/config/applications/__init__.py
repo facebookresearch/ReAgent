@@ -5,6 +5,7 @@ import pkgutil
 
 
 __all__ = []
+print(list(pkgutil.walk_packages(__path__)))
 
 for loader, module_name, _ in pkgutil.walk_packages(__path__):
     __all__.append(module_name)
