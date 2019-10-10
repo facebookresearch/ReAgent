@@ -88,12 +88,12 @@ TEST(UcbTests, UcbDecisionService) {
 
   for (int trial = 0; trial < 1000; trial++) {
     request.request_id = std::string("Trial_") + std::to_string(trial);
-    auto response = service->process(request);
+    auto response = service->attachIdAndProcess(request);
     for (const auto& it : response.actions) {
       if (it.propensity > 0) {
         std::string result = it.name;
-        EXPECT_TRUE(
-            result == std::string("Arm1") || result == std::string("Arm2"));
+        EXPECT_TRUE(result == std::string("Arm1") ||
+                    result == std::string("Arm2"));
 
         // Generate random feedback for chosen action
         ActionFeedback actionFeedback;
@@ -102,7 +102,7 @@ TEST(UcbTests, UcbDecisionService) {
         actionFeedback.name = result;
 
         Feedback feedback;
-        feedback.request_id = request.request_id;
+        feedback.request_id = response.request_id;
         feedback.plan_name = PLAN_NAME;
         feedback.actions.push_back(actionFeedback);
 
@@ -117,4 +117,4 @@ TEST(UcbTests, UcbDecisionService) {
   EXPECT_NEAR(ucbOp->getArmExpectation("Arm2"), 0.75, 0.01);
 }
 
-} // namespace ml
+}  // namespace reagent

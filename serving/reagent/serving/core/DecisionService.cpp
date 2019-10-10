@@ -30,29 +30,27 @@ std::shared_ptr<DecisionPlan> DecisionService::getPlan(
   return it->second;
 }
 
-DecisionResponse DecisionService::process(const DecisionRequest& request) {
+DecisionResponse DecisionService::attachIdAndProcess(DecisionRequest request) {
   const auto request_start_time = std::chrono::steady_clock::now();
 
-  const auto& requestId = request.request_id;
-  if (requestId.empty()) {
-    LOG_AND_THROW("Received decision request with empty ID");
+  if (request.request_id.empty()) {
+    request.request_id = generateUuid4();
   }
   auto plan = getPlan(request.plan_name);
 
   OperatorData inputOperatorData = request.input;
-  auto allOperatorData = runner_.run(
-      plan->getOperators(), plan->getConstants(), request, inputOperatorData);
+  auto allOperatorData = runner_.run(plan->getOperators(), plan->getConstants(),
+                                     request, inputOperatorData);
   auto outputDataIt = allOperatorData.find(plan->getOutputOperatorName());
   if (outputDataIt == allOperatorData.end()) {
-    LOG_AND_THROW(
-        "Output op missing from plan " << request.plan_name << " "
-                                       << plan->getOutputOperatorName());
+    LOG_AND_THROW("Output op missing from plan "
+                  << request.plan_name << " " << plan->getOutputOperatorName());
   }
   const StringDoubleMap outputData =
       operatorDataToPropensity(outputDataIt->second);
   auto actionNames = Operator::getActionNamesFromRequest(request);
   DecisionResponse response;
-  response.request_id = requestId;
+  response.request_id = request.request_id;
   response.plan_name = request.plan_name;
   double propensitySum = 0;
   std::map<std::string, double> actionPropensityMap;
@@ -70,7 +68,7 @@ DecisionResponse DecisionService::process(const DecisionRequest& request) {
     response.actions.emplace_back(std::move(action));
   }
   if (fabs(propensitySum - 1.0) > 1e-3) {
-    LOG(WARNING) << "Propensities for request " << requestId
+    LOG(WARNING) << "Propensities for request " << request.request_id
                  << " do not sum to 1: " << propensitySum;
   }
   const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -128,9 +126,9 @@ void DecisionService::_giveFeedback(
       const auto& depOperatorName = inputDepEntry.second;
       auto it = operatorOutputs.find(depOperatorName);
       if (it == operatorOutputs.end()) {
-        LOG_AND_THROW(
-            "Could not find data of "
-            << depOperatorName << " for finished operator: " << op->getName());
+        LOG_AND_THROW("Could not find data of "
+                      << depOperatorName
+                      << " for finished operator: " << op->getName());
       }
       namedInputs[inputName] = it->second;
     }
@@ -145,8 +143,7 @@ void DecisionService::_giveFeedback(
 }
 
 std::shared_ptr<DecisionPlan> DecisionService::createPlan(
-    const std::string& planName,
-    const DecisionConfig& config) {
+    const std::string& planName, const DecisionConfig& config) {
   std::vector<std::shared_ptr<Operator>> operators =
       OperatorFactory::getInstance()->createFromConfig(planName, config, this);
   if (operators.empty()) {
@@ -165,4 +162,4 @@ std::shared_ptr<DecisionPlan> DecisionService::createPlan(
   return plan;
 }
 
-} // namespace reagent
+}  // namespace reagent

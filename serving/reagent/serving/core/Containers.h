@@ -16,22 +16,15 @@ using StringDoubleMap = std::unordered_map<std::string, double>;
 using StringIntMap = std::unordered_map<std::string, int64_t>;
 using StringList = std::vector<std::string>;
 
-typedef std::variant<
-    std::string,
-    int64_t,
-    double,
-    StringList,
-    std::vector<int64_t>,
-    std::vector<double>,
-    StringStringMap,
-    StringIntMap,
-    StringDoubleMap,
-    std::unordered_map<std::string, StringDoubleMap>>
+typedef std::variant<std::string, int64_t, double, StringList,
+                     std::vector<int64_t>, std::vector<double>, StringStringMap,
+                     StringIntMap, StringDoubleMap,
+                     std::unordered_map<std::string, StringDoubleMap>>
     ConstantValue;
 
 ConstantValue json_to_constant_value(const json& j);
 void constant_value_to_json(const ConstantValue& value, json& j);
-} // namespace reagent
+}  // namespace reagent
 
 namespace std {
 inline void from_json(const nlohmann::json& j, reagent::ConstantValue& p) {
@@ -59,7 +52,7 @@ inline void to_json(nlohmann::json& j, const std::optional<T>& p) {
     j = nullptr;
   }
 }
-} // namespace std
+}  // namespace std
 
 namespace reagent {
 
@@ -94,13 +87,12 @@ enum DecisionRewardAggreation {
   DRA_MAX = 2,
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(
-    DecisionRewardAggreation,
-    {
-        {DRA_INVALID, nullptr},
-        {DRA_SUM, "sum"},
-        {DRA_MAX, "max"},
-    });
+NLOHMANN_JSON_SERIALIZE_ENUM(DecisionRewardAggreation,
+                             {
+                                 {DRA_INVALID, nullptr},
+                                 {DRA_SUM, "sum"},
+                                 {DRA_MAX, "max"},
+                             });
 
 /*
   DecisionConfig represents a single policy and is stored in configurator.
@@ -109,12 +101,12 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 */
 struct DecisionConfig {
   std::vector<OperatorDefinition>
-      operators; // List of operations to perform.  The last
-                 // item in the list produces the final output.
-  std::vector<Constant> constants; // List of constants that can be fed to
-                                   // operators.
-  int64_t num_actions_to_choose = 1; // Repeat the policy to sample N actions
-                                     // w/o replacement (such as for ranking).
+      operators;  // List of operations to perform.  The last
+                  // item in the list produces the final output.
+  std::vector<Constant> constants;    // List of constants that can be fed to
+                                      // operators.
+  int64_t num_actions_to_choose = 1;  // Repeat the policy to sample N actions
+                                      // w/o replacement (such as for ranking).
   std::string reward_function;
   DecisionRewardAggreation reward_aggregator;
 };
@@ -131,12 +123,13 @@ using FeatureSet = std::unordered_map<int64_t, double>;
 
 struct DecisionRequestActionSet {
   std::unordered_map<std::string, FeatureSet>
-      features; // Set of name->example pairs
-  StringList names; // Discrete list of actions
+      features;      // Set of name->example pairs
+  StringList names;  // Discrete list of actions
 };
 
 inline void from_json(const json& j, DecisionRequestActionSet& p) {
-  j.at("features").get_to(p.features);
+  p.features =
+      j.value<std::unordered_map<std::string, FeatureSet>>("features", {});
   j.at("names").get_to(p.names);
 }
 
@@ -152,28 +145,28 @@ inline void from_json(const json&, DecisionRequestMeta&) {}
 inline void to_json(json&, const DecisionRequestMeta&) {}
 
 struct DecisionRequest {
-  std::string request_id; // UUID for this request
+  std::string request_id;  // UUID for this request
   DecisionRequestMeta meta_data;
-  std::string plan_name; // Name of DecisionConfig for this request
+  std::string plan_name;  // Name of DecisionConfig for this request
   DecisionRequestActionSet actions;
   std::unordered_map<int64_t, double>
-      context_features; // Action-independent features
-  ConstantValue input; // Extra inputs
+      context_features;  // Action-independent features
+  ConstantValue input;   // Extra inputs
 };
 
 inline void from_json(const json& j, DecisionRequest& p) {
-  j.at("request_id").get_to(p.request_id);
-  j.at("meta_data").get_to(p.meta_data);
+  p.request_id = j.value("request_id", "");
+  if (j.count("meta_data")) {
+    j.at("meta_data").get_to(p.meta_data);
+  }
   j.at("plan_name").get_to(p.plan_name);
   j.at("actions").get_to(p.actions);
-  j.at("context_features").get_to(p.context_features);
-  j.at("input").get_to(p.input);
-  /*
-  std::map<int64_t, double> context_features;
-  j.at("context_features").get_to(context_features);
-  p.context_features.insert(context_features.begin(),
-  context_features.end());
-  */
+  if (j.count("context_features")) {
+    j.at("context_features").get_to(p.context_features);
+  }
+  if (j.count("input")) {
+    j.at("input").get_to(p.input);
+  }
 }
 
 inline void to_json(json& j, const DecisionRequest& p) {
@@ -189,7 +182,7 @@ inline void to_json(json& j, const DecisionRequest& p) {
 
 struct ActionDetails {
   std::string name;
-  double propensity; // Probability of choosing this action
+  double propensity;  // Probability of choosing this action
 };
 
 inline void from_json(const json& j, ActionDetails& p) {
@@ -202,10 +195,10 @@ inline void to_json(json& j, const ActionDetails& p) {
 }
 
 struct DecisionResponse {
-  std::string request_id; // UUID echoed back from the request
-  std::string plan_name; // Name of DecisionConfig for the request
-  std::vector<ActionDetails> actions; // Stats on all actions
-  int64_t duration; // Time taken to process this request
+  std::string request_id;              // UUID echoed back from the request
+  std::string plan_name;               // Name of DecisionConfig for the request
+  std::vector<ActionDetails> actions;  // Stats on all actions
+  int64_t duration;                    // Time taken to process this request
 };
 
 inline void from_json(const json& j, DecisionResponse& p) {
@@ -287,4 +280,4 @@ inline void to_json(json& j, const DecisionWithFeedback& p) {
   j["operator_outputs"] = p.operator_outputs;
   j["feedback"] = p.feedback;
 }
-} // namespace reagent
+}  // namespace reagent

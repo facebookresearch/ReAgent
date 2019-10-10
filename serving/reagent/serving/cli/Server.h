@@ -11,13 +11,15 @@ using HttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
 namespace reagent {
 class Server {
  public:
-  Server(std::shared_ptr<DecisionService> _decisionService);
+  Server(std::shared_ptr<DecisionService> _decisionService, int _port);
 
+  void start();
   void shutdown();
 
  protected:
   HttpServer server;
   std::shared_ptr<std::thread> serverThread;
   std::shared_ptr<DecisionService> decisionService;
+  int port;
 };
 }  // namespace reagent

@@ -39,7 +39,7 @@ TEST(DecisionService, Simple) {
   constantInput = input;
   request.input = constantInput;
 
-  auto response = service->process(request);
+  auto response = service->attachIdAndProcess(request);
 
   EXPECT_EQ(response.request_id, request.request_id);
 
@@ -52,4 +52,4 @@ TEST(DecisionService, Simple) {
   EXPECT_SYMBOLTABLE_NEAR(output, expectedOutput);
 }
 
-}  // namespace ml
+}  // namespace reagent
