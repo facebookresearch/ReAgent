@@ -46,7 +46,7 @@ def serve_customer(epoch) -> Tuple[str, float]:
         "http://localhost:3000/api/request",
         {
             "plan_name": plan_name,
-            "context_features": {0: float(rib_lover)},
+            "context_features": {0: float(rib_lover), 1: 1.0},
             "actions": {"names": ["Bacon", "Ribs"]},
         },
     )
