@@ -74,12 +74,22 @@ class PandasSparseToDenseProcessor(SparseToDenseProcessor):
         self, sorted_features: List[int], set_missing_value_to_zero: bool = False
     ):
         super().__init__(sorted_features, set_missing_value_to_zero)
+        self.feature_to_index = {}
+        for i, f in enumerate(sorted_features):
+            self.feature_to_index[f] = i
 
     def process(self, sparse_data) -> Tuple[torch.Tensor, torch.Tensor]:
+        # Convert all keys to integers
+        sparse_data_int = []
+        for sd in sparse_data:
+            sd_int = {}
+            for k, v in sd.items():
+                sd_int[self.feature_to_index[int(k)]] = v
+            sparse_data_int.append(sd_int)
         missing_value = normalization.MISSING_VALUE
         if self.set_missing_value_to_zero:
             missing_value = 0.0
-        state_features_df = pd.DataFrame(sparse_data).fillna(missing_value)
+        state_features_df = pd.DataFrame(sparse_data_int).fillna(missing_value)
         # Add columns identified by normalization, but not present in batch
         for col in self.sorted_features:
             if col not in state_features_df.columns:

@@ -63,18 +63,19 @@ class PreprocessHandler:
 
 class DiscreteDqnPreprocessHandler(PreprocessHandler):
     def __init__(
-        self, action_names: List[str], sparse_to_dense_processor: SparseToDenseProcessor
+        self, num_actions: int, sparse_to_dense_processor: SparseToDenseProcessor
     ):
         super().__init__(sparse_to_dense_processor)
-        self.action_names = action_names
+        self.num_actions = num_actions
 
     def read_actions(self, actions):
-        actions = np.array(actions, dtype=np.str)
+        actions = np.array(actions)
         actions = np.expand_dims(actions, axis=1)
-        action_names_tiled = np.tile(self.action_names, actions.shape)
-        return torch.tensor(
+        action_names_tiled = np.tile(list(range(self.num_actions)), actions.shape)
+        retval = torch.tensor(
             (actions == action_names_tiled).astype(np.float32), dtype=torch.float32
         )
+        return retval
 
     def preprocess(self, batch) -> rlt.RawTrainingBatch:
         training_batch = super().preprocess(batch)

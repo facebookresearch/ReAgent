@@ -16,8 +16,7 @@ class InMemoryLogJoiner : public LogJoiner {
     auto log_dir = boost::filesystem::path(log_path).parent_path();
     if (!boost::filesystem::exists(log_dir)) {
       boost::filesystem::create_directory(log_dir.string());
-      LOG(INFO) << "Log directory : " << log_dir
-                << " does not exist. Created";
+      LOG(INFO) << "Log directory : " << log_dir << " does not exist. Created";
     }
 
     logStream_ = std::make_unique<std::ofstream>(
@@ -29,22 +28,21 @@ class InMemoryLogJoiner : public LogJoiner {
     }
   }
 
-  void logDecision(
-      const DecisionRequest& request,
-      const DecisionResponse& decisionResponse,
-      const StringOperatorDataMap& operator_outputs) override;
+  void logDecision(const DecisionRequest& request,
+                   const DecisionResponse& decisionResponse,
+                   const StringOperatorDataMap& operator_outputs) override;
 
   void logFeedback(Feedback feedback) override;
 
   virtual DecisionWithFeedback deserializeAndJoinDecisionAndFeedback(
       StringList decisionAndFeedback) override;
 
-  std::unordered_map<std::string, DecisionWithFeedback> getLoggedData();
+  std::deque<DecisionWithFeedback> getLoggedData();
 
  protected:
   std::unique_ptr<std::ofstream> logStream_;
-  std::unordered_map<std::string, DecisionWithFeedback> loggedData_;
+  std::deque<DecisionWithFeedback> loggedData_;
   std::unordered_map<std::string, DecisionWithFeedback> unjoinedData_;
 };
 
-} // namespace reagent
+}  // namespace reagent

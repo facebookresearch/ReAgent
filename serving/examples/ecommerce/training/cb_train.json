@@ -18,7 +18,7 @@
         "Ribs",
         "Bacon"
     ],
-    "epochs": 10000,
+    "epochs": 10,
     "rl": {
         "gamma": 0.0,
         "target_update_rate": 1.0,
@@ -34,17 +34,13 @@
     "training": {
         "layers": [
             -1,
-            128,
-            64,
             -1
         ],
         "activations": [
-            "relu",
-            "relu",
             "linear"
         ],
-        "minibatch_size": 256,
-        "learning_rate": 0.0001,
+        "minibatch_size": 128,
+        "learning_rate": 0.01,
         "optimizer": "ADAM",
         "lr_decay": 0.999,
         "warm_start_model_path": null,

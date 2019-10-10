@@ -33,11 +33,12 @@ def post(url: str, content: Any) -> Any:
 
 
 plan_name = sys.argv[1]
-EPOCHS = 1000
+EPOCHS = 10000
 
 
 def serve_customer(epoch) -> Tuple[str, float]:
-    print(epoch)
+    if epoch%100 == 0:
+        print(epoch)
 
     # 10% chance to be rib lover
     rib_lover = random.random() <= 0.1

@@ -148,7 +148,7 @@ def single_process_main(gpu_index, *args):
 
     sorted_features, _ = sort_features_by_normalization(state_normalization)
     preprocess_handler = DiscreteDqnPreprocessHandler(
-        action_names, PandasSparseToDenseProcessor(sorted_features)
+        len(action_names), PandasSparseToDenseProcessor(sorted_features)
     )
 
     train_dataset = JSONDatasetReader(
@@ -189,5 +189,6 @@ def main(params):
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     params = parse_args(sys.argv)
     main(params)

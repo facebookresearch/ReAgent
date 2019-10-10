@@ -185,4 +185,6 @@ def benchmark(num_forward_passes):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     benchmark(NUM_FORWARD_PASSES)
