@@ -221,6 +221,7 @@ class SACModelParameters(BaseDataClass):
     evaluation: EvaluationParameters = EvaluationParameters()
     # constrain action output to sum to 1 (using dirichlet distribution)
     constrain_action_sum: bool = False
+    do_not_preprocess_action: Optional[bool] = None
 
 
 @dataclass
