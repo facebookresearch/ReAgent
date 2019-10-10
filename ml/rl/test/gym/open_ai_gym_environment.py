@@ -251,7 +251,10 @@ class OpenAIGymEnvironment(Environment):
                 )
                 policy_action_set = predictor.policy(  # type: ignore
                     states_tiled,
-                    (torch.eye(self.action_dim), torch.ones((self.action_dim, 1))),
+                    (
+                        torch.eye(self.action_dim),
+                        torch.ones((self.action_dim, self.action_dim)),
+                    ),
                 )
 
             if self.softmax_policy:
