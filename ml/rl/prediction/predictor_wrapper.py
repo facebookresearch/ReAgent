@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 import ml.rl.types as rlt
 import torch
 from ml.rl.models.base import ModelBase
+from ml.rl.preprocessing.postprocessor import Postprocessor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from torch import nn
 
@@ -167,10 +168,16 @@ class ActorWithPreprocessor(ModelBase):
     any custom Python type.
     """
 
-    def __init__(self, model: ModelBase, state_preprocessor: Preprocessor):
+    def __init__(
+        self,
+        model: ModelBase,
+        state_preprocessor: Preprocessor,
+        action_postprocessor: Optional[Postprocessor] = None,
+    ):
         super().__init__()
         self.model = model
         self.state_preprocessor = state_preprocessor
+        self.action_postprocessor = action_postprocessor
 
     def forward(self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]):
         preprocessed_state = self.state_preprocessor(
@@ -179,6 +186,8 @@ class ActorWithPreprocessor(ModelBase):
         state_feature_vector = rlt.PreprocessedState.from_tensor(preprocessed_state)
         # TODO: include log_prob in the output
         action = self.model(state_feature_vector).action
+        if self.action_postprocessor:
+            action = self.action_postprocessor(action)
         return action
 
     def input_prototype(self):
