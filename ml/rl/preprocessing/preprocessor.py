@@ -71,13 +71,14 @@ class Preprocessor(Module):
             torch.tensor([EPS]).type(self.dtype), requires_grad=False
         )
 
-        feature_starts = self._get_type_boundaries()
+        self.feature_starts = self._get_type_boundaries()
+        self.split_sections: List[int] = []
         for i, feature_type in enumerate(FEATURE_TYPES):
-            begin_index = feature_starts[i]
+            begin_index = self.feature_starts[i]
             if (i + 1) == len(FEATURE_TYPES):
                 end_index = len(self.normalization_parameters)
             else:
-                end_index = feature_starts[i + 1]
+                end_index = self.feature_starts[i + 1]
             if begin_index == end_index:
                 continue  # No features of this type
             if feature_type == ENUM:
@@ -88,17 +89,19 @@ class Preprocessor(Module):
                     ]
                     func = getattr(self, "_create_parameters_" + feature_type)
                     func(j, enum_norm_params)
+                    self.split_sections.append(1)
             else:
                 norm_params = []
                 for f in self.sorted_features[begin_index:end_index]:
                     norm_params.append(self.normalization_parameters[f])
                 func = getattr(self, "_create_parameters_" + feature_type)
                 func(begin_index, norm_params)
+                self.split_sections.append(end_index - begin_index)
 
     def input_prototype(self) -> Tuple[torch.Tensor, torch.Tensor]:
         return (
             torch.randn(1, len(self.normalization_parameters)),
-            torch.ones(1, len(self.normalization_parameters)).byte(),
+            torch.ones(1, len(self.normalization_parameters), dtype=torch.uint8),
         )
 
     def forward(
@@ -107,37 +110,45 @@ class Preprocessor(Module):
         """ Preprocess the input matrix
         :param input tensor
         """
-        feature_starts = self._get_type_boundaries()
-
-        input_presence = input_presence_byte.float()
-
         outputs = []
+        split_input = torch.split(input, self.split_sections, dim=1)
+        # NB: converting to float prevent ASAN heap-buffer-overflow
+        split_presence = torch.split(
+            input_presence_byte.float(), self.split_sections, dim=1
+        )
+        ptr = 0
         for i, feature_type in enumerate(FEATURE_TYPES):
-            begin_index = feature_starts[i]
+            begin_index = self.feature_starts[i]
             if (i + 1) == len(FEATURE_TYPES):
                 end_index = len(self.normalization_parameters)
             else:
-                end_index = feature_starts[i + 1]
+                end_index = self.feature_starts[i + 1]
             if begin_index == end_index:
                 continue  # No features of this type
             if feature_type == ENUM:
                 # Process one-at-a-time
                 for j in range(begin_index, end_index):
                     norm_params = self.normalization_parameters[self.sorted_features[j]]
-                    new_output = self._preprocess_feature_single_column(
-                        j, input[:, j : j + 1], norm_params
+                    new_output = (
+                        self._preprocess_feature_single_column(
+                            j, split_input[ptr], norm_params
+                        )
+                        * split_presence[ptr]
                     )
-                    new_output *= input_presence[:, j : j + 1]
+                    ptr += 1
                     self._check_preprocessing_output(new_output, [norm_params])
                     outputs.append(new_output)
             else:
                 norm_params_list: List[NormalizationParameters] = []
                 for f in self.sorted_features[begin_index:end_index]:
                     norm_params_list.append(self.normalization_parameters[f])
-                new_output = self._preprocess_feature_multi_column(
-                    begin_index, input[:, begin_index:end_index], norm_params_list
+                new_output = (
+                    self._preprocess_feature_multi_column(
+                        begin_index, split_input[ptr], norm_params_list
+                    )
+                    * split_presence[ptr]
                 )
-                new_output *= input_presence[:, begin_index:end_index]
+                ptr += 1
                 self._check_preprocessing_output(new_output, norm_params_list)
                 outputs.append(new_output)
 
@@ -279,10 +290,7 @@ class Preprocessor(Module):
         means = self._fetch_parameter(begin_index, "means")
         stddevs = self._fetch_parameter(begin_index, "stddevs")
         continuous_output = (input - means) / stddevs
-        return cast(
-            torch.Tensor,
-            torch.clamp(continuous_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE),
-        )
+        return continuous_output
 
     def _create_parameters_BOXCOX(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -313,12 +321,11 @@ class Preprocessor(Module):
         lambdas = self._fetch_parameter(begin_index, "lambdas")
         boxcox_output = (
             # We can replace this with a normal pow() call after D8528654 lands
-            self._manual_broadcast_matrix_scalar(
+            torch.pow(
                 torch.clamp(
                     input + shifts, 1e-6
                 ),  # Clamp is necessary to prevent MISSING_VALUE from going to NaN
                 lambdas,
-                torch.pow,
             )
             - self.one_tensor
         ) / lambdas
@@ -522,27 +529,14 @@ class Preprocessor(Module):
             Parameter, getattr(self, "_auto_parameter_" + str(begin_index) + "_" + name)
         )
 
-    def _manual_broadcast_matrix_scalar(
-        self, t1: torch.Tensor, s1: torch.Tensor, fn
-    ) -> torch.Tensor:
-        # Some ONNX ops don't support broadcasting so we need to do some matrix magic
-        return fn(t1, (t1 * self.zero_tensor) + s1).float()  # type: ignore
-
-    def _manual_broadcast_column_vec_row_vec(
-        self, t1: torch.Tensor, t2: torch.Tensor, fn
-    ) -> torch.Tensor:
-        # Some ONNX ops don't support broadcasting so we need to do some matrix magic
-        t2_ones = t2 / t2
-        t1_mask = t1.mm(t2_ones)  # type: ignore
-
-        return fn(t1_mask, t2).float()  # type: ignore
-
     def _check_preprocessing_output(self, batch, norm_params):
         """
         Check that preprocessed features fall within range of valid output.
         :param batch: torch tensor
         :param norm_params: list of normalization parameters
         """
+        if not self.training:
+            return
         feature_type = norm_params[0].feature_type
         min_value, max_value = batch.min(), batch.max()
 

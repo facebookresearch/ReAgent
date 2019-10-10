@@ -574,14 +574,12 @@ class GridworldBase(Environment):
 
         states_ndarray = preprocessor(
             torch.from_numpy(workspace.FetchBlob(self.state_matrix)),
-            torch.from_numpy(workspace.FetchBlob(self.state_matrix_presence)).float(),
+            torch.from_numpy(workspace.FetchBlob(self.state_matrix_presence)),
         )
 
         next_states_ndarray = preprocessor(
             torch.from_numpy(workspace.FetchBlob(self.next_state_matrix)),
-            torch.from_numpy(
-                workspace.FetchBlob(self.next_state_matrix_presence)
-            ).float(),
+            torch.from_numpy(workspace.FetchBlob(self.next_state_matrix_presence)),
         )
 
         logger.info("Batching...")
