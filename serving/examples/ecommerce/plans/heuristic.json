@@ -1,0 +1,32 @@
+{
+    "operators": [
+        {
+            "name": "SoftmaxRanker_1",
+            "op_name": "SoftmaxRanker",
+            "input_dep_map": {
+                "temperature": "constant_2",
+                "values": "constant_3"
+            }
+        }
+    ],
+    "constants": [
+        {
+            "name": "constant_2",
+            "value": {
+                "double_value": 1.0
+            }
+        },
+        {
+            "name": "constant_3",
+            "value": {
+                "map_double_value": {
+                    "Bacon": 1.1,
+                    "Ribs": 1.0
+                }
+            }
+        }
+    ],
+    "num_actions_to_choose": 1,
+    "reward_function": "reward",
+    "reward_aggregator": "sum"
+}

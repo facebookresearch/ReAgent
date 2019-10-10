@@ -46,31 +46,12 @@ DecisionResponse DecisionService::attachIdAndProcess(DecisionRequest request) {
     LOG_AND_THROW("Output op missing from plan "
                   << request.plan_name << " " << plan->getOutputOperatorName());
   }
-  const StringDoubleMap outputData =
-      operatorDataToPropensity(outputDataIt->second);
-  auto actionNames = Operator::getActionNamesFromRequest(request);
+  const RankedActionList outputData =
+      std::get<RankedActionList>(outputDataIt->second);
   DecisionResponse response;
   response.request_id = request.request_id;
   response.plan_name = request.plan_name;
-  double propensitySum = 0;
-  std::map<std::string, double> actionPropensityMap;
-  for (const auto& actionName : actionNames) {
-    auto it = outputData.find(actionName);
-    double propensity = 0;
-    if (it != outputData.end()) {
-      propensity = it->second;
-    }
-    propensitySum += propensity;
-    ActionDetails action;
-    action.name = actionName;
-    action.propensity = propensity;
-    actionPropensityMap[actionName] = propensity;
-    response.actions.emplace_back(std::move(action));
-  }
-  if (fabs(propensitySum - 1.0) > 1e-3) {
-    LOG(WARNING) << "Propensities for request " << request.request_id
-                 << " do not sum to 1: " << propensitySum;
-  }
+  response.actions = outputData;
   const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - request_start_time);
   response.duration = duration.count();

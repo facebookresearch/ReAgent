@@ -18,13 +18,13 @@ class LocalRealTimeCounter : public RealTimeCounter {
 
   virtual void addValue(const std::string& key, double value) override;
 
-  void setWindowSize(int windowSize) {
-    windowSize_ = windowSize;
-  }
+  void setWindowSize(int windowSize) { windowSize_ = windowSize; }
+
+  virtual void clear(const std::string& key) override;
 
  protected:
   std::unordered_map<std::string, std::deque<double>> counts_;
   int windowSize_;
 };
 
-} // namespace reagent
+}  // namespace reagent

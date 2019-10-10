@@ -11,9 +11,9 @@ void Server::start() {
       [this](std::shared_ptr<HttpServer::Response> response,
              std::shared_ptr<HttpServer::Request> request) {
         try {
-          LOG(INFO) << "REQUEST";
+          VLOG(1) << "REQUEST";
           auto content = json::parse(request->content.string());
-          LOG(INFO) << "Got request: " << content;
+          VLOG(1) << "Got request: " << content;
           DecisionRequest decisionRequest = content;
           auto decisionResponse =
               decisionService->attachIdAndProcess(decisionRequest);
@@ -22,6 +22,7 @@ void Server::start() {
           response->write(SimpleWeb::StatusCode::success_ok,
                           responseJson.dump(2));
         } catch (const std::exception& e) {
+          LOG(ERROR) << "GOT ERROR: " << e.what();
           response->write(SimpleWeb::StatusCode::client_error_bad_request,
                           e.what());
         }
@@ -32,7 +33,6 @@ void Server::start() {
              std::shared_ptr<HttpServer::Request> request) {
         try {
           auto content = json::parse(request->content.string());
-          LOG(INFO) << "Got feedback: " << content;
           Feedback feedback = content;
           decisionService->computeRewardAndLogFeedback(feedback);
           json responseJson = {{"status", "OK"}};
@@ -40,6 +40,7 @@ void Server::start() {
           response->write(SimpleWeb::StatusCode::success_ok,
                           responseJson.dump(2));
         } catch (const std::exception& e) {
+          LOG(ERROR) << "GOT ERROR: " << e.what();
           response->write(SimpleWeb::StatusCode::client_error_bad_request,
                           e.what());
         }

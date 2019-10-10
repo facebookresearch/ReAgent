@@ -5,8 +5,8 @@
 #include <folly/logging/xlog.h>
 
 #include "reagent/serving/cli/Server.h"
-#include "reagent/serving/core/DiskConfigProvider.h"
 #include "reagent/serving/core/DecisionService.h"
+#include "reagent/serving/core/DiskConfigProvider.h"
 #include "reagent/serving/core/InMemoryLogJoiner.h"
 #include "reagent/serving/core/LocalRealTimeCounter.h"
 #include "reagent/serving/core/SharedParameterHandler.h"
@@ -16,7 +16,9 @@ int Main(int argc, char** argv) {
   folly::init(&argc, &argv);
 
   auto service = std::make_shared<DecisionService>(
-      std::make_shared<DiskConfigProvider>("/tmp/dsp"), std::shared_ptr<ActionValueScorer>(),
+      std::make_shared<DiskConfigProvider>(
+          "/Users/jjg/github/Horizon/serving/examples/ecommerce/plans"),
+      std::shared_ptr<ActionValueScorer>(),
       std::make_shared<InMemoryLogJoiner>("/tmp/dsp_logging/log.txt"),
       std::make_shared<LocalRealTimeCounter>(),
       std::make_shared<SharedParameterHandler>());

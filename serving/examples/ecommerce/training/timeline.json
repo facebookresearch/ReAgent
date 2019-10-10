@@ -1,0 +1,19 @@
+{
+    "timeline": {
+        "startDs": "2019-01-01",
+        "endDs": "2019-01-01",
+        "addTerminalStateRow": true,
+        "actionDiscrete": true,
+        "inputTableName": "hamazon_input_data",
+        "outputTableName": "hamazon_training",
+        "evalTableName": "hamazon_eval",
+        "numOutputShards": 1
+    },
+    "query": {
+        "tableSample": 100,
+        "actions": [
+            "Ribs",
+            "Bacon"
+        ]
+    }
+}

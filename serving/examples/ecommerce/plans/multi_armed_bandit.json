@@ -1,0 +1,29 @@
+{
+    "operators": [
+        {
+            "name": "UCB_1",
+            "op_name": "Ucb",
+            "input_dep_map": {
+                "method": "constant_2",
+                "batch_size": "constant_3"
+            }
+        }
+    ],
+    "constants": [
+        {
+            "name": "constant_2",
+            "value": {
+                "string_value": "UCB1"
+            }
+        },
+        {
+            "name": "constant_3",
+            "value": {
+                "int_value": 16
+            }
+        }
+    ],
+    "num_actions_to_choose": 1,
+    "reward_function": "reward",
+    "reward_aggregator": "sum"
+}

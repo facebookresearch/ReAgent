@@ -1,7 +1,7 @@
 #include "reagent/serving/core/DiskConfigProvider.h"
-#include "reagent/serving/core/DecisionService.h"
-#include <boost/filesystem.hpp>
 #include <folly/FileUtil.h>
+#include <boost/filesystem.hpp>
+#include "reagent/serving/core/DecisionService.h"
 
 namespace reagent {
 
@@ -14,15 +14,17 @@ void DiskConfigProvider::initialize(DecisionService* decisionService) {
   }
 }
 
-
 void DiskConfigProvider::readConfig(const std::string& path) {
+  auto planName =
+      boost::filesystem::relative(boost::filesystem::path(path), configDir_)
+          .string();
   DecisionConfig decisionConfig;
 
   std::string contents;
 
   if (!folly::readFile(path.c_str(), contents)) {
     // Read of config failed
-    LOG(INFO) << "Reading config: " << path <<" failed";
+    LOG(INFO) << "Reading config: " << path << " failed";
     return;
   }
 
@@ -37,13 +39,13 @@ void DiskConfigProvider::readConfig(const std::string& path) {
   }
   // Now do stuff with the newly-populated `cfg` object
 
-  LOG(INFO) << "GOT CONFIG " << path;
+  LOG(INFO) << "GOT CONFIG " << planName << " AT " << path;
 
   try {
-    decisionService_->createPlan(path, decisionConfig);
-    LOG(INFO) << "Registered decision config: " << path;
+    decisionService_->createPlan(planName, decisionConfig);
+    LOG(INFO) << "Registered decision config: " << planName;
   } catch (const std::runtime_error& er) {
     LOG(ERROR) << er.what();
   }
 }
-} // namespace reagent
+}  // namespace reagent

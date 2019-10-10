@@ -16,10 +16,26 @@ using StringDoubleMap = std::unordered_map<std::string, double>;
 using StringIntMap = std::unordered_map<std::string, int64_t>;
 using StringList = std::vector<std::string>;
 
-typedef std::variant<std::string, int64_t, double, StringList,
-                     std::vector<int64_t>, std::vector<double>, StringStringMap,
-                     StringIntMap, StringDoubleMap,
-                     std::unordered_map<std::string, StringDoubleMap>>
+struct ActionDetails {
+  std::string name;
+  double propensity;  // Probability of choosing this action
+};
+
+inline void from_json(const json& j, ActionDetails& p) {
+  p.name = j.at("name");
+  p.propensity = j.at("propensity");
+}
+
+inline void to_json(json& j, const ActionDetails& p) {
+  j = json{{"name", p.name}, {"propensity", p.propensity}};
+}
+
+using RankedActionList = std::vector<ActionDetails>;
+
+typedef std::variant<
+    std::string, int64_t, double, StringList, std::vector<int64_t>,
+    std::vector<double>, StringStringMap, StringIntMap, StringDoubleMap,
+    std::unordered_map<std::string, StringDoubleMap>, RankedActionList>
     ConstantValue;
 
 ConstantValue json_to_constant_value(const json& j);
@@ -119,7 +135,7 @@ inline void from_json(const json& j, DecisionConfig& p) {
   j.at("reward_aggregator").get_to(p.reward_aggregator);
 }
 
-using FeatureSet = std::unordered_map<int64_t, double>;
+using FeatureSet = StringDoubleMap;
 
 struct DecisionRequestActionSet {
   std::unordered_map<std::string, FeatureSet>
@@ -149,9 +165,8 @@ struct DecisionRequest {
   DecisionRequestMeta meta_data;
   std::string plan_name;  // Name of DecisionConfig for this request
   DecisionRequestActionSet actions;
-  std::unordered_map<int64_t, double>
-      context_features;  // Action-independent features
-  ConstantValue input;   // Extra inputs
+  StringDoubleMap context_features;  // Action-independent features
+  ConstantValue input;               // Extra inputs
 };
 
 inline void from_json(const json& j, DecisionRequest& p) {
@@ -174,37 +189,21 @@ inline void to_json(json& j, const DecisionRequest& p) {
   j["meta_data"] = p.meta_data;
   j["plan_name"] = p.plan_name;
   j["actions"] = p.actions;
-  j["request_id"] = p.request_id;
-  j["request_id"] = p.request_id;
   j["context_features"] = p.context_features;
   j["input"] = p.input;
 }
 
-struct ActionDetails {
-  std::string name;
-  double propensity;  // Probability of choosing this action
-};
-
-inline void from_json(const json& j, ActionDetails& p) {
-  p.name = j.at("name");
-  p.propensity = j.at("propensity");
-}
-
-inline void to_json(json& j, const ActionDetails& p) {
-  j = json{{"name", p.name}, {"propensity", p.propensity}};
-}
-
 struct DecisionResponse {
-  std::string request_id;              // UUID echoed back from the request
-  std::string plan_name;               // Name of DecisionConfig for the request
-  std::vector<ActionDetails> actions;  // Stats on all actions
-  int64_t duration;                    // Time taken to process this request
+  std::string request_id;    // UUID echoed back from the request
+  std::string plan_name;     // Name of DecisionConfig for the request
+  RankedActionList actions;  // Stats on all actions
+  int64_t duration;          // Time taken to process this request
 };
 
 inline void from_json(const json& j, DecisionResponse& p) {
   p.request_id = j.at("request_id");
   p.plan_name = j.at("plan_name");
-  p.actions = j.at("actions").get<std::vector<ActionDetails>>();
+  p.actions = j.at("actions").get<RankedActionList>();
   p.duration = j.at("duration");
 }
 
@@ -224,7 +223,9 @@ struct ActionFeedback {
 inline void from_json(const json& j, ActionFeedback& p) {
   j.at("name").get_to(p.name);
   j.at("metrics").get_to(p.metrics);
-  j.at("computed_reward").get_to(p.computed_reward);
+  if (j.count("computed_reward")) {
+    j.at("computed_reward").get_to(p.computed_reward);
+  }
 }
 
 inline void to_json(json& j, const ActionFeedback& p) {

@@ -37,8 +37,6 @@
   }
 
 namespace reagent {
-StringDoubleMap operatorDataToPropensity(const OperatorData& value);
-
 std::string generateUuid4();
 
 }  // namespace reagent

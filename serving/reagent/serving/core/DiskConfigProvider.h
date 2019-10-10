@@ -2,7 +2,6 @@
 
 #include "reagent/serving/core/Headers.h"
 
-#include "configerator/distribution/api/api.h"
 #include "reagent/serving/core/ConfigProvider.h"
 
 namespace reagent {
@@ -13,10 +12,9 @@ class DiskConfigProvider : public ConfigProvider {
   }
 
  protected:
-   std::string configDir_;
+  std::string configDir_;
 
-   void initialize(DecisionService* decisionService) override;
-   void readConfig(const std::string& path);
-
+  void initialize(DecisionService* decisionService) override;
+  void readConfig(const std::string& path);
 };
-} // namespace reagent
+}  // namespace reagent

@@ -6,33 +6,35 @@
 #include <gflags/gflags.h>
 
 namespace {
-std::string createCounterKey(
-    const std::string& configPath,
-    const std::string& operatorName,
-    const std::string& action) {
-  return configPath + "/" + operatorName + "/" + action;
+std::string getArmKey(const std::string& configPath,
+                      const std::string& operatorName,
+                      const std::string& action) {
+  return configPath + "/" + operatorName + "/" + action + "/ARM";
 }
 
-} // namespace
+std::string getBatchKey(const std::string& configPath,
+                        const std::string& operatorName,
+                        const std::string& action) {
+  return configPath + "/" + operatorName + "/" + action + "/BATCH";
+}
+
+}  // namespace
 
 namespace reagent {
 
-OperatorData Ucb::run(
-    const DecisionRequest& request,
-    const StringOperatorDataMap& namedInputs) {
+OperatorData Ucb::run(const DecisionRequest& request,
+                      const StringOperatorDataMap& namedInputs) {
   auto input = namedInputs.at("method");
   std::string* methodName = std::get_if<std::string>(&input);
   if (!methodName) {
     LOG_AND_THROW("Input parameter type unexcepted");
   }
-  OperatorData ret;
-  ret = runInternal(request, *methodName);
+  OperatorData ret = runInternal(request, *methodName);
   return ret;
 }
 
-std::string Ucb::runInternal(
-    const DecisionRequest& request,
-    const std::string& method) {
+RankedActionList Ucb::runInternal(const DecisionRequest& request,
+                                  const std::string& method) {
   auto arms = Operator::getActionNamesFromRequest(request);
 
   int64_t totalPulls = 0;
@@ -46,7 +48,7 @@ std::string Ucb::runInternal(
 
   for (int a = 0; a < arms.size(); a++) {
     auto arm = arms[a];
-    const auto key = createCounterKey(planName_, name_, arm);
+    const auto key = getArmKey(planName_, name_, arm);
 
     rewardMean[a] = rtc->getMean(key);
     rewardVariance[a] = rtc->getVariance(key);
@@ -79,25 +81,30 @@ std::string Ucb::runInternal(
     armToPull =
         armsWithoutPulls[folly::Random::rand32() % armsWithoutPulls.size()];
   }
-  return armToPull;
+  return RankedActionList({{armToPull, 1.0}});
 }
 
-void Ucb::giveFeedback(
-    const Feedback& feedback,
-    const StringOperatorDataMap& /* pastInputs */,
-    const OperatorData& pastOutput) {
-  auto armName = std::get<std::string>(pastOutput);
-  const auto key = createCounterKey(planName_, name_, armName);
-  LOG(INFO) << "GIVING FEEDBACK: " << key << " " << *(feedback.computed_reward);
-  realTimeCounter_->addValue(key, *(feedback.computed_reward));
+void Ucb::giveFeedback(const Feedback& feedback,
+                       const StringOperatorDataMap& pastInputs,
+                       const OperatorData& pastOutput) {
+  int batchSize = int(std::get<int64_t>(pastInputs.at("batch_size")));
+  auto armName = std::get<RankedActionList>(pastOutput).at(0).name;
+  const auto armKey = getArmKey(planName_, name_, armName);
+  const auto batchKey = getBatchKey(planName_, name_, armName);
+  realTimeCounter_->addValue(batchKey, *(feedback.computed_reward));
+  // Note: this is not at all thread safe, will improve later.
+  if ((realTimeCounter_->getNumSamples(batchKey) % batchSize) == 0) {
+    realTimeCounter_->addValue(armKey, realTimeCounter_->getMean(batchKey));
+    realTimeCounter_->clear(batchKey);
+  }
 }
 
 double Ucb::getArmExpectation(const std::string& armName) {
-  const auto key = createCounterKey(planName_, name_, armName);
+  const auto key = getArmKey(planName_, name_, armName);
   LOG(INFO) << "GETTING MEAN: " << key << " " << realTimeCounter_->getMean(key);
   return realTimeCounter_->getMean(key);
 }
 
 REGISTER_OPERATOR(Ucb, "Ucb");
 
-} // namespace ml
+}  // namespace reagent
