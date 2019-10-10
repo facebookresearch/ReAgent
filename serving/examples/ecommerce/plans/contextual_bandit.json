@@ -33,7 +33,7 @@
         {
             "name": "constant_2",
             "value": {
-                "double_value": 1.0
+                "double_value": 0.001
             }
         }
     ],

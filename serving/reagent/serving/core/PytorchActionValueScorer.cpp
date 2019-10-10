@@ -36,12 +36,10 @@ StringDoubleMap PytorchActionValueScorer::predict(
       for (auto it : request.context_features) {
         input_size = std::max(input_size, 1 + std::stoi(it.first));
       }
-      LOG(ERROR) << "SCORING " << input_size;
       auto input = torch::zeros({1, input_size});
       auto inputMask = torch::zeros({1, input_size});
-      LOG(ERROR) << "SCORING";
       for (auto it : request.context_features) {
-        LOG(ERROR) << "FEATURE SCORE: " << it.second;
+        VLOG(1) << "FEATURE SCORE: " << it.second;
         input[0][std::stoi(it.first)] = it.second;
         inputMask[0][std::stoi(it.first)] = 1.0;
       }
@@ -59,18 +57,18 @@ StringDoubleMap PytorchActionValueScorer::predict(
         std::string scoredActionName =
             outputActionNameList.get(a).toStringRef();
         if (actionNameSet.find(scoredActionName) == actionNameSet.end()) {
-          LOG(ERROR) << "Skipping action that wasn't possible";
+          VLOG(1) << "Skipping action that wasn't possible";
           continue;
         }
-        LOG(ERROR) << "SCORING: " << scoredActionName << " -> "
-                   << actionScoresTensor[0][a].item().to<double>();
+        VLOG(1) << "SCORING: " << scoredActionName << " -> "
+                << actionScoresTensor[0][a].item().to<double>();
         retval[scoredActionName] = actionScoresTensor[0][a].item().to<double>();
       }
     } else {
       LOG(FATAL) << "Not supported yet";
     }
 
-    LOG(ERROR) << "SCORED " << retval.size() << " ITEMS";
+    VLOG(1) << "SCORED " << retval.size() << " ITEMS";
     return retval;
   } catch (const c10::Error& e) {
     LOG(FATAL) << "TORCH ERROR: " << e.what();

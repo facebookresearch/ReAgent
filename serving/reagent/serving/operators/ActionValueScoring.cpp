@@ -15,7 +15,6 @@ OperatorData ActionValueScoring::run(const DecisionRequest& request,
 
 StringDoubleMap ActionValueScoring::runInternal(
     int modelId, int snapshotId, const DecisionRequest& request) {
-  LOG(INFO) << "CALLING PREDICT " << int64_t(actionValueScorer_.get());
   return actionValueScorer_->predict(request, modelId, snapshotId);
 }
 
