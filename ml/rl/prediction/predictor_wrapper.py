@@ -126,20 +126,13 @@ class ParametricDqnWithPreprocessor(ModelBase):
 class ParametricDqnPredictorWrapper(torch.jit.ScriptModule):
     __constants__ = ["state_sorted_features_t", "action_sorted_features_t"]
 
-    def __init__(
-        self, parametric_dqn_with_preprocessor: ParametricDqnWithPreprocessor
-    ) -> None:
+    def __init__(self, dqn_with_preprocessor: ParametricDqnWithPreprocessor) -> None:
         super().__init__()
 
-        self.state_sorted_features_t = (
-            parametric_dqn_with_preprocessor.state_sorted_features
-        )
-        self.action_sorted_features_t = (
-            parametric_dqn_with_preprocessor.action_sorted_features
-        )
-        self.parametric_dqn_with_preprocessor = torch.jit.trace(
-            parametric_dqn_with_preprocessor,
-            parametric_dqn_with_preprocessor.input_prototype(),
+        self.state_sorted_features_t = dqn_with_preprocessor.state_sorted_features
+        self.action_sorted_features_t = dqn_with_preprocessor.action_sorted_features
+        self.dqn_with_preprocessor = torch.jit.trace(
+            dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
         )
 
     @torch.jit.script_method
@@ -162,9 +155,7 @@ class ParametricDqnPredictorWrapper(torch.jit.ScriptModule):
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
         action_with_presence: Tuple[torch.Tensor, torch.Tensor],
     ) -> Tuple[List[str], torch.Tensor]:
-        value = self.parametric_dqn_with_preprocessor(
-            state_with_presence, action_with_presence
-        )
+        value = self.dqn_with_preprocessor(state_with_presence, action_with_presence)
         return (["Q"], value)
 
 

@@ -107,29 +107,6 @@ class ParametricDQNExporter(SandboxedRLExporter):
         )
 
 
-class DQNExporter(SandboxedRLExporter):
-    def __init__(
-        self,
-        dnn,
-        feature_extractor=None,
-        output_transformer=None,
-        state_preprocessor=None,
-        predictor_class=DQNPredictor,
-        preprocessing_class=None,
-        **kwargs,
-    ):
-        super().__init__(
-            dnn,
-            predictor_class,
-            preprocessing_class,
-            feature_extractor,
-            output_transformer,
-            state_preprocessor,
-            action_preprocessor=None,
-            **kwargs,
-        )
-
-
 class ActorExporter(SandboxedRLExporter):
     def __init__(
         self,

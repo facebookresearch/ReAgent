@@ -107,30 +107,3 @@ def update_model_for_warm_start(model, path=None):
         raise ("Model of type {} not a valid model".format(type(model)))
 
     return model
-
-
-def export_trainer_and_predictor(trainer, output_path, exporter=None):
-    """Writes PyTorch trainer and Caffe2 Predictor to file and returns predictor
-
-    returns: Predictor object
-    """
-    export_time = round(time.time())
-
-    if output_path is None:
-        # Don't write models to file, just return predictor
-        caffe2_predictor = exporter.export() if exporter else trainer.predictor()
-    else:
-        # Write models to file and return predictor
-        output_path = os.path.expanduser(output_path)
-        pytorch_output_path = os.path.join(
-            output_path, "trainer_{}.pt".format(export_time)
-        )
-        caffe2_output_path = os.path.join(
-            output_path, "predictor_{}.c2".format(export_time)
-        )
-        logger.info("Saving PyTorch trainer to {}".format(pytorch_output_path))
-        save_model_to_file(trainer, pytorch_output_path)
-        logger.info("Saving Caffe2 predictor to {}".format(caffe2_output_path))
-        caffe2_predictor = exporter.export() if exporter else trainer.predictor()
-        caffe2_predictor.save(caffe2_output_path, "minidb")
-    return caffe2_predictor
