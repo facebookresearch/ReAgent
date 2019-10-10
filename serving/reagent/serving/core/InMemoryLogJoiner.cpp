@@ -34,6 +34,11 @@ DecisionWithFeedback InMemoryLogJoiner::deserializeAndJoinDecisionAndFeedback(
   DecisionWithFeedback mergedDwf =
       LogJoiner::deserializeAndJoinDecisionAndFeedback(decisionAndFeedback);
   loggedData_[mergedDwf.decision_request->request_id] = mergedDwf;
+  nlohmann::json json;
+  to_json(json, mergedDwf);
+  if (logStream_ != nullptr) {
+    (*logStream_) << json.dump() << std::endl;
+  }
   return mergedDwf;
 }
 

@@ -3,6 +3,7 @@
 
 from collections import OrderedDict
 from typing import Dict, List, Union
+from enum import Enum
 
 
 class ConfigBaseMeta(type):
@@ -104,7 +105,15 @@ class Constant(ConfigBase):
     value: ConstantValue
 
 
+class DecisionRewardAggreation(Enum):
+    DRA_INVALID = 0,
+    DRA_SUM = 1,
+    DRA_MAX = 2,
+
+
 class DecisionConfig(ConfigBase):
     operators: List[Operator]
     constants: List[Constant]
-    num_actions_to_choose: int = 1
+    num_actions_to_choose: int
+    reward_function: str
+    reward_aggregator: DecisionRewardAggreation

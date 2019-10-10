@@ -71,6 +71,17 @@ def Frechet(
     pass
 
 
+def UCB(
+    method: str,
+):
+    """The operator that implements UCB algorithms
+
+    Args:
+
+    """
+    pass
+
+
 def InputFromRequest():
     """The operator that will return "input" from request
 

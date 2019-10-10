@@ -86,7 +86,11 @@ void DecisionService::computeRewardAndLogFeedback(Feedback feedback) {
   // Turn metrics -> rewards
   double aggregateReward = 0.0;
   for (auto& it : feedback.actions) {
-    double reward = plan->evaluateRewardFunction(it.metrics);
+    double reward = 0.0;
+    if (!plan->getConfig().reward_function.empty()) {
+      reward = plan->evaluateRewardFunction(it.metrics);
+    }
+
     it.computed_reward = reward;
     switch (plan->getConfig().reward_aggregator) {
       case DRA_MAX:

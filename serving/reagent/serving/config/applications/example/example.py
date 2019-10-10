@@ -9,6 +9,7 @@ from reagent.serving.config.builder import (
     PredictorScoring,
     Softmax,
     SoftmaxRanker,
+    UCB,
     export,
 )
 
@@ -19,7 +20,7 @@ def softmax_decision_plan():
 
 
 def softmaxranker_decision_plan():
-    op = SoftmaxRanker(temperature=1.0, values={"action1": 10.0, "action2": 20.0})
+    op = SoftmaxRanker(temperature=0.123, values=InputFromRequest())
     return DecisionPlanBuilder().set_root(op).build()
 
 
@@ -33,6 +34,11 @@ def frechet_decision_plan():
     return DecisionPlanBuilder().set_root(op).build()
 
 
+def ucb_decision_plan():
+    op = UCB(method='UCB1')
+    return DecisionPlanBuilder().set_root(op).build()
+
+
 def input_from_request_decision_plan():
     op = Softmax(temperature=1.0, values=InputFromRequest())
     return DecisionPlanBuilder().set_root(op).build()
@@ -42,9 +48,10 @@ export(
     app_id="example",
     configs={
         "softmax": softmax_decision_plan(),
-        "frechet": frechet_decision_plan(),
-        "input_from_request": input_from_request_decision_plan(),
         "softmaxranker": softmaxranker_decision_plan(),
         "epsilongreedyranker": epsilongreedyranker_decision_plan(),
+        "frechet": frechet_decision_plan(),
+        "ucb": ucb_decision_plan(),
+        "input_from_request": input_from_request_decision_plan(),
     },
 )
