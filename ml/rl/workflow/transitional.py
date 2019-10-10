@@ -13,18 +13,18 @@ from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.models.quantile_dqn import QuantileDQN
 from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.preprocessing.normalization import (
-    NormalizationParameters,
-    get_num_output_features,
-)
-from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.parameters import (
     CEMParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
     MDNRNNParameters,
     SACModelParameters,
 )
+from ml.rl.preprocessing.normalization import (
+    NormalizationParameters,
+    get_num_output_features,
+)
+from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
 from ml.rl.training.c51_trainer import C51Trainer
 from ml.rl.training.cem_trainer import CEMTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer

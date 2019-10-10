@@ -8,18 +8,18 @@ import numpy as np
 import torch
 from ml.rl.models.output_transformer import ParametricActionOutputTransformer
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
+from ml.rl.parameters import (
+    ContinuousActionModelParameters,
+    RainbowDQNParameters,
+    RLParameters,
+    TrainingParameters,
+)
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.thrift.core.ttypes import (
-    ContinuousActionModelParameters,
-    RainbowDQNParameters,
-    RLParameters,
-    TrainingParameters,
-)
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_exporter import ParametricDQNExporter
 

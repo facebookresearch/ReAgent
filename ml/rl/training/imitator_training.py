@@ -4,7 +4,7 @@
 import logging
 
 import torch
-from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
+from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 

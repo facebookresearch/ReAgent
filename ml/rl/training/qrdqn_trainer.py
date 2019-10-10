@@ -5,7 +5,7 @@ import logging
 
 import ml.rl.types as rlt
 import torch
-from ml.rl.thrift.core.ttypes import DiscreteActionModelParameters
+from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage
 

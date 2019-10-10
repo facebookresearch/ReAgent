@@ -10,7 +10,7 @@ import torch
 import torch.nn.functional as F
 from ml.rl.models.mdn_rnn import gmm_loss, transpose
 from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.thrift.core.ttypes import MDNRNNParameters
+from ml.rl.parameters import MDNRNNParameters
 
 
 logger = logging.getLogger(__name__)

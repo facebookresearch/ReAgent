@@ -7,7 +7,15 @@ from typing import Dict
 
 import torch
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.json_serialize import from_json
 from ml.rl.models.output_transformer import ParametricActionOutputTransformer
+from ml.rl.parameters import (
+    ContinuousActionModelParameters,
+    NormalizationParameters,
+    RainbowDQNParameters,
+    RLParameters,
+    TrainingParameters,
+)
 from ml.rl.preprocessing.batch_preprocessor import ParametricDqnBatchPreprocessor
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
@@ -15,13 +23,6 @@ from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
 from ml.rl.tensorboardX import summary_writer_context
-from ml.rl.thrift.core.ttypes import (
-    ContinuousActionModelParameters,
-    NormalizationParameters,
-    RainbowDQNParameters,
-    RLParameters,
-    TrainingParameters,
-)
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 from ml.rl.training.rl_exporter import ParametricDQNExporter
 from ml.rl.workflow.base_workflow import BaseWorkflow
@@ -94,9 +95,9 @@ def single_process_main(gpu_index, *args):
         params["use_gpu"], params["use_all_avail_gpus"]
     )
 
-    rl_parameters = RLParameters(**params["rl"])
-    training_parameters = TrainingParameters(**params["training"])
-    rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
+    rl_parameters = from_json(params["rl"], RLParameters)
+    training_parameters = from_json(params["training"], TrainingParameters)
+    rainbow_parameters = from_json(params["rainbow"], RainbowDQNParameters)
 
     model_params = ContinuousActionModelParameters(
         rl=rl_parameters, training=training_parameters, rainbow=rainbow_parameters
