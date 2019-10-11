@@ -1,0 +1,19 @@
+{
+    "timeline": {
+        "startDs": "2019-01-01",
+        "endDs": "2019-01-01",
+        "addTerminalStateRow": true,
+        "actionDiscrete": true,
+        "inputTableName": "ecom_input_data",
+        "outputTableName": "ecom_training",
+        "evalTableName": "ecom_eval",
+        "numOutputShards": 1
+    },
+    "query": {
+        "tableSample": 100,
+        "actions": [
+            "Ribs",
+            "Bacon"
+        ]
+    }
+}

@@ -1,26 +1,69 @@
 #include "reagent/serving/cli/Server.h"
 
 namespace reagent {
-Server::Server(std::shared_ptr<DecisionService> _decisionService)
-    : decisionService(_decisionService) {
-  server.config.port = 3000;
+Server::Server(std::shared_ptr<DecisionService> decisionService, int port)
+    : decisionService_(decisionService), port_(port) {}
 
-  server.resource["^/api/TODO$"]["POST"] =
+void Server::start() {
+  server_.config.port = port;
+
+  server_.resource["^/api/request$"]["POST"] =
       [this](std::shared_ptr<HttpServer::Response> response,
              std::shared_ptr<HttpServer::Request> request) {
-        auto content = json::parse(request->content.string());
+        try {
+          VLOG(1) << "REQUEST";
+          auto content = json::parse(request->content.string());
+          VLOG(1) << "Got request: " << content;
+          DecisionRequest decisionRequest = content;
+          auto decisionResponse =
+              decisionService_->attachIdAndProcess(decisionRequest);
+          json responseJson = decisionResponse;
 
-        json retval = {{"status", "OK"}};
-        response->write(SimpleWeb::StatusCode::success_ok, retval.dump(2));
+          response->write(SimpleWeb::StatusCode::success_ok,
+                          responseJson.dump(2));
+        } catch (const std::exception& e) {
+          LOG(ERROR) << "GOT ERROR: " << e.what();
+          response->write(SimpleWeb::StatusCode::client_error_bad_request,
+                          e.what());
+        }
       };
 
-  serverThread.reset(new std::thread([this]() { server.start(); }));
+  server_.resource["^/api/feedback$"]["POST"] =
+      [this](std::shared_ptr<HttpServer::Response> response,
+             std::shared_ptr<HttpServer::Request> request) {
+        try {
+          auto content = json::parse(request->content.string());
+          Feedback feedback = content;
+          decisionService_->computeRewardAndLogFeedback(feedback);
+          json responseJson = {{"status", "OK"}};
+
+          response->write(SimpleWeb::StatusCode::success_ok,
+                          responseJson.dump(2));
+        } catch (const std::exception& e) {
+          LOG(ERROR) << "GOT ERROR: " << e.what();
+          response->write(SimpleWeb::StatusCode::client_error_bad_request,
+                          e.what());
+        }
+      };
+
+  server_.on_error = [](std::shared_ptr<HttpServer::Request> request,
+                       const SimpleWeb::error_code& ec) {
+    // Handle errors here
+    // Note that connection timeouts will also call this handle with ec set to
+    // SimpleWeb::errc::operation_canceled
+    LOG(INFO) << "SERVER ERROR: " << ec.message();
+  };
+
+  serverThread_.reset(new std::thread([this]() {
+    LOG(INFO) << "STARTING SERVER";
+    server_.start();
+  }));
 }
 
 void Server::shutdown() {
-  server.stop();
-  if (serverThread->joinable()) {
-    serverThread->join();
+  server_.stop();
+  if (serverThread_->joinable()) {
+    serverThread_->join();
   }
 }
 

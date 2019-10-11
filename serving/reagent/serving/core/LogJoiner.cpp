@@ -8,14 +8,11 @@ void LogJoiner::addRewardToFeedback(Feedback* feedback) {}
 DecisionWithFeedback LogJoiner::deserializeAndJoinDecisionAndFeedback(
     StringList decisionAndFeedback) {
   if (decisionAndFeedback.size() != 2) {
-    LOG_AND_THROW(
-        "Somehow ended up with more than 2 values for the same key: "
-        << decisionAndFeedback.size());
+    LOG_AND_THROW("Somehow ended up with more than 2 values for the same key: "
+                  << decisionAndFeedback.size());
   }
 
-  LOG(INFO) << "PARSING: " << decisionAndFeedback.at(0);
   DecisionWithFeedback first = json::parse(decisionAndFeedback.at(0));
-  LOG(INFO) << "PARSING: " << decisionAndFeedback.at(1);
   const DecisionWithFeedback& second = json::parse(decisionAndFeedback.at(1));
   if (bool(first.feedback)) {
     if (bool(second.feedback)) {
@@ -36,4 +33,4 @@ DecisionWithFeedback LogJoiner::deserializeAndJoinDecisionAndFeedback(
   return first;
 }
 
-} // namespace reagent
+}  // namespace reagent

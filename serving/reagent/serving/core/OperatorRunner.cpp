@@ -46,7 +46,10 @@ StringOperatorDataMap OperatorRunner::run(
     // Create a list of futures for each dependency
     std::vector<folly::SemiFuture<folly::Unit>> depFutures;
     for (const auto& depName : op->getDeps()) {
-      depFutures.push_back(operatorPromiseMap[depName]->getSemiFuture());
+      if (operatorPromiseMap.find(depName) == operatorPromiseMap.end()) {
+	LOG_AND_THROW("Invalid Operator dep: " << depName);
+      }
+      depFutures.push_back(operatorPromiseMap.at(depName)->getSemiFuture());
     }
 
     // Get the promise for the op we want to run

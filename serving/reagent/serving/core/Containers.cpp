@@ -31,6 +31,9 @@ ConstantValue json_to_constant_value(const json& j) {
   if (j.count("map_double_value")) {
     return j.at("map_double_value").get<StringDoubleMap>();
   }
+  if (j.count("ranked_action_list")) {
+    return j.at("ranked_action_list").get<RankedActionList>();
+  }
   if (j.count("map_map_double_value")) {
     return j.at("map_map_double_value")
         .get<std::unordered_map<std::string, StringDoubleMap>>();
@@ -62,11 +65,13 @@ void constant_value_to_json(const ConstantValue& value, json& j) {
           j["map_int_value"] = arg;
         } else if (std::is_same_v<T, StringDoubleMap>) {
           j["map_double_value"] = arg;
+        } else if (std::is_same_v<T, RankedActionList>) {
+          j["ranked_action_list"] = arg;
         } else if (std::is_same_v<
-                       T,
-                       std::unordered_map<std::string, StringDoubleMap>>) {
+                       T, std::unordered_map<std::string, StringDoubleMap>>) {
           j["map_map_double_value"] = arg;
         } else {
+          LOG(FATAL) << "INVALID OUTPUT OPERATOR";
           LOG_AND_THROW("Invalid output operator");
         }
         return j;
@@ -74,4 +79,4 @@ void constant_value_to_json(const ConstantValue& value, json& j) {
       value);
 }
 
-} // namespace reagent
+}  // namespace reagent

@@ -23,6 +23,20 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 # Add cmake script directory.
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+# Enable whole-archive to handle factory registration
+# IF ("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
+# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --Wl,-all_load")
+# SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} --Wl,-all_load")
+# set(CMAKE_EXE_LINKER_FLAGS "-Wl,--export-all-symbols")
+# set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
+
+# ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") # GCC
+# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --Wl,--whole-archive")
+# SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} --Wl,--whole-archive")
+# ELSE()
+# MESSAGE(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}")
+# ENDIF()
+
 # Required packages
 find_package(Threads REQUIRED)
 find_package(gflags REQUIRED)
@@ -60,6 +74,7 @@ add_library(
 
   reagent/serving/core/DecisionServiceException.cpp
   reagent/serving/core/ConfigProvider.cpp
+  reagent/serving/core/DiskConfigProvider.cpp
   reagent/serving/core/Containers.cpp
   reagent/serving/core/ActionValueScorer.cpp
   reagent/serving/core/PytorchActionValueScorer.cpp
@@ -101,11 +116,20 @@ target_link_libraries (
   Folly::folly
   glog::glog
   ${GFLAGS_LIBRARIES}
-  gtest
-  gtest_main
-  gmock
-  gmock_main
 )
+if (WIN32)
+    set_target_properties(DspCli PROPERTIES
+        LINK_FLAGS "/WHOLEARCHIVE"
+    )
+elseif (APPLE)
+    set_target_properties(DspCli PROPERTIES
+        LINK_FLAGS "-Wl,-all_load"
+    )
+else ()
+    set_target_properties(DspCli PROPERTIES
+        LINK_FLAGS "-Wl,--whole-archive"
+    )
+endif ()
 
 add_executable(
   DspTest

@@ -2,6 +2,8 @@
 
 #include <cassert>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <random>
@@ -20,21 +22,21 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/SharedPromise.h>
 #include <glog/logging.h>
-#include <nlohmann/json.hpp>
 #include <Eigen/Dense>
+#include <nlohmann/json.hpp>
 
 #include "reagent/serving/core/Containers.h"
 #include "reagent/serving/core/DecisionServiceException.h"
 
-#define LOG_AND_THROW(MSG_STREAM)                                    \
-  {                                                                  \
-    std::ostringstream errorStream;                                  \
-    errorStream << MSG_STREAM;                                       \
-    LOG(ERROR) << errorStream.str();                                 \
+#define LOG_AND_THROW(MSG_STREAM)                               \
+  {                                                             \
+    std::ostringstream errorStream;                             \
+    errorStream << MSG_STREAM;                                  \
+    LOG(ERROR) << errorStream.str();                            \
     throw reagent::DecisionServiceException(errorStream.str()); \
   }
 
 namespace reagent {
-StringDoubleMap operatorDataToPropensity(const OperatorData& value);
+std::string generateUuid4();
 
-} // namespace reagent
+}  // namespace reagent

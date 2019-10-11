@@ -49,4 +49,11 @@ void LocalRealTimeCounter::addValue(const std::string& key, double value) {
   }
 }
 
-} // namespace reagent
+void LocalRealTimeCounter::clear(const std::string& key) {
+  auto it = counts_.find(key);
+  if (it != counts_.end()) {
+    it->second.clear();
+  }
+}
+
+}  // namespace reagent

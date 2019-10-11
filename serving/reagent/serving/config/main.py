@@ -8,6 +8,7 @@ import click
 import reagent.serving.config.applications  # noqa
 from reagent.serving.config.builder import DECISION_PLANS
 
+
 @click.command()
 @click.option("--app-id", default=None)
 @click.option("--config-dir", default=None)

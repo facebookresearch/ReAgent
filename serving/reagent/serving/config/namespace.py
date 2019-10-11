@@ -21,7 +21,6 @@ def DecisionOperation(op):
     def arguments(self):
         return self.args
 
-    return type(op.__name__, (DecisionOperator,), {
-        '__init__': __init__,
-        'arguments': arguments,
-    })
+    return type(
+        op.__name__, (DecisionOperator,), {"__init__": __init__, "arguments": arguments}
+    )

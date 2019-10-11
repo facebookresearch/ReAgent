@@ -8,20 +8,13 @@ OperatorData EpsilonGreedyRanker::run(
   const StringDoubleMap& input =
       std::get<StringDoubleMap>(namedInputs.at("values"));
   double epsilon = std::get<double>(namedInputs.at("epsilon"));
-  int seed;
-  if (namedInputs.count("seed") > 0) {
-    seed = int(std::get<int64_t>(namedInputs.at("seed")));
-  } else {
-    seed = std::chrono::system_clock::now().time_since_epoch().count();
-  }
-  OperatorData ret = run(input, epsilon, seed);
+  OperatorData ret = runInternal(input, epsilon);
   return ret;
 }
 
-StringList EpsilonGreedyRanker::run(
+RankedActionList EpsilonGreedyRanker::runInternal(
     const StringDoubleMap& input,
-    double epsilon,
-    int seed) {
+    double epsilon) {
   std::vector<double> values;
   StringList names;
   for (auto& it : input) {
@@ -29,9 +22,9 @@ StringList EpsilonGreedyRanker::run(
     names.emplace_back(it.first);
   }
 
-  StringList rankedList;
+  RankedActionList rankedList;
   std::vector<double> tmpValues(values);
-  std::srand(seed);
+  double rollingPropensity = 1.0;
 
   while (names.size() > 0) {
     double r = (double(std::rand()) / RAND_MAX);
@@ -39,12 +32,14 @@ StringList EpsilonGreedyRanker::run(
 
     if (r < epsilon) {
       idx = std::rand() % names.size();
+      rollingPropensity *= epsilon;
     } else {
       idx = std::distance(
           tmpValues.begin(), max_element(tmpValues.begin(), tmpValues.end()));
+      rollingPropensity *= (1.0 - epsilon);
     }
 
-    rankedList.emplace_back(names[idx]);
+    rankedList.push_back({names[idx], rollingPropensity});
     names.erase(names.begin() + idx);
     tmpValues.erase(tmpValues.begin() + idx);
   }

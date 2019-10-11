@@ -7,10 +7,7 @@ import reagent.serving.config.namespace as namespace
 __globals = set(globals())
 
 
-def PredictorScoring(
-    model_id,
-    snapshot_id,
-):
+def PredictorScoring(model_id, snapshot_id):
     """The operator calls predictor for a model and generates the scores
 
     Args:
@@ -19,10 +16,7 @@ def PredictorScoring(
     pass
 
 
-def Softmax(
-    temperature,
-    values,
-):
+def Softmax(temperature, values):
     """The operator to use softmax for normalization
 
     Args:
@@ -31,11 +25,7 @@ def Softmax(
     pass
 
 
-def SoftmaxRanker(
-    temperature,
-    values,
-    seed=None,
-):
+def SoftmaxRanker(temperature, values, seed=None):
     """The operator that implements iterative softmax ranker
 
     Args:
@@ -44,11 +34,7 @@ def SoftmaxRanker(
     pass
 
 
-def EpsilonGreedyRanker(
-    epsilon,
-    values,
-    seed=None,
-):
+def EpsilonGreedyRanker(epsilon, values, seed=None):
     """The operator that implements iterative epsilon greedy ranker
 
     Args:
@@ -57,12 +43,7 @@ def EpsilonGreedyRanker(
     pass
 
 
-def Frechet(
-    values,
-    rho,
-    gamma,
-    seed=None,
-):
+def Frechet(values, rho, gamma, seed=None):
     """The operator that implements Frechet ranking
 
     Args:
@@ -71,9 +52,7 @@ def Frechet(
     pass
 
 
-def UCB(
-    method: str,
-):
+def UCB(method: str,):
     """The operator that implements UCB algorithms
 
     Args:

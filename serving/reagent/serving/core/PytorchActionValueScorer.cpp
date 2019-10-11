@@ -7,9 +7,7 @@ namespace reagent {
 PytorchActionValueScorer::PytorchActionValueScorer() {}
 
 StringDoubleMap PytorchActionValueScorer::predict(
-    const DecisionRequest& request,
-    int modelId,
-    int snapshotId) {
+    const DecisionRequest& request, int modelId, int snapshotId) {
   std::string path =
       "/tmp/" + std::to_string(modelId) + "/" + std::to_string(snapshotId);
 
@@ -34,11 +32,11 @@ StringDoubleMap PytorchActionValueScorer::predict(
   if (discreteActions) {
     int64_t input_size = 0;
     for (auto it : request.context_features) {
-      input_size = std::max(input_size, it.first);
+      input_size = std::max(input_size, int64_t(std::stoll(it.first)));
     }
     auto input = torch::zeros({input_size});
     for (auto it : request.context_features) {
-      input[it.first] = it.second;
+      input[std::stoll(it.first)] = it.second;
     }
     // Create a vector of inputs.
     std::vector<torch::jit::IValue> inputs;
@@ -54,4 +52,4 @@ StringDoubleMap PytorchActionValueScorer::predict(
   return retval;
 }
 
-} // namespace reagent
+}  // namespace reagent

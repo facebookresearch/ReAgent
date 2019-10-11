@@ -24,8 +24,21 @@ TEST(DecisionService, Simple) {
     expressionOpThrift.input_dep_map = {{"equation", "equation_value"},
                                         {"input", "input"}};
 
-    decisionConfig.operators = {expressionOpThrift};
-    decisionConfig.constants = {expressionThrift};
+    ConstantValue epsilonValueThrift;
+    epsilonValueThrift = 0.0;
+
+    Constant epsilonThrift;
+    epsilonThrift.name = "epsilon_value";
+    epsilonThrift.value = epsilonValueThrift;
+
+    OperatorDefinition eGreedyThrift;
+    eGreedyThrift.name = "EpsilonGreedyRanker";
+    eGreedyThrift.op_name = "EpsilonGreedyRanker";
+    eGreedyThrift.input_dep_map = {{"epsilon","epsilon_value"},
+				   {"values","expression_op"}};
+
+    decisionConfig.operators = {expressionOpThrift, eGreedyThrift};
+    decisionConfig.constants = {expressionThrift, epsilonThrift};
   }
 
   service->createPlan("/", decisionConfig);
@@ -39,17 +52,13 @@ TEST(DecisionService, Simple) {
   constantInput = input;
   request.input = constantInput;
 
-  auto response = service->process(request);
+  auto response = service->attachIdAndProcess(request);
 
   EXPECT_EQ(response.request_id, request.request_id);
 
-  StringDoubleMap expectedOutput = {{"x", 4.0}, {"y", 9.0}, {"z", 16.0}};
-  StringDoubleMap output;
-  for (auto action : response.actions) {
-    output[action.name] = action.propensity;
-  }
+  RankedActionList expectedOutput = {{"z", 1.0}, {"y", 1.0}, {"x", 1.0}};
 
-  EXPECT_SYMBOLTABLE_NEAR(output, expectedOutput);
+  EXPECT_RANKEDACTIONLIST_NEAR(response.actions, expectedOutput);
 }
 
-}  // namespace ml
+}  // namespace reagent

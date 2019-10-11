@@ -20,6 +20,11 @@ std::shared_ptr<Operator> OperatorFactory::createOp(
   auto opName = definition.op_name;
   auto it = constructors_.find(opName);
   if (it == constructors_.end()) {
+    if (constructors_.empty()) {
+      LOG_AND_THROW(
+          "There are no operators registered.  Make sure you are linking all "
+          "objects into the library.");
+    }
     LOG_AND_THROW("Tried to create an op type that does not exist: " << opName);
   }
   return it->second(name, planName, inputDepMap, decisionService);
@@ -36,4 +41,4 @@ std::vector<std::shared_ptr<Operator>> OperatorFactory::createFromConfig(
   return operators;
 }
 
-}  // namespace ml
+}  // namespace reagent
