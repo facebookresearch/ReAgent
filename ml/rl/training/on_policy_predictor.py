@@ -111,6 +111,8 @@ class ParametricDQNOnPolicyPredictor(OnPolicyPredictor):
             [1, self.action_dim]
         )
 
+        possible_actions_presence = (possible_actions_presence.sum(dim=1) > 0).float()
+
         # set impossible actions so low that they can't be picked
         q_scores -= (
             1.0 - possible_actions_presence.reshape(1, self.action_dim)  # type: ignore

@@ -106,9 +106,9 @@ class Constant(ConfigBase):
 
 
 class DecisionRewardAggreation(Enum):
-    DRA_INVALID = 0,
-    DRA_SUM = 1,
-    DRA_MAX = 2,
+    DRA_INVALID = 0
+    DRA_SUM = 1
+    DRA_MAX = 2
 
 
 class DecisionConfig(ConfigBase):

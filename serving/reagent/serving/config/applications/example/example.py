@@ -35,7 +35,7 @@ def frechet_decision_plan():
 
 
 def ucb_decision_plan():
-    op = UCB(method='UCB1')
+    op = UCB(method="UCB1")
     return DecisionPlanBuilder().set_root(op).build()
 
 

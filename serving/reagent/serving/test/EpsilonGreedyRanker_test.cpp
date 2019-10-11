@@ -15,14 +15,12 @@ TEST(EpsilonGreedyRankerTests, EpsilonZero) {
   namedInputs["values"] = values;
   namedInputs["epsilon"] = 0.0;
 
-  auto result = std::get<StringList>(
+  auto result = std::get<RankedActionList>(
       EpsilonGreedyRanker("epsilongreedyranker", PLAN_NAME, {}, service.get())
           .run(DecisionRequest(), namedInputs));
 
-  StringList expectedResult = {"1", "0"};
-  for (int i = 0; i < expectedResult.size(); i++) {
-    EXPECT_EQ(result[i], expectedResult[i]);
-  }
+  RankedActionList expectedResult = {{"1",1.0}, {"0",1.0}};
+  EXPECT_RANKEDACTIONLIST_NEAR(result, expectedResult);
 }
 
 TEST(EpsilonGreedyRankerTests, EpsilonGTZero) {
@@ -37,10 +35,10 @@ TEST(EpsilonGreedyRankerTests, EpsilonGTZero) {
   // Run the ranker 1000 times, this test has a low false negative rate
   int sum = 0;
   for (int i = 0; i < 1000; ++i) {
-    StringList result = std::get<StringList>(
+    RankedActionList result = std::get<RankedActionList>(
         EpsilonGreedyRanker("epsilongreedyranker", PLAN_NAME, {}, service.get())
             .run(DecisionRequest(), namedInputs));
-    if (result[0] == "0") {
+    if (result[0].name == "0") {
       sum++;
     }
   }

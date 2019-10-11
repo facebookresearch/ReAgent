@@ -22,7 +22,7 @@ class DecisionPlanBuilder(object):
         self.constants = []
         self.root_op = None
         self.num_actions_to_choose = 1
-        self.reward_function = ''
+        self.reward_function = ""
         self.reward_aggregator = config.DecisionRewardAggreation.DRA_MAX
 
     def set_root(self, op):
@@ -93,7 +93,7 @@ class DecisionPlanBuilder(object):
             constants=self.constants,
             num_actions_to_choose=self.num_actions_to_choose,
             reward_function=self.reward_function,
-            reward_aggregator=self.reward_aggregator
+            reward_aggregator=self.reward_aggregator,
         )
 
         return config_to_json(config.DecisionConfig, decision_config)

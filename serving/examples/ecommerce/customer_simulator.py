@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from typing import Any, Dict, Tuple, List, Optional
 import json
 import urllib.request, urllib.error
@@ -5,6 +6,16 @@ import random
 import time
 import sys
 from multiprocessing import Pool
+=======
+import json
+import random
+import sys
+import time
+import urllib.error
+import urllib.request
+from multiprocessing import Pool
+from typing import Any, Dict, List, Optional, Tuple
+>>>>>>> master
 
 
 random.seed(0)
@@ -33,12 +44,20 @@ def post(url: str, content: Any) -> Any:
 
 
 plan_name = sys.argv[1]
+<<<<<<< HEAD
 EPOCHS = 10000
 
 
 def serve_customer(epoch) -> Tuple[str, float]:
     if epoch%100 == 0:
         print(epoch)
+=======
+EPOCHS = 1000
+
+
+def serve_customer(epoch) -> Tuple[str, float]:
+    print(epoch)
+>>>>>>> master
 
     # 10% chance to be rib lover
     rib_lover = random.random() <= 0.1
@@ -47,7 +66,11 @@ def serve_customer(epoch) -> Tuple[str, float]:
         "http://localhost:3000/api/request",
         {
             "plan_name": plan_name,
+<<<<<<< HEAD
             "context_features": {0: float(rib_lover), 1: 1.0},
+=======
+            "context_features": {0: float(rib_lover)},
+>>>>>>> master
             "actions": {"names": ["Bacon", "Ribs"]},
         },
     )
@@ -87,4 +110,7 @@ for result in results:
 
 print("Average reward:", (total_reward / EPOCHS))
 print("Action Distribution:", str(action_histogram))
+<<<<<<< HEAD
 
+=======
+>>>>>>> master

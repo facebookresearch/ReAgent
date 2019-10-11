@@ -11,7 +11,10 @@ class EpsilonGreedyRanker : public Operator {
       const std::string& planName,
       const StringStringMap& inputDepMap,
       const DecisionService* const decisionService)
-      : Operator(name, planName, inputDepMap, decisionService) {}
+      : Operator(name, planName, inputDepMap, decisionService) {
+    int seed = std::chrono::system_clock::now().time_since_epoch().count();
+    generator_.seed(seed);
+  }
 
   virtual ~EpsilonGreedyRanker() override = default;
 
@@ -20,6 +23,9 @@ class EpsilonGreedyRanker : public Operator {
       const StringOperatorDataMap& namedInputs)
       override;
 
-  virtual StringList run(const StringDoubleMap& input, double epsilon, int seed);
+  virtual RankedActionList runInternal(const StringDoubleMap& input, double epsilon);
+
+protected:
+  std::mt19937 generator_;
 };
 } // namespace ml

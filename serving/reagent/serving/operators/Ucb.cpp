@@ -87,7 +87,10 @@ RankedActionList Ucb::runInternal(const DecisionRequest& request,
 void Ucb::giveFeedback(const Feedback& feedback,
                        const StringOperatorDataMap& pastInputs,
                        const OperatorData& pastOutput) {
-  int batchSize = int(std::get<int64_t>(pastInputs.at("batch_size")));
+  int batchSize = 1;
+  if (pastInputs.count("batch_size")) {
+    batchSize = int(std::get<int64_t>(pastInputs.at("batch_size")));
+  }
   auto armName = std::get<RankedActionList>(pastOutput).at(0).name;
   const auto armKey = getArmKey(planName_, name_, armName);
   const auto batchKey = getBatchKey(planName_, name_, armName);

@@ -28,15 +28,15 @@ TEST(UcbTests, Simple) {
       {"Arm2", std::bernoulli_distribution(0.75)}};
 
   for (int trial = 0; trial < 1000; trial++) {
-    std::string result = std::get<std::string>(ucbOp.run(request, namedInputs));
-    EXPECT_TRUE(result == std::string("Arm1") || result == std::string("Arm2"));
+    auto result = std::get<RankedActionList>(ucbOp.run(request, namedInputs));
+    EXPECT_TRUE(result[0].name == "Arm1" || result[0].name == "Arm2");
 
     // Generate random feedback for chosen action
     Feedback feedback;
     feedback.plan_name = PLAN_NAME;
-    feedback.computed_reward = double(reward_distributions.at(result)(rng));
+    feedback.computed_reward = double(reward_distributions.at(result[0].name)(rng));
     OperatorData pastOuptut;
-    pastOuptut = (result);
+    pastOuptut = result;
 
     ucbOp.giveFeedback(feedback, {}, pastOuptut);
   }
@@ -92,8 +92,8 @@ TEST(UcbTests, UcbDecisionService) {
     for (const auto& it : response.actions) {
       if (it.propensity > 0) {
         std::string result = it.name;
-        EXPECT_TRUE(result == std::string("Arm1") ||
-                    result == std::string("Arm2"));
+        EXPECT_TRUE(result == "Arm1" ||
+                    result == "Arm2");
 
         // Generate random feedback for chosen action
         ActionFeedback actionFeedback;

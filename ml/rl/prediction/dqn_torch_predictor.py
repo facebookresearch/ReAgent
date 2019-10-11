@@ -150,7 +150,7 @@ class ParametricDqnTorchPredictor:
         q_scores = q_scores.reshape(1, -1)
 
         return self.policy_given_q_values(
-            q_scores, self.softmax_temperature, possible_actions_presence
+            q_scores, self.softmax_temperature, torch.ones_like(q_scores)
         )
 
     @staticmethod

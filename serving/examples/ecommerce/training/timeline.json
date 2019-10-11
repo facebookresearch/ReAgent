@@ -4,9 +4,15 @@
         "endDs": "2019-01-01",
         "addTerminalStateRow": true,
         "actionDiscrete": true,
+<<<<<<< HEAD
         "inputTableName": "hamazon_input_data",
         "outputTableName": "hamazon_training",
         "evalTableName": "hamazon_eval",
+=======
+        "inputTableName": "ecom_input_data",
+        "outputTableName": "ecom_training",
+        "evalTableName": "ecom_eval",
+>>>>>>> master
         "numOutputShards": 1
     },
     "query": {
@@ -16,4 +22,8 @@
             "Bacon"
         ]
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> master
