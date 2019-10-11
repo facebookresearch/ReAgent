@@ -1,10 +1,7 @@
 import json
 import sys
 
-<<<<<<< HEAD
-=======
 
->>>>>>> master
 input_file = sys.argv[1]
 output_file = sys.argv[2]
 
@@ -35,7 +32,4 @@ with open(input_file, "r") as input_fp:
                 "metrics": input_line_json["feedback"]["actions"][0]["metrics"],
             }
             output_fp.write(json.dumps(output_line) + "\n")
-<<<<<<< HEAD
 
-=======
->>>>>>> master

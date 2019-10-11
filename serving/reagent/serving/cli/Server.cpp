@@ -28,7 +28,7 @@ void Server::start() {
         }
       };
 
-  server.resource["^/api/feedback$"]["POST"] =
+  server_.resource["^/api/feedback$"]["POST"] =
       [this](std::shared_ptr<HttpServer::Response> response,
              std::shared_ptr<HttpServer::Request> request) {
         try {
