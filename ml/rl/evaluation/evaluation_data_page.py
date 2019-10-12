@@ -97,13 +97,11 @@ class EvaluationDataPage(NamedTuple):
         max_num_actions: int,
         metrics: Optional[torch.Tensor] = None,
     ):
-        # Switch to evaluation mode for the network
         old_q_train_state = trainer.q_network.training
         old_reward_train_state = trainer.reward_network.training
         trainer.q_network.train(False)
         trainer.reward_network.train(False)
 
-        num_actions = possible_actions_mask.shape[1]
         state_action_pairs = rlt.PreprocessedStateAction(state=states, action=actions)
         tiled_state = states.float_features.repeat(1, max_num_actions).reshape(
             -1, states.float_features.shape[1]
@@ -168,8 +166,14 @@ class EvaluationDataPage(NamedTuple):
             :, :1
         ]
 
-        action_mask = (model_values == model_values_for_logged_action).float()
-        num_metrics = model_metrics.shape[1] // num_actions
+        action_dim = possible_actions.float_features.shape[1]
+        action_mask = torch.all(
+            possible_actions.float_features.view(-1, max_num_actions, action_dim)
+            == actions.float_features.unsqueeze(dim=1),
+            dim=2,
+        ).float()
+        assert torch.all(action_mask.sum(dim=1) == 1)
+        num_metrics = model_metrics.shape[1] // max_num_actions
 
         model_metrics_values = None
         model_metrics_for_logged_action = None
@@ -220,7 +224,6 @@ class EvaluationDataPage(NamedTuple):
         possible_actions_mask: torch.Tensor,
         metrics: Optional[torch.Tensor] = None,
     ):
-        # Switch to evaluation mode for the network
         old_q_train_state = trainer.q_network.training
         old_reward_train_state = trainer.reward_network.training
         old_q_cpe_train_state = trainer.q_network_cpe.training
@@ -231,7 +234,6 @@ class EvaluationDataPage(NamedTuple):
         num_actions = trainer.num_actions
         action_mask = actions.float()  # type: ignore
 
-        # Discrete actions
         rewards = trainer.boost_rewards(rewards, actions)  # type: ignore
         model_values = trainer.q_network_cpe(
             rlt.PreprocessedState(state=states)

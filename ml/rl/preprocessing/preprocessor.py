@@ -540,7 +540,7 @@ class Preprocessor(Module):
         feature_type = norm_params[0].feature_type
         min_value, max_value = batch.min(), batch.max()
 
-        if feature_type == "CONTINUOUS":
+        if feature_type in ("BOXCOX", "CONTINUOUS"):
             # Continuous features may be in range (-inf, inf)
             pass
         elif max_value.gt(MAX_FEATURE_VALUE):
