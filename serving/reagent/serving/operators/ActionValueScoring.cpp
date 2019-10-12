@@ -9,15 +9,15 @@ OperatorData ActionValueScoring::run(const DecisionRequest& request,
   int modelId = int(std::get<int64_t>(namedInputs.at("model_id")));
   int snapshotId = int(std::get<int64_t>(namedInputs.at("snapshot_id")));
   OperatorData ret;
-  ret = run(modelId, snapshotId, request);
+  ret = runInternal(modelId, snapshotId, request);
   return ret;
 }
 
-StringDoubleMap ActionValueScoring::run(int modelId, int snapshotId,
-                                        const DecisionRequest& request) {
+StringDoubleMap ActionValueScoring::runInternal(
+    int modelId, int snapshotId, const DecisionRequest& request) {
   return actionValueScorer_->predict(request, modelId, snapshotId);
 }
 
 REGISTER_OPERATOR(ActionValueScoring, "ActionValueScoring");
 
-}  // namespace ml
+}  // namespace reagent

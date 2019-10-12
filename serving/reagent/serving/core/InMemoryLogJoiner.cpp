@@ -33,7 +33,7 @@ DecisionWithFeedback InMemoryLogJoiner::deserializeAndJoinDecisionAndFeedback(
     StringList decisionAndFeedback) {
   DecisionWithFeedback mergedDwf =
       LogJoiner::deserializeAndJoinDecisionAndFeedback(decisionAndFeedback);
-  loggedData_[mergedDwf.decision_request->request_id] = mergedDwf;
+  loggedData_.push_back(mergedDwf);
   nlohmann::json json;
   to_json(json, mergedDwf);
   if (logStream_ != nullptr) {
@@ -42,9 +42,8 @@ DecisionWithFeedback InMemoryLogJoiner::deserializeAndJoinDecisionAndFeedback(
   return mergedDwf;
 }
 
-std::unordered_map<std::string, DecisionWithFeedback>
-InMemoryLogJoiner::getLoggedData() {
+std::deque<DecisionWithFeedback> InMemoryLogJoiner::getLoggedData() {
   return loggedData_;
 }
 
-} // namespace reagent
+}  // namespace reagent

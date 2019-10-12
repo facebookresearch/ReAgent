@@ -47,7 +47,8 @@ TEST(InMemoryLogJoinerTests, Match) {
   logJoiner.logFeedback(feedback);
 
   auto loggedData = logJoiner.getLoggedData();
-  EXPECT_TRUE(loggedData.find(REQUEST_ID) != loggedData.end());
+  EXPECT_TRUE(loggedData.size() == 1);
+  EXPECT_TRUE(loggedData.at(0).decision_response->request_id == REQUEST_ID);
 }
 
 TEST(InMemoryLogJoinerTests, NotMatch) {
@@ -95,7 +96,8 @@ TEST(InMemoryLogJoinerTests, NotMatch) {
   logJoiner.logFeedback(feedback);
 
   auto loggedData = logJoiner.getLoggedData();
-  EXPECT_TRUE(loggedData.find("def") == loggedData.end());
+  EXPECT_TRUE(loggedData.size() == 1);
+  EXPECT_TRUE(loggedData.at(0).decision_response->request_id == REQUEST_ID);
 }
 
-} // namespace reagent
+}  // namespace reagent

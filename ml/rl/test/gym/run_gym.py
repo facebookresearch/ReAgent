@@ -22,10 +22,10 @@ from ml.rl.parameters import (
     FeedForwardParameters,
     MDNRNNParameters,
     OpenAiGymParameters,
+    OpenAiRunDetails,
     OptimizerParameters,
     RainbowDQNParameters,
     RLParameters,
-    OpenAiRunDetails,
     SACModelParameters,
     SACTrainingParameters,
     TD3ModelParameters,
@@ -870,6 +870,8 @@ def create_predictor(trainer, model_type, use_gpu, action_dim=None):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     from ml.rl import debug_on_error
 
     debug_on_error.start()

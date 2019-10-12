@@ -22,6 +22,6 @@ class ActionValueScoring : public Operator {
       override;
 
   StringDoubleMap
-  run(int modelId, int snapshotId, const DecisionRequest& request);
+  runInternal(int modelId, int snapshotId, const DecisionRequest& request);
 };
 } // namespace ml

@@ -1,0 +1,49 @@
+{
+    "training_data_path": "training_data/train.json",
+    "eval_data_path": "training_data/eval.json",
+    "state_norm_data_path": "training_data/state_features_norm.json",
+    "model_output_path": "outputs/",
+    "use_gpu": false,
+    "use_all_avail_gpus": false,
+    "num_nodes": 1,
+    "init_method": "file:///tmp/dqn_example.lock",
+    "norm_params": {
+        "output_dir": "training_data/",
+        "cols_to_norm": [
+            "state_features"
+        ],
+        "num_samples": 1000
+    },
+    "actions": [
+        "Ribs",
+        "Bacon"
+    ],
+    "epochs": 10,
+    "rl": {
+        "gamma": 0.0,
+        "target_update_rate": 1.0,
+        "maxq_learning": true,
+        "epsilon": 0.2,
+        "temperature": 0.35,
+        "softmax_policy": 0
+    },
+    "rainbow": {
+        "double_q_learning": true,
+        "dueling_architecture": false
+    },
+    "training": {
+        "layers": [
+            -1,
+            -1
+        ],
+        "activations": [
+            "linear"
+        ],
+        "minibatch_size": 128,
+        "learning_rate": 0.01,
+        "optimizer": "ADAM",
+        "lr_decay": 0.999,
+        "warm_start_model_path": null,
+        "l2_decay": 0
+    }
+}

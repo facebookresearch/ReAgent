@@ -5,7 +5,7 @@ Server::Server(std::shared_ptr<DecisionService> decisionService, int port)
     : decisionService_(decisionService), port_(port) {}
 
 void Server::start() {
-  server_.config.port = port;
+  server_.config.port = port_;
 
   server_.resource["^/api/request$"]["POST"] =
       [this](std::shared_ptr<HttpServer::Response> response,

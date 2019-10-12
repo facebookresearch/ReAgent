@@ -198,6 +198,7 @@ def main(params):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     params = parse_args(sys.argv)
     main(params)

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import json
 import random
 import sys
@@ -13,7 +15,7 @@ random.seed(0)
 
 def post(url: str, content: Any) -> Any:
     last_error: Optional[urllib.error.HTTPError] = None
-    for x in range(10):
+    for _retry in range(10):
         try:
             req = urllib.request.Request(url)
             req.add_header("Content-Type", "application/json; charset=utf-8")
@@ -30,15 +32,16 @@ def post(url: str, content: Any) -> Any:
             print("Error: {} {}".format(e.getcode(), e.read().decode("utf-8")))
             last_error = e
             time.sleep(1)
-    raise e
+    raise last_error
 
 
 plan_name = sys.argv[1]
-EPOCHS = 1000
+EPOCHS = 10000
 
 
 def serve_customer(epoch) -> Tuple[str, float]:
-    print(epoch)
+    if epoch % 100 == 0:
+        print(epoch)
 
     # 10% chance to be rib lover
     rib_lover = random.random() <= 0.1
@@ -47,7 +50,7 @@ def serve_customer(epoch) -> Tuple[str, float]:
         "http://localhost:3000/api/request",
         {
             "plan_name": plan_name,
-            "context_features": {0: float(rib_lover)},
+            "context_features": {0: float(rib_lover), 1: 1.0},
             "actions": {"names": ["Bacon", "Ribs"]},
         },
     )

@@ -14,7 +14,6 @@ from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class EvaluationDataPage(NamedTuple):
