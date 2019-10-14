@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class DiscreteDqnWithPreprocessor(ModelBase):
     """
-    This is sepearted from DiscreteDqnPredictorWrapper so that we can pass typed inputs
+    This is separate from DiscreteDqnPredictorWrapper so that we can pass typed inputs
     into the model. This is possible because JIT only traces tensor operation.
     In contrast, JIT scripting needs to compile the code, therefore, it won't recognize
     any custom Python type.
@@ -162,7 +162,7 @@ class ParametricDqnPredictorWrapper(torch.jit.ScriptModule):
 
 class ActorWithPreprocessor(ModelBase):
     """
-    This is sepearted from ActorPredictorWrapper so that we can pass typed inputs
+    This is separate from ActorPredictorWrapper so that we can pass typed inputs
     into the model. This is possible because JIT only traces tensor operation.
     In contrast, JIT scripting needs to compile the code, therefore, it won't recognize
     any custom Python type.

@@ -122,10 +122,10 @@ class DuelingQuantileDQN(ModelBase):
             for i in range(advantage.shape[1]):
                 a = advantage.detach()[:, i, :].mean(dim=1)
                 SummaryWriterContext.add_histogram(
-                    "dueling_network/{}/advatage/{}".format(self._name, i), a.cpu()
+                    "dueling_network/{}/advantage/{}".format(self._name, i), a.cpu()
                 )
                 SummaryWriterContext.add_scalar(
-                    "dueling_network/{}/mean_advatage/{}".format(self._name, i),
+                    "dueling_network/{}/mean_advantage/{}".format(self._name, i),
                     a.mean().cpu(),
                 )
 

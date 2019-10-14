@@ -12,12 +12,12 @@ How distributed training works
 With a single GPU and model, training follows this process:
 
 1. Compute the loss from a minibatch of data (the forward pass of the model)
-2. Backpropgate that loss through the model to compute gradients (the backward pass of the model)
+2. Backpropagate that loss through the model to compute gradients (the backward pass of the model)
 3. Sum the gradients across the minibatch.
 4. Run the optimizer by calling the "step()" function.
 
 Now assume we have several GPUs, and they each have exactly the same model.
-#1 and #2 are `embarassingly parallel <https://en.wikipedia.org/wiki/Embarrassingly_parallel>`_ and can be distribued to many nodes.
+#1 and #2 are `embarrassingly parallel <https://en.wikipedia.org/wiki/Embarrassingly_parallel>`_ and can be distributed to many nodes.
 As long as we can sum across nodes to complete #3 (this is known as an 'all-reduce'), then each node can run #4 on the same gradients,
 and the resulting models will again be identical.  This is the premise behind distributed training.
 

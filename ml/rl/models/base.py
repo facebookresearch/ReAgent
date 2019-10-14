@@ -168,7 +168,7 @@ class ModelBase(nn.Module):
         ws.CreateNet(init_net)
         ws.RunNet(init_net)
 
-        # Per ONNX code comment, input blobs are not initilized
+        # Per ONNX code comment, input blobs are not initialized
         model_inputs = c2_model.uninitialized
         assert len(model_inputs) > 0, "Model is expected to have some input"
         parameters = [b for b in ws.Blobs() if b not in model_inputs]

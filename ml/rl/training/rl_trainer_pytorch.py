@@ -228,7 +228,7 @@ class RLTrainer:
 
         with torch.enable_grad():
             ######### Train separate reward network for CPE evaluation #############
-            # FIXME: the reward network should be outputing a tensor,
+            # FIXME: the reward network should be outputting a tensor,
             # not a q-value object
             reward_estimates = self.reward_network(states).q_values
             reward_estimates_for_logged_actions = reward_estimates.gather(

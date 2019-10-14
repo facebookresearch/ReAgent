@@ -158,11 +158,11 @@ class RecSim:
         )
         self.user_budgets -= (selected_choice.length - bonus).view(-1)
 
-    def bonus(self, u, d, length, qualtiy):
+    def bonus(self, u, d, length, quality):
         assert (
-            length.shape == qualtiy.shape
-        ), f"Unexpected shape length: {length.shape} qualtiy: {qualtiy.shape}"
-        return 0.9 / 3.4 * length * self.satisfactory(u, d, qualtiy)
+            length.shape == quality.shape
+        ), f"Unexpected shape length: {length.shape} quality: {quality}"
+        return 0.9 / 3.4 * length * self.satisfactory(u, d, quality)
 
     def update_active_users(self) -> int:
         alive_indices = (self.user_budgets > 0.0).nonzero().squeeze(1)

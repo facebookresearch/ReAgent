@@ -68,7 +68,7 @@ We use Apache Thrift to generate container classes and handle serialization to/f
 
    thrift --gen py --out . ml/rl/thrift/core.thrift
 
-And now, you are ready to install Horizon itself.  We use "-e" to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
+And now, you are ready to install Horizon itself.  We use "-e" to create an ephemeral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
 
 .. code-block::
 

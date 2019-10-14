@@ -39,7 +39,7 @@ def _worker_loop(
     init_fn,
     worker_id,
 ):
-    # Intialize C side signal handlers for SIGBUS and SIGSEGV. Python signal
+    # Initialize C side signal handlers for SIGBUS and SIGSEGV. Python signal
     # module's handlers are executed after Python returns from C low-level
     # handlers, likely when the same fatal signal happened again already.
     # https://docs.python.org/3/library/signal.html Sec. 18.8.1.1
@@ -299,7 +299,7 @@ class _DataStreamerIter(object):
         # across multiple threads for HOGWILD.
         # Probably the best way to do this is by moving the sample pushing
         # to a separate thread and then just sharing the data queue
-        # but signalling the end is tricky without a non-blocking API
+        # but signaling the end is tricky without a non-blocking API
         raise NotImplementedError("_DataReaderIter cannot be pickled")
 
     def _shutdown_workers(self):
@@ -352,7 +352,7 @@ class DataStreamer(object):
 
     .. note:: By default, each worker will have its PyTorch seed set to
               ``base_seed + worker_id``, where ``base_seed`` is a long generated
-              by main process using its RNG. However, seeds for other libraies
+              by main process using its RNG. However, seeds for other libraries
               may be duplicated upon initializing workers (w.g., NumPy), causing
               each worker to return identical random numbers. (See
               :ref:`datastreamer-workers-random-seed` section in FAQ.) You may
@@ -361,7 +361,7 @@ class DataStreamer(object):
               before data loading.
 
     .. warning:: If ``spawn`` start method is used, :attr:`worker_init_fn` cannot be an
-                 unpicklable object, e.g., a lambda function.
+                 unpickleable object, e.g., a lambda function.
     """
 
     def __init__(
