@@ -10,7 +10,10 @@ class Ucb : public Operator {
   Ucb(const std::string& name, const std::string& planName,
       const StringStringMap& inputDepMap,
       const DecisionService* const decisionService)
-      : Operator(name, planName, inputDepMap, decisionService) {}
+      : Operator(name, planName, inputDepMap, decisionService) {
+    int seed = std::chrono::system_clock::now().time_since_epoch().count();
+    generator_.seed(seed);
+  }
 
   virtual ~Ucb() override = default;
 
@@ -25,5 +28,8 @@ class Ucb : public Operator {
                             const OperatorData& pastOuptut) override;
 
   double getArmExpectation(const std::string& armName);
+
+ protected:
+  std::mt19937 generator_;
 };
 }  // namespace reagent

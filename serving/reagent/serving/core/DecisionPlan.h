@@ -7,23 +7,17 @@
 namespace reagent {
 class DecisionPlan {
  public:
-  DecisionPlan(
-      const DecisionConfig& config,
-      const std::vector<std::shared_ptr<Operator>>& operators,
-      const StringOperatorDataMap& constants)
-      : config_(config), operators_(operators), constants_(constants) {}
+  DecisionPlan(const DecisionConfig& config,
+               const std::vector<std::shared_ptr<Operator>>& operators,
+               const StringOperatorDataMap& constants);
 
-  const DecisionConfig& getConfig() {
-    return config_;
-  }
+  const DecisionConfig& getConfig() { return config_; }
 
   const std::vector<std::shared_ptr<Operator>>& getOperators() {
     return operators_;
   }
 
-  const StringOperatorDataMap& getConstants() {
-    return constants_;
-  }
+  const StringOperatorDataMap& getConstants() { return constants_; }
 
   const std::string& getOutputOperatorName() {
     if (operators_.empty()) {
@@ -39,4 +33,4 @@ class DecisionPlan {
   std::vector<std::shared_ptr<Operator>> operators_;
   StringOperatorDataMap constants_;
 };
-} // namespace reagent
+}  // namespace reagent

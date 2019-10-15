@@ -19,20 +19,20 @@ Clone and enter Horizon repo:
 
 .. code-block::
 
-   git clone https://github.com/facebookresearch/Horizon.git
+   git clone --recurse-submodules https://github.com/facebookresearch/Horizon.git
    cd Horizon/
+
+If you already cloned the repo without submodules, they can be added by running this command inside the repository"
+
+.. code-block::
+
+    git submodule update --init --recursive
 
 Install dependencies:
 
 .. code-block::
 
    conda install --file requirements.txt
-
-Install ONNX using pip, which builds the latest version from source:
-
-.. code-block::
-
-   pip install onnx
 
 Set JAVA_HOME to the location of your anaconda install
 
@@ -62,13 +62,32 @@ Install OpenAI Gym if you plan on following our `tutorial <usage.md>`_\ :
 
    pip install "gym[classic_control,box2d,atari]"
 
-We use Apache Thrift to generate container classes and handle serialization to/from JSON.  To build our thrift classes:
+Download libtorch from https://pytorch.org/get-started/locally/ and extract it to $HOME/libtorch
+
+At runtime, libtorch needs to find libraries from conda.  On mac, run:
 
 .. code-block::
 
-   thrift --gen py --out . ml/rl/thrift/core.thrift
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(dirname $(dirname `which conda`))/lib
 
-And now, you are ready to install Horizon itself.  We use "-e" to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
+On linux, run:
+
+.. code-block::
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(dirname $(dirname `which conda`))/lib
+
+Install folly: https://github.com/facebook/folly
+
+And now, you are ready to install Horizon itself.  To install the serving platform:
+
+.. code-block::
+
+    mkdir serving/build
+    cd serving/build
+    cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+
+
+Next we must package the models.  We use "pip install -e" on the root directory of the repository to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
 
 .. code-block::
 
