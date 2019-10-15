@@ -36,6 +36,14 @@ ml.rl.preprocessing.normalization module
    :undoc-members:
    :show-inheritance:
 
+ml.rl.preprocessing.postprocessor module
+----------------------------------------
+
+.. automodule:: ml.rl.preprocessing.postprocessor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ml.rl.preprocessing.preprocessor module
 ---------------------------------------
 

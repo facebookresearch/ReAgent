@@ -62,6 +62,7 @@ autodoc_mock_imports = [
     "ml.rl.thrift",
     "ml.rl.test",
     "onnx",
+    "xgboost",
 ]
 
 # -- Options for HTML output -------------------------------------------------

@@ -30,6 +30,22 @@ ml.rl.debug\_on\_error module
    :undoc-members:
    :show-inheritance:
 
+ml.rl.json\_serialize module
+----------------------------
+
+.. automodule:: ml.rl.json_serialize
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ml.rl.parameters module
+-----------------------
+
+.. automodule:: ml.rl.parameters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ml.rl.tensorboardX module
 -------------------------
 
