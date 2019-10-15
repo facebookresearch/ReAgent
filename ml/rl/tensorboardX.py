@@ -22,7 +22,7 @@ import contextlib
 import logging
 from typing import Any, Dict, List
 
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -73,6 +73,13 @@ class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
     @classmethod
     def increase_global_step(cls):
         cls._global_step += 1
+
+    @classmethod
+    def add_histogram(cls, key, val, *args, **kwargs):
+        try:
+            return cls.__getattr__("add_histogram")(key, val, *args, **kwargs)
+        except ValueError:
+            logger.warning(f"Cannot create histogram for {key}, got values: {val}")
 
     @classmethod
     def add_custom_scalars(cls, writer):

@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 import ml.rl.types as rlt
 import torch
 from ml.rl.models.base import ModelBase
+from ml.rl.preprocessing.postprocessor import Postprocessor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from torch import nn
 
@@ -126,20 +127,13 @@ class ParametricDqnWithPreprocessor(ModelBase):
 class ParametricDqnPredictorWrapper(torch.jit.ScriptModule):
     __constants__ = ["state_sorted_features_t", "action_sorted_features_t"]
 
-    def __init__(
-        self, parametric_dqn_with_preprocessor: ParametricDqnWithPreprocessor
-    ) -> None:
+    def __init__(self, dqn_with_preprocessor: ParametricDqnWithPreprocessor) -> None:
         super().__init__()
 
-        self.state_sorted_features_t = (
-            parametric_dqn_with_preprocessor.state_sorted_features
-        )
-        self.action_sorted_features_t = (
-            parametric_dqn_with_preprocessor.action_sorted_features
-        )
-        self.parametric_dqn_with_preprocessor = torch.jit.trace(
-            parametric_dqn_with_preprocessor,
-            parametric_dqn_with_preprocessor.input_prototype(),
+        self.state_sorted_features_t = dqn_with_preprocessor.state_sorted_features
+        self.action_sorted_features_t = dqn_with_preprocessor.action_sorted_features
+        self.dqn_with_preprocessor = torch.jit.trace(
+            dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
         )
 
     @torch.jit.script_method
@@ -162,7 +156,71 @@ class ParametricDqnPredictorWrapper(torch.jit.ScriptModule):
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
         action_with_presence: Tuple[torch.Tensor, torch.Tensor],
     ) -> Tuple[List[str], torch.Tensor]:
-        value = self.parametric_dqn_with_preprocessor(
-            state_with_presence, action_with_presence
-        )
+        value = self.dqn_with_preprocessor(state_with_presence, action_with_presence)
         return (["Q"], value)
+
+
+class ActorWithPreprocessor(ModelBase):
+    """
+    This is sepearted from ActorPredictorWrapper so that we can pass typed inputs
+    into the model. This is possible because JIT only traces tensor operation.
+    In contrast, JIT scripting needs to compile the code, therefore, it won't recognize
+    any custom Python type.
+    """
+
+    def __init__(
+        self,
+        model: ModelBase,
+        state_preprocessor: Preprocessor,
+        action_postprocessor: Optional[Postprocessor] = None,
+    ):
+        super().__init__()
+        self.model = model
+        self.state_preprocessor = state_preprocessor
+        self.action_postprocessor = action_postprocessor
+
+    def forward(self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]):
+        preprocessed_state = self.state_preprocessor(
+            state_with_presence[0], state_with_presence[1]
+        )
+        state_feature_vector = rlt.PreprocessedState.from_tensor(preprocessed_state)
+        # TODO: include log_prob in the output
+        action = self.model(state_feature_vector).action
+        if self.action_postprocessor:
+            action = self.action_postprocessor(action)
+        return action
+
+    def input_prototype(self):
+        return (self.state_preprocessor.input_prototype(),)
+
+    @property
+    def sorted_features(self):
+        # TODO: the interface here should be ModelFeatureConfig
+        return self.state_preprocessor.sorted_features
+
+
+class ActorPredictorWrapper(torch.jit.ScriptModule):
+    __constants__ = ["state_sorted_features_t"]
+
+    def __init__(self, actor_with_preprocessor: ActorWithPreprocessor) -> None:
+        super().__init__()
+
+        self.state_sorted_features_t = actor_with_preprocessor.sorted_features
+
+        self.actor_with_preprocessor = torch.jit.trace(
+            actor_with_preprocessor, actor_with_preprocessor.input_prototype()
+        )
+
+    @torch.jit.script_method
+    def state_sorted_features(self) -> List[int]:
+        """
+        This interface is used by ActorTorchPredictor
+        """
+        return self.state_sorted_features_t
+
+    @torch.jit.script_method
+    def forward(
+        self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
+    ) -> torch.Tensor:
+        action = self.actor_with_preprocessor(state_with_presence)
+        return action

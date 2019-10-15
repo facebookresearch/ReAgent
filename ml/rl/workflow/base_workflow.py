@@ -9,10 +9,11 @@ import time
 from typing import Dict
 
 import torch
+from ml.rl.parameters import NormalizationParameters
 from ml.rl.preprocessing import normalization
 from ml.rl.readers.data_streamer import DataStreamer
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.thrift.core.ttypes import NormalizationParameters
+from ml.rl.torch_utils import export_module_to_buffer
 from ml.rl.workflow.page_handler import (
     EvaluationPageHandler,
     TrainingPageHandler,
@@ -109,3 +110,12 @@ class BaseWorkflow:
 
     def report(self, evaluation_details):
         evaluation_details.log_to_tensorboard()
+
+    def save_models(self, path: str):
+        raise NotImplementedError()
+
+    def save_torchscript_model(self, module: torch.nn.Module, path: str):
+        logger.info("Saving TorchScript predictor to {}".format(path))
+        serving_module_bytes = export_module_to_buffer(module).getvalue()
+        with open(path, "wb") as output_fp:
+            output_fp.write(serving_module_bytes)

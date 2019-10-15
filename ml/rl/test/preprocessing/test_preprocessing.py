@@ -65,7 +65,7 @@ class TestPreprocessing(unittest.TestCase):
         for i, feature in enumerate(sorted_features):
             input_matrix[:, i] = torch.from_numpy(feature_value_map[feature])
         normalized_feature_matrix = preprocessor(
-            input_matrix, (input_matrix != MISSING_VALUE).float()
+            input_matrix, (input_matrix != MISSING_VALUE)
         )
 
         normalized_features = {}
@@ -181,9 +181,7 @@ class TestPreprocessing(unittest.TestCase):
         inputs[:, feature_ids.index(2)] = [1.0, 2.0, 3.0, 3.0]
         inputs[:, feature_ids.index(3)] = [15, 3, 15, normalization.MISSING_VALUE]
         inputs = torch.from_numpy(inputs)
-        normalized_feature_matrix = preprocessor(
-            inputs, (inputs != MISSING_VALUE).float()
-        )
+        normalized_feature_matrix = preprocessor(inputs, (inputs != MISSING_VALUE))
 
         np.testing.assert_allclose(
             np.array(
@@ -282,7 +280,7 @@ class TestPreprocessing(unittest.TestCase):
             )
             feature_values_matrix = torch.from_numpy(np.expand_dims(feature_values, -1))
             normalized_feature_values = preprocessor(
-                feature_values_matrix, (feature_values_matrix != MISSING_VALUE).float()
+                feature_values_matrix, (feature_values_matrix != MISSING_VALUE)
             )
             name_preprocessed_blob_map[feature_name] = normalized_feature_values.numpy()
 

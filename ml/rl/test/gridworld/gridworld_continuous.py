@@ -162,20 +162,20 @@ class GridworldContinuous(GridworldBase):
 
         states_ndarray = state_preprocessor(
             torch.from_numpy(workspace.FetchBlob(state_matrix)),
-            torch.from_numpy(workspace.FetchBlob(state_matrix_presence)).float(),
+            torch.from_numpy(workspace.FetchBlob(state_matrix_presence)),
         )
 
         if normalize_actions:
             actions_ndarray = action_preprocessor(
                 torch.from_numpy(workspace.FetchBlob(action_matrix)),
-                torch.from_numpy(workspace.FetchBlob(action_matrix_presence)).float(),
+                torch.from_numpy(workspace.FetchBlob(action_matrix_presence)),
             )
         else:
             actions_ndarray = torch.from_numpy(workspace.FetchBlob(action_matrix))
 
         next_states_ndarray = torch.from_numpy(workspace.FetchBlob(next_state_matrix))
         next_states_ndarray = state_preprocessor(
-            next_states_ndarray, (next_states_ndarray != MISSING_VALUE).float()
+            next_states_ndarray, (next_states_ndarray != MISSING_VALUE)
         )
 
         state_pnas_tile = next_states_ndarray.repeat(1, max_action_size).reshape(
@@ -185,9 +185,7 @@ class GridworldContinuous(GridworldBase):
         if normalize_actions:
             next_actions_ndarray = action_preprocessor(
                 torch.from_numpy(workspace.FetchBlob(next_action_matrix)),
-                torch.from_numpy(
-                    workspace.FetchBlob(next_action_matrix_presence)
-                ).float(),
+                torch.from_numpy(workspace.FetchBlob(next_action_matrix_presence)),
             )
         else:
             next_actions_ndarray = torch.from_numpy(
@@ -199,7 +197,7 @@ class GridworldContinuous(GridworldBase):
                 torch.from_numpy(workspace.FetchBlob(possible_next_actions_matrix)),
                 torch.from_numpy(
                     workspace.FetchBlob(possible_next_actions_matrix_presence)
-                ).float(),
+                ),
             )
         else:
             logged_possible_next_actions = torch.from_numpy(

@@ -2,13 +2,27 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+import os
 import sys
+import time
 from typing import Dict
 
 import numpy as np
 import torch
 from ml.rl.evaluation.evaluator import Evaluator
+from ml.rl.json_serialize import from_json
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
+from ml.rl.parameters import (
+    DiscreteActionModelParameters,
+    NormalizationParameters,
+    RainbowDQNParameters,
+    RLParameters,
+    TrainingParameters,
+)
+from ml.rl.prediction.predictor_wrapper import (
+    DiscreteDqnPredictorWrapper,
+    DiscreteDqnWithPreprocessor,
+)
 from ml.rl.preprocessing.batch_preprocessor import DiscreteDqnBatchPreprocessor
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
@@ -16,26 +30,18 @@ from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
 from ml.rl.tensorboardX import summary_writer_context
-from ml.rl.thrift.core.ttypes import (
-    DiscreteActionModelParameters,
-    NormalizationParameters,
-    RainbowDQNParameters,
-    RLParameters,
-    TrainingParameters,
-)
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.rl_exporter import DQNExporter
 from ml.rl.workflow.base_workflow import BaseWorkflow
 from ml.rl.workflow.helpers import (
-    export_trainer_and_predictor,
     minibatch_size_multiplier,
     parse_args,
+    save_model_to_file,
     update_model_for_warm_start,
 )
 from ml.rl.workflow.preprocess_handler import DiscreteDqnPreprocessHandler
 from ml.rl.workflow.transitional import create_dqn_trainer_from_params
-from tensorboardX import SummaryWriter
 from torch import multiprocessing
+from torch.utils.tensorboard import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +57,8 @@ class DqnWorkflow(BaseWorkflow):
     ):
         logger.info("Running DQN workflow with params:")
         logger.info(model_params)
-        model_params = model_params
+        self.model_params = model_params
+        self.state_normalization = state_normalization
 
         trainer = create_dqn_trainer_from_params(
             model_params,
@@ -78,6 +85,26 @@ class DqnWorkflow(BaseWorkflow):
             model_params.training.minibatch_size,
         )
 
+    def save_models(self, path: str):
+        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
+            self.trainer.q_network.cpu_model().eval(),
+            Preprocessor(self.state_normalization, False),
+        )
+        serving_module = DiscreteDqnPredictorWrapper(
+            dqn_with_preprocessor=dqn_with_preprocessor,
+            action_names=self.model_params.actions,
+        )
+
+        export_time = round(time.time())
+        output_path = os.path.expanduser(path)
+        pytorch_output_path = os.path.join(output_path, f"trainer_{export_time}.pt")
+        torchscript_output_path = os.path.join(
+            path, "model_{}.torchscript".format(export_time)
+        )
+        logger.info("Saving PyTorch trainer to {}".format(pytorch_output_path))
+        save_model_to_file(self.trainer, pytorch_output_path)
+        self.save_torchscript_model(serving_module, torchscript_output_path)
+
 
 def single_process_main(gpu_index, *args):
     params = args[0]
@@ -88,9 +115,9 @@ def single_process_main(gpu_index, *args):
 
     action_names = params["actions"]
 
-    rl_parameters = RLParameters(**params["rl"])
-    training_parameters = TrainingParameters(**params["training"])
-    rainbow_parameters = RainbowDQNParameters(**params["rainbow"])
+    rl_parameters = from_json(params["rl"], RLParameters)
+    training_parameters = from_json(params["training"], TrainingParameters)
+    rainbow_parameters = from_json(params["rainbow"], RainbowDQNParameters)
 
     model_params = DiscreteActionModelParameters(
         actions=action_names,
@@ -121,7 +148,7 @@ def single_process_main(gpu_index, *args):
 
     sorted_features, _ = sort_features_by_normalization(state_normalization)
     preprocess_handler = DiscreteDqnPreprocessHandler(
-        action_names, PandasSparseToDenseProcessor(sorted_features)
+        len(action_names), PandasSparseToDenseProcessor(sorted_features)
     )
 
     train_dataset = JSONDatasetReader(
@@ -138,16 +165,8 @@ def single_process_main(gpu_index, *args):
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
 
-    exporter = DQNExporter(
-        workflow.trainer.q_network,
-        PredictorFeatureExtractor(state_normalization_parameters=state_normalization),
-        DiscreteActionOutputTransformer(model_params.actions),
-    )
-
     if int(params["node_index"]) == 0 and gpu_index == 0:
-        export_trainer_and_predictor(
-            workflow.trainer, params["model_output_path"], exporter=exporter
-        )  # noqa
+        workflow.save_models(params["model_output_path"])
 
 
 def main(params):
@@ -170,5 +189,6 @@ def main(params):
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     params = parse_args(sys.argv)
     main(params)

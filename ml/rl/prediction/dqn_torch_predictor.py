@@ -150,7 +150,7 @@ class ParametricDqnTorchPredictor:
         q_scores = q_scores.reshape(1, -1)
 
         return self.policy_given_q_values(
-            q_scores, self.softmax_temperature, possible_actions_presence
+            q_scores, self.softmax_temperature, torch.ones_like(q_scores)
         )
 
     @staticmethod
@@ -189,3 +189,29 @@ class ParametricDqnTorchPredictor:
 
     def discrete_action(self) -> bool:
         return False
+
+
+class ActorTorchPredictor:
+    def __init__(self, model, action_feature_ids: List[int]) -> None:
+        self.model = model
+        self.internal_sparse_to_dense = PythonSparseToDenseProcessor(
+            self.model.state_sorted_features()
+        )
+        self.action_feature_ids = action_feature_ids
+
+    def predict(self, state_features: List[Dict[int, float]]) -> List[Dict[str, float]]:
+        dense_state_features, dense_state_feature_exist_mask = self.internal_sparse_to_dense(
+            state_features
+        )
+        actions = self.model((dense_state_features, dense_state_feature_exist_mask))
+        assert actions.shape[1:] == (len(self.action_feature_ids),)
+        retval = [
+            {str(fid): val.item() for fid, val in zip(self.action_feature_ids, action)}
+            for action in actions
+        ]
+        return retval
+
+    def actor_prediction(
+        self, float_state_features: List[Dict[int, float]]
+    ) -> List[Dict[str, float]]:
+        return self.predict(float_state_features)

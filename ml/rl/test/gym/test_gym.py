@@ -4,15 +4,16 @@
 Environments that require short training and evaluation time (<=10min)
 can be tested in this file.
 """
-import json
 import logging
 import random
 import unittest
 
 import numpy as np
 import torch
+from ml.rl.json_serialize import json_to_object
+from ml.rl.parameters import OpenAiGymParameters
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.test.gym.run_gym import USE_CPU, run_gym
+from ml.rl.test.gym.run_gym import run_gym
 
 
 DQN_CARTPOLE_JSON = "ml/rl/test/gym/discrete_dqn_cartpole_v0.json"
@@ -32,25 +33,17 @@ class TestGym(unittest.TestCase):
     def test_dqn_cartpole_offline(self):
         """ Test if the json config works for offline DQN in Cartpole """
         with open(DQN_CARTPOLE_JSON, "r") as f:
-            params = json.load(f)
+            params = json_to_object(f.read(), OpenAiGymParameters)
         reward_history, _, _, _, _ = run_gym(
-            params,
-            offline_train=True,
-            score_bar=CARTPOLE_SCORE_BAR,
-            gpu_id=USE_CPU,
-            seed=SEED,
+            params, offline_train=True, score_bar=CARTPOLE_SCORE_BAR, seed=SEED
         )
         assert reward_history[-1] >= CARTPOLE_SCORE_BAR
 
     def test_dqn_cartpole_online(self):
         """ Test if the json config works for online DQN in Cartpole """
         with open(DQN_CARTPOLE_JSON, "r") as f:
-            params = json.load(f)
+            params = json_to_object(f.read(), OpenAiGymParameters)
         reward_history, _, _, _, _ = run_gym(
-            params,
-            offline_train=False,
-            score_bar=CARTPOLE_SCORE_BAR,
-            gpu_id=USE_CPU,
-            seed=SEED,
+            params, offline_train=False, score_bar=CARTPOLE_SCORE_BAR, seed=SEED
         )
         assert reward_history[-1] > CARTPOLE_SCORE_BAR

@@ -42,7 +42,7 @@ class CategoricalDQN(ModelBase):
         self.num_atoms = num_atoms
         self.action_dim = action_dim
         self.support = torch.linspace(qmin, qmax, num_atoms)
-        if use_gpu and torch.cuda.is_available():
+        if use_gpu:
             self.support = self.support.cuda()
 
     def input_prototype(self):

@@ -3,12 +3,12 @@
 
 import logging
 import math
-from typing import List, NamedTuple, Optional
+from collections import deque
+from typing import Deque, List, NamedTuple, Optional
 
 import numpy as np
 import torch
 from ml.rl.tensorboardX import SummaryWriterContext
-from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -167,6 +167,8 @@ class LossReporter(object):
         assert action_names is None or len(action_names) > 0
         self.action_names: List[str] = action_names or []
 
+        self.running_reward: Deque[float] = deque(maxlen=int(1e6))
+
         self.td_loss: List[float] = []
         self.reward_loss: List[float] = []
         self.imitator_loss: List[float] = []
@@ -222,6 +224,10 @@ class LossReporter(object):
         td_loss_mean = float(batch_stats.td_loss.mean())
         self.td_loss.append(td_loss_mean)
         print_details = print_details + "TD LOSS: {0:.3f}\n".format(td_loss_mean)
+
+        if batch_stats.logged_rewards is not None:
+            flattened_rewards = torch.flatten(batch_stats.logged_rewards).tolist()
+            self.running_reward.extend(flattened_rewards)
 
         if batch_stats.reward_loss is not None:
             reward_loss_mean = float(batch_stats.reward_loss.mean())
@@ -315,6 +321,9 @@ class LossReporter(object):
             k: (v / total_actions)
             for k, v in self.model_action_counts_cumulative.items()
         }
+
+    def get_recent_rewards(self):
+        return self.running_reward
 
     def log_to_tensorboard(self, epoch: int) -> None:
         def none_to_zero(x: Optional[float]) -> float:

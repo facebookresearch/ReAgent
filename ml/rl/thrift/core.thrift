@@ -55,6 +55,7 @@ struct CNNParameters {
 struct FeedForwardParameters {
   1: list<i32> layers = [256, 128],
   2: list<string> activations = ['relu', 'relu'],
+  3: optional bool use_layer_norm,
 }
 
 struct FactorizationParameters {
@@ -187,6 +188,9 @@ struct SACTrainingParameters {
   10: bool use_value_network = true,
   11: optional double target_entropy,
   12: optional OptimizerParameters alpha_optimizer
+  13: optional double action_embedding_kld_weight,
+  14: optional list<double> action_embedding_mean,
+  15: optional list<double> action_embedding_variance,
 }
 
 struct SACModelParameters {
@@ -201,7 +205,8 @@ struct SACModelParameters {
   8: optional StateFeatureParameters state_feature_params,
   9: EvaluationParameters evaluation = {},
   # constrain action output to sum to 1 (using dirichlet distribution)
-  10: bool constrain_action_sum = false
+  10: bool constrain_action_sum = false,
+  11: optional bool do_not_preprocess_action,
 }
 
 struct KNNDQNModelParameters {
@@ -213,35 +218,6 @@ struct KNNDQNModelParameters {
   6: i32 action_dim,
   7: i64 k,
   8: EvaluationParameters evaluation = {},
-}
-
-struct OpenAIGymParameters {
-  1: i32 num_episodes = 1000,
-  2: i32 max_steps = 200,
-  3: i32 train_every_ts = 1,
-  4: i32 train_after_ts = 1,
-  5: i32 test_every_ts = 2000,
-  6: i32 test_after_ts = 1,
-  7: i32 num_train_batches = 1,
-  8: i32 avg_over_num_episodes = 100,
-  9: i32 offline_train_epochs = 30,
-  10: double epsilon_decay = 1,
-  11: optional double minimum_epsilon,
-  12: optional i32 solved_reward_threshold,
-  13: optional i32 max_episodes_to_run_after_solved,
-  14: optional bool stop_training_after_solved,
-}
-
-struct NormalizationParameters {
-  1: string feature_type,
-  2: optional double boxcox_lambda,
-  3: optional double boxcox_shift,
-  4: optional double mean,
-  5: optional double stddev,
-  6: optional list<i64> possible_values,  # Assume present for ENUM type
-  7: optional list<double> quantiles,  # Assume present for QUANTILE type and sorted
-  8: optional double min_value,
-  9: optional double max_value,
 }
 
 struct MDNRNNParameters {

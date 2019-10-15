@@ -8,20 +8,25 @@ import numpy as np
 import torch
 from ml.rl.models.output_transformer import ParametricActionOutputTransformer
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
-from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT
-from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
-from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
-from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.parameters import (
     ContinuousActionModelParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
+from ml.rl.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
+from ml.rl.prediction.predictor_wrapper import (
+    ParametricDqnPredictorWrapper,
+    ParametricDqnWithPreprocessor,
+)
+from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
+from ml.rl.preprocessing.normalization import get_num_output_features
+from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.test.gridworld.gridworld_base import DISCOUNT
+from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
+from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
+from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
-from ml.rl.training.rl_exporter import ParametricDQNExporter
 
 
 class TestGridworldParametric(GridworldTestBase):
@@ -49,7 +54,7 @@ class TestGridworldParametric(GridworldTestBase):
             ),
         )
 
-    def get_modular_sarsa_trainer_exporter(
+    def get_trainer(
         self, environment, parameters=None, use_gpu=False, use_all_avail_gpus=False
     ):
         parameters = parameters or self.get_sarsa_parameters()
@@ -76,15 +81,20 @@ class TestGridworldParametric(GridworldTestBase):
         trainer = ParametricDQNTrainer(
             q_network, q_network_target, reward_network, parameters
         )
-        feature_extractor = PredictorFeatureExtractor(
-            state_normalization_parameters=environment.normalization,
-            action_normalization_parameters=environment.normalization_action,
+        return trainer
+
+    def get_predictor(self, trainer, environment):
+        state_preprocessor = Preprocessor(environment.normalization, False)
+        action_preprocessor = Preprocessor(environment.normalization_action, False)
+        q_network = trainer.q_network
+        dqn_with_preprocessor = ParametricDqnWithPreprocessor(
+            q_network.cpu_model().eval(), state_preprocessor, action_preprocessor
         )
-        output_transformer = ParametricActionOutputTransformer()
-        exporter = ParametricDQNExporter(
-            q_network, feature_extractor, output_transformer
+        serving_module = ParametricDqnPredictorWrapper(
+            dqn_with_preprocessor=dqn_with_preprocessor
         )
-        return (trainer, exporter)
+        predictor = ParametricDqnTorchPredictor(serving_module)
+        return predictor
 
     def _test_trainer_sarsa(self, use_gpu=False, use_all_avail_gpus=False):
         environment = GridworldContinuous()
@@ -92,11 +102,9 @@ class TestGridworldParametric(GridworldTestBase):
             environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
-        trainer, exporter = self.get_modular_sarsa_trainer_exporter(
-            environment, None, use_gpu, use_all_avail_gpus
-        )
+        trainer = self.get_trainer(environment, None, use_gpu, use_all_avail_gpus)
 
-        self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
+        self.evaluate_gridworld(environment, evaluator, trainer, use_gpu)
 
     def test_modular_trainer_sarsa(self):
         self._test_trainer_sarsa()

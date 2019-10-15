@@ -44,7 +44,16 @@ class ParametricDQNWithPreprocessing(ModelBase):
 
 
 class FullyConnectedParametricDQN(ModelBase):
-    def __init__(self, state_dim, action_dim, sizes, activations, use_batch_norm=False):
+    def __init__(
+        self,
+        state_dim,
+        action_dim,
+        sizes,
+        activations,
+        use_batch_norm=False,
+        use_layer_norm=False,
+        output_dim=1,
+    ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
@@ -56,9 +65,10 @@ class FullyConnectedParametricDQN(ModelBase):
             len(sizes), len(activations)
         )
         self.fc = FullyConnectedNetwork(
-            [state_dim + action_dim] + sizes + [1],
+            [state_dim + action_dim] + sizes + [output_dim],
             activations + ["linear"],
             use_batch_norm=use_batch_norm,
+            use_layer_norm=use_layer_norm,
         )
 
     def get_distributed_data_parallel_model(self):

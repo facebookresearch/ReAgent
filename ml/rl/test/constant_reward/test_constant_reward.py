@@ -7,15 +7,15 @@ import unittest
 
 import numpy as np
 import torch
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.test.constant_reward.env import Env
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.parameters import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
+from ml.rl.tensorboardX import SummaryWriterContext
+from ml.rl.test.base.horizon_test_base import HorizonTestBase
+from ml.rl.test.constant_reward.env import Env
 from ml.rl.workflow.transitional import create_dqn_trainer_from_params
 
 

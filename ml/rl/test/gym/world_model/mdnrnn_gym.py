@@ -16,22 +16,21 @@ from ml.rl.evaluation.world_model_evaluator import (
     FeatureImportanceEvaluator,
     FeatureSensitivityEvaluator,
 )
+from ml.rl.json_serialize import json_to_object
 from ml.rl.models.mdn_rnn import MDNRNNMemoryPool
 from ml.rl.models.world_model import MemoryNetwork
+from ml.rl.parameters import MDNRNNParameters, OpenAiGymParameters, OpenAiRunDetails
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
     OpenAIGymEnvironment,
 )
 from ml.rl.test.gym.run_gym import dict_to_np, get_possible_actions
-from ml.rl.thrift.core.ttypes import MDNRNNParameters
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
 logger = logging.getLogger(__name__)
-
-USE_CPU = -1
 
 
 def loss_to_num(losses):
@@ -155,12 +154,9 @@ def multi_step_sample_generator(
 
 
 def get_replay_buffer(
-    num_episodes: int,
-    seq_len: int,
-    max_step: Optional[int],
-    gym_env: OpenAIGymEnvironment,
+    num_episodes: int, seq_len: int, max_step: int, gym_env: OpenAIGymEnvironment
 ) -> MDNRNNMemoryPool:
-    num_transitions = num_episodes * max_step  # type: ignore
+    num_transitions = num_episodes * max_step
     replay_buffer = MDNRNNMemoryPool(max_replay_memory_size=num_transitions)
     for (
         mdnrnn_state,
@@ -204,7 +200,7 @@ def main(args):
         "-g",
         "--gpu_id",
         help="If set, will use GPU with specified ID. Otherwise will use CPU.",
-        default=USE_CPU,
+        default=-1,
     )
     parser.add_argument(
         "-l",
@@ -238,12 +234,12 @@ def main(args):
     logger.setLevel(getattr(logging, args.log_level.upper()))
 
     with open(args.parameters, "r") as f:
-        params = json.load(f)
+        params = json_to_object(f.read(), OpenAiGymParameters)
+    if args.gpu_id != -1:
+        params = params._replace(use_gpu=True)
 
-    use_gpu = args.gpu_id != USE_CPU
     mdnrnn_gym(
         params,
-        use_gpu,
         args.feature_importance,
         args.feature_sensitivity,
         args.save_embedding_to_path,
@@ -251,16 +247,17 @@ def main(args):
 
 
 def mdnrnn_gym(
-    params: Dict,
-    use_gpu: bool,
+    params: OpenAiGymParameters,
     feature_importance: bool = False,
     feature_sensitivity: bool = False,
     save_embedding_to_path: Optional[str] = None,
 ):
+    assert params.mdnrnn is not None
+    use_gpu = params.use_gpu
     logger.info("Running gym with params")
     logger.info(params)
 
-    env_type = params["env"]
+    env_type = params.env
     env = OpenAIGymEnvironment(env_type, epsilon=1.0, softmax_policy=True, gamma=0.99)
 
     trainer = create_trainer(params, env, use_gpu)
@@ -269,21 +266,21 @@ def mdnrnn_gym(
         trainer,
         use_gpu,
         "{} test run".format(env_type),
-        params["mdnrnn"]["minibatch_size"],
-        **params["run_details"],
+        params.mdnrnn.minibatch_size,
+        params.run_details,
     )
     feature_importance_map, feature_sensitivity_map, dataset = None, None, None
     if feature_importance:
         feature_importance_map = calculate_feature_importance(
-            env, trainer, use_gpu, **params["run_details"]
+            env, trainer, use_gpu, params.run_details
         )
     if feature_sensitivity:
         feature_sensitivity_map = calculate_feature_sensitivity_by_actions(
-            env, trainer, use_gpu, **params["run_details"]
+            env, trainer, use_gpu, params.run_details
         )
     if save_embedding_to_path:
         dataset = RLDataset(save_embedding_to_path)
-        create_embed_rl_dataset(env, trainer, dataset, use_gpu, **params["run_details"])
+        create_embed_rl_dataset(env, trainer, dataset, use_gpu, params.run_details)
         dataset.save()
     return env, trainer, feature_importance_map, feature_sensitivity_map, dataset
 
@@ -292,11 +289,11 @@ def calculate_feature_importance(
     gym_env: OpenAIGymEnvironment,
     trainer: MDNRNNTrainer,
     use_gpu: bool,
-    seq_len: int = 5,
-    num_test_episodes: int = 100,
-    max_steps: Optional[int] = None,
-    **kwargs,
+    run_details: OpenAiRunDetails,
 ):
+    assert run_details.max_steps is not None
+    assert run_details.num_test_episodes is not None
+    assert run_details.seq_len is not None
     feature_importance_evaluator = FeatureImportanceEvaluator(
         trainer,
         discrete_action=gym_env.action_type == EnvType.DISCRETE_ACTION,
@@ -306,7 +303,10 @@ def calculate_feature_importance(
         sorted_state_feature_start_indices=list(range(gym_env.state_dim)),
     )
     test_replay_buffer = get_replay_buffer(
-        num_test_episodes, seq_len, max_steps, gym_env
+        run_details.num_test_episodes,
+        run_details.seq_len,
+        run_details.max_steps,
+        gym_env,
     )
     test_batch = test_replay_buffer.sample_memories(
         test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
@@ -336,15 +336,13 @@ def create_embed_rl_dataset(
     gym_env: OpenAIGymEnvironment,
     trainer: MDNRNNTrainer,
     dataset: RLDataset,
-    use_gpu: bool = False,
-    seq_len: int = 5,
-    num_state_embed_episodes: int = 100,
-    max_steps: Optional[int] = None,
-    **kwargs,
+    use_gpu: bool,
+    run_details: OpenAiRunDetails,
 ):
+    assert run_details.max_steps is not None
     old_mdnrnn_mode = trainer.mdnrnn.mdnrnn.training
     trainer.mdnrnn.mdnrnn.eval()
-    num_transitions = num_state_embed_episodes * max_steps  # type: ignore
+    num_transitions = run_details.num_state_embed_episodes * run_details.max_steps
     device = torch.device("cuda") if use_gpu else torch.device("cpu")  # type: ignore
 
     (
@@ -362,10 +360,10 @@ def create_embed_rl_dataset(
             *multi_step_sample_generator(
                 gym_env=gym_env,
                 num_transitions=num_transitions,
-                max_steps=max_steps,
+                max_steps=run_details.max_steps,
                 # +1 because MDNRNN embeds the first seq_len steps and then
                 # the embedded state will be concatenated with the last step
-                multi_steps=seq_len + 1,
+                multi_steps=run_details.seq_len + 1,
                 include_shorter_samples_at_start=True,
                 include_shorter_samples_at_end=False,
             )
@@ -472,18 +470,18 @@ def calculate_feature_sensitivity_by_actions(
     gym_env: OpenAIGymEnvironment,
     trainer: MDNRNNTrainer,
     use_gpu: bool,
+    run_details: OpenAiRunDetails,
     seq_len: int = 5,
     num_test_episodes: int = 100,
-    max_steps: Optional[int] = None,
-    **kwargs,
 ):
+    assert run_details.max_steps is not None
     feature_sensitivity_evaluator = FeatureSensitivityEvaluator(
         trainer,
         state_feature_num=gym_env.state_dim,
         sorted_state_feature_start_indices=list(range(gym_env.state_dim)),
     )
     test_replay_buffer = get_replay_buffer(
-        num_test_episodes, seq_len, max_steps, gym_env
+        num_test_episodes, seq_len, run_details.max_steps, gym_env
     )
     test_batch = test_replay_buffer.sample_memories(
         test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
@@ -508,22 +506,26 @@ def train_sgd(
     use_gpu: bool,
     test_run_name: str,
     minibatch_size: int,
-    seq_len: int = 5,
-    num_train_episodes: int = 300,
-    num_test_episodes: int = 100,
-    max_steps: Optional[int] = None,
-    train_epochs: int = 100,
-    early_stopping_patience: int = 3,
-    **kwargs,
+    run_details: OpenAiRunDetails,
 ):
+    assert run_details.max_steps is not None
     train_replay_buffer = get_replay_buffer(
-        num_train_episodes, seq_len, max_steps, gym_env
+        run_details.num_train_episodes,
+        run_details.seq_len,
+        run_details.max_steps,
+        gym_env,
     )
     valid_replay_buffer = get_replay_buffer(
-        num_test_episodes, seq_len, max_steps, gym_env
+        run_details.num_test_episodes,
+        run_details.seq_len,
+        run_details.max_steps,
+        gym_env,
     )
     test_replay_buffer = get_replay_buffer(
-        num_test_episodes, seq_len, max_steps, gym_env
+        run_details.num_test_episodes,
+        run_details.seq_len,
+        run_details.max_steps,
+        gym_env,
     )
     valid_loss_history = []
 
@@ -533,13 +535,13 @@ def train_sgd(
         "Training will take {} epochs, with each epoch having {} mini-batches"
         " and each mini-batch having {} samples".format(
             train_replay_buffer.memory_size,
-            train_epochs,
+            run_details.train_epochs,
             num_batch_per_epoch,
             minibatch_size,
         )
     )
 
-    for i_epoch in range(train_epochs):
+    for i_epoch in range(run_details.train_epochs):
         for i_batch in range(num_batch_per_epoch):
             training_batch = train_replay_buffer.sample_memories(
                 minibatch_size, use_gpu=use_gpu, batch_first=True
@@ -582,9 +584,11 @@ def train_sgd(
             )
         )
         latest_loss = valid_loss_history[-1]["loss"]
-        recent_valid_loss_hist = valid_loss_history[-1 - early_stopping_patience : -1]
+        recent_valid_loss_hist = valid_loss_history[
+            -1 - run_details.early_stopping_patience : -1
+        ]
         # earlystopping
-        if len(valid_loss_history) > early_stopping_patience and all(
+        if len(valid_loss_history) > run_details.early_stopping_patience and all(
             (latest_loss >= v["loss"] for v in recent_valid_loss_hist)
         ):
             break
@@ -609,8 +613,12 @@ def train_sgd(
     return test_losses, valid_loss_history, trainer
 
 
-def create_trainer(params: Dict, env: OpenAIGymEnvironment, use_gpu: bool):
-    mdnrnn_params = MDNRNNParameters(**params["mdnrnn"])
+def create_trainer(
+    params: OpenAiGymParameters, env: OpenAIGymEnvironment, use_gpu: bool
+):
+    assert params.mdnrnn is not None
+    assert params.run_details.max_steps is not None
+    mdnrnn_params = params.mdnrnn
     mdnrnn_net = MemoryNetwork(
         state_dim=env.state_dim,
         action_dim=env.action_dim,
@@ -618,12 +626,12 @@ def create_trainer(params: Dict, env: OpenAIGymEnvironment, use_gpu: bool):
         num_hidden_layers=mdnrnn_params.num_hidden_layers,
         num_gaussians=mdnrnn_params.num_gaussians,
     )
-    if use_gpu and torch.cuda.is_available():
+    if use_gpu:
         mdnrnn_net = mdnrnn_net.cuda()
 
     cum_loss_hist_len = (
-        params["run_details"]["num_train_episodes"]
-        * params["run_details"]["max_steps"]
+        params.run_details.num_train_episodes
+        * params.run_details.max_steps
         // mdnrnn_params.minibatch_size
     )
     trainer = MDNRNNTrainer(
@@ -633,7 +641,7 @@ def create_trainer(params: Dict, env: OpenAIGymEnvironment, use_gpu: bool):
 
 
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     args = sys.argv
     main(args[1:])

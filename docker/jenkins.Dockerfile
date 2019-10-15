@@ -51,7 +51,7 @@ ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
-RUN conda config --add channels pytorch # For PyTorch
+RUN conda config --add channels pytorch-nightly # For PyTorch
 
 # Add files to image
 ADD requirements.txt requirements.txt

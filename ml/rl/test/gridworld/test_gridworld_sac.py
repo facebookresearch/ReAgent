@@ -16,23 +16,29 @@ from ml.rl.models.output_transformer import (
     ParametricActionOutputTransformer,
 )
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
-from ml.rl.preprocessing.normalization import (
-    get_num_output_features,
-    sort_features_by_normalization,
-)
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT
-from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
-from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
-from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.thrift.core.ttypes import (
+from ml.rl.parameters import (
     FeedForwardParameters,
     OptimizerParameters,
     RLParameters,
     SACModelParameters,
     SACTrainingParameters,
 )
-from ml.rl.training.rl_exporter import ActorExporter, ParametricDQNExporter
+from ml.rl.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
+from ml.rl.prediction.predictor_wrapper import (
+    ParametricDqnPredictorWrapper,
+    ParametricDqnWithPreprocessor,
+)
+from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
+from ml.rl.preprocessing.normalization import (
+    get_num_output_features,
+    sort_features_by_normalization,
+)
+from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.test.gridworld.gridworld_base import DISCOUNT
+from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
+from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
+from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
+from ml.rl.training.rl_exporter import ActorExporter
 from ml.rl.training.sac_trainer import SACTrainer
 
 
@@ -129,16 +135,18 @@ class TestGridworldSAC(GridworldTestBase):
             q2_network=q2_network,
         )
 
-    def get_critic_exporter(self, trainer, environment):
-        feature_extractor = PredictorFeatureExtractor(
-            state_normalization_parameters=environment.normalization,
-            action_normalization_parameters=environment.normalization_action,
+    def get_predictor(self, trainer, environment):
+        state_preprocessor = Preprocessor(environment.normalization, False)
+        action_preprocessor = Preprocessor(environment.normalization_action, False)
+        q_network = trainer.q1_network
+        dqn_with_preprocessor = ParametricDqnWithPreprocessor(
+            q_network.cpu_model().eval(), state_preprocessor, action_preprocessor
         )
-        output_transformer = ParametricActionOutputTransformer()
-
-        return ParametricDQNExporter(
-            trainer.q1_network, feature_extractor, output_transformer
+        serving_module = ParametricDqnPredictorWrapper(
+            dqn_with_preprocessor=dqn_with_preprocessor
         )
+        predictor = ParametricDqnTorchPredictor(serving_module)
+        return predictor
 
     def get_actor_predictor(self, trainer, environment):
         feature_extractor = PredictorFeatureExtractor(
@@ -165,9 +173,7 @@ class TestGridworldSAC(GridworldTestBase):
             environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
 
-        exporter = self.get_critic_exporter(trainer, environment)
-
-        self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
+        self.evaluate_gridworld(environment, evaluator, trainer, use_gpu)
 
         # Make sure actor predictor works
         actor_predictor = self.get_actor_predictor(trainer, environment)

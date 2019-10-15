@@ -21,7 +21,13 @@ def gaussian_fill_w_gain(tensor, activation, dim_in, min_std=0.0) -> None:
 
 class FullyConnectedNetwork(nn.Module):
     def __init__(
-        self, layers, activations, use_batch_norm=False, min_std=0.0, dropout_ratio=0.0
+        self,
+        layers,
+        activations,
+        use_batch_norm=False,
+        min_std=0.0,
+        dropout_ratio=0.0,
+        use_layer_norm=False,
     ) -> None:
         super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
@@ -30,6 +36,8 @@ class FullyConnectedNetwork(nn.Module):
         self.use_batch_norm = use_batch_norm
         self.dropout_layers: nn.ModuleList = nn.ModuleList()
         self.use_dropout = dropout_ratio > 0.0
+        self.layer_norm_ops: nn.ModuleList = nn.ModuleList()
+        self.use_layer_norm = use_layer_norm
 
         assert len(layers) >= 2, "Invalid layer schema {} for network".format(layers)
 
@@ -37,6 +45,9 @@ class FullyConnectedNetwork(nn.Module):
             self.layers.append(nn.Linear(layers[i], layer))
             if self.use_batch_norm:
                 self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
+            if self.use_layer_norm and i < len(layers) - 2:
+                # LayerNorm is applied to the output of linear
+                self.layer_norm_ops.append(nn.LayerNorm(layer))  # type: ignore
             if self.use_dropout and i < len(layers[1:]) - 1:
                 # applying dropout to all layers except
                 # the input and the last output layer
@@ -56,6 +67,8 @@ class FullyConnectedNetwork(nn.Module):
             if self.use_batch_norm:
                 x = self.batch_norm_ops[i](x)
             x = self.layers[i](x)
+            if self.use_layer_norm and i < len(self.layer_norm_ops):
+                x = self.layer_norm_ops[i](x)
             if activation == "linear":
                 pass
             elif activation == "tanh":

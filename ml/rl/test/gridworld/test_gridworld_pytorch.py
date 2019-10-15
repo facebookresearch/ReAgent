@@ -15,6 +15,12 @@ from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
 from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
 from ml.rl.models.quantile_dqn import QuantileDQN
+from ml.rl.parameters import (
+    DiscreteActionModelParameters,
+    RainbowDQNParameters,
+    RLParameters,
+    TrainingParameters,
+)
 from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
 from ml.rl.prediction.predictor_wrapper import (
     DiscreteDqnPredictorWrapper,
@@ -27,18 +33,11 @@ from ml.rl.test.gridworld.gridworld import Gridworld
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.thrift.core.ttypes import (
-    DiscreteActionModelParameters,
-    RainbowDQNParameters,
-    RLParameters,
-    TrainingParameters,
-)
 from ml.rl.torch_utils import export_module_to_buffer
 from ml.rl.training.c51_trainer import C51Trainer
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.qrdqn_trainer import QRDQNTrainer
-from ml.rl.training.rl_exporter import DQNExporter
 
 
 class TestGridworld(GridworldTestBase):
@@ -162,7 +161,7 @@ class TestGridworld(GridworldTestBase):
 
         q_network_cpe, q_network_cpe_target, reward_network = None, None, None
 
-        if parameters.evaluation.calc_cpe_in_training:
+        if parameters.evaluation and parameters.evaluation.calc_cpe_in_training:
             q_network_cpe = FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
@@ -217,7 +216,7 @@ class TestGridworld(GridworldTestBase):
             )
         return trainer
 
-    def get_modular_sarsa_trainer_exporter(
+    def get_trainer(
         self,
         environment,
         reward_shape,
@@ -228,9 +227,6 @@ class TestGridworld(GridworldTestBase):
         use_all_avail_gpus=False,
         clip_grad_norm=None,
     ):
-        parameters = self.get_sarsa_parameters(
-            environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
-        )
         trainer = self.get_modular_sarsa_trainer_reward_boost(
             environment,
             reward_shape,
@@ -241,12 +237,20 @@ class TestGridworld(GridworldTestBase):
             use_all_avail_gpus=use_all_avail_gpus,
             clip_grad_norm=clip_grad_norm,
         )
-        feature_extractor = PredictorFeatureExtractor(
-            state_normalization_parameters=environment.normalization
+        return trainer
+
+    def get_predictor(self, trainer, environment):
+        state_preprocessor = Preprocessor(environment.normalization, False)
+        q_network = trainer.q_network
+        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
+            q_network.cpu_model().eval(), state_preprocessor
         )
-        output_transformer = DiscreteActionOutputTransformer(parameters.actions)
-        exporter = DQNExporter(trainer.q_network, feature_extractor, output_transformer)
-        return (trainer, exporter)
+        serving_module = DiscreteDqnPredictorWrapper(
+            dqn_with_preprocessor=dqn_with_preprocessor,
+            action_names=environment.ACTIONS,
+        )
+        predictor = DiscreteDqnTorchPredictor(serving_module)
+        return predictor
 
     def _test_evaluator_ground_truth(
         self,
@@ -259,7 +263,7 @@ class TestGridworld(GridworldTestBase):
     ):
         environment = Gridworld()
         evaluator = GridworldEvaluator(environment, False, DISCOUNT)
-        trainer, exporter = self.get_modular_sarsa_trainer_exporter(
+        trainer = self.get_trainer(
             environment,
             {},
             dueling=dueling,
@@ -269,7 +273,7 @@ class TestGridworld(GridworldTestBase):
             use_all_avail_gpus=use_all_avail_gpus,
             clip_grad_norm=clip_grad_norm,
         )
-        self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
+        self.evaluate_gridworld(environment, evaluator, trainer, use_gpu)
 
     def test_evaluator_ground_truth_no_dueling_modular(self):
         self._test_evaluator_ground_truth()
@@ -309,7 +313,7 @@ class TestGridworld(GridworldTestBase):
     def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
         environment = Gridworld()
         reward_boost = {"L": 100, "R": 200, "U": 300, "D": 400}
-        trainer, exporter = self.get_modular_sarsa_trainer_exporter(
+        trainer = self.get_trainer(
             environment,
             reward_boost,
             dueling=False,
@@ -321,7 +325,7 @@ class TestGridworld(GridworldTestBase):
         evaluator = GridworldEvaluator(
             env=environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
-        self.evaluate_gridworld(environment, evaluator, trainer, exporter, use_gpu)
+        self.evaluate_gridworld(environment, evaluator, trainer, use_gpu)
 
     def test_reward_boost_modular(self):
         self._test_reward_boost()
@@ -329,49 +333,6 @@ class TestGridworld(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_reward_boost_gpu_modular(self):
         self._test_reward_boost(use_gpu=True)
-
-    def _test_predictor_export(self):
-        """Verify that q-values before model export equal q-values after
-        model export. Meant to catch issues with export logic."""
-        environment = Gridworld()
-        samples = Samples(
-            mdp_ids=["0"],
-            sequence_numbers=[0],
-            sequence_number_ordinals=[1],
-            states=[{0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 15: 1.0, 24: 1.0}],
-            actions=["D"],
-            action_probabilities=[0.5],
-            rewards=[0],
-            possible_actions=[["R", "D"]],
-            next_states=[{5: 1.0}],
-            next_actions=["U"],
-            terminals=[False],
-            possible_next_actions=[["R", "U", "D"]],
-        )
-        tdps = environment.preprocess_samples(samples, 1)
-
-        trainer, exporter = self.get_modular_sarsa_trainer_exporter(
-            environment, {}, False, False, False
-        )
-        input = rlt.PreprocessedState.from_tensor(tdps[0].states)
-
-        pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
-
-        predictor = exporter.export()
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            tmp_path = os.path.join(tmpdirname, "model")
-            predictor.save(tmp_path, "minidb")
-            new_predictor = DQNPredictor.load(tmp_path, "minidb")
-
-        post_export_q_values = new_predictor.predict([samples.states[0]])
-
-        for i, action in enumerate(environment.ACTIONS):
-            self.assertAlmostEqual(
-                pre_export_q_values[0][i], post_export_q_values[0][action], places=4
-            )
-
-    def test_predictor_export_modular(self):
-        self._test_predictor_export()
 
     def test_predictor_torch_export(self):
         """Verify that q-values before model export equal q-values after
@@ -394,9 +355,7 @@ class TestGridworld(GridworldTestBase):
         tdps = environment.preprocess_samples(samples, 1)
         assert len(tdps) == 1, "Invalid number of data pages"
 
-        trainer, exporter = self.get_modular_sarsa_trainer_exporter(
-            environment, {}, False, False, False
-        )
+        trainer = self.get_trainer(environment, {}, False, False, False)
         input = rlt.PreprocessedState.from_tensor(tdps[0].states)
 
         pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()

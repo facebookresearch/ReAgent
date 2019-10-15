@@ -1,4 +1,5 @@
-cudatoolkit==9.0
+python>=3.7
+cudatoolkit==9.2
 maven==3.5.0
 numpy==1.15.1
 onnx==1.4.1
@@ -6,13 +7,9 @@ openjdk==8.0.144
 pandas==0.23.4
 protobuf==3.6.1
 pytest-xdist==1.24.0
-pytorch-nightly
+pytorch
 scipy==1.1.0
-tensorboard==1.13.1
-tensorboardX==1.6
-tensorflow==1.13.1
-thrift==0.10.0
-thrift-cpp==0.10.0
-dataclasses==0.6
+tensorboard==1.14
+tensorflow==1.14
 scikit-learn==0.20.0
 xgboost==0.90

@@ -8,8 +8,8 @@ import numpy as np
 import torch
 from ml.rl.models.mdn_rnn import MDNRNNMemoryPool, gmm_loss
 from ml.rl.models.world_model import MemoryNetwork
+from ml.rl.parameters import MDNRNNParameters
 from ml.rl.test.world_model.simulated_world_model import SimulatedWorldModel
-from ml.rl.thrift.core.ttypes import MDNRNNParameters
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from torch.distributions.categorical import Categorical
 from torch.distributions.normal import Normal
@@ -142,7 +142,7 @@ class TestMDNRNN(unittest.TestCase):
             num_hidden_layers=mdnrnn_params.num_hidden_layers,
             num_gaussians=mdnrnn_params.num_gaussians,
         )
-        if use_gpu and torch.cuda.is_available():
+        if use_gpu:
             mdnrnn_net = mdnrnn_net.cuda()
         trainer = MDNRNNTrainer(
             mdnrnn_network=mdnrnn_net, params=mdnrnn_params, cum_loss_hist=num_batch

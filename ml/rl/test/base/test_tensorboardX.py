@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, call
 import torch
 from ml.rl.tensorboardX import SummaryWriterContext, summary_writer_context
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 
 class TestSummaryWriterContext(HorizonTestBase):
@@ -62,6 +62,12 @@ class TestSummaryWriterContext(HorizonTestBase):
                 NotImplementedError, "test"
             ), summary_writer_context(writer):
                 SummaryWriterContext.add_scalar("test", torch.ones(1))
+
+    def test_swallowing_histogram_value_error(self):
+        with TemporaryDirectory() as tmp_dir:
+            writer = SummaryWriter(tmp_dir)
+            with summary_writer_context(writer):
+                SummaryWriterContext.add_histogram("bad_histogram", torch.ones(100, 1))
 
     def test_global_step(self):
         with TemporaryDirectory() as tmp_dir:

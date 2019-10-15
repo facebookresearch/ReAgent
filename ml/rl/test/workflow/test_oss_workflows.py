@@ -8,6 +8,10 @@ import unittest
 from pathlib import Path
 
 import torch
+from ml.rl.prediction.dqn_torch_predictor import (
+    DiscreteDqnTorchPredictor,
+    ParametricDqnTorchPredictor,
+)
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
@@ -47,12 +51,12 @@ class TestOSSWorkflows(HorizonTestBase):
                 "training": {"minibatch_size": 128},
             }
             dqn_workflow.main(params)
-            predictor_files = glob.glob(tmpdirname + "/predictor_*.c2")
+            predictor_files = glob.glob(tmpdirname + "/model_*.torchscript")
             assert len(predictor_files) == 1, "Somehow created two predictor files!"
-            predictor = DQNPredictor.load(predictor_files[0], "minidb")
+            predictor = DiscreteDqnTorchPredictor(torch.jit.load(predictor_files[0]))
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             q_values = predictor.predict(test_float_state_features)
-        assert len(q_values[0].keys()) == 2
+            assert len(q_values[0].keys()) == 2
 
     def test_dqn_workflow(self):
         self._test_dqn_workflow()
@@ -96,15 +100,16 @@ class TestOSSWorkflows(HorizonTestBase):
                 "training": {"minibatch_size": 128},
             }
             parametric_dqn_workflow.main(params)
-            predictor_files = glob.glob(tmpdirname + "/predictor_*.c2")
+
+            predictor_files = glob.glob(tmpdirname + "/model_*.torchscript")
             assert len(predictor_files) == 1, "Somehow created two predictor files!"
-            predictor = ParametricDQNPredictor.load(predictor_files[0], "minidb")
+            predictor = ParametricDqnTorchPredictor(torch.jit.load(predictor_files[0]))
             test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
             test_action_features = [{"4": 0.0, "5": 1.0}]
             q_values = predictor.predict(
                 test_float_state_features, test_action_features
             )
-        assert len(q_values[0].keys()) == 1
+            assert len(q_values[0].keys()) == 1
 
     def test_parametric_dqn_workflow(self):
         self._test_parametric_dqn_workflow()

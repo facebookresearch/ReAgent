@@ -7,8 +7,8 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
+from ml.rl.parameters import SACModelParameters
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.thrift.core.ttypes import SACModelParameters
 from ml.rl.torch_utils import rescale_torch_tensor
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
@@ -49,6 +49,10 @@ class SACTrainer(RLTrainer):
 
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        assert self.minibatches_per_step == 1, (
+            "minibatches_per_step must be 1. Gradient accumation doesn't work "
+            "with actor-critic"
+        )
 
         self.q1_network = q1_network
         self.q1_network_optimizer = self._get_optimizer(
@@ -77,6 +81,7 @@ class SACTrainer(RLTrainer):
         )
 
         self.alpha_optimizer = None
+        device = "cuda" if use_gpu else "cpu"
         if parameters.training.alpha_optimizer is not None:
             if parameters.training.target_entropy is not None:
                 self.target_entropy = parameters.training.target_entropy
@@ -87,7 +92,6 @@ class SACTrainer(RLTrainer):
             else:
                 self.target_entropy = -1
 
-            device = "cuda" if use_gpu else "cpu"
             self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
             self.alpha_optimizer = self._get_optimizer_func(
                 parameters.training.alpha_optimizer.optimizer
@@ -105,6 +109,17 @@ class SACTrainer(RLTrainer):
         self.logged_action_uniform_prior = (
             parameters.training.logged_action_uniform_prior
         )
+
+        self.add_kld_to_loss = bool(parameters.training.action_embedding_kld_weight)
+
+        if self.add_kld_to_loss:
+            self.kld_weight = parameters.training.action_embedding_kld_weight
+            self.action_emb_mean = torch.tensor(
+                parameters.training.action_embedding_mean, device=device
+            )
+            self.action_emb_variance = torch.tensor(
+                parameters.training.action_embedding_variance, device=device
+            )
 
         # These ranges are only for Gym tests
         self.min_action_range_tensor_training = min_action_range_tensor_training
@@ -162,6 +177,15 @@ class SACTrainer(RLTrainer):
                 )
             )
 
+        # We need to zero out grad here because gradient from actor update
+        # should not be used in Q-network update
+        self.actor_network_optimizer.zero_grad()
+        self.q1_network_optimizer.zero_grad()
+        if self.q2_network is not None:
+            self.q2_network_optimizer.zero_grad()
+        if self.value_network is not None:
+            self.value_network_optimizer.zero_grad()
+
         with torch.enable_grad():
             #
             # First, optimize Q networks; minimizing MSE between
@@ -218,9 +242,13 @@ class SACTrainer(RLTrainer):
                     log_prob_a = log_prob_a.clamp(-20.0, 20.0)
                     next_state_value -= self.entropy_temperature * log_prob_a
 
-                target_q_value = (
-                    reward + discount * next_state_value * not_done_mask.float()
-                )
+                if self.gamma > 0.0:
+                    target_q_value = (
+                        reward + discount * next_state_value * not_done_mask.float()
+                    )
+                else:
+                    # This is useful in debugging instability issues
+                    target_q_value = reward
 
             q1_loss = F.mse_loss(q1_value, target_q_value)
             q1_loss.backward()
@@ -257,6 +285,23 @@ class SACTrainer(RLTrainer):
             )
             # Do this in 2 steps so we can log histogram of actor loss
             actor_loss_mean = actor_loss.mean()
+
+            if self.add_kld_to_loss:
+                action_batch_m = torch.mean(actor_output.action, axis=0)
+                action_batch_v = torch.var(actor_output.action, axis=0)
+                kld = (
+                    0.5
+                    * (
+                        (action_batch_v + (action_batch_m - self.action_emb_mean) ** 2)
+                        / self.action_emb_variance
+                        - 1
+                        + self.action_emb_variance.log()
+                        - action_batch_v.log()
+                    ).sum()
+                )
+
+                actor_loss_mean += self.kld_weight * kld
+
             actor_loss_mean.backward()
             self._maybe_run_optimizer(
                 self.actor_network_optimizer, self.minibatches_per_step
@@ -312,7 +357,7 @@ class SACTrainer(RLTrainer):
 
         # Logging at the end to schedule all the cuda operations first
         if (
-            self.tensorboard_logging_freq is not None
+            self.tensorboard_logging_freq != 0
             and self.minibatch % self.tensorboard_logging_freq == 0
         ):
             SummaryWriterContext.add_histogram("q1/logged_state_value", q1_value)
@@ -336,6 +381,10 @@ class SACTrainer(RLTrainer):
                 "actor/action_log_prob", actor_output.log_prob
             )
             SummaryWriterContext.add_histogram("actor/loss", actor_loss)
+            if self.add_kld_to_loss:
+                SummaryWriterContext.add_histogram("kld/mean", action_batch_m)
+                SummaryWriterContext.add_histogram("kld/var", action_batch_v)
+                SummaryWriterContext.add_scalar("kld/kld", kld)
 
         self.loss_reporter.report(
             td_loss=float(q1_loss),

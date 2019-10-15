@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
+import logging
 import os
 import tempfile
-import unittest
 
+import torch
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
+from ml.rl.torch_utils import export_module_to_buffer
+
+
+logger = logging.getLogger(__name__)
 
 
 class GridworldTestBase(HorizonTestBase):
@@ -15,18 +20,18 @@ class GridworldTestBase(HorizonTestBase):
         self.check_tolerance = True
         self.test_save_load = True
         self.num_epochs = 5
-        self.tolerance_threshold = GridworldEvaluator.ABS_ERR_THRES * (
-            GridworldBase.REWARD_SCALE ** 2
+        self.tolerance_threshold = (
+            GridworldEvaluator.ABS_ERR_THRES * GridworldBase.REWARD_SCALE
         )
         self.run_pre_training_eval = True
         super().setUp()
 
     def evaluate_gridworld(
-        self, environment, evaluator, trainer, exporter, use_gpu, one_hot_action=True
+        self, environment, evaluator, trainer, use_gpu, one_hot_action=True
     ):
         pre_training_loss = None
         if self.run_pre_training_eval:
-            predictor = exporter.export()
+            predictor = self.get_predictor(trainer, environment)
 
             evaluator.evaluate(predictor)
             print("Pre-Training eval: ", evaluator.mc_loss[-1])
@@ -57,8 +62,7 @@ class GridworldTestBase(HorizonTestBase):
             for tdp in tdps:
                 trainer.train(tdp)
 
-        predictor = exporter.export()
-        predictorClass = predictor.__class__
+        predictor = self.get_predictor(trainer, environment)
         evaluator.evaluate(predictor)
         print("Post-Training eval: ", evaluator.mc_loss[-1])
         if self.check_tolerance:
@@ -69,8 +73,14 @@ class GridworldTestBase(HorizonTestBase):
         if self.test_save_load:
             with tempfile.TemporaryDirectory() as tmpdirname:
                 tmp_path = os.path.join(tmpdirname, "model")
-                predictor.save(tmp_path, "minidb")
-                new_predictor = predictorClass.load(tmp_path, "minidb")
+
+                serving_module_bytes = export_module_to_buffer(
+                    predictor.model
+                ).getvalue()
+                logger.info("Saving TorchScript predictor to {}".format(tmp_path))
+                with open(tmp_path, "wb") as output_fp:
+                    output_fp.write(serving_module_bytes)
+                new_predictor = type(predictor)(torch.jit.load(tmp_path))
                 evaluator.evaluate(new_predictor)
                 print("Post-ONNX eval: ", evaluator.mc_loss[-1])
                 if self.check_tolerance:

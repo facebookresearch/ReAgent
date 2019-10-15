@@ -30,9 +30,11 @@ class ReaderBase(object, metaclass=abc.ABCMeta):
         assert (
             batch_size is not None and batch_size > 0
         ), "batch_size should be a positive number. Got: {}".format(batch_size)
-        assert num_shards is None or num_shards > 0
+        assert num_shards is None or num_shards >= 0
         self.batch_size = batch_size
         self.num_shards = num_shards
+        if self.num_shards is not None and self.num_shards == 0:
+            self.num_shards = 1
         self.drop_small = drop_small
 
     def get_shard(self, shard_id: int):
