@@ -187,7 +187,6 @@ def feed_pages(
     minibatch_size,
     use_gpu,
     page_handler,
-    feature_extractor=None,
     batch_preprocessor=None,
 ):
     num_rows_processed = 0
