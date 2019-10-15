@@ -6,12 +6,12 @@ Subpackages
 
 .. toctree::
 
-    ml.rl
+   ml.rl
 
 Module contents
 ---------------
 
 .. automodule:: ml
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

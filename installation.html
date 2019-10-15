@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Usage" href="usage.html" />
-    <link rel="prev" title="Horizon: Applied Reinforcement Learning Platform" href="index.html" /> 
+    <link rel="prev" title="ReAgent: Applied Reinforcement Learning Platform" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -97,8 +97,14 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/Horizon">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
@@ -243,7 +249,7 @@ The CUDA build will need <a class="reference external" href="https://github.com/
 </pre></div>
 </div>
 <p>Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume using the <code class="docutils literal notranslate"><span class="pre">-v</span></code> flag. We also add <code class="docutils literal notranslate"><span class="pre">-p</span></code> for port mapping so we can view Tensorboard visualizations locally.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docker run -v $PWD/../:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docker run -v $PWD:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
 </pre></div>
 </div>
 <p>To run with GPU, include <code class="docutils literal notranslate"><span class="pre">--runtime=nvidia</span></code> after installing <a class="reference external" href="https://github.com/NVIDIA/nvidia-docker">nvidia-docker</a>.</p>
@@ -264,8 +270,12 @@ The CUDA build will need <a class="reference external" href="https://github.com/
 <span class="o">./</span><span class="n">scripts</span><span class="o">/</span><span class="n">setup</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
-<p>Now you can run the tests:</p>
+<p>Now you can run all the tests:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">test</span>
+</pre></div>
+</div>
+<p>or try running one specific test:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">test</span> <span class="o">-</span><span class="n">s</span> <span class="n">ml</span><span class="o">.</span><span class="n">rl</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">constant_reward</span><span class="o">.</span><span class="n">test_constant_reward</span><span class="o">.</span><span class="n">TestConstantReward</span><span class="o">.</span><span class="n">test_trainer_maxq</span>
 </pre></div>
 </div>
 </div>
@@ -282,7 +292,7 @@ The CUDA build will need <a class="reference external" href="https://github.com/
         <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="Horizon: Applied Reinforcement Learning Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="ReAgent: Applied Reinforcement Learning Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
