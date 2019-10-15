@@ -429,7 +429,11 @@ holding net.</p>
 <span id="ml-rl-parameters-module"></span><h2>ml.rl.parameters module<a class="headerlink" href="#module-ml.rl.parameters" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.parameters.CEMParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">CEMParameters</code><span class="sig-paren">(</span><em class="sig-param">plan_horizon_length: int = 0</em>, <em class="sig-param">num_world_models: int = 0</em>, <em class="sig-param">cem_population_size: int = 0</em>, <em class="sig-param">cem_num_iterations: int = 0</em>, <em class="sig-param">ensemble_population_size: int = 0</em>, <em class="sig-param">num_elites: int = 0</em>, <em class="sig-param">mdnrnn: ml.rl.parameters.MDNRNNParameters = MDNRNNParameters(hidden_size=64</em>, <em class="sig-param">num_hidden_layers=2</em>, <em class="sig-param">minibatch_size=16</em>, <em class="sig-param">learning_rate=0.001</em>, <em class="sig-param">num_gaussians=5</em>, <em class="sig-param">train_data_percentage=60.0</em>, <em class="sig-param">validation_data_percentage=20.0</em>, <em class="sig-param">test_data_percentage=20.0</em>, <em class="sig-param">reward_loss_weight=1.0</em>, <em class="sig-param">next_state_loss_weight=1.0</em>, <em class="sig-param">not_terminal_loss_weight=1.0</em>, <em class="sig-param">fit_only_one_next_step=False)</em>, <em class="sig-param">rl: ml.rl.parameters.RLParameters = RLParameters(gamma=0.9</em>, <em class="sig-param">epsilon=0.1</em>, <em class="sig-param">target_update_rate=0.001</em>, <em class="sig-param">maxq_learning=True</em>, <em class="sig-param">reward_boost=None</em>, <em class="sig-param">temperature=0.01</em>, <em class="sig-param">softmax_policy=1</em>, <em class="sig-param">use_seq_num_diff_as_time_diff=False</em>, <em class="sig-param">q_network_loss='mse'</em>, <em class="sig-param">set_missing_value_to_zero=False</em>, <em class="sig-param">tensorboard_logging_freq=0</em>, <em class="sig-param">predictor_atol_check=0.0</em>, <em class="sig-param">predictor_rtol_check=5e-05</em>, <em class="sig-param">time_diff_unit_length=1.0</em>, <em class="sig-param">multi_steps=None</em>, <em class="sig-param">ratio_different_predictions_tolerance=0)</em>, <em class="sig-param">evaluation: ml.rl.parameters.EvaluationParameters = EvaluationParameters(calc_cpe_in_training=True)</em>, <em class="sig-param">alpha: float = 0.25</em>, <em class="sig-param">epsilon: float = 0.001</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.CEMParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">CEMParameters</code><span class="sig-paren">(</span><em class="sig-param">plan_horizon_length:int=0</em>, <em class="sig-param">num_world_models:int=0</em>, <em class="sig-param">cem_population_size:int=0</em>, <em class="sig-param">cem_num_iterations:int=0</em>, <em class="sig-param">ensemble_population_size:int=0</em>, <em class="sig-param">num_elites:int=0</em>, <em class="sig-param">mdnrnn:ml.rl.parameters.MDNRNNParameters=MDNRNNParameters(hidden_size=64</em>, <em class="sig-param">num_hidden_layers=2</em>, <em class="sig-param">minibatch_size=16</em>, <em class="sig-param">learning_rate=0.001</em>, <em class="sig-param">num_gaussians=5</em>, <em class="sig-param">train_data_percentage=60.0</em>, <em class="sig-param">validation_data_percentage=20.0</em>, <em class="sig-param">test_data_percentage=20.0</em>, <em class="sig-param">reward_loss_weight=1.0</em>, <em class="sig-param">next_state_loss_weight=1.0</em>, <em class="sig-param">not_terminal_loss_weight=1.0</em>, <em class="sig-param">fit_only_one_next_step=False)</em>, <em class="sig-param">rl:ml.rl.parameters.RLParameters=RLParameters(gamma=0.9</em>, <em class="sig-param">epsilon=0.1</em>, <em class="sig-param">target_update_rate=0.001</em>, <em class="sig-param">maxq_learning=True</em>, <em class="sig-param">reward_boost=None</em>, <em class="sig-param">temperature=0.01</em>, <em class="sig-param">softmax_policy=1</em>, <em class="sig-param">use_seq_num_diff_as_time_diff=False</em>, <em class="sig-param">q_network_loss='mse'</em>, <em class="sig-param">set_missing_value_to_zero=False</em>, <em class="sig-param">tensorboard_logging_freq=0</em>, <em class="sig-param">predictor_atol_check=0.0</em>, <em class="sig-param">predictor_rtol_check=5e-05</em>, <em class="sig-param">time_diff_unit_length=1.0</em>, <em class="sig-param">multi_steps=None</em>, <em class="sig-param">ratio_different_predictions_tolerance=0)</em>, <em class="sig-param">evaluation:ml.rl.parameters.EvaluationParameters=EvaluationParameters(calc_cpe_in_training=True)</em>, <em class="sig-param">alpha:float=0.25</em>, <em class="sig-param">epsilon:float=0.001</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.CEMParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.CEMParameters.alpha">
@@ -490,13 +494,21 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.CNNParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">CNNParameters</code><span class="sig-paren">(</span><em class="sig-param">conv_dims: List[int], conv_height_kernels: List[int], conv_width_kernels: List[int], pool_kernels_strides: List[int], pool_types: List[str], num_input_channels: int, input_height: int, input_width: int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.CNNParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">CNNParameters</code><span class="sig-paren">(</span><em class="sig-param">conv_dims:List[int], conv_height_kernels:List[int], conv_width_kernels:List[int], pool_kernels_strides:List[int], pool_types:List[str], num_input_channels:int, input_height:int, input_width:int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.CNNParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.parameters.ContinuousActionModelParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">ContinuousActionModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl: ml.rl.parameters.RLParameters</em>, <em class="sig-param">training: ml.rl.parameters.TrainingParameters</em>, <em class="sig-param">rainbow: ml.rl.parameters.RainbowDQNParameters</em>, <em class="sig-param">state_feature_params: Union[ml.rl.parameters.StateFeatureParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">evaluation: ml.rl.parameters.EvaluationParameters = EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.ContinuousActionModelParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">ContinuousActionModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl:ml.rl.parameters.RLParameters</em>, <em class="sig-param">training:ml.rl.parameters.TrainingParameters</em>, <em class="sig-param">rainbow:ml.rl.parameters.RainbowDQNParameters</em>, <em class="sig-param">state_feature_params:Union[ml.rl.parameters.StateFeatureParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">evaluation:ml.rl.parameters.EvaluationParameters=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.ContinuousActionModelParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.ContinuousActionModelParameters.evaluation">
@@ -512,7 +524,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.DDPGModelParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DDPGModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl: ml.rl.parameters.RLParameters, shared_training: ml.rl.parameters.DDPGTrainingParameters, actor_training: ml.rl.parameters.DDPGNetworkParameters, critic_training: ml.rl.parameters.DDPGNetworkParameters, action_rescale_map: Dict[int, List[float]], state_feature_params: Union[ml.rl.parameters.StateFeatureParameters, NoneType] = None, evaluation: ml.rl.parameters.EvaluationParameters = EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DDPGModelParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DDPGModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl:ml.rl.parameters.RLParameters, shared_training:ml.rl.parameters.DDPGTrainingParameters, actor_training:ml.rl.parameters.DDPGNetworkParameters, critic_training:ml.rl.parameters.DDPGNetworkParameters, action_rescale_map:Dict[int, List[float]], state_feature_params:Union[ml.rl.parameters.StateFeatureParameters, NoneType]=None, evaluation:ml.rl.parameters.EvaluationParameters=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DDPGModelParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.DDPGModelParameters.evaluation">
@@ -528,7 +544,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.DDPGNetworkParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DDPGNetworkParameters</code><span class="sig-paren">(</span><em class="sig-param">layers: List[int] = &lt;factory&gt;</em>, <em class="sig-param">activations: List[str] = &lt;factory&gt;</em>, <em class="sig-param">l2_decay: float = 0.01</em>, <em class="sig-param">learning_rate: float = 0.001</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DDPGNetworkParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DDPGNetworkParameters</code><span class="sig-paren">(</span><em class="sig-param">layers:List[int]=&lt;factory&gt;</em>, <em class="sig-param">activations:List[str]=&lt;factory&gt;</em>, <em class="sig-param">l2_decay:float=0.01</em>, <em class="sig-param">learning_rate:float=0.001</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DDPGNetworkParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.DDPGNetworkParameters.l2_decay">
@@ -544,7 +564,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.DDPGTrainingParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DDPGTrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size: int = 2048</em>, <em class="sig-param">final_layer_init: float = 0.003</em>, <em class="sig-param">optimizer: str = 'ADAM'</em>, <em class="sig-param">warm_start_model_path: Union[str</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">minibatches_per_step: int = 1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DDPGTrainingParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DDPGTrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size:int=2048</em>, <em class="sig-param">final_layer_init:float=0.003</em>, <em class="sig-param">optimizer:str='ADAM'</em>, <em class="sig-param">warm_start_model_path:Union[str</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">minibatches_per_step:int=1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DDPGTrainingParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.DDPGTrainingParameters.final_layer_init">
@@ -575,7 +599,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.DiscreteActionModelParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DiscreteActionModelParameters</code><span class="sig-paren">(</span><em class="sig-param">actions: List[str] = &lt;factory&gt;, rl: ml.rl.parameters.RLParameters = RLParameters(gamma=0.9, epsilon=0.1, target_update_rate=0.001, maxq_learning=True, reward_boost=None, temperature=0.01, softmax_policy=1, use_seq_num_diff_as_time_diff=False, q_network_loss='mse', set_missing_value_to_zero=False, tensorboard_logging_freq=0, predictor_atol_check=0.0, predictor_rtol_check=5e-05, time_diff_unit_length=1.0, multi_steps=None, ratio_different_predictions_tolerance=0), training: ml.rl.parameters.TrainingParameters = TrainingParameters(minibatch_size=4096, learning_rate=0.001, optimizer='ADAM', layers=[-1, 256, 128, 1], activations=['relu', 'relu', 'linear'], lr_policy='fixed', lr_decay=0.999, dropout_ratio=0.0, warm_start_model_path=None, cnn_parameters=None, factorization_parameters=None, l2_decay=0.01, weight_init_min_std=0.0, use_batch_norm=False, clip_grad_norm=None, minibatches_per_step=1), rainbow: ml.rl.parameters.RainbowDQNParameters = RainbowDQNParameters(double_q_learning=True, dueling_architecture=True, bcq=False, bcq_drop_threshold=0.1, categorical=False, num_atoms=51, qmin=-100, qmax=200, c51_l2_decay=0, quantile=False), state_feature_params: Union[ml.rl.parameters.StateFeatureParameters, NoneType] = None, target_action_distribution: Union[List[float], NoneType] = None, evaluation: ml.rl.parameters.EvaluationParameters = EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DiscreteActionModelParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">DiscreteActionModelParameters</code><span class="sig-paren">(</span><em class="sig-param">actions:List[str]=&lt;factory&gt;, rl:ml.rl.parameters.RLParameters=RLParameters(gamma=0.9, epsilon=0.1, target_update_rate=0.001, maxq_learning=True, reward_boost=None, temperature=0.01, softmax_policy=1, use_seq_num_diff_as_time_diff=False, q_network_loss='mse', set_missing_value_to_zero=False, tensorboard_logging_freq=0, predictor_atol_check=0.0, predictor_rtol_check=5e-05, time_diff_unit_length=1.0, multi_steps=None, ratio_different_predictions_tolerance=0), training:ml.rl.parameters.TrainingParameters=TrainingParameters(minibatch_size=4096, learning_rate=0.001, optimizer='ADAM', layers=[-1, 256, 128, 1], activations=['relu', 'relu', 'linear'], lr_policy='fixed', lr_decay=0.999, dropout_ratio=0.0, warm_start_model_path=None, cnn_parameters=None, factorization_parameters=None, l2_decay=0.01, weight_init_min_std=0.0, use_batch_norm=False, clip_grad_norm=None, minibatches_per_step=1), rainbow:ml.rl.parameters.RainbowDQNParameters=RainbowDQNParameters(double_q_learning=True, dueling_architecture=True, bcq=False, bcq_drop_threshold=0.1, categorical=False, num_atoms=51, qmin=-100, qmax=200, c51_l2_decay=0, quantile=False), state_feature_params:Union[ml.rl.parameters.StateFeatureParameters, NoneType]=None, target_action_distribution:Union[List[float], NoneType]=None, evaluation:ml.rl.parameters.EvaluationParameters=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.DiscreteActionModelParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.DiscreteActionModelParameters.evaluation">
@@ -611,7 +639,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.EvaluationParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">EvaluationParameters</code><span class="sig-paren">(</span><em class="sig-param">calc_cpe_in_training: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.EvaluationParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">EvaluationParameters</code><span class="sig-paren">(</span><em class="sig-param">calc_cpe_in_training:bool=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.EvaluationParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.EvaluationParameters.calc_cpe_in_training">
@@ -622,7 +654,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.EvolutionParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">EvolutionParameters</code><span class="sig-paren">(</span><em class="sig-param">population_size: int = 1000</em>, <em class="sig-param">mutation_power: float = 0.1</em>, <em class="sig-param">learning_rate: float = 0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.EvolutionParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">EvolutionParameters</code><span class="sig-paren">(</span><em class="sig-param">population_size:int=1000</em>, <em class="sig-param">mutation_power:float=0.1</em>, <em class="sig-param">learning_rate:float=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.EvolutionParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.EvolutionParameters.learning_rate">
@@ -643,13 +679,21 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.FactorizationParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">FactorizationParameters</code><span class="sig-paren">(</span><em class="sig-param">state: ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">action: ml.rl.parameters.FeedForwardParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.FactorizationParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">FactorizationParameters</code><span class="sig-paren">(</span><em class="sig-param">state:ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">action:ml.rl.parameters.FeedForwardParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.FactorizationParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.parameters.FeedForwardParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">FeedForwardParameters</code><span class="sig-paren">(</span><em class="sig-param">layers: List[int] = &lt;factory&gt;</em>, <em class="sig-param">activations: List[str] = &lt;factory&gt;</em>, <em class="sig-param">use_layer_norm: Union[bool</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.FeedForwardParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">FeedForwardParameters</code><span class="sig-paren">(</span><em class="sig-param">layers:List[int]=&lt;factory&gt;</em>, <em class="sig-param">activations:List[str]=&lt;factory&gt;</em>, <em class="sig-param">use_layer_norm:Union[bool</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.FeedForwardParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.FeedForwardParameters.use_layer_norm">
@@ -660,7 +704,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.KNNDQNModelParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">KNNDQNModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl: ml.rl.parameters.RLParameters</em>, <em class="sig-param">shared_training: ml.rl.parameters.DDPGTrainingParameters</em>, <em class="sig-param">actor_training: ml.rl.parameters.DDPGNetworkParameters</em>, <em class="sig-param">critic_training: ml.rl.parameters.DDPGNetworkParameters</em>, <em class="sig-param">num_actions: int</em>, <em class="sig-param">action_dim: int</em>, <em class="sig-param">k: int</em>, <em class="sig-param">evaluation: ml.rl.parameters.EvaluationParameters = EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.KNNDQNModelParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">KNNDQNModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl:ml.rl.parameters.RLParameters</em>, <em class="sig-param">shared_training:ml.rl.parameters.DDPGTrainingParameters</em>, <em class="sig-param">actor_training:ml.rl.parameters.DDPGNetworkParameters</em>, <em class="sig-param">critic_training:ml.rl.parameters.DDPGNetworkParameters</em>, <em class="sig-param">num_actions:int</em>, <em class="sig-param">action_dim:int</em>, <em class="sig-param">k:int</em>, <em class="sig-param">evaluation:ml.rl.parameters.EvaluationParameters=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.KNNDQNModelParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.KNNDQNModelParameters.evaluation">
@@ -671,7 +719,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.MDNRNNParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">MDNRNNParameters</code><span class="sig-paren">(</span><em class="sig-param">hidden_size: int = 64</em>, <em class="sig-param">num_hidden_layers: int = 2</em>, <em class="sig-param">minibatch_size: int = 16</em>, <em class="sig-param">learning_rate: float = 0.001</em>, <em class="sig-param">num_gaussians: int = 5</em>, <em class="sig-param">train_data_percentage: float = 60.0</em>, <em class="sig-param">validation_data_percentage: float = 20.0</em>, <em class="sig-param">test_data_percentage: float = 20.0</em>, <em class="sig-param">reward_loss_weight: float = 1.0</em>, <em class="sig-param">next_state_loss_weight: float = 1.0</em>, <em class="sig-param">not_terminal_loss_weight: float = 1.0</em>, <em class="sig-param">fit_only_one_next_step: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.MDNRNNParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">MDNRNNParameters</code><span class="sig-paren">(</span><em class="sig-param">hidden_size:int=64</em>, <em class="sig-param">num_hidden_layers:int=2</em>, <em class="sig-param">minibatch_size:int=16</em>, <em class="sig-param">learning_rate:float=0.001</em>, <em class="sig-param">num_gaussians:int=5</em>, <em class="sig-param">train_data_percentage:float=60.0</em>, <em class="sig-param">validation_data_percentage:float=20.0</em>, <em class="sig-param">test_data_percentage:float=20.0</em>, <em class="sig-param">reward_loss_weight:float=1.0</em>, <em class="sig-param">next_state_loss_weight:float=1.0</em>, <em class="sig-param">not_terminal_loss_weight:float=1.0</em>, <em class="sig-param">fit_only_one_next_step:bool=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.MDNRNNParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.MDNRNNParameters.fit_only_one_next_step">
@@ -737,7 +789,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.NormalizationParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">NormalizationParameters</code><span class="sig-paren">(</span><em class="sig-param">feature_type: str, boxcox_lambda: Union[float, NoneType] = None, boxcox_shift: Union[float, NoneType] = None, mean: Union[float, NoneType] = None, stddev: Union[float, NoneType] = None, possible_values: Union[List[int], NoneType] = None, quantiles: Union[List[float], NoneType] = None, min_value: Union[float, NoneType] = None, max_value: Union[float, NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.NormalizationParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">NormalizationParameters</code><span class="sig-paren">(</span><em class="sig-param">feature_type:str, boxcox_lambda:Union[float, NoneType]=None, boxcox_shift:Union[float, NoneType]=None, mean:Union[float, NoneType]=None, stddev:Union[float, NoneType]=None, possible_values:Union[List[int], NoneType]=None, quantiles:Union[List[float], NoneType]=None, min_value:Union[float, NoneType]=None, max_value:Union[float, NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.NormalizationParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.NormalizationParameters.boxcox_lambda">
@@ -783,7 +839,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.OpenAiGymParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">OpenAiGymParameters</code><span class="sig-paren">(</span><em class="sig-param">env: str</em>, <em class="sig-param">run_details: ml.rl.parameters.OpenAiRunDetails</em>, <em class="sig-param">model_type: str = ''</em>, <em class="sig-param">use_gpu: bool = False</em>, <em class="sig-param">max_replay_memory_size: int = 0</em>, <em class="sig-param">rl: Union[ml.rl.parameters.RLParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">rainbow: Union[ml.rl.parameters.RainbowDQNParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">training: Union[ml.rl.parameters.TrainingParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">td3_training: Union[ml.rl.parameters.TD3TrainingParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">sac_training: Union[ml.rl.parameters.SACTrainingParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">sac_value_training: Union[ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">critic_training: Union[ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">actor_training: Union[ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">cem: Union[ml.rl.parameters.CEMParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">mdnrnn: Union[ml.rl.parameters.MDNRNNParameters</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.OpenAiGymParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">OpenAiGymParameters</code><span class="sig-paren">(</span><em class="sig-param">env:str</em>, <em class="sig-param">run_details:ml.rl.parameters.OpenAiRunDetails</em>, <em class="sig-param">model_type:str=''</em>, <em class="sig-param">use_gpu:bool=False</em>, <em class="sig-param">max_replay_memory_size:int=0</em>, <em class="sig-param">rl:Union[ml.rl.parameters.RLParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">rainbow:Union[ml.rl.parameters.RainbowDQNParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">training:Union[ml.rl.parameters.TrainingParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">td3_training:Union[ml.rl.parameters.TD3TrainingParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">sac_training:Union[ml.rl.parameters.SACTrainingParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">sac_value_training:Union[ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">critic_training:Union[ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">actor_training:Union[ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">cem:Union[ml.rl.parameters.CEMParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">mdnrnn:Union[ml.rl.parameters.MDNRNNParameters</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.OpenAiGymParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.OpenAiGymParameters.actor_training">
@@ -854,7 +914,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.OpenAiRunDetails">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">OpenAiRunDetails</code><span class="sig-paren">(</span><em class="sig-param">solved_reward_threshold: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">max_episodes_to_run_after_solved: int = 0</em>, <em class="sig-param">stop_training_after_solved: bool = False</em>, <em class="sig-param">num_episodes: int = 301</em>, <em class="sig-param">max_steps: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">train_every_ts: int = 100</em>, <em class="sig-param">train_after_ts: int = 10</em>, <em class="sig-param">test_every_ts: int = 100</em>, <em class="sig-param">test_after_ts: int = 10</em>, <em class="sig-param">num_train_batches: int = 1</em>, <em class="sig-param">avg_over_num_episodes: int = 100</em>, <em class="sig-param">render: bool = False</em>, <em class="sig-param">epsilon_decay: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">minimum_epsilon: Union[float</em>, <em class="sig-param">NoneType] = 0.0</em>, <em class="sig-param">offline_train_epochs: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">offline_score_bar: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">offline_num_batches_per_epoch: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">seq_len: int = 5</em>, <em class="sig-param">num_train_episodes: int = 4000</em>, <em class="sig-param">num_test_episodes: int = 100</em>, <em class="sig-param">num_state_embed_episodes: int = 1800</em>, <em class="sig-param">train_epochs: int = 6</em>, <em class="sig-param">early_stopping_patience: int = 3</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.OpenAiRunDetails" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">OpenAiRunDetails</code><span class="sig-paren">(</span><em class="sig-param">solved_reward_threshold:Union[int</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">max_episodes_to_run_after_solved:int=0</em>, <em class="sig-param">stop_training_after_solved:bool=False</em>, <em class="sig-param">num_episodes:int=301</em>, <em class="sig-param">max_steps:Union[int</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">train_every_ts:int=100</em>, <em class="sig-param">train_after_ts:int=10</em>, <em class="sig-param">test_every_ts:int=100</em>, <em class="sig-param">test_after_ts:int=10</em>, <em class="sig-param">num_train_batches:int=1</em>, <em class="sig-param">avg_over_num_episodes:int=100</em>, <em class="sig-param">render:bool=False</em>, <em class="sig-param">epsilon_decay:Union[float</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">minimum_epsilon:Union[float</em>, <em class="sig-param">NoneType]=0.0</em>, <em class="sig-param">offline_train_epochs:Union[int</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">offline_score_bar:Union[float</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">offline_num_batches_per_epoch:Union[int</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">seq_len:int=5</em>, <em class="sig-param">num_train_episodes:int=4000</em>, <em class="sig-param">num_test_episodes:int=100</em>, <em class="sig-param">num_state_embed_episodes:int=1800</em>, <em class="sig-param">train_epochs:int=6</em>, <em class="sig-param">early_stopping_patience:int=3</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.OpenAiRunDetails" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.OpenAiRunDetails.avg_over_num_episodes">
@@ -975,7 +1039,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.OptimizerParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">OptimizerParameters</code><span class="sig-paren">(</span><em class="sig-param">optimizer: str = 'ADAM'</em>, <em class="sig-param">learning_rate: float = 0.001</em>, <em class="sig-param">l2_decay: float = 0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.OptimizerParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">OptimizerParameters</code><span class="sig-paren">(</span><em class="sig-param">optimizer:str='ADAM'</em>, <em class="sig-param">learning_rate:float=0.001</em>, <em class="sig-param">l2_decay:float=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.OptimizerParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.OptimizerParameters.l2_decay">
@@ -996,7 +1064,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.RLParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">RLParameters</code><span class="sig-paren">(</span><em class="sig-param">gamma: float = 0.9, epsilon: float = 0.1, target_update_rate: float = 0.001, maxq_learning: bool = True, reward_boost: Union[Dict[str, float], NoneType] = None, temperature: float = 0.01, softmax_policy: int = 1, use_seq_num_diff_as_time_diff: bool = False, q_network_loss: str = 'mse', set_missing_value_to_zero: bool = False, tensorboard_logging_freq: int = 0, predictor_atol_check: float = 0.0, predictor_rtol_check: float = 5e-05, time_diff_unit_length: float = 1.0, multi_steps: Union[int, NoneType] = None, ratio_different_predictions_tolerance: float = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.RLParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">RLParameters</code><span class="sig-paren">(</span><em class="sig-param">gamma:float=0.9, epsilon:float=0.1, target_update_rate:float=0.001, maxq_learning:bool=True, reward_boost:Union[Dict[str, float], NoneType]=None, temperature:float=0.01, softmax_policy:int=1, use_seq_num_diff_as_time_diff:bool=False, q_network_loss:str='mse', set_missing_value_to_zero:bool=False, tensorboard_logging_freq:int=0, predictor_atol_check:float=0.0, predictor_rtol_check:float=5e-05, time_diff_unit_length:float=1.0, multi_steps:Union[int, NoneType]=None, ratio_different_predictions_tolerance:float=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.RLParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.RLParameters.epsilon">
@@ -1082,7 +1154,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.RainbowDQNParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">RainbowDQNParameters</code><span class="sig-paren">(</span><em class="sig-param">double_q_learning: bool = True</em>, <em class="sig-param">dueling_architecture: bool = True</em>, <em class="sig-param">bcq: bool = False</em>, <em class="sig-param">bcq_drop_threshold: float = 0.1</em>, <em class="sig-param">categorical: bool = False</em>, <em class="sig-param">num_atoms: int = 51</em>, <em class="sig-param">qmin: float = -100</em>, <em class="sig-param">qmax: float = 200</em>, <em class="sig-param">c51_l2_decay: float = 0</em>, <em class="sig-param">quantile: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.RainbowDQNParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">RainbowDQNParameters</code><span class="sig-paren">(</span><em class="sig-param">double_q_learning:bool=True</em>, <em class="sig-param">dueling_architecture:bool=True</em>, <em class="sig-param">bcq:bool=False</em>, <em class="sig-param">bcq_drop_threshold:float=0.1</em>, <em class="sig-param">categorical:bool=False</em>, <em class="sig-param">num_atoms:int=51</em>, <em class="sig-param">qmin:float=-100</em>, <em class="sig-param">qmax:float=200</em>, <em class="sig-param">c51_l2_decay:float=0</em>, <em class="sig-param">quantile:bool=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.RainbowDQNParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.RainbowDQNParameters.bcq">
@@ -1138,7 +1214,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.SACModelParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">SACModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl: ml.rl.parameters.RLParameters = RLParameters(gamma=0.9, epsilon=0.1, target_update_rate=0.001, maxq_learning=True, reward_boost=None, temperature=0.01, softmax_policy=1, use_seq_num_diff_as_time_diff=False, q_network_loss='mse', set_missing_value_to_zero=False, tensorboard_logging_freq=0, predictor_atol_check=0.0, predictor_rtol_check=5e-05, time_diff_unit_length=1.0, multi_steps=None, ratio_different_predictions_tolerance=0), training: ml.rl.parameters.SACTrainingParameters = SACTrainingParameters(minibatch_size=1024, q_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), value_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), actor_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), use_2_q_functions=True, entropy_temperature=None, warm_start_model_path=None, logged_action_uniform_prior=True, minibatches_per_step=1, use_value_network=True, target_entropy=-1.0, alpha_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), action_embedding_kld_weight=None, action_embedding_mean=None, action_embedding_variance=None), q_network: ml.rl.parameters.FeedForwardParameters = FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu'], use_layer_norm=None), value_network: Union[ml.rl.parameters.FeedForwardParameters, NoneType] = None, actor_network: ml.rl.parameters.FeedForwardParameters = FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu'], use_layer_norm=None), state_feature_params: Union[ml.rl.parameters.StateFeatureParameters, NoneType] = None, evaluation: ml.rl.parameters.EvaluationParameters = EvaluationParameters(calc_cpe_in_training=True), constrain_action_sum: bool = False, do_not_preprocess_action: Union[bool, NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.SACModelParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">SACModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl:ml.rl.parameters.RLParameters=RLParameters(gamma=0.9, epsilon=0.1, target_update_rate=0.001, maxq_learning=True, reward_boost=None, temperature=0.01, softmax_policy=1, use_seq_num_diff_as_time_diff=False, q_network_loss='mse', set_missing_value_to_zero=False, tensorboard_logging_freq=0, predictor_atol_check=0.0, predictor_rtol_check=5e-05, time_diff_unit_length=1.0, multi_steps=None, ratio_different_predictions_tolerance=0), training:ml.rl.parameters.SACTrainingParameters=SACTrainingParameters(minibatch_size=1024, q_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), value_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), actor_network_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), use_2_q_functions=True, entropy_temperature=None, warm_start_model_path=None, logged_action_uniform_prior=True, minibatches_per_step=1, use_value_network=True, target_entropy=-1.0, alpha_optimizer=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), action_embedding_kld_weight=None, action_embedding_mean=None, action_embedding_variance=None), q_network:ml.rl.parameters.FeedForwardParameters=FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu'], use_layer_norm=None), value_network:Union[ml.rl.parameters.FeedForwardParameters, NoneType]=None, actor_network:ml.rl.parameters.FeedForwardParameters=FeedForwardParameters(layers=[256, 128], activations=['relu', 'relu'], use_layer_norm=None), state_feature_params:Union[ml.rl.parameters.StateFeatureParameters, NoneType]=None, evaluation:ml.rl.parameters.EvaluationParameters=EvaluationParameters(calc_cpe_in_training=True), constrain_action_sum:bool=False, do_not_preprocess_action:Union[bool, NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.SACModelParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.SACModelParameters.actor_network">
@@ -1189,7 +1269,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.SACTrainingParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">SACTrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size: int = 1024, q_network_optimizer: ml.rl.parameters.OptimizerParameters = OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), value_network_optimizer: ml.rl.parameters.OptimizerParameters = OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), actor_network_optimizer: ml.rl.parameters.OptimizerParameters = OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), use_2_q_functions: bool = True, entropy_temperature: Union[float, NoneType] = None, warm_start_model_path: Union[str, NoneType] = None, logged_action_uniform_prior: bool = True, minibatches_per_step: int = 1, use_value_network: bool = True, target_entropy: float = -1.0, alpha_optimizer: ml.rl.parameters.OptimizerParameters = OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), action_embedding_kld_weight: Union[float, NoneType] = None, action_embedding_mean: Union[List[float], NoneType] = None, action_embedding_variance: Union[List[float], NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.SACTrainingParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">SACTrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size:int=1024, q_network_optimizer:ml.rl.parameters.OptimizerParameters=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), value_network_optimizer:ml.rl.parameters.OptimizerParameters=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), actor_network_optimizer:ml.rl.parameters.OptimizerParameters=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), use_2_q_functions:bool=True, entropy_temperature:Union[float, NoneType]=None, warm_start_model_path:Union[str, NoneType]=None, logged_action_uniform_prior:bool=True, minibatches_per_step:int=1, use_value_network:bool=True, target_entropy:float=-1.0, alpha_optimizer:ml.rl.parameters.OptimizerParameters=OptimizerParameters(optimizer='ADAM', learning_rate=0.001, l2_decay=0.01), action_embedding_kld_weight:Union[float, NoneType]=None, action_embedding_mean:Union[List[float], NoneType]=None, action_embedding_variance:Union[List[float], NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.SACTrainingParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.SACTrainingParameters.action_embedding_kld_weight">
@@ -1270,13 +1354,21 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.StateFeatureParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">StateFeatureParameters</code><span class="sig-paren">(</span><em class="sig-param">state_feature_names_override: List[str] = &lt;factory&gt;</em>, <em class="sig-param">state_feature_hashes_override: List[int] = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.StateFeatureParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">StateFeatureParameters</code><span class="sig-paren">(</span><em class="sig-param">state_feature_names_override:List[str]=&lt;factory&gt;</em>, <em class="sig-param">state_feature_hashes_override:List[int]=&lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.StateFeatureParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.parameters.TD3ModelParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">TD3ModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl: ml.rl.parameters.RLParameters</em>, <em class="sig-param">training: ml.rl.parameters.TD3TrainingParameters</em>, <em class="sig-param">q_network: ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">actor_network: ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">state_feature_params: Union[ml.rl.parameters.StateFeatureParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">evaluation: ml.rl.parameters.EvaluationParameters = EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.TD3ModelParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">TD3ModelParameters</code><span class="sig-paren">(</span><em class="sig-param">rl:ml.rl.parameters.RLParameters</em>, <em class="sig-param">training:ml.rl.parameters.TD3TrainingParameters</em>, <em class="sig-param">q_network:ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">actor_network:ml.rl.parameters.FeedForwardParameters</em>, <em class="sig-param">state_feature_params:Union[ml.rl.parameters.StateFeatureParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">evaluation:ml.rl.parameters.EvaluationParameters=EvaluationParameters(calc_cpe_in_training=True)</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.TD3ModelParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.TD3ModelParameters.evaluation">
@@ -1292,7 +1384,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.TD3TrainingParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">TD3TrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size: int = 64</em>, <em class="sig-param">q_network_optimizer: ml.rl.parameters.OptimizerParameters = OptimizerParameters(optimizer='ADAM'</em>, <em class="sig-param">learning_rate=0.001</em>, <em class="sig-param">l2_decay=0.01)</em>, <em class="sig-param">actor_network_optimizer: ml.rl.parameters.OptimizerParameters = OptimizerParameters(optimizer='ADAM'</em>, <em class="sig-param">learning_rate=0.001</em>, <em class="sig-param">l2_decay=0.01)</em>, <em class="sig-param">use_2_q_functions: bool = True</em>, <em class="sig-param">exploration_noise: float = 0.2</em>, <em class="sig-param">initial_exploration_ts: int = 1000</em>, <em class="sig-param">target_policy_smoothing: float = 0.2</em>, <em class="sig-param">noise_clip: float = 0.5</em>, <em class="sig-param">delayed_policy_update: int = 2</em>, <em class="sig-param">warm_start_model_path: Union[str</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">minibatches_per_step: int = 1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.TD3TrainingParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">TD3TrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size:int=64</em>, <em class="sig-param">q_network_optimizer:ml.rl.parameters.OptimizerParameters=OptimizerParameters(optimizer='ADAM'</em>, <em class="sig-param">learning_rate=0.001</em>, <em class="sig-param">l2_decay=0.01)</em>, <em class="sig-param">actor_network_optimizer:ml.rl.parameters.OptimizerParameters=OptimizerParameters(optimizer='ADAM'</em>, <em class="sig-param">learning_rate=0.001</em>, <em class="sig-param">l2_decay=0.01)</em>, <em class="sig-param">use_2_q_functions:bool=True</em>, <em class="sig-param">exploration_noise:float=0.2</em>, <em class="sig-param">initial_exploration_ts:int=1000</em>, <em class="sig-param">target_policy_smoothing:float=0.2</em>, <em class="sig-param">noise_clip:float=0.5</em>, <em class="sig-param">delayed_policy_update:int=2</em>, <em class="sig-param">warm_start_model_path:Union[str</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">minibatches_per_step:int=1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.TD3TrainingParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.TD3TrainingParameters.actor_network_optimizer">
@@ -1353,7 +1449,11 @@ holding net.</p>
 
 <dl class="class">
 <dt id="ml.rl.parameters.TrainingParameters">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">TrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size: int = 4096</em>, <em class="sig-param">learning_rate: float = 0.001</em>, <em class="sig-param">optimizer: str = 'ADAM'</em>, <em class="sig-param">layers: List[int] = &lt;factory&gt;</em>, <em class="sig-param">activations: List[str] = &lt;factory&gt;</em>, <em class="sig-param">lr_policy: str = 'fixed'</em>, <em class="sig-param">lr_decay: float = 0.999</em>, <em class="sig-param">dropout_ratio: float = 0.0</em>, <em class="sig-param">warm_start_model_path: Union[str</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">cnn_parameters: Union[ml.rl.parameters.CNNParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">factorization_parameters: Union[ml.rl.parameters.FactorizationParameters</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">l2_decay: float = 0.01</em>, <em class="sig-param">weight_init_min_std: float = 0.0</em>, <em class="sig-param">use_batch_norm: bool = False</em>, <em class="sig-param">clip_grad_norm: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">minibatches_per_step: int = 1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.TrainingParameters" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.parameters.</code><code class="sig-name descname">TrainingParameters</code><span class="sig-paren">(</span><em class="sig-param">minibatch_size:int=4096</em>, <em class="sig-param">learning_rate:float=0.001</em>, <em class="sig-param">optimizer:str='ADAM'</em>, <em class="sig-param">layers:List[int]=&lt;factory&gt;</em>, <em class="sig-param">activations:List[str]=&lt;factory&gt;</em>, <em class="sig-param">lr_policy:str='fixed'</em>, <em class="sig-param">lr_decay:float=0.999</em>, <em class="sig-param">dropout_ratio:float=0.0</em>, <em class="sig-param">warm_start_model_path:Union[str</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">cnn_parameters:Union[ml.rl.parameters.CNNParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">factorization_parameters:Union[ml.rl.parameters.FactorizationParameters</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">l2_decay:float=0.01</em>, <em class="sig-param">weight_init_min_std:float=0.0</em>, <em class="sig-param">use_batch_norm:bool=False</em>, <em class="sig-param">clip_grad_norm:Union[float</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">minibatches_per_step:int=1</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.parameters.TrainingParameters" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.parameters.TrainingParameters.clip_grad_norm">
@@ -1522,7 +1622,11 @@ Submitted an issue for investigation:
 <span id="ml-rl-types-module"></span><h2>ml.rl.types module<a class="headerlink" href="#module-ml.rl.types" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.types.ActorOutput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ActorOutput</code><span class="sig-paren">(</span><em class="sig-param">action: torch.Tensor</em>, <em class="sig-param">log_prob: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ActorOutput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ActorOutput</code><span class="sig-paren">(</span><em class="sig-param">action:torch.Tensor</em>, <em class="sig-param">log_prob:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ActorOutput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.types.ActorOutput.log_prob">
@@ -1533,7 +1637,11 @@ Submitted an issue for investigation:
 
 <dl class="class">
 <dt id="ml.rl.types.AllActionQValues">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">AllActionQValues</code><span class="sig-paren">(</span><em class="sig-param">q_values: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.AllActionQValues" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">AllActionQValues</code><span class="sig-paren">(</span><em class="sig-param">q_values:torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.AllActionQValues" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
@@ -1562,7 +1670,11 @@ Submitted an issue for investigation:
 
 <dl class="class">
 <dt id="ml.rl.types.DqnPolicyActionSet">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">DqnPolicyActionSet</code><span class="sig-paren">(</span><em class="sig-param">greedy: int</em>, <em class="sig-param">softmax: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">greedy_act_name: Union[str</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">softmax_act_name: Union[str</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.DqnPolicyActionSet" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">DqnPolicyActionSet</code><span class="sig-paren">(</span><em class="sig-param">greedy:int</em>, <em class="sig-param">softmax:Union[int</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">greedy_act_name:Union[str</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">softmax_act_name:Union[str</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.DqnPolicyActionSet" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.types.DqnPolicyActionSet.greedy_act_name">
@@ -1583,7 +1695,11 @@ Submitted an issue for investigation:
 
 <dl class="class">
 <dt id="ml.rl.types.ExtraData">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ExtraData</code><span class="sig-paren">(</span><em class="sig-param">mdp_id: Union[numpy.ndarray</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">sequence_number: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">action_probability: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">max_num_actions: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">metrics: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ExtraData" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ExtraData</code><span class="sig-paren">(</span><em class="sig-param">mdp_id:Union[numpy.ndarray</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">sequence_number:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">action_probability:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">max_num_actions:Union[int</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">metrics:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ExtraData" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.types.ExtraData.action_probability">
@@ -1614,7 +1730,11 @@ Submitted an issue for investigation:
 
 <dl class="class">
 <dt id="ml.rl.types.FeatureVector">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">FeatureVector</code><span class="sig-paren">(</span><em class="sig-param">float_features: ml.rl.types.ValuePresence</em>, <em class="sig-param">sequence_features: Union[ml.rl.types.SequenceFeatureBase</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">time_since_first: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.FeatureVector" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">FeatureVector</code><span class="sig-paren">(</span><em class="sig-param">float_features:ml.rl.types.ValuePresence</em>, <em class="sig-param">sequence_features:Union[ml.rl.types.SequenceFeatureBase</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">time_since_first:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.FeatureVector" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.types.FeatureVector.sequence_features">
@@ -1630,7 +1750,11 @@ Submitted an issue for investigation:
 
 <dl class="class">
 <dt id="ml.rl.types.FloatFeatureInfo">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">FloatFeatureInfo</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">feature_id: int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.FloatFeatureInfo" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">FloatFeatureInfo</code><span class="sig-paren">(</span><em class="sig-param">name:str</em>, <em class="sig-param">feature_id:int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.FloatFeatureInfo" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
@@ -1658,25 +1782,41 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.IdMapping">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">IdMapping</code><span class="sig-paren">(</span><em class="sig-param">ids: List[int]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.IdMapping" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">IdMapping</code><span class="sig-paren">(</span><em class="sig-param">ids:List[int]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.IdMapping" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.MemoryNetworkOutput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">MemoryNetworkOutput</code><span class="sig-paren">(</span><em class="sig-param">mus: torch.Tensor</em>, <em class="sig-param">sigmas: torch.Tensor</em>, <em class="sig-param">logpi: torch.Tensor</em>, <em class="sig-param">reward: torch.Tensor</em>, <em class="sig-param">not_terminal: torch.Tensor</em>, <em class="sig-param">last_step_lstm_hidden: torch.Tensor</em>, <em class="sig-param">last_step_lstm_cell: torch.Tensor</em>, <em class="sig-param">all_steps_lstm_hidden: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">MemoryNetworkOutput</code><span class="sig-paren">(</span><em class="sig-param">mus:torch.Tensor</em>, <em class="sig-param">sigmas:torch.Tensor</em>, <em class="sig-param">logpi:torch.Tensor</em>, <em class="sig-param">reward:torch.Tensor</em>, <em class="sig-param">not_terminal:torch.Tensor</em>, <em class="sig-param">last_step_lstm_hidden:torch.Tensor</em>, <em class="sig-param">last_step_lstm_cell:torch.Tensor</em>, <em class="sig-param">all_steps_lstm_hidden:torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.MemoryNetworkOutput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.ModelFeatureConfig">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ModelFeatureConfig</code><span class="sig-paren">(</span><em class="sig-param">float_feature_infos: List[ml.rl.types.FloatFeatureInfo], id_mapping_config: Dict[str, ml.rl.types.IdMapping], sequence_features_type: Union[Type[ml.rl.types.SequenceFeatures], NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ModelFeatureConfig" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ModelFeatureConfig</code><span class="sig-paren">(</span><em class="sig-param">float_feature_infos:List[ml.rl.types.FloatFeatureInfo], id_mapping_config:Dict[str, ml.rl.types.IdMapping], sequence_features_type:Union[Type[ml.rl.types.SequenceFeatures], NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ModelFeatureConfig" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.PlanningPolicyOutput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PlanningPolicyOutput</code><span class="sig-paren">(</span><em class="sig-param">next_best_continuous_action: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">next_best_discrete_action_one_hot: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">next_best_discrete_action_idx: Union[int</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PlanningPolicyOutput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PlanningPolicyOutput</code><span class="sig-paren">(</span><em class="sig-param">next_best_continuous_action:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">next_best_discrete_action_one_hot:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em>, <em class="sig-param">next_best_discrete_action_idx:Union[int</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PlanningPolicyOutput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.types.PlanningPolicyOutput.next_best_continuous_action">
@@ -1697,19 +1837,31 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.PreprocessedBaseInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedBaseInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.PreprocessedFeatureVector, next_state: ml.rl.types.PreprocessedFeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedBaseInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedBaseInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.PreprocessedFeatureVector, next_state:ml.rl.types.PreprocessedFeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedBaseInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.CommonInput" title="ml.rl.types.CommonInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.CommonInput</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.PreprocessedDiscreteDqnInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedDiscreteDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.PreprocessedFeatureVector, next_state: ml.rl.types.PreprocessedFeatureVector, action: torch.Tensor, next_action: torch.Tensor, possible_actions_mask: torch.Tensor, possible_next_actions_mask: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedDiscreteDqnInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedDiscreteDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.PreprocessedFeatureVector, next_state:ml.rl.types.PreprocessedFeatureVector, action:torch.Tensor, next_action:torch.Tensor, possible_actions_mask:torch.Tensor, possible_next_actions_mask:torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedDiscreteDqnInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.PreprocessedBaseInput" title="ml.rl.types.PreprocessedBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.PreprocessedBaseInput</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.PreprocessedFeatureVector">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedFeatureVector</code><span class="sig-paren">(</span><em class="sig-param">float_features: torch.Tensor</em>, <em class="sig-param">time_since_first: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedFeatureVector" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedFeatureVector</code><span class="sig-paren">(</span><em class="sig-param">float_features:torch.Tensor</em>, <em class="sig-param">time_since_first:Union[torch.Tensor</em>, <em class="sig-param">NoneType]=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedFeatureVector" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="attribute">
 <dt id="ml.rl.types.PreprocessedFeatureVector.time_since_first">
@@ -1720,19 +1872,31 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.PreprocessedMemoryNetworkInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedMemoryNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.PreprocessedFeatureVector, next_state: ml.rl.types.PreprocessedFeatureVector, action: Union[torch.Tensor, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedMemoryNetworkInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedMemoryNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.PreprocessedFeatureVector, next_state:ml.rl.types.PreprocessedFeatureVector, action:Union[torch.Tensor, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedMemoryNetworkInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.PreprocessedBaseInput" title="ml.rl.types.PreprocessedBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.PreprocessedBaseInput</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.PreprocessedParametricDqnInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedParametricDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.PreprocessedFeatureVector, next_state: ml.rl.types.PreprocessedFeatureVector, action: ml.rl.types.PreprocessedFeatureVector, next_action: ml.rl.types.PreprocessedFeatureVector, possible_actions: ml.rl.types.PreprocessedFeatureVector, possible_actions_mask: torch.Tensor, possible_next_actions: ml.rl.types.PreprocessedFeatureVector, possible_next_actions_mask: torch.Tensor, tiled_next_state: ml.rl.types.PreprocessedFeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedParametricDqnInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedParametricDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.PreprocessedFeatureVector, next_state:ml.rl.types.PreprocessedFeatureVector, action:ml.rl.types.PreprocessedFeatureVector, next_action:ml.rl.types.PreprocessedFeatureVector, possible_actions:ml.rl.types.PreprocessedFeatureVector, possible_actions_mask:torch.Tensor, possible_next_actions:ml.rl.types.PreprocessedFeatureVector, possible_next_actions_mask:torch.Tensor, tiled_next_state:ml.rl.types.PreprocessedFeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedParametricDqnInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.PreprocessedBaseInput" title="ml.rl.types.PreprocessedBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.PreprocessedBaseInput</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.PreprocessedPolicyNetworkInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedPolicyNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.PreprocessedFeatureVector, next_state: ml.rl.types.PreprocessedFeatureVector, action: ml.rl.types.PreprocessedFeatureVector, next_action: ml.rl.types.PreprocessedFeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedPolicyNetworkInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedPolicyNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.PreprocessedFeatureVector, next_state:ml.rl.types.PreprocessedFeatureVector, action:ml.rl.types.PreprocessedFeatureVector, next_action:ml.rl.types.PreprocessedFeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedPolicyNetworkInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.PreprocessedBaseInput" title="ml.rl.types.PreprocessedBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.PreprocessedBaseInput</span></code></a></p>
 </dd></dl>
 
@@ -1761,7 +1925,11 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.PreprocessedTrainingBatch">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedTrainingBatch</code><span class="sig-paren">(</span><em class="sig-param">training_input: Union[ml.rl.types.PreprocessedBaseInput, ml.rl.types.PreprocessedDiscreteDqnInput, ml.rl.types.PreprocessedParametricDqnInput, ml.rl.types.PreprocessedMemoryNetworkInput, ml.rl.types.PreprocessedPolicyNetworkInput], extras: Any</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedTrainingBatch" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">PreprocessedTrainingBatch</code><span class="sig-paren">(</span><em class="sig-param">training_input:ml.rl.types.PreprocessedBaseInput</em>, <em class="sig-param">extras:Any</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.PreprocessedTrainingBatch" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.types.PreprocessedTrainingBatch.batch_size">
@@ -1772,13 +1940,21 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.RawBaseInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawBaseInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.FeatureVector, next_state: ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawBaseInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawBaseInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.FeatureVector, next_state:ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawBaseInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.CommonInput" title="ml.rl.types.CommonInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.CommonInput</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.RawDiscreteDqnInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawDiscreteDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.FeatureVector, next_state: ml.rl.types.FeatureVector, action: torch.Tensor, next_action: torch.Tensor, possible_actions_mask: torch.Tensor, possible_next_actions_mask: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawDiscreteDqnInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawDiscreteDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.FeatureVector, next_state:ml.rl.types.FeatureVector, action:torch.Tensor, next_action:torch.Tensor, possible_actions_mask:torch.Tensor, possible_next_actions_mask:torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawDiscreteDqnInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.RawBaseInput" title="ml.rl.types.RawBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.RawBaseInput</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.types.RawDiscreteDqnInput.preprocess">
@@ -1794,7 +1970,11 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.RawMemoryNetworkInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawMemoryNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.FeatureVector, next_state: ml.rl.types.FeatureVector, action: Union[ml.rl.types.FeatureVector, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawMemoryNetworkInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawMemoryNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.FeatureVector, next_state:ml.rl.types.FeatureVector, action:Union[ml.rl.types.FeatureVector, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawMemoryNetworkInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.RawBaseInput" title="ml.rl.types.RawBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.RawBaseInput</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.types.RawMemoryNetworkInput.preprocess">
@@ -1810,7 +1990,11 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.RawParametricDqnInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawParametricDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.FeatureVector, next_state: ml.rl.types.FeatureVector, action: ml.rl.types.FeatureVector, next_action: ml.rl.types.FeatureVector, possible_actions: ml.rl.types.FeatureVector, possible_actions_mask: torch.Tensor, possible_next_actions: ml.rl.types.FeatureVector, possible_next_actions_mask: torch.Tensor, tiled_next_state: ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawParametricDqnInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawParametricDqnInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.FeatureVector, next_state:ml.rl.types.FeatureVector, action:ml.rl.types.FeatureVector, next_action:ml.rl.types.FeatureVector, possible_actions:ml.rl.types.FeatureVector, possible_actions_mask:torch.Tensor, possible_next_actions:ml.rl.types.FeatureVector, possible_next_actions_mask:torch.Tensor, tiled_next_state:ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawParametricDqnInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.RawBaseInput" title="ml.rl.types.RawBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.RawBaseInput</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.types.RawParametricDqnInput.preprocess">
@@ -1826,7 +2010,11 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.RawPolicyNetworkInput">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawPolicyNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, state: ml.rl.types.FeatureVector, next_state: ml.rl.types.FeatureVector, action: ml.rl.types.FeatureVector, next_action: ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawPolicyNetworkInput" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawPolicyNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">reward:torch.Tensor, time_diff:torch.Tensor, step:Union[torch.Tensor, NoneType], not_terminal:torch.Tensor, state:ml.rl.types.FeatureVector, next_state:ml.rl.types.FeatureVector, action:ml.rl.types.FeatureVector, next_action:ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawPolicyNetworkInput" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.RawBaseInput" title="ml.rl.types.RawBaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.RawBaseInput</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.types.RawPolicyNetworkInput.preprocess">
@@ -1842,13 +2030,21 @@ feature config.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.RawStateAction">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawStateAction</code><span class="sig-paren">(</span><em class="sig-param">state: ml.rl.types.FeatureVector</em>, <em class="sig-param">action: ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawStateAction" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawStateAction</code><span class="sig-paren">(</span><em class="sig-param">state:ml.rl.types.FeatureVector</em>, <em class="sig-param">action:ml.rl.types.FeatureVector</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawStateAction" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.RawTrainingBatch">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawTrainingBatch</code><span class="sig-paren">(</span><em class="sig-param">training_input: Union[ml.rl.types.RawBaseInput, ml.rl.types.RawDiscreteDqnInput, ml.rl.types.RawParametricDqnInput, ml.rl.types.RawPolicyNetworkInput], extras: Any</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawTrainingBatch" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">RawTrainingBatch</code><span class="sig-paren">(</span><em class="sig-param">training_input:ml.rl.types.RawBaseInput</em>, <em class="sig-param">extras:Any</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.RawTrainingBatch" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.types.RawTrainingBatch.batch_size">
@@ -1857,20 +2053,32 @@ feature config.</p>
 
 <dl class="method">
 <dt id="ml.rl.types.RawTrainingBatch.preprocess">
+<<<<<<< HEAD
 <code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">training_input: Union[ml.rl.types.PreprocessedBaseInput, ml.rl.types.PreprocessedDiscreteDqnInput, ml.rl.types.PreprocessedParametricDqnInput, ml.rl.types.PreprocessedMemoryNetworkInput, ml.rl.types.PreprocessedPolicyNetworkInput]</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.PreprocessedTrainingBatch<a class="headerlink" href="#ml.rl.types.RawTrainingBatch.preprocess" title="Permalink to this definition">¶</a></dt>
+=======
+<code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">training_input: ml.rl.types.PreprocessedBaseInput</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.PreprocessedTrainingBatch<a class="headerlink" href="#ml.rl.types.RawTrainingBatch.preprocess" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.SacPolicyActionSet">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">SacPolicyActionSet</code><span class="sig-paren">(</span><em class="sig-param">greedy: torch.Tensor</em>, <em class="sig-param">greedy_propensity: float</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SacPolicyActionSet" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">SacPolicyActionSet</code><span class="sig-paren">(</span><em class="sig-param">greedy:torch.Tensor</em>, <em class="sig-param">greedy_propensity:float</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SacPolicyActionSet" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.SequenceFeatureBase">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">SequenceFeatureBase</code><span class="sig-paren">(</span><em class="sig-param">id_features: Union[ml.rl.types.IdFeatureBase, NoneType], float_features: Union[ml.rl.types.ValuePresence, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SequenceFeatureBase" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">SequenceFeatureBase</code><span class="sig-paren">(</span><em class="sig-param">id_features:Union[ml.rl.types.IdFeatureBase, NoneType], float_features:Union[ml.rl.types.ValuePresence, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SequenceFeatureBase" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.types.SequenceFeatureBase.get_float_feature_infos">
@@ -1911,13 +2119,21 @@ SequenceFeatureBase above.</p>
 
 <dl class="class">
 <dt id="ml.rl.types.SingleQValue">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">SingleQValue</code><span class="sig-paren">(</span><em class="sig-param">q_value: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SingleQValue" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">SingleQValue</code><span class="sig-paren">(</span><em class="sig-param">q_value:torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.SingleQValue" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.types.ValuePresence">
+<<<<<<< HEAD
 <em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ValuePresence</code><span class="sig-paren">(</span><em class="sig-param">value: torch.Tensor, presence: Union[torch.Tensor, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ValuePresence" title="Permalink to this definition">¶</a></dt>
+=======
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.types.</code><code class="sig-name descname">ValuePresence</code><span class="sig-paren">(</span><em class="sig-param">value:torch.Tensor, presence:Union[torch.Tensor, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.types.ValuePresence" title="Permalink to this definition">¶</a></dt>
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.types.BaseDataClass" title="ml.rl.types.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.types.BaseDataClass</span></code></a></p>
 </dd></dl>
 

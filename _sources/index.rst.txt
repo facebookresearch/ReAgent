@@ -24,9 +24,16 @@ ReAgent is an open source end-to-end platform for applied reinforcement learning
 ReAgent is built in Python and uses PyTorch for modeling and training and TorchScript for model serving. The platform contains
 workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training,
 counterfactual policy evaluation, and optimized serving. For more detailed information about ReAgent see the white
+<<<<<<< HEAD
 paper here: `Platform <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
 
 The source code is available here: `Source code <https://github.com/facebookresearch/Horizon>`_.
+
+The platform was once named "Horizon" but we have adopted the name "ReAgent" recently to emphasize its broader scope in decision making and reasoning.
+=======
+paper `here <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
+The source code is available `here <https://github.com/facebookresearch/Horizon>`_.
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 
 The platform was once named "Horizon" but we have adopted the name "ReAgent" recently to emphasize its broader scope in decision making and reasoning.
 
@@ -50,8 +57,11 @@ here: :ref:`installation`.
 Usage
 ~~~~~~~~~~~~
 
+<<<<<<< HEAD
 The ReAgent Serving Platform (RASP) tutorial covers serving and training models and is available here: :ref:`rasp_tutorial`.
 
+=======
+>>>>>>> 6e525d8ddd6ee5e90ef946b91a20d01aa48c89bb
 Detailed instructions on how to use ReAgent can be found here: :ref:`usage`.
 
 License
