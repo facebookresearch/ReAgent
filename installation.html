@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Usage" href="usage.html" />
-    <link rel="prev" title="Horizon: Applied Reinforcement Learning Platform" href="index.html" /> 
+    <link rel="next" title="ReAgent Serving Platform (RASP)" href="rasp_tutorial.html" />
+    <link rel="prev" title="ReAgent: Applied Reinforcement Learning Platform" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -87,6 +87,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#docker">Docker</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
@@ -97,8 +98,14 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/Horizon">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
@@ -175,16 +182,16 @@
 </pre></div>
 </div>
 <p>Clone and enter Horizon repo:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">facebookresearch</span><span class="o">/</span><span class="n">Horizon</span><span class="o">.</span><span class="n">git</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">recurse</span><span class="o">-</span><span class="n">submodules</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">facebookresearch</span><span class="o">/</span><span class="n">Horizon</span><span class="o">.</span><span class="n">git</span>
 <span class="n">cd</span> <span class="n">Horizon</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>If you already cloned the repo without submodules, they can be added by running this command inside the repository”</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">recursive</span>
 </pre></div>
 </div>
 <p>Install dependencies:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
-<p>Install ONNX using pip, which builds the latest version from source:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onnx</span>
 </pre></div>
 </div>
 <p>Set JAVA_HOME to the location of your anaconda install</p>
@@ -207,11 +214,18 @@ echo $JAVA_HOME # Should see something like &quot;/home/jjg/miniconda3&quot;
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;gym[classic_control,box2d,atari]&quot;</span>
 </pre></div>
 </div>
-<p>We use Apache Thrift to generate container classes and handle serialization to/from JSON.  To build our thrift classes:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">thrift</span> <span class="o">--</span><span class="n">gen</span> <span class="n">py</span> <span class="o">--</span><span class="n">out</span> <span class="o">.</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">thrift</span><span class="o">/</span><span class="n">core</span><span class="o">.</span><span class="n">thrift</span>
+<p>Download libtorch from <a class="reference external" href="https://pytorch.org/get-started/locally/">https://pytorch.org/get-started/locally/</a> and extract it to $HOME/libtorch</p>
+<p>As of pytorch 1.3, libtorch is broken on OS/X.  To fix (mac only):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cp ~/miniconda3/lib/libiomp5.dylib $HOME/libtorch/lib/
 </pre></div>
 </div>
-<p>And now, you are ready to install Horizon itself.  We use “-e” to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.</p>
+<p>And now, you are ready to install Horizon itself.  To install the serving platform:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>mkdir serving/build
+cd serving/build
+cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+</pre></div>
+</div>
+<p>Next we must package the models.  We use “pip install -e” on the root directory of the repository to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
 </pre></div>
 </div>
@@ -243,7 +257,7 @@ The CUDA build will need <a class="reference external" href="https://github.com/
 </pre></div>
 </div>
 <p>Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume using the <code class="docutils literal notranslate"><span class="pre">-v</span></code> flag. We also add <code class="docutils literal notranslate"><span class="pre">-p</span></code> for port mapping so we can view Tensorboard visualizations locally.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docker run -v $PWD/../:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docker run -v $PWD:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
 </pre></div>
 </div>
 <p>To run with GPU, include <code class="docutils literal notranslate"><span class="pre">--runtime=nvidia</span></code> after installing <a class="reference external" href="https://github.com/NVIDIA/nvidia-docker">nvidia-docker</a>.</p>
@@ -264,8 +278,12 @@ The CUDA build will need <a class="reference external" href="https://github.com/
 <span class="o">./</span><span class="n">scripts</span><span class="o">/</span><span class="n">setup</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
-<p>Now you can run the tests:</p>
+<p>Now you can run all the tests:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">test</span>
+</pre></div>
+</div>
+<p>or try running one specific test:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">test</span> <span class="o">-</span><span class="n">s</span> <span class="n">ml</span><span class="o">.</span><span class="n">rl</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">constant_reward</span><span class="o">.</span><span class="n">test_constant_reward</span><span class="o">.</span><span class="n">TestConstantReward</span><span class="o">.</span><span class="n">test_trainer_maxq</span>
 </pre></div>
 </div>
 </div>
@@ -279,10 +297,10 @@ The CUDA build will need <a class="reference external" href="https://github.com/
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="rasp_tutorial.html" class="btn btn-neutral float-right" title="ReAgent Serving Platform (RASP)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="Horizon: Applied Reinforcement Learning Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="ReAgent: Applied Reinforcement Learning Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

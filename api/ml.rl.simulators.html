@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.simulators package &mdash; Horizon 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ml.rl.thrift package" href="ml.rl.thrift.html" />
+    <link rel="prev" title="ml.rl.preprocessing package" href="ml.rl.preprocessing.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Horizon
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Simulators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.simulators.recsim">ml.rl.simulators.recsim module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.simulators">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.thrift.html">Thrift</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Horizon</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.simulators package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/ml.rl.simulators.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ml-rl-simulators-package">
+<h1>ml.rl.simulators package<a class="headerlink" href="#ml-rl-simulators-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ml.rl.simulators.recsim">
+<span id="ml-rl-simulators-recsim-module"></span><h2>ml.rl.simulators.recsim module<a class="headerlink" href="#module-ml.rl.simulators.recsim" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ml.rl.simulators.recsim.DocumentFeature">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.simulators.recsim.</code><code class="sig-name descname">DocumentFeature</code><span class="sig-paren">(</span><em class="sig-param">topic</em>, <em class="sig-param">length</em>, <em class="sig-param">quality</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.DocumentFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.DocumentFeature.length">
+<em class="property">property </em><code class="sig-name descname">length</code><a class="headerlink" href="#ml.rl.simulators.recsim.DocumentFeature.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.DocumentFeature.quality">
+<em class="property">property </em><code class="sig-name descname">quality</code><a class="headerlink" href="#ml.rl.simulators.recsim.DocumentFeature.quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.DocumentFeature.topic">
+<em class="property">property </em><code class="sig-name descname">topic</code><a class="headerlink" href="#ml.rl.simulators.recsim.DocumentFeature.topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.simulators.recsim.RecSim">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.simulators.recsim.</code><code class="sig-name descname">RecSim</code><span class="sig-paren">(</span><em class="sig-param">num_topics: int = 20, doc_length: float = 4, quality_means: List[Tuple[float, float]] = [(-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (-3.0, 0.0), (0.0, 3.0), (0.0, 3.0), (0.0, 3.0), (0.0, 3.0), (0.0, 3.0), (0.0, 3.0)], quality_variances: List[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], initial_budget: float = 200, alpha: float = 1.0, m: int = 10, k: int = 3, num_users: int = 5000, y: float = 0.3, device: str = 'cpu', seed: int = 2147483647</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An environment described in Section 6 of <a class="reference external" href="https://arxiv.org/abs/1905.12767">https://arxiv.org/abs/1905.12767</a></p>
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.bonus">
+<code class="sig-name descname">bonus</code><span class="sig-paren">(</span><em class="sig-param">u</em>, <em class="sig-param">d</em>, <em class="sig-param">length</em>, <em class="sig-param">qualtiy</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.bonus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.compute_user_choice">
+<code class="sig-name descname">compute_user_choice</code><span class="sig-paren">(</span><em class="sig-param">slate</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.compute_user_choice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.interest">
+<code class="sig-name descname">interest</code><span class="sig-paren">(</span><em class="sig-param">u</em>, <em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.interest" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> – shape [batch, T]</p></li>
+<li><p><strong>d</strong> – shape [batch, k, T]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.obs">
+<code class="sig-name descname">obs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.obs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Agent can observe:
+- User interest vector
+- Document topic vector
+- Document length
+- Document quality</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.sample_documents">
+<code class="sig-name descname">sample_documents</code><span class="sig-paren">(</span><em class="sig-param">n: int</em><span class="sig-paren">)</span> &#x2192; ml.rl.simulators.recsim.DocumentFeature<a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.sample_documents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.sample_users">
+<code class="sig-name descname">sample_users</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.sample_users" title="Permalink to this definition">¶</a></dt>
+<dd><p>User is represented by vector of topic interest, uniformly sampled from [-1, 1]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.satisfactory">
+<code class="sig-name descname">satisfactory</code><span class="sig-paren">(</span><em class="sig-param">u</em>, <em class="sig-param">d</em>, <em class="sig-param">quality</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.satisfactory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.select">
+<code class="sig-name descname">select</code><span class="sig-paren">(</span><em class="sig-param">candidates</em>, <em class="sig-param">indices</em>, <em class="sig-param">add_null</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.select" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.update_active_users">
+<code class="sig-name descname">update_active_users</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.update_active_users" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.update_user_budget">
+<code class="sig-name descname">update_user_budget</code><span class="sig-paren">(</span><em class="sig-param">selected_choice</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.update_user_budget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.simulators.recsim.RecSim.update_user_interest">
+<code class="sig-name descname">update_user_interest</code><span class="sig-paren">(</span><em class="sig-param">selected_choice</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.simulators.recsim.RecSim.update_user_interest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ml.rl.simulators">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.simulators" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ml.rl.thrift.html" class="btn btn-neutral float-right" title="ml.rl.thrift package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ml.rl.preprocessing.html" class="btn btn-neutral float-left" title="ml.rl.preprocessing package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

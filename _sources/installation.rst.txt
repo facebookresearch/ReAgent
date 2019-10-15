@@ -19,20 +19,20 @@ Clone and enter Horizon repo:
 
 .. code-block::
 
-   git clone https://github.com/facebookresearch/Horizon.git
+   git clone --recurse-submodules https://github.com/facebookresearch/Horizon.git
    cd Horizon/
+
+If you already cloned the repo without submodules, they can be added by running this command inside the repository"
+
+.. code-block::
+
+    git submodule update --init --recursive
 
 Install dependencies:
 
 .. code-block::
 
    conda install --file requirements.txt
-
-Install ONNX using pip, which builds the latest version from source:
-
-.. code-block::
-
-   pip install onnx
 
 Set JAVA_HOME to the location of your anaconda install
 
@@ -62,13 +62,24 @@ Install OpenAI Gym if you plan on following our `tutorial <usage.md>`_\ :
 
    pip install "gym[classic_control,box2d,atari]"
 
-We use Apache Thrift to generate container classes and handle serialization to/from JSON.  To build our thrift classes:
+Download libtorch from https://pytorch.org/get-started/locally/ and extract it to $HOME/libtorch
+
+As of pytorch 1.3, libtorch is broken on OS/X.  To fix (mac only):
 
 .. code-block::
 
-   thrift --gen py --out . ml/rl/thrift/core.thrift
+    cp ~/miniconda3/lib/libiomp5.dylib $HOME/libtorch/lib/
 
-And now, you are ready to install Horizon itself.  We use "-e" to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
+And now, you are ready to install Horizon itself.  To install the serving platform:
+
+.. code-block::
+
+    mkdir serving/build
+    cd serving/build
+    cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+
+
+Next we must package the models.  We use "pip install -e" on the root directory of the repository to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
 
 .. code-block::
 
@@ -117,7 +128,7 @@ Once the Docker image is built you can start an interactive shell in the contain
 
 .. code-block::
 
-   docker run -v $PWD/../:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+   docker run -v $PWD:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
 
 To run with GPU, include ``--runtime=nvidia`` after installing `nvidia-docker <https://github.com/NVIDIA/nvidia-docker>`_.
 
@@ -146,8 +157,14 @@ Once inside the container, run the setup file:
    cd Horizon
    ./scripts/setup.sh
 
-Now you can run the tests:
+Now you can run all the tests:
 
 .. code-block::
 
    python setup.py test
+
+or try running one specific test:
+
+.. code-block::
+
+  python setup.py test -s ml.rl.test.constant_reward.test_constant_reward.TestConstantReward.test_trainer_maxq

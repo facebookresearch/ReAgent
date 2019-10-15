@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="ml.rl.training.world_model package" href="ml.rl.training.world_model.html" />
-    <link rel="prev" title="ml.rl.preprocessing package" href="ml.rl.preprocessing.html" /> 
+    <link rel="prev" title="ml.rl.thrift.core package" href="ml.rl.thrift.core.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -83,6 +83,7 @@
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
@@ -93,6 +94,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Training</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ml.rl.training.world_model.html">ml.rl.training.world_model package</a></li>
@@ -100,27 +103,33 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.actor_predictor">ml.rl.training.actor_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.ddpg_predictor">ml.rl.training.ddpg_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.ddpg_trainer">ml.rl.training.ddpg_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.c51_trainer">ml.rl.training.c51_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.cem_trainer">ml.rl.training.cem_trainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.dqn_predictor">ml.rl.training.dqn_predictor module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.dqn_trainer">ml.rl.training.dqn_trainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.dqn_trainer_base">ml.rl.training.dqn_trainer_base module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.imitator_training">ml.rl.training.imitator_training module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.loss_reporter">ml.rl.training.loss_reporter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.off_policy_predictor">ml.rl.training.off_policy_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.on_policy_predictor">ml.rl.training.on_policy_predictor module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.parametric_dqn_predictor">ml.rl.training.parametric_dqn_predictor module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.parametric_dqn_trainer">ml.rl.training.parametric_dqn_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.parametric_inner_product">ml.rl.training.parametric_inner_product module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.qrdqn_trainer">ml.rl.training.qrdqn_trainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.rl_dataset">ml.rl.training.rl_dataset module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.rl_exporter">ml.rl.training.rl_exporter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.rl_predictor_pytorch">ml.rl.training.rl_predictor_pytorch module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.rl_trainer_pytorch">ml.rl.training.rl_trainer_pytorch module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.sac_trainer">ml.rl.training.sac_trainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.sandboxed_predictor">ml.rl.training.sandboxed_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.td3_trainer">ml.rl.training.td3_trainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training.training_data_page">ml.rl.training.training_data_page module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.training">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/Horizon">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
@@ -208,16 +217,16 @@
 <span id="ml-rl-training-actor-predictor-module"></span><h2>ml.rl.training.actor_predictor module<a class="headerlink" href="#module-ml.rl.training.actor_predictor" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.actor_predictor.ActorPredictor">
-<em class="property">class </em><code class="descclassname">ml.rl.training.actor_predictor.</code><code class="descname">ActorPredictor</code><span class="sig-paren">(</span><em>pem</em>, <em>ws</em>, <em>predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.actor_predictor.ActorPredictor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.actor_predictor.</code><code class="sig-name descname">ActorPredictor</code><span class="sig-paren">(</span><em class="sig-param">pem</em>, <em class="sig-param">ws</em>, <em class="sig-param">predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.actor_predictor.ActorPredictor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor" title="ml.rl.training.sandboxed_predictor.SandboxedRLPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.sandboxed_predictor.SandboxedRLPredictor</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.actor_predictor.ActorPredictor.actor_prediction">
-<code class="descname">actor_prediction</code><span class="sig-paren">(</span><em>float_state_features: List[Dict[int, float]]</em><span class="sig-paren">)</span> &#x2192; List[Dict[str, float]]<a class="headerlink" href="#ml.rl.training.actor_predictor.ActorPredictor.actor_prediction" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actor_prediction</code><span class="sig-paren">(</span><em class="sig-param">float_state_features: List[Dict[int, float]]</em><span class="sig-paren">)</span> &#x2192; List[Dict[str, float]]<a class="headerlink" href="#ml.rl.training.actor_predictor.ActorPredictor.actor_prediction" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.actor_predictor.ActorPredictor.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>float_state_features: List[Dict[int, float]]</em><span class="sig-paren">)</span> &#x2192; List[Dict[str, float]]<a class="headerlink" href="#ml.rl.training.actor_predictor.ActorPredictor.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">float_state_features: List[Dict[int, float]]</em><span class="sig-paren">)</span> &#x2192; List[Dict[str, float]]<a class="headerlink" href="#ml.rl.training.actor_predictor.ActorPredictor.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns values for each state
 :param float_state_features A list of feature -&gt; float value dict examples</p>
 </dd></dl>
@@ -225,202 +234,68 @@
 </dd></dl>
 
 </div>
-<div class="section" id="module-ml.rl.training.ddpg_predictor">
-<span id="ml-rl-training-ddpg-predictor-module"></span><h2>ml.rl.training.ddpg_predictor module<a class="headerlink" href="#module-ml.rl.training.ddpg_predictor" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ml.rl.training.c51_trainer">
+<span id="ml-rl-training-c51-trainer-module"></span><h2>ml.rl.training.c51_trainer module<a class="headerlink" href="#module-ml.rl.training.c51_trainer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_predictor.</code><code class="descname">DDPGPredictor</code><span class="sig-paren">(</span><em>net</em>, <em>init_net</em>, <em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor" title="ml.rl.training.rl_predictor_pytorch.RLPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_predictor_pytorch.RLPredictor</span></code></a></p>
+<dt id="ml.rl.training.c51_trainer.C51Trainer">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.c51_trainer.</code><code class="sig-name descname">C51Trainer</code><span class="sig-paren">(</span><em class="sig-param">q_network</em>, <em class="sig-param">q_network_target</em>, <em class="sig-param">parameters: ml.rl.parameters.DiscreteActionModelParameters</em>, <em class="sig-param">use_gpu=False</em>, <em class="sig-param">metrics_to_score=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.c51_trainer.C51Trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
+<p>Implementation of 51 Categorical DQN (C51)</p>
+<p>See <a class="reference external" href="https://arxiv.org/abs/1707.06887">https://arxiv.org/abs/1707.06887</a> for details</p>
 <dl class="method">
-<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.actor_prediction">
-<code class="descname">actor_prediction</code><span class="sig-paren">(</span><em>float_state_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.actor_prediction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Actor Prediction - Returns action for each float_feature state.
-:param float_state_features A list of feature -&gt; float value dict examples</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.critic_prediction">
-<code class="descname">critic_prediction</code><span class="sig-paren">(</span><em>float_state_features</em>, <em>actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.critic_prediction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Critic Prediction - Returns values for each state/action pair. Accepts</p>
-<p>:param float_state_features states as list of feature -&gt; float value dict
-:param actions actions as list of feature -&gt; value dict</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.export_actor">
-<em class="property">classmethod </em><code class="descname">export_actor</code><span class="sig-paren">(</span><em>trainer</em>, <em>state_normalization_parameters</em>, <em>action_feature_ids</em>, <em>min_action_range_tensor_serving</em>, <em>max_action_range_tensor_serving</em>, <em>model_on_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.export_actor" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Export caffe2 preprocessor net and pytorch actor forward pass as one</dt><dd><p>caffe2 net.</p>
-</dd>
-</dl>
-<p>:param trainer DDPGTrainer</p>
-<p>:param state_normalization_parameters state NormalizationParameters</p>
-<dl class="simple">
-<dt>:param min_action_range_tensor_serving pytorch tensor that specifies</dt><dd><p>min action value for each dimension</p>
-</dd>
-<dt>:param max_action_range_tensor_serving pytorch tensor that specifies</dt><dd><p>min action value for each dimension</p>
-</dd>
-</dl>
-<p>:param state_normalization_parameters state NormalizationParameters</p>
-<p>:param model_on_gpu boolean indicating if the model is a GPU model or CPU model</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.export_critic">
-<em class="property">classmethod </em><code class="descname">export_critic</code><span class="sig-paren">(</span><em>trainer</em>, <em>state_normalization_parameters</em>, <em>action_normalization_parameters</em>, <em>model_on_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.export_critic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Export caffe2 preprocessor net and pytorch DQN forward pass as one
-caffe2 net.</p>
-<p>:param trainer ParametricDQNTrainer
-:param state_normalization_parameters state NormalizationParameters
-:param action_normalization_parameters action NormalizationParameters
-:param model_on_gpu boolean indicating if the model is a GPU model or CPU model</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.generate_train_net">
-<em class="property">classmethod </em><code class="descname">generate_train_net</code><span class="sig-paren">(</span><em>trainer</em>, <em>model</em>, <em>min_action_range_tensor_serving</em>, <em>max_action_range_tensor_serving</em>, <em>model_on_gpu</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.generate_train_net" title="Permalink to this definition">¶</a></dt>
+<dt id="ml.rl.training.c51_trainer.C51Trainer.argmax_with_mask">
+<code class="sig-name descname">argmax_with_mask</code><span class="sig-paren">(</span><em class="sig-param">q_values</em>, <em class="sig-param">possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.c51_trainer.C51Trainer.argmax_with_mask" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ml.rl.training.ddpg_predictor.DDPGPredictor.policy">
-<code class="descname">policy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_predictor.DDPGPredictor.policy" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO: Return actions when exporting final net and fill in this
-function.</p>
+<dt id="ml.rl.training.c51_trainer.C51Trainer.boost_rewards">
+<code class="sig-name descname">boost_rewards</code><span class="sig-paren">(</span><em class="sig-param">rewards: torch.Tensor</em>, <em class="sig-param">actions: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#ml.rl.training.c51_trainer.C51Trainer.boost_rewards" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.c51_trainer.C51Trainer.internal_prediction">
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.c51_trainer.C51Trainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only used by Gym</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.c51_trainer.C51Trainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.c51_trainer.C51Trainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
 </div>
-<div class="section" id="module-ml.rl.training.ddpg_trainer">
-<span id="ml-rl-training-ddpg-trainer-module"></span><h2>ml.rl.training.ddpg_trainer module<a class="headerlink" href="#module-ml.rl.training.ddpg_trainer" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ml.rl.training.cem_trainer">
+<span id="ml-rl-training-cem-trainer-module"></span><h2>ml.rl.training.cem_trainer module<a class="headerlink" href="#module-ml.rl.training.cem_trainer" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>The Trainer for Cross-Entropy Method. The idea is that an ensemble of</dt><dd><p>world models are fitted to predict transitions and reward functions.</p>
+</dd>
+</dl>
+<p>A cross entropy method-based planner will then plan the best next action
+based on simulation data generated by the fitted world models.</p>
+<p>The idea is inspired by: <a class="reference external" href="https://arxiv.org/abs/1805.12114">https://arxiv.org/abs/1805.12114</a></p>
 <dl class="class">
-<dt id="ml.rl.training.ddpg_trainer.ActorNet">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">ActorNet</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.ActorNet.forward">
-<code class="descname">forward</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span> &#x2192; torch.FloatTensor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNet.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forward pass for actor network. Assumes activation names are
-valid pytorch activation names.
-:param state state as list of state features</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.training.ddpg_trainer.ActorNetModel">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">ActorNetModel</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em>, <em>state_dim</em>, <em>action_dim</em>, <em>use_gpu</em>, <em>use_all_avail_gpus</em>, <em>dnn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.models.base.ModelBase</span></code></p>
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.ActorNetModel.cpu_model">
-<code class="descname">cpu_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel.cpu_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Override this in DistributedDataParallel models</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.ActorNetModel.forward">
-<code class="descname">forward</code><span class="sig-paren">(</span><em>input: ml.rl.types.StateInput</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.ActorOutput<a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forward pass for actor network. Assumes activation names are
-valid pytorch activation names.
-:param input StateInput containing float_features</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.ActorNetModel.input_prototype">
-<code class="descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ml.rl.types.StateInput<a class="headerlink" href="#ml.rl.training.ddpg_trainer.ActorNetModel.input_prototype" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function provides the input for ONNX graph tracing.</p>
-<p>The return value should be what expected by <cite>forward()</cite>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.training.ddpg_trainer.CriticNet">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">CriticNet</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em>, <em>action_dim</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.CriticNet.forward">
-<code class="descname">forward</code><span class="sig-paren">(</span><em>state_action</em><span class="sig-paren">)</span> &#x2192; torch.FloatTensor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNet.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forward pass for critic network. Assumes activation names are
-valid pytorch activation names.
-:param state_action tensor of state &amp; actions concatted</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.CriticNet.forward_split">
-<code class="descname">forward_split</code><span class="sig-paren">(</span><em>state</em>, <em>action</em><span class="sig-paren">)</span> &#x2192; torch.FloatTensor<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNet.forward_split" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.training.ddpg_trainer.CriticNetModel">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">CriticNetModel</code><span class="sig-paren">(</span><em>layers</em>, <em>activations</em>, <em>fl_init</em>, <em>state_dim</em>, <em>action_dim</em>, <em>use_gpu</em>, <em>use_all_avail_gpus</em>, <em>dnn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.models.base.ModelBase</span></code></p>
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.CriticNetModel.cpu_model">
-<code class="descname">cpu_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel.cpu_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Override this in DistributedDataParallel models</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.CriticNetModel.forward">
-<code class="descname">forward</code><span class="sig-paren">(</span><em>input: ml.rl.types.StateAction</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.SingleQValue<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forward pass for critic network. Assumes activation names are
-valid pytorch activation names.
-:param input ml.rl.types.StateAction of combined states and actions</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.CriticNetModel.input_prototype">
-<code class="descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ml.rl.types.StateAction<a class="headerlink" href="#ml.rl.training.ddpg_trainer.CriticNetModel.input_prototype" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function provides the input for ONNX graph tracing.</p>
-<p>The return value should be what expected by <cite>forward()</cite>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">DDPGTrainer</code><span class="sig-paren">(</span><em>actor_network, critic_network, parameters, state_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], action_normalization_parameters: Dict[int, ml.rl.thrift.core.ttypes.NormalizationParameters], min_action_range_tensor_serving: torch.Tensor, max_action_range_tensor_serving: torch.Tensor, use_gpu: bool = False, use_all_avail_gpus: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer" title="Permalink to this definition">¶</a></dt>
+<dt id="ml.rl.training.cem_trainer.CEMTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.cem_trainer.</code><code class="sig-name descname">CEMTrainer</code><span class="sig-paren">(</span><em class="sig-param">cem_planner_network: ml.rl.models.cem_planner.CEMPlannerNetwork, world_model_trainers: List[ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer], parameters: ml.rl.parameters.CEMParameters, use_gpu: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.cem_trainer.CEMTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
 <dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.internal_prediction">
-<code class="descname">internal_prediction</code><span class="sig-paren">(</span><em>states</em>, <em>noisy=False</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns list of actions output from actor network
-:param states states as list of states to produce actions for</p>
+<dt id="ml.rl.training.cem_trainer.CEMTrainer.internal_prediction">
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">state: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Union[ml.rl.types.SacPolicyActionSet, ml.rl.types.DqnPolicyActionSet]<a class="headerlink" href="#ml.rl.training.cem_trainer.CEMTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only used by Gym. Return the predicted next action</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.DDPGTrainer.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>training_batch: ml.rl.types.TrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.DDPGTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dt id="ml.rl.training.cem_trainer.CEMTrainer.internal_reward_estimation">
+<code class="sig-name descname">internal_reward_estimation</code><span class="sig-paren">(</span><em class="sig-param">input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.cem_trainer.CEMTrainer.internal_reward_estimation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only used by Gym</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.cem_trainer.CEMTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em>, <em class="sig-param">batch_first=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.cem_trainer.CEMTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise">
-<em class="property">class </em><code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">OrnsteinUhlenbeckProcessNoise</code><span class="sig-paren">(</span><em>action_dim</em>, <em>theta=0.15</em>, <em>sigma=0.2</em>, <em>mu=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Exploration noise process with temporally correlated noise. Used to
-explore in physical environments w/momentum. Outlined in DDPG paper.</p>
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.clear">
-<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.clear" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.get_noise">
-<code class="descname">get_noise</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#ml.rl.training.ddpg_trainer.OrnsteinUhlenbeckProcessNoise.get_noise" title="Permalink to this definition">¶</a></dt>
-<dd><p>dx = theta * (mu − prev_noise) + sigma * new_gaussian_noise</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.training.ddpg_trainer.fan_in_init">
-<code class="descclassname">ml.rl.training.ddpg_trainer.</code><code class="descname">fan_in_init</code><span class="sig-paren">(</span><em>weight_tensor</em>, <em>bias_tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.ddpg_trainer.fan_in_init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fan in initialization as described in DDPG paper.</p>
 </dd></dl>
 
 </div>
@@ -428,11 +303,11 @@ explore in physical environments w/momentum. Outlined in DDPG paper.</p>
 <span id="ml-rl-training-dqn-predictor-module"></span><h2>ml.rl.training.dqn_predictor module<a class="headerlink" href="#module-ml.rl.training.dqn_predictor" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.dqn_predictor.DQNPredictor">
-<em class="property">class </em><code class="descclassname">ml.rl.training.dqn_predictor.</code><code class="descname">DQNPredictor</code><span class="sig-paren">(</span><em>pem</em>, <em>ws</em>, <em>predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_predictor.DQNPredictor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.dqn_predictor.</code><code class="sig-name descname">DQNPredictor</code><span class="sig-paren">(</span><em class="sig-param">pem</em>, <em class="sig-param">ws</em>, <em class="sig-param">predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_predictor.DQNPredictor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor" title="ml.rl.training.sandboxed_predictor.SandboxedRLPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.sandboxed_predictor.SandboxedRLPredictor</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.dqn_predictor.DQNPredictor.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>float_state_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_predictor.DQNPredictor.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">float_state_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_predictor.DQNPredictor.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns values for each state
 :param float_state_features A list of feature -&gt; float value dict examples</p>
 </dd></dl>
@@ -444,40 +319,36 @@ explore in physical environments w/momentum. Outlined in DDPG paper.</p>
 <span id="ml-rl-training-dqn-trainer-module"></span><h2>ml.rl.training.dqn_trainer module<a class="headerlink" href="#module-ml.rl.training.dqn_trainer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.dqn_trainer.DQNTrainer">
-<em class="property">class </em><code class="descclassname">ml.rl.training.dqn_trainer.</code><code class="descname">DQNTrainer</code><span class="sig-paren">(</span><em>q_network</em>, <em>q_network_target</em>, <em>reward_network</em>, <em>parameters: ml.rl.thrift.core.ttypes.DiscreteActionModelParameters</em>, <em>use_gpu=False</em>, <em>q_network_cpe=None</em>, <em>q_network_cpe_target=None</em>, <em>metrics_to_score=None</em>, <em>imitator=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.dqn_trainer.</code><code class="sig-name descname">DQNTrainer</code><span class="sig-paren">(</span><em class="sig-param">q_network</em>, <em class="sig-param">q_network_target</em>, <em class="sig-param">reward_network</em>, <em class="sig-param">parameters: ml.rl.parameters.DiscreteActionModelParameters</em>, <em class="sig-param">use_gpu=False</em>, <em class="sig-param">q_network_cpe=None</em>, <em class="sig-param">q_network_cpe_target=None</em>, <em class="sig-param">metrics_to_score=None</em>, <em class="sig-param">imitator=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase" title="ml.rl.training.dqn_trainer_base.DQNTrainerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.dqn_trainer_base.DQNTrainerBase</span></code></a></p>
 <dl class="method">
-<dt id="ml.rl.training.dqn_trainer.DQNTrainer.calculate_cpes">
-<code class="descname">calculate_cpes</code><span class="sig-paren">(</span><em>training_batch</em>, <em>states</em>, <em>next_states</em>, <em>all_next_action_scores</em>, <em>logged_action_idxs</em>, <em>discount_tensor</em>, <em>not_done_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.calculate_cpes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ml.rl.training.dqn_trainer.DQNTrainer.get_detached_q_values">
-<code class="descname">get_detached_q_values</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span> &#x2192; Tuple[ml.rl.types.AllActionQValues, Optional[ml.rl.types.AllActionQValues]]<a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.get_detached_q_values" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_detached_q_values</code><span class="sig-paren">(</span><em class="sig-param">state</em><span class="sig-paren">)</span> &#x2192; Tuple[ml.rl.types.AllActionQValues, Optional[ml.rl.types.AllActionQValues]]<a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.get_detached_q_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the q values from the model and target networks</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.dqn_trainer.DQNTrainer.internal_prediction">
-<code class="descname">internal_prediction</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only used by Gym</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.dqn_trainer.DQNTrainer.internal_reward_estimation">
-<code class="descname">internal_reward_estimation</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.internal_reward_estimation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">internal_reward_estimation</code><span class="sig-paren">(</span><em class="sig-param">input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.internal_reward_estimation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only used by Gym</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="ml.rl.training.dqn_trainer.DQNTrainer.num_actions">
-<code class="descname">num_actions</code><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.num_actions" title="Permalink to this definition">¶</a></dt>
+<dl class="method">
+<dt id="ml.rl.training.dqn_trainer.DQNTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ml.rl.training.dqn_trainer.DQNTrainer.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>training_batch</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.train" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="ml.rl.training.dqn_trainer.DQNTrainer.warm_start_components">
+<code class="sig-name descname">warm_start_components</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer.DQNTrainer.warm_start_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>The trainer should specify what members to save and load</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -486,16 +357,16 @@ explore in physical environments w/momentum. Outlined in DDPG paper.</p>
 <span id="ml-rl-training-dqn-trainer-base-module"></span><h2>ml.rl.training.dqn_trainer_base module<a class="headerlink" href="#module-ml.rl.training.dqn_trainer_base" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.dqn_trainer_base.DQNTrainerBase">
-<em class="property">class </em><code class="descclassname">ml.rl.training.dqn_trainer_base.</code><code class="descname">DQNTrainerBase</code><span class="sig-paren">(</span><em>parameters</em>, <em>use_gpu</em>, <em>metrics_to_score=None</em>, <em>actions: Optional[List[str]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.dqn_trainer_base.</code><code class="sig-name descname">DQNTrainerBase</code><span class="sig-paren">(</span><em class="sig-param">parameters</em>, <em class="sig-param">use_gpu</em>, <em class="sig-param">metrics_to_score=None</em>, <em class="sig-param">actions: Optional[List[str]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.dqn_trainer_base.DQNTrainerBase.boost_rewards">
-<code class="descname">boost_rewards</code><span class="sig-paren">(</span><em>rewards: torch.Tensor</em>, <em>actions: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase.boost_rewards" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">boost_rewards</code><span class="sig-paren">(</span><em class="sig-param">rewards: torch.Tensor</em>, <em class="sig-param">actions: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase.boost_rewards" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.dqn_trainer_base.DQNTrainerBase.get_max_q_values">
-<code class="descname">get_max_q_values</code><span class="sig-paren">(</span><em>q_values</em>, <em>possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase.get_max_q_values" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_max_q_values</code><span class="sig-paren">(</span><em class="sig-param">q_values</em>, <em class="sig-param">possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase.get_max_q_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used in Q-learning update.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -513,7 +384,7 @@ state i.</p></li>
 
 <dl class="method">
 <dt id="ml.rl.training.dqn_trainer_base.DQNTrainerBase.get_max_q_values_with_target">
-<code class="descname">get_max_q_values_with_target</code><span class="sig-paren">(</span><em>q_values</em>, <em>q_values_target</em>, <em>possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase.get_max_q_values_with_target" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_max_q_values_with_target</code><span class="sig-paren">(</span><em class="sig-param">q_values</em>, <em class="sig-param">q_values_target</em>, <em class="sig-param">possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase.get_max_q_values_with_target" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used in Q-learning update.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -536,18 +407,18 @@ state i.</p></li>
 <span id="ml-rl-training-imitator-training-module"></span><h2>ml.rl.training.imitator_training module<a class="headerlink" href="#module-ml.rl.training.imitator_training" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.imitator_training.ImitatorTrainer">
-<em class="property">class </em><code class="descclassname">ml.rl.training.imitator_training.</code><code class="descname">ImitatorTrainer</code><span class="sig-paren">(</span><em>imitator</em>, <em>parameters: ml.rl.thrift.core.ttypes.DiscreteActionModelParameters</em>, <em>use_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.imitator_training.ImitatorTrainer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.imitator_training.</code><code class="sig-name descname">ImitatorTrainer</code><span class="sig-paren">(</span><em class="sig-param">imitator</em>, <em class="sig-param">parameters: ml.rl.parameters.DiscreteActionModelParameters</em>, <em class="sig-param">use_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.imitator_training.ImitatorTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.imitator_training.ImitatorTrainer.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>training_batch</em>, <em>train=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.imitator_training.ImitatorTrainer.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em>, <em class="sig-param">train=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.imitator_training.ImitatorTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="ml.rl.training.imitator_training.get_valid_actions_from_imitator">
-<code class="descclassname">ml.rl.training.imitator_training.</code><code class="descname">get_valid_actions_from_imitator</code><span class="sig-paren">(</span><em>imitator</em>, <em>input</em>, <em>drop_threshold</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.imitator_training.get_valid_actions_from_imitator" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ml.rl.training.imitator_training.</code><code class="sig-name descname">get_valid_actions_from_imitator</code><span class="sig-paren">(</span><em class="sig-param">imitator</em>, <em class="sig-param">input</em>, <em class="sig-param">drop_threshold</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.imitator_training.get_valid_actions_from_imitator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create mask for non-viable actions under the imitator.</p>
 </dd></dl>
 
@@ -556,189 +427,379 @@ state i.</p></li>
 <span id="ml-rl-training-loss-reporter-module"></span><h2>ml.rl.training.loss_reporter module<a class="headerlink" href="#module-ml.rl.training.loss_reporter" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.loss_reporter.BatchStats">
-<em class="property">class </em><code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">BatchStats</code><span class="sig-paren">(</span><em>td_loss</em>, <em>reward_loss</em>, <em>imitator_loss</em>, <em>logged_actions</em>, <em>logged_propensities</em>, <em>logged_rewards</em>, <em>logged_values</em>, <em>model_propensities</em>, <em>model_rewards</em>, <em>model_values</em>, <em>model_values_on_logged_actions</em>, <em>model_action_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.loss_reporter.</code><code class="sig-name descname">BatchStats</code><span class="sig-paren">(</span><em class="sig-param">td_loss</em>, <em class="sig-param">reward_loss</em>, <em class="sig-param">imitator_loss</em>, <em class="sig-param">logged_actions</em>, <em class="sig-param">logged_propensities</em>, <em class="sig-param">logged_rewards</em>, <em class="sig-param">logged_values</em>, <em class="sig-param">model_propensities</em>, <em class="sig-param">model_rewards</em>, <em class="sig-param">model_values</em>, <em class="sig-param">model_values_on_logged_actions</em>, <em class="sig-param">model_action_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
-<dl class="staticmethod">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.add_custom_scalars">
-<em class="property">static </em><code class="descname">add_custom_scalars</code><span class="sig-paren">(</span><em>action_names: Optional[List[str]]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.add_custom_scalars" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">add_custom_scalars</code><span class="sig-paren">(</span><em class="sig-param">action_names: Optional[List[str]]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.add_custom_scalars" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.imitator_loss">
-<code class="descname">imitator_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.imitator_loss" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">imitator_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.imitator_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.logged_actions">
-<code class="descname">logged_actions</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_actions" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">logged_actions</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_actions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.logged_propensities">
-<code class="descname">logged_propensities</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_propensities" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">logged_propensities</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_propensities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 4</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.logged_rewards">
-<code class="descname">logged_rewards</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_rewards" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">logged_rewards</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_rewards" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 5</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.logged_values">
-<code class="descname">logged_values</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_values" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">logged_values</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.logged_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 6</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.model_action_idxs">
-<code class="descname">model_action_idxs</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_action_idxs" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">model_action_idxs</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_action_idxs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 11</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.model_propensities">
-<code class="descname">model_propensities</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_propensities" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">model_propensities</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_propensities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 7</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.model_rewards">
-<code class="descname">model_rewards</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_rewards" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">model_rewards</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_rewards" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 8</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.model_values">
-<code class="descname">model_values</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_values" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">model_values</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 9</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.model_values_on_logged_actions">
-<code class="descname">model_values_on_logged_actions</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_values_on_logged_actions" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">model_values_on_logged_actions</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.model_values_on_logged_actions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 10</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.reward_loss">
-<code class="descname">reward_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.reward_loss" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">reward_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.reward_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.td_loss">
-<code class="descname">td_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.td_loss" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">td_loss</code><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.td_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.BatchStats.write_summary">
-<code class="descname">write_summary</code><span class="sig-paren">(</span><em>actions: List[str]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.write_summary" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write_summary</code><span class="sig-paren">(</span><em class="sig-param">actions: List[str]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.BatchStats.write_summary" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.training.loss_reporter.LossReporter">
-<em class="property">class </em><code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">LossReporter</code><span class="sig-paren">(</span><em>action_names: Optional[List[str]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.loss_reporter.</code><code class="sig-name descname">LossReporter</code><span class="sig-paren">(</span><em class="sig-param">action_names: Optional[List[str]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="ml.rl.training.loss_reporter.LossReporter.RECENT_WINDOW_SIZE">
-<code class="descname">RECENT_WINDOW_SIZE</code><em class="property"> = 100</em><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.RECENT_WINDOW_SIZE" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">RECENT_WINDOW_SIZE</code><em class="property"> = 100</em><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.RECENT_WINDOW_SIZE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="staticmethod">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.calculate_recent_window_average">
-<em class="property">static </em><code class="descname">calculate_recent_window_average</code><span class="sig-paren">(</span><em>arr</em>, <em>window_size</em>, <em>num_entries</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.calculate_recent_window_average" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">calculate_recent_window_average</code><span class="sig-paren">(</span><em class="sig-param">arr</em>, <em class="sig-param">window_size</em>, <em class="sig-param">num_entries</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.calculate_recent_window_average" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.flush">
-<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.flush" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.loss_reporter.LossReporter.get_last_n_td_loss">
-<code class="descname">get_last_n_td_loss</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_last_n_td_loss" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.flush" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.get_logged_action_distribution">
-<code class="descname">get_logged_action_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_logged_action_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_logged_action_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_logged_action_distribution" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.get_model_action_distribution">
-<code class="descname">get_model_action_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_model_action_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_model_action_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_model_action_distribution" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.get_recent_imitator_loss">
-<code class="descname">get_recent_imitator_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_imitator_loss" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_recent_imitator_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_imitator_loss" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.get_recent_reward_loss">
-<code class="descname">get_recent_reward_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_reward_loss" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_recent_reward_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_reward_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_recent_rewards">
+<code class="sig-name descname">get_recent_rewards</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_rewards" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.get_recent_td_loss">
-<code class="descname">get_recent_td_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_td_loss" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_recent_td_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_recent_td_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.loss_reporter.LossReporter.get_td_loss_after_n">
+<code class="sig-name descname">get_td_loss_after_n</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.get_td_loss_after_n" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.log_to_tensorboard">
-<code class="descname">log_to_tensorboard</code><span class="sig-paren">(</span><em>epoch: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.log_to_tensorboard" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">log_to_tensorboard</code><span class="sig-paren">(</span><em class="sig-param">epoch: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.log_to_tensorboard" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.num_batches">
-<code class="descname">num_batches</code><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.num_batches" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">num_batches</code><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.num_batches" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.LossReporter.report">
-<code class="descname">report</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.report" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">report</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.LossReporter.report" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.training.loss_reporter.StatsByAction">
-<em class="property">class </em><code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">StatsByAction</code><span class="sig-paren">(</span><em>actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.loss_reporter.</code><code class="sig-name descname">StatsByAction</code><span class="sig-paren">(</span><em class="sig-param">actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.StatsByAction.append">
-<code class="descname">append</code><span class="sig-paren">(</span><em>stats</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction.append" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param">stats</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction.append" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.loss_reporter.StatsByAction.items">
-<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction.items" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.StatsByAction.items" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="ml.rl.training.loss_reporter.merge_tensor_namedtuple_list">
-<code class="descclassname">ml.rl.training.loss_reporter.</code><code class="descname">merge_tensor_namedtuple_list</code><span class="sig-paren">(</span><em>l</em>, <em>cls</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.merge_tensor_namedtuple_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ml.rl.training.loss_reporter.</code><code class="sig-name descname">merge_tensor_namedtuple_list</code><span class="sig-paren">(</span><em class="sig-param">l</em>, <em class="sig-param">cls</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.loss_reporter.merge_tensor_namedtuple_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</div>
+<div class="section" id="module-ml.rl.training.off_policy_predictor">
+<span id="ml-rl-training-off-policy-predictor-module"></span><h2>ml.rl.training.off_policy_predictor module<a class="headerlink" href="#module-ml.rl.training.off_policy_predictor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.off_policy_predictor.</code><code class="sig-name descname">RLPredictor</code><span class="sig-paren">(</span><em class="sig-param">net</em>, <em class="sig-param">init_net</em>, <em class="sig-param">parameters</em>, <em class="sig-param">ws=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor.analyze">
+<code class="sig-name descname">analyze</code><span class="sig-paren">(</span><em class="sig-param">named_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor.analyze" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor.get_predictor_export_meta">
+<code class="sig-name descname">get_predictor_export_meta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor.get_predictor_export_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a PredictorExportMeta object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor.in_order_dense_to_sparse">
+<code class="sig-name descname">in_order_dense_to_sparse</code><span class="sig-paren">(</span><em class="sig-param">dense</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor.in_order_dense_to_sparse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert dense observation to sparse observation assuming in order
+feature ids.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor.load">
+<em class="property">classmethod </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">db_path</em>, <em class="sig-param">db_type</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates Predictor by loading from a database</p>
+<p>:param db_path see load_from_db
+:param db_type see load_from_db</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">float_state_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns values for each state
+:param float_state_features A list of feature -&gt; float value dict examples</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor.predict_net">
+<em class="property">property </em><code class="sig-name descname">predict_net</code><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor.predict_net" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.off_policy_predictor.RLPredictor.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">db_path</em>, <em class="sig-param">db_type</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.off_policy_predictor.RLPredictor.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves network to db</p>
+<p>:param db_path see save_to_db
+:param db_type see save_to_db</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ml.rl.training.on_policy_predictor">
+<span id="ml-rl-training-on-policy-predictor-module"></span><h2>ml.rl.training.on_policy_predictor module<a class="headerlink" href="#module-ml.rl.training.on_policy_predictor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ml.rl.training.on_policy_predictor.CEMPlanningPredictor">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.on_policy_predictor.</code><code class="sig-name descname">CEMPlanningPredictor</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">action_dim: int</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.CEMPlanningPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.on_policy_predictor.OnPolicyPredictor" title="ml.rl.training.on_policy_predictor.OnPolicyPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.on_policy_predictor.OnPolicyPredictor</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.CEMPlanningPredictor.discrete_action">
+<code class="sig-name descname">discrete_action</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.CEMPlanningPredictor.discrete_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a discrete action network</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.CEMPlanningPredictor.policy">
+<code class="sig-name descname">policy</code><span class="sig-paren">(</span><em class="sig-param">states: torch.Tensor</em>, <em class="sig-param">possible_actions_presence: Optional[torch.Tensor] = None</em><span class="sig-paren">)</span> &#x2192; Union[ml.rl.types.SacPolicyActionSet, ml.rl.types.DqnPolicyActionSet]<a class="headerlink" href="#ml.rl.training.on_policy_predictor.CEMPlanningPredictor.policy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.CEMPlanningPredictor.policy_net">
+<code class="sig-name descname">policy_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.CEMPlanningPredictor.policy_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a policy network</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.on_policy_predictor.ContinuousActionOnPolicyPredictor">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.on_policy_predictor.</code><code class="sig-name descname">ContinuousActionOnPolicyPredictor</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">action_dim: int</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.ContinuousActionOnPolicyPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.on_policy_predictor.OnPolicyPredictor" title="ml.rl.training.on_policy_predictor.OnPolicyPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.on_policy_predictor.OnPolicyPredictor</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.ContinuousActionOnPolicyPredictor.policy">
+<code class="sig-name descname">policy</code><span class="sig-paren">(</span><em class="sig-param">states: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.SacPolicyActionSet<a class="headerlink" href="#ml.rl.training.on_policy_predictor.ContinuousActionOnPolicyPredictor.policy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.ContinuousActionOnPolicyPredictor.policy_net">
+<code class="sig-name descname">policy_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.ContinuousActionOnPolicyPredictor.policy_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a policy network</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.on_policy_predictor.</code><code class="sig-name descname">DiscreteDQNOnPolicyPredictor</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">action_dim: int</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.on_policy_predictor.OnPolicyPredictor" title="ml.rl.training.on_policy_predictor.OnPolicyPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.on_policy_predictor.OnPolicyPredictor</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.discrete_action">
+<code class="sig-name descname">discrete_action</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.discrete_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a discrete action network</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.estimate_reward">
+<code class="sig-name descname">estimate_reward</code><span class="sig-paren">(</span><em class="sig-param">state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.estimate_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.policy">
+<code class="sig-name descname">policy</code><span class="sig-paren">(</span><em class="sig-param">state: torch.Tensor</em>, <em class="sig-param">possible_actions_presence: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.DqnPolicyActionSet<a class="headerlink" href="#ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.policy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.policy_net">
+<code class="sig-name descname">policy_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.policy_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a policy network</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.DiscreteDQNOnPolicyPredictor.predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.on_policy_predictor.OnPolicyPredictor">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.on_policy_predictor.</code><code class="sig-name descname">OnPolicyPredictor</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">action_dim: int</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.OnPolicyPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class generates actions given a trainer and a state.  It’s used for
+on-policy learning.  If you have a TorchScript (i.e. serialized) model,
+Use the classes in off_policy_predictor.py</p>
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.OnPolicyPredictor.discrete_action">
+<code class="sig-name descname">discrete_action</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.OnPolicyPredictor.discrete_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a discrete action network</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.OnPolicyPredictor.policy_net">
+<code class="sig-name descname">policy_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.OnPolicyPredictor.policy_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a policy network</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.on_policy_predictor.</code><code class="sig-name descname">ParametricDQNOnPolicyPredictor</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">action_dim: int</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.on_policy_predictor.OnPolicyPredictor" title="ml.rl.training.on_policy_predictor.OnPolicyPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.on_policy_predictor.OnPolicyPredictor</span></code></a></p>
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.discrete_action">
+<code class="sig-name descname">discrete_action</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.discrete_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a discrete action network</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.estimate_reward">
+<code class="sig-name descname">estimate_reward</code><span class="sig-paren">(</span><em class="sig-param">states_tiled: torch.Tensor</em>, <em class="sig-param">possible_actions: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.estimate_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.policy">
+<code class="sig-name descname">policy</code><span class="sig-paren">(</span><em class="sig-param">states_tiled: torch.Tensor, possible_actions_with_presence: Tuple[torch.Tensor, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.policy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.policy_net">
+<code class="sig-name descname">policy_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.policy_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if this predictor is for a policy network</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">states_tiled: torch.Tensor</em>, <em class="sig-param">possible_actions: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.on_policy_predictor.ParametricDQNOnPolicyPredictor.predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </div>
 <div class="section" id="module-ml.rl.training.parametric_dqn_predictor">
 <span id="ml-rl-training-parametric-dqn-predictor-module"></span><h2>ml.rl.training.parametric_dqn_predictor module<a class="headerlink" href="#module-ml.rl.training.parametric_dqn_predictor" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.parametric_dqn_predictor.ParametricDQNPredictor">
-<em class="property">class </em><code class="descclassname">ml.rl.training.parametric_dqn_predictor.</code><code class="descname">ParametricDQNPredictor</code><span class="sig-paren">(</span><em>pem</em>, <em>ws</em>, <em>predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_predictor.ParametricDQNPredictor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.parametric_dqn_predictor.</code><code class="sig-name descname">ParametricDQNPredictor</code><span class="sig-paren">(</span><em class="sig-param">pem</em>, <em class="sig-param">ws</em>, <em class="sig-param">predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_predictor.ParametricDQNPredictor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor" title="ml.rl.training.sandboxed_predictor.SandboxedRLPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.sandboxed_predictor.SandboxedRLPredictor</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.parametric_dqn_predictor.ParametricDQNPredictor.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>float_state_features</em>, <em>actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_predictor.ParametricDQNPredictor.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">float_state_features</em>, <em class="sig-param">actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_predictor.ParametricDQNPredictor.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns values for each state
 :param float_state_features A list of feature -&gt; float value dict examples</p>
 </dd></dl>
@@ -750,44 +811,79 @@ state i.</p></li>
 <span id="ml-rl-training-parametric-dqn-trainer-module"></span><h2>ml.rl.training.parametric_dqn_trainer module<a class="headerlink" href="#module-ml.rl.training.parametric_dqn_trainer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer">
-<em class="property">class </em><code class="descclassname">ml.rl.training.parametric_dqn_trainer.</code><code class="descname">ParametricDQNTrainer</code><span class="sig-paren">(</span><em>q_network</em>, <em>q_network_target</em>, <em>reward_network</em>, <em>parameters: ml.rl.thrift.core.ttypes.ContinuousActionModelParameters</em>, <em>use_gpu: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.parametric_dqn_trainer.</code><code class="sig-name descname">ParametricDQNTrainer</code><span class="sig-paren">(</span><em class="sig-param">q_network</em>, <em class="sig-param">q_network_target</em>, <em class="sig-param">reward_network</em>, <em class="sig-param">parameters: ml.rl.parameters.ContinuousActionModelParameters</em>, <em class="sig-param">use_gpu: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase" title="ml.rl.training.dqn_trainer_base.DQNTrainerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.dqn_trainer_base.DQNTrainerBase</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.get_detached_q_values">
-<code class="descname">get_detached_q_values</code><span class="sig-paren">(</span><em>state</em>, <em>action</em><span class="sig-paren">)</span> &#x2192; Tuple[ml.rl.types.SingleQValue, ml.rl.types.SingleQValue]<a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.get_detached_q_values" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_detached_q_values</code><span class="sig-paren">(</span><em class="sig-param">state</em>, <em class="sig-param">action</em><span class="sig-paren">)</span> &#x2192; Tuple[ml.rl.types.SingleQValue, ml.rl.types.SingleQValue]<a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.get_detached_q_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the q values from the model and target networks</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.internal_prediction">
-<code class="descname">internal_prediction</code><span class="sig-paren">(</span><em>state</em>, <em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">state</em>, <em class="sig-param">action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only used by Gym</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.internal_reward_estimation">
-<code class="descname">internal_reward_estimation</code><span class="sig-paren">(</span><em>state</em>, <em>action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.internal_reward_estimation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">internal_reward_estimation</code><span class="sig-paren">(</span><em class="sig-param">state</em>, <em class="sig-param">action</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.internal_reward_estimation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only used by Gym</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>training_batch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.parametric_dqn_trainer.ParametricDQNTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </div>
-<div class="section" id="module-ml.rl.training.parametric_inner_product">
-<span id="ml-rl-training-parametric-inner-product-module"></span><h2>ml.rl.training.parametric_inner_product module<a class="headerlink" href="#module-ml.rl.training.parametric_inner_product" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ml.rl.training.qrdqn_trainer">
+<span id="ml-rl-training-qrdqn-trainer-module"></span><h2>ml.rl.training.qrdqn_trainer module<a class="headerlink" href="#module-ml.rl.training.qrdqn_trainer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="ml.rl.training.parametric_inner_product.ParametricInnerProduct">
-<em class="property">class </em><code class="descclassname">ml.rl.training.parametric_inner_product.</code><code class="descname">ParametricInnerProduct</code><span class="sig-paren">(</span><em>state_model</em>, <em>action_model</em>, <em>state_dim</em>, <em>action_dim</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_inner_product.ParametricInnerProduct" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.qrdqn_trainer.</code><code class="sig-name descname">QRDQNTrainer</code><span class="sig-paren">(</span><em class="sig-param">q_network</em>, <em class="sig-param">q_network_target</em>, <em class="sig-param">parameters: ml.rl.parameters.DiscreteActionModelParameters</em>, <em class="sig-param">use_gpu=False</em>, <em class="sig-param">metrics_to_score=None</em>, <em class="sig-param">reward_network=None</em>, <em class="sig-param">q_network_cpe=None</em>, <em class="sig-param">q_network_cpe_target=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.dqn_trainer_base.DQNTrainerBase" title="ml.rl.training.dqn_trainer_base.DQNTrainerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.dqn_trainer_base.DQNTrainerBase</span></code></a></p>
+<p>Implementation of QR-DQN (Quantile Regression Deep Q-Nework)</p>
+<p>See <a class="reference external" href="https://arxiv.org/abs/1710.10044">https://arxiv.org/abs/1710.10044</a> for details</p>
 <dl class="method">
-<dt id="ml.rl.training.parametric_inner_product.ParametricInnerProduct.forward">
-<code class="descname">forward</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.parametric_inner_product.ParametricInnerProduct.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer.argmax_with_mask">
+<code class="sig-name descname">argmax_with_mask</code><span class="sig-paren">(</span><em class="sig-param">q_values</em>, <em class="sig-param">possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer.argmax_with_mask" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer.boost_rewards">
+<code class="sig-name descname">boost_rewards</code><span class="sig-paren">(</span><em class="sig-param">rewards: torch.Tensor</em>, <em class="sig-param">actions: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer.boost_rewards" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer.get_detached_q_values">
+<code class="sig-name descname">get_detached_q_values</code><span class="sig-paren">(</span><em class="sig-param">state</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer.get_detached_q_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the q values from the model and target networks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer.huber">
+<code class="sig-name descname">huber</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer.huber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer.internal_prediction">
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only used by Gym</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.qrdqn_trainer.QRDQNTrainer.warm_start_components">
+<code class="sig-name descname">warm_start_components</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.qrdqn_trainer.QRDQNTrainer.warm_start_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>The trainer should specify what members to save and load</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -796,36 +892,36 @@ state i.</p></li>
 <span id="ml-rl-training-rl-dataset-module"></span><h2>ml.rl.training.rl_dataset module<a class="headerlink" href="#module-ml.rl.training.rl_dataset" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.rl_dataset.RLDataset">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_dataset.</code><code class="descname">RLDataset</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.rl_dataset.</code><code class="sig-name descname">RLDataset</code><span class="sig-paren">(</span><em class="sig-param">file_path</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="ml.rl.training.rl_dataset.RLDataset.insert">
-<code class="descname">insert</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.insert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.insert" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_dataset.RLDataset.insert_pre_timeline_format">
-<code class="descname">insert_pre_timeline_format</code><span class="sig-paren">(</span><em>mdp_id</em>, <em>sequence_number</em>, <em>state</em>, <em>timeline_format_action</em>, <em>reward</em>, <em>terminal</em>, <em>possible_actions</em>, <em>time_diff</em>, <em>action_probability</em>, <em>possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.insert_pre_timeline_format" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">insert_pre_timeline_format</code><span class="sig-paren">(</span><em class="sig-param">mdp_id</em>, <em class="sig-param">sequence_number</em>, <em class="sig-param">state</em>, <em class="sig-param">timeline_format_action</em>, <em class="sig-param">reward</em>, <em class="sig-param">terminal</em>, <em class="sig-param">possible_actions</em>, <em class="sig-param">time_diff</em>, <em class="sig-param">action_probability</em>, <em class="sig-param">possible_actions_mask</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.insert_pre_timeline_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert a new sample to the dataset in the pre-timeline json format.
 Format needed for running timeline operator and for uploading dataset to hive.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_dataset.RLDataset.insert_replay_buffer_format">
-<code class="descname">insert_replay_buffer_format</code><span class="sig-paren">(</span><em>state</em>, <em>action</em>, <em>reward</em>, <em>next_state</em>, <em>next_action</em>, <em>terminal</em>, <em>possible_next_actions</em>, <em>possible_next_actions_mask</em>, <em>time_diff</em>, <em>possible_actions</em>, <em>possible_actions_mask</em>, <em>policy_id</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.insert_replay_buffer_format" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">insert_replay_buffer_format</code><span class="sig-paren">(</span><em class="sig-param">state</em>, <em class="sig-param">action</em>, <em class="sig-param">reward</em>, <em class="sig-param">next_state</em>, <em class="sig-param">next_action</em>, <em class="sig-param">terminal</em>, <em class="sig-param">possible_next_actions</em>, <em class="sig-param">possible_next_actions_mask</em>, <em class="sig-param">time_diff</em>, <em class="sig-param">possible_actions</em>, <em class="sig-param">possible_actions_mask</em>, <em class="sig-param">policy_id</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.insert_replay_buffer_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert a new sample to the dataset in the same format as the
 replay buffer.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_dataset.RLDataset.load">
-<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.load" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load samples from a gzipped json file.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_dataset.RLDataset.save">
-<code class="descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.save" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_dataset.RLDataset.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save samples as a pickle file or JSON file.</p>
 </dd></dl>
 
@@ -836,106 +932,45 @@ replay buffer.</p>
 <span id="ml-rl-training-rl-exporter-module"></span><h2>ml.rl.training.rl_exporter module<a class="headerlink" href="#module-ml.rl.training.rl_exporter" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.rl_exporter.ActorExporter">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_exporter.</code><code class="descname">ActorExporter</code><span class="sig-paren">(</span><em>dnn</em>, <em>feature_extractor=None</em>, <em>output_transformer=None</em>, <em>state_preprocessor=None</em>, <em>predictor_class=&lt;class 'ml.rl.training.actor_predictor.ActorPredictor'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ActorExporter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.rl_exporter.</code><code class="sig-name descname">ActorExporter</code><span class="sig-paren">(</span><em class="sig-param">dnn</em>, <em class="sig-param">feature_extractor=None</em>, <em class="sig-param">output_transformer=None</em>, <em class="sig-param">state_preprocessor=None</em>, <em class="sig-param">predictor_class=&lt;class 'ml.rl.training.actor_predictor.ActorPredictor'&gt;</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ActorExporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_exporter.SandboxedRLExporter" title="ml.rl.training.rl_exporter.SandboxedRLExporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_exporter.SandboxedRLExporter</span></code></a></p>
-<dl class="classmethod">
+<dl class="method">
 <dt id="ml.rl.training.rl_exporter.ActorExporter.from_state_action_normalization">
-<em class="property">classmethod </em><code class="descname">from_state_action_normalization</code><span class="sig-paren">(</span><em>dnn</em>, <em>state_normalization</em>, <em>action_normalization</em>, <em>state_preprocessor=None</em>, <em>predictor_class=&lt;class 'ml.rl.training.actor_predictor.ActorPredictor'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ActorExporter.from_state_action_normalization" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_state_action_normalization</code><span class="sig-paren">(</span><em class="sig-param">dnn</em>, <em class="sig-param">state_normalization</em>, <em class="sig-param">action_normalization</em>, <em class="sig-param">state_preprocessor=None</em>, <em class="sig-param">predictor_class=&lt;class 'ml.rl.training.actor_predictor.ActorPredictor'&gt;</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ActorExporter.from_state_action_normalization" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="ml.rl.training.rl_exporter.DQNExporter">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_exporter.</code><code class="descname">DQNExporter</code><span class="sig-paren">(</span><em>dnn</em>, <em>feature_extractor=None</em>, <em>output_transformer=None</em>, <em>state_preprocessor=None</em>, <em>predictor_class=&lt;class 'ml.rl.training.dqn_predictor.DQNPredictor'&gt;</em>, <em>preprocessing_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.DQNExporter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_exporter.SandboxedRLExporter" title="ml.rl.training.rl_exporter.SandboxedRLExporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_exporter.SandboxedRLExporter</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
 <dt id="ml.rl.training.rl_exporter.ParametricDQNExporter">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_exporter.</code><code class="descname">ParametricDQNExporter</code><span class="sig-paren">(</span><em>dnn</em>, <em>feature_extractor=None</em>, <em>output_transformer=None</em>, <em>state_preprocessor=None</em>, <em>action_preprocessor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ParametricDQNExporter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.rl_exporter.</code><code class="sig-name descname">ParametricDQNExporter</code><span class="sig-paren">(</span><em class="sig-param">dnn</em>, <em class="sig-param">feature_extractor=None</em>, <em class="sig-param">output_transformer=None</em>, <em class="sig-param">state_preprocessor=None</em>, <em class="sig-param">action_preprocessor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ParametricDQNExporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_exporter.SandboxedRLExporter" title="ml.rl.training.rl_exporter.SandboxedRLExporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_exporter.SandboxedRLExporter</span></code></a></p>
-<dl class="classmethod">
+<dl class="method">
 <dt id="ml.rl.training.rl_exporter.ParametricDQNExporter.from_state_action_normalization">
-<em class="property">classmethod </em><code class="descname">from_state_action_normalization</code><span class="sig-paren">(</span><em>dnn</em>, <em>state_normalization</em>, <em>action_normalization</em>, <em>state_preprocessor=None</em>, <em>action_preprocessor=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ParametricDQNExporter.from_state_action_normalization" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_state_action_normalization</code><span class="sig-paren">(</span><em class="sig-param">dnn</em>, <em class="sig-param">state_normalization</em>, <em class="sig-param">action_normalization</em>, <em class="sig-param">state_preprocessor=None</em>, <em class="sig-param">action_preprocessor=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.ParametricDQNExporter.from_state_action_normalization" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.training.rl_exporter.RLExporter">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_exporter.</code><code class="descname">RLExporter</code><span class="sig-paren">(</span><em>dnn</em>, <em>feature_extractor=None</em>, <em>output_transformer=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.RLExporter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.rl_exporter.</code><code class="sig-name descname">RLExporter</code><span class="sig-paren">(</span><em class="sig-param">dnn</em>, <em class="sig-param">feature_extractor=None</em>, <em class="sig-param">output_transformer=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.RLExporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="ml.rl.training.rl_exporter.RLExporter.export">
-<code class="descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.RLExporter.export" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.RLExporter.export" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ml.rl.training.rl_exporter.SandboxedRLExporter">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_exporter.</code><code class="descname">SandboxedRLExporter</code><span class="sig-paren">(</span><em>dnn</em>, <em>predictor_class</em>, <em>preprocessing_class</em>, <em>feature_extractor=None</em>, <em>output_transformer=None</em>, <em>state_preprocessor=None</em>, <em>action_preprocessor=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.SandboxedRLExporter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.rl_exporter.</code><code class="sig-name descname">SandboxedRLExporter</code><span class="sig-paren">(</span><em class="sig-param">dnn</em>, <em class="sig-param">predictor_class</em>, <em class="sig-param">preprocessing_class</em>, <em class="sig-param">feature_extractor=None</em>, <em class="sig-param">output_transformer=None</em>, <em class="sig-param">state_preprocessor=None</em>, <em class="sig-param">action_preprocessor=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.SandboxedRLExporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_exporter.RLExporter" title="ml.rl.training.rl_exporter.RLExporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_exporter.RLExporter</span></code></a></p>
 <dl class="method">
 <dt id="ml.rl.training.rl_exporter.SandboxedRLExporter.export">
-<code class="descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.SandboxedRLExporter.export" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_exporter.SandboxedRLExporter.export" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-ml.rl.training.rl_predictor_pytorch">
-<span id="ml-rl-training-rl-predictor-pytorch-module"></span><h2>ml.rl.training.rl_predictor_pytorch module<a class="headerlink" href="#module-ml.rl.training.rl_predictor_pytorch" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_predictor_pytorch.</code><code class="descname">RLPredictor</code><span class="sig-paren">(</span><em>net</em>, <em>init_net</em>, <em>parameters</em>, <em>ws=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor.analyze">
-<code class="descname">analyze</code><span class="sig-paren">(</span><em>named_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor.analyze" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor.get_predictor_export_meta">
-<code class="descname">get_predictor_export_meta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor.get_predictor_export_meta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a PredictorExportMeta object</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor.in_order_dense_to_sparse">
-<code class="descname">in_order_dense_to_sparse</code><span class="sig-paren">(</span><em>dense</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor.in_order_dense_to_sparse" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert dense observation to sparse observation assuming in order
-feature ids.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor.load">
-<em class="property">classmethod </em><code class="descname">load</code><span class="sig-paren">(</span><em>db_path</em>, <em>db_type</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates Predictor by loading from a database</p>
-<p>:param db_path see load_from_db
-:param db_type see load_from_db</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>float_state_features</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns values for each state
-:param float_state_features A list of feature -&gt; float value dict examples</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor.predict_net">
-<code class="descname">predict_net</code><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor.predict_net" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.rl_predictor_pytorch.RLPredictor.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>db_path</em>, <em>db_type</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves network to db</p>
-<p>:param db_path see save_to_db
-:param db_type see save_to_db</p>
-</dd></dl>
 
 </dd></dl>
 
@@ -944,60 +979,57 @@ feature ids.</p>
 <span id="ml-rl-training-rl-trainer-pytorch-module"></span><h2>ml.rl.training.rl_trainer_pytorch module<a class="headerlink" href="#module-ml.rl.training.rl_trainer_pytorch" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer">
-<em class="property">class </em><code class="descclassname">ml.rl.training.rl_trainer_pytorch.</code><code class="descname">RLTrainer</code><span class="sig-paren">(</span><em>parameters</em>, <em>use_gpu</em>, <em>metrics_to_score=None</em>, <em>actions: Optional[List[str]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.rl_trainer_pytorch.</code><code class="sig-name descname">RLTrainer</code><span class="sig-paren">(</span><em class="sig-param">parameters</em>, <em class="sig-param">use_gpu</em>, <em class="sig-param">metrics_to_score=None</em>, <em class="sig-param">actions: Optional[List[str]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.ACTION_NOT_POSSIBLE_VAL">
-<code class="descname">ACTION_NOT_POSSIBLE_VAL</code><em class="property"> = -1000000000.0</em><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.ACTION_NOT_POSSIBLE_VAL" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">ACTION_NOT_POSSIBLE_VAL</code><em class="property"> = -1000000000.0</em><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.ACTION_NOT_POSSIBLE_VAL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.FINGERPRINT">
-<code class="descname">FINGERPRINT</code><em class="property"> = 12345</em><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.FINGERPRINT" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">FINGERPRINT</code><em class="property"> = 12345</em><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.FINGERPRINT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.internal_prediction">
-<code class="descname">internal_prediction</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Q-network forward pass method for internal domains.
 :param input input to network</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.internal_reward_estimation">
-<code class="descname">internal_reward_estimation</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.internal_reward_estimation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">internal_reward_estimation</code><span class="sig-paren">(</span><em class="sig-param">input</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.internal_reward_estimation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reward-network forward pass for internal domains.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.load_state_dict">
-<code class="descname">load_state_dict</code><span class="sig-paren">(</span><em>state_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_state_dict</code><span class="sig-paren">(</span><em class="sig-param">state_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.num_actions">
+<em class="property">property </em><code class="sig-name descname">num_actions</code><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.num_actions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.state_dict">
-<code class="descname">state_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.state_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">state_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.state_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>training_samples</em>, <em>evaluator=None</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_samples</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.rl_trainer_pytorch.RLTrainer.warm_start_components">
-<code class="descname">warm_start_components</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.warm_start_components" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">warm_start_components</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer.warm_start_components" title="Permalink to this definition">¶</a></dt>
 <dd><p>The trainer should specify what members to save and load</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.training.rl_trainer_pytorch.rescale_torch_tensor">
-<code class="descclassname">ml.rl.training.rl_trainer_pytorch.</code><code class="descname">rescale_torch_tensor</code><span class="sig-paren">(</span><em>tensor: torch.tensor</em>, <em>new_min: torch.tensor</em>, <em>new_max: torch.tensor</em>, <em>prev_min: torch.tensor</em>, <em>prev_max: torch.tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.rl_trainer_pytorch.rescale_torch_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rescale column values in N X M torch tensor to be in new range.
-Each column m in input tensor will be rescaled from range
-[prev_min[m], prev_max[m]] to [new_min[m], new_max[m]]</p>
 </dd></dl>
 
 </div>
@@ -1005,27 +1037,27 @@ Each column m in input tensor will be rescaled from range
 <span id="ml-rl-training-sac-trainer-module"></span><h2>ml.rl.training.sac_trainer module<a class="headerlink" href="#module-ml.rl.training.sac_trainer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.sac_trainer.SACTrainer">
-<em class="property">class </em><code class="descclassname">ml.rl.training.sac_trainer.</code><code class="descname">SACTrainer</code><span class="sig-paren">(</span><em>q1_network</em>, <em>value_network</em>, <em>value_network_target</em>, <em>actor_network</em>, <em>parameters: ml.rl.thrift.core.ttypes.SACModelParameters</em>, <em>q2_network=None</em>, <em>min_action_range_tensor_training=None</em>, <em>max_action_range_tensor_training=None</em>, <em>min_action_range_tensor_serving=None</em>, <em>max_action_range_tensor_serving=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.sac_trainer.</code><code class="sig-name descname">SACTrainer</code><span class="sig-paren">(</span><em class="sig-param">q1_network</em>, <em class="sig-param">actor_network</em>, <em class="sig-param">parameters: ml.rl.parameters.SACModelParameters</em>, <em class="sig-param">use_gpu=False</em>, <em class="sig-param">value_network=None</em>, <em class="sig-param">q2_network=None</em>, <em class="sig-param">min_action_range_tensor_training=None</em>, <em class="sig-param">max_action_range_tensor_training=None</em>, <em class="sig-param">min_action_range_tensor_serving=None</em>, <em class="sig-param">max_action_range_tensor_serving=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
 <p>Soft Actor-Critic trainer as described in <a class="reference external" href="https://arxiv.org/pdf/1801.01290">https://arxiv.org/pdf/1801.01290</a></p>
 <p>The actor is assumed to implement reparameterization trick.</p>
 <dl class="method">
 <dt id="ml.rl.training.sac_trainer.SACTrainer.internal_prediction">
-<code class="descname">internal_prediction</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">states</em>, <em class="sig-param">test=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns list of actions output from actor network
 :param states states as list of states to produce actions for</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.sac_trainer.SACTrainer.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>training_batch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>IMPORTANT: the input action here is assumed to be preprocessed to match the
 range of the output of the actor.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.sac_trainer.SACTrainer.warm_start_components">
-<code class="descname">warm_start_components</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer.warm_start_components" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">warm_start_components</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sac_trainer.SACTrainer.warm_start_components" title="Permalink to this definition">¶</a></dt>
 <dd><p>The trainer should specify what members to save and load</p>
 </dd></dl>
 
@@ -1036,27 +1068,58 @@ range of the output of the actor.</p>
 <span id="ml-rl-training-sandboxed-predictor-module"></span><h2>ml.rl.training.sandboxed_predictor module<a class="headerlink" href="#module-ml.rl.training.sandboxed_predictor" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.sandboxed_predictor.SandboxedRLPredictor">
-<em class="property">class </em><code class="descclassname">ml.rl.training.sandboxed_predictor.</code><code class="descname">SandboxedRLPredictor</code><span class="sig-paren">(</span><em>pem</em>, <em>ws</em>, <em>predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_predictor_pytorch.RLPredictor" title="ml.rl.training.rl_predictor_pytorch.RLPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_predictor_pytorch.RLPredictor</span></code></a></p>
-<dl class="classmethod">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.sandboxed_predictor.</code><code class="sig-name descname">SandboxedRLPredictor</code><span class="sig-paren">(</span><em class="sig-param">pem</em>, <em class="sig-param">ws</em>, <em class="sig-param">predict_net=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.off_policy_predictor.RLPredictor" title="ml.rl.training.off_policy_predictor.RLPredictor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.off_policy_predictor.RLPredictor</span></code></a></p>
+<dl class="method">
 <dt id="ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.load">
-<em class="property">classmethod </em><code class="descname">load</code><span class="sig-paren">(</span><em>db_path</em>, <em>db_type</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.load" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">db_path</em>, <em class="sig-param">db_type</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates Predictor by loading from a database</p>
 <p>:param db_path see load_from_db
 :param db_type see load_from_db</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.predict_net">
-<code class="descname">predict_net</code><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.predict_net" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">predict_net</code><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.predict_net" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>db_path</em>, <em>db_type</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.save" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">db_path</em>, <em class="sig-param">db_type</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.sandboxed_predictor.SandboxedRLPredictor.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves network to db</p>
 <p>:param db_path see save_to_db
 :param db_type see save_to_db</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ml.rl.training.td3_trainer">
+<span id="ml-rl-training-td3-trainer-module"></span><h2>ml.rl.training.td3_trainer module<a class="headerlink" href="#module-ml.rl.training.td3_trainer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ml.rl.training.td3_trainer.TD3Trainer">
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.td3_trainer.</code><code class="sig-name descname">TD3Trainer</code><span class="sig-paren">(</span><em class="sig-param">q1_network</em>, <em class="sig-param">actor_network</em>, <em class="sig-param">parameters: ml.rl.parameters.TD3ModelParameters</em>, <em class="sig-param">use_gpu=False</em>, <em class="sig-param">q2_network=None</em>, <em class="sig-param">min_action_range_tensor_training=None</em>, <em class="sig-param">max_action_range_tensor_training=None</em>, <em class="sig-param">min_action_range_tensor_serving=None</em>, <em class="sig-param">max_action_range_tensor_serving=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.td3_trainer.TD3Trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.training.rl_trainer_pytorch.RLTrainer" title="ml.rl.training.rl_trainer_pytorch.RLTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.training.rl_trainer_pytorch.RLTrainer</span></code></a></p>
+<p>Twin Delayed Deep Deterministic Policy Gradient algorithm trainer
+as described in <a class="reference external" href="https://arxiv.org/pdf/1802.09477">https://arxiv.org/pdf/1802.09477</a></p>
+<dl class="method">
+<dt id="ml.rl.training.td3_trainer.TD3Trainer.internal_prediction">
+<code class="sig-name descname">internal_prediction</code><span class="sig-paren">(</span><em class="sig-param">states</em>, <em class="sig-param">test=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.td3_trainer.TD3Trainer.internal_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of actions output from actor network
+:param states states as list of states to produce actions for</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.td3_trainer.TD3Trainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.training.td3_trainer.TD3Trainer.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>IMPORTANT: the input action here is assumed to be preprocessed to match the
+range of the output of the actor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.td3_trainer.TD3Trainer.warm_start_components">
+<code class="sig-name descname">warm_start_components</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.td3_trainer.TD3Trainer.warm_start_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>The trainer should specify what members to save and load</p>
 </dd></dl>
 
 </dd></dl>
@@ -1066,121 +1129,138 @@ range of the output of the actor.</p>
 <span id="ml-rl-training-training-data-page-module"></span><h2>ml.rl.training.training_data_page module<a class="headerlink" href="#module-ml.rl.training.training_data_page" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage">
-<em class="property">class </em><code class="descclassname">ml.rl.training.training_data_page.</code><code class="descname">TrainingDataPage</code><span class="sig-paren">(</span><em>mdp_ids: Optional[numpy.ndarray] = None</em>, <em>sequence_numbers: Optional[torch.Tensor] = None</em>, <em>states: Optional[torch.Tensor] = None</em>, <em>actions: Optional[torch.Tensor] = None</em>, <em>propensities: Optional[torch.Tensor] = None</em>, <em>rewards: Optional[torch.Tensor] = None</em>, <em>possible_actions_mask: Optional[torch.Tensor] = None</em>, <em>possible_actions_state_concat: Optional[torch.Tensor] = None</em>, <em>next_states: Optional[torch.Tensor] = None</em>, <em>next_actions: Optional[torch.Tensor] = None</em>, <em>possible_next_actions_mask: Optional[torch.Tensor] = None</em>, <em>possible_next_actions_state_concat: Optional[torch.Tensor] = None</em>, <em>not_terminal: Optional[torch.Tensor] = None</em>, <em>time_diffs: Optional[torch.Tensor] = None</em>, <em>metrics: Optional[torch.Tensor] = None</em>, <em>step: Optional[torch.Tensor] = None</em>, <em>max_num_actions: Optional[int] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.training_data_page.</code><code class="sig-name descname">TrainingDataPage</code><span class="sig-paren">(</span><em class="sig-param">mdp_ids: Optional[numpy.ndarray] = None</em>, <em class="sig-param">sequence_numbers: Optional[torch.Tensor] = None</em>, <em class="sig-param">states: Optional[torch.Tensor] = None</em>, <em class="sig-param">actions: Optional[torch.Tensor] = None</em>, <em class="sig-param">propensities: Optional[torch.Tensor] = None</em>, <em class="sig-param">rewards: Optional[torch.Tensor] = None</em>, <em class="sig-param">possible_actions_mask: Optional[torch.Tensor] = None</em>, <em class="sig-param">possible_actions_state_concat: Optional[torch.Tensor] = None</em>, <em class="sig-param">next_states: Optional[torch.Tensor] = None</em>, <em class="sig-param">next_actions: Optional[torch.Tensor] = None</em>, <em class="sig-param">possible_next_actions_mask: Optional[torch.Tensor] = None</em>, <em class="sig-param">possible_next_actions_state_concat: Optional[torch.Tensor] = None</em>, <em class="sig-param">not_terminal: Optional[torch.Tensor] = None</em>, <em class="sig-param">time_diffs: Optional[torch.Tensor] = None</em>, <em class="sig-param">metrics: Optional[torch.Tensor] = None</em>, <em class="sig-param">step: Optional[torch.Tensor] = None</em>, <em class="sig-param">max_num_actions: Optional[int] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.actions">
-<code class="descname">actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.actions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.actions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_cem_training_batch">
+<code class="sig-name descname">as_cem_training_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_first=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_cem_training_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate one-step samples needed by CEM trainer.
+The samples will be used to train an ensemble of world models used by CEM.</p>
+<dl class="simple">
+<dt>If batch_first = True:</dt><dd><p>state/next state shape: batch_size x 1 x state_dim
+action shape: batch_size x 1 x action_dim
+reward/terminal shape: batch_size x 1</p>
+</dd>
+<dt>else (default):</dt><dd><p>state/next state shape: 1 x batch_size x state_dim
+action shape: 1 x batch_size x action_dim
+reward/terminal shape: 1 x batch_size</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.as_discrete_maxq_training_batch">
-<code class="descname">as_discrete_maxq_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_discrete_maxq_training_batch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_discrete_sarsa_training_batch">
-<code class="descname">as_discrete_sarsa_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_discrete_sarsa_training_batch" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">as_discrete_maxq_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_discrete_maxq_training_batch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.as_parametric_maxq_training_batch">
-<code class="descname">as_parametric_maxq_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_parametric_maxq_training_batch" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">as_parametric_maxq_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_parametric_maxq_training_batch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_parametric_sarsa_training_batch">
-<code class="descname">as_parametric_sarsa_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_parametric_sarsa_training_batch" title="Permalink to this definition">¶</a></dt>
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.as_policy_network_training_batch">
+<code class="sig-name descname">as_policy_network_training_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.as_policy_network_training_batch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.max_num_actions">
-<code class="descname">max_num_actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.max_num_actions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">max_num_actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.max_num_actions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.mdp_ids">
-<code class="descname">mdp_ids</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.mdp_ids" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">mdp_ids</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.mdp_ids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.metrics">
-<code class="descname">metrics</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metrics</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.metrics" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.next_actions">
-<code class="descname">next_actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.next_actions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">next_actions</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.next_actions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.next_states">
-<code class="descname">next_states</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.next_states" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">next_states</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.next_states" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.not_terminal">
-<code class="descname">not_terminal</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.not_terminal" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">not_terminal</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.not_terminal" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_actions_mask">
-<code class="descname">possible_actions_mask</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_actions_mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">possible_actions_mask</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_actions_mask" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_actions_state_concat">
-<code class="descname">possible_actions_state_concat</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_actions_state_concat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">possible_actions_state_concat</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_actions_state_concat" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_mask">
-<code class="descname">possible_next_actions_mask</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">possible_next_actions_mask</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_mask" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_state_concat">
-<code class="descname">possible_next_actions_state_concat</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_state_concat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">possible_next_actions_state_concat</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.possible_next_actions_state_concat" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.propensities">
-<code class="descname">propensities</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.propensities" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">propensities</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.propensities" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.rewards">
-<code class="descname">rewards</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.rewards" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">rewards</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.rewards" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.sequence_numbers">
-<code class="descname">sequence_numbers</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.sequence_numbers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sequence_numbers</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.sequence_numbers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ml.rl.training.training_data_page.TrainingDataPage.set_device">
+<code class="sig-name descname">set_device</code><span class="sig-paren">(</span><em class="sig-param">device</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.set_device" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.set_type">
-<code class="descname">set_type</code><span class="sig-paren">(</span><em>dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.set_type" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_type</code><span class="sig-paren">(</span><em class="sig-param">dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.set_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.size">
-<code class="descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.size" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.states">
-<code class="descname">states</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.states" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">states</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.states" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.step">
-<code class="descname">step</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.step" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">step</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.step" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ml.rl.training.training_data_page.TrainingDataPage.time_diffs">
-<code class="descname">time_diffs</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.time_diffs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">time_diffs</code><a class="headerlink" href="#ml.rl.training.training_data_page.TrainingDataPage.time_diffs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1202,7 +1282,7 @@ range of the output of the actor.</p>
         <a href="ml.rl.training.world_model.html" class="btn btn-neutral float-right" title="ml.rl.training.world_model package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ml.rl.preprocessing.html" class="btn btn-neutral float-left" title="ml.rl.preprocessing package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ml.rl.thrift.core.html" class="btn btn-neutral float-left" title="ml.rl.thrift.core package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
