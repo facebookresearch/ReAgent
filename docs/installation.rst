@@ -64,19 +64,11 @@ Install OpenAI Gym if you plan on following our `tutorial <usage.md>`_\ :
 
 Download libtorch from https://pytorch.org/get-started/locally/ and extract it to $HOME/libtorch
 
-At runtime, libtorch needs to find libraries from conda.  On mac, run:
+As of pytorch 1.3, libtorch is broken on OS/X.  To fix (mac only):
 
 .. code-block::
 
-    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(dirname $(dirname `which conda`))/lib
-
-On linux, run:
-
-.. code-block::
-
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(dirname $(dirname `which conda`))/lib
-
-Install folly: https://github.com/facebook/folly
+    cp ~/miniconda3/lib/libiomp5.dylib $HOME/libtorch/lib/
 
 And now, you are ready to install Horizon itself.  To install the serving platform:
 

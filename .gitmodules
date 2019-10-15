@@ -10,15 +10,6 @@
 [submodule "serving/external/SimpleWebServer"]
 	path = serving/external/SimpleWebServer
 	url = https://gitlab.com/eidheim/Simple-Web-Server.git
-[submodule "serving/external/folly"]
-	path = serving/external/folly
-	url = https://github.com/facebook/folly.git
-[submodule "serving/external/ThreadPool"]
-	path = serving/external/ThreadPool
-	url = https://github.com/progschj/ThreadPool.git
-[submodule "serving/external/continuable"]
-	path = serving/external/continuable
-	url = https://github.com/Naios/continuable.git
 [submodule "serving/external/cpp-taskflow"]
 	path = serving/external/cpp-taskflow
 	url = https://github.com/cpp-taskflow/cpp-taskflow.git
