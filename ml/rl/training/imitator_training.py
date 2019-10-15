@@ -16,6 +16,8 @@ class ImitatorTrainer(RLTrainer):
     def __init__(
         self, imitator, parameters: DiscreteActionModelParameters, use_gpu=False
     ) -> None:
+        super().__init__(parameters, use_gpu=use_gpu)
+
         self._set_optimizer(parameters.training.optimizer)
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1
@@ -25,7 +27,6 @@ class ImitatorTrainer(RLTrainer):
             lr=parameters.training.learning_rate,
             weight_decay=parameters.training.l2_decay,
         )
-        RLTrainer.__init__(self, parameters, use_gpu=use_gpu)
 
     def _imitator_accuracy(self, predictions, true_labels):
         match_tensor = predictions == true_labels
@@ -39,7 +40,7 @@ class ImitatorTrainer(RLTrainer):
         learning_input = training_batch.training_input
 
         with torch.enable_grad():
-            action_preds = self.imitator(learning_input.state)
+            action_preds = self.imitator(learning_input.state.float_features)
             # Classification label is index of action with value 1
             pred_action_idxs = torch.max(action_preds, dim=1)[1]
             actual_action_idxs = torch.max(learning_input.action, dim=1)[1]
@@ -59,11 +60,11 @@ def get_valid_actions_from_imitator(imitator, input, drop_threshold):
     """Create mask for non-viable actions under the imitator."""
     if isinstance(imitator, torch.nn.Module):
         # pytorch model
-        imitator_outputs = imitator(input)
+        imitator_outputs = imitator(input.float_features)
         on_policy_action_probs = torch.nn.functional.softmax(imitator_outputs, dim=1)
     else:
         # sci-kit learn model
-        on_policy_action_probs = torch.tensor(imitator(input.cpu()))
+        on_policy_action_probs = torch.tensor(imitator(input.float_features.cpu()))
 
     filter_values = (
         on_policy_action_probs / on_policy_action_probs.max(keepdim=True, dim=1)[0]
