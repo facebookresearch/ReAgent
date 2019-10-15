@@ -19,6 +19,22 @@ ml.rl.training.actor\_predictor module
    :undoc-members:
    :show-inheritance:
 
+ml.rl.training.c51\_trainer module
+----------------------------------
+
+.. automodule:: ml.rl.training.c51_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ml.rl.training.cem\_trainer module
+----------------------------------
+
+.. automodule:: ml.rl.training.cem_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ml.rl.training.dqn\_predictor module
 ------------------------------------
 
@@ -87,6 +103,14 @@ ml.rl.training.parametric\_dqn\_trainer module
 ----------------------------------------------
 
 .. automodule:: ml.rl.training.parametric_dqn_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ml.rl.training.qrdqn\_trainer module
+------------------------------------
+
+.. automodule:: ml.rl.training.qrdqn_trainer
    :members:
    :undoc-members:
    :show-inheritance:
