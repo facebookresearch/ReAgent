@@ -28,7 +28,7 @@ def export(app_id, config_dir):
             if not os.path.exists(sub_config_dir):
                 os.makedirs(sub_config_dir)
             for config_name, config in configs.items():
-                config_file = os.path.join(sub_config_dir, config_name, ".json")
+                config_file = os.path.join(sub_config_dir, config_name + '.json')
                 print(f"{app_id}:{config_name} exported to {config_file}")
                 with open(config_file, "w") as f:
                     json.dump(config, f, indent=2)

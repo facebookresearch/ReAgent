@@ -2,14 +2,13 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 from reagent.serving.config.builder import (
+    UCB,
     DecisionPlanBuilder,
     EpsilonGreedyRanker,
     Frechet,
     InputFromRequest,
-    PredictorScoring,
     Softmax,
     SoftmaxRanker,
-    UCB,
     export,
 )
 
@@ -20,7 +19,7 @@ def softmax_decision_plan():
 
 
 def softmaxranker_decision_plan():
-    op = SoftmaxRanker(temperature=0.123, values=InputFromRequest())
+    op = SoftmaxRanker(temperature=1.0, values={"Bacon": 1.1, "Ribs": 1.0})
     return DecisionPlanBuilder().set_root(op).build()
 
 
@@ -35,7 +34,7 @@ def frechet_decision_plan():
 
 
 def ucb_decision_plan():
-    op = UCB(method="UCB1")
+    op = UCB(method="UCB1", batch_size=8)
     return DecisionPlanBuilder().set_root(op).build()
 
 
