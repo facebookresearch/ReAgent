@@ -1,6 +1,9 @@
 # Project files
 .vscode
 
+# CircleCI
+gen.yml
+
 # Test data
 cartpole_discrete
 cartpole_discrete_timeline
@@ -125,7 +128,6 @@ ENV/
 # Thrift output
 ml/rl/thrift/__init__.py
 ml/rl/thrift/core/
-
 
 # Docusaurus
 .DS_Store

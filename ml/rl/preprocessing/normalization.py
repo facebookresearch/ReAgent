@@ -14,7 +14,6 @@ from ml.rl.preprocessing import identify_types
 from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
 from scipy.stats.mstats import mquantiles
-from thrift.transport.TTransport import TMemoryBuffer
 
 
 logger = logging.getLogger(__name__)
