@@ -59,4 +59,4 @@ class TestMDNRNNGym(unittest.TestCase):
         feature_importance=False,
         feature_sensitivity=False,
     ):
-        return mdnrnn_gym(params, feature_importance, feature_sensitivity)
+        return mdnrnn_gym(params, feature_importance, feature_sensitivity, seed=0)
