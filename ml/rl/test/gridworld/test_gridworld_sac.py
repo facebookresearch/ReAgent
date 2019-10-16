@@ -11,10 +11,7 @@ import numpy.testing as npt
 import torch
 from ml.rl.models.actor import DirichletFullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.models.output_transformer import (
-    ActorOutputTransformer,
-    ParametricActionOutputTransformer,
-)
+from ml.rl.models.output_transformer import ActorOutputTransformer
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.parameters import (
     FeedForwardParameters,
