@@ -1,12 +1,12 @@
 cmake_minimum_required (VERSION 3.0.2)
-project (DecisionServingPlatform VERSION 0.0.1)
+project (ReAgentServingPlatform VERSION 0.0.1)
 
 add_subdirectory(external/googletest)
 enable_testing()
 
 option(CODE_COVERAGE "Enable code coverage" OFF)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDSP_OSS -DDSP_VERSION='\"${PROJECT_VERSION}\"' -Wno-deprecated-declarations")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRASP_OSS -DRASP_VERSION='\"${PROJECT_VERSION}\"' -Wno-deprecated-declarations")
 
 IF(CODE_COVERAGE)
   if(UNIX)
@@ -23,26 +23,10 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 # Add cmake script directory.
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-# Enable whole-archive to handle factory registration
-# IF ("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
-# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --Wl,-all_load")
-# SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} --Wl,-all_load")
-# set(CMAKE_EXE_LINKER_FLAGS "-Wl,--export-all-symbols")
-# set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
-
-# ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") # GCC
-# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --Wl,--whole-archive")
-# SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} --Wl,--whole-archive")
-# ELSE()
-# MESSAGE(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}")
-# ENDIF()
-
 # Required packages
 find_package(Threads REQUIRED)
 find_package(gflags REQUIRED)
-find_package(Folly REQUIRED)
 find_package(glog CONFIG)
-find_package(wangle CONFIG)
 find_package(Boost REQUIRED COMPONENTS system thread filesystem regex context program_options)
 find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
@@ -50,19 +34,19 @@ find_package(Torch REQUIRED)
 include_directories(
   external
   external/exprtk
+  external/cpp-taskflow
   external/nlohmann_json/single_include
 
   .
 
   ${TORCH_INCLUDE_DIRS}
-  ${FOLLY_INCLUDE_DIR}
   ${EIGEN3_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}/gen/gen-cpp2
   ${PROJECT_BINARY_DIR}/gen
 )
 
 add_library(
-  dsp-lib
+  rasp-lib
   STATIC
 
   ${api-cpp2-HEADERS}
@@ -92,6 +76,7 @@ add_library(
 
   reagent/serving/operators/Ucb.cpp
   reagent/serving/operators/ActionValueScoring.cpp
+  reagent/serving/operators/EpsilonGreedyRanker.cpp
   reagent/serving/operators/PropensityFit.cpp
   reagent/serving/operators/Softmax.cpp
   reagent/serving/operators/SoftmaxRanker.cpp
@@ -100,7 +85,7 @@ add_library(
 )
 
 add_executable(
-  DspCli
+  RaspCli
 
   reagent/serving/cli/Main.cpp
 
@@ -108,31 +93,31 @@ add_executable(
   reagent/serving/cli/Server.cpp
 )
 target_link_libraries (
-  DspCli
+  RaspCli
   LINK_PUBLIC
 
-  dsp-lib
+  rasp-lib
   ${TORCH_LIBRARIES}
-  Folly::folly
   glog::glog
   ${GFLAGS_LIBRARIES}
+  Boost::filesystem
 )
 if (WIN32)
-    set_target_properties(DspCli PROPERTIES
+    set_target_properties(RaspCli PROPERTIES
         LINK_FLAGS "/WHOLEARCHIVE"
     )
 elseif (APPLE)
-    set_target_properties(DspCli PROPERTIES
+    set_target_properties(RaspCli PROPERTIES
         LINK_FLAGS "-Wl,-all_load"
     )
 else ()
-    set_target_properties(DspCli PROPERTIES
+    set_target_properties(RaspCli PROPERTIES
         LINK_FLAGS "-Wl,--whole-archive"
     )
 endif ()
 
 add_executable(
-  DspTest
+  RaspTest
 
   reagent/serving/test/DecisionService_test.cpp
   reagent/serving/test/InMemoryLogJoiner_test.cpp
@@ -147,26 +132,37 @@ add_executable(
   reagent/serving/test/PytorchScoring_test.cpp
 )
 target_link_libraries (
-  DspTest
+  RaspTest
   LINK_PUBLIC
 
-  dsp-lib
+  rasp-lib
   ${TORCH_LIBRARIES}
-  Folly::folly
   glog::glog
   ${GFLAGS_LIBRARIES}
   gtest
   gtest_main
-  gmock
-  gmock_main
+  Boost::filesystem
 )
+if (WIN32)
+    set_target_properties(RaspTest PROPERTIES
+        LINK_FLAGS "/WHOLEARCHIVE"
+    )
+elseif (APPLE)
+    set_target_properties(RaspTest PROPERTIES
+        LINK_FLAGS "-Wl,-all_load"
+    )
+else ()
+    set_target_properties(RaspTest PROPERTIES
+        LINK_FLAGS "-Wl,--whole-archive"
+    )
+endif ()
 add_test(
-  DspTest
-  DspTest
+  RaspTest
+  RaspTest
 )
 
 
-install(TARGETS DspCli
+install(TARGETS RaspCli
   PERMISSIONS  OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
   DESTINATION "bin"
   )

@@ -20,7 +20,9 @@ The platform was once named "Horizon" but we have adopted the name "ReAgent" rec
 ReAgent can be installed via. Docker or manually. Detailed instructions on how to install ReAgent can be found [here](docs/installation.rst).
 
 #### Usage
-Detailed instructions on how to use ReAgent can be found [here](docs/usage.rst).
+Detailed instructions on how to use ReAgent Models can be found [here](docs/usage.rst).
+
+The ReAgent Serving Platform (RASP) tutorial is available [here](docs/rasp_tutorial.rst).
 
 #### License
 ReAgent is released under a BSD license.  Find out more about it [here](LICENSE).

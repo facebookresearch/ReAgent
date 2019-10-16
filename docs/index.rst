@@ -24,8 +24,9 @@ ReAgent is an open source end-to-end platform for applied reinforcement learning
 ReAgent is built in Python and uses PyTorch for modeling and training and TorchScript for model serving. The platform contains
 workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training,
 counterfactual policy evaluation, and optimized serving. For more detailed information about ReAgent see the white
-paper `here <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
-The source code is available `here <https://github.com/facebookresearch/Horizon>`_.
+paper here: `Platform <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
+
+The source code is available here: `Source code <https://github.com/facebookresearch/Horizon>`_.
 
 The platform was once named "Horizon" but we have adopted the name "ReAgent" recently to emphasize its broader scope in decision making and reasoning.
 
@@ -49,6 +50,8 @@ here: :ref:`installation`.
 Usage
 ~~~~~~~~~~~~
 
+The ReAgent Serving Platform (RASP) tutorial covers serving and training models and is available here: :ref:`rasp_tutorial`.
+
 Detailed instructions on how to use ReAgent can be found here: :ref:`usage`.
 
 License
@@ -60,6 +63,16 @@ ReAgent is released under a BSD license.  Find out more about it here: :ref:`lic
    :alt: Logo
    :width: 200px
 
+Citing
+~~~~~~
+
+@article{gauci2018horizon,
+  title={Horizon: Facebook's Open Source Applied Reinforcement Learning Platform},
+  author={Gauci, Jason and Conti, Edoardo and Liang, Yitao and Virochsiri, Kittipat and Chen, Zhengxing and He, Yuchen and Kaden, Zachary and Narayanan, Vivek and Ye, Xiaohui},
+  journal={arXiv preprint arXiv:1811.00260},
+  year={2018}
+}
+
 Table of Contents
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -67,6 +80,7 @@ Table of Contents
     :caption: Getting Started
 
     Installation <installation>
+    Tutorial <rasp_tutorial>
     Usage <usage>
 
 .. toctree::

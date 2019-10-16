@@ -13,8 +13,6 @@ with open(input_file, "r") as input_fp:
             input_line = input_fp.readline()
             if not input_line:
                 break
-            print(input_line)
-            print(len(input_line))
             input_line_json = json.loads(input_line)
             output_line = {
                 "ds": "2019-01-01",

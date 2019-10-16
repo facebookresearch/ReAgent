@@ -7,106 +7,72 @@ auto DAG_TIMEOUT = std::chrono::seconds(30);
 namespace reagent {
 StringOperatorDataMap OperatorRunner::run(
     const std::vector<std::shared_ptr<Operator>>& operators,
-    const StringOperatorDataMap& constants,
-    const DecisionRequest& request,
+    const StringOperatorDataMap& constants, const DecisionRequest& request,
     const OperatorData& extraInput) {
-  // Map of futures for finished ops
-  std::unordered_map<
-      std::string,
-      std::shared_ptr<folly::SharedPromise<folly::Unit>>>
-      operatorPromiseMap;
-
   StringOperatorDataMap finishedOperators;
   std::mutex finishedOperatorMutex;
+  tf::Taskflow taskflow;
+
+  std::unordered_map<std::string, tf::Task> operatorTaskMap;
 
   // Add special constant "input" equal to the extra input
-  auto dummyPromise = std::make_shared<folly::SharedPromise<folly::Unit>>();
-  dummyPromise->setWith([]() {});
-  operatorPromiseMap["input"] = dummyPromise;
   finishedOperators["input"] = extraInput;
+  operatorTaskMap["input"] = taskflow.emplace([]() {});
 
   // Add all constants to finished operators
   for (const auto& it : constants) {
-    operatorPromiseMap[it.first] = dummyPromise;
     finishedOperators[it.first] = it.second;
+    operatorTaskMap[it.first] = taskflow.emplace([]() {});
   }
 
-  // Create shared promises for all operators
+  // Create tasks for all operators
   for (const auto& op : operators) {
-    auto opPromise = std::make_shared<folly::SharedPromise<folly::Unit>>();
-    operatorPromiseMap[op->getName()] = opPromise;
+    operatorTaskMap[op->getName()] = taskflow.emplace(
+        [op, &request, &finishedOperators, &finishedOperatorMutex]() {
+          // Resolve input symbols
+          StringOperatorDataMap namedInputs;
+          {
+            std::lock_guard<std::mutex> lock(finishedOperatorMutex);
+            for (const auto& inputDepEntry : op->getInputDepMap()) {
+              const auto& inputName = inputDepEntry.first;
+              const auto& depOperatorName = inputDepEntry.second;
+              auto it = finishedOperators.find(depOperatorName);
+              if (it == finishedOperators.end()) {
+                LOG(ERROR) << "Could not find data for finished operator";
+              }
+              namedInputs[inputName] = it->second;
+            }
+          }
+
+          // Run the op
+          OperatorData outputData = op->run(request, namedInputs);
+
+          // Set output data
+          {
+            std::lock_guard<std::mutex> lock(finishedOperatorMutex);
+            finishedOperators[op->getName()] = outputData;
+          }
+        });
   }
 
-  // List of futures for finished operators
-  std::vector<folly::Future<folly::Unit>> opFinishedFutures;
-
-  // Collect semifutures for each operator's dependencies and collect them, then
-  // set the operator's promise
-  for (auto op : operators) {
-    // Create a list of futures for each dependency
-    std::vector<folly::SemiFuture<folly::Unit>> depFutures;
+  // Set dependencies
+  for (const auto& op : operators) {
+    auto& opTask = operatorTaskMap.at(op->getName());
     for (const auto& depName : op->getDeps()) {
-      if (operatorPromiseMap.find(depName) == operatorPromiseMap.end()) {
-	LOG_AND_THROW("Invalid Operator dep: " << depName);
+      if (operatorTaskMap.find(depName) == operatorTaskMap.end()) {
+        LOG_AND_THROW("Invalid Operator dep: " << depName);
       }
-      depFutures.push_back(operatorPromiseMap.at(depName)->getSemiFuture());
+      operatorTaskMap.at(depName).precede(opTask);
+      // depFutures.push_back(operatorPromiseMap.at(depName)->getSemiFuture());
     }
-
-    // Get the promise for the op we want to run
-    auto operatorPromise = operatorPromiseMap.at(op->getName());
-
-    // Add the following to our finished op list
-    opFinishedFutures.push_back(
-        // Collect the dependencies
-        folly::collect(depFutures)
-            // Assign an executor to run our futures
-            .via(executor_.get())
-            // All the deps are finished, it's go time!
-            .thenValue([op,
-                        operatorPromise,
-                        &request,
-                        &finishedOperators,
-                        &finishedOperatorMutex](
-                           std::vector<folly::Unit> /* unused */) {
-              // Set the promise which will mark this op as finished for its
-              // deps
-              operatorPromise->setWith(
-                  [op, &request, &finishedOperators, &finishedOperatorMutex]() {
-                    // Resolve input symbols
-                    StringOperatorDataMap namedInputs;
-                    {
-                      std::lock_guard<std::mutex> lock(finishedOperatorMutex);
-                      for (const auto& inputDepEntry : op->getInputDepMap()) {
-                        const auto& inputName = inputDepEntry.first;
-                        const auto& depOperatorName = inputDepEntry.second;
-                        auto it = finishedOperators.find(depOperatorName);
-                        if (it == finishedOperators.end()) {
-                          LOG(ERROR)
-                              << "Could not find data for finished operator";
-                        }
-                        namedInputs[inputName] = it->second;
-                      }
-                    }
-
-                    // Run the op
-                    OperatorData outputData = op->run(request, namedInputs);
-
-                    // Set output data
-                    {
-                      std::lock_guard<std::mutex> lock(finishedOperatorMutex);
-                      finishedOperators[op->getName()] = outputData;
-                    }
-                  });
-            }));
   }
 
-  // Collect all finished ops
-  auto allOpsFinishedFuture = folly::collect(opFinishedFutures);
-
-  // Wait on ops to finish
-  allOpsFinishedFuture.wait(DAG_TIMEOUT);
-  if (!allOpsFinishedFuture.isReady()) {
+  auto runStatus = taskExecutor_.run(taskflow).wait_for(DAG_TIMEOUT);
+  if (runStatus == std::future_status::timeout) {
     LOG_AND_THROW("DAG Timeout");
+  }
+  if (runStatus != std::future_status::ready) {
+    LOG_AND_THROW("Unknown error in DAG");
   }
 
   if (finishedOperators.size() != operators.size() + 1 + constants.size()) {
@@ -115,4 +81,4 @@ StringOperatorDataMap OperatorRunner::run(
 
   return finishedOperators;
 }
-} // namespace ml
+}  // namespace reagent

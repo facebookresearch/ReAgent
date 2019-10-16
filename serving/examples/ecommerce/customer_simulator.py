@@ -36,7 +36,7 @@ def post(url: str, content: Any) -> Any:
 
 
 plan_name = sys.argv[1]
-EPOCHS = 10000
+EPOCHS = 1000
 
 
 def serve_customer(epoch) -> Tuple[str, float]:
