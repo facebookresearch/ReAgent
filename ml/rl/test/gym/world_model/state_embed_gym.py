@@ -70,6 +70,9 @@ class StateEmbedGymEnvironment(Env):
         self.recent_states = deque([], maxlen=self.max_embed_seq_len)  # type: ignore
         self.recent_actions = deque([], maxlen=self.max_embed_seq_len)  # type: ignore
 
+    def seed(self, seed):
+        self.env.seed(seed)
+
     def embed_state(self, state):
         """ Embed state after either reset() or step() """
         assert len(self.recent_states) == len(self.recent_actions)

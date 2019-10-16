@@ -251,6 +251,7 @@ def mdnrnn_gym(
     feature_importance: bool = False,
     feature_sensitivity: bool = False,
     save_embedding_to_path: Optional[str] = None,
+    seed: Optional[int] = None,
 ):
     assert params.mdnrnn is not None
     use_gpu = params.use_gpu
@@ -258,7 +259,9 @@ def mdnrnn_gym(
     logger.info(params)
 
     env_type = params.env
-    env = OpenAIGymEnvironment(env_type, epsilon=1.0, softmax_policy=True, gamma=0.99)
+    env = OpenAIGymEnvironment(
+        env_type, epsilon=1.0, softmax_policy=True, gamma=0.99, random_seed=seed
+    )
 
     trainer = create_trainer(params, env, use_gpu)
     _, _, trainer = train_sgd(
