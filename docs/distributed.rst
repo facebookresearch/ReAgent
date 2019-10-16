@@ -24,8 +24,8 @@ and the resulting models will again be identical.  This is the premise behind di
 Training on a single node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using multiple GPUs on a single node is relatively straightforward.  When running either the dqn_workflow or the parametric_dqn_workflow, 
-set the "use_all_avail_gpus" parameters in the input config (the json file) to true.  Horizon will detect the number of available GPUs and
+Using multiple GPUs on a single node is relatively straightforward.  When running either the dqn_workflow or the parametric_dqn_workflow,
+set the "use_all_avail_gpus" parameters in the input config (the json file) to true.  ReAgent will detect the number of available GPUs and
 run on all of them without any additional effort.
 
 Training on multiple nodes

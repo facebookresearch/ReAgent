@@ -3,14 +3,14 @@
 Usage
 =====
 
-Horizon is designed for large-scale, distributed recommendation/optimization tasks where we don't
+ReAgent is designed for large-scale, distributed recommendation/optimization tasks where we don't
 have access to a simulator.  In this environment, it's typically better to train offline on batches
 of data, and release new policies slowly over time.  Because the policy updates slowly and in
 batches, we use *off-policy* algorithms.  To test a new policy without deploying it, we rely on
 *counter-factual policy evaluation (CPE)*\ , a set of techniques for estimating a policy based on the
 actions of another policy.
 
-Before we get started using Horizon as it is intended, let's begin with a traditional RL setup with a simulator where we can trivially evaluate new policies:
+Before we get started using ReAgent as it is intended, let's begin with a traditional RL setup with a simulator where we can trivially evaluate new policies:
 
 1 - On-Policy RL Training
 -------------------------
@@ -31,12 +31,12 @@ While this is typically the set up for people conducting RL research, it isn't a
 #. We want to evaluate the behavior of the policy offline and then keep the policy constant afterwards to reduce the risk that the policy will degrade at odd hours.
 #. We are building on top of traditional recommender systems that typically rely on a fixed, stochastic policy.
 
-For these reasons, Horizon is designed to support batch, off-policy RL.  Let's now walk though how to train a model with Horizon:
+For these reasons, ReAgent is designed to support batch, off-policy RL.  Let's now walk though how to train a model with ReAgent:
 
 2- Offline RL Training (Batch RL)
 ---------------------------------
 
-The main use case of Horizon is to train RL models in the **batch** setting. In batch reinforcement learning the data collection and policy learning steps are decoupled. Specifically, we try to learn the best possible policy given the input data. In batch RL, being able to handle thousands of varying feature types and distributions and algorithm performance estimates before deployment are of key importance.
+The main use case of ReAgent is to train RL models in the **batch** setting. In batch reinforcement learning the data collection and policy learning steps are decoupled. Specifically, we try to learn the best possible policy given the input data. In batch RL, being able to handle thousands of varying feature types and distributions and algorithm performance estimates before deployment are of key importance.
 
 In this example, we will train a DQN model on Offline ``Cartpole-v0`` data:
 
@@ -119,7 +119,7 @@ Step 2 - Convert the data to the ``timeline`` format
 
 Models are trained on consecutive pairs of state/action tuples. To assist in creating this table, we have an ``RLTimelineOperator`` spark operator. Let's build and run the timeline operator on the data:
 
-First, we need to build the Spark library that will execute the timeline.  Apache Spark is a platform for doing massively-parallel processing.  Although we are running this on a single file, Spark is designed to work on thousands of files distribued across many machines.  Explaining HDFS, Hive, and Spark are beyond the scope of this tutorial, but for large datasets it's important to understand these concepts and that it's possible to run Horizon in a distributed environment by simply changing the location of the input from a file to an HDFS folder.
+First, we need to build the Spark library that will execute the timeline.  Apache Spark is a platform for doing massively-parallel processing.  Although we are running this on a single file, Spark is designed to work on thousands of files distribued across many machines.  Explaining HDFS, Hive, and Spark are beyond the scope of this tutorial, but for large datasets it's important to understand these concepts and that it's possible to run ReAgent in a distributed environment by simply changing the location of the input from a file to an HDFS folder.
 
 .. code-block::
 
@@ -164,7 +164,7 @@ Now that all of our data has been grouped into consecutive pairs, we can run the
 Step 3 - Create the normalization parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. Horizon includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data:
+Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data:
 
 .. code-block::
 
