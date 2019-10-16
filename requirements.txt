@@ -1,5 +1,6 @@
 python>=3.7
 cudatoolkit
+boost
 cmake
 eigen==3.3.7
 maven==3.5.0

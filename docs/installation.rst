@@ -6,7 +6,7 @@ Installation
 Anaconda
 ^^^^^^^^
 
-First, install anaconda from here (make sure to pick the python 3 version): `Website <https://www.anaconda.com/>`_.
+First, install anaconda from here (make sure to pick the python 3 version): `Website <https://www.anaconda.com/>`_.  If you would like a smaller download, check out miniconda: `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_.
 
 Next, we're going to add some channels that we need for certain software:
 
@@ -15,6 +15,8 @@ Next, we're going to add some channels that we need for certain software:
    conda config --add channels conda-forge # For ONNX/tensorboardX
    conda config --add channels pytorch # For PyTorch
 
+If you get an error saying that the "conda" command could not be found, make sure that anaconda is installed and your path is set correctly.
+ 
 Clone and enter Horizon repo:
 
 .. code-block::
@@ -77,6 +79,7 @@ And now, you are ready to install Horizon itself.  To install the serving platfo
     mkdir serving/build
     cd serving/build
     cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+    make
 
 
 Next we must package the models.  We use "pip install -e" on the root directory of the repository to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
