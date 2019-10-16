@@ -43,7 +43,7 @@ we will always show bacon (with it’s score of 1.1) and never show ribs
 (with a score of 0.9). This means we will never know the true
 performance of recommending ribs and can’t improve our system in the
 future. This is known as the cold-start or explore-exploit problem
-(TODO: Citations).
+( https://arxiv.org/abs/1812.00116 ).
 
 To avoid that problem, we will use the SoftmaxRanker, which will show
 bacon 52% of the time and ribs 48% of the time. The SoftmaxRanker
@@ -121,11 +121,6 @@ We will be using the built-in web service directly for this tutorial.
 The simulator code can be found at:
 serving/examples/ecommerce/customer_simulator.py
 
-Here is our RP config file. This tells RP where to find decision plans
-and models (coming later):
-
-(RP config)
-
 Makin’ bacon
 ------------
 
@@ -133,7 +128,7 @@ In one terminal window, start the RP server:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ ./serving/build/RaspCli --logtostderr
+   ➜  ./serving/build/RaspCli --logtostderr
    I1014 17:23:19.736086 457250240 DiskConfigProvider.cpp:10] READING CONFIGS FROM serving/examples/ecommerce/plans
    I1014 17:23:19.738142 457250240 DiskConfigProvider.cpp:42] GOT CONFIG multi_armed_bandit.json AT serving/examples/ecommerce/plans/multi_armed_bandit.json
    I1014 17:23:19.738286 457250240 DiskConfigProvider.cpp:46] Registered decision config: multi_armed_bandit.json
@@ -144,12 +139,11 @@ In one terminal window, start the RP server:
    I1014 17:23:19.739843 131715072 Server.cpp:58] STARTING SERVER
 
 Then in another, run our simulator. The simulator will spawn many
-threads and call RASP 10,000 times (this will take a few minutes to
-complete):
+threads and call RASP 1,000 times:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py heuristic.json
+   ➜  python serving/examples/ecommerce/customer_simulator.py heuristic.json
    0
    200
    100
@@ -164,21 +158,20 @@ complete):
    Action Distribution: {'Ribs': 471, 'Bacon': 529}
 
 As expected, we recommend Bacon 52% of the time and Ribs 48% of the
-time. We get an average reward (in this case, average # of clicks) of
-0.3555.
+time. We get an average reward (in this case, average # of clicks) of about 0.36.
 
 This is our baseline performance, but can we do better? From the log, we
 can see that more bacon recommendations were clicked on:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep '"name":"Ribs"}]' | grep '"reward":0.0' | wc -l
+   ➜  cat /tmp/rasp_logging/log.txt | grep '"name":"Ribs"}]' | grep '"reward":0.0' | wc -l
        390 # Ribs not clicked
-   ➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep '"name":"Ribs"}]' | grep '"reward":1.0' | wc -l
+   ➜  cat /tmp/rasp_logging/log.txt | grep '"name":"Ribs"}]' | grep '"reward":1.0' | wc -l
         88 # Ribs clicked
-   ➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep '"name":"Bacon"}]' | grep '"reward":1.0' | wc -l
+   ➜  cat /tmp/rasp_logging/log.txt | grep '"name":"Bacon"}]' | grep '"reward":1.0' | wc -l
        266 # Bacon clicked
-   ➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep '"name":"Bacon"}]' | grep '"reward":0.0' | wc -l
+   ➜  cat /tmp/rasp_logging/log.txt | grep '"name":"Bacon"}]' | grep '"reward":0.0' | wc -l
        253 # Bacon not clicked
 
 This makes sense since, from our simulator definition, most people
@@ -197,7 +190,7 @@ Generates this plan:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ cat serving/examples/ecommerce/plans/multi_armed_bandit.json
+   ➜  cat serving/examples/ecommerce/plans/multi_armed_bandit.json
    {
        "operators": [
            {
@@ -232,7 +225,7 @@ Running with this new plan gives:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
+   ➜  python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
    0
    200
    100
@@ -252,7 +245,7 @@ again:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
+   ➜  python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
    0
    200
    100
@@ -291,8 +284,8 @@ instance of RaspCli:
    …
    I1014 17:45:36.613893 6602752 Server.cpp:58] STARTING SERVER
    ^C
-   ➜  ReAgent git:(master) ✗ rm /tmp/rasp_logging/log.txt
-   ➜  ReAgent git:(master) ✗ ./serving/build/RaspCli --logtostderr
+   ➜  rm /tmp/rasp_logging/log.txt
+   ➜  ./serving/build/RaspCli --logtostderr
    I1014 17:48:49.674149 144418240 DiskConfigProvider.cpp:10] READING CONFIGS FROM serving/examples/ecommerce/plans
    I1014 17:48:49.678155 144418240 DiskConfigProvider.cpp:42] GOT CONFIG multi_armed_bandit.json AT serving/examples/ecommerce/plans/multi_armed_bandit.json
    I1014 17:48:49.679606 144418240 DiskConfigProvider.cpp:46] Registered decision config: multi_armed_bandit.json
@@ -308,14 +301,14 @@ Now let’s run the heuristic model a few times to generate enough data
 
 ::
 
-   ➜  ReAgent git:(master) ✗ for run in {1..10}; do python serving/examples/ecommerce/customer_simulator.py heuristic.json; done
+   ➜  for run in {1..10}; do python serving/examples/ecommerce/customer_simulator.py heuristic.json; done
    0
    200
    ...
    900
    Average reward: 0.36
    Action Distribution: {'Bacon': 516, 'Ribs': 484}
-   ➜  ReAgent git:(master) ✗ wc -l /tmp/rasp_logging/log.txt
+   ➜  wc -l /tmp/rasp_logging/log.txt
       10000 /tmp/rasp_logging/log.txt
 
 RASP’s logging format and the ReAgent models’ input format is slightly
@@ -323,8 +316,8 @@ different. Fortunately, there’s a tool to convert from one to the other:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ python serving/scripts/rasp_to_model.py /tmp/rasp_logging/log.txt ecom_cb_input_data/input.json
-   ➜  ReAgent git:(master) ✗ wc -l ecom_cb_input_data/input.json
+   ➜  python serving/scripts/rasp_to_model.py /tmp/rasp_logging/log.txt ecom_cb_input_data/input.json
+   ➜  wc -l ecom_cb_input_data/input.json
       10000 ecom_cb_input_data/input.json
 
 Since we are using the contextual bandit or RL model, we need to build a
@@ -339,23 +332,23 @@ timeline:
    2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Shutdown hook called
    2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Deleting directory /private/var/folders/jm/snmq7xfn7llc1tpnjgn7889h6l6pkw/T/spark-2b6a4171-cb60-4d5e-8052-87620a0677a2
    2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Deleting directory /private/var/folders/jm/snmq7xfn7llc1tpnjgn7889h6l6pkw/T/spark-927dae4a-6613-4a28-9d88-4d43a03d1cf3
-   ➜  ReAgent git:(master) ✗
+   ➜  
 
 The spark job creates a directory full of files, so we must merge into
 one file for training & evaluation:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ mkdir -p training_data
-   ➜  ReAgent git:(master) ✗ cat ecom_cb_training/part* > training_data/train.json
-   ➜  ReAgent git:(master) ✗ cat ecom_cb_eval/part* > training_data/eval.json
+   ➜  mkdir -p training_data
+   ➜  cat ecom_cb_training/part* > training_data/train.json
+   ➜  cat ecom_cb_eval/part* > training_data/eval.json
 
 Now we run our normalization. Any time we use a deep neural network, we
 need normalization to prevent some large features from drowning others.
 
 ::
 
-   ➜  ReAgent git:(master) ✗ python ml/rl/workflow/create_normalization_metadata.py -p serving/examples/ecommerce/training/cb_train.json
+   ➜  python ml/rl/workflow/create_normalization_metadata.py -p serving/examples/ecommerce/training/cb_train.json
 
    WARNING:root:This caffe2 python run does not have GPU support. Will run in CPU only mode.
    INFO:ml.rl.preprocessing.normalization:Got feature: 0
@@ -368,7 +361,7 @@ Now we can train our contextual bandit:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ rm -Rf "outputs/*" ; python ml/rl/workflow/dqn_workflow.py -p serving/examples/ecommerce/training/cb_train.json
+   ➜  rm -Rf "outputs/*" ; python ml/rl/workflow/dqn_workflow.py -p serving/examples/ecommerce/training/cb_train.json
    INFO:ml.rl.json_serialize:TYPE:
    INFO:ml.rl.json_serialize:{'gamma': 0.0, 'target_update_rate': 1.0, 'maxq_learning': True, 'epsilon': 0.2, 'temperature': 0.35, 'softmax_policy': 0}
    ...
@@ -384,9 +377,9 @@ Now we can train our contextual bandit:
    INFO:ml.rl.workflow.base_workflow:Saving TorchScript predictor to outputs/model_1571105504.torchscript
 
 At this point, we have a model in ``outputs/model_*.torchscript``. We
-are going to combine this scoring model with an e-greedy ranker. The
-e-greedy ranker chooses the best actions most of the time, but sometimes
-chooses random actions to explore:
+are going to combine this scoring model with an Softmax ranker. The
+ranker chooses the best actions most of the time, but rarely
+chooses other actions to explore:
 
 ::
 
@@ -439,14 +432,14 @@ put the model there so we can find it:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ mkdir -p /tmp/0
-   ➜  ReAgent git:(master) ✗ cp outputs/model_*.torchscript /tmp/0/0
+   ➜  mkdir -p /tmp/0
+   ➜  cp outputs/model_*.torchscript /tmp/0/0
 
 Let’s run with our model:
 
 ::
 
-   ➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py contextual_bandit.json
+   ➜  python serving/examples/ecommerce/customer_simulator.py contextual_bandit.json
    0
    200
    100
