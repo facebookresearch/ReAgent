@@ -10,7 +10,6 @@ from typing import Dict
 import torch
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.json_serialize import from_json
-from ml.rl.models.output_transformer import ParametricActionOutputTransformer
 from ml.rl.parameters import (
     ContinuousActionModelParameters,
     NormalizationParameters,

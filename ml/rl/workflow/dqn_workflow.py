@@ -11,7 +11,6 @@ import numpy as np
 import torch
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.json_serialize import from_json
-from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
 from ml.rl.parameters import (
     DiscreteActionModelParameters,
     NormalizationParameters,
