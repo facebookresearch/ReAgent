@@ -3,7 +3,7 @@
 
 
 
-.. image:: ../logo/horizon_banner.png
+.. image:: ../logo/reagent_banner.png
    :alt: Banner
 
 
@@ -58,10 +58,6 @@ License
 ~~~~~~~~~~~~~~
 
 ReAgent is released under a BSD license.  Find out more about it here: :ref:`license`.
-
-.. image:: ../logo/horizon_logo.png
-   :alt: Logo
-   :width: 200px
 
 Citing
 ~~~~~~

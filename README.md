@@ -1,4 +1,4 @@
-![Banner](logo/horizon_banner.png)
+![Banner](logo/reagent_banner.png)
 ### Applied Reinforcement Learning @ Facebook
 [![Build Status](https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master)](https://ci.pytorch.org/jenkins/job/horizon-master/)
 ---
@@ -34,5 +34,3 @@ ReAgent is released under a BSD license.  Find out more about it [here](LICENSE)
   journal={arXiv preprint arXiv:1811.00260},
   year={2018}
 }
-
-<img src="logo/horizon_logo.png" alt="Logo" width="200"/>
