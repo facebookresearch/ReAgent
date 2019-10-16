@@ -4,16 +4,11 @@
 import logging
 
 from ml.rl.models.actor import ActorWithPreprocessing
-from ml.rl.models.output_transformer import (
-    ActorOutputTransformer,
-    ParametricActionOutputTransformer,
-)
-from ml.rl.models.parametric_dqn import ParametricDQNWithPreprocessing
+from ml.rl.models.output_transformer import ActorOutputTransformer
 from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import get_action_output_parameters
 from ml.rl.training.actor_predictor import ActorPredictor
 from ml.rl.training.dqn_predictor import DQNPredictor
-from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 
 
 logger = logging.getLogger(__name__)
@@ -63,48 +58,6 @@ class SandboxedRLExporter(RLExporter):
             output_transformer=self.output_transformer,
         )
         return self.predictor_class(pem, ws, **self.kwargs)
-
-
-class ParametricDQNExporter(SandboxedRLExporter):
-    def __init__(
-        self,
-        dnn,
-        feature_extractor=None,
-        output_transformer=None,
-        state_preprocessor=None,
-        action_preprocessor=None,
-    ):
-        super().__init__(
-            dnn,
-            ParametricDQNPredictor,
-            ParametricDQNWithPreprocessing,
-            feature_extractor,
-            output_transformer,
-            state_preprocessor,
-            action_preprocessor,
-        )
-
-    @classmethod
-    def from_state_action_normalization(
-        cls,
-        dnn,
-        state_normalization,
-        action_normalization,
-        state_preprocessor=None,
-        action_preprocessor=None,
-        **kwargs,
-    ):
-        return cls(
-            dnn=dnn,
-            feature_extractor=PredictorFeatureExtractor(
-                state_normalization_parameters=state_normalization,
-                action_normalization_parameters=action_normalization,
-            ),
-            output_transformer=ParametricActionOutputTransformer(),
-            state_preprocessor=state_preprocessor,
-            action_preprocessor=action_preprocessor,
-            **kwargs,
-        )
 
 
 class ActorExporter(SandboxedRLExporter):

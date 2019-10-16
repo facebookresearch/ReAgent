@@ -14,7 +14,6 @@ from ml.rl.prediction.dqn_torch_predictor import (
 )
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.training.dqn_predictor import DQNPredictor
-from ml.rl.training.parametric_dqn_predictor import ParametricDQNPredictor
 from ml.rl.workflow import dqn_workflow, parametric_dqn_workflow
 
 
