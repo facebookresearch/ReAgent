@@ -25,6 +25,9 @@ binary_common: &binary_common
     docker_image:
       description: "Docker image"
       type: string
+    resource_class_str:
+      description: "Resource class to use"
+      type: string
   environment:
     DOCKER_IMAGE: << parameters.docker_image >>
 
@@ -33,7 +36,7 @@ jobs:
     <<: *binary_common
     docker:
       - image: << parameters.docker_image >>
-    resource_class: gpu.medium
+    resource_class: << parameters.resource_class_str >>
     steps:
       - checkout_merge
       - run: .jenkins/build.sh
@@ -44,6 +47,8 @@ workflows:
       - binary_linux_conda:
           name: binary_linux_conda_py3.7_cpu
           docker_image: kittipatv/reagent:cpu
+          resource_class_str: large
       - binary_linux_conda:
           name: binary_linux_conda_py3.7_cu92
           docker_image: kittipatv/reagent:cuda
+          resource_class_str: large

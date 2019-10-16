@@ -41,10 +41,9 @@ def isinstance_namedtuple(x):
 def from_json(j_obj: Any, to_type: Type) -> Any:
     if j_obj is None:
         return None
-    logger.info("TYPE: ")
-    logger.info(j_obj)
-    logger.info(to_type)
-    logger.info(dir(to_type))
+    logger.debug("TYPE: ")
+    logger.debug(j_obj)
+    logger.debug(to_type)
     if getattr(to_type, "_field_types", None) is not None:
         # Type is a NamedTuple, dive in
         field_data = {}

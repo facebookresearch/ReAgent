@@ -263,6 +263,18 @@ def mdnrnn_gym(
         env_type, epsilon=1.0, softmax_policy=True, gamma=0.99, random_seed=seed
     )
 
+    # create test data once
+    assert params.run_details.max_steps is not None
+    test_replay_buffer = get_replay_buffer(
+        params.run_details.num_test_episodes,
+        params.run_details.seq_len,
+        params.run_details.max_steps,
+        env,
+    )
+    test_batch = test_replay_buffer.sample_memories(
+        test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
+    )
+
     trainer = create_trainer(params, env, use_gpu)
     _, _, trainer = train_sgd(
         env,
@@ -271,15 +283,16 @@ def mdnrnn_gym(
         "{} test run".format(env_type),
         params.mdnrnn.minibatch_size,
         params.run_details,
+        test_batch=test_batch,
     )
     feature_importance_map, feature_sensitivity_map, dataset = None, None, None
     if feature_importance:
         feature_importance_map = calculate_feature_importance(
-            env, trainer, use_gpu, params.run_details
+            env, trainer, use_gpu, params.run_details, test_batch=test_batch
         )
     if feature_sensitivity:
         feature_sensitivity_map = calculate_feature_sensitivity_by_actions(
-            env, trainer, use_gpu, params.run_details
+            env, trainer, use_gpu, params.run_details, test_batch=test_batch
         )
     if save_embedding_to_path:
         dataset = RLDataset(save_embedding_to_path)
@@ -293,6 +306,7 @@ def calculate_feature_importance(
     trainer: MDNRNNTrainer,
     use_gpu: bool,
     run_details: OpenAiRunDetails,
+    test_batch: rlt.PreprocessedTrainingBatch,
 ):
     assert run_details.max_steps is not None
     assert run_details.num_test_episodes is not None
@@ -304,15 +318,6 @@ def calculate_feature_importance(
         action_feature_num=gym_env.action_dim,
         sorted_action_feature_start_indices=list(range(gym_env.action_dim)),
         sorted_state_feature_start_indices=list(range(gym_env.state_dim)),
-    )
-    test_replay_buffer = get_replay_buffer(
-        run_details.num_test_episodes,
-        run_details.seq_len,
-        run_details.max_steps,
-        gym_env,
-    )
-    test_batch = test_replay_buffer.sample_memories(
-        test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
     )
     feature_loss_vector = feature_importance_evaluator.evaluate(test_batch)[
         "feature_loss_increase"
@@ -474,6 +479,7 @@ def calculate_feature_sensitivity_by_actions(
     trainer: MDNRNNTrainer,
     use_gpu: bool,
     run_details: OpenAiRunDetails,
+    test_batch: rlt.PreprocessedTrainingBatch,
     seq_len: int = 5,
     num_test_episodes: int = 100,
 ):
@@ -482,12 +488,6 @@ def calculate_feature_sensitivity_by_actions(
         trainer,
         state_feature_num=gym_env.state_dim,
         sorted_state_feature_start_indices=list(range(gym_env.state_dim)),
-    )
-    test_replay_buffer = get_replay_buffer(
-        num_test_episodes, seq_len, run_details.max_steps, gym_env
-    )
-    test_batch = test_replay_buffer.sample_memories(
-        test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
     )
     feature_sensitivity_vector = feature_sensitivity_evaluator.evaluate(test_batch)[
         "feature_sensitivity"
@@ -510,6 +510,7 @@ def train_sgd(
     test_run_name: str,
     minibatch_size: int,
     run_details: OpenAiRunDetails,
+    test_batch: rlt.PreprocessedTrainingBatch,
 ):
     assert run_details.max_steps is not None
     train_replay_buffer = get_replay_buffer(
@@ -524,11 +525,8 @@ def train_sgd(
         run_details.max_steps,
         gym_env,
     )
-    test_replay_buffer = get_replay_buffer(
-        run_details.num_test_episodes,
-        run_details.seq_len,
-        run_details.max_steps,
-        gym_env,
+    valid_batch = valid_replay_buffer.sample_memories(
+        valid_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
     )
     valid_loss_history = []
 
@@ -568,9 +566,6 @@ def train_sgd(
             )
 
         trainer.mdnrnn.mdnrnn.eval()
-        valid_batch = valid_replay_buffer.sample_memories(
-            valid_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
-        )
         valid_losses = trainer.get_loss(
             valid_batch, state_dim=gym_env.state_dim, batch_first=True
         )
@@ -597,9 +592,6 @@ def train_sgd(
             break
 
     trainer.mdnrnn.mdnrnn.eval()
-    test_batch = test_replay_buffer.sample_memories(
-        test_replay_buffer.memory_size, use_gpu=use_gpu, batch_first=True
-    )
     test_losses = trainer.get_loss(
         test_batch, state_dim=gym_env.state_dim, batch_first=True
     )

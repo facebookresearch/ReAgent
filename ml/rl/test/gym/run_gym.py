@@ -334,7 +334,7 @@ def train_gym_offline_rl(
 
         # test model performance for this epoch
         avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-            avg_over_num_episodes, predictor, test=True
+            avg_over_num_episodes, predictor, test=True, max_steps=max_steps
         )
         avg_reward_history.append(avg_rewards)
 
@@ -508,7 +508,7 @@ def train_gym_online_rl(
             # Evaluation loop
             if total_timesteps % test_every_ts == 0 and total_timesteps > test_after_ts:
                 avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-                    avg_over_num_episodes, predictor, test=True
+                    avg_over_num_episodes, predictor, test=True, max_steps=max_steps
                 )
                 if avg_rewards > best_episode_score_seen:
                     best_episode_score_seen = avg_rewards
@@ -547,7 +547,7 @@ def train_gym_online_rl(
         # Always eval on last episode
         if i == num_episodes - 1:
             avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-                avg_over_num_episodes, predictor, test=True
+                avg_over_num_episodes, predictor, test=True, max_steps=max_steps
             )
             avg_reward_history.append(avg_rewards)
             timestep_history.append(total_timesteps)
@@ -585,12 +585,6 @@ def main(args):
         help="Bar for averaged tests scores.",
         type=float,
         default=None,
-    )
-    parser.add_argument(
-        "-g",
-        "--gpu_id",
-        help="If set, will use GPU with specified ID. Otherwise will use CPU.",
-        default=-1,
     )
     parser.add_argument(
         "-l",
@@ -636,6 +630,11 @@ def main(args):
         type=int,
         default=None,
     )
+    parser.add_argument(
+        "--use_gpu",
+        help="Use GPU, if available; set the device with CUDA_VISIBLE_DEVICES",
+        action="store_true",
+    )
 
     args = parser.parse_args(args)
 
@@ -655,7 +654,9 @@ def main(args):
 
     with open(args.parameters, "r") as f:
         params = json_to_object(f.read(), OpenAiGymParameters)
-    if args.use_gpu != -1:
+
+    if args.use_gpu:
+        assert torch.cuda.is_available(), "CUDA requested but not available"
         params = params._replace(use_gpu=True)
 
     dataset = RLDataset(args.file_path) if args.file_path else None
