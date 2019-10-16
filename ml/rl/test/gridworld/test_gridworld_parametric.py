@@ -6,7 +6,6 @@ import unittest
 
 import numpy as np
 import torch
-from ml.rl.models.output_transformer import ParametricActionOutputTransformer
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.parameters import (
     ContinuousActionModelParameters,
