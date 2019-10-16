@@ -5,7 +5,7 @@ License
 
 BSD License
 
-For Horizon software
+For ReAgent software
 
 Copyright (c) 2017-present, Facebook, Inc. All rights reserved.
 

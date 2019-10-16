@@ -16,13 +16,13 @@ Next, we're going to add some channels that we need for certain software:
    conda config --add channels pytorch # For PyTorch
 
 If you get an error saying that the "conda" command could not be found, make sure that anaconda is installed and your path is set correctly.
- 
-Clone and enter Horizon repo:
+
+Clone and enter ReAgent repo:
 
 .. code-block::
 
-   git clone --recurse-submodules https://github.com/facebookresearch/Horizon.git
-   cd Horizon/
+   git clone --recurse-submodules https://github.com/facebookresearch/ReAgent.git
+   cd ReAgent/
 
 If you already cloned the repo without submodules, they can be added by running this command inside the repository"
 
@@ -72,7 +72,7 @@ As of pytorch 1.3, libtorch is broken on OS/X.  To fix (mac only):
 
     cp ~/miniconda3/lib/libiomp5.dylib $HOME/libtorch/lib/
 
-And now, you are ready to install Horizon itself.  To install the serving platform:
+And now, you are ready to install ReAgent itself.  To install the serving platform:
 
 .. code-block::
 
@@ -82,7 +82,7 @@ And now, you are ready to install Horizon itself.  To install the serving platfo
     make
 
 
-Next we must package the models.  We use "pip install -e" on the root directory of the repository to create an ephemral package.  This means that you can make changes to Horizon and they will be reflected in the package immediately.
+Next we must package the models.  We use "pip install -e" on the root directory of the repository to create an ephemral package.  This means that you can make changes to ReAgent and they will be reflected in the package immediately.
 
 .. code-block::
 
@@ -104,8 +104,8 @@ To build, clone repository and cd into the respective directory:
 
 .. code-block::
 
-   git clone https://github.com/facebookresearch/Horizon.git
-   cd Horizon/
+   git clone https://github.com/facebookresearch/ReAgent.git
+   cd ReAgent/
 
 On macOS you will need to increase the default memory allocation as the default of 2G is not enough. You can do this by clicking the whale icon in the task bar. We recommend using at least 8G of memory.
 
@@ -127,37 +127,37 @@ To build with CUDA support, use the corresponding dockerfile:
 
    docker build -f docker/cuda.Dockerfile -t horizon:dev .
 
-Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local Horizon repo as a volume using the ``-v`` flag. We also add ``-p`` for port mapping so we can view Tensorboard visualizations locally.
+Once the Docker image is built you can start an interactive shell in the container and run the unit tests. To have the ability to edit files locally and have changes be available in the Docker container, mount the local ReAgent repo as a volume using the ``-v`` flag. We also add ``-p`` for port mapping so we can view Tensorboard visualizations locally.
 
 .. code-block::
 
-   docker run -v $PWD:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+   docker run -v $PWD:/home/ReAgent -p 0.0.0.0:6006:6006 -it horizon:dev
 
 To run with GPU, include ``--runtime=nvidia`` after installing `nvidia-docker <https://github.com/NVIDIA/nvidia-docker>`_.
 
 .. code-block::
 
-   docker run --runtime=nvidia -v $PWD:/home/Horizon -p 0.0.0.0:6006:6006 -it horizon:dev
+   docker run --runtime=nvidia -v $PWD:/home/ReAgent -p 0.0.0.0:6006:6006 -it horizon:dev
 
 If you have SELinux (Fedora, Redhat, etc.) you will have to start docker with the following command (notice the ``:Z`` at the end of path):
 
 .. code-block::
 
-   docker run -v $PWD:/home/Horizon:Z -p 0.0.0.0:6006:6006 -it horizon:dev
+   docker run -v $PWD:/home/ReAgent:Z -p 0.0.0.0:6006:6006 -it horizon:dev
 
 To run with GPU, include ``--runtime=nvidia`` after installing `nvidia-docker <https://github.com/NVIDIA/nvidia-docker>`_.
 
 .. code-block::
 
-   docker run --runtime=nvidia -v $PWD:/home/Horizon:Z -p 0.0.0.0:6006:6006 -it horizon:dev
+   docker run --runtime=nvidia -v $PWD:/home/ReAgent:Z -p 0.0.0.0:6006:6006 -it horizon:dev
 
-Depending on where your local Horizon copy is, you may need to white list your shared path via Docker -> Preferences... -> File Sharing.
+Depending on where your local ReAgent copy is, you may need to white list your shared path via Docker -> Preferences... -> File Sharing.
 
 Once inside the container, run the setup file:
 
 .. code-block::
 
-   cd Horizon
+   cd ReAgent
    ./scripts/setup.sh
 
 Now you can run all the tests:
