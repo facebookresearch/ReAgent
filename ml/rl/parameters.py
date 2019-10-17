@@ -286,7 +286,7 @@ class CEMParameters(BaseDataClass):
 @dataclass
 class OpenAiRunDetails(BaseDataClass):
     solved_reward_threshold: Optional[int] = None
-    max_episodes_to_run_after_solved: int = 0
+    max_episodes_to_run_after_solved: Optional[int] = None
     stop_training_after_solved: bool = False
     num_episodes: int = 301
     max_steps: Optional[int] = None
@@ -327,6 +327,7 @@ class OpenAiGymParameters(BaseDataClass):
     actor_training: Optional[FeedForwardParameters] = None
     cem: Optional[CEMParameters] = None
     mdnrnn: Optional[MDNRNNParameters] = None
+    evaluation: EvaluationParameters = EvaluationParameters()
 
 
 #################################################

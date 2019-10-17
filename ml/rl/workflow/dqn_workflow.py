@@ -177,6 +177,10 @@ def main(params):
             "Horizon is configured to use all GPUs but your platform doesn't support torch.distributed & torch.cuda!"
         )
         params["use_all_avail_gpus"] = False
+    if params["use_gpu"] and not torch.cuda.is_available():
+        logger.info("GPU requested but not available")
+        params["use_gpu"] = False
+
     if params["use_all_avail_gpus"]:
         params["num_processes_per_node"] = max(1, torch.cuda.device_count())
         multiprocessing.spawn(

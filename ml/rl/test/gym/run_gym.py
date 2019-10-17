@@ -147,9 +147,6 @@ def train(
     run_details: OpenAiRunDetails,
     save_timesteps_to_dataset=None,
     start_saving_from_score=None,
-    solved_reward_threshold=None,
-    max_episodes_to_run_after_solved=None,
-    stop_training_after_solved=False,
     bcq_imitator_hyperparams=None,
     reward_shape_func=None,
 ):
@@ -193,9 +190,9 @@ def train(
             run_details.render,
             save_timesteps_to_dataset,
             start_saving_from_score,
-            solved_reward_threshold,
-            max_episodes_to_run_after_solved,
-            stop_training_after_solved,
+            run_details.solved_reward_threshold,
+            run_details.max_episodes_to_run_after_solved,
+            run_details.stop_training_after_solved,
             reward_shape_func,
         )
 
@@ -515,7 +512,7 @@ def train_gym_online_rl(
 
                 if (
                     solved_reward_threshold is not None
-                    and best_episode_score_seen > solved_reward_threshold
+                    and best_episode_score_seen >= solved_reward_threshold
                 ):
                     solved = True
 
@@ -782,6 +779,7 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
             rl=rl_parameters,
             training=training_parameters,
             rainbow=params.rainbow,
+            evaluation=params.evaluation,
         )
         trainer = create_dqn_trainer_from_params(
             discrete_trainer_params, env.normalization, use_gpu
