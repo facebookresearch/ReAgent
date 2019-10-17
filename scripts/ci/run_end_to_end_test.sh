@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 # Builds ReAgent and runs basic tests.
 
-set -e
+set -ex
 
 export PATH=${HOME}/miniconda/bin:$PATH
 
@@ -10,7 +10,6 @@ pip uninstall -y reagent
 
 # Installing from current directory, any update will be reflected system-wide
 pip install -e .
-pytest
 
 # Build the spark package
 mvn -f preprocessing/pom.xml clean package
