@@ -309,7 +309,6 @@ class OpenAIGymEnvironment(Environment):
         num_steps_taken = 0
 
         while not terminal:
-            # czxttkl
             logger.debug(
                 f"OpenAIGym: {num_steps_taken}-th step, state: {next_state_numpy}"
             )
@@ -320,13 +319,11 @@ class OpenAIGymEnvironment(Environment):
             if self.action_type == EnvType.DISCRETE_ACTION:
                 action_index = int(torch.argmax(action))
                 next_state_numpy, reward, terminal, _ = self.step(action_index)
-                # czxttkl
                 logger.debug(
                     f"OpenAIGym: take action {action_index}, reward: {reward}, terminal: {terminal}"
                 )
             else:
                 next_state_numpy, reward, terminal, _ = self.step(action.numpy())
-                # czxttkl
                 logger.debug(
                     f"OpenAIGym: take action {action.numpy()}, reward: {reward}, terminal: {terminal}"
                 )

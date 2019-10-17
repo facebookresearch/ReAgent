@@ -68,6 +68,8 @@ class FeatureImportanceEvaluator(object):
     def evaluate(self, tdp: PreprocessedTrainingBatch):
         """ Calculate feature importance: setting each state/action feature to
         the mean value and observe loss increase. """
+        assert isinstance(tdp.training_input, PreprocessedMemoryNetworkInput)
+
         self.trainer.mdnrnn.mdnrnn.eval()
 
         state_features = tdp.training_input.state.float_features
@@ -209,16 +211,17 @@ class FeatureSensitivityEvaluator(object):
         """ Calculate state feature sensitivity due to actions:
         randomly permutating actions and see how much the prediction of next
         state feature deviates. """
+        mdnrnn_training_input = tdp.training_input
+        assert isinstance(mdnrnn_training_input, PreprocessedMemoryNetworkInput)
+
         self.trainer.mdnrnn.mdnrnn.eval()
 
         batch_size, seq_len, state_dim = (
-            tdp.training_input.next_state.float_features.size()
+            mdnrnn_training_input.next_state.float_features.size()
         )
         state_feature_num = self.state_feature_num
         feature_sensitivity = torch.zeros(state_feature_num)
 
-        mdnrnn_training_input = tdp.training_input
-        assert isinstance(mdnrnn_training_input, PreprocessedMemoryNetworkInput)
         state, action, next_state, reward, not_terminal = transpose(
             mdnrnn_training_input.state.float_features,
             mdnrnn_training_input.action,

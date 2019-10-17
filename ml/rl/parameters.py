@@ -327,3 +327,36 @@ class OpenAiGymParameters(BaseDataClass):
     actor_training: Optional[FeedForwardParameters] = None
     cem: Optional[CEMParameters] = None
     mdnrnn: Optional[MDNRNNParameters] = None
+
+
+#################################################
+#             RL Ranking parameters             #
+#################################################
+@dataclass
+class TransformerParameters(BaseDataClass):
+    num_heads: int
+    dim_model: int
+    dim_feedforward: int
+    num_stacked_layers: int
+
+
+@dataclass
+class BaselineParameters(BaseDataClass):
+    dim_feedforward: int
+    num_stacked_layers: int
+
+
+@dataclass
+class Seq2SlateTransformerParameters(BaseDataClass):
+    transformer: TransformerParameters
+    baseline: BaselineParameters
+    on_policy: bool
+
+
+@dataclass
+class RankingParameters(BaseDataClass):
+    minibatch_size: int
+    max_src_seq_len: int
+    max_tgt_seq_len: int
+    greedy_serving: bool
+    evaluation: EvaluationParameters = EvaluationParameters()
