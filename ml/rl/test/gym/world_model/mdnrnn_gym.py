@@ -454,7 +454,7 @@ def create_embed_rl_dataset(
         dataset.insert(
             state=state_embed,
             action=torch.tensor(action_batch[i][hidden_idx + 1]),  # type: ignore
-            reward=reward_batch[i][hidden_idx + 1],  # type: ignore
+            reward=float(reward_batch[i][hidden_idx + 1]),  # type: ignore
             next_state=next_state_embed,
             next_action=torch.tensor(
                 next_action_batch[i][next_hidden_idx + 1]  # type: ignore

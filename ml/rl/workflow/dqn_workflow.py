@@ -13,6 +13,7 @@ from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.json_serialize import from_json
 from ml.rl.parameters import (
     DiscreteActionModelParameters,
+    EvaluationParameters,
     NormalizationParameters,
     RainbowDQNParameters,
     RLParameters,
@@ -117,12 +118,17 @@ def single_process_main(gpu_index, *args):
     rl_parameters = from_json(params["rl"], RLParameters)
     training_parameters = from_json(params["training"], TrainingParameters)
     rainbow_parameters = from_json(params["rainbow"], RainbowDQNParameters)
+    if "evaluation" in params:
+        evaluation_parameters = from_json(params["evaluation"], EvaluationParameters)
+    else:
+        evaluation_parameters = EvaluationParameters()
 
     model_params = DiscreteActionModelParameters(
         actions=action_names,
         rl=rl_parameters,
         training=training_parameters,
         rainbow=rainbow_parameters,
+        evaluation=evaluation_parameters,
     )
     state_normalization = BaseWorkflow.read_norm_file(params["state_norm_data_path"])
 

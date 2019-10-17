@@ -123,8 +123,8 @@ def create_replay_buffer(
     replay_buffer = OpenAIGymMemoryPool(params.max_replay_memory_size)
     if path_to_pickled_transitions:
         create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
-        replay_state_dim = replay_buffer.replay_memory[0][0].shape[0]
-        replay_action_dim = replay_buffer.replay_memory[0][1].shape[0]
+        replay_state_dim = replay_buffer.state_dim
+        replay_action_dim = replay_buffer.action_dim
         assert replay_state_dim == env.state_dim
         assert replay_action_dim == env.action_dim
     elif offline_train:
@@ -490,7 +490,7 @@ def train_gym_online_rl(
             if (
                 total_timesteps % train_every_ts == 0
                 and total_timesteps > train_after_ts
-                and len(replay_buffer.replay_memory) >= trainer.minibatch_size
+                and replay_buffer.size >= trainer.minibatch_size
                 and not (stop_training_after_solved and solved)
             ):
                 for _ in range(num_train_batches):
