@@ -6,7 +6,6 @@
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.1,
-
     "maxq_learning": true,
     "epsilon": 0.05,
     "temperature": 0.35,
@@ -28,20 +27,25 @@
       "relu",
       "linear"
     ],
-    "minibatch_size": 1024,
-    "learning_rate": 0.001,
+    "minibatch_size": 256,
+    "learning_rate": 0.005,
     "optimizer": "ADAM",
     "lr_decay": 0.999
   },
+  "evaluation": {
+    "calc_cpe_in_training": false
+  },
   "run_details": {
-    "num_episodes": 150,
+    "num_episodes": 70,
     "max_steps": 200,
-    "train_every_ts": 1,
+    "stop_training_after_solved": true,
+    "solved_reward_threshold": 200,
+    "train_every_ts": 2,
     "train_after_ts": 1,
-    "test_every_ts": 2000,
+    "test_every_ts": 400,
     "test_after_ts": 1,
     "num_train_batches": 1,
-    "avg_over_num_episodes": 100,
-    "offline_train_epochs": 30
+    "avg_over_num_episodes": 25,
+    "offline_train_epochs": 10
   }
 }
