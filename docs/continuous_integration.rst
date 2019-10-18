@@ -9,6 +9,7 @@ If you need a new dependency, you will have to rebuild Docker images, upload the
 Here are the steps:
 
 .. code-block::
+
    docker build -f docker/cpu.Dockerfile -t reagent:cpu .
    docker tag reagent:cpu kittipatv/reagent:cpu_test
    docker push kittipatv/reagent:cpu_test
