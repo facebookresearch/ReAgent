@@ -90,7 +90,7 @@ class MDNRNNTrainer:
             + BCE(not_terminal, logit_not_terminal)
 
         The STATE_DIM + 2 factor is here to counteract the fact that the GMMLoss scales
-            approximately linearily with STATE_DIM, the feature size of states. All losses
+            approximately linearly with STATE_DIM, the feature size of states. All losses
             are averaged both on the batch and the sequence dimensions (the two first
             dimensions).
 

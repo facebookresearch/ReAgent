@@ -393,7 +393,7 @@ class Preprocessor(Module):
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
         """
-        Replace the value with it's percentile in the range [0,1].
+        Replace the value with its percentile in the range [0,1].
 
         This preprocesses several features in a single step by putting the
         quantile boundaries in the third dimension and broadcasting.

@@ -135,7 +135,7 @@ U = TypeVar("U", bound="SequenceFeatures")
 @dataclass
 class SequenceFeatures(BaseDataClass):
     """
-    A stub-class for sequence features in the model. All fileds should be subclass of
+    A stub-class for sequence features in the model. All fields should be subclass of
     SequenceFeatureBase above.
     """
 

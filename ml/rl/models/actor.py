@@ -86,7 +86,7 @@ class GaussianFullyConnectedActor(ModelBase):
         ), "The numbers of sizes and activations must match; got {} vs {}".format(
             len(sizes), len(activations)
         )
-        # The last layer is mean & scale for reparamerization trick
+        # The last layer is mean & scale for reparameterization trick
         self.fc = FullyConnectedNetwork(
             [state_dim] + sizes + [action_dim * 2],
             activations + ["linear"],

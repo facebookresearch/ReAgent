@@ -33,7 +33,7 @@ class TestLinearDynamicsEnvironment(unittest.TestCase):
         def lqr_policy(env, state):
             # Four matrices that characterize the environment
             A, B, Q, R = env.A, env.B, env.Q, env.R
-            # Solve disctrete algebraic Riccati equation:
+            # Solve discrete algebraic Riccati equation:
             M = linalg.solve_discrete_are(A, B, Q, R)
             K = np.dot(
                 linalg.inv(np.dot(np.dot(B.T, M), B) + R), (np.dot(np.dot(B.T, M), A))

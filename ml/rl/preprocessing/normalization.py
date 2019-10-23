@@ -94,7 +94,7 @@ def identify_parameter(
 
         # shift can be estimated but not in scipy
         boxcox_shift = float(min_value * -1)
-        candidate_values, lmbda = stats.boxcox(
+        candidate_values, lambda_ = stats.boxcox(
             np.maximum(values + boxcox_shift, BOX_COX_MARGIN)
         )
         k2_boxcox, p_boxcox = stats.normaltest(candidate_values)
@@ -103,7 +103,7 @@ def identify_parameter(
                 k2_original, p_original, k2_boxcox, p_boxcox
             )
         )
-        if lmbda < 0.9 or lmbda > 1.1:
+        if lambda_ < 0.9 or lambda_ > 1.1:
             # Lambda is far enough from 1.0 to be worth doing boxcox
             if k2_original > k2_boxcox * 10 and k2_boxcox <= quantile_k2_threshold:
                 # The boxcox output is significantly more normally distributed
@@ -118,7 +118,7 @@ def identify_parameter(
                     and not np.isclose(stddev, 0)
                 ):
                     values = candidate_values
-                    boxcox_lambda = float(lmbda)
+                    boxcox_lambda = float(lambda_)
         if boxcox_lambda is None or skip_box_cox:
             boxcox_shift = None
             boxcox_lambda = None
