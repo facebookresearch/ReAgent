@@ -13,23 +13,6 @@ from torch.distributions import Dirichlet  # type: ignore
 from torch.distributions.normal import Normal
 
 
-# TODO: Delete this class
-class ActorWithPreprocessing(ModelBase):
-    def __init__(self, actor_network, state_preprocessor):
-        super().__init__()
-        self.state_preprocessor = state_preprocessor
-        self.actor_network = actor_network
-
-    def forward(self, input):
-        preprocessed_state = self.state_preprocessor(input.state)
-        return self.actor_network(rlt.PreprocessedState.from_tensor(preprocessed_state))
-
-    def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(
-            self.state_preprocessor.input_prototype()
-        )
-
-
 class FullyConnectedActor(ModelBase):
     def __init__(
         self,
