@@ -6,7 +6,11 @@ Subpackages
 
 .. toctree::
 
+   ml.rl.evaluation
+   ml.rl.models
+   ml.rl.prediction
    ml.rl.preprocessing
+   ml.rl.readers
    ml.rl.simulators
    ml.rl.training
    ml.rl.workflow
