@@ -175,6 +175,7 @@ class FeatureVector(BaseDataClass):
 class ActorOutput(BaseDataClass):
     action: torch.Tensor
     log_prob: Optional[torch.Tensor] = None
+    action_mean: Optional[torch.Tensor] = None
 
 
 @dataclass

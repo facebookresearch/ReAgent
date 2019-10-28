@@ -148,7 +148,9 @@ class GaussianFullyConnectedActor(ModelBase):
             )
         log_prob = torch.sum(log_prob - squash_correction, dim=1)
 
-        return rlt.ActorOutput(action=action, log_prob=log_prob.reshape(-1, 1))
+        return rlt.ActorOutput(
+            action=action, log_prob=log_prob.reshape(-1, 1), action_mean=loc
+        )
 
     def _atanh(self, x):
         """

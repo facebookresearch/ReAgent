@@ -206,6 +206,7 @@ class SACTrainingParameters(BaseDataClass):
     target_entropy: float = -1.0
     alpha_optimizer: OptimizerParameters = OptimizerParameters()
     action_embedding_kld_weight: Optional[float] = None
+    apply_kld_on_mean: Optional[bool] = None
     action_embedding_mean: Optional[List[float]] = None
     action_embedding_variance: Optional[List[float]] = None
 

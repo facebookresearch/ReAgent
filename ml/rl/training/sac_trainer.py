@@ -111,6 +111,7 @@ class SACTrainer(RLTrainer):
         )
 
         self.add_kld_to_loss = bool(parameters.training.action_embedding_kld_weight)
+        self.apply_kld_on_mean = bool(parameters.training.apply_kld_on_mean)
 
         if self.add_kld_to_loss:
             self.kld_weight = parameters.training.action_embedding_kld_weight
@@ -287,8 +288,12 @@ class SACTrainer(RLTrainer):
             actor_loss_mean = actor_loss.mean()
 
             if self.add_kld_to_loss:
-                action_batch_m = torch.mean(actor_output.action, axis=0)
-                action_batch_v = torch.var(actor_output.action, axis=0)
+                if self.apply_kld_on_mean:
+                    action_batch_m = torch.mean(actor_output.action_mean, axis=0)
+                    action_batch_v = torch.var(actor_output.action_mean, axis=0)
+                else:
+                    action_batch_m = torch.mean(actor_output.action, axis=0)
+                    action_batch_v = torch.var(actor_output.action, axis=0)
                 kld = (
                     0.5
                     * (
