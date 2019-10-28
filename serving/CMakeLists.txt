@@ -26,7 +26,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Required packages
 find_package(Threads REQUIRED)
 find_package(gflags REQUIRED)
-find_package(glog CONFIG)
+find_package(glog REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread filesystem regex context program_options)
 find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
@@ -47,14 +47,7 @@ include_directories(
 
 add_library(
   rasp-lib
-  STATIC
-
-  ${api-cpp2-HEADERS}
-  ${api-cpp2-SOURCES}
-  ${decision-cpp2-HEADERS}
-  ${decision-cpp2-SOURCES}
-  ${example-cpp2-HEADERS}
-  ${example-cpp2-SOURCES}
+  OBJECT
 
   reagent/serving/core/DecisionServiceException.cpp
   reagent/serving/core/ConfigProvider.cpp
@@ -82,10 +75,21 @@ add_library(
   reagent/serving/operators/SoftmaxRanker.cpp
   reagent/serving/operators/Frechet.cpp
   reagent/serving/operators/Expression.cpp
+  )
+target_link_libraries(
+  rasp-lib
+  LINK_PUBLIC
+
+  ${TORCH_LIBRARIES}
+  glog::glog
+  gflags
+  Boost::filesystem
 )
 
 add_executable(
   RaspCli
+
+  $<TARGET_OBJECTS:rasp-lib>
 
   reagent/serving/cli/Main.cpp
 
@@ -96,28 +100,16 @@ target_link_libraries (
   RaspCli
   LINK_PUBLIC
 
-  rasp-lib
   ${TORCH_LIBRARIES}
   glog::glog
-  ${GFLAGS_LIBRARIES}
+  gflags
   Boost::filesystem
 )
-if (WIN32)
-    set_target_properties(RaspCli PROPERTIES
-        LINK_FLAGS "/WHOLEARCHIVE"
-    )
-elseif (APPLE)
-    set_target_properties(RaspCli PROPERTIES
-        LINK_FLAGS "-Wl,-all_load"
-    )
-else ()
-    set_target_properties(RaspCli PROPERTIES
-        LINK_FLAGS "-Wl,--whole-archive"
-    )
-endif ()
 
 add_executable(
   RaspTest
+
+  $<TARGET_OBJECTS:rasp-lib>
 
   reagent/serving/test/DecisionService_test.cpp
   reagent/serving/test/InMemoryLogJoiner_test.cpp
@@ -135,27 +127,15 @@ target_link_libraries (
   RaspTest
   LINK_PUBLIC
 
-  rasp-lib
   ${TORCH_LIBRARIES}
   glog::glog
-  ${GFLAGS_LIBRARIES}
+  gflags
+  Boost::filesystem
+
   gtest
   gtest_main
-  Boost::filesystem
 )
-if (WIN32)
-    set_target_properties(RaspTest PROPERTIES
-        LINK_FLAGS "/WHOLEARCHIVE"
-    )
-elseif (APPLE)
-    set_target_properties(RaspTest PROPERTIES
-        LINK_FLAGS "-Wl,-all_load"
-    )
-else ()
-    set_target_properties(RaspTest PROPERTIES
-        LINK_FLAGS "-Wl,--whole-archive"
-    )
-endif ()
+
 add_test(
   RaspTest
   RaspTest
