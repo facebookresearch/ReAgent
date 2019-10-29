@@ -220,7 +220,8 @@ def run_gym(
     for row in embed_rl_dataset.rows:
         replay_buffer.insert_into_memory(**row)
 
-    state_mem = torch.cat([m[0] for m in replay_buffer.replay_memory])
+    assert replay_buffer.memory_buffer is not None
+    state_mem = replay_buffer.memory_buffer.state
     state_min_value = torch.min(state_mem).item()
     state_max_value = torch.max(state_mem).item()
     state_embed_env = StateEmbedGymEnvironment(

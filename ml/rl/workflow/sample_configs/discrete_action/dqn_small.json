@@ -22,7 +22,6 @@
   "rl": {
     "gamma": 0.99,
     "target_update_rate": 0.2,
-    
     "maxq_learning": true,
     "epsilon": 0.2,
     "temperature": 0.35,
@@ -31,6 +30,9 @@
   "rainbow": {
     "double_q_learning": true,
     "dueling_architecture": false
+  },
+  "evaluation": {
+    "calc_cpe_in_training": false
   },
   "training": {
     "layers": [
@@ -45,7 +47,7 @@
       "linear"
     ],
     "minibatch_size": 256,
-    "learning_rate": 0.001,
+    "learning_rate": 0.005,
     "optimizer": "ADAM",
     "lr_decay": 0.999,
     "warm_start_model_path": null,

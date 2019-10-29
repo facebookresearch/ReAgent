@@ -44,8 +44,6 @@ class EvaluationDataPage(NamedTuple):
     def create_from_training_batch(
         cls, tdb: rlt.PreprocessedTrainingBatch, trainer: DQNTrainer
     ):
-        assert tdb.training_input.reward is not None
-
         if type(tdb.training_input) == rlt.PreprocessedDiscreteDqnInput:
             discrete_training_input = cast(
                 rlt.PreprocessedDiscreteDqnInput, tdb.training_input

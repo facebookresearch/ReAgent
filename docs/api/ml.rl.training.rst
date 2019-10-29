@@ -6,6 +6,8 @@ Subpackages
 
 .. toctree::
 
+   ml.rl.training.gradient_free
+   ml.rl.training.ranking
    ml.rl.training.world_model
 
 Submodules

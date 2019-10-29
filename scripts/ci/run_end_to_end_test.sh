@@ -1,16 +1,15 @@
 #!/bin/bash
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-# Builds Horizon and runs basic tests.
+# Builds ReAgent and runs basic tests.
 
-set -e
+set -ex
 
 export PATH=${HOME}/miniconda/bin:$PATH
 
-pip uninstall -y horizon
+pip uninstall -y reagent
 
 # Installing from current directory, any update will be reflected system-wide
 pip install -e .
-pytest
 
 # Build the spark package
 mvn -f preprocessing/pom.xml clean package
@@ -32,8 +31,8 @@ rm -Rf cartpole_discrete_training cartpole_discrete_eval
 python ml/rl/workflow/create_normalization_metadata.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_example.json
 
 mkdir -p outputs
-rm -Rf outputs/predictor*
+rm -Rf outputs/model_*
 python ml/rl/workflow/dqn_workflow.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_small.json
 
 # Evaluate
-python ml/rl/test/workflow/eval_cartpole.py -m outputs/predictor*
+python ml/rl/test/workflow/eval_cartpole.py -m outputs/model_* --softmax_temperature=0.35

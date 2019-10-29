@@ -236,7 +236,6 @@ struct MDNRNNParameters {
   12: bool fit_only_one_next_step = false,
 }
 
-
 struct CEMParameters {
   1: MDNRNNParameters mdnrnn,
   2: RLParameters rl,

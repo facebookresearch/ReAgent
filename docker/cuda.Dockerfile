@@ -48,6 +48,9 @@ ENV PATH ${HOME}/miniconda/bin:$PATH
 ENV CONDA_PATH ${HOME}/miniconda
 ENV LD_LIBRARY_PATH ${CONDA_PATH}/lib:${LD_LIBRARY_PATH}
 
+# Init conda
+RUN conda init bash
+
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
 RUN conda config --add channels pytorch-nightly # For PyTorch

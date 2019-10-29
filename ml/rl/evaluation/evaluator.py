@@ -27,7 +27,7 @@ def get_tensor(x, dtype=None):
     Input:
         - x: list or a sequence
         - dtype: target data type of the elements in tensor [optional]
-                 It will be infered automatically if not provided.
+                 It will be inferred automatically if not provided.
     Output:
         Tensor given a list or a sequence.
         If the input is None, it returns None

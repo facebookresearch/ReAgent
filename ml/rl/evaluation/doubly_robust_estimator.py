@@ -294,14 +294,14 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
     evaluation, while training and validation datasets are used for model training.
 
     supported modes (all doubly robust):
-    1. bope_weights. Use BOP-E (ignoring logged porpensities) to estimate the
+    1. bope_weights. Use BOP-E (ignoring logged propensities) to estimate the
         importance weights. Propensities of the target policy are used as
         observation weights when training BOP-E classifier.
-    2. bope_weighted_targets. Use BOP-E (ignoring logged porpensities) to
+    2. bope_weighted_targets. Use BOP-E (ignoring logged propensities) to
         estimate the importance weights. Propensities of the target policy
         are used as soft targets to train BOP-E regressor. With this method
         BOP-E trains a regressor instead of a classifier.
-    3. bope_sampling. Use BOP-E (ignoring logged porpensities)
+    3. bope_sampling. Use BOP-E (ignoring logged propensities)
         to estimate the importance weights. Propensities of the target policy
         are used to sample the actions for the classifier training data.
     """

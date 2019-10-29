@@ -11,9 +11,8 @@ ReAgent: Applied Reinforcement Learning Platform
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-.. image:: https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master
-   :target: https://ci.pytorch.org/jenkins/job/horizon-master/
-   :alt: Build Status
+.. image:: https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=svg
+    :target: https://circleci.com/gh/facebookresearch/ReAgent/tree/master
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26,7 +25,7 @@ workflows to train popular deep RL algorithms and includes data preprocessing, f
 counterfactual policy evaluation, and optimized serving. For more detailed information about ReAgent see the white
 paper here: `Platform <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_.
 
-The source code is available here: `Source code <https://github.com/facebookresearch/Horizon>`_.
+The source code is available here: `Source code <https://github.com/facebookresearch/ReAgent>`_.
 
 The platform was once named "Horizon" but we have adopted the name "ReAgent" recently to emphasize its broader scope in decision making and reasoning.
 
@@ -83,15 +82,20 @@ Table of Contents
     :caption: Advanced Topics
 
     Distributed Training <distributed>
+    Continuous Integration <continuous_integration>
 
 .. toctree::
     :caption: Package Reference
 
-    Workflow <api/ml.rl.workflow>
+    Evaluation <api/ml.rl.evaluation>
+    Models <api/ml.rl.models>
+    Prediction <api/ml.rl.prediction>
     Preprocessing <api/ml.rl.preprocessing>
+    Readers <api/ml.rl.readers>
     Simulators <api/ml.rl.simulators>
     Thrift <api/ml.rl.thrift>
     Training <api/ml.rl.training>
+    Workflow <api/ml.rl.workflow>
     All Modules <api/modules>
 
 .. toctree::

@@ -206,6 +206,7 @@ class SACTrainingParameters(BaseDataClass):
     target_entropy: float = -1.0
     alpha_optimizer: OptimizerParameters = OptimizerParameters()
     action_embedding_kld_weight: Optional[float] = None
+    apply_kld_on_mean: Optional[bool] = None
     action_embedding_mean: Optional[List[float]] = None
     action_embedding_variance: Optional[List[float]] = None
 
@@ -286,7 +287,7 @@ class CEMParameters(BaseDataClass):
 @dataclass
 class OpenAiRunDetails(BaseDataClass):
     solved_reward_threshold: Optional[int] = None
-    max_episodes_to_run_after_solved: int = 0
+    max_episodes_to_run_after_solved: Optional[int] = None
     stop_training_after_solved: bool = False
     num_episodes: int = 301
     max_steps: Optional[int] = None
@@ -327,3 +328,37 @@ class OpenAiGymParameters(BaseDataClass):
     actor_training: Optional[FeedForwardParameters] = None
     cem: Optional[CEMParameters] = None
     mdnrnn: Optional[MDNRNNParameters] = None
+    evaluation: EvaluationParameters = EvaluationParameters()
+
+
+#################################################
+#             RL Ranking parameters             #
+#################################################
+@dataclass
+class TransformerParameters(BaseDataClass):
+    num_heads: int
+    dim_model: int
+    dim_feedforward: int
+    num_stacked_layers: int
+
+
+@dataclass
+class BaselineParameters(BaseDataClass):
+    dim_feedforward: int
+    num_stacked_layers: int
+
+
+@dataclass
+class Seq2SlateTransformerParameters(BaseDataClass):
+    transformer: TransformerParameters
+    baseline: BaselineParameters
+    on_policy: bool
+
+
+@dataclass
+class RankingParameters(BaseDataClass):
+    minibatch_size: int
+    max_src_seq_len: int
+    max_tgt_seq_len: int
+    greedy_serving: bool
+    evaluation: EvaluationParameters = EvaluationParameters()

@@ -135,7 +135,7 @@ U = TypeVar("U", bound="SequenceFeatures")
 @dataclass
 class SequenceFeatures(BaseDataClass):
     """
-    A stub-class for sequence features in the model. All fileds should be subclass of
+    A stub-class for sequence features in the model. All fields should be subclass of
     SequenceFeatureBase above.
     """
 
@@ -175,6 +175,7 @@ class FeatureVector(BaseDataClass):
 class ActorOutput(BaseDataClass):
     action: torch.Tensor
     log_prob: Optional[torch.Tensor] = None
+    action_mean: Optional[torch.Tensor] = None
 
 
 @dataclass
@@ -226,6 +227,76 @@ class PreprocessedStateAction(BaseDataClass):
             raise ValueError(f"Use from_tensors() {type(state)} {type(action)}")
         self.state = state
         self.action = action
+
+
+@dataclass
+class PreprocessedRankingInput(BaseDataClass):
+    state: PreprocessedFeatureVector
+    src_seq: PreprocessedFeatureVector
+    src_src_mask: torch.Tensor
+    tgt_seq: Optional[PreprocessedFeatureVector] = None
+    tgt_tgt_mask: Optional[torch.Tensor] = None
+    slate_reward: Optional[torch.Tensor] = None
+    # all indices will be +2 to account for padding
+    # symbol (0) and decoder_start_symbol (1)
+    src_in_idx: Optional[torch.Tensor] = None
+    tgt_in_idx: Optional[torch.Tensor] = None
+    tgt_out_idx: Optional[torch.Tensor] = None
+    tgt_out_probs: Optional[torch.Tensor] = None
+    optim_tgt_out_idx: Optional[torch.Tensor] = None
+
+    @classmethod
+    def from_tensors(
+        cls,
+        state: torch.Tensor,
+        src_seq: torch.Tensor,
+        src_src_mask: torch.Tensor,
+        tgt_seq: Optional[torch.Tensor] = None,
+        tgt_tgt_mask: Optional[torch.Tensor] = None,
+        slate_reward: Optional[torch.Tensor] = None,
+        src_in_idx: Optional[torch.Tensor] = None,
+        tgt_in_idx: Optional[torch.Tensor] = None,
+        tgt_out_idx: Optional[torch.Tensor] = None,
+        tgt_out_probs: Optional[torch.Tensor] = None,
+        optim_tgt_out_idx: Optional[torch.Tensor] = None,
+    ):
+        assert isinstance(state, torch.Tensor)
+        assert isinstance(src_seq, torch.Tensor)
+        assert isinstance(src_src_mask, torch.Tensor)
+        assert tgt_seq is None or isinstance(tgt_seq, torch.Tensor)
+        assert tgt_tgt_mask is None or isinstance(tgt_tgt_mask, torch.Tensor)
+        assert slate_reward is None or isinstance(slate_reward, torch.Tensor)
+        assert src_in_idx is None or isinstance(src_in_idx, torch.Tensor)
+        assert tgt_in_idx is None or isinstance(tgt_in_idx, torch.Tensor)
+        assert tgt_out_idx is None or isinstance(tgt_out_idx, torch.Tensor)
+        assert tgt_out_probs is None or isinstance(tgt_out_probs, torch.Tensor)
+        assert optim_tgt_out_idx is None or isinstance(optim_tgt_out_idx, torch.Tensor)
+
+        return cls(
+            state=PreprocessedFeatureVector(float_features=state),
+            src_seq=PreprocessedFeatureVector(float_features=src_seq),
+            src_src_mask=src_src_mask,
+            tgt_seq=PreprocessedFeatureVector(float_features=tgt_seq)
+            if tgt_seq is not None
+            else None,
+            tgt_tgt_mask=tgt_tgt_mask,
+            slate_reward=slate_reward,
+            src_in_idx=src_in_idx,
+            tgt_in_idx=tgt_in_idx,
+            tgt_out_idx=tgt_out_idx,
+            tgt_out_probs=tgt_out_probs,
+            optim_tgt_out_idx=optim_tgt_out_idx,
+        )
+
+    def __post_init__(self):
+        if (
+            isinstance(self.state, torch.Tensor)
+            or isinstance(self.src_seq, torch.Tensor)
+            or isinstance(self.tgt_seq, torch.Tensor)
+        ):
+            raise ValueError(
+                f"Use from_tensors() {type(self.state)} {type(self.src_seq)} {type(self.tgt_seq)}"
+            )
 
 
 @dataclass
@@ -551,6 +622,7 @@ class PreprocessedTrainingBatch(BaseDataClass):
         PreprocessedParametricDqnInput,
         PreprocessedMemoryNetworkInput,
         PreprocessedPolicyNetworkInput,
+        PreprocessedRankingInput,
     ]
     extras: Any
 
@@ -625,3 +697,16 @@ class PlanningPolicyOutput(BaseDataClass):
     next_best_continuous_action: Optional[torch.Tensor] = None
     next_best_discrete_action_one_hot: Optional[torch.Tensor] = None
     next_best_discrete_action_idx: Optional[int] = None
+
+
+@dataclass
+class RankingOutput(BaseDataClass):
+    # a tensor of integer indices w.r.t. to possible candidates
+    # shape: batch_size, tgt_seq_len
+    ranked_tgt_out_idx: Optional[torch.Tensor] = None
+    # generative probability of ranked tgt sequences at each decoding step
+    # shape: batch_size, tgt_seq_len, candidate_size
+    ranked_tgt_out_probs: Optional[torch.Tensor] = None
+    # log probabilities of given tgt sequences are used in REINFORCE
+    # shape: batch_size
+    log_probs: Optional[torch.Tensor] = None

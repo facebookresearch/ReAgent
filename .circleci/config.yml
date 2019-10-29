@@ -25,6 +25,12 @@ binary_common: &binary_common
     docker_image:
       description: "Docker image"
       type: string
+    resource_class_str:
+      description: "Resource class to use"
+      type: string
+    test_script:
+      description: "Path to test script"
+      type: string
   environment:
     DOCKER_IMAGE: << parameters.docker_image >>
 
@@ -33,17 +39,26 @@ jobs:
     <<: *binary_common
     docker:
       - image: << parameters.docker_image >>
-    resource_class: gpu.medium
+    resource_class: << parameters.resource_class_str >>
     steps:
       - checkout_merge
-      - run: .jenkins/build.sh
+      - run: << parameters.test_script >>
 
 workflows:
   build:
     jobs:
       - binary_linux_conda:
-          name: binary_linux_conda_py3.7_cpu
+          name: linux_conda_py3.7_end_to_end
           docker_image: kittipatv/reagent:cpu
+          test_script: scripts/ci/run_end_to_end_test.sh
+          resource_class_str: large
       - binary_linux_conda:
-          name: binary_linux_conda_py3.7_cu92
+          name: linux_conda_py3.7_pytest
           docker_image: kittipatv/reagent:cuda
+          test_script: scripts/ci/run_python_unittest.sh
+          resource_class_str: large
+      - binary_linux_conda:
+          name: linux_conda_py3.7_rasp_test
+          docker_image: kittipatv/reagent:cpu
+          test_script: scripts/ci/run_rasp_test.sh
+          resource_class_str: large

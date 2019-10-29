@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-
 import unittest
 
 import ml.rl.types as rlt
+import torch
 from ml.rl.models.actor import FullyConnectedActor
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
+from ml.rl.models.seq2slate import RANK_MODE, Seq2SlateTransformerNet
 from ml.rl.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
@@ -15,6 +16,8 @@ from ml.rl.prediction.predictor_wrapper import (
     DiscreteDqnWithPreprocessor,
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
+    Seq2SlatePredictorWrapper,
+    Seq2SlateWithPreprocessor,
 )
 from ml.rl.preprocessing.identify_types import CONTINUOUS, CONTINUOUS_ACTION
 from ml.rl.preprocessing.normalization import NormalizationParameters
@@ -118,3 +121,69 @@ class TestPredictorWrapper(unittest.TestCase):
             ).action
         )
         self.assertTrue((expected_output == action).all())
+
+    def test_seq2slate_wrapper(self):
+        state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
+        candidate_normalization_parameters = {i: _cont_norm() for i in range(101, 106)}
+        state_preprocessor = Preprocessor(state_normalization_parameters, False)
+        candidate_preprocessor = Preprocessor(candidate_normalization_parameters, False)
+        seq2slate = Seq2SlateTransformerNet(
+            state_dim=len(state_normalization_parameters),
+            candidate_dim=len(candidate_normalization_parameters),
+            num_stacked_layers=6,
+            num_heads=8,
+            dim_model=512,
+            dim_feedforward=512,
+            max_src_seq_len=10,
+            max_tgt_seq_len=4,
+        )
+        seq2slate_with_preprocessor = Seq2SlateWithPreprocessor(
+            seq2slate, state_preprocessor, candidate_preprocessor, greedy=True
+        )
+        wrapper = Seq2SlatePredictorWrapper(seq2slate_with_preprocessor)
+
+        state_input_prototype, candidate_input_prototype = (
+            seq2slate_with_preprocessor.input_prototype()
+        )
+        ret_val = wrapper(state_input_prototype, candidate_input_prototype)
+
+        preprocessed_state = state_preprocessor(
+            state_input_prototype[0], state_input_prototype[1]
+        )
+        preprocessed_candidates = candidate_preprocessor(
+            candidate_input_prototype[0].view(
+                1 * seq2slate.max_src_seq_len, len(candidate_normalization_parameters)
+            ),
+            candidate_input_prototype[1].view(
+                1 * seq2slate.max_src_seq_len, len(candidate_normalization_parameters)
+            ),
+        ).view(1, seq2slate.max_src_seq_len, -1)
+        src_src_mask = torch.ones(
+            1, seq2slate.max_src_seq_len, seq2slate.max_src_seq_len
+        )
+        ranking_input = rlt.PreprocessedRankingInput.from_tensors(
+            state=preprocessed_state,
+            src_seq=preprocessed_candidates,
+            src_src_mask=src_src_mask,
+        )
+        expected_output = seq2slate(
+            ranking_input,
+            mode=RANK_MODE,
+            tgt_seq_len=seq2slate.max_tgt_seq_len,
+            greedy=True,
+        )
+        ranked_tgt_out_probs, ranked_tgt_out_idx = (
+            expected_output.ranked_tgt_out_probs,
+            expected_output.ranked_tgt_out_idx,
+        )
+        ranked_tgt_out_probs = torch.prod(
+            torch.gather(
+                ranked_tgt_out_probs, 2, ranked_tgt_out_idx.unsqueeze(-1)
+            ).squeeze(),
+            -1,
+        )
+        # -2 to offset padding symbol and decoder start symbol
+        ranked_tgt_out_idx -= 2
+
+        self.assertTrue(ranked_tgt_out_probs == ret_val[0])
+        self.assertTrue(torch.all(torch.eq(ret_val[1], ranked_tgt_out_idx)))

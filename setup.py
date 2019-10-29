@@ -15,12 +15,12 @@ def requirements():
 
 
 setup(
-    name="horizon",
+    name="reagent",
     version="0.1",
     author="Facebook",
     description=("Facebook RL"),
     long_description=readme(),
-    url="https://github.com/facebookresearch/Horizon",
+    url="https://github.com/facebookresearch/ReAgent",
     license="BSD",
     packages=find_packages(),
     install_requires=[],

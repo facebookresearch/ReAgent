@@ -437,7 +437,7 @@ class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
                 ["new_length"],
                 to=core.DataType.INT32,  # type: ignore
             )
-            # Stitch these back togther
+            # Stitch these back together
             new_range, _ = net.Concat(
                 [new_offset, new_length], ["new_range", "split_info"], axis=2
             )

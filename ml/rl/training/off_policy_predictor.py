@@ -25,7 +25,7 @@ class RLPredictor:
     def __init__(self, net, init_net, parameters, ws=None):
         """
         :param net caffe2 net used for prediction
-        :param parameters caffe2 blobs used as network paramers
+        :param parameters caffe2 blobs used as network parameters
         """
         self._net = net
         self._init_net = init_net

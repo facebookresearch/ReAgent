@@ -64,9 +64,7 @@ class SequentialDiscreteDqnBatchPreprocessor(DiscreteDqnBatchPreprocessor):
                     )
                 ),
                 reward=training_input.reward.reshape(-1, self.seq_len),
-                not_terminal=preprocessed_batch.training_input.not_terminal.reshape(
-                    -1, self.seq_len
-                ),
+                not_terminal=training_input.not_terminal.reshape(-1, self.seq_len),
             )
         )
         return preprocessed_batch

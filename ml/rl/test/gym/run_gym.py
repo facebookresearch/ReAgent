@@ -123,8 +123,8 @@ def create_replay_buffer(
     replay_buffer = OpenAIGymMemoryPool(params.max_replay_memory_size)
     if path_to_pickled_transitions:
         create_stored_policy_offline_dataset(replay_buffer, path_to_pickled_transitions)
-        replay_state_dim = replay_buffer.replay_memory[0][0].shape[0]
-        replay_action_dim = replay_buffer.replay_memory[0][1].shape[0]
+        replay_state_dim = replay_buffer.state_dim
+        replay_action_dim = replay_buffer.action_dim
         assert replay_state_dim == env.state_dim
         assert replay_action_dim == env.action_dim
     elif offline_train:
@@ -147,9 +147,6 @@ def train(
     run_details: OpenAiRunDetails,
     save_timesteps_to_dataset=None,
     start_saving_from_score=None,
-    solved_reward_threshold=None,
-    max_episodes_to_run_after_solved=None,
-    stop_training_after_solved=False,
     bcq_imitator_hyperparams=None,
     reward_shape_func=None,
 ):
@@ -193,9 +190,9 @@ def train(
             run_details.render,
             save_timesteps_to_dataset,
             start_saving_from_score,
-            solved_reward_threshold,
-            max_episodes_to_run_after_solved,
-            stop_training_after_solved,
+            run_details.solved_reward_threshold,
+            run_details.max_episodes_to_run_after_solved,
+            run_details.stop_training_after_solved,
             reward_shape_func,
         )
 
@@ -334,7 +331,7 @@ def train_gym_offline_rl(
 
         # test model performance for this epoch
         avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-            avg_over_num_episodes, predictor, test=True
+            avg_over_num_episodes, predictor, test=True, max_steps=max_steps
         )
         avg_reward_history.append(avg_rewards)
 
@@ -493,7 +490,7 @@ def train_gym_online_rl(
             if (
                 total_timesteps % train_every_ts == 0
                 and total_timesteps > train_after_ts
-                and len(replay_buffer.replay_memory) >= trainer.minibatch_size
+                and replay_buffer.size >= trainer.minibatch_size
                 and not (stop_training_after_solved and solved)
             ):
                 for _ in range(num_train_batches):
@@ -508,14 +505,14 @@ def train_gym_online_rl(
             # Evaluation loop
             if total_timesteps % test_every_ts == 0 and total_timesteps > test_after_ts:
                 avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-                    avg_over_num_episodes, predictor, test=True
+                    avg_over_num_episodes, predictor, test=True, max_steps=max_steps
                 )
                 if avg_rewards > best_episode_score_seen:
                     best_episode_score_seen = avg_rewards
 
                 if (
                     solved_reward_threshold is not None
-                    and best_episode_score_seen > solved_reward_threshold
+                    and best_episode_score_seen >= solved_reward_threshold
                 ):
                     solved = True
 
@@ -547,7 +544,7 @@ def train_gym_online_rl(
         # Always eval on last episode
         if i == num_episodes - 1:
             avg_rewards, avg_discounted_rewards = gym_env.run_ep_n_times(
-                avg_over_num_episodes, predictor, test=True
+                avg_over_num_episodes, predictor, test=True, max_steps=max_steps
             )
             avg_reward_history.append(avg_rewards)
             timestep_history.append(total_timesteps)
@@ -585,12 +582,6 @@ def main(args):
         help="Bar for averaged tests scores.",
         type=float,
         default=None,
-    )
-    parser.add_argument(
-        "-g",
-        "--gpu_id",
-        help="If set, will use GPU with specified ID. Otherwise will use CPU.",
-        default=-1,
     )
     parser.add_argument(
         "-l",
@@ -636,6 +627,11 @@ def main(args):
         type=int,
         default=None,
     )
+    parser.add_argument(
+        "--use_gpu",
+        help="Use GPU, if available; set the device with CUDA_VISIBLE_DEVICES",
+        action="store_true",
+    )
 
     args = parser.parse_args(args)
 
@@ -655,7 +651,9 @@ def main(args):
 
     with open(args.parameters, "r") as f:
         params = json_to_object(f.read(), OpenAiGymParameters)
-    if args.use_gpu != -1:
+
+    if args.use_gpu:
+        assert torch.cuda.is_available(), "CUDA requested but not available"
         params = params._replace(use_gpu=True)
 
     dataset = RLDataset(args.file_path) if args.file_path else None
@@ -781,6 +779,7 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
             rl=rl_parameters,
             training=training_parameters,
             rainbow=params.rainbow,
+            evaluation=params.evaluation,
         )
         trainer = create_dqn_trainer_from_params(
             discrete_trainer_params, env.normalization, use_gpu
