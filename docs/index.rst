@@ -87,11 +87,15 @@ Table of Contents
 .. toctree::
     :caption: Package Reference
 
-    Workflow <api/ml.rl.workflow>
+    Evaluation <api/ml.rl.evaluation>
+    Models <api/ml.rl.models>
+    Prediction <api/ml.rl.prediction>
     Preprocessing <api/ml.rl.preprocessing>
+    Readers <api/ml.rl.readers>
     Simulators <api/ml.rl.simulators>
     Thrift <api/ml.rl.thrift>
     Training <api/ml.rl.training>
+    Workflow <api/ml.rl.workflow>
     All Modules <api/modules>
 
 .. toctree::
