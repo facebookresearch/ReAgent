@@ -11,14 +11,6 @@ Subpackages
 Submodules
 ----------
 
-ml.rl.training.actor\_predictor module
---------------------------------------
-
-.. automodule:: ml.rl.training.actor_predictor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ml.rl.training.c51\_trainer module
 ----------------------------------
 
@@ -91,14 +83,6 @@ ml.rl.training.on\_policy\_predictor module
    :undoc-members:
    :show-inheritance:
 
-ml.rl.training.parametric\_dqn\_predictor module
-------------------------------------------------
-
-.. automodule:: ml.rl.training.parametric_dqn_predictor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ml.rl.training.parametric\_dqn\_trainer module
 ----------------------------------------------
 
@@ -119,14 +103,6 @@ ml.rl.training.rl\_dataset module
 ---------------------------------
 
 .. automodule:: ml.rl.training.rl_dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ml.rl.training.rl\_exporter module
-----------------------------------
-
-.. automodule:: ml.rl.training.rl_exporter
    :members:
    :undoc-members:
    :show-inheritance:

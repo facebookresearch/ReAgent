@@ -1,6 +1,5 @@
 #include "reagent/serving/core/DiskConfigProvider.h"
-#include <folly/FileUtil.h>
-#include <boost/filesystem.hpp>
+#include <boost/filesystem.hpp>  // We have to use boost until OSX 10.15 :-(
 #include "reagent/serving/core/DecisionService.h"
 
 namespace reagent {
@@ -14,19 +13,26 @@ void DiskConfigProvider::initialize(DecisionService* decisionService) {
   }
 }
 
+inline std::string ReadFile(const std::string& fileName) {
+  std::ifstream ifs(fileName.c_str(),
+                    std::ios::in | std::ios::binary | std::ios::ate);
+
+  std::ifstream::pos_type fileSize = ifs.tellg();
+  ifs.seekg(0, std::ios::beg);
+
+  std::vector<char> bytes(fileSize);
+  ifs.read(bytes.data(), fileSize);
+
+  return std::string(bytes.data(), fileSize);
+}
+
 void DiskConfigProvider::readConfig(const std::string& path) {
   auto planName =
       boost::filesystem::relative(boost::filesystem::path(path), configDir_)
           .string();
   DecisionConfig decisionConfig;
 
-  std::string contents;
-
-  if (!folly::readFile(path.c_str(), contents)) {
-    // Read of config failed
-    LOG(INFO) << "Reading config: " << path << " failed";
-    return;
-  }
+  std::string contents = ReadFile(path);
 
   try {
     decisionConfig = nlohmann::json::parse(contents).get<DecisionConfig>();

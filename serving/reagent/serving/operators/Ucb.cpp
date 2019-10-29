@@ -62,6 +62,7 @@ RankedActionList Ucb::runInternal(const DecisionRequest& request,
   }
 
   std::string armToPull;
+  double propensity = 1.0;
   if (armsWithoutPulls.empty()) {
     double logTotalPulls = log(double(totalPulls));
 
@@ -77,11 +78,14 @@ RankedActionList Ucb::runInternal(const DecisionRequest& request,
     }
     armToPull = arms[maxIndex];
   } else {
+    std::uniform_int_distribution<int> distribution(
+        0, armsWithoutPulls.size() - 1);
+    int armToPullIndex = distribution(generator_);
     // Pick an empty arm at random
-    armToPull =
-        armsWithoutPulls[folly::Random::rand32() % armsWithoutPulls.size()];
+    armToPull = armsWithoutPulls[armToPullIndex];
+    propensity = 1.0 / armsWithoutPulls.size();
   }
-  return RankedActionList({{armToPull, 1.0}});
+  return RankedActionList({{armToPull, propensity}});
 }
 
 void Ucb::giveFeedback(const Feedback& feedback,

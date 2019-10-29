@@ -34,7 +34,8 @@ TEST(UcbTests, Simple) {
     // Generate random feedback for chosen action
     Feedback feedback;
     feedback.plan_name = PLAN_NAME;
-    feedback.computed_reward = double(reward_distributions.at(result[0].name)(rng));
+    feedback.computed_reward =
+        double(reward_distributions.at(result[0].name)(rng));
     OperatorData pastOuptut;
     pastOuptut = result;
 
@@ -92,8 +93,7 @@ TEST(UcbTests, UcbDecisionService) {
     for (const auto& it : response.actions) {
       if (it.propensity > 0) {
         std::string result = it.name;
-        EXPECT_TRUE(result == "Arm1" ||
-                    result == "Arm2");
+        EXPECT_TRUE(result == "Arm1" || result == "Arm2");
 
         // Generate random feedback for chosen action
         ActionFeedback actionFeedback;

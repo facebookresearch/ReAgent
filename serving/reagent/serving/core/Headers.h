@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cmath>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -15,15 +16,17 @@
 #include <variant>
 #include <vector>
 
-#include <folly/Random.h>
-#include <folly/Singleton.h>
-#include <folly/container/F14Map.h>
-#include <folly/container/F14Set.h>
-#include <folly/futures/Future.h>
-#include <folly/futures/SharedPromise.h>
 #include <glog/logging.h>
 #include <Eigen/Dense>
 #include <nlohmann/json.hpp>
+#include <taskflow/taskflow.hpp>
+#if __has_include("filesystem")
+#include <filesystem>
+namespace filesystem = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace filesystem = std::experimental::filesystem;
+#endif
 
 #include "reagent/serving/core/Containers.h"
 #include "reagent/serving/core/DecisionServiceException.h"

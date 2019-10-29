@@ -13,7 +13,6 @@ from ml.rl.models.categorical_dqn import CategoricalDQN
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
-from ml.rl.models.output_transformer import DiscreteActionOutputTransformer
 from ml.rl.models.quantile_dqn import QuantileDQN
 from ml.rl.parameters import (
     DiscreteActionModelParameters,
@@ -35,7 +34,6 @@ from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.torch_utils import export_module_to_buffer
 from ml.rl.training.c51_trainer import C51Trainer
-from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.qrdqn_trainer import QRDQNTrainer
 

@@ -11,10 +11,6 @@ import numpy.testing as npt
 import torch
 from ml.rl.models.actor import DirichletFullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.models.output_transformer import (
-    ActorOutputTransformer,
-    ParametricActionOutputTransformer,
-)
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.parameters import (
     FeedForwardParameters,
@@ -23,8 +19,13 @@ from ml.rl.parameters import (
     SACModelParameters,
     SACTrainingParameters,
 )
-from ml.rl.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
+from ml.rl.prediction.dqn_torch_predictor import (
+    ActorTorchPredictor,
+    ParametricDqnTorchPredictor,
+)
 from ml.rl.prediction.predictor_wrapper import (
+    ActorPredictorWrapper,
+    ActorWithPreprocessor,
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
 )
@@ -33,12 +34,12 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
+from ml.rl.preprocessing.postprocessor import Postprocessor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.training.rl_exporter import ActorExporter
 from ml.rl.training.sac_trainer import SACTrainer
 
 
@@ -81,7 +82,7 @@ class TestGridworldSAC(GridworldTestBase):
 
     def get_sac_trainer(self, env, parameters, use_gpu):
         state_dim = get_num_output_features(env.normalization)
-        action_dim = get_num_output_features(env.normalization_action)
+        action_dim = get_num_output_features(env.normalization_continuous_action)
         q1_network = FullyConnectedParametricDQN(
             state_dim,
             action_dim,
@@ -137,7 +138,9 @@ class TestGridworldSAC(GridworldTestBase):
 
     def get_predictor(self, trainer, environment):
         state_preprocessor = Preprocessor(environment.normalization, False)
-        action_preprocessor = Preprocessor(environment.normalization_action, False)
+        action_preprocessor = Preprocessor(
+            environment.normalization_continuous_action, False
+        )
         q_network = trainer.q1_network
         dqn_with_preprocessor = ParametricDqnWithPreprocessor(
             q_network.cpu_model().eval(), state_preprocessor, action_preprocessor
@@ -149,19 +152,20 @@ class TestGridworldSAC(GridworldTestBase):
         return predictor
 
     def get_actor_predictor(self, trainer, environment):
-        feature_extractor = PredictorFeatureExtractor(
-            state_normalization_parameters=environment.normalization
+        state_preprocessor = Preprocessor(environment.normalization, False)
+        postprocessor = Postprocessor(
+            environment.normalization_continuous_action, False
         )
-
-        output_transformer = ActorOutputTransformer(
-            sort_features_by_normalization(environment.normalization_action)[0],
-            environment.max_action_range.reshape(-1),
-            environment.min_action_range.reshape(-1),
+        actor_with_preprocessor = ActorWithPreprocessor(
+            trainer.actor_network.cpu_model().eval(), state_preprocessor, postprocessor
         )
-
-        predictor = ActorExporter(
-            trainer.actor_network, feature_extractor, output_transformer
-        ).export()
+        serving_module = ActorPredictorWrapper(actor_with_preprocessor)
+        predictor = ActorTorchPredictor(
+            serving_module,
+            sort_features_by_normalization(environment.normalization_continuous_action)[
+                0
+            ],
+        )
         return predictor
 
     def _test_sac_trainer(self, use_gpu=False, **kwargs):
@@ -183,12 +187,13 @@ class TestGridworldSAC(GridworldTestBase):
         # TODO: run predictor and check results
 
     def _test_save_load_actor(
-        self, before_preds, predictor, states, dbtype="minidb", check_equality=False
+        self, before_preds, predictor, states, check_equality=False
     ):
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmp_path = os.path.join(tmpdirname, "model")
-            predictor.save(tmp_path, dbtype)
-            new_predictor = type(predictor).load(tmp_path, dbtype)
+            torch.jit.save(predictor.model, tmp_path)
+            loaded_model = torch.jit.load(tmp_path)
+            new_predictor = type(predictor)(loaded_model, predictor.action_feature_ids)
             after_preds = new_predictor.predict(states)
         if check_equality:
             self._check_output_match(before_preds, after_preds)

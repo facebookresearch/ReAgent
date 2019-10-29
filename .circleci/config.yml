@@ -1,0 +1,49 @@
+version: 2.1
+
+# How to test the Linux jobs:
+#   - Install CircleCI local CLI: https://circleci.com/docs/2.0/local-cli/
+#   - circleci config process .circleci/config.yml > gen.yml && circleci local execute -c gen.yml --job binary_linux_conda_py3.7_cpu
+#     - Replace binary_linux_conda_py3.7_cpu with the name of the job you want to test.
+#       Job names are 'name:' key.
+
+commands:
+  checkout_merge:
+    description: "checkout merge branch"
+    steps:
+      - checkout
+      - run:
+          name: Checkout merge branch
+          command: |
+            set -ex
+            BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            if [[ "$BRANCH" != "master" ]]; then
+              git merge origin/master
+            fi
+
+binary_common: &binary_common
+  parameters:
+    docker_image:
+      description: "Docker image"
+      type: string
+  environment:
+    DOCKER_IMAGE: << parameters.docker_image >>
+
+jobs:
+  binary_linux_conda:
+    <<: *binary_common
+    docker:
+      - image: << parameters.docker_image >>
+    resource_class: gpu.medium
+    steps:
+      - checkout_merge
+      - run: .jenkins/build.sh
+
+workflows:
+  build:
+    jobs:
+      - binary_linux_conda:
+          name: binary_linux_conda_py3.7_cpu
+          docker_image: kittipatv/reagent:cpu
+      - binary_linux_conda:
+          name: binary_linux_conda_py3.7_cu92
+          docker_image: kittipatv/reagent:cuda

@@ -1,4 +1,4 @@
-![Banner](logo/horizon_banner.png)
+![Banner](logo/reagent_banner.png)
 ### Applied Reinforcement Learning @ Facebook
 [![Build Status](https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master)](https://ci.pytorch.org/jenkins/job/horizon-master/)
 ---
@@ -20,7 +20,9 @@ The platform was once named "Horizon" but we have adopted the name "ReAgent" rec
 ReAgent can be installed via. Docker or manually. Detailed instructions on how to install ReAgent can be found [here](docs/installation.rst).
 
 #### Usage
-Detailed instructions on how to use ReAgent can be found [here](docs/usage.rst).
+Detailed instructions on how to use ReAgent Models can be found [here](docs/usage.rst).
+
+The ReAgent Serving Platform (RASP) tutorial is available [here](docs/rasp_tutorial.rst).
 
 #### License
 ReAgent is released under a BSD license.  Find out more about it [here](LICENSE).
@@ -32,5 +34,3 @@ ReAgent is released under a BSD license.  Find out more about it [here](LICENSE)
   journal={arXiv preprint arXiv:1811.00260},
   year={2018}
 }
-
-<img src="logo/horizon_logo.png" alt="Logo" width="200"/>

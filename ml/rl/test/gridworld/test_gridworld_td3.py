@@ -10,10 +10,6 @@ import numpy as np
 import numpy.testing as npt
 import torch
 from ml.rl.models.actor import FullyConnectedActor
-from ml.rl.models.output_transformer import (
-    ActorOutputTransformer,
-    ParametricActionOutputTransformer,
-)
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.parameters import (
     FeedForwardParameters,
@@ -22,8 +18,13 @@ from ml.rl.parameters import (
     TD3ModelParameters,
     TD3TrainingParameters,
 )
-from ml.rl.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
+from ml.rl.prediction.dqn_torch_predictor import (
+    ActorTorchPredictor,
+    ParametricDqnTorchPredictor,
+)
 from ml.rl.prediction.predictor_wrapper import (
+    ActorPredictorWrapper,
+    ActorWithPreprocessor,
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
 )
@@ -32,12 +33,12 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
+from ml.rl.preprocessing.postprocessor import Postprocessor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.training.rl_exporter import ActorExporter
 from ml.rl.training.td3_trainer import TD3Trainer
 
 
@@ -118,19 +119,20 @@ class TestGridworldTD3(GridworldTestBase):
         return predictor
 
     def get_actor_predictor(self, trainer, environment):
-        feature_extractor = PredictorFeatureExtractor(
-            state_normalization_parameters=environment.normalization
+        state_preprocessor = Preprocessor(environment.normalization, False)
+        postprocessor = Postprocessor(
+            environment.normalization_continuous_action, False
         )
-
-        output_transformer = ActorOutputTransformer(
-            sort_features_by_normalization(environment.normalization_action)[0],
-            environment.max_action_range.reshape(-1),
-            environment.min_action_range.reshape(-1),
+        actor_with_preprocessor = ActorWithPreprocessor(
+            trainer.actor_network.cpu_model().eval(), state_preprocessor, postprocessor
         )
-
-        predictor = ActorExporter(
-            trainer.actor_network, feature_extractor, output_transformer
-        ).export()
+        serving_module = ActorPredictorWrapper(actor_with_preprocessor)
+        predictor = ActorTorchPredictor(
+            serving_module,
+            sort_features_by_normalization(environment.normalization_continuous_action)[
+                0
+            ],
+        )
         return predictor
 
     def _test_td3_trainer(self, use_gpu=False, **kwargs):
@@ -155,12 +157,13 @@ class TestGridworldTD3(GridworldTestBase):
         self._test_save_load_actor(preds, actor_predictor, evaluator.logged_states)
 
     def _test_save_load_actor(
-        self, before_preds, predictor, states, dbtype="minidb", check_equality=False
+        self, before_preds, predictor, states, check_equality=False
     ):
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmp_path = os.path.join(tmpdirname, "model")
-            predictor.save(tmp_path, dbtype)
-            new_predictor = type(predictor).load(tmp_path, dbtype)
+            torch.jit.save(predictor.model, tmp_path)
+            loaded_model = torch.jit.load(tmp_path)
+            new_predictor = type(predictor)(loaded_model, predictor.action_feature_ids)
             after_preds = new_predictor.predict(states)
         if check_equality:
             self._check_output_match(before_preds, after_preds)
