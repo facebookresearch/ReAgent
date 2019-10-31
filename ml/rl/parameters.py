@@ -67,12 +67,6 @@ class FeedForwardParameters(BaseDataClass):
 
 
 @dataclass
-class FactorizationParameters(BaseDataClass):
-    state: FeedForwardParameters
-    action: FeedForwardParameters
-
-
-@dataclass
 class TrainingParameters(BaseDataClass):
     minibatch_size: int = 4096
     learning_rate: float = 0.001
@@ -84,7 +78,6 @@ class TrainingParameters(BaseDataClass):
     dropout_ratio: float = 0.0
     warm_start_model_path: Optional[str] = None
     cnn_parameters: Optional[CNNParameters] = None
-    factorization_parameters: Optional[FactorizationParameters] = None
     l2_decay: float = 0.01
     weight_init_min_std: float = 0.0
     use_batch_norm: bool = False

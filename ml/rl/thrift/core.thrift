@@ -58,11 +58,6 @@ struct FeedForwardParameters {
   3: optional bool use_layer_norm,
 }
 
-struct FactorizationParameters {
-  1: FeedForwardParameters state,
-  2: FeedForwardParameters action,
-}
-
 struct TrainingParameters {
   1: i32 minibatch_size = 4096,
   2: double learning_rate = 0.001,
@@ -74,7 +69,6 @@ struct TrainingParameters {
   8: double dropout_ratio = 0.0,
   9: optional string warm_start_model_path,
   10: optional CNNParameters cnn_parameters,
-  11: optional FactorizationParameters factorization_parameters,
   12: double l2_decay = 0.01,
   14: double weight_init_min_std = 0.0,
   15: bool use_batch_norm = false,
