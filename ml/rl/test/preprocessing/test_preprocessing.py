@@ -7,8 +7,6 @@ import numpy as np
 import numpy.testing as npt
 import six
 import torch
-from caffe2.python import core
-from ml.rl.caffe_utils import PytorchCaffe2Converter
 from ml.rl.preprocessing import identify_types, normalization
 from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
 from ml.rl.preprocessing.normalization import (
