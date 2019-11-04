@@ -59,7 +59,6 @@ autodoc_mock_imports = [
     "torch",
     "pandas",
     "sklearn",
-    "ml.rl.thrift",
     "ml.rl.test",
     "onnx",
     "xgboost",

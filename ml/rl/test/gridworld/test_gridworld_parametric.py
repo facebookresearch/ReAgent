@@ -18,7 +18,6 @@ from ml.rl.prediction.predictor_wrapper import (
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
 )
-from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import get_num_output_features
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.test.gridworld.gridworld_base import DISCOUNT

@@ -13,8 +13,6 @@ import torch
 from gym import Env
 from ml.rl.test.base.utils import only_continuous_normalizer
 from ml.rl.test.environment.environment import Environment
-from ml.rl.training.dqn_predictor import DQNPredictor
-from ml.rl.training.off_policy_predictor import RLPredictor
 from ml.rl.training.on_policy_predictor import OnPolicyPredictor
 
 
@@ -173,12 +171,12 @@ class OpenAIGymEnvironment(Environment):
         return res
 
     def policy(
-        self, predictor: Union[RLPredictor, OnPolicyPredictor, None], state, test
+        self, predictor: Optional[OnPolicyPredictor], state, test
     ) -> Tuple[torch.Tensor, float]:
         """
         Selects the next action.
 
-        :param predictor: RLPredictor/OnPolicyPredictor object whose policy to
+        :param predictor: OnPolicyPredictor object whose policy to
             follow. If set to None, use a random policy.
         :param state: State to evaluate predictor's policy on.
         :param test: Whether or not to bypass exploration (if predictor is not None).
@@ -207,16 +205,7 @@ class OpenAIGymEnvironment(Environment):
 
         action = torch.zeros([self.action_dim])
 
-        if isinstance(predictor, DQNPredictor):
-            action_probability = 1.0 if test else 1.0 - self.epsilon
-            # Use DQNPredictor directly - useful to test caffe2 predictor
-            # assumes state preprocessor already part of predictor net.
-            sparse_states = predictor.in_order_dense_to_sparse(state)
-            q_values = predictor.predict(sparse_states)
-            action_idx = int(max(q_values[0], key=q_values[0].get)) - self.state_dim
-            action[action_idx] = 1.0
-            return action, action_probability
-        elif predictor.policy_net():  # type: ignore
+        if predictor.policy_net():  # type: ignore
             action_set = predictor.policy(state)  # type: ignore
             action, action_probability = action_set.greedy, action_set.greedy_propensity
             action = action[0, :]
@@ -248,7 +237,7 @@ class OpenAIGymEnvironment(Environment):
     def run_ep_n_times(
         self,
         n,
-        predictor: Union[RLPredictor, OnPolicyPredictor, None],
+        predictor: Optional[OnPolicyPredictor],
         max_steps=None,
         test=False,
         render=False,
@@ -258,7 +247,7 @@ class OpenAIGymEnvironment(Environment):
         sum of rewards.
 
         :param n: Number of episodes to average over.
-        :param predictor: RLPredictor/OnPolicyPredictor object whose policy to
+        :param predictor: OnPolicyPredictor object whose policy to
             follow. If set to None, use a random policy
         :param max_steps: Max number of timesteps before ending episode.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.
@@ -285,7 +274,7 @@ class OpenAIGymEnvironment(Environment):
 
     def run_episode(
         self,
-        predictor: Union[RLPredictor, OnPolicyPredictor, None],
+        predictor: Optional[OnPolicyPredictor],
         max_steps=None,
         test=False,
         render=False,
@@ -294,7 +283,7 @@ class OpenAIGymEnvironment(Environment):
         Runs an episode of the environment and returns the sum of rewards
         experienced in the episode. For evaluation purposes.
 
-        :param predictor: RLPredictor/OnPolicyPredictor object whose policy to
+        :param predictor: OnPolicyPredictor object whose policy to
             follow. If set to None, use a random policy.
         :param max_steps: Max number of timesteps before ending episode.
         :param test: Whether or not to bypass an epsilon-greedy selection policy.

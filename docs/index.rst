@@ -93,7 +93,6 @@ Table of Contents
     Preprocessing <api/ml.rl.preprocessing>
     Readers <api/ml.rl.readers>
     Simulators <api/ml.rl.simulators>
-    Thrift <api/ml.rl.thrift>
     Training <api/ml.rl.training>
     Workflow <api/ml.rl.workflow>
     All Modules <api/modules>

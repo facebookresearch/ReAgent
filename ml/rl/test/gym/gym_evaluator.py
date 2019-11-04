@@ -2,13 +2,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
 from ml.rl.evaluation.evaluator import Evaluator
 from ml.rl.test.gym.open_ai_gym_environment import EnvType
-from ml.rl.training.off_policy_predictor import RLPredictor
 from ml.rl.training.on_policy_predictor import OnPolicyPredictor
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
@@ -144,7 +143,7 @@ class GymEvaluator(Evaluator):
         )
 
     def evaluate_on_episodes(
-        self, num_episodes, predictor: Union[RLPredictor, OnPolicyPredictor, None]
+        self, num_episodes, predictor: Optional[OnPolicyPredictor]
     ):
         """
         Simulate real episodes and evaluate average rewards and

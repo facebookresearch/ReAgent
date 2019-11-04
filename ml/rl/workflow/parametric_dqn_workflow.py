@@ -22,7 +22,6 @@ from ml.rl.prediction.predictor_wrapper import (
     ParametricDqnWithPreprocessor,
 )
 from ml.rl.preprocessing.batch_preprocessor import ParametricDqnBatchPreprocessor
-from ml.rl.preprocessing.feature_extractor import PredictorFeatureExtractor
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor

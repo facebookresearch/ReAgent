@@ -13,7 +13,6 @@ from ml.rl.prediction.dqn_torch_predictor import (
     ParametricDqnTorchPredictor,
 )
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.training.dqn_predictor import DQNPredictor
 from ml.rl.workflow import dqn_workflow, parametric_dqn_workflow
 
 
@@ -120,11 +119,3 @@ class TestOSSWorkflows(HorizonTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_parametric_dqn_workflow_all_gpus(self):
         self._test_parametric_dqn_workflow(use_gpu=True, use_all_avail_gpus=True)
-
-    def test_read_c2_model_from_file(self):
-        """Test reading output caffe2 model from file and using it for inference."""
-        path = os.path.join(curr_dir, "test_data/discrete_action/example_predictor.c2")
-        predictor = DQNPredictor.load(path, "minidb")
-        test_float_state_features = [{"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0}]
-        q_values = predictor.predict(test_float_state_features)
-        assert len(q_values[0].keys()) == 2
