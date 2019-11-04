@@ -8,7 +8,6 @@ from typing import Optional
 
 import numpy as np
 import torch
-from caffe2.python import workspace
 from ml.rl.test.gym.open_ai_gym_environment import ModelType
 from ml.rl.torch_utils import stack
 from ml.rl.training.training_data_page import TrainingDataPage
