@@ -11,6 +11,10 @@ pip uninstall -y reagent
 # Installing from current directory, any update will be reflected system-wide
 pip install -e .
 
+# Clone submodules
+git submodule init
+git submodule update
+
 # Build RASP
 mkdir -p serving/build
 pushd serving/build
