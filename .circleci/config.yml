@@ -84,9 +84,12 @@ jobs:
             sudo apt-get install -y nvidia-docker2
             sudo pkill -SIGHUP dockerd
       - run:
-          name: Run unittests
+          name: Start docker
           command: |
             sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent kittipatv/reagent:cuda
+      - run:
+          name: Run unittests
+          command: |
             sudo docker exec -it reagent bash -c "\
             cd ReAgent && \
             scripts/ci/run_python_unittest.sh"
