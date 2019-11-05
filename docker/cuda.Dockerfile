@@ -53,6 +53,7 @@ RUN conda init bash
 
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
+RUN conda config --add channels nvidia # For cudatoolkit
 RUN conda config --add channels pytorch-nightly # For PyTorch
 
 # Add files to image
