@@ -81,7 +81,10 @@ jobs:
           name: Run unittests
           command: |
             sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent kittipatv/reagent:cuda
-            sudo docker exec -it reagent bash -c "scripts/ci/run_python_unittest.sh"
+            sudo docker exec -it reagent bash -c "\
+            cd ReAgent && \
+            scripts/ci/run_python_unittest.sh"
+
 
 workflows:
   build:
