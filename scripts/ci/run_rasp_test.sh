@@ -11,11 +11,15 @@ pip uninstall -y reagent
 # Installing from current directory, any update will be reflected system-wide
 pip install -e .
 
+# Clone submodules
+git submodule init
+git submodule update
+
 # Build RASP
 mkdir -p serving/build
 pushd serving/build
 cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
-make -j`nproc`
+make -j2
 popd
 
 # Run RASP tests

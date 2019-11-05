@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   software-properties-common \
   vim \
   emacs \
+  unzip \
   wget
 
 # Sometimes needed to avoid SSL CA issues.
@@ -52,6 +53,7 @@ RUN conda init bash
 
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
+RUN conda config --add channels nvidia # For cudatoolkit
 RUN conda config --add channels pytorch-nightly # For PyTorch
 
 # Add files to image
@@ -64,6 +66,10 @@ RUN rm requirements.txt
 
 # Install open ai gym
 RUN pip install "gym[classic_control,box2d,atari]"
+
+# Install libtorch
+RUN wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
+RUN unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
 
 # Set JAVA_HOME for Spark
 ENV JAVA_HOME ${HOME}/miniconda

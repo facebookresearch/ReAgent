@@ -36,7 +36,7 @@ ENV HOME /home
 WORKDIR ${HOME}/
 
 # Not using latest version because of https://github.com/conda/conda/issues/8825
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-4.5.12-Linux-x86_64.sh -O miniconda.sh && \
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh -O miniconda.sh && \
   chmod +x miniconda.sh && \
   ./miniconda.sh -b -p ${HOME}/miniconda && \
   rm miniconda.sh
@@ -53,6 +53,7 @@ RUN conda init bash
 
 # Set channels
 RUN conda config --add channels conda-forge # For ONNX/tensorboardX
+RUN conda config --add channels nvidia # For cudatoolkit
 RUN conda config --add channels pytorch-nightly # For PyTorch
 
 # Add files to image
