@@ -6,7 +6,6 @@ import unittest
 
 import numpy.testing as npt
 import torch
-from caffe2.python import workspace
 from ml.rl.models.actor import (
     DirichletFullyConnectedActor,
     FullyConnectedActor,

@@ -8,7 +8,7 @@ from typing import NamedTuple, Optional, Union, cast
 import numpy as np
 import torch
 from ml.rl import types as rlt
-from ml.rl.caffe_utils import masked_softmax
+from ml.rl.torch_utils import masked_softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
 
