@@ -7,7 +7,7 @@ from typing import List, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.caffe_utils import masked_softmax
+from ml.rl.torch_utils import masked_softmax
 from ml.rl.training.loss_reporter import LossReporter
 
 

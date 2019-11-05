@@ -19,7 +19,7 @@ git submodule update
 mkdir -p serving/build
 pushd serving/build
 cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
-make -j`nproc`
+make -j2
 popd
 
 # Run RASP tests

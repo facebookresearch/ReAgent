@@ -43,3 +43,23 @@ def export_module_to_buffer(module) -> BytesIO:
     write_buffer = BytesIO()
     torch.jit.save(module, write_buffer)
     return write_buffer
+
+
+def softmax(x, temperature):
+    """Compute softmax values for each sets of scores in x."""
+    x = x / temperature
+    return torch.nn.functional.softmax(x, dim=1)
+
+
+def masked_softmax(x, mask, temperature):
+    """Compute softmax values for each sets of scores in x."""
+    x = x / temperature
+    mask_min_x = x - ((1.0 - mask) * 1e20)
+    mask_min_x -= torch.max(mask_min_x, dim=1, keepdim=True)[0]
+    e_x = torch.exp(mask_min_x)
+    e_x *= mask
+    out = e_x / e_x.sum(dim=1, keepdim=True)
+
+    # Set NaN values to 0 (NaN happens when a full mask row is passed in)
+    out[out != out] = 0
+    return out

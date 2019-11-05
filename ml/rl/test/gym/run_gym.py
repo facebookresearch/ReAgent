@@ -11,8 +11,6 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
-from caffe2.proto import caffe2_pb2
-from caffe2.python import core
 from ml.rl.json_serialize import json_to_object
 from ml.rl.parameters import (
     CEMParameters,
@@ -135,7 +133,6 @@ def create_replay_buffer(
 
 
 def train(
-    c2_device,
     gym_env,
     offline_train,
     replay_buffer,
@@ -171,7 +168,6 @@ def train(
         )
     else:
         return train_gym_online_rl(
-            c2_device,
             gym_env,
             replay_buffer,
             model_type,
@@ -357,7 +353,6 @@ def train_gym_offline_rl(
 
 
 def train_gym_online_rl(
-    c2_device,
     gym_env,
     replay_buffer,
     model_type,
@@ -730,9 +725,7 @@ def run_gym(
     trainer = warm_trainer if warm_trainer else create_trainer(params, env)
     predictor = create_predictor(trainer, model_type, use_gpu, env.action_dim)
 
-    c2_device = core.DeviceOption(caffe2_pb2.CUDA if use_gpu else caffe2_pb2.CPU)
     return train(
-        c2_device,
         env,
         offline_train,
         replay_buffer,
