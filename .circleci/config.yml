@@ -44,6 +44,57 @@ jobs:
       - checkout_merge
       - run: << parameters.test_script >>
 
+  gpu_unittest:
+    machine:
+      image: ubuntu-1604:201903-01
+    resource_class: gpu.medium
+    steps:
+      - checkout_merge
+      - run:
+          name: Setup Docker and nvidia-docker
+          command: |
+            # Install CUDA 9.2
+            wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_9.2.148-1_amd64.deb
+            sudo dpkg -i cuda-repo-ubuntu1604_9.2.148-1_amd64.deb
+            sudo apt-get update || true
+            sudo apt-get --yes --force-yes install cuda
+            nvidia-smi
+            # Install Docker
+            sudo apt-get update
+            sudo apt-get install \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+            sudo apt-key fingerprint 0EBFCD88
+            sudo add-apt-repository \
+            "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) \
+            stable"
+            sudo apt-get update
+            sudo apt-get install docker-ce
+            # Install nvidia-docker
+            distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+            curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+            curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+            sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+            sudo apt-get update
+            # Install nvidia-docker2 and reload the Docker daemon configuration
+            sudo apt-get install -y nvidia-docker2
+            sudo pkill -SIGHUP dockerd
+      - run:
+          name: Start docker
+          command: |
+            sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent kittipatv/reagent:cuda
+      - run:
+          name: Run unittests
+          command: |
+            sudo docker exec -it reagent bash -c "\
+            cd ReAgent && \
+            scripts/ci/run_python_unittest.sh"
+
+
 workflows:
   build:
     jobs:
@@ -52,11 +103,7 @@ workflows:
           docker_image: kittipatv/reagent:cpu
           test_script: scripts/ci/run_end_to_end_test.sh
           resource_class_str: large
-      - binary_linux_conda:
-          name: linux_conda_py3.7_pytest
-          docker_image: kittipatv/reagent:cuda
-          test_script: scripts/ci/run_python_unittest.sh
-          resource_class_str: large
+      - gpu_unittest
       - binary_linux_conda:
           name: linux_conda_py3.7_rasp_test
           docker_image: kittipatv/reagent:cpu
