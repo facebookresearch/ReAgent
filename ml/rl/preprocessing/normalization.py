@@ -4,7 +4,7 @@
 import json
 import logging
 from dataclasses import asdict
-from typing import Dict
+from typing import Dict, List, Tuple
 
 import numpy as np
 import six
@@ -199,13 +199,15 @@ def get_feature_start_indices(sorted_features, normalization_parameters):
     return start_indices
 
 
-def sort_features_by_normalization(normalization_parameters):
+def sort_features_by_normalization(
+    normalization_parameters: Dict[int, NormalizationParameters]
+) -> Tuple[List[int], List[int]]:
     """
     Helper function to return a sorted list from a normalization map.
     Also returns the starting index for each feature type"""
     # Sort features by feature type
-    sorted_features = []
-    feature_starts = []
+    sorted_features: List[int] = []
+    feature_starts: List[int] = []
     assert isinstance(
         list(normalization_parameters.keys())[0], int
     ), "Normalization Parameters need to be int"

@@ -188,6 +188,16 @@ class PreprocessedFeatureVector(BaseDataClass):
 
 
 @dataclass
+class PreprocessedTiledFeatureVector(BaseDataClass):
+    float_features: torch.Tensor
+
+    def as_preprocessed_feature_vector(self) -> PreprocessedFeatureVector:
+        return PreprocessedFeatureVector(
+            float_features=self.float_features.view(-1, self.float_features.shape[2])
+        )
+
+
+@dataclass
 class PreprocessedState(BaseDataClass):
     """
     This class makes it easier to plug modules into predictor
@@ -329,6 +339,47 @@ class PreprocessedDiscreteDqnInput(PreprocessedBaseInput):
     next_action: torch.Tensor
     possible_actions_mask: torch.Tensor
     possible_next_actions_mask: torch.Tensor
+
+
+@dataclass
+class PreprocessedSlateFeatureVector(BaseDataClass):
+    """
+    The shape of `float_features` is
+    `(batch_size, slate_size, item_dim)`.
+
+    `item_mask` masks available items in the action
+
+    `item_probability` is the probability of item in being selected
+    """
+
+    float_features: torch.Tensor
+    item_mask: torch.Tensor
+    item_probability: torch.Tensor
+
+    def as_preprocessed_feature_vector(self) -> PreprocessedFeatureVector:
+        return PreprocessedFeatureVector(
+            float_features=self.float_features.view(-1, self.float_features.shape[2])
+        )
+
+
+@dataclass
+class PreprocessedSlateQInput(PreprocessedBaseInput):
+    """
+    The shapes of `tiled_state` & `tiled_next_state` are
+    `(batch_size, slate_size, state_dim)`.
+
+    The shapes of `reward`, `reward_mask`, & `next_item_mask` are
+    `(batch_size, slate_size)`.
+
+    `reward_mask` indicated whether the reward could be observed, e.g.,
+    the item got into viewport or not.
+    """
+
+    tiled_state: PreprocessedTiledFeatureVector
+    tiled_next_state: PreprocessedTiledFeatureVector
+    action: PreprocessedSlateFeatureVector
+    next_action: PreprocessedSlateFeatureVector
+    reward_mask: torch.Tensor
 
 
 @dataclass
@@ -623,6 +674,7 @@ class PreprocessedTrainingBatch(BaseDataClass):
         PreprocessedMemoryNetworkInput,
         PreprocessedPolicyNetworkInput,
         PreprocessedRankingInput,
+        PreprocessedSlateQInput,
     ]
     extras: Any
 
