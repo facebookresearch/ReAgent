@@ -195,6 +195,70 @@ class TrainingDataPage(object):
             ),
         )
 
+    def as_slate_q_training_batch(self):
+        batch_size, state_dim = self.states.shape
+        action_dim = self.actions.shape[1]
+        num_actions = self.possible_actions_mask.shape[1]
+        return rlt.PreprocessedTrainingBatch(
+            training_input=rlt.PreprocessedSlateQInput(
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
+                tiled_state=rlt.PreprocessedTiledFeatureVector(
+                    float_features=self.possible_actions_state_concat[
+                        :, :state_dim
+                    ].view(batch_size, -1, state_dim)
+                ),
+                tiled_next_state=rlt.PreprocessedTiledFeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, :state_dim
+                    ].view(batch_size, -1, state_dim)
+                ),
+                ###
+                action=rlt.PreprocessedSlateFeatureVector(
+                    float_features=self.possible_actions_state_concat[
+                        :, state_dim:
+                    ].view(batch_size, -1, action_dim),
+                    # HACK: this should be used only in SlateQ test
+                    item_mask=self.possible_next_actions_mask,
+                    # FIXME: need true probability
+                    item_probability=torch.full_like(
+                        self.possible_next_actions_mask,
+                        1.0 / num_actions,
+                        dtype=torch.float,
+                    ),
+                ),
+                next_action=rlt.PreprocessedSlateFeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, state_dim:
+                    ].view(batch_size, -1, action_dim),
+                    item_mask=self.possible_next_actions_mask,
+                    # FIXME: need true probability
+                    item_probability=torch.full_like(
+                        self.possible_next_actions_mask,
+                        1.0 / num_actions,
+                        dtype=torch.float,
+                    ),
+                ),
+                # HACK: This is ok since reward will be masked
+                reward=self.rewards.repeat_interleave(num_actions, dim=1),
+                # HACK: this should be used only in SlateQ test
+                reward_mask=self.possible_actions_mask,
+                ####
+                time_diff=self.time_diffs,
+                step=self.step,
+                not_terminal=self.not_terminal,
+            ),
+            extras=rlt.ExtraData(
+                mdp_id=self.mdp_ids,
+                sequence_number=self.sequence_numbers,
+                action_probability=self.propensities,
+                max_num_actions=self.max_num_actions,
+                metrics=self.metrics,
+            ),
+        )
+
     def size(self) -> int:
         if self.states:
             return len(self.states)

@@ -29,11 +29,11 @@ class TestRecsim(unittest.TestCase):
         for _i in range(10000):
             active_user_ids, users, candidates = recsim.obs()
             action = policy(active_user_ids.shape[0], recsim.k)
-            num_active_users = recsim.step(action)
-            cum_reward += num_active_users
+            reward, user_choice, interest, num_active_users = recsim.step(action)
+            cum_reward += reward.sum().item()
             if num_active_users == 0:
                 break
         else:
             self.fail("Running too long")
 
-        self.assertEqual(197877, cum_reward)
+        self.assertEqual(646144, cum_reward)

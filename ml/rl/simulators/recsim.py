@@ -15,6 +15,15 @@ class DocumentFeature(NamedTuple):
     length: torch.Tensor
     quality: torch.Tensor
 
+    def as_vector(self):
+        """
+        Convenient function to get single tensor
+        """
+        return torch.cat(
+            (self.topic, self.length.unsqueeze(dim=2), self.quality.unsqueeze(dim=2)),
+            dim=2,
+        )
+
 
 class RecSim:
     """
@@ -88,14 +97,16 @@ class RecSim:
     def step(self, action: torch.Tensor) -> int:
         assert self.candidates is not None
         slate = self.select(self.candidates, action, True)
-        user_choice = self.compute_user_choice(slate)
+        user_choice, interest = self.compute_user_choice(slate)
         selected_choice = self.select(slate, user_choice, False)
         self.update_user_interest(selected_choice)
         self.update_user_budget(selected_choice)
         num_alive_sessions = self.update_active_users()
         self.candidates = None
         # TODO: Figure out what was the reward in the paper
-        return num_alive_sessions
+        # Here, the reward is the length of selected video
+        reward = selected_choice.length * (user_choice != action.shape[1])
+        return reward, user_choice, interest, num_alive_sessions
 
     def select(self, candidates, indices, add_null):
         batch_size = candidates.topic.shape[0]
@@ -113,10 +124,8 @@ class RecSim:
         topic = candidates.topic.view(-1, self.num_topics)[select_indices].view(
             batch_size, num_select, self.num_topics
         )
-        length = self.candidates.length.view(-1)[select_indices].view(
-            batch_size, num_select
-        )
-        quality = self.candidates.quality.view(-1)[select_indices].view(
+        length = candidates.length.view(-1)[select_indices].view(batch_size, num_select)
+        quality = candidates.quality.view(-1)[select_indices].view(
             batch_size, num_select
         )
 
@@ -133,7 +142,7 @@ class RecSim:
     def compute_user_choice(self, slate):
         interest = self.interest(self.users, slate.topic)
         user_choice = torch.multinomial(interest.exp(), 1, generator=self.generator)
-        return user_choice
+        return user_choice, interest
 
     def update_user_interest(self, selected_choice):
         pos_prob = (self.interest(self.users, selected_choice.topic) + 1) / 2

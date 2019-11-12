@@ -111,13 +111,17 @@ class MemoryBuffer:
             )
             if has_possble_actions
             else None,
-            possible_next_actions_mask=torch.zeros((max_size, max_possible_actions))
+            possible_next_actions_mask=torch.zeros(
+                (max_size, max_possible_actions), dtype=torch.bool
+            )
             if max_possible_actions
             else None,
             possible_actions=torch.zeros((max_size, max_possible_actions, action_dim))
             if has_possble_actions
             else None,
-            possible_actions_mask=torch.zeros((max_size, max_possible_actions))
+            possible_actions_mask=torch.zeros(
+                (max_size, max_possible_actions), dtype=torch.bool
+            )
             if max_possible_actions
             else None,
             time_diff=torch.zeros((max_size, 1)),
