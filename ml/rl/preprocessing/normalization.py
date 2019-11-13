@@ -228,15 +228,6 @@ def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
         # Check for negative enum IDs
         if params.feature_type == identify_types.ENUM:
             assert params.possible_values is not None
-            for x in params.possible_values:
-                if x < 0:
-                    logger.fatal(
-                        "Invalid enum ID: {} in feature: {} with possible_values {}"
-                        " (raw: {})".format(
-                            x, feature, params.possible_values, feature_parameters
-                        )
-                    )
-                    raise Exception("Invalid enum ID")
         parameters[int(feature)] = params
     return parameters
 
