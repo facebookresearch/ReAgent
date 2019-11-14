@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from typing import List, NamedTuple, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
+from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 
 
 _DEFAULT_QUALITY_MEANS = [(-3.0, 0.0)] * 14 + [(0.0, 3.0)] * 6
@@ -70,7 +71,7 @@ class RecSim:
         )
         self.quality_variances = torch.tensor(quality_variances, device=self.device)
 
-    def reset(self):
+    def reset(self) -> None:
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.users = self.sample_users(self.num_users)
@@ -82,7 +83,7 @@ class RecSim:
         )
         self.candidates = None
 
-    def obs(self):
+    def obs(self) -> Tuple[torch.Tensor, torch.Tensor, DocumentFeature]:
         """
         Agent can observe:
         - User interest vector
@@ -94,7 +95,9 @@ class RecSim:
             self.candidates = self.sample_documents(len(self.active_user_ids))
         return self.active_user_ids, self.users, self.candidates
 
-    def step(self, action: torch.Tensor) -> int:
+    def step(
+        self, action: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, int]:
         assert self.candidates is not None
         slate = self.select(self.candidates, action, True)
         user_choice, interest = self.compute_user_choice(slate)
@@ -108,7 +111,9 @@ class RecSim:
         reward = selected_choice.length * (user_choice != action.shape[1])
         return reward, user_choice, interest, num_alive_sessions
 
-    def select(self, candidates, indices, add_null):
+    def select(
+        self, candidates: DocumentFeature, indices: torch.Tensor, add_null: bool
+    ) -> DocumentFeature:
         batch_size = candidates.topic.shape[0]
         num_candidate = candidates.topic.shape[1]
         num_select = indices.shape[1]
@@ -139,7 +144,9 @@ class RecSim:
             quality = torch.cat((quality, quality.new_zeros(batch_size, 1)), dim=1)
         return DocumentFeature(topic=topic, length=length, quality=quality)
 
-    def compute_user_choice(self, slate):
+    def compute_user_choice(
+        self, slate: DocumentFeature
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         interest = self.interest(self.users, slate.topic)
         user_choice = torch.multinomial(interest.exp(), 1, generator=self.generator)
         return user_choice, interest
@@ -228,3 +235,94 @@ class RecSim:
         )
         length = torch.full((n, self.m), self.doc_length, device=self.device)
         return DocumentFeature(topic=embedding, quality=quality, length=length)
+
+    def rollout_policy(
+        self, policy, memory_pool: Optional[OpenAIGymMemoryPool] = None
+    ) -> float:
+        prev_obs = None
+        prev_action = None
+        prev_user_choice = None
+        prev_reward = None
+        prev_interest = None
+
+        policy_reward = 0
+
+        while True:
+            obs = self.obs()
+            active_user_idxs, user_features, candidate_features = obs
+
+            item_idxs = policy(obs, self)
+            reward, user_choice, interest, num_alive = self.step(item_idxs)
+
+            policy_reward += reward.sum().item()
+
+            action_features = self.select(
+                candidate_features, item_idxs, True
+            ).as_vector()
+
+            if memory_pool is not None and prev_obs is not None:
+                prev_active_user_idxs, prev_user_features, prev_candidate_features = (
+                    prev_obs
+                )
+                i, j = 0, 0
+                while i < len(prev_active_user_idxs):
+                    mdp_id = prev_active_user_idxs[i]
+                    state = prev_user_features[i]
+                    possible_actions = prev_action[i]
+                    action = possible_actions[prev_user_choice[i]].view(-1)
+                    possible_actions_mask = torch.ones(self.k + 1, dtype=torch.uint8)
+                    # HACK: Since reward is going to be masked, this is OK
+                    item_reward = prev_reward[i].repeat(self.k + 1)
+                    reward_mask = torch.arange(self.k + 1) == prev_user_choice[i]
+                    propensity = F.softmax(prev_interest[i], dim=0)
+
+                    if j < len(active_user_idxs) and mdp_id == active_user_idxs[j]:
+                        # not terminated
+                        terminal = False
+                        next_state = user_features[j]
+                        possible_next_actions = action_features[j]
+                        next_action = possible_next_actions[user_choice[j]].view(-1)
+                        next_propensity = F.softmax(interest[j], dim=0)
+                        j += 1
+                    else:
+                        terminal = True
+                        next_state = torch.zeros_like(state)
+                        possible_next_actions = torch.zeros_like(action)
+                        next_action = possible_next_actions[0].view(-1)
+                        next_propensity = torch.zeros_like(propensity)
+
+                    # This doesn't matter
+                    possible_next_actions_mask = torch.ones(
+                        self.k + 1, dtype=torch.uint8
+                    )
+
+                    memory_pool.insert_into_memory(
+                        state=state,
+                        action=action,
+                        reward=item_reward,
+                        next_state=next_state,
+                        next_action=next_action,
+                        terminal=terminal,
+                        possible_next_actions=possible_next_actions,
+                        possible_next_actions_mask=possible_next_actions_mask,
+                        time_diff=1.0,
+                        possible_actions=possible_actions,
+                        possible_actions_mask=possible_actions_mask,
+                        policy_id=1,
+                        propensity=propensity,
+                        next_propensity=next_propensity,
+                        reward_mask=reward_mask,
+                    )
+
+                    i += 1
+
+            prev_obs = obs
+            prev_action = action_features
+            prev_user_choice = user_choice
+            prev_reward = reward
+            prev_interest = interest
+
+            if num_alive == 0:
+                break
+
+        return policy_reward
