@@ -14,13 +14,14 @@ from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class SlateQTrainerParameters:
     rl: rlp.RLParameters = field(
         default_factory=lambda: rlp.RLParameters(maxq_learning=False)
     )
     optimizer: str = "ADAM"
     learning_rate: float = 0.001
+    minibatch_size: int = 1024
     evaluation: rlp.EvaluationParameters = field(
         default_factory=lambda: rlp.EvaluationParameters(calc_cpe_in_training=False)
     )
@@ -36,6 +37,7 @@ class SlateQTrainer(DQNTrainerBase):
     ) -> None:
         super().__init__(parameters, use_gpu=use_gpu)
         self.minibatches_per_step = 1
+        self.minibatch_size = parameters.minibatch_size
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -48,8 +50,6 @@ class SlateQTrainer(DQNTrainerBase):
 
     def warm_start_components(self) -> List[str]:
         components = ["q_network", "q_network_target", "q_network_optimizer"]
-        if self.reward_network is not None:
-            components += ["reward_network", "reward_network_optimizer"]
         return components
 
     @torch.no_grad()  # type: ignore

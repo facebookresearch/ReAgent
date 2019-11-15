@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 from ml.rl.types import BaseDataClass
 
 
-@dataclass
+@dataclass(frozen=True)
 class RLParameters(BaseDataClass):
     gamma: float = 0.9
     epsilon: float = 0.1
@@ -85,7 +85,7 @@ class TrainingParameters(BaseDataClass):
     minibatches_per_step: int = 1
 
 
-@dataclass
+@dataclass(frozen=True)
 class EvaluationParameters(BaseDataClass):
     calc_cpe_in_training: bool = True
 

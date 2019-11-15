@@ -2,6 +2,7 @@
 
 from typing import List, NamedTuple, Optional, Tuple
 
+import ml.rl.types as rlt
 import torch
 import torch.nn.functional as F
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
@@ -282,6 +283,9 @@ class RecSim:
                         next_state = user_features[j]
                         possible_next_actions = action_features[j]
                         next_action = possible_next_actions[user_choice[j]].view(-1)
+                        possible_next_actions_mask = torch.ones(
+                            self.k + 1, dtype=torch.uint8
+                        )
                         next_propensity = F.softmax(interest[j], dim=0)
                         j += 1
                     else:
@@ -289,12 +293,10 @@ class RecSim:
                         next_state = torch.zeros_like(state)
                         possible_next_actions = torch.zeros_like(action)
                         next_action = possible_next_actions[0].view(-1)
+                        possible_next_actions_mask = torch.zeros(
+                            self.k + 1, dtype=torch.uint8
+                        )
                         next_propensity = torch.zeros_like(propensity)
-
-                    # This doesn't matter
-                    possible_next_actions_mask = torch.ones(
-                        self.k + 1, dtype=torch.uint8
-                    )
 
                     memory_pool.insert_into_memory(
                         state=state,
@@ -326,3 +328,44 @@ class RecSim:
                 break
 
         return policy_reward
+
+
+def random_policy(
+    obs: Tuple[torch.Tensor, torch.Tensor, DocumentFeature], recsim: RecSim
+):
+    active_user_idxs, user_features, candidate_features = obs
+    item_idxs = torch.multinomial(
+        torch.ones(active_user_idxs.shape[0], recsim.m), recsim.k
+    )
+    return item_idxs
+
+
+def top_k_policy(
+    q_network, obs: Tuple[torch.Tensor, torch.Tensor, DocumentFeature], recsim: RecSim
+):
+    active_user_idxs, user_features, candidate_features = obs
+
+    slate_with_null = recsim.select(
+        candidate_features,
+        torch.repeat_interleave(
+            torch.arange(recsim.m).unsqueeze(dim=0), active_user_idxs.shape[0], dim=0
+        ),
+        add_null=True,
+    )
+    _user_choice, interest = recsim.compute_user_choice(slate_with_null)
+    propensity = F.softmax(interest, dim=1)[:, : recsim.m]
+
+    tiled_user_features = torch.repeat_interleave(user_features, recsim.m, dim=0)
+    candidate_feature_vector = candidate_features.as_vector()
+    action_dim = candidate_feature_vector.shape[2]
+    flatten_candidate_features = candidate_feature_vector.view(-1, action_dim)
+
+    q_network_input = rlt.PreprocessedStateAction.from_tensors(
+        state=tiled_user_features, action=flatten_candidate_features
+    )
+    q_values = q_network(q_network_input).q_value.view(-1, recsim.m)
+
+    values = q_values * propensity
+
+    top_values, item_idxs = torch.topk(values, recsim.k, dim=1)
+    return item_idxs
