@@ -122,6 +122,9 @@ class PythonSparseToDenseProcessor(SparseToDenseProcessor):
             [len(sparse_data), len(self.feature_id_to_index)]
         ).byte()
         for i, feature_map in enumerate(sparse_data):
+            assert (
+                feature_map is not None
+            ), f"Please make sure that features are not NULL; row {i}"
             for j, value in feature_map.items():
                 j_index = self.feature_id_to_index.get(j, None)
                 if j_index is None:
