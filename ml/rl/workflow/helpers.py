@@ -91,7 +91,8 @@ def update_model_for_warm_start(model, path=None):
         try:
             model.q_network.load_state_dict(state["q_network"])
             model.q_network_target.load_state_dict(state["q_network"])
-            model.q_network_optimizer.load_state_dict(state["optimizer"])
+            if not model.parameters.training.do_not_warm_start_optimizer:
+                model.q_network_optimizer.load_state_dict(state["optimizer"])
         except Exception:
             if not isinstance(model.q_network, FullyConnectedDQN):
                 raise
@@ -102,7 +103,8 @@ def update_model_for_warm_start(model, path=None):
             )
             model.q_network.load_state_dict(state["q_network"])
             model.q_network_target.load_state_dict(state["q_network"])
-            model.q_network_optimizer.load_state_dict(state["optimizer"])
+            if not model.parameters.training.do_not_warm_start_optimizer:
+                model.q_network_optimizer.load_state_dict(state["optimizer"])
     else:
         raise ("Model of type {} not a valid model".format(type(model)))
 

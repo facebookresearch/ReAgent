@@ -83,6 +83,7 @@ class TrainingParameters(BaseDataClass):
     use_batch_norm: bool = False
     clip_grad_norm: Optional[float] = None
     minibatches_per_step: int = 1
+    do_not_warm_start_optimizer: Optional[bool] = None
 
 
 @dataclass(frozen=True)
