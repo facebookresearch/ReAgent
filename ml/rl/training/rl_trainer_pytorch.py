@@ -9,12 +9,13 @@ import torch
 import torch.nn.functional as F
 from ml.rl.torch_utils import masked_softmax
 from ml.rl.training.loss_reporter import LossReporter
+from ml.rl.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
 
 
-class RLTrainer:
+class RLTrainer(Trainer):
     # Q-value for action that is not possible. Guaranteed to be worse than any
     # legitimate action
     ACTION_NOT_POSSIBLE_VAL = -1e9
@@ -158,22 +159,6 @@ class RLTrainer:
                     p.grad /= minibatches_per_step
         optimizer.step()
         optimizer.zero_grad()
-
-    def train(self, training_samples) -> None:
-        raise NotImplementedError()
-
-    def state_dict(self):
-        return {c: getattr(self, c).state_dict() for c in self.warm_start_components()}
-
-    def load_state_dict(self, state_dict):
-        for c in self.warm_start_components():
-            getattr(self, c).load_state_dict(state_dict[c])
-
-    def warm_start_components(self) -> List[str]:
-        """
-        The trainer should specify what members to save and load
-        """
-        raise NotImplementedError
 
     @torch.no_grad()  # type: ignore
     def internal_prediction(self, input):

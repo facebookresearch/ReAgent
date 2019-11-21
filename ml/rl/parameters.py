@@ -355,4 +355,3 @@ class RankingParameters(BaseDataClass):
     max_src_seq_len: int
     max_tgt_seq_len: int
     greedy_serving: bool
-    evaluation: EvaluationParameters = EvaluationParameters()

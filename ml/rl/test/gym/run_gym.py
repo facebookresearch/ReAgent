@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import argparse
-import json
 import logging
 import pickle
 import random
@@ -13,22 +12,12 @@ import numpy as np
 import torch
 from ml.rl.json_serialize import json_to_object
 from ml.rl.parameters import (
-    CEMParameters,
-    CNNParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
-    FeedForwardParameters,
-    MDNRNNParameters,
     OpenAiGymParameters,
     OpenAiRunDetails,
-    OptimizerParameters,
-    RainbowDQNParameters,
-    RLParameters,
     SACModelParameters,
-    SACTrainingParameters,
     TD3ModelParameters,
-    TD3TrainingParameters,
-    TrainingParameters,
 )
 from ml.rl.test.base.utils import write_lists_to_csv
 from ml.rl.test.gym.open_ai_gym_environment import (

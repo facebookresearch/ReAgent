@@ -418,7 +418,7 @@ class Seq2SlateTransformerModel(nn.Module):
         # and padding symbol
         self.generator = Generator(dim_model, max_src_seq_len + 2)
         self.positional_encoding = PositionalEncoding(
-            dim_model, max_len=2 * max_src_seq_len
+            dim_model, max_len=2 * (max_src_seq_len + max_tgt_seq_len)
         )
         # Initialize parameters with Glorot / fan_avg.
         for p in self.parameters():
@@ -563,7 +563,7 @@ class Seq2SlateTransformerModel(nn.Module):
         src_seq_len = src_seq.shape[1]
         assert tgt_seq_len <= src_seq_len
 
-        # tgt_src_mask shape: batch_size, seq_len, seq_len
+        # tgt_src_mask shape: batch_size, tgt_seq_len, src_seq_len
         tgt_src_mask = src_src_mask[:, :tgt_seq_len, :]
 
         # decoder_output shape: batch_size, seq_len, dim_model
@@ -608,7 +608,7 @@ class Seq2SlateTransformerModel(nn.Module):
 
     def encode(self, state, src_seq, src_mask):
         # state: batch_size, state_dim
-        # src_seq: batch_size, seq_len, dim_candidate
+        # src_seq: batch_size, src_seq_len, dim_candidate
         # src_src_mask shape: batch_size, seq_len, seq_len
         batch_size = src_seq.shape[0]
 
@@ -633,8 +633,8 @@ class Seq2SlateTransformerModel(nn.Module):
 
     def decode(self, memory, state, tgt_src_mask, tgt_seq, tgt_tgt_mask, tgt_seq_len):
         # memory is the output of the encoder, the attention of each input symbol
-        # memory shape: batch_size, seq_len, dim_model
-        # tgt_src_mask shape: batch_size, tgt_seq_len, seq_len
+        # memory shape: batch_size, src_seq_len, dim_model
+        # tgt_src_mask shape: batch_size, tgt_seq_len, src_seq_len
         # tgt_seq shape: batch_size, tgt_seq_len, dim_candidate
         # tgt_tgt_mask shape: batch_size, tgt_seq_len, tgt_seq_len
         batch_size = tgt_seq.shape[0]
@@ -695,7 +695,7 @@ class Seq2SlateTransformerNet(ModelBase):
         return _DistributedSeq2SlateTransformerNet(self)
 
     def input_prototype(self):
-        return rlt.PreprocessedRankingInput.from_tensor(
+        return rlt.PreprocessedRankingInput.from_tensors(
             state=torch.randn(1, self.state_dim),
             src_seq=torch.randn(1, self.max_src_seq_len, self.candidate_dim),
             tgt_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),

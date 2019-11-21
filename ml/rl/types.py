@@ -762,3 +762,8 @@ class RankingOutput(BaseDataClass):
     # log probabilities of given tgt sequences are used in REINFORCE
     # shape: batch_size
     log_probs: Optional[torch.Tensor] = None
+
+
+@dataclass
+class RewardNetworkOutput(BaseDataClass):
+    predicted_reward: torch.Tensor

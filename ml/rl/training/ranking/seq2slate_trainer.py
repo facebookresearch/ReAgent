@@ -6,25 +6,23 @@ import time
 import ml.rl.types as rlt
 import torch
 from ml.rl.models.seq2slate import LOG_PROB_MODE, BaselineNet, Seq2SlateTransformerNet
-from ml.rl.parameters import EvaluationParameters, Seq2SlateTransformerParameters
-from ml.rl.training.ranking.ranking_trainer import RankingTrainer
+from ml.rl.parameters import Seq2SlateTransformerParameters
+from ml.rl.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
 
 
-class Seq2SlateTrainer(RankingTrainer):
+class Seq2SlateTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
         baseline_net: BaselineNet,
         parameters: Seq2SlateTransformerParameters,
-        eval_parameters: EvaluationParameters,
         minibatch_size: int,
         use_gpu: bool = False,
     ) -> None:
         self.parameters = parameters
-        self.eval_parameters = eval_parameters
         self.use_gpu = use_gpu
         self.seq2slate_net = seq2slate_net
         self.baseline_net = baseline_net
@@ -74,7 +72,6 @@ class Seq2SlateTrainer(RankingTrainer):
         # add negative sign because we take gradient descent but we want to
         # maximize rewards
         batch_loss = -importance_sampling * log_probs * (reward - b)
-        # rl_loss = - 1. / batch_size * torch.sum(log_probs * (reward - b))
         rl_loss = 1.0 / batch_size * torch.sum(batch_loss)
         rl_loss.backward()
         self.rl_opt.step()
