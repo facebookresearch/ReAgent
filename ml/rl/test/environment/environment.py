@@ -60,7 +60,7 @@ class MultiStepSamples(NamedTuple):
 def shuffle_samples(samples):
     merged = list(zip(*[getattr(samples, f) for f in samples._fields]))
     random.shuffle(merged)
-    return type(samples)(**dict(zip(samples._fields, zip(*merged))))
+    return type(samples)(**dict(zip(samples._fields, map(list, zip(*merged)))))
 
 
 class Environment:

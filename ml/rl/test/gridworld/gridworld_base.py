@@ -165,7 +165,7 @@ class GridworldBase(Environment):
 
     def _index(self, pos):
         y, x = pos
-        return x + y * self.width
+        return int(x + y * self.width)
         # 0 1 2 3 4
         # 5 6 7 8 9
         # ...
@@ -179,7 +179,7 @@ class GridworldBase(Environment):
         return self._state
 
     def reward(self, state):
-        return self.REWARD_SCALE if self.grid[self._pos(state)] == G else 0
+        return self.REWARD_SCALE if self.grid[self._pos(state)] == G else 0.0
 
     def transition_probabilities(self, state, action):
         y, x = self._pos(state)
