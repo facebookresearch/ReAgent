@@ -104,7 +104,7 @@ To build, clone repository and cd into the respective directory:
 
 .. code-block::
 
-   git clone https://github.com/facebookresearch/ReAgent.git
+   git clone --recurse-submodules https://github.com/facebookresearch/ReAgent.git
    cd ReAgent/
 
 On macOS you will need to increase the default memory allocation as the default of 2G is not enough. You can do this by clicking the whale icon in the task bar. We recommend using at least 8G of memory.
