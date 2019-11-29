@@ -232,7 +232,7 @@ class DoublyRobustEstimator:
                 [isd.model_propensities.shape[0], 1], dtype=torch.float32
             )
         else:
-            # model rewards is (N_samples)*N*N_actions tensor of predicted
+            # model rewards is (N_samples)*N_actions tensor of predicted
             # counterfactual rewards for each possible action at each
             # historical context
             direct_method_values = torch.sum(

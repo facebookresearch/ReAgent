@@ -8,7 +8,9 @@ import numpy as np
 # @manual=third-party//scipy:scipy-py
 import scipy.stats as stats
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
+from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.models.seq2slate import LOG_PROB_MODE
 from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
@@ -21,12 +23,19 @@ logger = logging.getLogger(__name__)
 class RankingEvaluator:
     """ Evaluate ranking models """
 
-    def __init__(self, trainer: Seq2SlateTrainer, calc_cpe: bool) -> None:
+    def __init__(
+        self,
+        trainer: Seq2SlateTrainer,
+        calc_cpe: bool,
+        reward_network: Optional[nn.Module] = None,
+    ) -> None:
+        assert not calc_cpe or reward_network is not None
         self.trainer = trainer
         self.advantages = []
         self.log_probs = []
         self.baseline_loss = []
         self.calc_cpe = calc_cpe
+        self.reward_network = reward_network
         self.eval_data_pages: Optional[EvaluationDataPage] = None
 
     @torch.no_grad()
@@ -61,12 +70,13 @@ class RankingEvaluator:
         if not self.calc_cpe:
             return
 
-        # TODO: create evaluation data page
-        # edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
-        # if self.eval_data_pages = None:
-        #     self.eval_data_pages = edp
-        # else:
-        #     self.eval_data_pages = self.eval_data_pages.append(edp)
+        edp = EvaluationDataPage.create_from_training_batch(
+            eval_tdp, self.trainer, self.reward_network
+        )
+        if self.eval_data_pages is None:
+            self.eval_data_pages = edp
+        else:
+            self.eval_data_pages = self.eval_data_pages.append(edp)
 
     @torch.no_grad()
     def evaluate_post_training(self):
@@ -84,12 +94,17 @@ class RankingEvaluator:
             "baseline": np.mean(self.baseline_loss),
         }
 
-        # TODO: add doubly robust estimator
-        # if self.calc_cpe:
-        # doubly_robust_estimator = DoublyRobustEstimator()
-        # direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
-        #     self.eval_data_pages
-        # )
+        if self.calc_cpe:
+            doubly_robust_estimator = DoublyRobustEstimator()
+            direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
+                self.eval_data_pages
+            )
+            eval_res["cpe_dm_raw"] = direct_method.raw
+            eval_res["cpe_dm_normalized"] = direct_method.normalized
+            eval_res["cpe_ips_raw"] = inverse_propensity.raw
+            eval_res["cpe_ips_normalized"] = inverse_propensity.normalized
+            eval_res["cpe_dr_raw"] = doubly_robust.raw
+            eval_res["cpe_dr_normalized"] = doubly_robust.normalized
 
         self.advantages = []
         self.log_probs = []

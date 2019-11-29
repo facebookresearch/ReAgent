@@ -37,7 +37,7 @@ class RewardNetEvaluator:
         mse_loss = F.mse_loss(
             reward_net(eval_tdp.training_input).predicted_reward, reward
         )
-        self.mse_loss.append(mse_loss)
+        self.mse_loss.append(mse_loss.detach().cpu())
 
         reward_net.train(reward_net_prev_mode)
 

@@ -86,7 +86,7 @@ class Seq2SlateRewardNet(ModelBase):
         re-assemble data: src_seq, tgt_seq and masks should change
         correspondingly.
         """
-        device = input.src_seq.float_features.device
+        device = next(self.parameters()).device
         batch_size, _, candidate_dim = input.src_seq.float_features.shape
         assert input.tgt_out_idx is not None
         slate_seq_len = input.tgt_out_idx.shape[1]
@@ -126,7 +126,7 @@ class Seq2SlateRewardNet(ModelBase):
         # and candidate embed. state_embed is replicated at each encoding step.
         # src_embed shape: batch_size, slate_seq_len, dim_model
         src_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=-1), self.slate_seq_len
+            torch.cat((state_embed, candidate_embed), dim=2), self.slate_seq_len
         )
 
         # encoder_output shape: batch_size, slate_seq_len, dim_model
@@ -150,7 +150,7 @@ class Seq2SlateRewardNet(ModelBase):
             src_src_mask=torch.ones(1, self.max_src_seq_len, self.max_src_seq_len),
             tgt_tgt_mask=torch.ones(1, self.max_tgt_seq_len, self.max_tgt_seq_len),
             slate_reward=torch.randn(1),
-            tgt_out_idx=torch.arange(self.max_tgt_seq_len).reshape(1, -1),
+            tgt_out_idx=torch.arange(self.max_tgt_seq_len).reshape(1, -1) + 2,
         )
 
     def forward(self, input: rlt.PreprocessedRankingInput):

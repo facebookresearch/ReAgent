@@ -625,7 +625,7 @@ class Seq2SlateTransformerModel(nn.Module):
         # and candidate embed. state_embed is replicated at each encoding step.
         # src_embed shape: batch_size, seq_len, dim_model
         src_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=-1), self.max_src_seq_len
+            torch.cat((state_embed, candidate_embed), dim=2), self.max_src_seq_len
         )
 
         # encoder_output shape: batch_size, seq_len, dim_model
@@ -650,7 +650,7 @@ class Seq2SlateTransformerModel(nn.Module):
 
         # tgt_embed: batch_size, seq_len, dim_model
         tgt_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=-1), tgt_seq_len
+            torch.cat((state_embed, candidate_embed), dim=2), tgt_seq_len
         )
 
         # output of decoder will be later transformed into probabilities over symbols.

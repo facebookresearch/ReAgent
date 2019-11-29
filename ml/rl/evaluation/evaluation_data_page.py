@@ -7,10 +7,14 @@ from typing import NamedTuple, Optional, Union, cast
 
 import numpy as np
 import torch
+import torch.nn as nn
 from ml.rl import types as rlt
+from ml.rl.models.seq2slate import RANK_MODE
 from ml.rl.torch_utils import masked_softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
+from ml.rl.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
@@ -25,9 +29,9 @@ class EvaluationDataPage(NamedTuple):
     model_propensities: torch.Tensor
     model_rewards: torch.Tensor
     model_rewards_for_logged_action: torch.Tensor
-    model_values: torch.Tensor
-    model_values_for_logged_action: torch.Tensor
-    possible_actions_mask: torch.Tensor
+    model_values: Optional[torch.Tensor] = None
+    model_values_for_logged_action: Optional[torch.Tensor] = None
+    possible_actions_mask: Optional[torch.Tensor] = None
     optimal_q_values: Optional[torch.Tensor] = None
     eval_action_idxs: Optional[torch.Tensor] = None
     logged_values: Optional[torch.Tensor] = None
@@ -42,7 +46,10 @@ class EvaluationDataPage(NamedTuple):
 
     @classmethod
     def create_from_training_batch(
-        cls, tdb: rlt.PreprocessedTrainingBatch, trainer: DQNTrainer
+        cls,
+        tdb: rlt.PreprocessedTrainingBatch,
+        trainer: Trainer,
+        reward_network: Optional[nn.Module] = None,
     ):
         if type(tdb.training_input) == rlt.PreprocessedDiscreteDqnInput:
             discrete_training_input = cast(
@@ -78,6 +85,85 @@ class EvaluationDataPage(NamedTuple):
                 tdb.extras.max_num_actions,
                 metrics=tdb.extras.metrics,
             )
+        elif type(tdb.training_input) == rlt.PreprocessedRankingInput and isinstance(
+            trainer, Seq2SlateTrainer
+        ):
+            ranking_training_input = cast(
+                rlt.PreprocessedRankingInput, tdb.training_input
+            )
+            assert reward_network is not None
+
+            return EvaluationDataPage.create_from_tensors_seq2slate(
+                trainer,
+                reward_network,
+                tdb.extras.mdp_id,
+                tdb.extras.sequence_number,
+                ranking_training_input,
+            )
+        else:
+            raise NotImplementedError(f"training_input type: {type(tdb.training_input)}")
+
+    @classmethod  # type: ignore
+    @torch.no_grad()  # type: ignore
+    def create_from_tensors_seq2slate(
+        cls,
+        trainer: Seq2SlateTrainer,
+        reward_network: nn.Module,
+        mdp_ids: np.ndarray,
+        sequence_numbers: torch.Tensor,
+        training_input: rlt.PreprocessedRankingInput,
+    ):
+        """
+        Evaluating on a non-greedy serving ranking model is too expensive because
+        we need to compute propensities of all possible output sequences. Hence
+        we assume the ranking model has a greedy policy that always picks the
+        most probable output sequence.
+        """
+        assert (
+            training_input.slate_reward is not None
+            and training_input.tgt_out_probs is not None
+            and training_input.tgt_out_idx is not None
+        )
+        seq2slate_net = trainer.seq2slate_net
+        batch_size = training_input.state.float_features.shape[0]
+        device = training_input.state.float_features.device
+
+        rank_output = seq2slate_net(training_input, RANK_MODE, greedy=True)
+        assert rank_output.ranked_tgt_out_idx is not None
+        model_propensities = torch.ones(batch_size, 1).to(device)
+        action_mask = torch.all(
+            (training_input.tgt_out_idx - 2) == (rank_output.ranked_tgt_out_idx - 2),
+            dim=1,
+            keepdim=True,
+        ).float()
+        model_rewards_for_logged_action = reward_network(
+            training_input.state.float_features,
+            training_input.src_seq.float_features,
+            training_input.src_src_mask,
+            training_input.slate_reward,
+            training_input.tgt_out_idx,
+        ).reshape(-1, 1)
+        # model_rewards refers to predicted rewards for the slate generated
+        # greedily by the ranking model
+        model_rewards = reward_network(
+            training_input.state.float_features,
+            training_input.src_seq.float_features,
+            training_input.src_src_mask,
+            training_input.slate_reward,
+            rank_output.ranked_tgt_out_idx,
+        ).reshape(-1, 1)
+        logged_rewards = training_input.slate_reward.reshape(-1, 1)
+        logged_propensities = training_input.tgt_out_probs.reshape(-1, 1)
+        return cls(
+            mdp_id=mdp_ids,
+            sequence_number=sequence_numbers,
+            model_propensities=model_propensities,
+            model_rewards=model_rewards,
+            action_mask=action_mask,
+            logged_rewards=logged_rewards,
+            model_rewards_for_logged_action=model_rewards_for_logged_action,
+            logged_propensities=logged_propensities,
+        )
 
     @classmethod  # type: ignore
     @torch.no_grad()  # type: ignore

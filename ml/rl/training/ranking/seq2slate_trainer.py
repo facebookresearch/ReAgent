@@ -41,13 +41,13 @@ class Seq2SlateTrainer(Trainer):
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
         t1 = time.time()
-        assert (
-            type(training_batch) is rlt.PreprocessedTrainingBatch
-            and type(training_batch.training_input) is rlt.PreprocessedRankingInput
-        )
+        assert type(training_batch) is rlt.PreprocessedTrainingBatch
         training_input = training_batch.training_input
+        assert isinstance(training_input, rlt.PreprocessedRankingInput)
+
         reward = training_input.slate_reward
         batch_size = training_input.state.float_features.shape[0]
+        assert reward is not None
 
         # Train baseline
         b = self.baseline_net(training_input).squeeze()
@@ -68,7 +68,7 @@ class Seq2SlateTrainer(Trainer):
                 torch.exp(log_probs.detach()) / training_input.tgt_out_probs
             )
         else:
-            importance_sampling = 1
+            importance_sampling = torch.FloatTensor([1.0])
         # add negative sign because we take gradient descent but we want to
         # maximize rewards
         batch_loss = -importance_sampling * log_probs * (reward - b)
