@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
-pip uninstall -y horizon
+set -ex
 
-# Generate thrift specs
-thrift --gen py --out . ml/rl/thrift/core.thrift
+pip uninstall -y reagent
 
 # Install the current directory into python path
 pip install -e .
+
+# Build RASP and run tests
+mkdir -p serving/build
+pushd serving/build
+cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+make -j4
+make test
+popd
 
 # Run workflow tests
 pytest ml/rl/test/workflow/test_oss_workflows.py
