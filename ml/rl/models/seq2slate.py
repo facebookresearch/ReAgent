@@ -471,11 +471,11 @@ class Seq2SlateTransformerModel(nn.Module):
                 greedy=greedy,
             )
         elif mode == self._LOG_PROB_MODE:
-            assert input.tgt_seq is not None
+            assert input.tgt_in_seq is not None
             return self._log_probs(
                 state=input.state.float_features,
                 src_seq=input.src_seq.float_features,
-                tgt_seq=input.tgt_seq.float_features,
+                tgt_in_seq=input.tgt_in_seq.float_features,
                 src_src_mask=input.src_src_mask,
                 tgt_tgt_mask=input.tgt_tgt_mask,
                 tgt_in_idx=input.tgt_in_idx,
@@ -508,7 +508,7 @@ class Seq2SlateTransformerModel(nn.Module):
         memory = self.encode(state, src_seq, src_src_mask)
 
         for l in range(tgt_seq_len):
-            tgt_seq = (
+            tgt_in_seq = (
                 candidate_features[
                     torch.arange(batch_size).repeat_interleave(l + 1),
                     tgt_in_idx.flatten(),
@@ -521,7 +521,7 @@ class Seq2SlateTransformerModel(nn.Module):
                 memory=memory,
                 state=state,
                 tgt_src_mask=tgt_src_mask,
-                tgt_seq=tgt_seq,
+                tgt_in_seq=tgt_in_seq,
                 tgt_tgt_mask=subsequent_mask(l + 1).to(device),
                 tgt_seq_len=l + 1,
             )
@@ -546,7 +546,7 @@ class Seq2SlateTransformerModel(nn.Module):
         self,
         state,
         src_seq,
-        tgt_seq,
+        tgt_in_seq,
         src_src_mask,
         tgt_tgt_mask,
         tgt_in_idx,
@@ -559,7 +559,7 @@ class Seq2SlateTransformerModel(nn.Module):
         # encoder_output shape: batch_size, seq_len + 1, dim_model
         encoder_output = self.encode(state, src_seq, src_src_mask)
 
-        tgt_seq_len = tgt_seq.shape[1]
+        tgt_seq_len = tgt_in_seq.shape[1]
         src_seq_len = src_seq.shape[1]
         assert tgt_seq_len <= src_seq_len
 
@@ -571,7 +571,7 @@ class Seq2SlateTransformerModel(nn.Module):
             memory=encoder_output,
             state=state,
             tgt_src_mask=tgt_src_mask,
-            tgt_seq=tgt_seq,
+            tgt_in_seq=tgt_in_seq,
             tgt_tgt_mask=tgt_tgt_mask,
             tgt_seq_len=tgt_seq_len,
         )
@@ -631,16 +631,18 @@ class Seq2SlateTransformerModel(nn.Module):
         # encoder_output shape: batch_size, seq_len, dim_model
         return self.encoder(src_embed, src_mask)
 
-    def decode(self, memory, state, tgt_src_mask, tgt_seq, tgt_tgt_mask, tgt_seq_len):
+    def decode(
+        self, memory, state, tgt_src_mask, tgt_in_seq, tgt_tgt_mask, tgt_seq_len
+    ):
         # memory is the output of the encoder, the attention of each input symbol
         # memory shape: batch_size, src_seq_len, dim_model
         # tgt_src_mask shape: batch_size, tgt_seq_len, src_seq_len
         # tgt_seq shape: batch_size, tgt_seq_len, dim_candidate
         # tgt_tgt_mask shape: batch_size, tgt_seq_len, tgt_seq_len
-        batch_size = tgt_seq.shape[0]
+        batch_size = tgt_in_seq.shape[0]
 
         # candidate_embed shape: batch_size, seq_len, dim_model/2
-        candidate_embed = self.candidate_embedder(tgt_seq)
+        candidate_embed = self.candidate_embedder(tgt_in_seq)
         # state_embed: batch_size, dim_model/2
         state_embed = self.state_embedder(state)
         # state_embed: batch_size, seq_len, dim_model/2
@@ -698,7 +700,8 @@ class Seq2SlateTransformerNet(ModelBase):
         return rlt.PreprocessedRankingInput.from_tensors(
             state=torch.randn(1, self.state_dim),
             src_seq=torch.randn(1, self.max_src_seq_len, self.candidate_dim),
-            tgt_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
+            tgt_in_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
+            tgt_out_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
             src_src_mask=torch.ones(1, self.max_src_seq_len, self.max_src_seq_len),
             tgt_tgt_mask=torch.ones(1, self.max_tgt_seq_len, self.max_tgt_seq_len),
             slate_reward=torch.randn(1),

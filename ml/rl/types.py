@@ -244,7 +244,8 @@ class PreprocessedRankingInput(BaseDataClass):
     state: PreprocessedFeatureVector
     src_seq: PreprocessedFeatureVector
     src_src_mask: torch.Tensor
-    tgt_seq: Optional[PreprocessedFeatureVector] = None
+    tgt_in_seq: Optional[PreprocessedFeatureVector] = None
+    tgt_out_seq: Optional[PreprocessedFeatureVector] = None
     tgt_tgt_mask: Optional[torch.Tensor] = None
     slate_reward: Optional[torch.Tensor] = None
     # all indices will be +2 to account for padding
@@ -261,7 +262,8 @@ class PreprocessedRankingInput(BaseDataClass):
         state: torch.Tensor,
         src_seq: torch.Tensor,
         src_src_mask: torch.Tensor,
-        tgt_seq: Optional[torch.Tensor] = None,
+        tgt_in_seq: Optional[torch.Tensor] = None,
+        tgt_out_seq: Optional[torch.Tensor] = None,
         tgt_tgt_mask: Optional[torch.Tensor] = None,
         slate_reward: Optional[torch.Tensor] = None,
         src_in_idx: Optional[torch.Tensor] = None,
@@ -273,7 +275,8 @@ class PreprocessedRankingInput(BaseDataClass):
         assert isinstance(state, torch.Tensor)
         assert isinstance(src_seq, torch.Tensor)
         assert isinstance(src_src_mask, torch.Tensor)
-        assert tgt_seq is None or isinstance(tgt_seq, torch.Tensor)
+        assert tgt_in_seq is None or isinstance(tgt_in_seq, torch.Tensor)
+        assert tgt_out_seq is None or isinstance(tgt_out_seq, torch.Tensor)
         assert tgt_tgt_mask is None or isinstance(tgt_tgt_mask, torch.Tensor)
         assert slate_reward is None or isinstance(slate_reward, torch.Tensor)
         assert src_in_idx is None or isinstance(src_in_idx, torch.Tensor)
@@ -286,8 +289,11 @@ class PreprocessedRankingInput(BaseDataClass):
             state=PreprocessedFeatureVector(float_features=state),
             src_seq=PreprocessedFeatureVector(float_features=src_seq),
             src_src_mask=src_src_mask,
-            tgt_seq=PreprocessedFeatureVector(float_features=tgt_seq)
-            if tgt_seq is not None
+            tgt_in_seq=PreprocessedFeatureVector(float_features=tgt_in_seq)
+            if tgt_in_seq is not None
+            else None,
+            tgt_out_seq=PreprocessedFeatureVector(float_features=tgt_out_seq)
+            if tgt_out_seq is not None
             else None,
             tgt_tgt_mask=tgt_tgt_mask,
             slate_reward=slate_reward,
@@ -302,10 +308,11 @@ class PreprocessedRankingInput(BaseDataClass):
         if (
             isinstance(self.state, torch.Tensor)
             or isinstance(self.src_seq, torch.Tensor)
-            or isinstance(self.tgt_seq, torch.Tensor)
+            or isinstance(self.tgt_in_seq, torch.Tensor)
+            or isinstance(self.tgt_out_seq, torch.Tensor)
         ):
             raise ValueError(
-                f"Use from_tensors() {type(self.state)} {type(self.src_seq)} {type(self.tgt_seq)}"
+                f"Use from_tensors() {type(self.state)} {type(self.src_seq)} {type(self.tgt_in_seq)} {type(self.tgt_out_seq)}"
             )
 
 

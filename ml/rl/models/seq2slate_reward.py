@@ -90,19 +90,13 @@ class Seq2SlateRewardNet(ModelBase):
         batch_size, _, candidate_dim = input.src_seq.float_features.shape
         assert input.tgt_out_idx is not None
         slate_seq_len = input.tgt_out_idx.shape[1]
-        new_src_seq = input.src_seq.float_features[
-            torch.arange(batch_size).repeat_interleave(slate_seq_len),  # type: ignore
-            # -2 to offset decoder starting symbol and padding symbol,
-            input.tgt_out_idx.flatten() - 2,
-        ].reshape(batch_size, slate_seq_len, candidate_dim)
-
         return rlt.PreprocessedRankingInput.from_tensors(
             state=input.state.float_features,
-            src_seq=new_src_seq,
+            src_seq=input.tgt_out_seq.float_features,
             src_src_mask=torch.ones(batch_size, slate_seq_len, slate_seq_len).to(
                 device
             ),
-            tgt_seq=torch.ones(batch_size, 1, candidate_dim).to(device),
+            tgt_in_seq=torch.ones(batch_size, 1, candidate_dim).to(device),
             tgt_tgt_mask=torch.ones(batch_size, 1, 1).to(device),
             slate_reward=input.slate_reward,
         )
@@ -132,13 +126,13 @@ class Seq2SlateRewardNet(ModelBase):
         # encoder_output shape: batch_size, slate_seq_len, dim_model
         return self.encoder(src_embed, src_mask)
 
-    def decode(self, memory, state, tgt_src_mask, tgt_seq, tgt_tgt_mask):
+    def decode(self, memory, state, tgt_src_mask, tgt_in_seq, tgt_tgt_mask):
         """
         One step decoder. The decoder's output will be used as the input to
         the last layer for predicting slate reward
         """
         # tgt_embed shape: batch_size, 1, dim_model
-        tgt_embed = self.decoder_embedder(tgt_seq)
+        tgt_embed = self.decoder_embedder(tgt_in_seq)
         # shape: batch_size, 1, dim_model
         return self.decoder(tgt_embed, memory, tgt_src_mask, tgt_tgt_mask)
 
@@ -146,7 +140,8 @@ class Seq2SlateRewardNet(ModelBase):
         return rlt.PreprocessedRankingInput.from_tensors(
             state=torch.randn(1, self.state_dim),
             src_seq=torch.randn(1, self.max_src_seq_len, self.candidate_dim),
-            tgt_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
+            tgt_in_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
+            tgt_out_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
             src_src_mask=torch.ones(1, self.max_src_seq_len, self.max_src_seq_len),
             tgt_tgt_mask=torch.ones(1, self.max_tgt_seq_len, self.max_tgt_seq_len),
             slate_reward=torch.randn(1),
@@ -156,11 +151,11 @@ class Seq2SlateRewardNet(ModelBase):
     def forward(self, input: rlt.PreprocessedRankingInput):
         """ Encode tgt sequences and predict the slate reward. """
         input = self._convert_seq2slate_to_reward_model_format(input)
-        assert input.tgt_seq is not None
-        state, src_seq, tgt_seq, src_src_mask, tgt_tgt_mask = (
+        assert input.tgt_in_seq is not None
+        state, src_seq, tgt_in_seq, src_src_mask, tgt_tgt_mask = (
             input.state.float_features,
             input.src_seq.float_features,
-            input.tgt_seq.float_features,
+            input.tgt_in_seq.float_features,
             input.src_src_mask,
             input.tgt_tgt_mask,
         )
@@ -173,7 +168,7 @@ class Seq2SlateRewardNet(ModelBase):
             memory=memory,
             state=state,
             tgt_src_mask=tgt_src_mask,
-            tgt_seq=tgt_seq,
+            tgt_in_seq=tgt_in_seq,
             tgt_tgt_mask=tgt_tgt_mask,
         )
         out = out.squeeze(1)

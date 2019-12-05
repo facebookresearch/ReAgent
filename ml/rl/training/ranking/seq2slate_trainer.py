@@ -52,9 +52,9 @@ class Seq2SlateTrainer(Trainer):
         # Train baseline
         b = self.baseline_net(training_input).squeeze()
         baseline_loss = 1.0 / batch_size * torch.sum((b - reward) ** 2)
+        self.baseline_opt.zero_grad()
         baseline_loss.backward()
         self.baseline_opt.step()
-        self.baseline_opt.zero_grad()
 
         # Train Seq2Slate using REINFORCE
         # log probs of tgt seqs
@@ -69,13 +69,16 @@ class Seq2SlateTrainer(Trainer):
             )
         else:
             importance_sampling = torch.FloatTensor([1.0])
+            if self.use_gpu:
+                importance_sampling = importance_sampling.cuda()
         # add negative sign because we take gradient descent but we want to
         # maximize rewards
         batch_loss = -importance_sampling * log_probs * (reward - b)
         rl_loss = 1.0 / batch_size * torch.sum(batch_loss)
+
+        self.rl_opt.zero_grad()
         rl_loss.backward()
         self.rl_opt.step()
-        self.rl_opt.zero_grad()
         rl_loss = rl_loss.detach().cpu().numpy()
         baseline_loss = baseline_loss.detach().cpu().numpy()
 
