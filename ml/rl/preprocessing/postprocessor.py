@@ -63,7 +63,7 @@ class Postprocessor(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.feature_type == CONTINUOUS_ACTION:
-            return (
+            return (  # type: ignore
                 torch.clamp(input, -1 + EPS, 1 - EPS) + 1 - EPS
-            ) * self.scaling_factor + self.min_serving_value  # type: ignore
+            ) * self.scaling_factor + self.min_serving_value
         return input

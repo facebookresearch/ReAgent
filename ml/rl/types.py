@@ -153,8 +153,8 @@ class IdMapping(BaseDataClass):
 @dataclass
 class ModelFeatureConfig(BaseDataClass):
     float_feature_infos: List[FloatFeatureInfo]
-    id_mapping_config: Dict[str, IdMapping]
-    sequence_features_type: Optional[Type[SequenceFeatures]]
+    id_mapping_config: Dict[str, IdMapping] = dataclasses.field(default_factory=dict)
+    sequence_features_type: Optional[Type[SequenceFeatures]] = None
 
 
 @dataclass
