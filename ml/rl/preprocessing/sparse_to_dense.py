@@ -5,15 +5,10 @@
 import logging
 from typing import Dict, List, Tuple
 
-import numpy as np
-
 # @manual=third-party//pandas:pandas-py
 import pandas as pd
 import torch
-from caffe2.python import workspace
-from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing import normalization
-from ml.rl.preprocessing.normalization import MISSING_VALUE
 
 
 logger = logging.getLogger(__name__)
@@ -28,45 +23,6 @@ class SparseToDenseProcessor:
 
     def __call__(self, sparse_data):
         return self.process(sparse_data)
-
-
-class Caffe2SparseToDenseProcessor(SparseToDenseProcessor):
-    def __init__(
-        self, sorted_features: List[int], set_missing_value_to_zero: bool = False
-    ):
-        super().__init__(sorted_features, set_missing_value_to_zero)
-
-    def process(
-        self, sparse_data: StackedAssociativeArray
-    ) -> Tuple[str, str, List[str]]:
-        lengths_blob = sparse_data.lengths
-        keys_blob = sparse_data.keys
-        values_blob = sparse_data.values
-
-        MISSING_SCALAR = C2.NextBlob("MISSING_SCALAR")
-        missing_value = 0.0 if self.set_missing_value_to_zero else MISSING_VALUE
-        workspace.FeedBlob(MISSING_SCALAR, np.array([missing_value], dtype=np.float32))
-        C2.net().GivenTensorFill([], [MISSING_SCALAR], shape=[], values=[missing_value])
-
-        parameters: List[str] = [MISSING_SCALAR]
-
-        assert len(self.sorted_features) > 0, "Sorted features is empty"
-        dense_input = C2.NextBlob("dense_input")
-        dense_input_presence = C2.NextBlob("dense_input_presence")
-        C2.net().SparseToDenseMask(
-            [keys_blob, values_blob, MISSING_SCALAR, lengths_blob],
-            [dense_input, dense_input_presence],
-            mask=self.sorted_features,
-            return_presence_mask=True,
-        )
-
-        if self.set_missing_value_to_zero:
-            dense_input_presence = C2.And(
-                C2.GT(dense_input, -1e-4, broadcast=1),
-                C2.LT(dense_input, 1e-4, broadcast=1),
-            )
-
-        return dense_input, dense_input_presence, parameters
 
 
 class PandasSparseToDenseProcessor(SparseToDenseProcessor):
