@@ -30,7 +30,7 @@ class C51Trainer(RLTrainer):
     ) -> None:
         RLTrainer.__init__(
             self,
-            parameters,
+            parameters.rl,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,

@@ -45,7 +45,7 @@ class SACTrainer(RLTrainer):
             min_action_range_tensor_serving / max_action_range_tensor_serving:
                 min / max value of actions at serving time
         """
-        super().__init__(parameters, use_gpu=use_gpu)
+        super().__init__(parameters.rl, use_gpu=use_gpu)
 
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1

@@ -8,7 +8,7 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.parameters import DiscreteActionModelParameters
+from ml.rl.parameters import DiscreteActionModelParameters, OptimizerParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.imitator_training import get_valid_actions_from_imitator
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -31,10 +31,11 @@ class DQNTrainer(DQNTrainerBase):
         imitator=None,
     ) -> None:
         super().__init__(
-            parameters,
+            parameters.rl,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,
+            evaluation_parameters=parameters.evaluation,
         )
         assert self._actions is not None, "Discrete-action DQN needs action names"
         self.double_q_learning = parameters.rainbow.double_q_learning
@@ -51,7 +52,15 @@ class DQNTrainer(DQNTrainerBase):
         )
 
         self._initialize_cpe(
-            parameters, reward_network, q_network_cpe, q_network_cpe_target
+            parameters,
+            reward_network,
+            q_network_cpe,
+            q_network_cpe_target,
+            cpe_optimizer_parameters=OptimizerParameters(
+                optimizer=parameters.training.optimizer,
+                learning_rate=parameters.training.learning_rate,
+                l2_decay=parameters.training.l2_decay,
+            ),
         )
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)

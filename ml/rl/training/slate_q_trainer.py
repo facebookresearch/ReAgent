@@ -35,7 +35,7 @@ class SlateQTrainer(DQNTrainerBase):
         parameters: SlateQTrainerParameters,
         use_gpu: bool = False,
     ) -> None:
-        super().__init__(parameters, use_gpu=use_gpu)
+        super().__init__(parameters.rl, use_gpu=use_gpu)
         self.minibatches_per_step = 1
         self.minibatch_size = parameters.minibatch_size
 
