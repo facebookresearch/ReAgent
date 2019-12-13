@@ -160,38 +160,6 @@ class ContinuousActionModelParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
-class DDPGNetworkParameters(BaseDataClass):
-    __hash__ = param_hash
-
-    layers: List[int] = field(default_factory=lambda: [-1, 256, 128, 1])
-    activations: List[str] = field(default_factory=lambda: ["relu", "relu", "tanh"])
-    l2_decay: float = 0.01
-    learning_rate: float = 0.001
-
-
-@dataclass(frozen=True)
-class DDPGTrainingParameters(BaseDataClass):
-    minibatch_size: int = 2048
-    final_layer_init: float = 0.003
-    optimizer: str = "ADAM"
-    warm_start_model_path: Optional[str] = None
-    minibatches_per_step: int = 1
-
-
-@dataclass(frozen=True)
-class DDPGModelParameters(BaseDataClass):
-    __hash__ = param_hash
-
-    rl: RLParameters
-    shared_training: DDPGTrainingParameters
-    actor_training: DDPGNetworkParameters
-    critic_training: DDPGNetworkParameters
-    action_rescale_map: Dict[int, List[float]]
-    state_feature_params: Optional[StateFeatureParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-
-
-@dataclass(frozen=True)
 class OptimizerParameters(BaseDataClass):
     optimizer: str = "ADAM"
     learning_rate: float = 0.001
@@ -258,18 +226,6 @@ class SACModelParameters(BaseDataClass):
     # constrain action output to sum to 1 (using dirichlet distribution)
     constrain_action_sum: bool = False
     do_not_preprocess_action: Optional[bool] = None
-
-
-@dataclass(frozen=True)
-class KNNDQNModelParameters(BaseDataClass):
-    rl: RLParameters
-    shared_training: DDPGTrainingParameters
-    actor_training: DDPGNetworkParameters
-    critic_training: DDPGNetworkParameters
-    num_actions: int
-    action_dim: int
-    k: int
-    evaluation: EvaluationParameters = EvaluationParameters()
 
 
 @dataclass(frozen=True)
