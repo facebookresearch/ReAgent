@@ -7,12 +7,7 @@ import unittest
 import numpy as np
 import torch
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.parameters import (
-    ContinuousActionModelParameters,
-    RainbowDQNParameters,
-    RLParameters,
-    TrainingParameters,
-)
+from ml.rl.parameters import OptimizerParameters, RLParameters
 from ml.rl.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
 from ml.rl.prediction.predictor_wrapper import (
     ParametricDqnPredictorWrapper,
@@ -24,7 +19,10 @@ from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.training.parametric_dqn_trainer import (
+    ParametricDQNTrainer,
+    ParametricDQNTrainerParameters,
+)
 
 
 class TestGridworldParametric(GridworldTestBase):
@@ -35,38 +33,33 @@ class TestGridworldParametric(GridworldTestBase):
         torch.manual_seed(0)
         super().setUp()
 
-    def get_sarsa_parameters(self):
-        return ContinuousActionModelParameters(
+    def get_sarsa_parameters(self) -> ParametricDQNTrainerParameters:
+        return ParametricDQNTrainerParameters(
             rl=RLParameters(
                 gamma=DISCOUNT, target_update_rate=1.0, maxq_learning=False
             ),
-            training=TrainingParameters(
-                layers=[-1, 256, 128, -1],
-                activations=["relu", "relu", "linear"],
-                minibatch_size=self.minibatch_size,
-                learning_rate=0.05,
-                optimizer="ADAM",
-            ),
-            rainbow=RainbowDQNParameters(
-                double_q_learning=True, dueling_architecture=False
-            ),
+            minibatch_size=self.minibatch_size,
+            optimizer=OptimizerParameters(learning_rate=0.05, optimizer="ADAM"),
+            double_q_learning=True,
         )
 
     def get_trainer(
         self, environment, parameters=None, use_gpu=False, use_all_avail_gpus=False
     ):
+        layers = [256, 128]
+        activations = ["relu", "relu"]
         parameters = parameters or self.get_sarsa_parameters()
         q_network = FullyConnectedParametricDQN(
             state_dim=get_num_output_features(environment.normalization),
             action_dim=get_num_output_features(environment.normalization_action),
-            sizes=parameters.training.layers[1:-1],
-            activations=parameters.training.activations[:-1],
+            sizes=layers,
+            activations=activations,
         )
         reward_network = FullyConnectedParametricDQN(
             state_dim=get_num_output_features(environment.normalization),
             action_dim=get_num_output_features(environment.normalization_action),
-            sizes=parameters.training.layers[1:-1],
-            activations=parameters.training.activations[:-1],
+            sizes=layers,
+            activations=activations,
         )
         if use_gpu:
             q_network = q_network.cuda()
@@ -77,7 +70,7 @@ class TestGridworldParametric(GridworldTestBase):
 
         q_network_target = q_network.get_target_network()
         trainer = ParametricDQNTrainer(
-            q_network, q_network_target, reward_network, parameters
+            q_network, q_network_target, reward_network, parameters=parameters
         )
         return trainer
 

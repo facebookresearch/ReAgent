@@ -18,6 +18,7 @@ from ml.rl.parameters import (
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
     MDNRNNParameters,
+    OptimizerParameters,
     SACModelParameters,
 )
 from ml.rl.preprocessing.normalization import (
@@ -28,7 +29,10 @@ from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
 from ml.rl.training.c51_trainer import C51Trainer
 from ml.rl.training.cem_trainer import CEMTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from ml.rl.training.parametric_dqn_trainer import (
+    ParametricDQNTrainer,
+    ParametricDQNTrainerParameters,
+)
 from ml.rl.training.qrdqn_trainer import QRDQNTrainer
 from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.td3_trainer import TD3Trainer
@@ -199,8 +203,19 @@ def create_parametric_dqn_trainer_from_params(
         q_network_target = q_network_target.get_distributed_data_parallel_model()
         reward_network = reward_network.get_distributed_data_parallel_model()
 
+    trainer_parameters = ParametricDQNTrainerParameters(
+        rl=model.rl,
+        double_q_learning=model.rainbow.double_q_learning,
+        minibatch_size=model.training.minibatch_size,
+        optimizer=OptimizerParameters(
+            optimizer=model.training.optimizer,
+            learning_rate=model.training.learning_rate,
+            l2_decay=model.training.l2_decay,
+        ),
+    )
+
     return ParametricDQNTrainer(
-        q_network, q_network_target, reward_network, model, use_gpu
+        q_network, q_network_target, reward_network, trainer_parameters, use_gpu
     )
 
 

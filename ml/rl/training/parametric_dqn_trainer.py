@@ -2,8 +2,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+from dataclasses import dataclass, field
 from typing import Tuple
 
+import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import numpy as np
 import torch
@@ -16,36 +18,54 @@ from ml.rl.training.training_data_page import TrainingDataPage
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class ParametricDQNTrainerParameters:
+    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
+    double_q_learning: bool = True
+    minibatch_size: int = 1024
+    minibatches_per_step: int = 1
+    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
+
+
 class ParametricDQNTrainer(DQNTrainerBase):
     def __init__(
         self,
         q_network,
         q_network_target,
         reward_network,
-        parameters: ContinuousActionModelParameters,
+        parameters: ParametricDQNTrainerParameters,
         use_gpu: bool = False,
     ) -> None:
         super().__init__(parameters.rl, use_gpu=use_gpu)
 
-        self.double_q_learning = parameters.rainbow.double_q_learning
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        self.double_q_learning = parameters.double_q_learning
+        self.minibatch_size = parameters.minibatch_size
+        self.minibatches_per_step = parameters.minibatches_per_step or 1
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.training.optimizer)
+        self._set_optimizer(parameters.optimizer.optimizer)
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(),
-            lr=parameters.training.learning_rate,
-            weight_decay=parameters.training.l2_decay,
+            lr=parameters.optimizer.learning_rate,
+            weight_decay=parameters.optimizer.l2_decay,
         )
 
         self.reward_network = reward_network
         self.reward_network_optimizer = self.optimizer_func(
             self.reward_network.parameters(),
-            lr=parameters.training.learning_rate,
-            weight_decay=parameters.training.l2_decay,
+            lr=parameters.optimizer.learning_rate,
+            weight_decay=parameters.optimizer.l2_decay,
         )
+
+    def warm_start_components(self):
+        return [
+            "q_network",
+            "q_network_target",
+            "q_network_optimizer",
+            "reward_network",
+            "reward_network_optimizer",
+        ]
 
     @torch.no_grad()  # type: ignore
     def get_detached_q_values(
