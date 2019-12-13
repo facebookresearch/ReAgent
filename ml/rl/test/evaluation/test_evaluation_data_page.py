@@ -10,7 +10,7 @@ import torch.nn as nn
 from ml.rl import types as rlt
 from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
-from ml.rl.models.seq2slate import RANK_MODE
+from ml.rl.models.seq2slate import Seq2SlateMode
 from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 
 
@@ -26,6 +26,7 @@ class FakeSeq2SlateRewardNetwork(nn.Module):
         self,
         state: torch.Tensor,
         src_seq: torch.Tensor,
+        tgt_out_seq: torch.Tensor,
         src_src_mask: torch.Tensor,
         slate_reward: torch.Tensor,
         tgt_out_idx: torch.Tensor,
@@ -61,7 +62,7 @@ class FakeSeq2SlateTransformerNet(nn.Module):
 
     def forward(self, input: rlt.PreprocessedRankingInput, mode: str, greedy: bool):
         # The creation of evaluation data pages only uses these specific arguments
-        assert greedy and mode == RANK_MODE
+        assert greedy and mode == Seq2SlateMode.RANK_MODE
         batch_size = input.state.float_features.shape[0]
         ranked_tgt_out_idx = []
 
@@ -114,6 +115,7 @@ class TestEvaluationDataPage(unittest.TestCase):
         batch_size = 3
         state_dim = 3
         src_seq_len = 2
+        tgt_seq_len = 2
         candidate_dim = 2
 
         reward_net = FakeSeq2SlateRewardNetwork()
@@ -127,16 +129,22 @@ class TestEvaluationDataPage(unittest.TestCase):
             use_gpu=False,
         )
 
+        src_seq = torch.eye(candidate_dim).repeat(batch_size, 1, 1)
+        tgt_out_idx = torch.LongTensor([[3, 2], [3, 2], [3, 2]])
+        tgt_out_seq = src_seq[
+            torch.arange(batch_size).repeat_interleave(tgt_seq_len),  # type: ignore
+            tgt_out_idx.flatten() - 2,
+        ].reshape(batch_size, tgt_seq_len, candidate_dim)
+
         ptb = rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedRankingInput(
                 state=rlt.PreprocessedFeatureVector(
                     float_features=torch.eye(state_dim)
                 ),
-                src_seq=rlt.PreprocessedFeatureVector(
-                    float_features=torch.eye(candidate_dim).repeat(batch_size, 1, 1)
-                ),
+                src_seq=rlt.PreprocessedFeatureVector(float_features=src_seq),
+                tgt_out_seq=rlt.PreprocessedFeatureVector(float_features=tgt_out_seq),
                 src_src_mask=torch.ones(batch_size, src_seq_len, src_seq_len),
-                tgt_out_idx=torch.LongTensor([[3, 2], [3, 2], [3, 2]]),
+                tgt_out_idx=tgt_out_idx,
                 tgt_out_probs=torch.tensor([0.2, 0.5, 0.4]),
                 slate_reward=torch.tensor([4.0, 5.0, 7.0]),
             ),

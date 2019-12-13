@@ -254,7 +254,11 @@ class PreprocessedRankingInput(BaseDataClass):
     tgt_in_idx: Optional[torch.Tensor] = None
     tgt_out_idx: Optional[torch.Tensor] = None
     tgt_out_probs: Optional[torch.Tensor] = None
+    # store ground-truth target sequences
+    optim_tgt_in_idx: Optional[torch.Tensor] = None
     optim_tgt_out_idx: Optional[torch.Tensor] = None
+    optim_tgt_in_seq: Optional[PreprocessedFeatureVector] = None
+    optim_tgt_out_seq: Optional[PreprocessedFeatureVector] = None
 
     @classmethod
     def from_tensors(
@@ -270,7 +274,10 @@ class PreprocessedRankingInput(BaseDataClass):
         tgt_in_idx: Optional[torch.Tensor] = None,
         tgt_out_idx: Optional[torch.Tensor] = None,
         tgt_out_probs: Optional[torch.Tensor] = None,
+        optim_tgt_in_idx: Optional[torch.Tensor] = None,
         optim_tgt_out_idx: Optional[torch.Tensor] = None,
+        optim_tgt_in_seq: Optional[torch.Tensor] = None,
+        optim_tgt_out_seq: Optional[torch.Tensor] = None,
     ):
         assert isinstance(state, torch.Tensor)
         assert isinstance(src_seq, torch.Tensor)
@@ -284,6 +291,9 @@ class PreprocessedRankingInput(BaseDataClass):
         assert tgt_out_idx is None or isinstance(tgt_out_idx, torch.Tensor)
         assert tgt_out_probs is None or isinstance(tgt_out_probs, torch.Tensor)
         assert optim_tgt_out_idx is None or isinstance(optim_tgt_out_idx, torch.Tensor)
+        assert optim_tgt_out_idx is None or isinstance(optim_tgt_out_idx, torch.Tensor)
+        assert optim_tgt_in_seq is None or isinstance(optim_tgt_in_seq, torch.Tensor)
+        assert optim_tgt_out_seq is None or isinstance(optim_tgt_out_seq, torch.Tensor)
 
         return cls(
             state=PreprocessedFeatureVector(float_features=state),
@@ -301,7 +311,16 @@ class PreprocessedRankingInput(BaseDataClass):
             tgt_in_idx=tgt_in_idx,
             tgt_out_idx=tgt_out_idx,
             tgt_out_probs=tgt_out_probs,
+            optim_tgt_in_idx=optim_tgt_in_idx,
             optim_tgt_out_idx=optim_tgt_out_idx,
+            optim_tgt_in_seq=PreprocessedFeatureVector(float_features=optim_tgt_in_seq)
+            if optim_tgt_in_seq is not None
+            else None,
+            optim_tgt_out_seq=PreprocessedFeatureVector(
+                float_features=optim_tgt_out_seq
+            )
+            if optim_tgt_out_seq is not None
+            else None,
         )
 
     def __post_init__(self):
@@ -310,9 +329,13 @@ class PreprocessedRankingInput(BaseDataClass):
             or isinstance(self.src_seq, torch.Tensor)
             or isinstance(self.tgt_in_seq, torch.Tensor)
             or isinstance(self.tgt_out_seq, torch.Tensor)
+            or isinstance(self.optim_tgt_in_seq, torch.Tensor)
+            or isinstance(self.optim_tgt_out_seq, torch.Tensor)
         ):
             raise ValueError(
-                f"Use from_tensors() {type(self.state)} {type(self.src_seq)} {type(self.tgt_in_seq)} {type(self.tgt_out_seq)}"
+                f"Use from_tensors() {type(self.state)} {type(self.src_seq)} "
+                f"{type(self.tgt_in_seq)} {type(self.tgt_out_seq)} "
+                f"{type(self.optim_tgt_in_seq)} {type(self.optim_tgt_out_seq)} "
             )
 
 

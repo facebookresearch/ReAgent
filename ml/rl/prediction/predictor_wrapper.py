@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 import ml.rl.types as rlt
 import torch
 from ml.rl.models.base import ModelBase
-from ml.rl.models.seq2slate import RANK_MODE, Seq2SlateTransformerNet
+from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from ml.rl.preprocessing.postprocessor import Postprocessor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from torch import nn
@@ -294,7 +294,7 @@ class Seq2SlateWithPreprocessor(ModelBase):
         )
         ranking_output = self.model(
             ranking_input,
-            mode=RANK_MODE,
+            mode=Seq2SlateMode.RANK_MODE,
             tgt_seq_len=self.model.max_tgt_seq_len,
             greedy=self.greedy,
         )

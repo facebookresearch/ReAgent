@@ -5,7 +5,7 @@ import time
 
 import ml.rl.types as rlt
 import torch
-from ml.rl.models.seq2slate import LOG_PROB_MODE, BaselineNet, Seq2SlateTransformerNet
+from ml.rl.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from ml.rl.parameters import Seq2SlateTransformerParameters
 from ml.rl.training.trainer import Trainer
 
@@ -58,7 +58,9 @@ class Seq2SlateTrainer(Trainer):
 
         # Train Seq2Slate using REINFORCE
         # log probs of tgt seqs
-        log_probs = self.seq2slate_net(training_input, mode=LOG_PROB_MODE).log_probs
+        log_probs = self.seq2slate_net(
+            training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
+        ).log_probs
         b = b.detach()
         assert b.shape == reward.shape == log_probs.shape
         assert not b.requires_grad and log_probs.requires_grad

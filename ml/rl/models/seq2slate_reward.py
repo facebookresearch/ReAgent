@@ -187,6 +187,7 @@ class Seq2SlateRewardNetJITWrapper(ModelBase):
         return (
             input_prototype.state.float_features,
             input_prototype.src_seq.float_features,
+            input_prototype.tgt_out_seq.float_features,
             input_prototype.src_src_mask,
             input_prototype.slate_reward,
             input_prototype.tgt_out_idx,
@@ -196,6 +197,7 @@ class Seq2SlateRewardNetJITWrapper(ModelBase):
         self,
         state: torch.Tensor,
         src_seq: torch.Tensor,
+        tgt_out_seq: torch.Tensor,
         src_src_mask: torch.Tensor,
         slate_reward: torch.Tensor,
         tgt_out_idx: torch.Tensor,
@@ -204,6 +206,7 @@ class Seq2SlateRewardNetJITWrapper(ModelBase):
             rlt.PreprocessedRankingInput(
                 state=rlt.PreprocessedFeatureVector(float_features=state),
                 src_seq=rlt.PreprocessedFeatureVector(float_features=src_seq),
+                tgt_out_seq=rlt.PreprocessedFeatureVector(float_features=tgt_out_seq),
                 src_src_mask=src_src_mask,
                 slate_reward=slate_reward,
                 tgt_out_idx=tgt_out_idx,

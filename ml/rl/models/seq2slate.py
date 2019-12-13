@@ -3,6 +3,7 @@
 import copy
 import logging
 import math
+from enum import Enum
 from typing import Optional
 
 import numpy as np
@@ -17,9 +18,13 @@ from torch.nn.parallel.distributed import DistributedDataParallel
 logger = logging.getLogger(__name__)
 
 
-RANK_MODE = "rank"
-LOG_PROB_MODE = "log_prob"
-DECODE_ONE_STEP_MODE = "decode_one_step"
+class Seq2SlateMode(Enum):
+    RANK_MODE = "rank"
+    PER_SEQ_LOG_PROB_MODE = "per_sequence_log_prob"
+    PER_SYMBOL_LOG_PROB_DIST_MODE = "per_symbol_log_prob_dist"
+    DECODE_ONE_STEP_MODE = "decode_one_step"
+
+
 PADDING_SYMBOL = 0
 DECODER_START_SYMBOL = 1
 
@@ -82,13 +87,18 @@ class Generator(nn.Module):
         self.proj = nn.Linear(dim_model, candidate_size)
 
     def forward(self, mode, decoder_output=None, tgt_in_idx=None, greedy=None):
-        if mode == LOG_PROB_MODE:
-            return self._log_probs(decoder_output, tgt_in_idx)
-        elif mode == DECODE_ONE_STEP_MODE:
+        if mode in (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+        ):
+            return self._log_probs(decoder_output, tgt_in_idx, mode)
+        elif mode == Seq2SlateMode.DECODE_ONE_STEP_MODE:
             assert greedy is not None
             return self._decode_one_step(decoder_output, tgt_in_idx, greedy)
+        else:
+            raise NotImplementedError()
 
-    def _log_probs(self, x, tgt_in_idx):
+    def _log_probs(self, x, tgt_in_idx, mode):
         """
         Return the log probability distribution at each decoding step
 
@@ -97,18 +107,24 @@ class Generator(nn.Module):
             The first symbol is always DECODER_START_SYMBOL.
             Shape: batch_size, seq_len
         """
+        assert mode in (
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+        )
         # logits: the probability distribution of each symbol
         # batch_size, seq_len, candidate_size
         logits = self.proj(x)
         # the first two symbols are reserved for padding and decoder-starting symbols
         # so they should never be a possible output label
         logits[:, :, :2] = float("-inf")
-        batch_size, seq_len = tgt_in_idx.shape
-        mask_indices = torch.tril(
-            tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
-            diagonal=0,
-        )
-        logits.scatter_(2, mask_indices, float("-inf"))
+
+        if mode == Seq2SlateMode.PER_SEQ_LOG_PROB_MODE:
+            batch_size, seq_len = tgt_in_idx.shape
+            mask_indices = torch.tril(
+                tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
+                diagonal=0,
+            )
+            logits.scatter_(2, mask_indices, float("-inf"))
 
         # log_probs shape: batch_size, seq_len, candidate_size
         log_probs = F.log_softmax(logits, dim=-1)
@@ -398,9 +414,12 @@ class Seq2SlateTransformerModel(nn.Module):
         self.max_tgt_seq_len = max_tgt_seq_len
         self._DECODER_START_SYMBOL = DECODER_START_SYMBOL
         self._PADDING_SYMBOL = PADDING_SYMBOL
-        self._RANK_MODE = RANK_MODE
-        self._LOG_PROB_MODE = LOG_PROB_MODE
-        self._DECODE_ONE_STEP_MODE = DECODE_ONE_STEP_MODE
+        self._RANK_MODE = Seq2SlateMode.RANK_MODE
+        self._PER_SYMBOL_LOG_PROB_DIST_MODE = (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE
+        )
+        self._PER_SEQ_LOG_PROB_MODE = Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
+        self._DECODE_ONE_STEP_MODE = Seq2SlateMode.DECODE_ONE_STEP_MODE
 
         c = copy.deepcopy
         attn = MultiHeadedAttention(num_heads, dim_model)
@@ -437,7 +456,8 @@ class Seq2SlateTransformerModel(nn.Module):
         "_DECODER_START_SYMBOL",
         "_PADDING_SYMBOL",
         "_RANK_MODE",
-        "_LOG_PROB_MODE",
+        "_PER_SYMBOL_LOG_PROB_DIST_MODE",
+        "_PER_SEQ_LOG_PROB_MODE",
         "_DECODE_ONE_STEP_MODE",
     ]
 
@@ -470,7 +490,7 @@ class Seq2SlateTransformerModel(nn.Module):
                 tgt_seq_len=tgt_seq_len,
                 greedy=greedy,
             )
-        elif mode == self._LOG_PROB_MODE:
+        elif mode in (self._PER_SEQ_LOG_PROB_MODE, self._PER_SYMBOL_LOG_PROB_DIST_MODE):
             assert input.tgt_in_seq is not None
             return self._log_probs(
                 state=input.state.float_features,
@@ -480,6 +500,7 @@ class Seq2SlateTransformerModel(nn.Module):
                 tgt_tgt_mask=input.tgt_tgt_mask,
                 tgt_in_idx=input.tgt_in_idx,
                 tgt_out_idx=input.tgt_out_idx,
+                mode=mode,
             )
 
     def _rank(self, state, src_seq, src_src_mask, tgt_seq_len, greedy):
@@ -551,6 +572,7 @@ class Seq2SlateTransformerModel(nn.Module):
         tgt_tgt_mask,
         tgt_in_idx,
         tgt_out_idx,
+        mode,
     ):
         """
         Compute log of generative probabilities of given tgt sequences
@@ -576,33 +598,41 @@ class Seq2SlateTransformerModel(nn.Module):
             tgt_seq_len=tgt_seq_len,
         )
         # log_probs shape: batch_size
-        log_probs = self._decoder_output_to_log_prob(
-            decoder_output, tgt_in_idx, tgt_out_idx
+        log_probs = self._decoder_output_to_log_probs(
+            decoder_output, tgt_in_idx, tgt_out_idx, mode
         )
 
         return log_probs
 
-    def _decoder_output_to_log_prob(self, decoder_output, tgt_in_idx, tgt_out_idx):
+    def _decoder_output_to_log_probs(
+        self, decoder_output, tgt_in_idx, tgt_out_idx, mode
+    ):
         """
         :param decoder_output: the output from the decoder, with shape:
             (batch_size, seq_len, dim_model)
         :param tgt_in_idx: input idx to the decoder, the first symbol is
             always the DECODER_START_SYMBOL. Shape: batch_size x seq_len
         :param tgt_out_idx: output idx of the decoder. Shape: batch_size x seq_len
+        :param mode: return log prob distribution per symbol or reduce them per sequence
         """
+        assert mode in (
+            self._PER_SEQ_LOG_PROB_MODE,
+            self._PER_SYMBOL_LOG_PROB_DIST_MODE,
+        )
         # raw_log_probs: log probability distribution of each symbol
         # shape: batch_size, seq_len, candidate_size
         raw_log_probs = self.generator(
-            mode=LOG_PROB_MODE, decoder_output=decoder_output, tgt_in_idx=tgt_in_idx
+            mode=mode, decoder_output=decoder_output, tgt_in_idx=tgt_in_idx
         )
-        batch_size, seq_len, candidate_size = raw_log_probs.shape
+        if mode == self._PER_SYMBOL_LOG_PROB_DIST_MODE:
+            return raw_log_probs
 
+        batch_size, seq_len, candidate_size = raw_log_probs.shape
         # log_probs: log probability of each symbol in the tgt_out_idx
         # shape: batch_size, seq_len
         log_probs = raw_log_probs.view(-1, candidate_size)[
             np.arange(batch_size * seq_len), tgt_out_idx.flatten()
         ].view(batch_size, seq_len)
-
         # shape: batch_size
         return log_probs.sum(dim=1)
 
@@ -717,12 +747,17 @@ class Seq2SlateTransformerNet(ModelBase):
         res = self.seq2slate_transformer(
             input, mode=mode, tgt_seq_len=tgt_seq_len, greedy=greedy
         )
-        if mode == RANK_MODE:
+        if mode == Seq2SlateMode.RANK_MODE:
             return rlt.RankingOutput(
                 ranked_tgt_out_idx=res[1], ranked_tgt_out_probs=res[0]
             )
-        elif mode == LOG_PROB_MODE:
+        elif mode in (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+        ):
             return rlt.RankingOutput(log_probs=res)
+        else:
+            raise NotImplementedError()
 
 
 class _DistributedSeq2SlateTransformerNet(ModelBase):
@@ -761,9 +796,14 @@ class _DistributedSeq2SlateTransformerNet(ModelBase):
         res = self.data_parallel(
             input, mode=mode, tgt_seq_len=tgt_seq_len, greedy=greedy
         )
-        if mode == RANK_MODE:
+        if mode == Seq2SlateMode.RANK_MODE:
             return rlt.RankingOutput(
                 ranked_tgt_out_idx=res[1], ranked_tgt_out_probs=res[0]
             )
-        elif mode == LOG_PROB_MODE:
+        elif mode in (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+        ):
             return rlt.RankingOutput(log_probs=res)
+        else:
+            raise NotImplementedError()

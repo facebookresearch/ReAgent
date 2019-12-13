@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from ml.rl import types as rlt
-from ml.rl.models.seq2slate import RANK_MODE
+from ml.rl.models.seq2slate import Seq2SlateMode
 from ml.rl.torch_utils import masked_softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
@@ -101,7 +101,9 @@ class EvaluationDataPage(NamedTuple):
                 ranking_training_input,
             )
         else:
-            raise NotImplementedError(f"training_input type: {type(tdb.training_input)}")
+            raise NotImplementedError(
+                f"training_input type: {type(tdb.training_input)}"
+            )
 
     @classmethod  # type: ignore
     @torch.no_grad()  # type: ignore
@@ -115,20 +117,25 @@ class EvaluationDataPage(NamedTuple):
     ):
         """
         Evaluating on a non-greedy serving ranking model is too expensive because
-        we need to compute propensities of all possible output sequences. Hence
-        we assume the ranking model has a greedy policy that always picks the
-        most probable output sequence.
+        we would need to compute propensities of all possible output sequences.
+        Hence we assume the ranking model has a greedy policy that always picks
+        the most probable output sequence.
         """
         assert (
             training_input.slate_reward is not None
             and training_input.tgt_out_probs is not None
             and training_input.tgt_out_idx is not None
+            and training_input.tgt_out_seq is not None
         )
         seq2slate_net = trainer.seq2slate_net
-        batch_size = training_input.state.float_features.shape[0]
+        batch_size, tgt_seq_len, candidate_dim = (
+            training_input.tgt_out_seq.float_features.shape
+        )
         device = training_input.state.float_features.device
 
-        rank_output = seq2slate_net(training_input, RANK_MODE, greedy=True)
+        rank_output = seq2slate_net(
+            training_input, Seq2SlateMode.RANK_MODE, greedy=True
+        )
         assert rank_output.ranked_tgt_out_idx is not None
         model_propensities = torch.ones(batch_size, 1).to(device)
         action_mask = torch.all(
@@ -139,15 +146,22 @@ class EvaluationDataPage(NamedTuple):
         model_rewards_for_logged_action = reward_network(
             training_input.state.float_features,
             training_input.src_seq.float_features,
+            training_input.tgt_out_seq.float_features,
             training_input.src_src_mask,
             training_input.slate_reward,
             training_input.tgt_out_idx,
         ).reshape(-1, 1)
+
+        ranked_tgt_out_seq = training_input.src_seq.float_features[
+            torch.arange(batch_size).repeat_interleave(tgt_seq_len),  # type: ignore
+            rank_output.ranked_tgt_out_idx.flatten() - 2,
+        ].reshape(batch_size, tgt_seq_len, candidate_dim)
         # model_rewards refers to predicted rewards for the slate generated
         # greedily by the ranking model
         model_rewards = reward_network(
             training_input.state.float_features,
             training_input.src_seq.float_features,
+            ranked_tgt_out_seq,
             training_input.src_src_mask,
             training_input.slate_reward,
             rank_output.ranked_tgt_out_idx,
