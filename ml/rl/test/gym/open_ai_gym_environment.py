@@ -101,6 +101,8 @@ class OpenAIGymEnvironment(Environment):
             self.env_name = gymenv
             if random_seed is not None:
                 self.env.seed(random_seed)
+                # seed() does not set action sampling random seed properly, so we need the next line as well
+                self.env.action_space.np_random.seed(random_seed)
 
         supports_state = isinstance(self.env.observation_space, gym.spaces.Box) and len(
             self.env.observation_space.shape

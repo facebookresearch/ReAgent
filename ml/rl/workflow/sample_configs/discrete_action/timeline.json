@@ -2,7 +2,7 @@
   "timeline": {
     "startDs": "2019-01-01",
     "endDs": "2019-01-01",
-    "addTerminalStateRow": false,
+    "addTerminalStateRow": true,
     "actionDiscrete": true,
     "inputTableName": "cartpole_discrete",
     "outputTableName": "cartpole_discrete_training",
