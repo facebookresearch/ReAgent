@@ -411,13 +411,16 @@ def train_gym_online_rl(
             )
             next_state, reward, terminal, _ = gym_env.step(gym_action)
 
+            ep_timesteps += 1
+            total_timesteps += 1
+            if max_steps and ep_timesteps >= max_steps:
+                terminal = True
+
             next_state = gym_env.transform_state(next_state)
 
             if reward_shape_func:
                 reward = reward_shape_func(next_state, ep_timesteps)
 
-            ep_timesteps += 1
-            total_timesteps += 1
             next_action, next_action_probability = gym_env.policy(
                 predictor, next_state, False
             )
@@ -521,9 +524,6 @@ def train_gym_online_rl(
                         predictor,
                         gym_env,
                     )
-
-            if max_steps and ep_timesteps >= max_steps:
-                break
 
         # Always eval on last episode
         if i == num_episodes - 1:

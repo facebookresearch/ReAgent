@@ -46,6 +46,12 @@ def parse_args(args):
         help="Temperature of softmax",
         required=True,
     )
+    parser.add_argument(
+        "--log_file",
+        type=str,
+        help="Redirect eval results to a file",
+        required=False,
+    )
     return parser.parse_args(args[1:])
 
 
@@ -53,4 +59,6 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logging.getLogger().setLevel(logging.INFO)
     args = parse_args(sys.argv)
+    if args.log_file:
+        logger.addHandler(logging.FileHandler(args.log_file))
     main(args.model, args.softmax_temperature)

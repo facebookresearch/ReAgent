@@ -183,17 +183,17 @@ class OpenAIGymEnvironment(Environment):
             For discrete action problems, the exploration policy is epsilon-greedy.
             For continuous action problems, the exploration is achieved by adding
             noise to action outputs.
+
+        Return an action vector in torch.Tensor format and action probability
         """
+        # policy() is applied on a single state at a time
         assert len(state.size()) == 1
 
         # Convert state to batch of size 1
         state = state.unsqueeze(0)
 
-        if predictor is None or (
-            not test
-            and self.action_type == EnvType.DISCRETE_ACTION
-            and float(torch.rand(1)) < self.epsilon
-        ):
+        # if no predictor is provided, random sample an action
+        if predictor is None:
             raw_action, _, action_probability = self.sample_policy(
                 state=None, use_continuous_action=False
             )
@@ -205,34 +205,52 @@ class OpenAIGymEnvironment(Environment):
 
         action = torch.zeros([self.action_dim])
 
+        # continuous action space, policy network
         if predictor.policy_net():  # type: ignore
             action_set = predictor.policy(state)  # type: ignore
             action, action_probability = action_set.greedy, action_set.greedy_propensity
             action = action[0, :]
             return action, action_probability
-        else:
-            action_probability = 1.0 if test else 1.0 - self.epsilon
-            if predictor.discrete_action():  # type: ignore
-                policy_action_set = predictor.policy(  # type: ignore
-                    state, possible_actions_presence=torch.ones([1, self.action_dim])
-                )
-            else:
-                states_tiled = torch.repeat_interleave(
-                    state, repeats=self.action_dim, axis=0
-                )
-                policy_action_set = predictor.policy(  # type: ignore
-                    states_tiled,
-                    (
-                        torch.eye(self.action_dim),
-                        torch.ones((self.action_dim, self.action_dim)),
-                    ),
-                )
 
-            if self.softmax_policy:
-                action[policy_action_set.softmax] = 1.0
-            else:
-                action[policy_action_set.greedy] = 1.0
-        return action, action_probability
+        # discrete action space
+        assert self.action_type == EnvType.DISCRETE_ACTION
+        action_probability = (
+            1.0 if test else 1.0 - self.epsilon + self.epsilon / self.action_dim
+        )
+        # DQN
+        if predictor.discrete_action():  # type: ignore
+            policy_action_set = predictor.policy(  # type: ignore
+                state, possible_actions_presence=torch.ones([1, self.action_dim])
+            )
+        # parametric DQN
+        else:
+            states_tiled = torch.repeat_interleave(
+                state, repeats=self.action_dim, axis=0
+            )
+            policy_action_set = predictor.policy(  # type: ignore
+                states_tiled,
+                (
+                    torch.eye(self.action_dim),
+                    torch.ones((self.action_dim, self.action_dim)),
+                ),
+            )
+        if self.softmax_policy:
+            action[policy_action_set.softmax] = 1.0
+        else:
+            action[policy_action_set.greedy] = 1.0
+
+        if test or float(torch.rand(1)) >= self.epsilon:
+            return action, action_probability
+
+        random_action, _, _ = self.sample_policy(
+            state=None, use_continuous_action=False
+        )
+        random_action_tensor = torch.zeros([self.action_dim])
+        random_action_tensor[random_action] = 1.0
+        if torch.eq(random_action_tensor, action).all():
+            return action, action_probability
+        else:
+            return random_action_tensor, self.epsilon / self.action_dim
 
     def run_ep_n_times(
         self,
@@ -335,12 +353,15 @@ class OpenAIGymEnvironment(Environment):
             processed_state[i] = raw_state[i]
         return processed_state
 
-    def sample_policy(self, state, use_continuous_action: bool, epsilon: float = 0.0):
+    def sample_policy(self, state, use_continuous_action: bool, epsilon: float = 1.0):
         """
         Sample a random action
         Return the raw action which can be fed into env.step(), the processed
             action which can be uploaded to Hive, and action probability
         """
+        #TODO: support epsilon greedy
+        assert epsilon == 1.0
+
         raw_action = self.env.action_space.sample()  # type: ignore
 
         if self.action_type == EnvType.DISCRETE_ACTION:

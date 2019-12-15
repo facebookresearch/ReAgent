@@ -50,19 +50,45 @@ class RLDataset:
         logger.info("RLDataset saved to {}".format(self.file_path))
 
     def insert(self, **kwargs):
+        # we do not see any use case with time_diff != 1
+        assert kwargs["time_diff"] == 1
+
         if self.use_pickle:
             kwargs.pop("mdp_id", None)
             kwargs.pop("sequence_number", None)
             kwargs.pop("action_probability", None)
             kwargs.pop("timeline_format_action", None)
             self.insert_replay_buffer_format(**kwargs)
+            return
+
+        sequence_number = kwargs["sequence_number"]
+        next_state = kwargs.pop("next_state", None)
+        terminal = kwargs.pop("terminal", None)
+        kwargs.pop("next_action", None)
+        kwargs.pop("action", None)
+        kwargs.pop("possible_next_actions", None)
+        kwargs.pop("possible_next_actions_mask", None)
+        kwargs.pop("policy_id", None)
+        if terminal:
+            # Special treatment for pre_timeline format:
+            # generate two data points at the end of an episode
+            self.insert_pre_timeline_format(**kwargs)
+            terminal_action = (
+                [] if isinstance(kwargs["timeline_format_action"], list) else ""
+            )
+            terminal_kwargs = {
+                "mdp_id": kwargs["mdp_id"],
+                "sequence_number": sequence_number + 1,
+                "state": next_state,
+                "timeline_format_action": terminal_action,
+                "reward": 0.0,
+                "possible_actions": kwargs["possible_actions"],
+                "time_diff": 1,
+                "action_probability": 1.0,
+                "possible_actions_mask": kwargs["possible_actions_mask"],
+            }
+            self.insert_pre_timeline_format(**terminal_kwargs)
         else:
-            kwargs.pop("next_state", None)
-            kwargs.pop("next_action", None)
-            kwargs.pop("action", None)
-            kwargs.pop("possible_next_actions", None)
-            kwargs.pop("possible_next_actions_mask", None)
-            kwargs.pop("policy_id", None)
             self.insert_pre_timeline_format(**kwargs)
 
     def insert_replay_buffer_format(
@@ -109,7 +135,6 @@ class RLDataset:
         state,
         timeline_format_action,
         reward,
-        terminal,
         possible_actions,
         time_diff,
         action_probability,
@@ -129,7 +154,6 @@ class RLDataset:
         assert isinstance(state, list)
         assert isinstance(action, (list, str))
         assert isinstance(reward, (float, int))
-        assert isinstance(terminal, bool)
         assert possible_actions is None or isinstance(
             possible_actions, (list, torch.Tensor)
         ), f"Expecting list/torch.Tensor; got {type(possible_actions)}"
@@ -143,10 +167,7 @@ class RLDataset:
         idx_bump = max(int_state_feature_keys) + 1
         if isinstance(action, list):
             # Parametric or continuous action domain
-            action = {str(k + idx_bump): v for k, v in enumerate(action)}
-            for k, v in list(action.items()):
-                if v == 0:
-                    del action[k]
+            action = {str(k + idx_bump): v for k, v in enumerate(action) if v != 0}
 
         if possible_actions is None:
             # Continuous action
@@ -163,17 +184,10 @@ class RLDataset:
             ]
         elif isinstance(possible_actions[0], list):
             # Parametric action
-            if terminal:
-                possible_actions = []
-            else:
-                possible_actions = [
-                    {str(k + idx_bump): v for k, v in enumerate(action)}
-                    for action in possible_actions
-                ]
-                for a in possible_actions:
-                    for k, v in list(a.items()):
-                        if v == 0:
-                            del a[k]
+            possible_actions = [
+                {str(k + idx_bump): v for k, v in enumerate(action) if v != 0}
+                for action in possible_actions
+            ]
         else:
             raise NotImplementedError(
                 f"Got {type(possible_actions)}, value: {possible_actions}"
