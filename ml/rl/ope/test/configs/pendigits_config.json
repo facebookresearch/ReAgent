@@ -1,0 +1,9 @@
+{
+  "dataset": {
+    "file": "data/pendigits.data",
+    "sep": ",",
+    "label_col": 16
+  },
+  "iterations": 500,
+  "estimators": ["dm", "ips", "dr"]
+}

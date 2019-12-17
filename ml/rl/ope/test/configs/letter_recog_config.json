@@ -1,0 +1,9 @@
+{
+  "dataset": {
+    "file": "data/letter-recognition.data",
+    "sep": ",",
+    "label_col": 0
+  },
+  "iterations": 500,
+  "estimators": ["dm","ips", "dr"]
+}
