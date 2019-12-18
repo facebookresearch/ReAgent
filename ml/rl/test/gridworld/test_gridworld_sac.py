@@ -12,13 +12,7 @@ import torch
 from ml.rl.models.actor import DirichletFullyConnectedActor, GaussianFullyConnectedActor
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.parameters import (
-    FeedForwardParameters,
-    OptimizerParameters,
-    RLParameters,
-    SACModelParameters,
-    SACTrainingParameters,
-)
+from ml.rl.parameters import FeedForwardParameters, OptimizerParameters, RLParameters
 from ml.rl.prediction.dqn_torch_predictor import (
     ActorTorchPredictor,
     ParametricDqnTorchPredictor,
@@ -39,7 +33,7 @@ from ml.rl.test.gridworld.gridworld_base import DISCOUNT
 from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
 from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.training.sac_trainer import SACTrainer
+from ml.rl.training.sac_trainer import SACTrainer, SACTrainerParameters
 
 
 class TestGridworldSAC(GridworldTestBase):
@@ -50,72 +44,58 @@ class TestGridworldSAC(GridworldTestBase):
         torch.manual_seed(0)
         super().setUp()
 
-    def get_sac_parameters(
+    def get_sac_trainer(
         self,
+        env,
+        use_gpu,
         use_2_q_functions=False,
         logged_action_uniform_prior=True,
         constrain_action_sum=False,
+        use_value_network=True,
     ):
-        return SACModelParameters(
-            rl=RLParameters(gamma=DISCOUNT, target_update_rate=0.5),
-            training=SACTrainingParameters(
-                minibatch_size=self.minibatch_size,
-                use_2_q_functions=use_2_q_functions,
-                q_network_optimizer=OptimizerParameters(),
-                value_network_optimizer=OptimizerParameters(),
-                actor_network_optimizer=OptimizerParameters(),
-                alpha_optimizer=OptimizerParameters(),
-                logged_action_uniform_prior=logged_action_uniform_prior,
-            ),
-            q_network=FeedForwardParameters(
-                layers=[128, 64], activations=["relu", "relu"]
-            ),
-            value_network=FeedForwardParameters(
-                layers=[128, 64], activations=["relu", "relu"]
-            ),
-            actor_network=FeedForwardParameters(
-                layers=[128, 64], activations=["relu", "relu"]
-            ),
-            constrain_action_sum=constrain_action_sum,
+        q_network_params = FeedForwardParameters(
+            layers=[128, 64], activations=["relu", "relu"]
+        )
+        value_network_params = FeedForwardParameters(
+            layers=[128, 64], activations=["relu", "relu"]
+        )
+        actor_network_params = FeedForwardParameters(
+            layers=[128, 64], activations=["relu", "relu"]
         )
 
-    def get_sac_trainer(self, env, parameters, use_gpu):
         state_dim = get_num_output_features(env.normalization)
         action_dim = get_num_output_features(env.normalization_continuous_action)
         q1_network = FullyConnectedParametricDQN(
-            state_dim,
-            action_dim,
-            parameters.q_network.layers,
-            parameters.q_network.activations,
+            state_dim, action_dim, q_network_params.layers, q_network_params.activations
         )
         q2_network = None
-        if parameters.training.use_2_q_functions:
+        if use_2_q_functions:
             q2_network = FullyConnectedParametricDQN(
                 state_dim,
                 action_dim,
-                parameters.q_network.layers,
-                parameters.q_network.activations,
+                q_network_params.layers,
+                q_network_params.activations,
             )
-        if parameters.constrain_action_sum:
+        if constrain_action_sum:
             actor_network = DirichletFullyConnectedActor(
                 state_dim,
                 action_dim,
-                parameters.actor_network.layers,
-                parameters.actor_network.activations,
+                actor_network_params.layers,
+                actor_network_params.activations,
             )
         else:
             actor_network = GaussianFullyConnectedActor(
                 state_dim,
                 action_dim,
-                parameters.actor_network.layers,
-                parameters.actor_network.activations,
+                actor_network_params.layers,
+                actor_network_params.activations,
             )
 
         value_network = None
-        if parameters.training.use_value_network:
+        if use_value_network:
             value_network = FullyConnectedNetwork(
-                [state_dim] + parameters.value_network.layers + [1],
-                parameters.value_network.activations + ["linear"],
+                [state_dim] + value_network_params.layers + [1],
+                value_network_params.activations + ["linear"],
             )
 
         if use_gpu:
@@ -125,6 +105,16 @@ class TestGridworldSAC(GridworldTestBase):
             if value_network:
                 value_network.cuda()
             actor_network.cuda()
+
+        parameters = SACTrainerParameters(
+            rl=RLParameters(gamma=DISCOUNT, target_update_rate=0.5),
+            minibatch_size=self.minibatch_size,
+            q_network_optimizer=OptimizerParameters(),
+            value_network_optimizer=OptimizerParameters(),
+            actor_network_optimizer=OptimizerParameters(),
+            alpha_optimizer=OptimizerParameters(),
+            logged_action_uniform_prior=logged_action_uniform_prior,
+        )
 
         return SACTrainer(
             q1_network,
@@ -169,9 +159,7 @@ class TestGridworldSAC(GridworldTestBase):
 
     def _test_sac_trainer(self, use_gpu=False, **kwargs):
         environment = GridworldContinuous()
-        trainer = self.get_sac_trainer(
-            environment, self.get_sac_parameters(**kwargs), use_gpu
-        )
+        trainer = self.get_sac_trainer(environment, use_gpu, **kwargs)
         evaluator = GridworldContinuousEvaluator(
             environment, assume_optimal_policy=False, gamma=DISCOUNT
         )
@@ -215,6 +203,13 @@ class TestGridworldSAC(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_sac_trainer_gpu(self):
         self._test_sac_trainer(use_gpu=True)
+
+    def test_sac_trainer_not_use_value_network(self):
+        self._test_sac_trainer(use_value_network=False)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_sac_trainer_not_use_value_network_gpu(self):
+        self._test_sac_trainer(use_value_network=False, use_gpu=True)
 
     def test_sac_trainer_use_2_q_functions(self):
         self._test_sac_trainer(use_2_q_functions=True)

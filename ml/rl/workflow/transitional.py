@@ -19,7 +19,6 @@ from ml.rl.parameters import (
     DiscreteActionModelParameters,
     MDNRNNParameters,
     OptimizerParameters,
-    SACModelParameters,
 )
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
@@ -34,7 +33,6 @@ from ml.rl.training.parametric_dqn_trainer import (
     ParametricDQNTrainerParameters,
 )
 from ml.rl.training.qrdqn_trainer import QRDQNTrainer
-from ml.rl.training.sac_trainer import SACTrainer
 from ml.rl.training.td3_trainer import TD3Trainer
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
@@ -268,80 +266,6 @@ def get_td3_trainer(env, parameters, use_gpu):
         "max_action_range_tensor_serving": max_action_range_tensor_serving,
     }
     return TD3Trainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
-
-
-def get_sac_trainer(
-    env: OpenAIGymEnvironment, parameters: SACModelParameters, use_gpu: bool
-):
-    trainer_args, trainer_kwargs = _get_sac_trainer_params(env, parameters, use_gpu)
-    return SACTrainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)  # type: ignore
-
-
-def _get_sac_trainer_params(
-    env: OpenAIGymEnvironment, sac_model_params: SACModelParameters, use_gpu: bool
-):
-    state_dim = get_num_output_features(env.normalization)
-    action_dim = get_num_output_features(env.normalization_action)
-    q1_network = FullyConnectedParametricDQN(
-        state_dim,
-        action_dim,
-        sac_model_params.q_network.layers,
-        sac_model_params.q_network.activations,
-    )
-    q2_network = None
-    if sac_model_params.training.use_2_q_functions:
-        q2_network = FullyConnectedParametricDQN(
-            state_dim,
-            action_dim,
-            sac_model_params.q_network.layers,
-            sac_model_params.q_network.activations,
-        )
-    value_network = None
-    if sac_model_params.training.use_value_network:
-        assert sac_model_params.value_network is not None
-        value_network = FullyConnectedNetwork(
-            [state_dim] + sac_model_params.value_network.layers + [1],
-            sac_model_params.value_network.activations + ["linear"],
-        )
-    actor_network = GaussianFullyConnectedActor(
-        state_dim,
-        action_dim,
-        sac_model_params.actor_network.layers,
-        sac_model_params.actor_network.activations,
-    )
-
-    min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
-    max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
-    min_action_range_tensor_serving = (
-        torch.from_numpy(env.action_space.low).float().unsqueeze(dim=0)  # type: ignore
-    )
-    max_action_range_tensor_serving = (
-        torch.from_numpy(env.action_space.high).float().unsqueeze(dim=0)  # type: ignore
-    )
-
-    if use_gpu:
-        q1_network.cuda()
-        if q2_network:
-            q2_network.cuda()
-        if value_network:
-            value_network.cuda()
-        actor_network.cuda()
-
-        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
-        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
-        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
-        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
-
-    trainer_args = [q1_network, actor_network, sac_model_params]
-    trainer_kwargs = {
-        "value_network": value_network,
-        "q2_network": q2_network,
-        "min_action_range_tensor_training": min_action_range_tensor_training,
-        "max_action_range_tensor_training": max_action_range_tensor_training,
-        "min_action_range_tensor_serving": min_action_range_tensor_serving,
-        "max_action_range_tensor_serving": max_action_range_tensor_serving,
-    }
-    return trainer_args, trainer_kwargs
 
 
 def get_cem_trainer(

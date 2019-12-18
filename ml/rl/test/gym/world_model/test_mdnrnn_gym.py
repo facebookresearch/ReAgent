@@ -10,7 +10,7 @@ from typing import Dict, List
 import numpy as np
 import torch
 from ml.rl.json_serialize import json_to_object
-from ml.rl.parameters import OpenAiGymParameters
+from ml.rl.test.gym.run_gym import OpenAiGymParameters
 from ml.rl.test.gym.world_model.mdnrnn_gym import mdnrnn_gym
 
 
