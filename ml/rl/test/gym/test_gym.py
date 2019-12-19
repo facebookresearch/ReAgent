@@ -11,9 +11,8 @@ import unittest
 import numpy as np
 import torch
 from ml.rl.json_serialize import json_to_object
-from ml.rl.parameters import OpenAiGymParameters
 from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.test.gym.run_gym import run_gym
+from ml.rl.test.gym.run_gym import OpenAiGymParameters, run_gym
 
 
 DQN_CARTPOLE_JSON = "ml/rl/test/gym/discrete_dqn_cartpole_v0.json"

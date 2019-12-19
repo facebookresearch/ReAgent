@@ -192,43 +192,6 @@ class TD3ModelParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
-class SACTrainingParameters(BaseDataClass):
-    __hash__ = param_hash
-
-    minibatch_size: int = 1024
-    q_network_optimizer: OptimizerParameters = OptimizerParameters()
-    value_network_optimizer: OptimizerParameters = OptimizerParameters()
-    actor_network_optimizer: OptimizerParameters = OptimizerParameters()
-    use_2_q_functions: bool = True
-    # alpha in the paper; controlling explore & exploit
-    entropy_temperature: Optional[float] = None
-    warm_start_model_path: Optional[str] = None
-    logged_action_uniform_prior: bool = True
-    minibatches_per_step: int = 1
-    use_value_network: bool = True
-    target_entropy: float = -1.0
-    alpha_optimizer: OptimizerParameters = OptimizerParameters()
-    action_embedding_kld_weight: Optional[float] = None
-    apply_kld_on_mean: Optional[bool] = None
-    action_embedding_mean: Optional[List[float]] = None
-    action_embedding_variance: Optional[List[float]] = None
-
-
-@dataclass(frozen=True)
-class SACModelParameters(BaseDataClass):
-    rl: RLParameters = RLParameters()
-    training: SACTrainingParameters = SACTrainingParameters()
-    q_network: FeedForwardParameters = FeedForwardParameters()
-    value_network: Optional[FeedForwardParameters] = None
-    actor_network: FeedForwardParameters = FeedForwardParameters()
-    state_feature_params: Optional[StateFeatureParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-    # constrain action output to sum to 1 (using dirichlet distribution)
-    constrain_action_sum: bool = False
-    do_not_preprocess_action: Optional[bool] = None
-
-
-@dataclass(frozen=True)
 class NormalizationParameters(BaseDataClass):
     __hash__ = param_hash
 
@@ -275,53 +238,6 @@ class CEMParameters(BaseDataClass):
     evaluation: EvaluationParameters = EvaluationParameters()
     alpha: float = 0.25
     epsilon: float = 0.001
-
-
-@dataclass(frozen=True)
-class OpenAiRunDetails(BaseDataClass):
-    solved_reward_threshold: Optional[int] = None
-    max_episodes_to_run_after_solved: Optional[int] = None
-    stop_training_after_solved: bool = False
-    num_episodes: int = 301
-    max_steps: Optional[int] = None
-    train_every_ts: int = 100
-    train_after_ts: int = 10
-    test_every_ts: int = 100
-    test_after_ts: int = 10
-    num_train_batches: int = 1
-    avg_over_num_episodes: int = 100
-    render: bool = False
-    epsilon_decay: Optional[float] = None
-    minimum_epsilon: Optional[float] = 0.0
-    offline_train_epochs: Optional[int] = None
-    offline_score_bar: Optional[float] = None
-    offline_num_batches_per_epoch: Optional[int] = None
-    seq_len: int = 5
-    num_train_episodes: int = 4000
-    num_test_episodes: int = 100
-    num_state_embed_episodes: int = 1800
-    train_epochs: int = 6
-    early_stopping_patience: int = 3
-
-
-@dataclass(frozen=True)
-class OpenAiGymParameters(BaseDataClass):
-    env: str
-    run_details: OpenAiRunDetails
-    model_type: str = ""
-    use_gpu: bool = False
-    max_replay_memory_size: int = 0
-    rl: Optional[RLParameters] = None
-    rainbow: Optional[RainbowDQNParameters] = None
-    training: Optional[TrainingParameters] = None
-    td3_training: Optional[TD3TrainingParameters] = None
-    sac_training: Optional[SACTrainingParameters] = None
-    sac_value_training: Optional[FeedForwardParameters] = None
-    critic_training: Optional[FeedForwardParameters] = None
-    actor_training: Optional[FeedForwardParameters] = None
-    cem: Optional[CEMParameters] = None
-    mdnrnn: Optional[MDNRNNParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
 
 
 #################################################

@@ -2,18 +2,47 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import copy
 import logging
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.parameters import SACModelParameters
+from ml.rl.parameters import OptimizerParameters, RLParameters, param_hash
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.torch_utils import rescale_torch_tensor
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class SACTrainerParameters:
+    __hash__ = param_hash
+
+    rl: RLParameters = field(default_factory=RLParameters)
+    minibatch_size: int = 1024
+    q_network_optimizer: OptimizerParameters = field(
+        default_factory=OptimizerParameters
+    )
+    value_network_optimizer: OptimizerParameters = field(
+        default_factory=OptimizerParameters
+    )
+    actor_network_optimizer: OptimizerParameters = field(
+        default_factory=OptimizerParameters
+    )
+    # alpha in the paper; controlling explore & exploit
+    entropy_temperature: Optional[float] = None
+    warm_start_model_path: Optional[str] = None
+    logged_action_uniform_prior: bool = True
+    target_entropy: float = -1.0
+    alpha_optimizer: OptimizerParameters = field(default_factory=OptimizerParameters)
+    action_embedding_kld_weight: Optional[float] = None
+    apply_kld_on_mean: Optional[bool] = None
+    action_embedding_mean: Optional[List[float]] = None
+    action_embedding_variance: Optional[List[float]] = None
 
 
 class SACTrainer(RLTrainer):
@@ -27,7 +56,7 @@ class SACTrainer(RLTrainer):
         self,
         q1_network,
         actor_network,
-        parameters: SACModelParameters,
+        parameters: SACTrainerParameters,
         use_gpu=False,
         value_network=None,
         q2_network=None,
@@ -47,28 +76,24 @@ class SACTrainer(RLTrainer):
         """
         super().__init__(parameters.rl, use_gpu=use_gpu)
 
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
-        assert self.minibatches_per_step == 1, (
-            "minibatches_per_step must be 1. Gradient accumation doesn't work "
-            "with actor-critic"
-        )
+        self.minibatch_size = parameters.minibatch_size
+        self.minibatches_per_step = 1
 
         self.q1_network = q1_network
         self.q1_network_optimizer = self._get_optimizer(
-            q1_network, parameters.training.q_network_optimizer
+            q1_network, parameters.q_network_optimizer
         )
 
         self.q2_network = q2_network
         if self.q2_network is not None:
             self.q2_network_optimizer = self._get_optimizer(
-                q2_network, parameters.training.q_network_optimizer
+                q2_network, parameters.q_network_optimizer
             )
 
         self.value_network = value_network
         if self.value_network is not None:
             self.value_network_optimizer = self._get_optimizer(
-                value_network, parameters.training.value_network_optimizer
+                value_network, parameters.value_network_optimizer
             )
             self.value_network_target = copy.deepcopy(self.value_network)
         else:
@@ -77,14 +102,14 @@ class SACTrainer(RLTrainer):
 
         self.actor_network = actor_network
         self.actor_network_optimizer = self._get_optimizer(
-            actor_network, parameters.training.actor_network_optimizer
+            actor_network, parameters.actor_network_optimizer
         )
 
         self.alpha_optimizer = None
         device = "cuda" if use_gpu else "cpu"
-        if parameters.training.alpha_optimizer is not None:
-            if parameters.training.target_entropy is not None:
-                self.target_entropy = parameters.training.target_entropy
+        if parameters.alpha_optimizer is not None:
+            if parameters.target_entropy is not None:
+                self.target_entropy = parameters.target_entropy
             elif min_action_range_tensor_training is not None:
                 self.target_entropy = -np.prod(
                     min_action_range_tensor_training.cpu().data.numpy().shape
@@ -94,32 +119,30 @@ class SACTrainer(RLTrainer):
 
             self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
             self.alpha_optimizer = self._get_optimizer_func(
-                parameters.training.alpha_optimizer.optimizer
+                parameters.alpha_optimizer.optimizer
             )(
                 [self.log_alpha],
-                lr=parameters.training.alpha_optimizer.learning_rate,
-                weight_decay=parameters.training.alpha_optimizer.l2_decay,
+                lr=parameters.alpha_optimizer.learning_rate,
+                weight_decay=parameters.alpha_optimizer.l2_decay,
             )
 
         self.entropy_temperature = (
-            parameters.training.entropy_temperature
-            if parameters.training.entropy_temperature is not None
+            parameters.entropy_temperature
+            if parameters.entropy_temperature is not None
             else 0.1
         )
-        self.logged_action_uniform_prior = (
-            parameters.training.logged_action_uniform_prior
-        )
+        self.logged_action_uniform_prior = parameters.logged_action_uniform_prior
 
-        self.add_kld_to_loss = bool(parameters.training.action_embedding_kld_weight)
-        self.apply_kld_on_mean = bool(parameters.training.apply_kld_on_mean)
+        self.add_kld_to_loss = bool(parameters.action_embedding_kld_weight)
+        self.apply_kld_on_mean = bool(parameters.apply_kld_on_mean)
 
         if self.add_kld_to_loss:
-            self.kld_weight = parameters.training.action_embedding_kld_weight
+            self.kld_weight = parameters.action_embedding_kld_weight
             self.action_emb_mean = torch.tensor(
-                parameters.training.action_embedding_mean, device=device
+                parameters.action_embedding_mean, device=device
             )
             self.action_emb_variance = torch.tensor(
-                parameters.training.action_embedding_variance, device=device
+                parameters.action_embedding_variance, device=device
             )
 
         # These ranges are only for Gym tests
