@@ -765,6 +765,7 @@ class DqnPolicyActionSet(BaseDataClass):
     softmax: Optional[int] = None
     greedy_act_name: Optional[str] = None
     softmax_act_name: Optional[str] = None
+    softmax_act_prob: Optional[float] = None
 
 
 @dataclass

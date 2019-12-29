@@ -88,6 +88,7 @@ class DiscreteDqnTorchPredictor:
             softmax=softmax_act_idx,
             greedy_act_name=action_names[greedy_act_idx],
             softmax_act_name=action_names[softmax_act_idx],
+            softmax_act_prob=q_scores_softmax[softmax_act_idx],
         )
 
     def policy_net(self) -> bool:
@@ -179,9 +180,14 @@ class ParametricDqnTorchPredictor:
         ):
             q_scores_softmax_numpy[:] = 1.0 / q_scores_softmax_numpy.shape[0]
 
+        greedy_act_idx = int(torch.argmax(q_scores))
+        softmax_act_idx = int(
+            np.random.choice(q_scores.size()[1], p=q_scores_softmax_numpy)
+        )
         return DqnPolicyActionSet(
-            greedy=int(torch.argmax(q_scores)),
-            softmax=int(np.random.choice(q_scores.size()[1], p=q_scores_softmax_numpy)),
+            greedy=greedy_act_idx,
+            softmax=softmax_act_idx,
+            softmax_act_prob=float(q_scores_softmax_numpy[softmax_act_idx]),
         )
 
     def policy_net(self) -> bool:

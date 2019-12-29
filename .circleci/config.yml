@@ -86,7 +86,7 @@ jobs:
       - run:
           name: Start docker
           command: |
-            sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent czxttkl/reagent:cuda
+            sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent czxttkl/reagent:gpu
       - run:
           name: Run unittests
           command: |

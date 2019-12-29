@@ -264,7 +264,7 @@ def mdnrnn_gym(
 
     env_type = params.env
     env = OpenAIGymEnvironment(
-        env_type, epsilon=1.0, softmax_policy=True, gamma=0.99, random_seed=seed
+        env_type, epsilon=1.0, softmax_policy=False, gamma=0.99, random_seed=seed
     )
 
     # create test data once

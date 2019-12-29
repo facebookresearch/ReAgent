@@ -49,7 +49,7 @@ First we need to generate the data required to train our RL models. For this exa
 
    mkdir cartpole_discrete
 
-   python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0.json -f cartpole_discrete/training_data.json
+   python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_small_v0.json -f cartpole_discrete/training_data.json --seed 0
 
 Let's look at one row of data to see the expected input format:
 
@@ -204,7 +204,7 @@ Now that we have trained a new policy on the offline ``Cartpole-v0`` data, we ca
 
 .. code-block::
 
-   python ml/rl/test/workflow/eval_cartpole.py -m outputs/predictor*
+   python ml/rl/test/workflow/eval_cartpole.py -m outputs/model_* --softmax_temperature=0.35 --log_file=outputs/eval_output.txt
 
 Step 6 - Visualize Results via Tensorboard
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
