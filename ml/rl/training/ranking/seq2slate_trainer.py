@@ -29,10 +29,14 @@ class Seq2SlateTrainer(Trainer):
         self.minibatch_size = minibatch_size
         self.minibatch = 0
         self.rl_opt = torch.optim.Adam(
-            self.seq2slate_net.parameters(), lr=1e-3, amsgrad=True
+            self.seq2slate_net.parameters(),
+            lr=self.parameters.transformer.learning_rate,
+            amsgrad=True,
         )
         self.baseline_opt = torch.optim.Adam(
-            self.baseline_net.parameters(), lr=1e-3, amsgrad=True
+            self.baseline_net.parameters(),
+            lr=self.parameters.baseline.learning_rate,
+            amsgrad=True,
         )
 
     def warm_start_components(self):
@@ -78,9 +82,13 @@ class Seq2SlateTrainer(Trainer):
         batch_loss = -importance_sampling * log_probs * (reward - b)
         rl_loss = 1.0 / batch_size * torch.sum(batch_loss)
 
-        self.rl_opt.zero_grad()
-        rl_loss.backward()
-        self.rl_opt.step()
+        if self.minibatch >= self.parameters.baseline.warmup_num_batches:
+            self.rl_opt.zero_grad()
+            rl_loss.backward()
+            self.rl_opt.step()
+        else:
+            logger.info("Not update RL model because now is baseline warmup phase")
+
         rl_loss = rl_loss.detach().cpu().numpy()
         baseline_loss = baseline_loss.detach().cpu().numpy()
 

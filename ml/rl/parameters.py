@@ -249,12 +249,15 @@ class TransformerParameters(BaseDataClass):
     dim_model: int
     dim_feedforward: int
     num_stacked_layers: int
+    learning_rate: float = 1e-4
 
 
 @dataclass(frozen=True)
 class BaselineParameters(BaseDataClass):
     dim_feedforward: int
     num_stacked_layers: int
+    warmup_num_batches: int = 0
+    learning_rate: float = 1e-4
 
 
 @dataclass(frozen=True)

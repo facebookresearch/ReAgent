@@ -182,8 +182,10 @@ class Seq2SlateRewardNetJITWrapper(ModelBase):
         super().__init__()
         self.model = model
 
-    def input_prototype(self):
+    def input_prototype(self, use_gpu=False):
         input_prototype = self.model.input_prototype()
+        if use_gpu:
+            input_prototype = input_prototype.cuda()
         return (
             input_prototype.state.float_features,
             input_prototype.src_seq.float_features,

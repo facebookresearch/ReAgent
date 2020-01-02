@@ -11,6 +11,11 @@ from ml.rl import types as rlt
 from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.models.seq2slate import Seq2SlateMode
+from ml.rl.parameters import (
+    BaselineParameters,
+    Seq2SlateTransformerParameters,
+    TransformerParameters,
+)
 from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 
 
@@ -124,7 +129,15 @@ class TestEvaluationDataPage(unittest.TestCase):
         trainer = Seq2SlateTrainer(
             seq2slate_net,
             baseline_net,
-            parameters=None,
+            # these parameters are not used in this test but some of them
+            # are required in __init__ function of Seq2SlateTrainer
+            parameters=Seq2SlateTransformerParameters(
+                transformer=TransformerParameters(
+                    num_heads=0, dim_model=0, dim_feedforward=0, num_stacked_layers=0
+                ),
+                baseline=BaselineParameters(dim_feedforward=0, num_stacked_layers=0),
+                on_policy=False,
+            ),
             minibatch_size=3,
             use_gpu=False,
         )

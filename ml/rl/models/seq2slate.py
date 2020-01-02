@@ -72,7 +72,7 @@ def attention(query, key, value, mask, d_k):
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
     scores = scores.masked_fill(mask == 0, -1e9)
     # p_attn shape: batch_size x num_heads x seq_len x seq_len
-    p_attn = F.softmax(scores, dim=-1)
+    p_attn = F.softmax(scores, dim=3)
     # attn shape: batch_size x num_heads x seq_len x d_k
     attn = torch.matmul(p_attn, value)
     return attn, p_attn
@@ -127,7 +127,7 @@ class Generator(nn.Module):
             logits.scatter_(2, mask_indices, float("-inf"))
 
         # log_probs shape: batch_size, seq_len, candidate_size
-        log_probs = F.log_softmax(logits, dim=-1)
+        log_probs = F.log_softmax(logits, dim=2)
         return log_probs
 
     def _decode_one_step(self, x, tgt_in_idx, greedy):
@@ -143,12 +143,13 @@ class Generator(nn.Module):
         last_step_x = x[:, -1, :]
 
         batch_size = x.shape[0]
+        # logits shape: batch_size, candidate_size
         logits = self.proj(last_step_x)
         # invalidate the padding symbol and decoder-starting symbol
         logits[:, :2] = float("-inf")
         # invalidate symbols already appeared in decoded sequences
         logits.scatter_(1, tgt_in_idx, float("-inf"))
-        prob = F.softmax(logits, dim=-1)
+        prob = F.softmax(logits, dim=1)
         if greedy:
             _, next_candidate = torch.max(prob, dim=1)
         else:
@@ -250,7 +251,7 @@ class DecoderLayer(nn.Module):
             return self.self_attn(query=x, key=x, value=x, mask=tgt_tgt_mask)
 
         def self_attn_layer_src(x):
-            return self.self_attn(query=x, key=m, value=m, mask=tgt_src_mask)
+            return self.src_attn(query=x, key=m, value=m, mask=tgt_src_mask)
 
         x = self.sublayer[0](x, self_attn_layer_tgt)
         x = self.sublayer[1](x, self_attn_layer_src)
@@ -444,6 +445,8 @@ class Seq2SlateTransformerModel(nn.Module):
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
+        self._print_model_info()
+
     __constants__ = [
         "state_dim",
         "candidate_dim",
@@ -460,6 +463,21 @@ class Seq2SlateTransformerModel(nn.Module):
         "_PER_SEQ_LOG_PROB_MODE",
         "_DECODE_ONE_STEP_MODE",
     ]
+
+    def _print_model_info(self):
+        def _num_of_params(model):
+            return len(torch.cat([p.flatten() for p in model.parameters()]))
+
+        logger.info(f"Num of total params: {_num_of_params(self)}")
+        logger.info(f"Num of Encoder params: {_num_of_params(self.encoder)}")
+        logger.info(f"Num of Decoder params: {_num_of_params(self.decoder)}")
+        logger.info(
+            f"Num of Candidate Embedder params: {_num_of_params(self.candidate_embedder)}"
+        )
+        logger.info(
+            f"Num of State Embedder params: {_num_of_params(self.state_embedder)}"
+        )
+        logger.info(f"Num of Generator params: {_num_of_params(self.generator)}")
 
     def forward(
         self,
