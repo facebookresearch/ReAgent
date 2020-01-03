@@ -204,7 +204,7 @@ class OpenAIGymEnvironment(Environment):
                 action = torch.zeros([self.action_dim])
                 action[raw_action] = 1.0
                 return action, action_probability
-            return raw_action, action_probability
+            return torch.tensor(raw_action), action_probability
 
         action = torch.zeros([self.action_dim])
 

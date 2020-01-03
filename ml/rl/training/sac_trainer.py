@@ -38,7 +38,9 @@ class SACTrainerParameters:
     warm_start_model_path: Optional[str] = None
     logged_action_uniform_prior: bool = True
     target_entropy: float = -1.0
-    alpha_optimizer: OptimizerParameters = field(default_factory=OptimizerParameters)
+    alpha_optimizer: Optional[OptimizerParameters] = field(
+        default_factory=OptimizerParameters
+    )
     action_embedding_kld_weight: Optional[float] = None
     apply_kld_on_mean: Optional[bool] = None
     action_embedding_mean: Optional[List[float]] = None
