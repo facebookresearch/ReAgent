@@ -105,6 +105,12 @@ class SACTrainer(RLTrainer):
             actor_network, parameters.actor_network_optimizer
         )
 
+        self.entropy_temperature = (
+            parameters.entropy_temperature
+            if parameters.entropy_temperature is not None
+            else 0.1
+        )
+
         self.alpha_optimizer = None
         device = "cuda" if use_gpu else "cpu"
         if parameters.alpha_optimizer is not None:
@@ -117,7 +123,9 @@ class SACTrainer(RLTrainer):
             else:
                 self.target_entropy = -1
 
-            self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
+            self.log_alpha = torch.tensor(
+                [np.log(self.entropy_temperature)], requires_grad=True, device=device
+            )
             self.alpha_optimizer = self._get_optimizer_func(
                 parameters.alpha_optimizer.optimizer
             )(
@@ -126,11 +134,6 @@ class SACTrainer(RLTrainer):
                 weight_decay=parameters.alpha_optimizer.l2_decay,
             )
 
-        self.entropy_temperature = (
-            parameters.entropy_temperature
-            if parameters.entropy_temperature is not None
-            else 0.1
-        )
         self.logged_action_uniform_prior = parameters.logged_action_uniform_prior
 
         self.add_kld_to_loss = bool(parameters.action_embedding_kld_weight)
@@ -392,6 +395,9 @@ class SACTrainer(RLTrainer):
             if self.q2_network:
                 SummaryWriterContext.add_histogram("q2/logged_state_value", q2_value)
 
+            SummaryWriterContext.add_scalar(
+                "entropy_temperature", self.entropy_temperature
+            )
             SummaryWriterContext.add_histogram("log_prob_a", log_prob_a)
             if self.value_network:
                 SummaryWriterContext.add_histogram("value_network/target", target_value)

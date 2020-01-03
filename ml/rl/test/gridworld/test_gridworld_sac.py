@@ -52,6 +52,8 @@ class TestGridworldSAC(GridworldTestBase):
         logged_action_uniform_prior=True,
         constrain_action_sum=False,
         use_value_network=True,
+        use_alpha_optimizer=True,
+        entropy_temperature=None,
     ):
         q_network_params = FeedForwardParameters(
             layers=[128, 64], activations=["relu", "relu"]
@@ -112,7 +114,8 @@ class TestGridworldSAC(GridworldTestBase):
             q_network_optimizer=OptimizerParameters(),
             value_network_optimizer=OptimizerParameters(),
             actor_network_optimizer=OptimizerParameters(),
-            alpha_optimizer=OptimizerParameters(),
+            alpha_optimizer=OptimizerParameters() if use_alpha_optimizer else None,
+            entropy_temperature=entropy_temperature,
             logged_action_uniform_prior=logged_action_uniform_prior,
         )
 
@@ -232,3 +235,9 @@ class TestGridworldSAC(GridworldTestBase):
     @unittest.skipIf(True or not torch.cuda.is_available(), "CUDA not available")
     def test_sac_trainer_w_dirichlet_actor_gpu(self):
         self._test_sac_trainer(use_gpu=True, constrain_action_sum=True)
+
+    def test_sac_trainer_w_dirichlet_actor_not_use_value_network(self):
+        # This test needs lowering the initial temperature
+        self._test_sac_trainer(
+            constrain_action_sum=True, use_value_network=False, entropy_temperature=0.01
+        )
