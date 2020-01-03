@@ -209,6 +209,13 @@ class NormalizationParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
+class NormalizationData(BaseDataClass):
+    __hash__ = param_hash
+
+    dense_normalization_parameters: Optional[Dict[int, NormalizationParameters]]
+
+
+@dataclass(frozen=True)
 class MDNRNNParameters(BaseDataClass):
     hidden_size: int = 64
     num_hidden_layers: int = 2

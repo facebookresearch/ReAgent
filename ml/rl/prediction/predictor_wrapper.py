@@ -56,7 +56,12 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         self,
         dqn_with_preprocessor: DiscreteDqnWithPreprocessor,
         action_names: List[str],
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> None:
+        """
+        state_feature_config is here to keep the interface consistent with FB internal
+        version
+        """
         super().__init__()
 
         self.state_sorted_features_t = dqn_with_preprocessor.sorted_features
@@ -200,10 +205,21 @@ class ActorWithPreprocessor(ModelBase):
         return self.state_preprocessor.sorted_features
 
 
+_DEFAULT_FEATURE_IDS = []
+
+
 class ActorPredictorWrapper(torch.jit.ScriptModule):
     __constants__ = ["state_sorted_features_t"]
 
-    def __init__(self, actor_with_preprocessor: ActorWithPreprocessor) -> None:
+    def __init__(
+        self,
+        actor_with_preprocessor: ActorWithPreprocessor,
+        action_feature_ids: List[int] = _DEFAULT_FEATURE_IDS,
+    ) -> None:
+        """
+        action_feature_ids is here to make the interface consistent with FB internal
+        version
+        """
         super().__init__()
 
         self.state_sorted_features_t = actor_with_preprocessor.sorted_features
