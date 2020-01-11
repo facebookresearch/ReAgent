@@ -29,15 +29,15 @@ PADDING_SYMBOL = 0
 DECODER_START_SYMBOL = 1
 
 
-def subsequent_mask(size):
+def subsequent_mask(size, device):
     """
     Mask out subsequent positions. Mainly used in the decoding process,
     in which an item should not attend subsequent items.
     """
     attn_shape = (1, size, size)
-    subsequent_mask = (1 - torch.triu(torch.ones(*attn_shape), diagonal=1)).type(
-        torch.int8
-    )
+    subsequent_mask = (
+        1 - torch.triu(torch.ones(*attn_shape, device=device), diagonal=1)
+    ).type(torch.int8)
     return subsequent_mask
 
 
@@ -48,7 +48,7 @@ def subsequent_and_padding_mask(tgt_in_idx):
     # tgt_tgt_mask shape: batch_size, 1, seq_len
     tgt_tgt_mask = (tgt_in_idx != PADDING_SYMBOL).unsqueeze(-2).type(torch.int8)
     # subseq_mask shape: 1, seq_len, seq_len
-    subseq_mask = subsequent_mask(tgt_in_idx.size(-1))
+    subseq_mask = subsequent_mask(tgt_in_idx.size(-1), tgt_in_idx.device)
     # tgt_tgt_mask shape: batch_size, seq_len, seq_len
     tgt_tgt_mask = tgt_tgt_mask & subseq_mask
     return tgt_tgt_mask
@@ -530,8 +530,8 @@ class Seq2SlateTransformerModel(nn.Module):
         # candidate_features is used as look-up table for candidate features.
         # the second dim is src_seq_len + 2 because we also want to include
         # features of start symbol and padding symbol
-        candidate_features = torch.zeros(batch_size, src_seq_len + 2, candidate_dim).to(
-            device
+        candidate_features = torch.zeros(
+            batch_size, src_seq_len + 2, candidate_dim, device=device
         )
         # TODO: create learnable feature vectors for start symbol and padding symbol
         candidate_features[:, 2:, :] = src_seq
@@ -542,14 +542,16 @@ class Seq2SlateTransformerModel(nn.Module):
             .type(torch.long)
             .to(device)
         )
-        tgt_out_probs = torch.zeros(batch_size, tgt_seq_len, candidate_size).to(device)
+        tgt_out_probs = torch.zeros(
+            batch_size, tgt_seq_len, candidate_size, device=device
+        )
 
         memory = self.encode(state, src_seq, src_src_mask)
 
         for l in range(tgt_seq_len):
             tgt_in_seq = (
                 candidate_features[
-                    torch.arange(batch_size).repeat_interleave(l + 1),
+                    torch.arange(batch_size, device=device).repeat_interleave(l + 1),
                     tgt_in_idx.flatten(),
                 ]
                 .view(batch_size, l + 1, -1)
@@ -561,7 +563,7 @@ class Seq2SlateTransformerModel(nn.Module):
                 state=state,
                 tgt_src_mask=tgt_src_mask,
                 tgt_in_seq=tgt_in_seq,
-                tgt_tgt_mask=subsequent_mask(l + 1).to(device),
+                tgt_tgt_mask=subsequent_mask(l + 1, device),
                 tgt_seq_len=l + 1,
             )
             # next candidate shape: batch_size, 1
@@ -573,7 +575,7 @@ class Seq2SlateTransformerModel(nn.Module):
                 greedy=greedy,
             )
             tgt_out_probs[:, l, :] = prob
-            tgt_in_idx = torch.cat([tgt_in_idx, next_candidate], dim=1).to(device)
+            tgt_in_idx = torch.cat([tgt_in_idx, next_candidate], dim=1)
 
         # remove the decoder start symbol
         # tgt_out_idx shape: batch_size, tgt_seq_len
@@ -637,6 +639,7 @@ class Seq2SlateTransformerModel(nn.Module):
             self._PER_SEQ_LOG_PROB_MODE,
             self._PER_SYMBOL_LOG_PROB_DIST_MODE,
         )
+        device = decoder_output.device
         # raw_log_probs: log probability distribution of each symbol
         # shape: batch_size, seq_len, candidate_size
         raw_log_probs = self.generator(
@@ -649,7 +652,7 @@ class Seq2SlateTransformerModel(nn.Module):
         # log_probs: log probability of each symbol in the tgt_out_idx
         # shape: batch_size, seq_len
         log_probs = raw_log_probs.view(-1, candidate_size)[
-            np.arange(batch_size * seq_len), tgt_out_idx.flatten()
+            torch.arange(batch_size * seq_len, device=device), tgt_out_idx.flatten()
         ].view(batch_size, seq_len)
         # shape: batch_size
         return log_probs.sum(dim=1)

@@ -93,11 +93,11 @@ class Seq2SlateRewardNet(ModelBase):
         return rlt.PreprocessedRankingInput.from_tensors(
             state=input.state.float_features,
             src_seq=input.tgt_out_seq.float_features,
-            src_src_mask=torch.ones(batch_size, slate_seq_len, slate_seq_len).to(
-                device
+            src_src_mask=torch.ones(
+                batch_size, slate_seq_len, slate_seq_len, device=device
             ),
-            tgt_in_seq=torch.ones(batch_size, 1, candidate_dim).to(device),
-            tgt_tgt_mask=torch.ones(batch_size, 1, 1).to(device),
+            tgt_in_seq=torch.ones(batch_size, 1, candidate_dim, device=device),
+            tgt_tgt_mask=torch.ones(batch_size, 1, 1, device=device),
             slate_reward=input.slate_reward,
         )
 

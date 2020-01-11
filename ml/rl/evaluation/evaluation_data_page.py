@@ -137,7 +137,7 @@ class EvaluationDataPage(NamedTuple):
             training_input, Seq2SlateMode.RANK_MODE, greedy=True
         )
         assert rank_output.ranked_tgt_out_idx is not None
-        model_propensities = torch.ones(batch_size, 1).to(device)
+        model_propensities = torch.ones(batch_size, 1, device=device)
         action_mask = torch.all(
             (training_input.tgt_out_idx - 2) == (rank_output.ranked_tgt_out_idx - 2),
             dim=1,
@@ -153,7 +153,9 @@ class EvaluationDataPage(NamedTuple):
         ).reshape(-1, 1)
 
         ranked_tgt_out_seq = training_input.src_seq.float_features[
-            torch.arange(batch_size).repeat_interleave(tgt_seq_len),  # type: ignore
+            torch.arange(batch_size, device=device).repeat_interleave(  # type: ignore
+                tgt_seq_len
+            ),
             rank_output.ranked_tgt_out_idx.flatten() - 2,
         ].reshape(batch_size, tgt_seq_len, candidate_dim)
         # model_rewards refers to predicted rewards for the slate generated
