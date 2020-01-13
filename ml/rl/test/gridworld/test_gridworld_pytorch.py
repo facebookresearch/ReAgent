@@ -33,7 +33,7 @@ from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
 from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
 from ml.rl.torch_utils import export_module_to_buffer
 from ml.rl.training.c51_trainer import C51Trainer
-from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
 from ml.rl.training.qrdqn_trainer import QRDQNTrainer
 
 
@@ -202,6 +202,9 @@ class TestGridworld(GridworldTestBase):
                 q_network, q_network.get_target_network(), parameters, use_gpu
             )
         else:
+            parameters = DQNTrainerParameters.from_discrete_action_model_parameters(
+                parameters
+            )
             trainer = DQNTrainer(
                 q_network,
                 q_network.get_target_network(),

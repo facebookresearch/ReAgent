@@ -2,8 +2,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional, Tuple
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
 
+import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import numpy as np
 import torch
@@ -17,13 +19,56 @@ from ml.rl.training.training_data_page import TrainingDataPage
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class BCQConfig:
+    # 0 = max q-learning, 1 = imitation learning
+    drop_threshold: float = 0.1
+
+
+@dataclass(frozen=True)
+class DQNTrainerParameters:
+    __hash__ = rlp.param_hash
+
+    actions: List[str] = field(default_factory=list)
+    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
+    double_q_learning: bool = True
+    bcq: Optional[BCQConfig] = None
+    minibatch_size: int = 1024
+    minibatches_per_step: int = 1
+    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
+    evaluation: rlp.EvaluationParameters = field(
+        default_factory=rlp.EvaluationParameters
+    )
+
+    @classmethod
+    def from_discrete_action_model_parameters(
+        cls, params: DiscreteActionModelParameters
+    ):
+        return cls(
+            actions=params.actions,
+            rl=params.rl,
+            double_q_learning=params.rainbow.double_q_learning,
+            bcq=BCQConfig(drop_threshold=params.rainbow.bcq_drop_threshold)
+            if params.rainbow.bcq
+            else None,
+            minibatch_size=params.training.minibatch_size,
+            minibatches_per_step=params.training.minibatches_per_step,
+            optimizer=rlp.OptimizerParameters(
+                optimizer=params.training.optimizer,
+                learning_rate=params.training.learning_rate,
+                l2_decay=params.training.l2_decay,
+            ),
+            evaluation=params.evaluation,
+        )
+
+
 class DQNTrainer(DQNTrainerBase):
     def __init__(
         self,
         q_network,
         q_network_target,
         reward_network,
-        parameters: DiscreteActionModelParameters,
+        parameters: DQNTrainerParameters,
         use_gpu=False,
         q_network_cpe=None,
         q_network_cpe_target=None,
@@ -38,17 +83,17 @@ class DQNTrainer(DQNTrainerBase):
             evaluation_parameters=parameters.evaluation,
         )
         assert self._actions is not None, "Discrete-action DQN needs action names"
-        self.double_q_learning = parameters.rainbow.double_q_learning
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        self.double_q_learning = parameters.double_q_learning
+        self.minibatch_size = parameters.minibatch_size
+        self.minibatches_per_step = parameters.minibatches_per_step or 1
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.training.optimizer)
+        self._set_optimizer(parameters.optimizer.optimizer)
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(),
-            lr=parameters.training.learning_rate,
-            weight_decay=parameters.training.l2_decay,
+            lr=parameters.optimizer.learning_rate,
+            weight_decay=parameters.optimizer.l2_decay,
         )
 
         self._initialize_cpe(
@@ -56,11 +101,7 @@ class DQNTrainer(DQNTrainerBase):
             reward_network,
             q_network_cpe,
             q_network_cpe_target,
-            cpe_optimizer_parameters=OptimizerParameters(
-                optimizer=parameters.training.optimizer,
-                learning_rate=parameters.training.learning_rate,
-                l2_decay=parameters.training.l2_decay,
-            ),
+            cpe_optimizer_parameters=parameters.optimizer,
         )
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
@@ -70,9 +111,10 @@ class DQNTrainer(DQNTrainerBase):
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
         # Batch constrained q-learning
-        self.bcq = parameters.rainbow.bcq
+        self.bcq = parameters.bcq is not None
         if self.bcq:
-            self.bcq_drop_threshold = parameters.rainbow.bcq_drop_threshold
+            assert parameters.bcq is not None
+            self.bcq_drop_threshold = parameters.bcq.drop_threshold
             self.bcq_imitator = imitator
 
     def warm_start_components(self):

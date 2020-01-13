@@ -27,7 +27,7 @@ from ml.rl.preprocessing.normalization import (
 from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
 from ml.rl.training.c51_trainer import C51Trainer
 from ml.rl.training.cem_trainer import CEMTrainer
-from ml.rl.training.dqn_trainer import DQNTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
 from ml.rl.training.parametric_dqn_trainer import (
     ParametricDQNTrainer,
     ParametricDQNTrainerParameters,
@@ -158,11 +158,12 @@ def create_dqn_trainer_from_params(
         )
 
     else:
+        parameters = DQNTrainerParameters.from_discrete_action_model_parameters(model)
         return DQNTrainer(
             q_network,
             q_network_target,
             reward_network,
-            model,
+            parameters,
             use_gpu,
             q_network_cpe=q_network_cpe,
             q_network_cpe_target=q_network_cpe_target,
