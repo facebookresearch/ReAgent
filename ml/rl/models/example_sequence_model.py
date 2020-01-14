@@ -91,7 +91,7 @@ class ExampleSequenceModel(ModelBase):
 
     def forward(self, state):
         page_embedding = self.page_embedding(
-            state.state.sequence_features.watched_videos.id_features.page_id
+            state.state.sequence_features.watched_videos.id_features.page_id[1]
         )
         gru_input = torch.cat(
             (

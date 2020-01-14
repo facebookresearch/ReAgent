@@ -3,7 +3,7 @@
 
 import dataclasses
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
 
 import numpy as np
 import torch
@@ -52,8 +52,10 @@ class IdFeatureConfig(BaseDataClass):
 @dataclass
 class IdFeatureBase(BaseDataClass):
     """
-    User should subclass this class and define each ID feature as a field w/ torch.Tensor
-    as the type of the field.
+    User should subclass this class and define each ID feature as a field w/
+    Tuple[torch.Tensor, torch.Tensor] as the type of the field.
+    The first value in the tuple is the offsets.
+    The second value in the tuple is the values.
     """
 
     @classmethod
@@ -105,6 +107,25 @@ class SequenceFeatureBase(BaseDataClass):
         return []
 
     @classmethod
+    def get_id_feature_configs(cls) -> Dict[str, IdFeatureConfig]:
+        fields = dataclasses.fields(cls)
+        for f in fields:
+            # If the `id_features` remains an Optional, it won't be a type object
+            if f.name != "id_features" or not isinstance(f.type, type):
+                continue
+            return f.type.get_feature_config()
+        return {}
+
+    @classmethod
+    def get_id_feature_type(cls):
+        fields = dataclasses.fields(cls)
+        for f in fields:
+            if f.name != "id_features":
+                continue
+            return f.type
+        return None
+
+    @classmethod
     def prototype(cls: Type[T]) -> T:
         float_feature_infos = cls.get_float_feature_infos()
         float_features = (
@@ -120,13 +141,34 @@ class SequenceFeatureBase(BaseDataClass):
             id_feature_fields = dataclasses.fields(field.type)
             id_features = field.type(  # noqa
                 **{
-                    f.name: torch.randint(1, (1, cls.get_max_length()))
+                    f.name: (
+                        torch.tensor([0], dtype=torch.long),
+                        torch.randint(1, (1, cls.get_max_length())),
+                    )
                     for f in id_feature_fields
                 }
             )
             break
 
         return cls(id_features=id_features, float_features=float_features)
+
+    @classmethod
+    def create_from_dict(
+        cls, sparse_feature_dict: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
+    ):
+        assert not cls.get_float_feature_infos(), "Not supported yet"
+        # TODO: benchmark this
+        id_feature_type = cls.get_id_feature_type()
+        if id_feature_type is not None:
+            id_features = id_feature_type(
+                **{
+                    name: sparse_feature_dict[config.feature_id]
+                    for name, config in id_feature_type.get_feature_config().items()
+                }
+            )
+        else:
+            id_features = None
+        return cls(float_features=None, id_features=id_features)
 
 
 U = TypeVar("U", bound="SequenceFeatures")
@@ -143,6 +185,15 @@ class SequenceFeatures(BaseDataClass):
     def prototype(cls: Type[U]) -> U:
         fields = dataclasses.fields(cls)
         return cls(**{f.name: f.type.prototype() for f in fields})  # type: ignore
+
+    @classmethod
+    def create_from_dict(
+        cls, sparse_feature_dict: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
+    ):
+        fields = dataclasses.fields(cls)
+        return cls(  # type: ignore
+            **{f.name: f.type.create_from_dict(sparse_feature_dict) for f in fields}
+        )
 
 
 @dataclass
@@ -164,7 +215,7 @@ class FeatureVector(BaseDataClass):
     # that doesn't work well with ONNX.
     # User is expected to dynamically define the type of id_list_features based
     # on the actual features used in the model.
-    sequence_features: Optional[SequenceFeatureBase] = None
+    sequence_features: Optional[SequenceFeatures] = None
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
@@ -181,6 +232,7 @@ class ActorOutput(BaseDataClass):
 @dataclass
 class PreprocessedFeatureVector(BaseDataClass):
     float_features: torch.Tensor
+    sequence_features: Optional[SequenceFeatures] = None
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
@@ -474,10 +526,14 @@ class RawDiscreteDqnInput(RawBaseInput):
             self.step,
             self.not_terminal.float(),
             PreprocessedFeatureVector(
-                float_features=state, time_since_first=self.state.time_since_first
+                float_features=state,
+                sequence_features=self.state.sequence_features,
+                time_since_first=self.state.time_since_first,
             ),
             PreprocessedFeatureVector(
-                float_features=next_state, time_since_first=self.state.time_since_first
+                float_features=next_state,
+                sequence_features=self.next_state.sequence_features,
+                time_since_first=self.next_state.time_since_first,
             ),
             self.action.float(),
             self.next_action.float(),
