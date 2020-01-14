@@ -40,160 +40,21 @@ class ValuePresence(BaseDataClass):
 
 
 @dataclass
-class IdFeatureConfig(BaseDataClass):
+class IdListFeatureConfig(BaseDataClass):
     """
     This describes how to map raw features to model features
     """
 
+    name: str
     feature_id: int  # integer feature ID
     id_mapping_name: str  # key to ModelPreprocessingConfig.id_mapping_config
-
-
-@dataclass
-class IdFeatureBase(BaseDataClass):
-    """
-    User should subclass this class and define each ID feature as a field w/
-    Tuple[torch.Tensor, torch.Tensor] as the type of the field.
-    The first value in the tuple is the offsets.
-    The second value in the tuple is the values.
-    """
-
-    @classmethod
-    # TODO: This should be marked as abstractmethod but mypi doesn't like it.
-    # See https://github.com/python/mypy/issues/5374
-    # @abc.abstractmethod
-    def get_feature_config(cls) -> Dict[str, IdFeatureConfig]:
-        """
-        Returns mapping from feature name, which must be a field in this dataclass, to
-        feature config.
-        """
-        raise NotImplementedError
-
-
-T = TypeVar("T", bound="SequenceFeatureBase")
+    # max_length: int
 
 
 @dataclass
 class FloatFeatureInfo(BaseDataClass):
     name: str
     feature_id: int
-
-
-@dataclass
-class SequenceFeatureBase(BaseDataClass):
-    id_features: Optional[IdFeatureBase]
-    float_features: Optional[ValuePresence]
-
-    @classmethod
-    # TODO: This should be marked as abstractmethod but mypi doesn't like it.
-    # See https://github.com/python/mypy/issues/5374
-    # @abc.abstractmethod
-    def get_max_length(cls) -> int:
-        """
-        Subclass should return the max-length of this sequence. If the raw data is
-        longer, feature extractor will truncate the front. If the raw data is shorter,
-        feature extractor will fill the front with zero.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def get_float_feature_infos(cls) -> List[FloatFeatureInfo]:
-        """
-        Override this if the sequence has float features associated to it.
-        Float features should be stored as ID-score-list, where the ID part corresponds
-        to primary entity ID of the sequence. E.g., if this is a sequence of previously
-        watched videos, then the key should be video ID.
-        """
-        return []
-
-    @classmethod
-    def get_id_feature_configs(cls) -> Dict[str, IdFeatureConfig]:
-        fields = dataclasses.fields(cls)
-        for f in fields:
-            # If the `id_features` remains an Optional, it won't be a type object
-            if f.name != "id_features" or not isinstance(f.type, type):
-                continue
-            return f.type.get_feature_config()
-        return {}
-
-    @classmethod
-    def get_id_feature_type(cls):
-        fields = dataclasses.fields(cls)
-        for f in fields:
-            if f.name != "id_features":
-                continue
-            return f.type
-        return None
-
-    @classmethod
-    def prototype(cls: Type[T]) -> T:
-        float_feature_infos = cls.get_float_feature_infos()
-        float_features = (
-            torch.rand(1, cls.get_max_length(), len(float_feature_infos))
-            if float_feature_infos
-            else None
-        )
-        fields = dataclasses.fields(cls)
-        id_features = None
-        for field in fields:
-            if field.name != "id_features" or not isinstance(field.type, type):
-                continue
-            id_feature_fields = dataclasses.fields(field.type)
-            id_features = field.type(  # noqa
-                **{
-                    f.name: (
-                        torch.tensor([0], dtype=torch.long),
-                        torch.randint(1, (1, cls.get_max_length())),
-                    )
-                    for f in id_feature_fields
-                }
-            )
-            break
-
-        return cls(id_features=id_features, float_features=float_features)
-
-    @classmethod
-    def create_from_dict(
-        cls, sparse_feature_dict: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
-    ):
-        assert not cls.get_float_feature_infos(), "Not supported yet"
-        # TODO: benchmark this
-        id_feature_type = cls.get_id_feature_type()
-        if id_feature_type is not None:
-            id_features = id_feature_type(
-                **{
-                    name: sparse_feature_dict[config.feature_id]
-                    for name, config in id_feature_type.get_feature_config().items()
-                }
-            )
-        else:
-            id_features = None
-        return cls(float_features=None, id_features=id_features)
-
-
-U = TypeVar("U", bound="SequenceFeatures")
-
-
-@dataclass
-class SequenceFeatures(BaseDataClass):
-    """
-    A stub-class for sequence features in the model. All fields should be subclass of
-    SequenceFeatureBase above.
-    """
-
-    @classmethod
-    def prototype(cls: Type[U]) -> U:
-        fields = dataclasses.fields(cls)
-        return cls(**{f.name: f.type.prototype() for f in fields})  # type: ignore
-
-    @classmethod
-    def create_from_dict(
-        cls, sparse_feature_dict: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
-    ):
-        fields = dataclasses.fields(cls)
-        return cls(  # type: ignore
-            **{f.name: f.type.create_from_dict(sparse_feature_dict) for f in fields}
-        )
 
 
 @dataclass
@@ -205,17 +66,19 @@ class IdMapping(BaseDataClass):
 class ModelFeatureConfig(BaseDataClass):
     float_feature_infos: List[FloatFeatureInfo]
     id_mapping_config: Dict[str, IdMapping] = dataclasses.field(default_factory=dict)
-    sequence_features_type: Optional[Type[SequenceFeatures]] = None
+    id_list_feature_configs: List[IdListFeatureConfig] = dataclasses.field(
+        default_factory=list
+    )
+
+
+IdListFeatureValue = Tuple[torch.Tensor, torch.Tensor]
+IdListFeatures = Dict[str, IdListFeatureValue]
 
 
 @dataclass
 class FeatureVector(BaseDataClass):
     float_features: ValuePresence
-    # sequence_features should ideally be Mapping[str, IdListFeature]; however,
-    # that doesn't work well with ONNX.
-    # User is expected to dynamically define the type of id_list_features based
-    # on the actual features used in the model.
-    sequence_features: Optional[SequenceFeatures] = None
+    id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
@@ -232,7 +95,7 @@ class ActorOutput(BaseDataClass):
 @dataclass
 class PreprocessedFeatureVector(BaseDataClass):
     float_features: torch.Tensor
-    sequence_features: Optional[SequenceFeatures] = None
+    id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
@@ -527,12 +390,12 @@ class RawDiscreteDqnInput(RawBaseInput):
             self.not_terminal.float(),
             PreprocessedFeatureVector(
                 float_features=state,
-                sequence_features=self.state.sequence_features,
+                id_list_features=self.state.id_list_features,
                 time_since_first=self.state.time_since_first,
             ),
             PreprocessedFeatureVector(
                 float_features=next_state,
-                sequence_features=self.next_state.sequence_features,
+                id_list_features=self.next_state.id_list_features,
                 time_since_first=self.next_state.time_since_first,
             ),
             self.action.float(),
