@@ -114,7 +114,7 @@ def dict_to_np(d, np_size, key_offset):
 def dict_to_torch(d, np_size, key_offset):
     x = torch.zeros(np_size)
     for key in d:
-        x[key - key_offset] = d[key]
+        x[key - key_offset] = float(d[key])
     return x
 
 
