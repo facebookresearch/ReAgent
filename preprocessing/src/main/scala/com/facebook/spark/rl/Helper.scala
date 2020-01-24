@@ -8,68 +8,67 @@ object Helper {
 
   private val log = LoggerFactory.getLogger(this.getClass.getName)
 
-  def outputTableIsValid(sqlContext: SQLContext,
-                         tableName: String,
-                         actionDiscrete: Boolean,
-                         extraFeatureColumnTypes: Map[String, String] = Map()): Boolean = {
-    val totalColumns = Constants.TRAINING_DATA_COLUMN_NAMES.size + 2 * extraFeatureColumnTypes.size
+  def next_step_col_name(col_name: String): String =
+    if (col_name == "possible_actions") "possible_next_actions" else "next_" + col_name
 
+  def next_step_col_type(col_type: String, next_step_col_is_arr: Boolean): String =
+    if (next_step_col_is_arr) s"array<${col_type}>" else col_type
+
+  def outputTableIsValid(
+      sqlContext: SQLContext,
+      tableName: String,
+      actionDataType: String = "string",
+      rewardTypes: Map[String, String] = Constants.DEFAULT_REWARD_TYPES,
+      timelineJoinTypes: Map[String, String] = Map("possible_actions" -> "array<string>"),
+      next_step_col_is_arr: Boolean = false
+  ): Boolean = {
     // check column types
-    var actionType = "string";
-    var possibleActionType = "array<string>";
-    if (!actionDiscrete) {
-      actionType = "map<bigint,double>"
-      possibleActionType = "array<map<bigint,double>>"
-    }
     val dt = sqlContext.sparkSession.catalog
       .listColumns(tableName)
       .collect
       .map(column => column.name -> column.dataType)
       .toMap
 
+    val nextActionDataType = this.next_step_col_type(actionDataType, next_step_col_is_arr)
     (
-      dt.size == totalColumns &&
-      actionType == dt.getOrElse("action", "") &&
-      possibleActionType == dt.getOrElse("possible_actions", "") &&
-      extraFeatureColumnTypes.filter {
-        case (k, v) => (v == dt.getOrElse(k, "") && v == dt.getOrElse(s"next_${k}", ""))
-      }.size == extraFeatureColumnTypes.size
+      actionDataType == dt.getOrElse("action", "") &&
+      nextActionDataType == dt.getOrElse("next_action", "") &&
+      rewardTypes.filter { case (k, v) => (v == dt.getOrElse(k, "")) }.size == rewardTypes.size &&
+      timelineJoinTypes.filter {
+        case (k, v) =>
+          (v == dt.getOrElse(k, "") &&
+            this.next_step_col_type(v, next_step_col_is_arr) == dt.getOrElse(
+              this.next_step_col_name(k),
+              ""
+            ))
+      }.size == timelineJoinTypes.size
     )
   }
 
-  def getDataTypes(sqlContext: SQLContext,
-                   tableName: String,
-                   columnNames: List[String]): Map[String, String] = {
-    // null check is required because jackson doesn't care about default values
-    val notNullColumnNames = Option(columnNames).getOrElse(List[String]())
+  def getDataTypes(
+      sqlContext: SQLContext,
+      tableName: String,
+      columnNames: List[String]
+  ): Map[String, String] = {
     val dt = sqlContext.sparkSession.catalog
       .listColumns(tableName)
       .collect
-      .filter(column => notNullColumnNames.contains(column.name))
+      .filter(column => columnNames.contains(column.name))
       .map(column => column.name -> column.dataType)
       .toMap
-    assert(dt.size == notNullColumnNames.size)
+    assert(dt.size == columnNames.size)
     dt
   }
 
-  def validateOrDestroyTrainingTable(sqlContext: SQLContext,
-                                     tableName: String,
-                                     actionDiscrete: Boolean,
-                                     extraFeatureTypes: Map[String, String] = Map()): Unit =
+  def destroyTrainingTable(
+      sqlContext: SQLContext,
+      tableName: String
+  ): Unit =
     try {
-      // Validate the schema and destroy the output table if it doesn't match
-      var validTable = Helper.outputTableIsValid(
-        sqlContext,
-        tableName,
-        actionDiscrete,
-        extraFeatureTypes
-      )
-      if (!validTable) {
-        val dropTableCommand = s"""
-        DROP TABLE ${tableName}
-        """
-        sqlContext.sql(dropTableCommand);
-      }
+      val dropTableCommand = s"""
+      DROP TABLE ${tableName}
+      """
+      sqlContext.sql(dropTableCommand);
     } catch {
       case e: org.apache.spark.sql.catalyst.analysis.NoSuchTableException => {}
       case e: Throwable                                                   => log.error(e.toString())
