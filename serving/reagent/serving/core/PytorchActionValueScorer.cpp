@@ -50,7 +50,7 @@ StringDoubleMap PytorchActionValueScorer::predict(
       auto result = model.forward(inputs);
       auto tupleResult = result.toTuple();
       auto outputActionNames = tupleResult->elements()[0];
-      auto outputActionNameList = outputActionNames.toGenericList();
+      auto outputActionNameList = outputActionNames.toList();
       auto actionScores = tupleResult->elements()[1];
       auto actionScoresTensor = actionScores.toTensor();
       for (int a = 0; a < outputActionNameList.size(); a++) {
@@ -75,6 +75,7 @@ StringDoubleMap PytorchActionValueScorer::predict(
   } catch (...) {
     LOG(FATAL) << "UNKNOWN ERROR";
   }
+  LOG(FATAL) << "Should never get here";
 }
 
 }  // namespace reagent
