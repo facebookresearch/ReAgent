@@ -15,7 +15,7 @@ Here are the steps:
    docker push reagent/reagent:cpu_test
 
    docker build -f docker/cuda.Dockerfile -t reagent:gpu .
-   docker tag reagent:cpu reagent/reagent:gpu_test
+   docker tag reagent:gpu reagent/reagent:gpu_test
    docker push reagent/reagent:gpu_test
 
 If you cannot push, you have to run ``docker login``.
