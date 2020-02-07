@@ -14,6 +14,10 @@ Here are the steps:
    docker tag reagent:cpu reagent/reagent:cpu_test
    docker push reagent/reagent:cpu_test
 
+   docker build -f docker/cuda.Dockerfile -t reagent:gpu .
+   docker tag reagent:cpu reagent/reagent:gpu_test
+   docker push reagent/reagent:gpu_test
+
 If you cannot push, you have to run ``docker login``.
 
 Then, you should follow the local testing instructions in ``.circleci/config.yml`` to make sure that the new Docker image is in a good shape.
