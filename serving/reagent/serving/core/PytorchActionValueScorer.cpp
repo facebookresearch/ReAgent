@@ -75,6 +75,7 @@ StringDoubleMap PytorchActionValueScorer::predict(
   } catch (...) {
     LOG(FATAL) << "UNKNOWN ERROR";
   }
+  LOG(FATAL) << "Should never get here";
 }
 
 }  // namespace reagent
