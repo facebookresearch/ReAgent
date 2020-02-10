@@ -2,15 +2,60 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+from dataclasses import dataclass, field
+from typing import List
 
+import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import torch
-from ml.rl.parameters import DiscreteActionModelParameters, OptimizerParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class QRDQNTrainerParameters:
+    __hash__ = rlp.param_hash
+
+    actions: List[str] = field(default_factory=list)
+    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
+    double_q_learning: bool = True
+    num_atoms: int = 51
+    minibatch_size: int = 1024
+    minibatches_per_step: int = 1
+    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
+    cpe_optimizer: rlp.OptimizerParameters = field(
+        default_factory=rlp.OptimizerParameters
+    )
+    evaluation: rlp.EvaluationParameters = field(
+        default_factory=rlp.EvaluationParameters
+    )
+
+    @classmethod
+    def from_discrete_action_model_parameters(
+        cls, params: rlp.DiscreteActionModelParameters
+    ):
+        return cls(
+            actions=params.actions,
+            rl=params.rl,
+            double_q_learning=params.rainbow.double_q_learning,
+            num_atoms=params.rainbow.num_atoms,
+            minibatch_size=params.training.minibatch_size,
+            minibatches_per_step=params.training.minibatches_per_step,
+            cpe_optimizer=rlp.OptimizerParameters(
+                optimizer=params.training.optimizer,
+                learning_rate=params.training.learning_rate,
+                l2_decay=params.training.l2_decay,
+            ),
+            optimizer=rlp.OptimizerParameters(
+                optimizer=params.training.optimizer,
+                learning_rate=params.training.learning_rate,
+                l2_decay=params.rainbow.c51_l2_decay,
+            ),
+            evaluation=params.evaluation,
+        )
 
 
 class QRDQNTrainer(DQNTrainerBase):
@@ -24,7 +69,7 @@ class QRDQNTrainer(DQNTrainerBase):
         self,
         q_network,
         q_network_target,
-        parameters: DiscreteActionModelParameters,
+        parameters: QRDQNTrainerParameters,
         use_gpu=False,
         metrics_to_score=None,
         reward_network=None,
@@ -39,21 +84,18 @@ class QRDQNTrainer(DQNTrainerBase):
             evaluation_parameters=parameters.evaluation,
         )
 
-        self.double_q_learning = parameters.rainbow.double_q_learning
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        self.double_q_learning = parameters.double_q_learning
+        self.minibatch_size = parameters.minibatch_size
+        self.minibatches_per_step = parameters.minibatches_per_step or 1
         self._actions = parameters.actions if parameters.actions is not None else []
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.training.optimizer)
-        self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(),
-            lr=parameters.training.learning_rate,
-            weight_decay=parameters.rainbow.c51_l2_decay,
+        self.q_network_optimizer = self._get_optimizer(
+            self.q_network, parameters.optimizer
         )
 
-        self.num_atoms = parameters.rainbow.num_atoms
+        self.num_atoms = parameters.num_atoms
         self.quantiles = (
             (0.5 + torch.arange(self.num_atoms, device=self.device).float())
             / float(self.num_atoms)
@@ -64,10 +106,7 @@ class QRDQNTrainer(DQNTrainerBase):
             reward_network,
             q_network_cpe,
             q_network_cpe_target,
-            cpe_optimizer_parameters=OptimizerParameters(
-                learning_rate=parameters.training.learning_rate,
-                l2_decay=parameters.training.l2_decay,
-            ),
+            cpe_optimizer_parameters=parameters.cpe_optimizer,
         )
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)

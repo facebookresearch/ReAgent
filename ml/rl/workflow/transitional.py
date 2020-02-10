@@ -32,7 +32,7 @@ from ml.rl.training.parametric_dqn_trainer import (
     ParametricDQNTrainer,
     ParametricDQNTrainerParameters,
 )
-from ml.rl.training.qrdqn_trainer import QRDQNTrainer
+from ml.rl.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
 from ml.rl.training.td3_trainer import TD3Trainer
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
@@ -134,10 +134,11 @@ def create_dqn_trainer_from_params(
         assert (
             not use_all_avail_gpus
         ), "use_all_avail_gpus not implemented for distributional RL"
+        parameters = QRDQNTrainerParameters.from_discrete_action_model_parameters(model)
         return QRDQNTrainer(
             q_network,
             q_network_target,
-            model,
+            parameters,
             use_gpu,
             metrics_to_score=metrics_to_score,
             reward_network=reward_network,
