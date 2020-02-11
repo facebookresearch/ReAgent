@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import logging
+
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 import ml.rl.parameters as rlp
 import ml.rl.types as rlt
-import numpy as np
 import torch
-import torch.nn.functional as F
-from ml.rl.parameters import DiscreteActionModelParameters, OptimizerParameters
+from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.imitator_training import get_valid_actions_from_imitator
 from ml.rl.training.training_data_page import TrainingDataPage
-
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

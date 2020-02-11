@@ -4,12 +4,11 @@
 from typing import Dict
 
 import torch
-from ml.rl.models.actor import FullyConnectedActor, GaussianFullyConnectedActor
+from ml.rl.models.actor import FullyConnectedActor
 from ml.rl.models.categorical_dqn import CategoricalDQN
 from ml.rl.models.cem_planner import CEMPlannerNetwork
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.dueling_q_network import DuelingQNetwork
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.models.quantile_dqn import QuantileDQN
 from ml.rl.models.world_model import MemoryNetwork
@@ -25,7 +24,7 @@ from ml.rl.preprocessing.normalization import (
     get_num_output_features,
 )
 from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
-from ml.rl.training.c51_trainer import C51Trainer
+from ml.rl.training.c51_trainer import C51Trainer, C51TrainerParameters
 from ml.rl.training.cem_trainer import CEMTrainer
 from ml.rl.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
 from ml.rl.training.parametric_dqn_trainer import (
@@ -153,7 +152,7 @@ def create_dqn_trainer_from_params(
         return C51Trainer(
             q_network,
             q_network_target,
-            model,
+            C51TrainerParameters.from_discrete_action_model_parameters(model),
             use_gpu,
             metrics_to_score=metrics_to_score,
         )
