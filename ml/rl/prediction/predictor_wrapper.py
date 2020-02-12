@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 import ml.rl.types as rlt
 import torch
 from ml.rl.models.base import ModelBase
-from ml.rl.models.seq2slate import RANK_MODE, Seq2SlateTransformerNet
+from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from ml.rl.preprocessing.postprocessor import Postprocessor
 from ml.rl.preprocessing.preprocessor import Preprocessor
 from torch import nn
@@ -56,7 +56,12 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         self,
         dqn_with_preprocessor: DiscreteDqnWithPreprocessor,
         action_names: List[str],
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> None:
+        """
+        state_feature_config is here to keep the interface consistent with FB internal
+        version
+        """
         super().__init__()
 
         self.state_sorted_features_t = dqn_with_preprocessor.sorted_features
@@ -200,10 +205,21 @@ class ActorWithPreprocessor(ModelBase):
         return self.state_preprocessor.sorted_features
 
 
+_DEFAULT_FEATURE_IDS = []
+
+
 class ActorPredictorWrapper(torch.jit.ScriptModule):
     __constants__ = ["state_sorted_features_t"]
 
-    def __init__(self, actor_with_preprocessor: ActorWithPreprocessor) -> None:
+    def __init__(
+        self,
+        actor_with_preprocessor: ActorWithPreprocessor,
+        action_feature_ids: List[int] = _DEFAULT_FEATURE_IDS,
+    ) -> None:
+        """
+        action_feature_ids is here to make the interface consistent with FB internal
+        version
+        """
         super().__init__()
 
         self.state_sorted_features_t = actor_with_preprocessor.sorted_features
@@ -294,7 +310,7 @@ class Seq2SlateWithPreprocessor(ModelBase):
         )
         ranking_output = self.model(
             ranking_input,
-            mode=RANK_MODE,
+            mode=Seq2SlateMode.RANK_MODE,
             tgt_seq_len=self.model.max_tgt_seq_len,
             greedy=self.greedy,
         )

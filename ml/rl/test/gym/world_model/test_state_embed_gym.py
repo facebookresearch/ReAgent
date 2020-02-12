@@ -10,8 +10,8 @@ from typing import List
 import numpy as np
 import torch
 from ml.rl.json_serialize import json_to_object
-from ml.rl.parameters import OpenAiGymParameters
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
+from ml.rl.test.gym.run_gym import OpenAiGymParameters
 from ml.rl.test.gym.world_model.state_embed_gym import (
     create_mdnrnn_trainer_and_embed_dataset,
     run_gym,

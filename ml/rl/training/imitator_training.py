@@ -16,7 +16,7 @@ class ImitatorTrainer(RLTrainer):
     def __init__(
         self, imitator, parameters: DiscreteActionModelParameters, use_gpu=False
     ) -> None:
-        super().__init__(parameters, use_gpu=use_gpu)
+        super().__init__(parameters.rl, use_gpu=use_gpu)
 
         self._set_optimizer(parameters.training.optimizer)
         self.minibatch_size = parameters.training.minibatch_size

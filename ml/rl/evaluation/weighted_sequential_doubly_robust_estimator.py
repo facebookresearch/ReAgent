@@ -31,6 +31,7 @@ class WeightedSequentialDoublyRobustEstimator:
         whether_self_normalize_importance_weights,
     ) -> CpeEstimate:
         # For details, visit https://arxiv.org/pdf/1604.00923.pdf Section 5, 7, 8
+        assert edp.model_values is not None
         (
             actions,
             rewards,

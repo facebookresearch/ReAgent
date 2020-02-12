@@ -211,7 +211,7 @@ class DirichletFullyConnectedActor(ModelBase):
         # The last layer gives the concentration of the distribution.
         self.fc = FullyConnectedNetwork(
             [state_dim] + sizes + [action_dim],
-            activations + ["relu"],
+            activations + ["linear"],
             use_batch_norm=use_batch_norm,
         )
 
@@ -223,13 +223,13 @@ class DirichletFullyConnectedActor(ModelBase):
         Get concentration of distribution.
         https://stats.stackexchange.com/questions/244917/what-exactly-is-the-alpha-in-the-dirichlet-distribution
         """
-        return self.fc(state.float_features) + self.EPSILON
+        return self.fc(state.float_features).exp() + self.EPSILON
 
     @torch.no_grad()  # type: ignore
     def get_log_prob(self, state, action):
         concentration = self._get_concentration(state)
         log_prob = Dirichlet(concentration).log_prob(action)
-        return log_prob
+        return log_prob.unsqueeze(dim=1)
 
     def forward(self, input):
         concentration = self._get_concentration(input.state)

@@ -19,13 +19,17 @@ from ml.rl.evaluation.world_model_evaluator import (
 from ml.rl.json_serialize import json_to_object
 from ml.rl.models.mdn_rnn import MDNRNNMemoryPool
 from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.parameters import MDNRNNParameters, OpenAiGymParameters, OpenAiRunDetails
 from ml.rl.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
     OpenAIGymEnvironment,
 )
-from ml.rl.test.gym.run_gym import dict_to_np, get_possible_actions
+from ml.rl.test.gym.run_gym import (
+    OpenAiGymParameters,
+    OpenAiRunDetails,
+    dict_to_np,
+    get_possible_actions,
+)
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
@@ -260,7 +264,7 @@ def mdnrnn_gym(
 
     env_type = params.env
     env = OpenAIGymEnvironment(
-        env_type, epsilon=1.0, softmax_policy=True, gamma=0.99, random_seed=seed
+        env_type, epsilon=1.0, softmax_policy=False, gamma=0.99, random_seed=seed
     )
 
     # create test data once

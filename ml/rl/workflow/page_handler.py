@@ -34,7 +34,7 @@ class PageHandler:
 
     def get_loss(self, loss_name="loss"):
         """ See usage in get_mean_loss """
-        return np.array([result[loss_name] for result in self.results])
+        return [float(result[loss_name]) for result in self.results]
 
     def get_mean_loss(self, loss_name="loss", axis=None):
         """
@@ -166,19 +166,28 @@ class WorldModelEvaluationPageHandler(PageHandler):
 
 class ImitatorPageHandler(PageHandler):
     def __init__(self, trainer, train=True):
-        self.trainer = trainer
-        self.results: List[Dict] = []
+        super().__init__(trainer)
         self.train = train
 
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        losses = self.trainer.train(tdp, train=self.train)
+        losses = self.trainer_or_evaluator.train(tdp, train=self.train)
         self.results.append(losses)
 
 
 class RankingTrainingPageHandler(PageHandler):
+    def __init__(self, trainer):
+        super().__init__(trainer)
+        self.policy_gradient_loss = []
+        self.baseline_loss = []
+
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         _, _, rl_loss, baseline_loss = self.trainer_or_evaluator.train(tdp)
         self.results.append({"pg": rl_loss, "baseline": baseline_loss})
+
+    def finish(self):
+        self.policy_gradient_loss.append(float(self.get_mean_loss(loss_name="pg")))
+        self.baseline_loss.append(float(self.get_mean_loss(loss_name="baseline")))
+        self.refresh_results()
 
 
 class RankingEvaluationPageHandler(PageHandler):
@@ -188,6 +197,20 @@ class RankingEvaluationPageHandler(PageHandler):
     def finish(self):
         eval_res = self.trainer_or_evaluator.evaluate_post_training()
         self.results.append(eval_res)
+
+
+class RewardNetTrainingPageHandler(PageHandler):
+    def __init__(self, trainer):
+        super().__init__(trainer)
+        self.mse_loss = []
+
+    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
+        mse_loss = self.trainer_or_evaluator.train(tdp)
+        self.results.append({"mse": mse_loss.cpu().numpy()})
+
+    def finish(self):
+        self.mse_loss.append(float(self.get_mean_loss(loss_name="mse")))
+        self.refresh_results()
 
 
 def get_actual_minibatch_size(batch, minibatch_size_preset):
@@ -202,7 +225,7 @@ def get_actual_minibatch_size(batch, minibatch_size_preset):
 
 
 def feed_pages(
-    data_streamer,
+    data_loader,
     dataset_num_rows,
     epoch,
     minibatch_size,
@@ -214,7 +237,7 @@ def feed_pages(
     num_rows_to_process_for_progress_tick = max(1, dataset_num_rows // 100)
     last_percent_reported = -1
 
-    for batch in data_streamer:
+    for batch in data_loader:
         if use_gpu:
             batch = batch.cuda()
         batch_size = get_actual_minibatch_size(batch, minibatch_size)

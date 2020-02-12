@@ -18,11 +18,10 @@
     "4",
     "5"
   ],
-  "epochs": 100,
+  "epochs": 150,
   "rl": {
     "gamma": 0.99,
-    "target_update_rate": 0.2,
-    
+    "target_update_rate": 0.1,
     "maxq_learning": true,
     "epsilon": 0.2,
     "temperature": 0.35,
@@ -44,11 +43,10 @@
       "relu",
       "linear"
     ],
-    "minibatch_size": 256,
-    "learning_rate": 0.001,
+    "minibatch_size": 512,
+    "learning_rate": 0.01,
     "optimizer": "ADAM",
     "lr_decay": 0.999,
-    "warm_start_model_path": null,
-    "l2_decay": 0
+    "warm_start_model_path": null
   }
 }

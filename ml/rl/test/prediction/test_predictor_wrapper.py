@@ -8,7 +8,7 @@ import torch
 from ml.rl.models.actor import FullyConnectedActor
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.models.seq2slate import RANK_MODE, Seq2SlateTransformerNet
+from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from ml.rl.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
@@ -168,7 +168,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         expected_output = seq2slate(
             ranking_input,
-            mode=RANK_MODE,
+            mode=Seq2SlateMode.RANK_MODE,
             tgt_seq_len=seq2slate.max_tgt_seq_len,
             greedy=True,
         )

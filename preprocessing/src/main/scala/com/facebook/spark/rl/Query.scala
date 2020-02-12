@@ -8,6 +8,7 @@ import org.apache.spark.sql.functions.udf
 object Query {
 
   def getDiscreteQuery(config: QueryConfiguration): String = {
+    val s_num_actions = config.actions.length.toString
     var query = """
     SELECT
         mdp_id,
@@ -21,8 +22,8 @@ object Query {
         s"WHEN '${config.actions(i)}' THEN CAST(${i} AS BIGINT) "
       )
     }
-    query = query.concat("""
-      END AS action,
+    query = query.concat(s"""
+      ELSE CAST(${s_num_actions} AS BIGINT) END AS action,
       reward,
       next_state_features,
       time_diff,
@@ -56,7 +57,6 @@ object Query {
         s"WHEN '${config.actions(i)}' THEN CAST(${i} AS BIGINT) "
       )
     }
-    val s_num_actions = config.actions.length.toString
     query = query.concat(s"ELSE CAST(${s_num_actions} AS BIGINT) END AS next_action")
 
     query = query.concat(s"""

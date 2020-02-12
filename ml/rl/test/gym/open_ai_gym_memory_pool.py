@@ -4,7 +4,7 @@
 import dataclasses
 import logging
 import random
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -30,6 +30,9 @@ class MemoryBuffer:
     possible_actions_mask: Optional[torch.Tensor]
     time_diff: torch.Tensor
     policy_id: torch.Tensor
+    propensity: Optional[torch.Tensor]
+    next_propensity: Optional[torch.Tensor]
+    reward_mask: Optional[torch.Tensor]
 
     @torch.no_grad()  # type: ignore
     def slice(self, indices):
@@ -37,6 +40,9 @@ class MemoryBuffer:
             state=self.state[indices],
             action=self.action[indices],
             reward=self.reward[indices],
+            reward_mask=self.reward_mask[indices]
+            if self.reward_mask is not None
+            else None,
             next_state=self.next_state[indices],
             next_action=self.next_action[indices],
             terminal=self.terminal[indices],
@@ -54,6 +60,12 @@ class MemoryBuffer:
             else None,
             time_diff=self.time_diff[indices],
             policy_id=self.policy_id[indices],
+            propensity=self.propensity[indices]
+            if self.propensity is not None
+            else None,
+            next_propensity=self.next_propensity[indices]
+            if self.next_propensity is not None
+            else None,
         )
 
     @torch.no_grad()  # type: ignore
@@ -62,7 +74,7 @@ class MemoryBuffer:
         idx: int,
         state: torch.Tensor,
         action: torch.Tensor,
-        reward: float,
+        reward: Union[float, torch.Tensor],
         next_state: torch.Tensor,
         next_action: torch.Tensor,
         terminal: bool,
@@ -72,10 +84,15 @@ class MemoryBuffer:
         possible_actions: Optional[torch.Tensor],
         possible_actions_mask: Optional[torch.Tensor],
         policy_id: int,
+        propensity: Optional[torch.Tensor],
+        next_propensity: Optional[torch.Tensor],
+        reward_mask: Optional[torch.Tensor],
     ):
         self.state[idx] = state
         self.action[idx] = action
         self.reward[idx] = reward
+        if self.reward_mask is not None:
+            self.reward_mask[idx] = reward_mask
         self.next_state[idx] = next_state
         self.next_action[idx] = next_action
         self.terminal[idx] = terminal
@@ -89,6 +106,10 @@ class MemoryBuffer:
             self.possible_next_actions_mask[idx] = possible_next_actions_mask
         self.time_diff[idx] = time_diff
         self.policy_id[idx] = policy_id
+        if self.propensity is not None:
+            self.propensity[idx] = propensity
+        if self.next_propensity is not None:
+            self.next_propensity[idx] = next_propensity
 
     @classmethod
     def create(
@@ -98,11 +119,16 @@ class MemoryBuffer:
         action_dim: int,
         max_possible_actions: Optional[int],
         has_possble_actions: bool,
+        has_propensity: bool,
+        reward_dim: Optional[int],
     ):
         return cls(
             state=torch.zeros((max_size, state_dim)),
             action=torch.zeros((max_size, action_dim)),
-            reward=torch.zeros((max_size, 1)),
+            reward=torch.zeros((max_size, reward_dim if reward_dim is not None else 1)),
+            reward_mask=torch.zeros((max_size, reward_dim), dtype=torch.bool)
+            if reward_dim is not None
+            else None,
             next_state=torch.zeros((max_size, state_dim)),
             next_action=torch.zeros((max_size, action_dim)),
             terminal=torch.zeros((max_size, 1), dtype=torch.uint8),
@@ -111,17 +137,37 @@ class MemoryBuffer:
             )
             if has_possble_actions
             else None,
-            possible_next_actions_mask=torch.zeros((max_size, max_possible_actions))
+            possible_next_actions_mask=torch.zeros(
+                (max_size, max_possible_actions), dtype=torch.bool
+            )
             if max_possible_actions
             else None,
             possible_actions=torch.zeros((max_size, max_possible_actions, action_dim))
             if has_possble_actions
             else None,
-            possible_actions_mask=torch.zeros((max_size, max_possible_actions))
+            possible_actions_mask=torch.zeros(
+                (max_size, max_possible_actions), dtype=torch.bool
+            )
             if max_possible_actions
             else None,
             time_diff=torch.zeros((max_size, 1)),
             policy_id=torch.zeros((max_size, 1), dtype=torch.long),
+            propensity=torch.zeros(
+                (
+                    max_size,
+                    max_possible_actions if max_possible_actions is not None else 1,
+                )
+            )
+            if has_propensity
+            else None,
+            next_propensity=torch.zeros(
+                (
+                    max_size,
+                    max_possible_actions if max_possible_actions is not None else 1,
+                )
+            )
+            if has_propensity
+            else None,
         )
 
 
@@ -221,14 +267,19 @@ class OpenAIGymMemoryPool:
             assert len(next_actions.size()) == 2
 
         rewards = memory.reward
+        rewards_mask = memory.reward_mask
         not_terminal = 1 - memory.terminal
         time_diffs = memory.time_diff
+        propensities = memory.propensity
+        next_propensities = memory.next_propensity
 
         return TrainingDataPage(
             states=states,
             actions=actions,
-            propensities=None,
+            propensities=propensities,
+            next_propensities=next_propensities,
             rewards=rewards,
+            rewards_mask=rewards_mask,
             next_states=next_states,
             next_actions=next_actions,
             not_terminal=not_terminal,
@@ -243,7 +294,7 @@ class OpenAIGymMemoryPool:
         self,
         state: torch.Tensor,
         action: torch.Tensor,
-        reward: float,
+        reward: Union[float, torch.Tensor],
         next_state: torch.Tensor,
         next_action: torch.Tensor,
         terminal: bool,
@@ -253,6 +304,9 @@ class OpenAIGymMemoryPool:
         possible_actions: Optional[torch.Tensor],
         possible_actions_mask: Optional[torch.Tensor],
         policy_id: int,
+        propensity: Optional[torch.Tensor] = None,
+        next_propensity: Optional[torch.Tensor] = None,
+        reward_mask: Optional[torch.Tensor] = None,
     ):
         """
         Inserts transition into replay memory in such a way that retrieving
@@ -273,6 +327,15 @@ class OpenAIGymMemoryPool:
                 max_possible_actions = None
 
             assert (possible_actions is not None) == (possible_next_actions is not None)
+            assert (propensity is None) == (next_propensity is None)
+            reward_dim = None
+            if isinstance(reward, torch.Tensor):
+                assert reward_mask is not None
+                assert reward.shape == reward_mask.shape
+                assert len(reward.shape) == 1
+                reward_dim = reward.shape[0]
+            else:
+                assert reward_mask is None
 
             self.memory_buffer = MemoryBuffer.create(
                 max_size=self.max_replay_memory_size,
@@ -280,6 +343,8 @@ class OpenAIGymMemoryPool:
                 action_dim=action.shape[0],
                 max_possible_actions=max_possible_actions,
                 has_possble_actions=possible_actions is not None,
+                has_propensity=propensity is not None,
+                reward_dim=reward_dim,
             )
 
         insert_idx = None
@@ -305,5 +370,8 @@ class OpenAIGymMemoryPool:
                 possible_actions,
                 possible_actions_mask,
                 policy_id,
+                propensity,
+                next_propensity,
+                reward_mask,
             )
         self.memory_num += 1

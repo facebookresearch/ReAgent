@@ -3,6 +3,7 @@
 import copy
 import logging
 import math
+from enum import Enum
 from typing import Optional
 
 import numpy as np
@@ -17,22 +18,26 @@ from torch.nn.parallel.distributed import DistributedDataParallel
 logger = logging.getLogger(__name__)
 
 
-RANK_MODE = "rank"
-LOG_PROB_MODE = "log_prob"
-DECODE_ONE_STEP_MODE = "decode_one_step"
+class Seq2SlateMode(Enum):
+    RANK_MODE = "rank"
+    PER_SEQ_LOG_PROB_MODE = "per_sequence_log_prob"
+    PER_SYMBOL_LOG_PROB_DIST_MODE = "per_symbol_log_prob_dist"
+    DECODE_ONE_STEP_MODE = "decode_one_step"
+
+
 PADDING_SYMBOL = 0
 DECODER_START_SYMBOL = 1
 
 
-def subsequent_mask(size):
+def subsequent_mask(size, device):
     """
     Mask out subsequent positions. Mainly used in the decoding process,
     in which an item should not attend subsequent items.
     """
     attn_shape = (1, size, size)
-    subsequent_mask = (1 - torch.triu(torch.ones(*attn_shape), diagonal=1)).type(
-        torch.int8
-    )
+    subsequent_mask = (
+        1 - torch.triu(torch.ones(*attn_shape, device=device), diagonal=1)
+    ).type(torch.int8)
     return subsequent_mask
 
 
@@ -43,7 +48,7 @@ def subsequent_and_padding_mask(tgt_in_idx):
     # tgt_tgt_mask shape: batch_size, 1, seq_len
     tgt_tgt_mask = (tgt_in_idx != PADDING_SYMBOL).unsqueeze(-2).type(torch.int8)
     # subseq_mask shape: 1, seq_len, seq_len
-    subseq_mask = subsequent_mask(tgt_in_idx.size(-1))
+    subseq_mask = subsequent_mask(tgt_in_idx.size(-1), tgt_in_idx.device)
     # tgt_tgt_mask shape: batch_size, seq_len, seq_len
     tgt_tgt_mask = tgt_tgt_mask & subseq_mask
     return tgt_tgt_mask
@@ -67,7 +72,7 @@ def attention(query, key, value, mask, d_k):
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
     scores = scores.masked_fill(mask == 0, -1e9)
     # p_attn shape: batch_size x num_heads x seq_len x seq_len
-    p_attn = F.softmax(scores, dim=-1)
+    p_attn = F.softmax(scores, dim=3)
     # attn shape: batch_size x num_heads x seq_len x d_k
     attn = torch.matmul(p_attn, value)
     return attn, p_attn
@@ -82,13 +87,18 @@ class Generator(nn.Module):
         self.proj = nn.Linear(dim_model, candidate_size)
 
     def forward(self, mode, decoder_output=None, tgt_in_idx=None, greedy=None):
-        if mode == LOG_PROB_MODE:
-            return self._log_probs(decoder_output, tgt_in_idx)
-        elif mode == DECODE_ONE_STEP_MODE:
+        if mode in (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+        ):
+            return self._log_probs(decoder_output, tgt_in_idx, mode)
+        elif mode == Seq2SlateMode.DECODE_ONE_STEP_MODE:
             assert greedy is not None
             return self._decode_one_step(decoder_output, tgt_in_idx, greedy)
+        else:
+            raise NotImplementedError()
 
-    def _log_probs(self, x, tgt_in_idx):
+    def _log_probs(self, x, tgt_in_idx, mode):
         """
         Return the log probability distribution at each decoding step
 
@@ -97,21 +107,27 @@ class Generator(nn.Module):
             The first symbol is always DECODER_START_SYMBOL.
             Shape: batch_size, seq_len
         """
+        assert mode in (
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+        )
         # logits: the probability distribution of each symbol
         # batch_size, seq_len, candidate_size
         logits = self.proj(x)
         # the first two symbols are reserved for padding and decoder-starting symbols
         # so they should never be a possible output label
         logits[:, :, :2] = float("-inf")
-        batch_size, seq_len = tgt_in_idx.shape
-        mask_indices = torch.tril(
-            tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
-            diagonal=0,
-        )
-        logits.scatter_(2, mask_indices, float("-inf"))
+
+        if mode == Seq2SlateMode.PER_SEQ_LOG_PROB_MODE:
+            batch_size, seq_len = tgt_in_idx.shape
+            mask_indices = torch.tril(
+                tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
+                diagonal=0,
+            )
+            logits.scatter_(2, mask_indices, float("-inf"))
 
         # log_probs shape: batch_size, seq_len, candidate_size
-        log_probs = F.log_softmax(logits, dim=-1)
+        log_probs = F.log_softmax(logits, dim=2)
         return log_probs
 
     def _decode_one_step(self, x, tgt_in_idx, greedy):
@@ -127,12 +143,13 @@ class Generator(nn.Module):
         last_step_x = x[:, -1, :]
 
         batch_size = x.shape[0]
+        # logits shape: batch_size, candidate_size
         logits = self.proj(last_step_x)
         # invalidate the padding symbol and decoder-starting symbol
         logits[:, :2] = float("-inf")
         # invalidate symbols already appeared in decoded sequences
         logits.scatter_(1, tgt_in_idx, float("-inf"))
-        prob = F.softmax(logits, dim=-1)
+        prob = F.softmax(logits, dim=1)
         if greedy:
             _, next_candidate = torch.max(prob, dim=1)
         else:
@@ -234,7 +251,7 @@ class DecoderLayer(nn.Module):
             return self.self_attn(query=x, key=x, value=x, mask=tgt_tgt_mask)
 
         def self_attn_layer_src(x):
-            return self.self_attn(query=x, key=m, value=m, mask=tgt_src_mask)
+            return self.src_attn(query=x, key=m, value=m, mask=tgt_src_mask)
 
         x = self.sublayer[0](x, self_attn_layer_tgt)
         x = self.sublayer[1](x, self_attn_layer_src)
@@ -398,9 +415,12 @@ class Seq2SlateTransformerModel(nn.Module):
         self.max_tgt_seq_len = max_tgt_seq_len
         self._DECODER_START_SYMBOL = DECODER_START_SYMBOL
         self._PADDING_SYMBOL = PADDING_SYMBOL
-        self._RANK_MODE = RANK_MODE
-        self._LOG_PROB_MODE = LOG_PROB_MODE
-        self._DECODE_ONE_STEP_MODE = DECODE_ONE_STEP_MODE
+        self._RANK_MODE = Seq2SlateMode.RANK_MODE
+        self._PER_SYMBOL_LOG_PROB_DIST_MODE = (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE
+        )
+        self._PER_SEQ_LOG_PROB_MODE = Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
+        self._DECODE_ONE_STEP_MODE = Seq2SlateMode.DECODE_ONE_STEP_MODE
 
         c = copy.deepcopy
         attn = MultiHeadedAttention(num_heads, dim_model)
@@ -418,12 +438,14 @@ class Seq2SlateTransformerModel(nn.Module):
         # and padding symbol
         self.generator = Generator(dim_model, max_src_seq_len + 2)
         self.positional_encoding = PositionalEncoding(
-            dim_model, max_len=2 * max_src_seq_len
+            dim_model, max_len=2 * (max_src_seq_len + max_tgt_seq_len)
         )
         # Initialize parameters with Glorot / fan_avg.
         for p in self.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
+
+        self._print_model_info()
 
     __constants__ = [
         "state_dim",
@@ -437,9 +459,25 @@ class Seq2SlateTransformerModel(nn.Module):
         "_DECODER_START_SYMBOL",
         "_PADDING_SYMBOL",
         "_RANK_MODE",
-        "_LOG_PROB_MODE",
+        "_PER_SYMBOL_LOG_PROB_DIST_MODE",
+        "_PER_SEQ_LOG_PROB_MODE",
         "_DECODE_ONE_STEP_MODE",
     ]
+
+    def _print_model_info(self):
+        def _num_of_params(model):
+            return len(torch.cat([p.flatten() for p in model.parameters()]))
+
+        logger.info(f"Num of total params: {_num_of_params(self)}")
+        logger.info(f"Num of Encoder params: {_num_of_params(self.encoder)}")
+        logger.info(f"Num of Decoder params: {_num_of_params(self.decoder)}")
+        logger.info(
+            f"Num of Candidate Embedder params: {_num_of_params(self.candidate_embedder)}"
+        )
+        logger.info(
+            f"Num of State Embedder params: {_num_of_params(self.state_embedder)}"
+        )
+        logger.info(f"Num of Generator params: {_num_of_params(self.generator)}")
 
     def forward(
         self,
@@ -470,16 +508,17 @@ class Seq2SlateTransformerModel(nn.Module):
                 tgt_seq_len=tgt_seq_len,
                 greedy=greedy,
             )
-        elif mode == self._LOG_PROB_MODE:
-            assert input.tgt_seq is not None
+        elif mode in (self._PER_SEQ_LOG_PROB_MODE, self._PER_SYMBOL_LOG_PROB_DIST_MODE):
+            assert input.tgt_in_seq is not None
             return self._log_probs(
                 state=input.state.float_features,
                 src_seq=input.src_seq.float_features,
-                tgt_seq=input.tgt_seq.float_features,
+                tgt_in_seq=input.tgt_in_seq.float_features,
                 src_src_mask=input.src_src_mask,
                 tgt_tgt_mask=input.tgt_tgt_mask,
                 tgt_in_idx=input.tgt_in_idx,
                 tgt_out_idx=input.tgt_out_idx,
+                mode=mode,
             )
 
     def _rank(self, state, src_seq, src_src_mask, tgt_seq_len, greedy):
@@ -491,8 +530,8 @@ class Seq2SlateTransformerModel(nn.Module):
         # candidate_features is used as look-up table for candidate features.
         # the second dim is src_seq_len + 2 because we also want to include
         # features of start symbol and padding symbol
-        candidate_features = torch.zeros(batch_size, src_seq_len + 2, candidate_dim).to(
-            device
+        candidate_features = torch.zeros(
+            batch_size, src_seq_len + 2, candidate_dim, device=device
         )
         # TODO: create learnable feature vectors for start symbol and padding symbol
         candidate_features[:, 2:, :] = src_seq
@@ -503,14 +542,16 @@ class Seq2SlateTransformerModel(nn.Module):
             .type(torch.long)
             .to(device)
         )
-        tgt_out_probs = torch.zeros(batch_size, tgt_seq_len, candidate_size).to(device)
+        tgt_out_probs = torch.zeros(
+            batch_size, tgt_seq_len, candidate_size, device=device
+        )
 
         memory = self.encode(state, src_seq, src_src_mask)
 
         for l in range(tgt_seq_len):
-            tgt_seq = (
+            tgt_in_seq = (
                 candidate_features[
-                    torch.arange(batch_size).repeat_interleave(l + 1),
+                    torch.arange(batch_size, device=device).repeat_interleave(l + 1),
                     tgt_in_idx.flatten(),
                 ]
                 .view(batch_size, l + 1, -1)
@@ -521,8 +562,8 @@ class Seq2SlateTransformerModel(nn.Module):
                 memory=memory,
                 state=state,
                 tgt_src_mask=tgt_src_mask,
-                tgt_seq=tgt_seq,
-                tgt_tgt_mask=subsequent_mask(l + 1).to(device),
+                tgt_in_seq=tgt_in_seq,
+                tgt_tgt_mask=subsequent_mask(l + 1, device),
                 tgt_seq_len=l + 1,
             )
             # next candidate shape: batch_size, 1
@@ -534,7 +575,7 @@ class Seq2SlateTransformerModel(nn.Module):
                 greedy=greedy,
             )
             tgt_out_probs[:, l, :] = prob
-            tgt_in_idx = torch.cat([tgt_in_idx, next_candidate], dim=1).to(device)
+            tgt_in_idx = torch.cat([tgt_in_idx, next_candidate], dim=1)
 
         # remove the decoder start symbol
         # tgt_out_idx shape: batch_size, tgt_seq_len
@@ -546,11 +587,12 @@ class Seq2SlateTransformerModel(nn.Module):
         self,
         state,
         src_seq,
-        tgt_seq,
+        tgt_in_seq,
         src_src_mask,
         tgt_tgt_mask,
         tgt_in_idx,
         tgt_out_idx,
+        mode,
     ):
         """
         Compute log of generative probabilities of given tgt sequences
@@ -559,11 +601,11 @@ class Seq2SlateTransformerModel(nn.Module):
         # encoder_output shape: batch_size, seq_len + 1, dim_model
         encoder_output = self.encode(state, src_seq, src_src_mask)
 
-        tgt_seq_len = tgt_seq.shape[1]
+        tgt_seq_len = tgt_in_seq.shape[1]
         src_seq_len = src_seq.shape[1]
         assert tgt_seq_len <= src_seq_len
 
-        # tgt_src_mask shape: batch_size, seq_len, seq_len
+        # tgt_src_mask shape: batch_size, tgt_seq_len, src_seq_len
         tgt_src_mask = src_src_mask[:, :tgt_seq_len, :]
 
         # decoder_output shape: batch_size, seq_len, dim_model
@@ -571,44 +613,53 @@ class Seq2SlateTransformerModel(nn.Module):
             memory=encoder_output,
             state=state,
             tgt_src_mask=tgt_src_mask,
-            tgt_seq=tgt_seq,
+            tgt_in_seq=tgt_in_seq,
             tgt_tgt_mask=tgt_tgt_mask,
             tgt_seq_len=tgt_seq_len,
         )
         # log_probs shape: batch_size
-        log_probs = self._decoder_output_to_log_prob(
-            decoder_output, tgt_in_idx, tgt_out_idx
+        log_probs = self._decoder_output_to_log_probs(
+            decoder_output, tgt_in_idx, tgt_out_idx, mode
         )
 
         return log_probs
 
-    def _decoder_output_to_log_prob(self, decoder_output, tgt_in_idx, tgt_out_idx):
+    def _decoder_output_to_log_probs(
+        self, decoder_output, tgt_in_idx, tgt_out_idx, mode
+    ):
         """
         :param decoder_output: the output from the decoder, with shape:
             (batch_size, seq_len, dim_model)
         :param tgt_in_idx: input idx to the decoder, the first symbol is
             always the DECODER_START_SYMBOL. Shape: batch_size x seq_len
         :param tgt_out_idx: output idx of the decoder. Shape: batch_size x seq_len
+        :param mode: return log prob distribution per symbol or reduce them per sequence
         """
+        assert mode in (
+            self._PER_SEQ_LOG_PROB_MODE,
+            self._PER_SYMBOL_LOG_PROB_DIST_MODE,
+        )
+        device = decoder_output.device
         # raw_log_probs: log probability distribution of each symbol
         # shape: batch_size, seq_len, candidate_size
         raw_log_probs = self.generator(
-            mode=LOG_PROB_MODE, decoder_output=decoder_output, tgt_in_idx=tgt_in_idx
+            mode=mode, decoder_output=decoder_output, tgt_in_idx=tgt_in_idx
         )
-        batch_size, seq_len, candidate_size = raw_log_probs.shape
+        if mode == self._PER_SYMBOL_LOG_PROB_DIST_MODE:
+            return raw_log_probs
 
+        batch_size, seq_len, candidate_size = raw_log_probs.shape
         # log_probs: log probability of each symbol in the tgt_out_idx
         # shape: batch_size, seq_len
         log_probs = raw_log_probs.view(-1, candidate_size)[
-            np.arange(batch_size * seq_len), tgt_out_idx.flatten()
+            torch.arange(batch_size * seq_len, device=device), tgt_out_idx.flatten()
         ].view(batch_size, seq_len)
-
         # shape: batch_size
         return log_probs.sum(dim=1)
 
     def encode(self, state, src_seq, src_mask):
         # state: batch_size, state_dim
-        # src_seq: batch_size, seq_len, dim_candidate
+        # src_seq: batch_size, src_seq_len, dim_candidate
         # src_src_mask shape: batch_size, seq_len, seq_len
         batch_size = src_seq.shape[0]
 
@@ -625,22 +676,24 @@ class Seq2SlateTransformerModel(nn.Module):
         # and candidate embed. state_embed is replicated at each encoding step.
         # src_embed shape: batch_size, seq_len, dim_model
         src_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=-1), self.max_src_seq_len
+            torch.cat((state_embed, candidate_embed), dim=2), self.max_src_seq_len
         )
 
         # encoder_output shape: batch_size, seq_len, dim_model
         return self.encoder(src_embed, src_mask)
 
-    def decode(self, memory, state, tgt_src_mask, tgt_seq, tgt_tgt_mask, tgt_seq_len):
+    def decode(
+        self, memory, state, tgt_src_mask, tgt_in_seq, tgt_tgt_mask, tgt_seq_len
+    ):
         # memory is the output of the encoder, the attention of each input symbol
-        # memory shape: batch_size, seq_len, dim_model
-        # tgt_src_mask shape: batch_size, tgt_seq_len, seq_len
+        # memory shape: batch_size, src_seq_len, dim_model
+        # tgt_src_mask shape: batch_size, tgt_seq_len, src_seq_len
         # tgt_seq shape: batch_size, tgt_seq_len, dim_candidate
         # tgt_tgt_mask shape: batch_size, tgt_seq_len, tgt_seq_len
-        batch_size = tgt_seq.shape[0]
+        batch_size = tgt_in_seq.shape[0]
 
         # candidate_embed shape: batch_size, seq_len, dim_model/2
-        candidate_embed = self.candidate_embedder(tgt_seq)
+        candidate_embed = self.candidate_embedder(tgt_in_seq)
         # state_embed: batch_size, dim_model/2
         state_embed = self.state_embedder(state)
         # state_embed: batch_size, seq_len, dim_model/2
@@ -650,7 +703,7 @@ class Seq2SlateTransformerModel(nn.Module):
 
         # tgt_embed: batch_size, seq_len, dim_model
         tgt_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=-1), tgt_seq_len
+            torch.cat((state_embed, candidate_embed), dim=2), tgt_seq_len
         )
 
         # output of decoder will be later transformed into probabilities over symbols.
@@ -695,10 +748,11 @@ class Seq2SlateTransformerNet(ModelBase):
         return _DistributedSeq2SlateTransformerNet(self)
 
     def input_prototype(self):
-        return rlt.PreprocessedRankingInput.from_tensor(
+        return rlt.PreprocessedRankingInput.from_tensors(
             state=torch.randn(1, self.state_dim),
             src_seq=torch.randn(1, self.max_src_seq_len, self.candidate_dim),
-            tgt_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
+            tgt_in_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
+            tgt_out_seq=torch.randn(1, self.max_tgt_seq_len, self.candidate_dim),
             src_src_mask=torch.ones(1, self.max_src_seq_len, self.max_src_seq_len),
             tgt_tgt_mask=torch.ones(1, self.max_tgt_seq_len, self.max_tgt_seq_len),
             slate_reward=torch.randn(1),
@@ -714,12 +768,17 @@ class Seq2SlateTransformerNet(ModelBase):
         res = self.seq2slate_transformer(
             input, mode=mode, tgt_seq_len=tgt_seq_len, greedy=greedy
         )
-        if mode == RANK_MODE:
+        if mode == Seq2SlateMode.RANK_MODE:
             return rlt.RankingOutput(
                 ranked_tgt_out_idx=res[1], ranked_tgt_out_probs=res[0]
             )
-        elif mode == LOG_PROB_MODE:
+        elif mode in (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+        ):
             return rlt.RankingOutput(log_probs=res)
+        else:
+            raise NotImplementedError()
 
 
 class _DistributedSeq2SlateTransformerNet(ModelBase):
@@ -758,9 +817,14 @@ class _DistributedSeq2SlateTransformerNet(ModelBase):
         res = self.data_parallel(
             input, mode=mode, tgt_seq_len=tgt_seq_len, greedy=greedy
         )
-        if mode == RANK_MODE:
+        if mode == Seq2SlateMode.RANK_MODE:
             return rlt.RankingOutput(
                 ranked_tgt_out_idx=res[1], ranked_tgt_out_probs=res[0]
             )
-        elif mode == LOG_PROB_MODE:
+        elif mode in (
+            Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
+            Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
+        ):
             return rlt.RankingOutput(log_probs=res)
+        else:
+            raise NotImplementedError()

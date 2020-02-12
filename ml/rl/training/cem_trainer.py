@@ -32,7 +32,7 @@ class CEMTrainer(RLTrainer):
         parameters: CEMParameters,
         use_gpu: bool = False,
     ) -> None:
-        super().__init__(parameters, use_gpu=use_gpu)
+        super().__init__(parameters.rl, use_gpu=use_gpu)
         self.cem_planner_network = cem_planner_network
         self.world_model_trainers = world_model_trainers
         self.minibatch_size = parameters.mdnrnn.minibatch_size

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-from typing import List, NamedTuple, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 
+import ml.rl.types as rlt
 import torch
 import torch.nn.functional as F
+from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 
 
 _DEFAULT_QUALITY_MEANS = [(-3.0, 0.0)] * 14 + [(0.0, 3.0)] * 6
@@ -14,6 +16,15 @@ class DocumentFeature(NamedTuple):
     topic: torch.Tensor
     length: torch.Tensor
     quality: torch.Tensor
+
+    def as_vector(self):
+        """
+        Convenient function to get single tensor
+        """
+        return torch.cat(
+            (self.topic, self.length.unsqueeze(dim=2), self.quality.unsqueeze(dim=2)),
+            dim=2,
+        )
 
 
 class RecSim:
@@ -61,7 +72,7 @@ class RecSim:
         )
         self.quality_variances = torch.tensor(quality_variances, device=self.device)
 
-    def reset(self):
+    def reset(self) -> None:
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.users = self.sample_users(self.num_users)
@@ -73,7 +84,7 @@ class RecSim:
         )
         self.candidates = None
 
-    def obs(self):
+    def obs(self) -> Tuple[torch.Tensor, torch.Tensor, DocumentFeature]:
         """
         Agent can observe:
         - User interest vector
@@ -85,19 +96,25 @@ class RecSim:
             self.candidates = self.sample_documents(len(self.active_user_ids))
         return self.active_user_ids, self.users, self.candidates
 
-    def step(self, action: torch.Tensor) -> int:
+    def step(
+        self, action: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, int]:
         assert self.candidates is not None
         slate = self.select(self.candidates, action, True)
-        user_choice = self.compute_user_choice(slate)
+        user_choice, interest = self.compute_user_choice(slate)
         selected_choice = self.select(slate, user_choice, False)
         self.update_user_interest(selected_choice)
         self.update_user_budget(selected_choice)
         num_alive_sessions = self.update_active_users()
         self.candidates = None
         # TODO: Figure out what was the reward in the paper
-        return num_alive_sessions
+        # Here, the reward is the length of selected video
+        reward = selected_choice.length * (user_choice != action.shape[1])
+        return reward, user_choice, interest, num_alive_sessions
 
-    def select(self, candidates, indices, add_null):
+    def select(
+        self, candidates: DocumentFeature, indices: torch.Tensor, add_null: bool
+    ) -> DocumentFeature:
         batch_size = candidates.topic.shape[0]
         num_candidate = candidates.topic.shape[1]
         num_select = indices.shape[1]
@@ -113,10 +130,8 @@ class RecSim:
         topic = candidates.topic.view(-1, self.num_topics)[select_indices].view(
             batch_size, num_select, self.num_topics
         )
-        length = self.candidates.length.view(-1)[select_indices].view(
-            batch_size, num_select
-        )
-        quality = self.candidates.quality.view(-1)[select_indices].view(
+        length = candidates.length.view(-1)[select_indices].view(batch_size, num_select)
+        quality = candidates.quality.view(-1)[select_indices].view(
             batch_size, num_select
         )
 
@@ -130,10 +145,12 @@ class RecSim:
             quality = torch.cat((quality, quality.new_zeros(batch_size, 1)), dim=1)
         return DocumentFeature(topic=topic, length=length, quality=quality)
 
-    def compute_user_choice(self, slate):
+    def compute_user_choice(
+        self, slate: DocumentFeature
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         interest = self.interest(self.users, slate.topic)
         user_choice = torch.multinomial(interest.exp(), 1, generator=self.generator)
-        return user_choice
+        return user_choice, interest
 
     def update_user_interest(self, selected_choice):
         pos_prob = (self.interest(self.users, selected_choice.topic) + 1) / 2
@@ -219,3 +236,136 @@ class RecSim:
         )
         length = torch.full((n, self.m), self.doc_length, device=self.device)
         return DocumentFeature(topic=embedding, quality=quality, length=length)
+
+    def rollout_policy(
+        self, policy, memory_pool: Optional[OpenAIGymMemoryPool] = None
+    ) -> float:
+        prev_obs = None
+        prev_action = None
+        prev_user_choice = None
+        prev_reward = None
+        prev_interest = None
+
+        policy_reward = 0
+
+        while True:
+            obs = self.obs()
+            active_user_idxs, user_features, candidate_features = obs
+
+            item_idxs = policy(obs, self)
+            reward, user_choice, interest, num_alive = self.step(item_idxs)
+
+            policy_reward += reward.sum().item()
+
+            action_features = self.select(
+                candidate_features, item_idxs, True
+            ).as_vector()
+
+            if memory_pool is not None and prev_obs is not None:
+                prev_active_user_idxs, prev_user_features, prev_candidate_features = (
+                    prev_obs
+                )
+                i, j = 0, 0
+                while i < len(prev_active_user_idxs):
+                    mdp_id = prev_active_user_idxs[i]
+                    state = prev_user_features[i]
+                    possible_actions = prev_action[i]
+                    action = possible_actions[prev_user_choice[i]].view(-1)
+                    possible_actions_mask = torch.ones(self.k + 1, dtype=torch.uint8)
+                    # HACK: Since reward is going to be masked, this is OK
+                    item_reward = prev_reward[i].repeat(self.k + 1)
+                    reward_mask = torch.arange(self.k + 1) == prev_user_choice[i]
+                    propensity = F.softmax(prev_interest[i], dim=0)
+
+                    if j < len(active_user_idxs) and mdp_id == active_user_idxs[j]:
+                        # not terminated
+                        terminal = False
+                        next_state = user_features[j]
+                        possible_next_actions = action_features[j]
+                        next_action = possible_next_actions[user_choice[j]].view(-1)
+                        possible_next_actions_mask = torch.ones(
+                            self.k + 1, dtype=torch.uint8
+                        )
+                        next_propensity = F.softmax(interest[j], dim=0)
+                        j += 1
+                    else:
+                        terminal = True
+                        next_state = torch.zeros_like(state)
+                        possible_next_actions = torch.zeros_like(action)
+                        next_action = possible_next_actions[0].view(-1)
+                        possible_next_actions_mask = torch.zeros(
+                            self.k + 1, dtype=torch.uint8
+                        )
+                        next_propensity = torch.zeros_like(propensity)
+
+                    memory_pool.insert_into_memory(
+                        state=state,
+                        action=action,
+                        reward=item_reward,
+                        next_state=next_state,
+                        next_action=next_action,
+                        terminal=terminal,
+                        possible_next_actions=possible_next_actions,
+                        possible_next_actions_mask=possible_next_actions_mask,
+                        time_diff=1.0,
+                        possible_actions=possible_actions,
+                        possible_actions_mask=possible_actions_mask,
+                        policy_id=1,
+                        propensity=propensity,
+                        next_propensity=next_propensity,
+                        reward_mask=reward_mask,
+                    )
+
+                    i += 1
+
+            prev_obs = obs
+            prev_action = action_features
+            prev_user_choice = user_choice
+            prev_reward = reward
+            prev_interest = interest
+
+            if num_alive == 0:
+                break
+
+        return policy_reward
+
+
+def random_policy(
+    obs: Tuple[torch.Tensor, torch.Tensor, DocumentFeature], recsim: RecSim
+):
+    active_user_idxs, user_features, candidate_features = obs
+    item_idxs = torch.multinomial(
+        torch.ones(active_user_idxs.shape[0], recsim.m), recsim.k
+    )
+    return item_idxs
+
+
+def top_k_policy(
+    q_network, obs: Tuple[torch.Tensor, torch.Tensor, DocumentFeature], recsim: RecSim
+):
+    active_user_idxs, user_features, candidate_features = obs
+
+    slate_with_null = recsim.select(
+        candidate_features,
+        torch.repeat_interleave(
+            torch.arange(recsim.m).unsqueeze(dim=0), active_user_idxs.shape[0], dim=0
+        ),
+        add_null=True,
+    )
+    _user_choice, interest = recsim.compute_user_choice(slate_with_null)
+    propensity = F.softmax(interest, dim=1)[:, : recsim.m]
+
+    tiled_user_features = torch.repeat_interleave(user_features, recsim.m, dim=0)
+    candidate_feature_vector = candidate_features.as_vector()
+    action_dim = candidate_feature_vector.shape[2]
+    flatten_candidate_features = candidate_feature_vector.view(-1, action_dim)
+
+    q_network_input = rlt.PreprocessedStateAction.from_tensors(
+        state=tiled_user_features, action=flatten_candidate_features
+    )
+    q_values = q_network(q_network_input).q_value.view(-1, recsim.m)
+
+    values = q_values * propensity
+
+    top_values, item_idxs = torch.topk(values, recsim.k, dim=1)
+    return item_idxs

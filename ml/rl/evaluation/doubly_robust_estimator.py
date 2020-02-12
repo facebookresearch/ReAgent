@@ -21,6 +21,16 @@ DEFAULT_FRAC_TRAIN = 0.4
 DEFAULT_FRAC_VALID = 0.1
 
 
+class DoublyRobustHP(NamedTuple):
+    frac_train: float = DEFAULT_FRAC_TRAIN
+    frac_valid: float = DEFAULT_FRAC_VALID
+    bootstrap_num_samples: int = 1000
+    bootstrap_sample_percent: float = 0.25
+    xgb_params: Optional[Dict[str, Union[float, int, str]]] = None
+    bope_mode: Optional[str] = None
+    bope_num_samples: Optional[int] = None
+
+
 class TrainValidEvalData(NamedTuple):
     contexts_dict: Dict[str, Tensor]
     model_propensities_dict: Dict[str, Tensor]
@@ -201,9 +211,8 @@ class DoublyRobustEstimator:
         )
 
     def _get_importance_sampling_estimates(
-        self, isd: ImportanceSamplingData
+        self, isd: ImportanceSamplingData, hp: DoublyRobustHP
     ) -> Tuple[CpeEstimate, CpeEstimate, CpeEstimate]:
-
         # The score we would get if we evaluate the logged policy against itself
         logged_policy_score = float(
             torch.mean(isd.logged_rewards)
@@ -223,7 +232,7 @@ class DoublyRobustEstimator:
                 [isd.model_propensities.shape[0], 1], dtype=torch.float32
             )
         else:
-            # model rewards is (N_samples)*N*N_actions tensor of predicted
+            # model rewards is (N_samples)*N_actions tensor of predicted
             # counterfactual rewards for each possible action at each
             # historical context
             direct_method_values = torch.sum(
@@ -232,7 +241,9 @@ class DoublyRobustEstimator:
 
         direct_method_score = float(torch.mean(direct_method_values))
         direct_method_std_error = bootstrapped_std_error_of_mean(
-            direct_method_values.squeeze()
+            direct_method_values.squeeze(),
+            sample_percent=hp.bootstrap_sample_percent,
+            num_samples=hp.bootstrap_num_samples,
         )
         direct_method_estimate = CpeEstimate(
             raw=direct_method_score,
@@ -251,7 +262,11 @@ class DoublyRobustEstimator:
         # policy
 
         ips_score = float(torch.mean(ips))
-        ips_score_std_error = bootstrapped_std_error_of_mean(ips.squeeze())
+        ips_score_std_error = bootstrapped_std_error_of_mean(
+            ips.squeeze(),
+            sample_percent=hp.bootstrap_sample_percent,
+            num_samples=hp.bootstrap_num_samples,
+        )
         inverse_propensity_estimate = CpeEstimate(
             raw=ips_score,
             normalized=ips_score * normalizer,
@@ -260,7 +275,11 @@ class DoublyRobustEstimator:
         )
 
         dr_score = float(torch.mean(doubly_robust))
-        dr_score_std_error = bootstrapped_std_error_of_mean(doubly_robust.squeeze())
+        dr_score_std_error = bootstrapped_std_error_of_mean(
+            doubly_robust.squeeze(),
+            sample_percent=hp.bootstrap_sample_percent,
+            num_samples=hp.bootstrap_num_samples,
+        )
         doubly_robust_estimate = CpeEstimate(
             raw=dr_score,
             normalized=dr_score * normalizer,
@@ -275,11 +294,12 @@ class DoublyRobustEstimator:
         )
 
     def estimate(
-        self, edp: EvaluationDataPage, hp: Optional[dict] = None
+        self, edp: EvaluationDataPage, hp: Optional[DoublyRobustHP] = None
     ) -> Tuple[CpeEstimate, CpeEstimate, CpeEstimate]:
+        hp = hp or DoublyRobustHP()
         ed = self._prepare_data(edp)
         isd = self._get_importance_sampling_inputs(ed)
-        return self._get_importance_sampling_estimates(isd)
+        return self._get_importance_sampling_estimates(isd, hp=hp)
 
 
 class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
@@ -557,24 +577,24 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
         )
 
     def estimate(
-        self, edp: EvaluationDataPage, hp: Optional[dict] = None
+        self, edp: EvaluationDataPage, hp: Optional[DoublyRobustHP] = None
     ) -> Tuple[CpeEstimate, CpeEstimate, CpeEstimate]:
         if hp is None:
             raise ValueError("Hyperparameters have to be provided for BOP-E")
-        if "mode" not in hp:
-            raise ValueError("Mode has to be specified in hyperparameters")
-        self.mode = hp["mode"]
-        if (self.mode == "bope_sampling") and ("num_samples" not in hp):
+        if hp.bope_mode is None:
+            raise ValueError("bope_mode has to be specified in hyperparameters")
+        self.mode = hp.bope_mode
+        if (self.mode == "bope_sampling") and (hp.bope_num_samples is None):
             raise ValueError(
                 "Number of samples has to be specified for mode 'bope_sampling'"
             )
-        self.num_samples = hp.get("num_samples", 0)
-        self.frac_train = hp.get("frac_train", DEFAULT_FRAC_TRAIN)
-        self.frac_valid = hp.get("frac_valid", DEFAULT_FRAC_VALID)
-        xgb_params: Dict[str, Union[str, float, int]] = hp.get("xgb_params", {})
+        self.num_samples = 0 if hp.bope_num_samples is None else hp.bope_num_samples
+        self.frac_train = hp.frac_train
+        self.frac_valid = hp.frac_train
+        xgb_params: Dict[str, Union[str, float, int]] = hp.xgb_params or {}
         ed = self._prepare_data(edp)
         isd = self._get_importance_sampling_inputs(ed, xgb_params)
-        return self._get_importance_sampling_estimates(isd)
+        return self._get_importance_sampling_estimates(isd, hp=hp)
 
 
 class DoublyRobustEstimatorEstProp(DoublyRobustEstimator):
@@ -669,16 +689,12 @@ class DoublyRobustEstimatorEstProp(DoublyRobustEstimator):
         )
 
     def estimate(
-        self, edp: EvaluationDataPage, hp: Optional[dict] = None
+        self, edp: EvaluationDataPage, hp: Optional[DoublyRobustHP] = None
     ) -> Tuple[CpeEstimate, CpeEstimate, CpeEstimate]:
-        if hp is None:
-            self.frac_train = DEFAULT_FRAC_TRAIN
-            self.frac_valid = DEFAULT_FRAC_VALID
-            xgb_params: Dict[str, Union[str, float, int]] = {}
-        else:
-            self.frac_train = hp.get("frac_train", DEFAULT_FRAC_TRAIN)
-            self.frac_valid = hp.get("frac_valid", DEFAULT_FRAC_VALID)
-            xgb_params = hp.get("xgb_params", {})
+        hp = hp or DoublyRobustHP()
+        self.frac_train = hp.frac_train
+        self.frac_valid = hp.frac_valid
+        xgb_params = hp.xgb_params or {}
         ed = self._prepare_data(edp)
         isd = self._get_importance_sampling_inputs(ed, xgb_params)
-        return self._get_importance_sampling_estimates(isd)
+        return self._get_importance_sampling_estimates(isd, hp=hp)

@@ -49,23 +49,30 @@ object Preprocessor {
         StructField("reward", DoubleType),
         possibleActionSchema,
         StructField("metrics", MapType(StringType, DoubleType, true))
-      ))
+      )
+    )
 
     var inputDf = sparkSession.read.schema(schema).json(timelineConfig.inputTableName)
 
     val mapStringDoubleToLongDouble = udf(
-      (r: Map[String, Double]) => r.map({ case (key, value) => (key.toLong, value) }))
+      (r: Map[String, Double]) => r.map({ case (key, value) => (key.toLong, value) })
+    )
 
-    inputDf = inputDf.withColumn("state_features",
-                                 mapStringDoubleToLongDouble(inputDf.col("state_features")))
+    inputDf = inputDf.withColumn(
+      "state_features",
+      mapStringDoubleToLongDouble(inputDf.col("state_features"))
+    )
     if (!timelineConfig.actionDiscrete) {
       inputDf = inputDf.withColumn("action", mapStringDoubleToLongDouble(inputDf.col("action")))
 
-      val mapArrayStringDoubleToArrayLongDouble = udf((r: Array[Map[String, Double]]) =>
-        r.map((m) => m.map({ case (key, value) => (key.toLong, value) })))
+      val mapArrayStringDoubleToArrayLongDouble = udf(
+        (r: Array[Map[String, Double]]) =>
+          r.map((m) => m.map({ case (key, value) => (key.toLong, value) }))
+      )
       inputDf = inputDf.withColumn(
         "possible_actions",
-        mapArrayStringDoubleToArrayLongDouble(inputDf.col("possible_actions")))
+        mapArrayStringDoubleToArrayLongDouble(inputDf.col("possible_actions"))
+      )
     }
 
     inputDf.createOrReplaceTempView(timelineConfig.inputTableName)
@@ -78,7 +85,8 @@ object Preprocessor {
     }
 
     val sqlCommand = query.concat(
-      s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'train')) % 10000 <= CAST(${queryConfig.tableSample} * 100 AS INTEGER)")
+      s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'train')) % 10000 <= CAST(${queryConfig.tableSample} * 100 AS INTEGER)"
+    )
 
     log.info("Executing query: ")
     log.info(sqlCommand)
@@ -95,7 +103,8 @@ object Preprocessor {
     // Write the eval table
     val evalSqlCommand =
       query.concat(
-        s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'eval')) % 10000 <= CAST(${queryConfig.tableSample / 10.0} * 100 AS INTEGER) ORDER BY mdp_id, sequence_number")
+        s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'eval')) % 10000 <= CAST(${queryConfig.tableSample / 10.0} * 100 AS INTEGER) ORDER BY mdp_id, sequence_number"
+      )
 
     log.info("Executing query: ")
     log.info(evalSqlCommand)

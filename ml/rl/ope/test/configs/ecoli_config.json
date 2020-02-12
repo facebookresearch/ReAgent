@@ -1,0 +1,10 @@
+{
+  "dataset": {
+    "file": "data/ecoli.data",
+    "sep": "\\s+",
+    "index_col": 0,
+    "label_col": 8
+  },
+  "iterations": 500,
+  "estimators": ["dm","ips", "dr"]
+}

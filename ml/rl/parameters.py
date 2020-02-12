@@ -1,14 +1,39 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import dataclasses
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from ml.rl.types import BaseDataClass
 
 
-@dataclass
+def param_hash(p):
+    """
+    Use this to make parameters hashable. This is required because __hash__()
+    is not inherited when subclass redefines __eq__(). We only need this when
+    the parameter dataclass has a list or dict field.
+    """
+    return hash(tuple(_hash_field(getattr(p, f.name)) for f in dataclasses.fields(p)))
+
+
+def _hash_field(val):
+    """
+    Returns hashable value of the argument. A list is converted to a tuple.
+    A dict is converted to a tuple of sorted pairs of key and value.
+    """
+    if isinstance(val, list):
+        return tuple(val)
+    elif isinstance(val, dict):
+        return tuple(sorted(val.items()))
+    else:
+        return val
+
+
+@dataclass(frozen=True)
 class RLParameters(BaseDataClass):
+    __hash__ = param_hash
+
     gamma: float = 0.9
     epsilon: float = 0.1
     target_update_rate: float = 0.001
@@ -29,7 +54,7 @@ class RLParameters(BaseDataClass):
     ratio_different_predictions_tolerance: float = 0
 
 
-@dataclass
+@dataclass(frozen=True)
 class RainbowDQNParameters(BaseDataClass):
     double_q_learning: bool = True
     dueling_architecture: bool = True
@@ -47,8 +72,10 @@ class RainbowDQNParameters(BaseDataClass):
     quantile: bool = False
 
 
-@dataclass
+@dataclass(frozen=True)
 class CNNParameters(BaseDataClass):
+    __hash__ = param_hash
+
     conv_dims: List[int]
     conv_height_kernels: List[int]
     conv_width_kernels: List[int]
@@ -59,15 +86,19 @@ class CNNParameters(BaseDataClass):
     input_width: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class FeedForwardParameters(BaseDataClass):
+    __hash__ = param_hash
+
     layers: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     use_layer_norm: Optional[bool] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class TrainingParameters(BaseDataClass):
+    __hash__ = param_hash
+
     minibatch_size: int = 4096
     learning_rate: float = 0.001
     optimizer: str = "ADAM"
@@ -83,28 +114,33 @@ class TrainingParameters(BaseDataClass):
     use_batch_norm: bool = False
     clip_grad_norm: Optional[float] = None
     minibatches_per_step: int = 1
+    do_not_warm_start_optimizer: Optional[bool] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class EvaluationParameters(BaseDataClass):
     calc_cpe_in_training: bool = True
 
 
-@dataclass
+@dataclass(frozen=True)
 class EvolutionParameters(BaseDataClass):
     population_size: int = 1000
     mutation_power: float = 0.1
     learning_rate: float = 0.01
 
 
-@dataclass
+@dataclass(frozen=True)
 class StateFeatureParameters(BaseDataClass):
+    __hash__ = param_hash
+
     state_feature_names_override: List[str] = field(default_factory=lambda: [])
     state_feature_hashes_override: List[int] = field(default_factory=lambda: [])
 
 
-@dataclass
+@dataclass(frozen=True)
 class DiscreteActionModelParameters(BaseDataClass):
+    __hash__ = param_hash
+
     actions: List[str] = field(default_factory=lambda: [])
     rl: RLParameters = RLParameters()
     training: TrainingParameters = TrainingParameters()
@@ -114,7 +150,7 @@ class DiscreteActionModelParameters(BaseDataClass):
     evaluation: EvaluationParameters = EvaluationParameters()
 
 
-@dataclass
+@dataclass(frozen=True)
 class ContinuousActionModelParameters(BaseDataClass):
     rl: RLParameters
     training: TrainingParameters
@@ -123,42 +159,14 @@ class ContinuousActionModelParameters(BaseDataClass):
     evaluation: EvaluationParameters = EvaluationParameters()
 
 
-@dataclass
-class DDPGNetworkParameters(BaseDataClass):
-    layers: List[int] = field(default_factory=lambda: [-1, 256, 128, 1])
-    activations: List[str] = field(default_factory=lambda: ["relu", "relu", "tanh"])
-    l2_decay: float = 0.01
-    learning_rate: float = 0.001
-
-
-@dataclass
-class DDPGTrainingParameters(BaseDataClass):
-    minibatch_size: int = 2048
-    final_layer_init: float = 0.003
-    optimizer: str = "ADAM"
-    warm_start_model_path: Optional[str] = None
-    minibatches_per_step: int = 1
-
-
-@dataclass
-class DDPGModelParameters(BaseDataClass):
-    rl: RLParameters
-    shared_training: DDPGTrainingParameters
-    actor_training: DDPGNetworkParameters
-    critic_training: DDPGNetworkParameters
-    action_rescale_map: Dict[int, List[float]]
-    state_feature_params: Optional[StateFeatureParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-
-
-@dataclass
+@dataclass(frozen=True)
 class OptimizerParameters(BaseDataClass):
     optimizer: str = "ADAM"
     learning_rate: float = 0.001
     l2_decay: float = 0.01
 
 
-@dataclass
+@dataclass(frozen=True)
 class TD3TrainingParameters(BaseDataClass):
     minibatch_size: int = 64
     q_network_optimizer: OptimizerParameters = OptimizerParameters()
@@ -173,7 +181,7 @@ class TD3TrainingParameters(BaseDataClass):
     minibatches_per_step: int = 1
 
 
-@dataclass
+@dataclass(frozen=True)
 class TD3ModelParameters(BaseDataClass):
     rl: RLParameters
     training: TD3TrainingParameters
@@ -183,55 +191,10 @@ class TD3ModelParameters(BaseDataClass):
     evaluation: EvaluationParameters = EvaluationParameters()
 
 
-@dataclass
-class SACTrainingParameters(BaseDataClass):
-    minibatch_size: int = 1024
-    q_network_optimizer: OptimizerParameters = OptimizerParameters()
-    value_network_optimizer: OptimizerParameters = OptimizerParameters()
-    actor_network_optimizer: OptimizerParameters = OptimizerParameters()
-    use_2_q_functions: bool = True
-    # alpha in the paper; controlling explore & exploit
-    entropy_temperature: Optional[float] = None
-    warm_start_model_path: Optional[str] = None
-    logged_action_uniform_prior: bool = True
-    minibatches_per_step: int = 1
-    use_value_network: bool = True
-    target_entropy: float = -1.0
-    alpha_optimizer: OptimizerParameters = OptimizerParameters()
-    action_embedding_kld_weight: Optional[float] = None
-    apply_kld_on_mean: Optional[bool] = None
-    action_embedding_mean: Optional[List[float]] = None
-    action_embedding_variance: Optional[List[float]] = None
-
-
-@dataclass
-class SACModelParameters(BaseDataClass):
-    rl: RLParameters = RLParameters()
-    training: SACTrainingParameters = SACTrainingParameters()
-    q_network: FeedForwardParameters = FeedForwardParameters()
-    value_network: Optional[FeedForwardParameters] = None
-    actor_network: FeedForwardParameters = FeedForwardParameters()
-    state_feature_params: Optional[StateFeatureParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-    # constrain action output to sum to 1 (using dirichlet distribution)
-    constrain_action_sum: bool = False
-    do_not_preprocess_action: Optional[bool] = None
-
-
-@dataclass
-class KNNDQNModelParameters(BaseDataClass):
-    rl: RLParameters
-    shared_training: DDPGTrainingParameters
-    actor_training: DDPGNetworkParameters
-    critic_training: DDPGNetworkParameters
-    num_actions: int
-    action_dim: int
-    k: int
-    evaluation: EvaluationParameters = EvaluationParameters()
-
-
-@dataclass
+@dataclass(frozen=True)
 class NormalizationParameters(BaseDataClass):
+    __hash__ = param_hash
+
     feature_type: str
     boxcox_lambda: Optional[float] = None
     boxcox_shift: Optional[float] = None
@@ -245,7 +208,14 @@ class NormalizationParameters(BaseDataClass):
     max_value: Optional[float] = None
 
 
-@dataclass
+@dataclass(frozen=True)
+class NormalizationData(BaseDataClass):
+    __hash__ = param_hash
+
+    dense_normalization_parameters: Optional[Dict[int, NormalizationParameters]]
+
+
+@dataclass(frozen=True)
 class MDNRNNParameters(BaseDataClass):
     hidden_size: int = 64
     num_hidden_layers: int = 2
@@ -262,7 +232,7 @@ class MDNRNNParameters(BaseDataClass):
     fit_only_one_next_step: bool = False
 
 
-@dataclass
+@dataclass(frozen=True)
 class CEMParameters(BaseDataClass):
     plan_horizon_length: int = 0
     num_world_models: int = 0
@@ -277,81 +247,36 @@ class CEMParameters(BaseDataClass):
     epsilon: float = 0.001
 
 
-@dataclass
-class OpenAiRunDetails(BaseDataClass):
-    solved_reward_threshold: Optional[int] = None
-    max_episodes_to_run_after_solved: Optional[int] = None
-    stop_training_after_solved: bool = False
-    num_episodes: int = 301
-    max_steps: Optional[int] = None
-    train_every_ts: int = 100
-    train_after_ts: int = 10
-    test_every_ts: int = 100
-    test_after_ts: int = 10
-    num_train_batches: int = 1
-    avg_over_num_episodes: int = 100
-    render: bool = False
-    epsilon_decay: Optional[float] = None
-    minimum_epsilon: Optional[float] = 0.0
-    offline_train_epochs: Optional[int] = None
-    offline_score_bar: Optional[float] = None
-    offline_num_batches_per_epoch: Optional[int] = None
-    seq_len: int = 5
-    num_train_episodes: int = 4000
-    num_test_episodes: int = 100
-    num_state_embed_episodes: int = 1800
-    train_epochs: int = 6
-    early_stopping_patience: int = 3
-
-
-@dataclass
-class OpenAiGymParameters(BaseDataClass):
-    env: str
-    run_details: OpenAiRunDetails
-    model_type: str = ""
-    use_gpu: bool = False
-    max_replay_memory_size: int = 0
-    rl: Optional[RLParameters] = None
-    rainbow: Optional[RainbowDQNParameters] = None
-    training: Optional[TrainingParameters] = None
-    td3_training: Optional[TD3TrainingParameters] = None
-    sac_training: Optional[SACTrainingParameters] = None
-    sac_value_training: Optional[FeedForwardParameters] = None
-    critic_training: Optional[FeedForwardParameters] = None
-    actor_training: Optional[FeedForwardParameters] = None
-    cem: Optional[CEMParameters] = None
-    mdnrnn: Optional[MDNRNNParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-
-
 #################################################
 #             RL Ranking parameters             #
 #################################################
-@dataclass
+@dataclass(frozen=True)
 class TransformerParameters(BaseDataClass):
     num_heads: int
     dim_model: int
     dim_feedforward: int
     num_stacked_layers: int
+    learning_rate: float = 1e-4
 
 
-@dataclass
+@dataclass(frozen=True)
 class BaselineParameters(BaseDataClass):
     dim_feedforward: int
     num_stacked_layers: int
+    warmup_num_batches: int = 0
+    learning_rate: float = 1e-4
 
 
-@dataclass
+@dataclass(frozen=True)
 class Seq2SlateTransformerParameters(BaseDataClass):
     transformer: TransformerParameters
     baseline: BaselineParameters
     on_policy: bool
 
 
-@dataclass
+@dataclass(frozen=True)
 class RankingParameters(BaseDataClass):
     minibatch_size: int
     max_src_seq_len: int
     max_tgt_seq_len: int
     greedy_serving: bool
-    evaluation: EvaluationParameters = EvaluationParameters()

@@ -5,15 +5,17 @@ import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.udf
 
-case class MultiStepTimelineConfiguration(startDs: String,
-                                          endDs: String,
-                                          addTerminalStateRow: Boolean,
-                                          actionDiscrete: Boolean,
-                                          inputTableName: String,
-                                          outputTableName: String,
-                                          evalTableName: String,
-                                          numOutputShards: Int,
-                                          steps: Int)
+case class MultiStepTimelineConfiguration(
+    startDs: String,
+    endDs: String,
+    addTerminalStateRow: Boolean,
+    actionDiscrete: Boolean,
+    inputTableName: String,
+    outputTableName: String,
+    evalTableName: String,
+    numOutputShards: Int,
+    steps: Int
+)
 
 /**
   * Given table of state, action, mdp_id, sequence_number, reward, possible_next_actions
@@ -121,15 +123,20 @@ object MultiStepTimeline {
     if (config.addTerminalStateRow) {
       terminalJoin = "LEFT OUTER";
     }
+
+    val actionDataType =
+      Helper.getDataTypes(sqlContext, config.inputTableName, List("action"))("action")
+    log.info("action column data type:" + s"${actionDataType}")
+    assert(Set("string", "map<bigint,double>").contains(actionDataType))
+
     var sortActionMethod = "UDF_SORT_ID";
     var sortPossibleActionMethod = "UDF_SORT_ARRAY_ID";
-    if (!config.actionDiscrete) {
+    if (actionDataType != "string") {
       sortActionMethod = "UDF_SORT_MAP";
       sortPossibleActionMethod = "UDF_SORT_ARRAY_MAP";
     }
 
-    Helper.validateOrDestroyTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
-    MultiStepTimeline.createTrainingTable(sqlContext, config.outputTableName, config.actionDiscrete)
+    MultiStepTimeline.createTrainingTable(sqlContext, config.outputTableName, actionDataType)
     MultiStepTimeline.registerUDFs(sqlContext)
 
     val sqlCommand = s"""
@@ -275,31 +282,26 @@ object MultiStepTimeline {
     sqlContext.sql(sqlCommand)
   }
 
-  def createTrainingTable(sqlContext: SQLContext,
-                          tableName: String,
-                          actionDiscrete: Boolean): Unit = {
-    var actionType = "STRING";
-    var possibleActionType = "ARRAY<STRING>";
-    if (!actionDiscrete) {
-      actionType = "MAP<BIGINT, DOUBLE>"
-      possibleActionType = "ARRAY<MAP<BIGINT,DOUBLE>>"
-    }
-
+  def createTrainingTable(
+      sqlContext: SQLContext,
+      tableName: String,
+      actionDataType: String
+  ): Unit = {
     val sqlCommand = s"""
       CREATE TABLE IF NOT EXISTS ${tableName} (
           mdp_id STRING,
           state_features MAP <BIGINT, DOUBLE>,
-          action ${actionType},
+          action ${actionDataType},
           action_probability DOUBLE,
           reward ARRAY<DOUBLE>,
           next_state_features ARRAY<MAP<BIGINT,DOUBLE>>,
-          next_action ARRAY<${actionType}>,
+          next_action ARRAY<${actionDataType}>,
           sequence_number BIGINT,
           sequence_number_ordinal BIGINT,
           time_diff ARRAY<BIGINT>,
           time_since_first BIGINT,
-          possible_actions ${possibleActionType},
-          possible_next_actions ARRAY<${possibleActionType}>,
+          possible_actions Array<${actionDataType}>,
+          possible_next_actions ARRAY<ARRAY<${actionDataType}>>,
           metrics ARRAY<MAP<STRING, DOUBLE>>
       ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
     """.stripMargin

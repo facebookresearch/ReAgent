@@ -11,8 +11,12 @@ Here are the steps:
 .. code-block::
 
    docker build -f docker/cpu.Dockerfile -t reagent:cpu .
-   docker tag reagent:cpu kittipatv/reagent:cpu_test
-   docker push kittipatv/reagent:cpu_test
+   docker tag reagent:cpu reagent/reagent:cpu_test
+   docker push reagent/reagent:cpu_test
+
+   docker build -f docker/cuda.Dockerfile -t reagent:gpu .
+   docker tag reagent:gpu reagent/reagent:gpu_test
+   docker push reagent/reagent:gpu_test
 
 If you cannot push, you have to run ``docker login``.
 

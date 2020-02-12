@@ -3,7 +3,7 @@
 
 import dataclasses
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
 
 import numpy as np
 import torch
@@ -40,109 +40,21 @@ class ValuePresence(BaseDataClass):
 
 
 @dataclass
-class IdFeatureConfig(BaseDataClass):
+class IdListFeatureConfig(BaseDataClass):
     """
     This describes how to map raw features to model features
     """
 
+    name: str
     feature_id: int  # integer feature ID
     id_mapping_name: str  # key to ModelPreprocessingConfig.id_mapping_config
-
-
-@dataclass
-class IdFeatureBase(BaseDataClass):
-    """
-    User should subclass this class and define each ID feature as a field w/ torch.Tensor
-    as the type of the field.
-    """
-
-    @classmethod
-    # TODO: This should be marked as abstractmethod but mypi doesn't like it.
-    # See https://github.com/python/mypy/issues/5374
-    # @abc.abstractmethod
-    def get_feature_config(cls) -> Dict[str, IdFeatureConfig]:
-        """
-        Returns mapping from feature name, which must be a field in this dataclass, to
-        feature config.
-        """
-        raise NotImplementedError
-
-
-T = TypeVar("T", bound="SequenceFeatureBase")
+    # max_length: int
 
 
 @dataclass
 class FloatFeatureInfo(BaseDataClass):
     name: str
     feature_id: int
-
-
-@dataclass
-class SequenceFeatureBase(BaseDataClass):
-    id_features: Optional[IdFeatureBase]
-    float_features: Optional[ValuePresence]
-
-    @classmethod
-    # TODO: This should be marked as abstractmethod but mypi doesn't like it.
-    # See https://github.com/python/mypy/issues/5374
-    # @abc.abstractmethod
-    def get_max_length(cls) -> int:
-        """
-        Subclass should return the max-length of this sequence. If the raw data is
-        longer, feature extractor will truncate the front. If the raw data is shorter,
-        feature extractor will fill the front with zero.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def get_float_feature_infos(cls) -> List[FloatFeatureInfo]:
-        """
-        Override this if the sequence has float features associated to it.
-        Float features should be stored as ID-score-list, where the ID part corresponds
-        to primary entity ID of the sequence. E.g., if this is a sequence of previously
-        watched videos, then the key should be video ID.
-        """
-        return []
-
-    @classmethod
-    def prototype(cls: Type[T]) -> T:
-        float_feature_infos = cls.get_float_feature_infos()
-        float_features = (
-            torch.rand(1, cls.get_max_length(), len(float_feature_infos))
-            if float_feature_infos
-            else None
-        )
-        fields = dataclasses.fields(cls)
-        id_features = None
-        for field in fields:
-            if field.name != "id_features" or not isinstance(field.type, type):
-                continue
-            id_feature_fields = dataclasses.fields(field.type)
-            id_features = field.type(  # noqa
-                **{
-                    f.name: torch.randint(1, (1, cls.get_max_length()))
-                    for f in id_feature_fields
-                }
-            )
-            break
-
-        return cls(id_features=id_features, float_features=float_features)
-
-
-U = TypeVar("U", bound="SequenceFeatures")
-
-
-@dataclass
-class SequenceFeatures(BaseDataClass):
-    """
-    A stub-class for sequence features in the model. All fields should be subclass of
-    SequenceFeatureBase above.
-    """
-
-    @classmethod
-    def prototype(cls: Type[U]) -> U:
-        fields = dataclasses.fields(cls)
-        return cls(**{f.name: f.type.prototype() for f in fields})  # type: ignore
 
 
 @dataclass
@@ -153,18 +65,20 @@ class IdMapping(BaseDataClass):
 @dataclass
 class ModelFeatureConfig(BaseDataClass):
     float_feature_infos: List[FloatFeatureInfo]
-    id_mapping_config: Dict[str, IdMapping]
-    sequence_features_type: Optional[Type[SequenceFeatures]]
+    id_mapping_config: Dict[str, IdMapping] = dataclasses.field(default_factory=dict)
+    id_list_feature_configs: List[IdListFeatureConfig] = dataclasses.field(
+        default_factory=list
+    )
+
+
+IdListFeatureValue = Tuple[torch.Tensor, torch.Tensor]
+IdListFeatures = Dict[str, IdListFeatureValue]
 
 
 @dataclass
 class FeatureVector(BaseDataClass):
     float_features: ValuePresence
-    # sequence_features should ideally be Mapping[str, IdListFeature]; however,
-    # that doesn't work well with ONNX.
-    # User is expected to dynamically define the type of id_list_features based
-    # on the actual features used in the model.
-    sequence_features: Optional[SequenceFeatureBase] = None
+    id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
@@ -181,10 +95,21 @@ class ActorOutput(BaseDataClass):
 @dataclass
 class PreprocessedFeatureVector(BaseDataClass):
     float_features: torch.Tensor
+    id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
     time_since_first: Optional[torch.Tensor] = None
+
+
+@dataclass
+class PreprocessedTiledFeatureVector(BaseDataClass):
+    float_features: torch.Tensor
+
+    def as_preprocessed_feature_vector(self) -> PreprocessedFeatureVector:
+        return PreprocessedFeatureVector(
+            float_features=self.float_features.view(-1, self.float_features.shape[2])
+        )
 
 
 @dataclass
@@ -234,7 +159,8 @@ class PreprocessedRankingInput(BaseDataClass):
     state: PreprocessedFeatureVector
     src_seq: PreprocessedFeatureVector
     src_src_mask: torch.Tensor
-    tgt_seq: Optional[PreprocessedFeatureVector] = None
+    tgt_in_seq: Optional[PreprocessedFeatureVector] = None
+    tgt_out_seq: Optional[PreprocessedFeatureVector] = None
     tgt_tgt_mask: Optional[torch.Tensor] = None
     slate_reward: Optional[torch.Tensor] = None
     # all indices will be +2 to account for padding
@@ -243,7 +169,11 @@ class PreprocessedRankingInput(BaseDataClass):
     tgt_in_idx: Optional[torch.Tensor] = None
     tgt_out_idx: Optional[torch.Tensor] = None
     tgt_out_probs: Optional[torch.Tensor] = None
+    # store ground-truth target sequences
+    optim_tgt_in_idx: Optional[torch.Tensor] = None
     optim_tgt_out_idx: Optional[torch.Tensor] = None
+    optim_tgt_in_seq: Optional[PreprocessedFeatureVector] = None
+    optim_tgt_out_seq: Optional[PreprocessedFeatureVector] = None
 
     @classmethod
     def from_tensors(
@@ -251,19 +181,24 @@ class PreprocessedRankingInput(BaseDataClass):
         state: torch.Tensor,
         src_seq: torch.Tensor,
         src_src_mask: torch.Tensor,
-        tgt_seq: Optional[torch.Tensor] = None,
+        tgt_in_seq: Optional[torch.Tensor] = None,
+        tgt_out_seq: Optional[torch.Tensor] = None,
         tgt_tgt_mask: Optional[torch.Tensor] = None,
         slate_reward: Optional[torch.Tensor] = None,
         src_in_idx: Optional[torch.Tensor] = None,
         tgt_in_idx: Optional[torch.Tensor] = None,
         tgt_out_idx: Optional[torch.Tensor] = None,
         tgt_out_probs: Optional[torch.Tensor] = None,
+        optim_tgt_in_idx: Optional[torch.Tensor] = None,
         optim_tgt_out_idx: Optional[torch.Tensor] = None,
+        optim_tgt_in_seq: Optional[torch.Tensor] = None,
+        optim_tgt_out_seq: Optional[torch.Tensor] = None,
     ):
         assert isinstance(state, torch.Tensor)
         assert isinstance(src_seq, torch.Tensor)
         assert isinstance(src_src_mask, torch.Tensor)
-        assert tgt_seq is None or isinstance(tgt_seq, torch.Tensor)
+        assert tgt_in_seq is None or isinstance(tgt_in_seq, torch.Tensor)
+        assert tgt_out_seq is None or isinstance(tgt_out_seq, torch.Tensor)
         assert tgt_tgt_mask is None or isinstance(tgt_tgt_mask, torch.Tensor)
         assert slate_reward is None or isinstance(slate_reward, torch.Tensor)
         assert src_in_idx is None or isinstance(src_in_idx, torch.Tensor)
@@ -271,13 +206,19 @@ class PreprocessedRankingInput(BaseDataClass):
         assert tgt_out_idx is None or isinstance(tgt_out_idx, torch.Tensor)
         assert tgt_out_probs is None or isinstance(tgt_out_probs, torch.Tensor)
         assert optim_tgt_out_idx is None or isinstance(optim_tgt_out_idx, torch.Tensor)
+        assert optim_tgt_out_idx is None or isinstance(optim_tgt_out_idx, torch.Tensor)
+        assert optim_tgt_in_seq is None or isinstance(optim_tgt_in_seq, torch.Tensor)
+        assert optim_tgt_out_seq is None or isinstance(optim_tgt_out_seq, torch.Tensor)
 
         return cls(
             state=PreprocessedFeatureVector(float_features=state),
             src_seq=PreprocessedFeatureVector(float_features=src_seq),
             src_src_mask=src_src_mask,
-            tgt_seq=PreprocessedFeatureVector(float_features=tgt_seq)
-            if tgt_seq is not None
+            tgt_in_seq=PreprocessedFeatureVector(float_features=tgt_in_seq)
+            if tgt_in_seq is not None
+            else None,
+            tgt_out_seq=PreprocessedFeatureVector(float_features=tgt_out_seq)
+            if tgt_out_seq is not None
             else None,
             tgt_tgt_mask=tgt_tgt_mask,
             slate_reward=slate_reward,
@@ -285,17 +226,31 @@ class PreprocessedRankingInput(BaseDataClass):
             tgt_in_idx=tgt_in_idx,
             tgt_out_idx=tgt_out_idx,
             tgt_out_probs=tgt_out_probs,
+            optim_tgt_in_idx=optim_tgt_in_idx,
             optim_tgt_out_idx=optim_tgt_out_idx,
+            optim_tgt_in_seq=PreprocessedFeatureVector(float_features=optim_tgt_in_seq)
+            if optim_tgt_in_seq is not None
+            else None,
+            optim_tgt_out_seq=PreprocessedFeatureVector(
+                float_features=optim_tgt_out_seq
+            )
+            if optim_tgt_out_seq is not None
+            else None,
         )
 
     def __post_init__(self):
         if (
             isinstance(self.state, torch.Tensor)
             or isinstance(self.src_seq, torch.Tensor)
-            or isinstance(self.tgt_seq, torch.Tensor)
+            or isinstance(self.tgt_in_seq, torch.Tensor)
+            or isinstance(self.tgt_out_seq, torch.Tensor)
+            or isinstance(self.optim_tgt_in_seq, torch.Tensor)
+            or isinstance(self.optim_tgt_out_seq, torch.Tensor)
         ):
             raise ValueError(
-                f"Use from_tensors() {type(self.state)} {type(self.src_seq)} {type(self.tgt_seq)}"
+                f"Use from_tensors() {type(self.state)} {type(self.src_seq)} "
+                f"{type(self.tgt_in_seq)} {type(self.tgt_out_seq)} "
+                f"{type(self.optim_tgt_in_seq)} {type(self.optim_tgt_out_seq)} "
             )
 
 
@@ -329,6 +284,47 @@ class PreprocessedDiscreteDqnInput(PreprocessedBaseInput):
     next_action: torch.Tensor
     possible_actions_mask: torch.Tensor
     possible_next_actions_mask: torch.Tensor
+
+
+@dataclass
+class PreprocessedSlateFeatureVector(BaseDataClass):
+    """
+    The shape of `float_features` is
+    `(batch_size, slate_size, item_dim)`.
+
+    `item_mask` masks available items in the action
+
+    `item_probability` is the probability of item in being selected
+    """
+
+    float_features: torch.Tensor
+    item_mask: torch.Tensor
+    item_probability: torch.Tensor
+
+    def as_preprocessed_feature_vector(self) -> PreprocessedFeatureVector:
+        return PreprocessedFeatureVector(
+            float_features=self.float_features.view(-1, self.float_features.shape[2])
+        )
+
+
+@dataclass
+class PreprocessedSlateQInput(PreprocessedBaseInput):
+    """
+    The shapes of `tiled_state` & `tiled_next_state` are
+    `(batch_size, slate_size, state_dim)`.
+
+    The shapes of `reward`, `reward_mask`, & `next_item_mask` are
+    `(batch_size, slate_size)`.
+
+    `reward_mask` indicated whether the reward could be observed, e.g.,
+    the item got into viewport or not.
+    """
+
+    tiled_state: PreprocessedTiledFeatureVector
+    tiled_next_state: PreprocessedTiledFeatureVector
+    action: PreprocessedSlateFeatureVector
+    next_action: PreprocessedSlateFeatureVector
+    reward_mask: torch.Tensor
 
 
 @dataclass
@@ -393,10 +389,14 @@ class RawDiscreteDqnInput(RawBaseInput):
             self.step,
             self.not_terminal.float(),
             PreprocessedFeatureVector(
-                float_features=state, time_since_first=self.state.time_since_first
+                float_features=state,
+                id_list_features=self.state.id_list_features,
+                time_since_first=self.state.time_since_first,
             ),
             PreprocessedFeatureVector(
-                float_features=next_state, time_since_first=self.state.time_since_first
+                float_features=next_state,
+                id_list_features=self.next_state.id_list_features,
+                time_since_first=self.next_state.time_since_first,
             ),
             self.action.float(),
             self.next_action.float(),
@@ -623,6 +623,7 @@ class PreprocessedTrainingBatch(BaseDataClass):
         PreprocessedMemoryNetworkInput,
         PreprocessedPolicyNetworkInput,
         PreprocessedRankingInput,
+        PreprocessedSlateQInput,
     ]
     extras: Any
 
@@ -683,6 +684,7 @@ class DqnPolicyActionSet(BaseDataClass):
     softmax: Optional[int] = None
     greedy_act_name: Optional[str] = None
     softmax_act_name: Optional[str] = None
+    softmax_act_prob: Optional[float] = None
 
 
 @dataclass
@@ -710,3 +712,8 @@ class RankingOutput(BaseDataClass):
     # log probabilities of given tgt sequences are used in REINFORCE
     # shape: batch_size
     log_probs: Optional[torch.Tensor] = None
+
+
+@dataclass
+class RewardNetworkOutput(BaseDataClass):
+    predicted_reward: torch.Tensor

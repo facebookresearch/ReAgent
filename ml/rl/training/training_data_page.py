@@ -28,6 +28,8 @@ class TrainingDataPage(object):
         "metrics",
         "step",
         "max_num_actions",
+        "next_propensities",
+        "rewards_mask",
     ]
 
     def __init__(
@@ -49,6 +51,8 @@ class TrainingDataPage(object):
         metrics: Optional[torch.Tensor] = None,
         step: Optional[torch.Tensor] = None,
         max_num_actions: Optional[int] = None,
+        next_propensities: Optional[torch.Tensor] = None,
+        rewards_mask: Optional[torch.Tensor] = None,
     ) -> None:
         """
         Creates a TrainingDataPage object.
@@ -73,6 +77,8 @@ class TrainingDataPage(object):
         self.metrics = metrics
         self.step = step
         self.max_num_actions = max_num_actions
+        self.next_propensities = next_propensities
+        self.rewards_mask = rewards_mask
 
     def as_cem_training_batch(self, batch_first=False):
         """
@@ -185,6 +191,54 @@ class TrainingDataPage(object):
                 not_terminal=self.not_terminal,
                 step=self.step,
                 time_diff=self.time_diffs,
+            ),
+            extras=rlt.ExtraData(
+                mdp_id=self.mdp_ids,
+                sequence_number=self.sequence_numbers,
+                action_probability=self.propensities,
+                max_num_actions=self.max_num_actions,
+                metrics=self.metrics,
+            ),
+        )
+
+    def as_slate_q_training_batch(self):
+        batch_size, state_dim = self.states.shape
+        action_dim = self.actions.shape[1]
+        return rlt.PreprocessedTrainingBatch(
+            training_input=rlt.PreprocessedSlateQInput(
+                state=rlt.PreprocessedFeatureVector(float_features=self.states),
+                next_state=rlt.PreprocessedFeatureVector(
+                    float_features=self.next_states
+                ),
+                tiled_state=rlt.PreprocessedTiledFeatureVector(
+                    float_features=self.possible_actions_state_concat[
+                        :, :state_dim
+                    ].view(batch_size, -1, state_dim)
+                ),
+                tiled_next_state=rlt.PreprocessedTiledFeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, :state_dim
+                    ].view(batch_size, -1, state_dim)
+                ),
+                action=rlt.PreprocessedSlateFeatureVector(
+                    float_features=self.possible_actions_state_concat[
+                        :, state_dim:
+                    ].view(batch_size, -1, action_dim),
+                    item_mask=self.possible_actions_mask,
+                    item_probability=self.propensities,
+                ),
+                next_action=rlt.PreprocessedSlateFeatureVector(
+                    float_features=self.possible_next_actions_state_concat[
+                        :, state_dim:
+                    ].view(batch_size, -1, action_dim),
+                    item_mask=self.possible_next_actions_mask,
+                    item_probability=self.next_propensities,
+                ),
+                reward=self.rewards,
+                reward_mask=self.rewards_mask,
+                time_diff=self.time_diffs,
+                step=self.step,
+                not_terminal=self.not_terminal,
             ),
             extras=rlt.ExtraData(
                 mdp_id=self.mdp_ids,

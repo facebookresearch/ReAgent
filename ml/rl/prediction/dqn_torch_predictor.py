@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from ml.rl.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
 from ml.rl.torch_utils import masked_softmax
-from ml.rl.types import DqnPolicyActionSet
+from ml.rl.types import DqnPolicyActionSet, SacPolicyActionSet
 
 
 logger = logging.getLogger(__name__)
@@ -88,6 +88,7 @@ class DiscreteDqnTorchPredictor:
             softmax=softmax_act_idx,
             greedy_act_name=action_names[greedy_act_idx],
             softmax_act_name=action_names[softmax_act_idx],
+            softmax_act_prob=q_scores_softmax[softmax_act_idx],
         )
 
     def policy_net(self) -> bool:
@@ -179,9 +180,14 @@ class ParametricDqnTorchPredictor:
         ):
             q_scores_softmax_numpy[:] = 1.0 / q_scores_softmax_numpy.shape[0]
 
+        greedy_act_idx = int(torch.argmax(q_scores))
+        softmax_act_idx = int(
+            np.random.choice(q_scores.size()[1], p=q_scores_softmax_numpy)
+        )
         return DqnPolicyActionSet(
-            greedy=int(torch.argmax(q_scores)),
-            softmax=int(np.random.choice(q_scores.size()[1], p=q_scores_softmax_numpy)),
+            greedy=greedy_act_idx,
+            softmax=softmax_act_idx,
+            softmax_act_prob=float(q_scores_softmax_numpy[softmax_act_idx]),
         )
 
     def policy_net(self) -> bool:
@@ -215,3 +221,12 @@ class ActorTorchPredictor:
         self, float_state_features: List[Dict[int, float]]
     ) -> List[Dict[str, float]]:
         return self.predict(float_state_features)
+
+    def policy_net(self) -> bool:
+        return True
+
+    def policy(self, states: torch.Tensor) -> SacPolicyActionSet:
+        state_masks = torch.ones_like(states, dtype=torch.bool)
+        actions = self.model((states, state_masks)).detach()
+        assert actions.shape[1:] == (len(self.action_feature_ids),)
+        return SacPolicyActionSet(greedy=actions.cpu(), greedy_propensity=1.0)

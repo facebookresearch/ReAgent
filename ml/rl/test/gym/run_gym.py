@@ -2,11 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import argparse
-import json
 import logging
 import pickle
 import random
 import sys
+from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -14,18 +14,13 @@ import torch
 from ml.rl.json_serialize import json_to_object
 from ml.rl.parameters import (
     CEMParameters,
-    CNNParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
+    EvaluationParameters,
     FeedForwardParameters,
     MDNRNNParameters,
-    OpenAiGymParameters,
-    OpenAiRunDetails,
-    OptimizerParameters,
     RainbowDQNParameters,
     RLParameters,
-    SACModelParameters,
-    SACTrainingParameters,
     TD3ModelParameters,
     TD3TrainingParameters,
     TrainingParameters,
@@ -37,6 +32,7 @@ from ml.rl.test.gym.open_ai_gym_environment import (
     OpenAIGymEnvironment,
 )
 from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
+from ml.rl.test.gym.trainer_creator import get_sac_trainer
 from ml.rl.training.on_policy_predictor import (
     CEMPlanningPredictor,
     ContinuousActionOnPolicyPredictor,
@@ -46,11 +42,12 @@ from ml.rl.training.on_policy_predictor import (
 )
 from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
+from ml.rl.training.sac_trainer import SACTrainerParameters
+from ml.rl.types import BaseDataClass
 from ml.rl.workflow.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
     get_cem_trainer,
-    get_sac_trainer,
     get_td3_trainer,
 )
 from sklearn.ensemble import GradientBoostingClassifier
@@ -58,6 +55,53 @@ from sklearn.model_selection import train_test_split
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class OpenAiRunDetails(BaseDataClass):
+    solved_reward_threshold: Optional[int] = None
+    max_episodes_to_run_after_solved: Optional[int] = None
+    stop_training_after_solved: bool = False
+    num_episodes: int = 301
+    max_steps: Optional[int] = None
+    train_every_ts: int = 100
+    train_after_ts: int = 10
+    test_every_ts: int = 100
+    test_after_ts: int = 10
+    num_train_batches: int = 1
+    avg_over_num_episodes: int = 100
+    render: bool = False
+    epsilon_decay: Optional[float] = None
+    minimum_epsilon: Optional[float] = 0.0
+    offline_train_epochs: Optional[int] = None
+    offline_score_bar: Optional[float] = None
+    offline_num_batches_per_epoch: Optional[int] = None
+    seq_len: int = 5
+    num_train_episodes: int = 4000
+    num_test_episodes: int = 100
+    num_state_embed_episodes: int = 1800
+    train_epochs: int = 6
+    early_stopping_patience: int = 3
+
+
+@dataclass(frozen=True)
+class OpenAiGymParameters(BaseDataClass):
+    env: str
+    run_details: OpenAiRunDetails
+    model_type: str = ""
+    use_gpu: bool = False
+    max_replay_memory_size: int = 0
+    rl: Optional[RLParameters] = None
+    rainbow: Optional[RainbowDQNParameters] = None
+    training: Optional[TrainingParameters] = None
+    td3_training: Optional[TD3TrainingParameters] = None
+    sac_training: Optional[SACTrainerParameters] = None
+    sac_value_training: Optional[FeedForwardParameters] = None
+    critic_training: Optional[FeedForwardParameters] = None
+    actor_training: Optional[FeedForwardParameters] = None
+    cem: Optional[CEMParameters] = None
+    mdnrnn: Optional[MDNRNNParameters] = None
+    evaluation: EvaluationParameters = EvaluationParameters()
 
 
 def dict_to_np(d, np_size, key_offset):
@@ -70,7 +114,7 @@ def dict_to_np(d, np_size, key_offset):
 def dict_to_torch(d, np_size, key_offset):
     x = torch.zeros(np_size)
     for key in d:
-        x[key - key_offset] = d[key]
+        x[key - key_offset] = float(d[key])
     return x
 
 
@@ -817,18 +861,15 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
         assert params.sac_training is not None
         assert params.critic_training is not None
         assert params.actor_training is not None
-        value_network = None
-        if params.sac_training.use_value_network:
-            value_network = params.sac_value_training
-
-        sac_trainer_params = SACModelParameters(
-            rl=rl_parameters,
-            training=params.sac_training,
-            q_network=params.critic_training,
-            value_network=value_network,
-            actor_network=params.actor_training,
+        trainer = get_sac_trainer(
+            env,
+            rl_parameters,
+            params.sac_training,
+            params.critic_training,
+            params.actor_training,
+            params.sac_value_training,
+            use_gpu,
         )
-        trainer = get_sac_trainer(env, sac_trainer_params, use_gpu)
     elif model_type == ModelType.CEM.value:
         assert params.cem is not None
         cem_trainer_params = params.cem._replace(rl=params.rl)

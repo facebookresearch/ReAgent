@@ -12,8 +12,7 @@ pip uninstall -y reagent
 pip install -e .
 
 # Clone submodules
-git submodule init
-git submodule update
+git submodule update --force --recursive --init --remote
 
 # Build RASP
 mkdir -p serving/build

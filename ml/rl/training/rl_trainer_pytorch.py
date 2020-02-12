@@ -7,14 +7,16 @@ from typing import List, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
+from ml.rl.parameters import EvaluationParameters, OptimizerParameters, RLParameters
 from ml.rl.torch_utils import masked_softmax
 from ml.rl.training.loss_reporter import LossReporter
+from ml.rl.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
 
 
-class RLTrainer:
+class RLTrainer(Trainer):
     # Q-value for action that is not possible. Guaranteed to be worse than any
     # legitimate action
     ACTION_NOT_POSSIBLE_VAL = -1e9
@@ -23,33 +25,36 @@ class RLTrainer:
 
     def __init__(
         self,
-        parameters,
-        use_gpu,
+        rl_parameters: RLParameters,
+        use_gpu: bool,
         metrics_to_score=None,
         actions: Optional[List[str]] = None,
-    ):
+        evaluation_parameters: Optional[EvaluationParameters] = None,
+    ) -> None:
         self.minibatch = 0
         self.minibatch_size: Optional[int] = None
         self.minibatches_per_step: Optional[int] = None
-        self.parameters = parameters
-        self.rl_temperature = float(parameters.rl.temperature)
-        self.maxq_learning = parameters.rl.maxq_learning
-        self.gamma = parameters.rl.gamma
-        self.tau = parameters.rl.target_update_rate
-        self.use_seq_num_diff_as_time_diff = parameters.rl.use_seq_num_diff_as_time_diff
-        self.time_diff_unit_length = parameters.rl.time_diff_unit_length
-        self.tensorboard_logging_freq = parameters.rl.tensorboard_logging_freq
-        self.multi_steps = parameters.rl.multi_steps
-        self.calc_cpe_in_training = parameters.evaluation.calc_cpe_in_training
+        self.rl_parameters = rl_parameters
+        self.rl_temperature = float(rl_parameters.temperature)
+        self.maxq_learning = rl_parameters.maxq_learning
+        self.gamma = rl_parameters.gamma
+        self.tau = rl_parameters.target_update_rate
+        self.use_seq_num_diff_as_time_diff = rl_parameters.use_seq_num_diff_as_time_diff
+        self.time_diff_unit_length = rl_parameters.time_diff_unit_length
+        self.tensorboard_logging_freq = rl_parameters.tensorboard_logging_freq
+        self.multi_steps = rl_parameters.multi_steps
+        self.calc_cpe_in_training = (
+            evaluation_parameters and evaluation_parameters.calc_cpe_in_training
+        )
 
-        if parameters.rl.q_network_loss == "mse":
+        if rl_parameters.q_network_loss == "mse":
             self.q_network_loss = F.mse_loss
-        elif parameters.rl.q_network_loss == "huber":
+        elif rl_parameters.q_network_loss == "huber":
             self.q_network_loss = F.smooth_l1_loss
         else:
             raise Exception(
                 "Q-Network loss type {} not valid loss.".format(
-                    parameters.rl.q_network_loss
+                    rl_parameters.q_network_loss
                 )
             )
 
@@ -78,23 +83,32 @@ class RLTrainer:
         return len(self._actions)
 
     def _initialize_cpe(
-        self, parameters, reward_network, q_network_cpe, q_network_cpe_target
+        self,
+        parameters,
+        reward_network,
+        q_network_cpe,
+        q_network_cpe_target,
+        cpe_optimizer_parameters: OptimizerParameters,
     ) -> None:
         if self.calc_cpe_in_training:
+            optimizer_func = self._get_optimizer_func(
+                cpe_optimizer_parameters.optimizer
+            )
             assert reward_network is not None, "reward_network is required for CPE"
             self.reward_network = reward_network
-            self.reward_network_optimizer = self.optimizer_func(
+            self.reward_network_optimizer = optimizer_func(
                 self.reward_network.parameters(),
-                lr=parameters.training.learning_rate,
-                weight_decay=parameters.training.l2_decay,
+                lr=cpe_optimizer_parameters.learning_rate,
+                weight_decay=cpe_optimizer_parameters.l2_decay,
             )
             assert (
                 q_network_cpe is not None and q_network_cpe_target is not None
             ), "q_network_cpe and q_network_cpe_target are required for CPE"
             self.q_network_cpe = q_network_cpe
             self.q_network_cpe_target = q_network_cpe_target
-            self.q_network_cpe_optimizer = self.optimizer_func(
-                self.q_network_cpe.parameters(), lr=parameters.training.learning_rate
+            self.q_network_cpe_optimizer = optimizer_func(
+                self.q_network_cpe.parameters(),
+                lr=cpe_optimizer_parameters.learning_rate,
             )
             num_output_nodes = len(self.metrics_to_score) * self.num_actions
             self.reward_idx_offsets = torch.arange(
@@ -158,22 +172,6 @@ class RLTrainer:
                     p.grad /= minibatches_per_step
         optimizer.step()
         optimizer.zero_grad()
-
-    def train(self, training_samples) -> None:
-        raise NotImplementedError()
-
-    def state_dict(self):
-        return {c: getattr(self, c).state_dict() for c in self.warm_start_components()}
-
-    def load_state_dict(self, state_dict):
-        for c in self.warm_start_components():
-            getattr(self, c).load_state_dict(state_dict[c])
-
-    def warm_start_components(self) -> List[str]:
-        """
-        The trainer should specify what members to save and load
-        """
-        raise NotImplementedError
 
     @torch.no_grad()  # type: ignore
     def internal_prediction(self, input):

@@ -40,15 +40,12 @@ class GridworldTestBase(HorizonTestBase):
         for _ in range(self.num_epochs):
             samples = environment.generate_samples(10240, 1.0, DISCOUNT)
 
-            if (
-                hasattr(trainer.parameters.rl, "reward_boost")
-                and trainer.parameters.rl.reward_boost is not None
-            ):
+            if trainer.rl_parameters.reward_boost is not None:
                 # Reverse any reward boost
                 rewards_update = []
                 for action, reward in zip(samples.actions, samples.rewards):
                     rewards_update.append(
-                        reward - trainer.parameters.rl.reward_boost.get(action, 0.0)
+                        reward - trainer.rl_parameters.reward_boost.get(action, 0.0)
                     )
                 samples = samples._replace(rewards=rewards_update)
 

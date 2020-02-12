@@ -4,12 +4,11 @@
 from typing import Dict
 
 import torch
-from ml.rl.models.actor import FullyConnectedActor, GaussianFullyConnectedActor
+from ml.rl.models.actor import FullyConnectedActor
 from ml.rl.models.categorical_dqn import CategoricalDQN
 from ml.rl.models.cem_planner import CEMPlannerNetwork
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.dueling_q_network import DuelingQNetwork
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
 from ml.rl.models.quantile_dqn import QuantileDQN
 from ml.rl.models.world_model import MemoryNetwork
@@ -18,19 +17,21 @@ from ml.rl.parameters import (
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
     MDNRNNParameters,
-    SACModelParameters,
+    OptimizerParameters,
 )
 from ml.rl.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
 from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
-from ml.rl.training.c51_trainer import C51Trainer
+from ml.rl.training.c51_trainer import C51Trainer, C51TrainerParameters
 from ml.rl.training.cem_trainer import CEMTrainer
-from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
-from ml.rl.training.qrdqn_trainer import QRDQNTrainer
-from ml.rl.training.sac_trainer import SACTrainer
+from ml.rl.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
+from ml.rl.training.parametric_dqn_trainer import (
+    ParametricDQNTrainer,
+    ParametricDQNTrainerParameters,
+)
+from ml.rl.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
 from ml.rl.training.td3_trainer import TD3Trainer
 from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
@@ -132,10 +133,11 @@ def create_dqn_trainer_from_params(
         assert (
             not use_all_avail_gpus
         ), "use_all_avail_gpus not implemented for distributional RL"
+        parameters = QRDQNTrainerParameters.from_discrete_action_model_parameters(model)
         return QRDQNTrainer(
             q_network,
             q_network_target,
-            model,
+            parameters,
             use_gpu,
             metrics_to_score=metrics_to_score,
             reward_network=reward_network,
@@ -150,17 +152,18 @@ def create_dqn_trainer_from_params(
         return C51Trainer(
             q_network,
             q_network_target,
-            model,
+            C51TrainerParameters.from_discrete_action_model_parameters(model),
             use_gpu,
             metrics_to_score=metrics_to_score,
         )
 
     else:
+        parameters = DQNTrainerParameters.from_discrete_action_model_parameters(model)
         return DQNTrainer(
             q_network,
             q_network_target,
             reward_network,
-            model,
+            parameters,
             use_gpu,
             q_network_cpe=q_network_cpe,
             q_network_cpe_target=q_network_cpe_target,
@@ -199,8 +202,19 @@ def create_parametric_dqn_trainer_from_params(
         q_network_target = q_network_target.get_distributed_data_parallel_model()
         reward_network = reward_network.get_distributed_data_parallel_model()
 
+    trainer_parameters = ParametricDQNTrainerParameters(
+        rl=model.rl,
+        double_q_learning=model.rainbow.double_q_learning,
+        minibatch_size=model.training.minibatch_size,
+        optimizer=OptimizerParameters(
+            optimizer=model.training.optimizer,
+            learning_rate=model.training.learning_rate,
+            l2_decay=model.training.l2_decay,
+        ),
+    )
+
     return ParametricDQNTrainer(
-        q_network, q_network_target, reward_network, model, use_gpu
+        q_network, q_network_target, reward_network, trainer_parameters, use_gpu
     )
 
 
@@ -253,80 +267,6 @@ def get_td3_trainer(env, parameters, use_gpu):
         "max_action_range_tensor_serving": max_action_range_tensor_serving,
     }
     return TD3Trainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
-
-
-def get_sac_trainer(
-    env: OpenAIGymEnvironment, parameters: SACModelParameters, use_gpu: bool
-):
-    trainer_args, trainer_kwargs = _get_sac_trainer_params(env, parameters, use_gpu)
-    return SACTrainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)  # type: ignore
-
-
-def _get_sac_trainer_params(
-    env: OpenAIGymEnvironment, sac_model_params: SACModelParameters, use_gpu: bool
-):
-    state_dim = get_num_output_features(env.normalization)
-    action_dim = get_num_output_features(env.normalization_action)
-    q1_network = FullyConnectedParametricDQN(
-        state_dim,
-        action_dim,
-        sac_model_params.q_network.layers,
-        sac_model_params.q_network.activations,
-    )
-    q2_network = None
-    if sac_model_params.training.use_2_q_functions:
-        q2_network = FullyConnectedParametricDQN(
-            state_dim,
-            action_dim,
-            sac_model_params.q_network.layers,
-            sac_model_params.q_network.activations,
-        )
-    value_network = None
-    if sac_model_params.training.use_value_network:
-        assert sac_model_params.value_network is not None
-        value_network = FullyConnectedNetwork(
-            [state_dim] + sac_model_params.value_network.layers + [1],
-            sac_model_params.value_network.activations + ["linear"],
-        )
-    actor_network = GaussianFullyConnectedActor(
-        state_dim,
-        action_dim,
-        sac_model_params.actor_network.layers,
-        sac_model_params.actor_network.activations,
-    )
-
-    min_action_range_tensor_training = torch.full((1, action_dim), -1 + 1e-6)
-    max_action_range_tensor_training = torch.full((1, action_dim), 1 - 1e-6)
-    min_action_range_tensor_serving = (
-        torch.from_numpy(env.action_space.low).float().unsqueeze(dim=0)  # type: ignore
-    )
-    max_action_range_tensor_serving = (
-        torch.from_numpy(env.action_space.high).float().unsqueeze(dim=0)  # type: ignore
-    )
-
-    if use_gpu:
-        q1_network.cuda()
-        if q2_network:
-            q2_network.cuda()
-        if value_network:
-            value_network.cuda()
-        actor_network.cuda()
-
-        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
-        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
-        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
-        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
-
-    trainer_args = [q1_network, actor_network, sac_model_params]
-    trainer_kwargs = {
-        "value_network": value_network,
-        "q2_network": q2_network,
-        "min_action_range_tensor_training": min_action_range_tensor_training,
-        "max_action_range_tensor_training": max_action_range_tensor_training,
-        "min_action_range_tensor_serving": min_action_range_tensor_serving,
-        "max_action_range_tensor_serving": max_action_range_tensor_serving,
-    }
-    return trainer_args, trainer_kwargs
 
 
 def get_cem_trainer(

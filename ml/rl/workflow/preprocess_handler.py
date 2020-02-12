@@ -86,9 +86,7 @@ class DiscreteDqnPreprocessHandler(PreprocessHandler):
 
         next_actions = self.read_actions(batch["next_action"])
         pnas_mask = np.array(batch["possible_next_actions"], dtype=np.float32)
-        not_terminal = torch.from_numpy(
-            np.max(pnas_mask, 1).astype(np.float32).reshape(-1, 1)
-        ).float()
+        not_terminal = torch.max(next_actions, 1)[0].float().reshape(-1, 1)
         pnas_mask_torch = torch.from_numpy(pnas_mask).byte()
 
         base_input = training_batch.training_input
@@ -139,11 +137,7 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
             for _ in range(max_action_size - len(pa)):
                 flat_pnas.append({})
 
-        not_terminal = torch.from_numpy(
-            np.array([len(pna) > 0 for pna in batch["possible_next_actions"]]).astype(
-                np.float32
-            )
-        ).reshape(-1, 1)
+        not_terminal = torch.any(next_actions_presence > 0, 1).float().reshape(-1, 1)
         pnas, pnas_presence = self.action_sparse_to_dense(flat_pnas)
 
         base_input = cast(rlt.RawBaseInput, training_batch.training_input)

@@ -6,14 +6,9 @@ import logging
 from typing import Dict, List, Optional, Union
 
 import torch
-from caffe2.python import core, workspace
-from ml.rl.caffe_utils import C2, StackedAssociativeArray
-from ml.rl.preprocessing.normalization import (
-    MISSING_VALUE,
-    sort_features_by_normalization,
-)
+from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
+from ml.rl.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
 from ml.rl.test.base.utils import (
     only_continuous_action_normalizer,
     only_continuous_normalizer,
@@ -103,33 +98,28 @@ class GridworldContinuous(GridworldBase):
         samples = shuffle_samples(samples)
 
         logger.info("Sparse2Dense...")
-        net = core.Net("gridworld_preprocessing")
-        C2.set_net(net)
+
         sorted_state_features, _ = sort_features_by_normalization(self.normalization)
         sorted_action_features, _ = sort_features_by_normalization(
             self.normalization_action
         )
-        state_sparse_to_dense_processor = Caffe2SparseToDenseProcessor(
+        state_sparse_to_dense_processor = PythonSparseToDenseProcessor(
             sorted_state_features
         )
-        action_sparse_to_dense_processor = Caffe2SparseToDenseProcessor(
+        action_sparse_to_dense_processor = PythonSparseToDenseProcessor(
             sorted_action_features
         )
-        saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-        state_matrix, state_matrix_presence, _ = state_sparse_to_dense_processor(saa)
-        saa = StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        next_state_matrix, next_state_matrix_presence, _ = state_sparse_to_dense_processor(
-            saa
+        state_matrix, state_matrix_presence = state_sparse_to_dense_processor(
+            samples.states
         )
-        saa = StackedAssociativeArray.from_dict_list(  # type: ignore
-            samples.actions, "action"
+        next_state_matrix, next_state_matrix_presence = state_sparse_to_dense_processor(
+            samples.next_states
         )
-        action_matrix, action_matrix_presence, _ = action_sparse_to_dense_processor(saa)
-        saa = StackedAssociativeArray.from_dict_list(  # type: ignore
-            samples.next_actions, "next_action"
+        action_matrix, action_matrix_presence = action_sparse_to_dense_processor(
+            samples.actions
         )
-        next_action_matrix, next_action_matrix_presence, _ = action_sparse_to_dense_processor(
-            saa
+        next_action_matrix, next_action_matrix_presence = action_sparse_to_dense_processor(
+            samples.next_actions
         )
         action_probabilities = torch.tensor(
             samples.action_probabilities, dtype=torch.float32
@@ -145,37 +135,25 @@ class GridworldContinuous(GridworldBase):
             pnas_flat.extend(pnas)  # type: ignore
             for _ in range(max_action_size - len(pnas)):
                 pnas_flat.append({})  # Filler
-        saa = StackedAssociativeArray.from_dict_list(  # type: ignore
-            pnas_flat, "possible_next_actions"
-        )
         pnas_mask = torch.Tensor(pnas_mask_list)
 
-        possible_next_actions_matrix, possible_next_actions_matrix_presence, _ = action_sparse_to_dense_processor(
-            saa
+        possible_next_actions_matrix, possible_next_actions_matrix_presence = action_sparse_to_dense_processor(
+            pnas_flat
         )
-
-        workspace.RunNetOnce(net)
 
         logger.info("Preprocessing...")
         state_preprocessor = Preprocessor(self.normalization, False)
         action_preprocessor = Preprocessor(self.normalization_action, False)
 
-        states_ndarray = state_preprocessor(
-            torch.from_numpy(workspace.FetchBlob(state_matrix)),
-            torch.from_numpy(workspace.FetchBlob(state_matrix_presence)),
-        )
+        states_ndarray = state_preprocessor(state_matrix, state_matrix_presence)
 
         if normalize_actions:
-            actions_ndarray = action_preprocessor(
-                torch.from_numpy(workspace.FetchBlob(action_matrix)),
-                torch.from_numpy(workspace.FetchBlob(action_matrix_presence)),
-            )
+            actions_ndarray = action_preprocessor(action_matrix, action_matrix_presence)
         else:
-            actions_ndarray = torch.from_numpy(workspace.FetchBlob(action_matrix))
+            actions_ndarray = action_matrix
 
-        next_states_ndarray = torch.from_numpy(workspace.FetchBlob(next_state_matrix))
         next_states_ndarray = state_preprocessor(
-            next_states_ndarray, (next_states_ndarray != MISSING_VALUE)
+            next_state_matrix, next_state_matrix_presence
         )
 
         state_pnas_tile = next_states_ndarray.repeat(1, max_action_size).reshape(
@@ -184,25 +162,17 @@ class GridworldContinuous(GridworldBase):
 
         if normalize_actions:
             next_actions_ndarray = action_preprocessor(
-                torch.from_numpy(workspace.FetchBlob(next_action_matrix)),
-                torch.from_numpy(workspace.FetchBlob(next_action_matrix_presence)),
+                next_action_matrix, next_action_matrix_presence
             )
         else:
-            next_actions_ndarray = torch.from_numpy(
-                workspace.FetchBlob(next_action_matrix)
-            )
+            next_actions_ndarray = next_action_matrix
 
         if normalize_actions:
             logged_possible_next_actions = action_preprocessor(
-                torch.from_numpy(workspace.FetchBlob(possible_next_actions_matrix)),
-                torch.from_numpy(
-                    workspace.FetchBlob(possible_next_actions_matrix_presence)
-                ),
+                possible_next_actions_matrix, possible_next_actions_matrix_presence
             )
         else:
-            logged_possible_next_actions = torch.from_numpy(
-                workspace.FetchBlob(possible_next_actions_matrix)
-            )
+            logged_possible_next_actions = possible_next_actions_matrix
 
         assert state_pnas_tile.shape[0] == logged_possible_next_actions.shape[0], (
             "Invalid shapes: "

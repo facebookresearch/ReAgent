@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import logging
 
+from dataclasses import dataclass, field
+from typing import List
+
+import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import torch
 from ml.rl.parameters import DiscreteActionModelParameters
@@ -10,7 +13,43 @@ from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
 
 
-logger = logging.getLogger(__name__)
+@dataclass(frozen=True)
+class C51TrainerParameters:
+    __hash__ = rlp.param_hash
+
+    actions: List[str] = field(default_factory=list)
+    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
+    double_q_learning: bool = True
+    minibatch_size: int = 1024
+    minibatches_per_step: int = 1
+    num_atoms: int = 51
+    qmin: float = -100
+    qmax: float = 200
+    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
+    evaluation: rlp.EvaluationParameters = field(
+        default_factory=rlp.EvaluationParameters
+    )
+
+    @classmethod
+    def from_discrete_action_model_parameters(
+        cls, params: DiscreteActionModelParameters
+    ):
+        return cls(
+            actions=params.actions,
+            rl=params.rl,
+            double_q_learning=params.rainbow.double_q_learning,
+            minibatch_size=params.training.minibatch_size,
+            minibatches_per_step=params.training.minibatches_per_step,
+            num_atoms=params.rainbow.num_atoms,
+            qmin=params.rainbow.qmin,
+            qmax=params.rainbow.qmax,
+            optimizer=rlp.OptimizerParameters(
+                optimizer=params.training.optimizer,
+                learning_rate=params.training.learning_rate,
+                l2_decay=params.rainbow.c51_l2_decay,
+            ),
+            evaluation=params.evaluation,
+        )
 
 
 class C51Trainer(RLTrainer):
@@ -24,35 +63,28 @@ class C51Trainer(RLTrainer):
         self,
         q_network,
         q_network_target,
-        parameters: DiscreteActionModelParameters,
+        parameters: C51TrainerParameters,
         use_gpu=False,
         metrics_to_score=None,
     ) -> None:
         RLTrainer.__init__(
             self,
-            parameters,
+            parameters.rl,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,
         )
 
-        self.double_q_learning = parameters.rainbow.double_q_learning
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        self.double_q_learning = parameters.double_q_learning
+        self.minibatch_size = parameters.minibatch_size
+        self.minibatches_per_step = parameters.minibatches_per_step or 1
         self._actions = parameters.actions if parameters.actions is not None else []
-
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.training.optimizer)
-        self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(),
-            lr=parameters.training.learning_rate,
-            weight_decay=parameters.rainbow.c51_l2_decay,
-        )
-
-        self.qmin = parameters.rainbow.qmin
-        self.qmax = parameters.rainbow.qmax
-        self.num_atoms = parameters.rainbow.num_atoms
+        self.q_network_optimizer = self._get_optimizer(q_network, parameters.optimizer)
+        self.qmin = parameters.qmin
+        self.qmax = parameters.qmax
+        self.num_atoms = parameters.num_atoms
         self.support = torch.linspace(
             self.qmin, self.qmax, self.num_atoms, device=self.device
         )

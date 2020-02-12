@@ -1,4 +1,8 @@
 version: 2.1
+parameters:
+  image-tag:
+    type: string
+    default: "reagent/reagent:gpu_test"
 
 # How to test the Linux jobs:
 #   - Install CircleCI local CLI: https://circleci.com/docs/2.0/local-cli/
@@ -86,7 +90,7 @@ jobs:
       - run:
           name: Start docker
           command: |
-            sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent kittipatv/reagent:cuda
+            sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent << pipeline.parameters.image-tag >>
       - run:
           name: Run unittests
           command: |
@@ -94,18 +98,17 @@ jobs:
             cd ReAgent && \
             scripts/ci/run_python_unittest.sh"
 
-
 workflows:
   build:
     jobs:
       - binary_linux_conda:
           name: linux_conda_py3.7_end_to_end
-          docker_image: kittipatv/reagent:cpu
+          docker_image: << pipeline.parameters.image-tag >>
           test_script: scripts/ci/run_end_to_end_test.sh
           resource_class_str: large
       - gpu_unittest
       - binary_linux_conda:
           name: linux_conda_py3.7_rasp_test
-          docker_image: kittipatv/reagent:cpu
+          docker_image: << pipeline.parameters.image-tag >>
           test_script: scripts/ci/run_rasp_test.sh
           resource_class_str: large

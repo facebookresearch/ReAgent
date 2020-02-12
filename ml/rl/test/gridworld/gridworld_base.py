@@ -10,11 +10,9 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from caffe2.python import core, workspace
-from ml.rl.caffe_utils import C2, StackedAssociativeArray
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import Caffe2SparseToDenseProcessor
+from ml.rl.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
 from ml.rl.test.base.utils import default_normalizer
 from ml.rl.test.environment.environment import (
     ACTION,
@@ -70,7 +68,6 @@ class GridworldBase(Environment):
         self.reset()
         self._optimal_policy = self._compute_optimal()
         self._optimal_actions = self._compute_optimal_actions()
-        self.sparse_to_dense_net = None
         self._true_q_values = collections.defaultdict(dict)
         self._true_q_epsilon_values = collections.defaultdict(dict)
 
@@ -165,7 +162,7 @@ class GridworldBase(Environment):
 
     def _index(self, pos):
         y, x = pos
-        return x + y * self.width
+        return int(x + y * self.width)
         # 0 1 2 3 4
         # 5 6 7 8 9
         # ...
@@ -179,7 +176,7 @@ class GridworldBase(Environment):
         return self._state
 
     def reward(self, state):
-        return self.REWARD_SCALE if self.grid[self._pos(state)] == G else 0
+        return self.REWARD_SCALE if self.grid[self._pos(state)] == G else 0.0
 
     def transition_probabilities(self, state, action):
         y, x = self._pos(state)
@@ -506,26 +503,12 @@ class GridworldBase(Environment):
 
         logger.info("Preprocessing...")
         sorted_features, _ = sort_features_by_normalization(self.normalization)
-        sparse_to_dense_processor = Caffe2SparseToDenseProcessor(sorted_features)
+        sparse_to_dense_processor = PythonSparseToDenseProcessor(sorted_features)
 
-        if self.sparse_to_dense_net is None:
-            self.sparse_to_dense_net = core.Net("gridworld_sparse_to_dense")
-            C2.set_net(self.sparse_to_dense_net)
-            saa = StackedAssociativeArray.from_dict_list(samples.states, "states")
-            self.state_matrix, self.state_matrix_presence, _ = sparse_to_dense_processor(
-                saa
-            )
-            saa = StackedAssociativeArray.from_dict_list(
-                samples.next_states, "next_states"
-            )
-            self.next_state_matrix, self.next_state_matrix_presence, _ = sparse_to_dense_processor(
-                saa
-            )
-            C2.set_net(None)
-        else:
-            StackedAssociativeArray.from_dict_list(samples.states, "states")
-            StackedAssociativeArray.from_dict_list(samples.next_states, "next_states")
-        workspace.RunNetOnce(self.sparse_to_dense_net)
+        state_matrix, state_matrix_presence = sparse_to_dense_processor(samples.states)
+        next_state_matrix, next_state_matrix_presence = sparse_to_dense_processor(
+            samples.next_states
+        )
 
         logger.info("Converting to Torch...")
         actions_one_hot = torch.tensor(
@@ -572,14 +555,10 @@ class GridworldBase(Environment):
         logger.info("Preprocessing...")
         preprocessor = Preprocessor(self.normalization, False)
 
-        states_ndarray = preprocessor(
-            torch.from_numpy(workspace.FetchBlob(self.state_matrix)),
-            torch.from_numpy(workspace.FetchBlob(self.state_matrix_presence)),
-        )
+        states_ndarray = preprocessor(state_matrix, state_matrix_presence)
 
         next_states_ndarray = preprocessor(
-            torch.from_numpy(workspace.FetchBlob(self.next_state_matrix)),
-            torch.from_numpy(workspace.FetchBlob(self.next_state_matrix_presence)),
+            next_state_matrix, next_state_matrix_presence
         )
 
         logger.info("Batching...")

@@ -10,7 +10,7 @@ import ml.rl.types as rlt
 logger = logging.getLogger(__name__)
 
 
-class RankingTrainer:
+class Trainer:
     def train(self, training_batch: rlt.PreprocessedTrainingBatch) -> None:
         raise NotImplementedError()
 

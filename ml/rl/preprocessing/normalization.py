@@ -4,7 +4,7 @@
 import json
 import logging
 from dataclasses import asdict
-from typing import Dict
+from typing import Dict, List, Tuple
 
 import numpy as np
 import six
@@ -199,13 +199,15 @@ def get_feature_start_indices(sorted_features, normalization_parameters):
     return start_indices
 
 
-def sort_features_by_normalization(normalization_parameters):
+def sort_features_by_normalization(
+    normalization_parameters: Dict[int, NormalizationParameters]
+) -> Tuple[List[int], List[int]]:
     """
     Helper function to return a sorted list from a normalization map.
     Also returns the starting index for each feature type"""
     # Sort features by feature type
-    sorted_features = []
-    feature_starts = []
+    sorted_features: List[int] = []
+    feature_starts: List[int] = []
     assert isinstance(
         list(normalization_parameters.keys())[0], int
     ), "Normalization Parameters need to be int"
@@ -226,15 +228,6 @@ def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
         # Check for negative enum IDs
         if params.feature_type == identify_types.ENUM:
             assert params.possible_values is not None
-            for x in params.possible_values:
-                if x < 0:
-                    logger.fatal(
-                        "Invalid enum ID: {} in feature: {} with possible_values {}"
-                        " (raw: {})".format(
-                            x, feature, params.possible_values, feature_parameters
-                        )
-                    )
-                    raise Exception("Invalid enum ID")
         parameters[int(feature)] = params
     return parameters
 
