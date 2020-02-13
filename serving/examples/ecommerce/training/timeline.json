@@ -7,7 +7,11 @@
         "inputTableName": "ecom_cb_input_data",
         "outputTableName": "ecom_cb_training",
         "evalTableName": "ecom_cb_eval",
-        "numOutputShards": 1
+        "numOutputShards": 1,
+        "includePossibleActions": true,
+        "percentileFunction": "percentile_approx",
+        "rewardColumns": ["reward", "metrics"],
+        "extraFeatureColumns": []
     },
     "query": {
         "tableSample": 100,
