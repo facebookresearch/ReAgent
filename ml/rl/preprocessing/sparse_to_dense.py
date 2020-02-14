@@ -21,7 +21,7 @@ class SparseToDenseProcessor:
         return self.process(sparse_data)
 
 
-class PandasSparseToDenseProcessor(SparseToDenseProcessor):
+class StringKeySparseToDenseProcessor(SparseToDenseProcessor):
     """
     We just have this in case the input data is keyed by string
     """
@@ -40,7 +40,7 @@ class PandasSparseToDenseProcessor(SparseToDenseProcessor):
         for sd in sparse_data:
             sd_int = {}
             for k, v in sd.items():
-                sd_int[self._sparse_to_dense.feature_to_index[int(k)]] = v
+                sd_int[int(k)] = v
             sparse_data_int.append(sd_int)
         return self._sparse_to_dense(sparse_data_int)
 

@@ -24,7 +24,7 @@ from ml.rl.prediction.predictor_wrapper import (
 from ml.rl.preprocessing.batch_preprocessor import ParametricDqnBatchPreprocessor
 from ml.rl.preprocessing.normalization import sort_features_by_normalization
 from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import PandasSparseToDenseProcessor
+from ml.rl.preprocessing.sparse_to_dense import StringKeySparseToDenseProcessor
 from ml.rl.readers.json_dataset_reader import JSONDatasetReader
 from ml.rl.tensorboardX import summary_writer_context
 from ml.rl.torch_utils import export_module_to_buffer
@@ -157,8 +157,8 @@ def single_process_main(gpu_index, *args):
     state_sorted_features, _ = sort_features_by_normalization(state_normalization)
     action_sorted_features, _ = sort_features_by_normalization(action_normalization)
     preprocess_handler = ParametricDqnPreprocessHandler(
-        PandasSparseToDenseProcessor(state_sorted_features),
-        PandasSparseToDenseProcessor(action_sorted_features),
+        StringKeySparseToDenseProcessor(state_sorted_features),
+        StringKeySparseToDenseProcessor(action_sorted_features),
     )
 
     train_dataset = JSONDatasetReader(
