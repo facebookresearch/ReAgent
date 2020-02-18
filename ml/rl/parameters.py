@@ -5,6 +5,7 @@ import dataclasses
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
+from ml.rl.parameters_seq2slate import LearningMethod
 from ml.rl.types import BaseDataClass
 
 
@@ -272,6 +273,7 @@ class Seq2SlateTransformerParameters(BaseDataClass):
     transformer: TransformerParameters
     baseline: BaselineParameters
     on_policy: bool
+    learning_method: LearningMethod
 
 
 @dataclass(frozen=True)

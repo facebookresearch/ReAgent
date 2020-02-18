@@ -163,6 +163,7 @@ class PreprocessedRankingInput(BaseDataClass):
     tgt_out_seq: Optional[PreprocessedFeatureVector] = None
     tgt_tgt_mask: Optional[torch.Tensor] = None
     slate_reward: Optional[torch.Tensor] = None
+    position_reward: Optional[torch.Tensor] = None
     # all indices will be +2 to account for padding
     # symbol (0) and decoder_start_symbol (1)
     src_in_idx: Optional[torch.Tensor] = None
@@ -185,6 +186,7 @@ class PreprocessedRankingInput(BaseDataClass):
         tgt_out_seq: Optional[torch.Tensor] = None,
         tgt_tgt_mask: Optional[torch.Tensor] = None,
         slate_reward: Optional[torch.Tensor] = None,
+        position_reward: Optional[torch.Tensor] = None,
         src_in_idx: Optional[torch.Tensor] = None,
         tgt_in_idx: Optional[torch.Tensor] = None,
         tgt_out_idx: Optional[torch.Tensor] = None,
@@ -201,6 +203,7 @@ class PreprocessedRankingInput(BaseDataClass):
         assert tgt_out_seq is None or isinstance(tgt_out_seq, torch.Tensor)
         assert tgt_tgt_mask is None or isinstance(tgt_tgt_mask, torch.Tensor)
         assert slate_reward is None or isinstance(slate_reward, torch.Tensor)
+        assert position_reward is None or isinstance(position_reward, torch.Tensor)
         assert src_in_idx is None or isinstance(src_in_idx, torch.Tensor)
         assert tgt_in_idx is None or isinstance(tgt_in_idx, torch.Tensor)
         assert tgt_out_idx is None or isinstance(tgt_out_idx, torch.Tensor)
@@ -222,6 +225,7 @@ class PreprocessedRankingInput(BaseDataClass):
             else None,
             tgt_tgt_mask=tgt_tgt_mask,
             slate_reward=slate_reward,
+            position_reward=position_reward,
             src_in_idx=src_in_idx,
             tgt_in_idx=tgt_in_idx,
             tgt_out_idx=tgt_out_idx,
@@ -712,6 +716,8 @@ class RankingOutput(BaseDataClass):
     # log probabilities of given tgt sequences are used in REINFORCE
     # shape: batch_size
     log_probs: Optional[torch.Tensor] = None
+    # encoder scores in tgt_out_idx order
+    encoder_scores: Optional[torch.Tensor] = None
 
 
 @dataclass

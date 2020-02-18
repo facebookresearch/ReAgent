@@ -137,6 +137,7 @@ class TestEvaluationDataPage(unittest.TestCase):
                 ),
                 baseline=BaselineParameters(dim_feedforward=0, num_stacked_layers=0),
                 on_policy=False,
+                learning_method=None,
             ),
             minibatch_size=3,
             use_gpu=False,

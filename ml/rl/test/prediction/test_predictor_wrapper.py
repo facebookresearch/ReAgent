@@ -130,10 +130,10 @@ class TestPredictorWrapper(unittest.TestCase):
         seq2slate = Seq2SlateTransformerNet(
             state_dim=len(state_normalization_parameters),
             candidate_dim=len(candidate_normalization_parameters),
-            num_stacked_layers=6,
-            num_heads=8,
-            dim_model=512,
-            dim_feedforward=512,
+            num_stacked_layers=2,
+            num_heads=2,
+            dim_model=10,
+            dim_feedforward=10,
             max_src_seq_len=10,
             max_tgt_seq_len=4,
         )
