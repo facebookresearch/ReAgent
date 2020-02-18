@@ -4,7 +4,8 @@
 
 import unittest
 
-from ml.rl.core.tracker import ValueListObserver, observable
+from ml.rl.core.observers import ValueListObserver
+from ml.rl.core.tracker import observable
 
 
 class TestObservable(unittest.TestCase):
@@ -26,18 +27,16 @@ class TestObservable(unittest.TestCase):
         self.assertEqual(instance.b, 2)
         self.assertEqual(instance.c, 10)
 
-        observers = [ValueListObserver(["td_loss"]) for _i in range(3)]
-        for observer in observers:
-            instance.add_observer(observer, ["td_loss"])
-
+        observers = [ValueListObserver("td_loss") for _i in range(3)]
+        instance.add_observers(observers)
         # Adding twice should not result in double update
-        instance.add_observer(observers[0], ["td_loss"])
+        instance.add_observer(observers[0])
 
         for i in range(10):
             instance.do_something(float(i))
 
         for observer in observers:
-            self.assertEqual(observer.values["td_loss"], [float(i) for i in range(10)])
+            self.assertEqual(observer.values, [float(i) for i in range(10)])
 
     def test_no_observable_values(self):
         try:

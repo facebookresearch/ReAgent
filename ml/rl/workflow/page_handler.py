@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch
+from ml.rl.core.tracker import observable
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
@@ -28,6 +29,7 @@ class PageHandler:
     def __init__(self, trainer_or_evaluator):
         self.trainer_or_evaluator = trainer_or_evaluator
         self.results: List[Dict] = []
+        self.epoch = 0
 
     def refresh_results(self) -> None:
         self.results: List[Dict] = []
@@ -67,13 +69,16 @@ class PageHandler:
         self.epoch = epoch
 
 
+@observable(epoch_end=int)
 class TrainingPageHandler(PageHandler):
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         SummaryWriterContext.increase_global_step()
         self.trainer_or_evaluator.train(tdp)
 
     def finish(self) -> None:
+        self.notify_observers(epoch_end=self.epoch)  # type: ignore
         self.trainer_or_evaluator.loss_reporter.flush()
+        self.epoch += 1
 
 
 class EvaluationPageHandler(PageHandler):

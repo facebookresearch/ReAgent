@@ -30,6 +30,7 @@ class RLTrainer(Trainer):
         metrics_to_score=None,
         actions: Optional[List[str]] = None,
         evaluation_parameters: Optional[EvaluationParameters] = None,
+        loss_reporter=None,
     ) -> None:
         self.minibatch = 0
         self.minibatch_size: Optional[int] = None
@@ -74,7 +75,7 @@ class RLTrainer(Trainer):
             self.use_gpu = False
             self.device = torch.device("cpu")  # type: ignore
 
-        self.loss_reporter = LossReporter(actions)
+        self.loss_reporter = loss_reporter or LossReporter(actions)
         self._actions = actions
 
     @property

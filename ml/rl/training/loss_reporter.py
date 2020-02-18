@@ -160,6 +160,14 @@ class StatsByAction(object):
         return len(self.stats)
 
 
+class NoOpLossReporter:
+    def report(self, **kwargs):
+        pass
+
+    def flush(self):
+        pass
+
+
 class LossReporter(object):
     RECENT_WINDOW_SIZE = 100
 

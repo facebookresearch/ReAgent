@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 
 import torch
 import torch.nn.functional as F
+from ml.rl.core.tracker import observable
 from ml.rl.evaluation.cpe import CpeDetails, CpeEstimateSet
 from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
@@ -52,7 +53,8 @@ def get_metrics_to_score(metric_reward_values: Optional[Dict[str, float]]) -> Li
     return sorted([*metric_reward_values.keys()])
 
 
-class Evaluator(object):
+@observable(cpe_details=CpeDetails)
+class Evaluator:
     NUM_J_STEPS_FOR_MAGIC_ESTIMATOR = 25
 
     def __init__(self, action_names, gamma, model, metrics_to_score=None) -> None:
@@ -111,6 +113,7 @@ class Evaluator(object):
         cpe_details.mc_loss = float(
             F.mse_loss(edp.logged_values, edp.model_values_for_logged_action)
         )
+        self.notify_observers(cpe_details=cpe_details)  # type: ignore
         return cpe_details
 
     def score_cpe(self, metric_name, edp: EvaluationDataPage):
