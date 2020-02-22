@@ -128,7 +128,6 @@ class TestEvaluationDataPage(unittest.TestCase):
         baseline_net = nn.Linear(1, 1)
         trainer = Seq2SlateTrainer(
             seq2slate_net,
-            baseline_net,
             # these parameters are not used in this test but some of them
             # are required in __init__ function of Seq2SlateTrainer
             parameters=Seq2SlateTransformerParameters(
@@ -140,6 +139,7 @@ class TestEvaluationDataPage(unittest.TestCase):
                 learning_method=None,
             ),
             minibatch_size=3,
+            baseline_net=baseline_net,
             use_gpu=False,
         )
 

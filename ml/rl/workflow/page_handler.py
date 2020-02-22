@@ -186,8 +186,10 @@ class RankingTrainingPageHandler(PageHandler):
         self.baseline_loss = []
 
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        _, _, rl_loss, baseline_loss = self.trainer_or_evaluator.train(tdp)
-        self.results.append({"pg": rl_loss, "baseline": baseline_loss})
+        res_dict = self.trainer_or_evaluator.train(tdp)
+        self.results.append(
+            {"pg": res_dict["ips_rl_loss"], "baseline": res_dict["baseline_loss"]}
+        )
 
     def finish(self):
         self.policy_gradient_loss.append(float(self.get_mean_loss(loss_name="pg")))

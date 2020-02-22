@@ -7,5 +7,5 @@ from enum import Enum
 class LearningMethod(Enum):
     TEACHER_FORCING = "teacher_forcing"
     REINFORCEMENT_LEARNING = "reinforcement_learning"
-    SUPERVISED_LEARNING = "supervised_learning"
+    DIFFERENTIABLE_REWARD = "differentiable_reward"
     PAIRWISE_ATTENTION = "pairwise_attention"

@@ -271,9 +271,10 @@ class BaselineParameters(BaseDataClass):
 @dataclass(frozen=True)
 class Seq2SlateTransformerParameters(BaseDataClass):
     transformer: TransformerParameters
-    baseline: BaselineParameters
+    baseline: Optional[BaselineParameters]
     on_policy: bool
     learning_method: LearningMethod
+    importance_sampling_clamp_max: Optional[float] = None
 
 
 @dataclass(frozen=True)

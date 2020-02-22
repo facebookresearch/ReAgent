@@ -136,6 +136,7 @@ class TestPredictorWrapper(unittest.TestCase):
             dim_feedforward=10,
             max_src_seq_len=10,
             max_tgt_seq_len=4,
+            encoder_only=False,
         )
         seq2slate_with_preprocessor = Seq2SlateWithPreprocessor(
             seq2slate, state_preprocessor, candidate_preprocessor, greedy=True
