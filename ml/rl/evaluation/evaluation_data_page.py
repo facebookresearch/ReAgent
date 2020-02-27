@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from ml.rl import types as rlt
-from ml.rl.models.seq2slate import Seq2SlateMode
+from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from ml.rl.torch_utils import masked_softmax
 from ml.rl.training.dqn_trainer import DQNTrainer
 from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class EvaluationDataPage(NamedTuple):
-    mdp_id: np.ndarray
-    sequence_number: torch.Tensor
+    mdp_id: Optional[np.ndarray]
+    sequence_number: Optional[torch.Tensor]
     logged_propensities: torch.Tensor
     logged_rewards: torch.Tensor
     action_mask: torch.Tensor
@@ -85,21 +85,6 @@ class EvaluationDataPage(NamedTuple):
                 tdb.extras.max_num_actions,
                 metrics=tdb.extras.metrics,
             )
-        elif type(tdb.training_input) == rlt.PreprocessedRankingInput and isinstance(
-            trainer, Seq2SlateTrainer
-        ):
-            ranking_training_input = cast(
-                rlt.PreprocessedRankingInput, tdb.training_input
-            )
-            assert reward_network is not None
-
-            return EvaluationDataPage.create_from_tensors_seq2slate(
-                trainer,
-                reward_network,
-                tdb.extras.mdp_id,
-                tdb.extras.sequence_number,
-                ranking_training_input,
-            )
         else:
             raise NotImplementedError(
                 f"training_input type: {type(tdb.training_input)}"
@@ -109,17 +94,17 @@ class EvaluationDataPage(NamedTuple):
     @torch.no_grad()  # type: ignore
     def create_from_tensors_seq2slate(
         cls,
-        trainer: Seq2SlateTrainer,
+        seq2slate_net: Seq2SlateTransformerNet,
         reward_network: nn.Module,
-        mdp_ids: np.ndarray,
-        sequence_numbers: torch.Tensor,
         training_input: rlt.PreprocessedRankingInput,
+        eval_greedy: bool,
+        mdp_ids: Optional[np.ndarray] = None,
+        sequence_numbers: Optional[torch.Tensor] = None,
     ):
         """
-        Evaluating on a non-greedy serving ranking model is too expensive because
-        we would need to compute propensities of all possible output sequences.
-        Hence we assume the ranking model has a greedy policy that always picks
-        the most probable output sequence.
+        :param eval_greedy: If True, evaluate the greedy policy which
+        always picks the most probable output sequence. If False, evaluate
+         the stochastic ranking policy.
         """
         assert (
             training_input.slate_reward is not None
@@ -127,7 +112,6 @@ class EvaluationDataPage(NamedTuple):
             and training_input.tgt_out_idx is not None
             and training_input.tgt_out_seq is not None
         )
-        seq2slate_net = trainer.seq2slate_net
         batch_size, tgt_seq_len, candidate_dim = (
             training_input.tgt_out_seq.float_features.shape
         )
@@ -137,12 +121,27 @@ class EvaluationDataPage(NamedTuple):
             training_input, Seq2SlateMode.RANK_MODE, greedy=True
         )
         assert rank_output.ranked_tgt_out_idx is not None
-        model_propensities = torch.ones(batch_size, 1, device=device)
-        action_mask = torch.all(
-            (training_input.tgt_out_idx - 2) == (rank_output.ranked_tgt_out_idx - 2),
-            dim=1,
-            keepdim=True,
-        ).float()
+        if eval_greedy:
+            model_propensities = torch.ones(batch_size, 1, device=device)
+            action_mask = torch.all(
+                (training_input.tgt_out_idx - 2)
+                == (rank_output.ranked_tgt_out_idx - 2),
+                dim=1,
+                keepdim=True,
+            ).float()
+        else:
+            # Fully evaluating a non-greedy ranking model is too expensive because
+            # we would need to compute propensities of all possible output sequences.
+            # Here we only compute the propensity of the output sequences in the data.
+            # As a result, we can still get a true IPS estimation but not correct
+            # direct method / doubly-robust.
+            model_propensities = torch.exp(
+                seq2slate_net(
+                    training_input, Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
+                ).log_probs
+            ).unsqueeze(1)
+            action_mask = torch.ones(batch_size, 1, device=device).float()
+
         model_rewards_for_logged_action = reward_network(
             training_input.state.float_features,
             training_input.src_seq.float_features,
@@ -159,7 +158,8 @@ class EvaluationDataPage(NamedTuple):
             rank_output.ranked_tgt_out_idx.flatten() - 2,
         ].reshape(batch_size, tgt_seq_len, candidate_dim)
         # model_rewards refers to predicted rewards for the slate generated
-        # greedily by the ranking model
+        # greedily by the ranking model. It would be too expensive to
+        # compute model_rewards for all possible slates
         model_rewards = reward_network(
             training_input.state.float_features,
             training_input.src_seq.float_features,
@@ -501,6 +501,7 @@ class EvaluationDataPage(NamedTuple):
         return EvaluationDataPage(**new_edp)
 
     def compute_values(self, gamma: float):
+        assert self.mdp_id is not None and self.sequence_number is not None
         logged_values = EvaluationDataPage.compute_values_for_mdps(
             self.logged_rewards, self.mdp_id, self.sequence_number, gamma
         )

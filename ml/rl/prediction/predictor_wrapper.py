@@ -356,6 +356,7 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
         ranked_tgt_out_probs, ranked_tgt_out_idx = self.seq2slate_with_preprocessor(
             state_with_presence, candidate_with_presence
         )
+        # convert to slate-wise probabilities
         # ranked_tgt_out_probs shape: batch_size
         ranked_tgt_out_probs = torch.prod(
             torch.gather(

@@ -32,11 +32,14 @@ class RankingEvaluator:
         assert not calc_cpe or reward_network is not None
         self.trainer = trainer
         self.advantages = []
-        self.log_probs = []
+        self.logged_slate_log_probs = []
+        self.ranked_slate_probs = []
         self.baseline_loss = []
         self.calc_cpe = calc_cpe
         self.reward_network = reward_network
-        self.eval_data_pages: Optional[EvaluationDataPage] = None
+        # Evaluate greedy/non-greedy version of the ranking model
+        self.eval_data_pages_g: Optional[EvaluationDataPage] = None
+        self.eval_data_pages_ng: Optional[EvaluationDataPage] = None
 
     @torch.no_grad()
     def evaluate(self, eval_tdp: PreprocessedTrainingBatch):
@@ -48,7 +51,7 @@ class RankingEvaluator:
         seq2slate_net.eval()
         baseline_net.eval()
 
-        log_prob = (
+        logged_slate_log_prob = (
             seq2slate_net(
                 eval_tdp.training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
             )
@@ -64,7 +67,24 @@ class RankingEvaluator:
             F.mse_loss(b, eval_tdp.training_input.slate_reward).item()
         )
         self.advantages.append(advantage)
-        self.log_probs.append(log_prob)
+        self.logged_slate_log_probs.append(logged_slate_log_prob)
+
+        ranked_slate_output = seq2slate_net(
+            eval_tdp.training_input, Seq2SlateMode.RANK_MODE, greedy=True
+        )
+        ranked_slate_prob = (
+            torch.prod(
+                torch.gather(
+                    ranked_slate_output.ranked_tgt_out_probs,
+                    2,
+                    ranked_slate_output.ranked_tgt_out_idx.unsqueeze(-1),
+                ).squeeze(),
+                -1,
+            )
+            .cpu()
+            .numpy()
+        )
+        self.ranked_slate_probs.append(ranked_slate_prob)
 
         seq2slate_net.train(seq2slate_net_prev_mode)
         baseline_net.train(baseline_net_prev_mode)
@@ -72,20 +92,34 @@ class RankingEvaluator:
         if not self.calc_cpe:
             return
 
-        edp = EvaluationDataPage.create_from_training_batch(
-            eval_tdp, self.trainer, self.reward_network
+        edp_g = EvaluationDataPage.create_from_tensors_seq2slate(
+            seq2slate_net,
+            self.reward_network,
+            eval_tdp.training_input,
+            eval_greedy=True,
         )
-        if self.eval_data_pages is None:
-            self.eval_data_pages = edp
+        if self.eval_data_pages_g is None:
+            self.eval_data_pages_g = edp_g
         else:
-            self.eval_data_pages = self.eval_data_pages.append(edp)
+            self.eval_data_pages_g = self.eval_data_pages_g.append(edp_g)
+
+        edp_ng = EvaluationDataPage.create_from_tensors_seq2slate(
+            seq2slate_net,
+            self.reward_network,
+            eval_tdp.training_input,
+            eval_greedy=False,
+        )
+        if self.eval_data_pages_ng is None:
+            self.eval_data_pages_ng = edp_ng
+        else:
+            self.eval_data_pages_ng = self.eval_data_pages_ng.append(edp_ng)
 
     @torch.no_grad()
     def evaluate_post_training(self):
         # One indicator of successful training is that sequences with large
         # advantages should have large log probabilities
         kendall_tau = stats.kendalltau(
-            np.hstack(self.log_probs), np.hstack(self.advantages)
+            np.hstack(self.logged_slate_log_probs), np.hstack(self.advantages)
         )
         logger.info(
             f"kendall_tau={kendall_tau.correlation}, p-value={kendall_tau.pvalue}"
@@ -99,18 +133,28 @@ class RankingEvaluator:
         if self.calc_cpe:
             doubly_robust_estimator = DoublyRobustEstimator()
             direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
-                self.eval_data_pages
+                self.eval_data_pages_g
             )
             eval_res["cpe_dm_raw"] = direct_method.raw
             eval_res["cpe_dm_normalized"] = direct_method.normalized
-            eval_res["cpe_ips_raw"] = inverse_propensity.raw
-            eval_res["cpe_ips_normalized"] = inverse_propensity.normalized
+            eval_res["cpe_ips_raw_greedy"] = inverse_propensity.raw
+            eval_res["cpe_ips_normalized_greedy"] = inverse_propensity.normalized
             eval_res["cpe_dr_raw"] = doubly_robust.raw
             eval_res["cpe_dr_normalized"] = doubly_robust.normalized
 
+            _, inverse_propensity, _ = doubly_robust_estimator.estimate(
+                self.eval_data_pages_ng
+            )
+            eval_res["cpe_ips_raw_non_greedy"] = inverse_propensity.raw
+            eval_res["cpe_ips_normalized_non_greedy"] = inverse_propensity.normalized
+
+            eval_res["ranked_slate_probs"] = np.mean(self.ranked_slate_probs)
+
         self.advantages = []
-        self.log_probs = []
+        self.logged_slate_log_probs = []
+        self.ranked_slate_probs = []
         self.baseline_loss = []
-        self.eval_data_pages = None
+        self.eval_data_pages_g = None
+        self.eval_data_pages_ng = None
 
         return eval_res
