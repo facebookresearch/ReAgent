@@ -352,19 +352,16 @@ class PositionalEncoding(nn.Module):
 class BaselineNet(nn.Module):
     def __init__(self, state_dim, dim_feedforward, num_stacked_layers):
         super(BaselineNet, self).__init__()
-        h_sizes = [state_dim] + [dim_feedforward] * num_stacked_layers + [1]
-        self.num_stacked_layers = num_stacked_layers
-        self.hidden = nn.ModuleList()
-        for k in range(len(h_sizes) - 1):
-            self.hidden.append(nn.Linear(h_sizes[k], h_sizes[k + 1]))
+        nn_blocks = [nn.Linear(state_dim, dim_feedforward), nn.ReLU()]
+        assert num_stacked_layers >= 1
+        for _ in range(num_stacked_layers - 1):
+            nn_blocks.extend([nn.Linear(dim_feedforward, dim_feedforward), nn.ReLU()])
+        nn_blocks.append(nn.Linear(dim_feedforward, 1))
+        self.mlp = nn.Sequential(*nn_blocks)
 
     def forward(self, input: rlt.PreprocessedRankingInput):
         x = input.state.float_features
-        for i in range(self.num_stacked_layers + 1):
-            if i == self.num_stacked_layers:
-                return self.hidden[i](x)
-            else:
-                x = F.relu(self.hidden[i](x))
+        return self.mlp(x)
 
 
 class Seq2SlateTransformerModel(nn.Module):
