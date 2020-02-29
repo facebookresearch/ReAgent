@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 
 import ml.rl.types as rlt
+import numpy as np
 import torch
 from ml.rl.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from ml.rl.parameters import Seq2SlateTransformerParameters
@@ -138,7 +139,7 @@ class Seq2SlateTrainer(Trainer):
         ips_rl_loss = (
             (-1.0 / batch_size * torch.sum(importance_sampling * reward)).cpu().numpy()
         )
-        baseline_loss = baseline_loss.detach().cpu().numpy()
+        baseline_loss = baseline_loss.detach().cpu().numpy().item()
 
         advantage = (reward - b).detach().cpu().numpy()
         log_probs = log_probs.detach().cpu().numpy()
@@ -158,7 +159,7 @@ class Seq2SlateTrainer(Trainer):
             )
 
         return {
-            "per_seq_log_probs": log_probs,
+            "per_seq_probs": np.exp(log_probs),
             "advantage": advantage,
             "obj_rl_loss": obj_rl_loss,
             "ips_rl_loss": ips_rl_loss,

@@ -180,11 +180,11 @@ class ImitatorPageHandler(PageHandler):
 
 
 class RankingTrainingPageHandler(PageHandler):
-    def __init__(self, trainer):
+    def __init__(self, trainer) -> None:
         super().__init__(trainer)
         self.policy_gradient_loss = []
         self.baseline_loss = []
-        self.per_seq_log_probs = []
+        self.per_seq_probs = []
 
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         res_dict = self.trainer_or_evaluator.train(tdp)
@@ -199,9 +199,9 @@ class RankingTrainingPageHandler(PageHandler):
             self.baseline_loss.append(
                 float(self.get_mean_loss(loss_name="baseline_loss"))
             )
-        if "per_seq_log_probs" in self.results[0]:
-            self.per_seq_log_probs.append(
-                float(self.get_mean_loss(loss_name="per_seq_log_probs"))
+        if "per_seq_probs" in self.results[0]:
+            self.per_seq_probs.append(
+                float(self.get_mean_loss(loss_name="per_seq_probs"))
             )
         self.refresh_results()
 
