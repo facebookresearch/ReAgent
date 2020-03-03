@@ -8,6 +8,7 @@ from typing import List
 import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import torch
+from ml.rl.core.tracker import observable
 from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -52,6 +53,14 @@ class C51TrainerParameters:
         )
 
 
+@observable(
+    td_loss=torch.Tensor,
+    logged_actions=torch.Tensor,
+    logged_propensities=torch.Tensor,
+    logged_rewards=torch.Tensor,
+    model_values=torch.Tensor,
+    model_action_idxs=torch.Tensor,
+)
 class C51Trainer(RLTrainer):
     """
     Implementation of 51 Categorical DQN (C51)
@@ -66,6 +75,7 @@ class C51Trainer(RLTrainer):
         parameters: C51TrainerParameters,
         use_gpu=False,
         metrics_to_score=None,
+        loss_reporter=None,
     ) -> None:
         RLTrainer.__init__(
             self,
@@ -73,6 +83,7 @@ class C51Trainer(RLTrainer):
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,
+            loss_reporter=loss_reporter,
         )
 
         self.double_q_learning = parameters.double_q_learning
@@ -187,6 +198,16 @@ class C51Trainer(RLTrainer):
             all_q_values,
             possible_actions_mask if self.maxq_learning else learning_input.action,
         )
+
+        self.notify_observers(
+            td_loss=loss,
+            logged_actions=learning_input.action.argmax(dim=1, keepdim=True),
+            logged_propensities=training_batch.extras.action_probability,
+            logged_rewards=rewards,
+            model_values=all_q_values,
+            model_action_idxs=model_action_idxs,
+        )
+
         self.loss_reporter.report(
             td_loss=loss,
             logged_actions=learning_input.action.argmax(dim=1, keepdim=True),
@@ -225,3 +246,6 @@ class C51Trainer(RLTrainer):
         q_values = q_values.reshape(possible_actions_mask.shape)
         q_values = q_values + self.ACTION_NOT_POSSIBLE_VAL * (1 - possible_actions_mask)
         return q_values.argmax(1)
+
+    def warm_start_components(self):
+        return ["q_network", "q_network_target", "q_network_optimizer"]

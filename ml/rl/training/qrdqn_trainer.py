@@ -8,6 +8,7 @@ from typing import List
 import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import torch
+from ml.rl.core.tracker import observable
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage
 
@@ -58,6 +59,16 @@ class QRDQNTrainerParameters:
         )
 
 
+@observable(
+    td_loss=torch.Tensor,
+    logged_actions=torch.Tensor,
+    logged_propensities=torch.Tensor,
+    logged_rewards=torch.Tensor,
+    model_propensities=torch.Tensor,
+    model_rewards=torch.Tensor,
+    model_values=torch.Tensor,
+    model_action_idxs=torch.Tensor,
+)
 class QRDQNTrainer(DQNTrainerBase):
     """
     Implementation of QR-DQN (Quantile Regression Deep Q-Network)
@@ -75,6 +86,7 @@ class QRDQNTrainer(DQNTrainerBase):
         reward_network=None,
         q_network_cpe=None,
         q_network_cpe_target=None,
+        loss_reporter=None,
     ) -> None:
         super().__init__(
             parameters.rl,
@@ -82,6 +94,7 @@ class QRDQNTrainer(DQNTrainerBase):
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,
             evaluation_parameters=parameters.evaluation,
+            loss_reporter=loss_reporter,
         )
 
         self.double_q_learning = parameters.double_q_learning
@@ -211,6 +224,18 @@ class QRDQNTrainer(DQNTrainerBase):
             all_q_values,
             possible_actions_mask if self.maxq_learning else learning_input.action,
         )
+
+        self.notify_observers(
+            td_loss=loss,
+            logged_actions=logged_action_idxs,
+            logged_propensities=training_batch.extras.action_probability,
+            logged_rewards=rewards,
+            model_propensities=model_propensities,
+            model_rewards=model_rewards,
+            model_values=all_q_values,
+            model_action_idxs=model_action_idxs,
+        )
+
         self.loss_reporter.report(
             td_loss=loss,
             logged_actions=logged_action_idxs,
