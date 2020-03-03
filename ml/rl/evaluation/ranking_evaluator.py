@@ -42,14 +42,10 @@ class RankingEvaluator:
         self.eval_data_pages_ng: Optional[EvaluationDataPage] = None
 
     @torch.no_grad()
-    def evaluate(self, eval_tdp: PreprocessedTrainingBatch):
+    def evaluate(self, eval_tdp: PreprocessedTrainingBatch) -> None:
         seq2slate_net = self.trainer.seq2slate_net
-        baseline_net = self.trainer.baseline_net
-
         seq2slate_net_prev_mode = seq2slate_net.training
-        baseline_net_prev_mode = baseline_net.training
         seq2slate_net.eval()
-        baseline_net.eval()
 
         logged_slate_log_prob = (
             seq2slate_net(
@@ -60,12 +56,21 @@ class RankingEvaluator:
             .cpu()
             .numpy()
         )
-        b = baseline_net(eval_tdp.training_input).squeeze().detach()
-        advantage = (eval_tdp.training_input.slate_reward - b).flatten().cpu().numpy()
 
-        self.baseline_loss.append(
-            F.mse_loss(b, eval_tdp.training_input.slate_reward).item()
-        )
+        if self.trainer.baseline_net:
+            baseline_net = self.trainer.baseline_net
+            baseline_net_prev_mode = baseline_net.training
+            baseline_net.eval()
+            b = baseline_net(eval_tdp.training_input).squeeze().detach()
+            self.baseline_loss.append(
+                F.mse_loss(b, eval_tdp.training_input.slate_reward).item()
+            )
+            baseline_net.train(baseline_net_prev_mode)
+        else:
+            b = torch.zeros_like(eval_tdp.training_input.slate_reward)
+            self.baseline_loss.append(0.0)
+
+        advantage = (eval_tdp.training_input.slate_reward - b).flatten().cpu().numpy()
         self.advantages.append(advantage)
         self.logged_slate_log_probs.append(logged_slate_log_prob)
 
@@ -87,7 +92,6 @@ class RankingEvaluator:
         self.ranked_slate_probs.append(ranked_slate_prob)
 
         seq2slate_net.train(seq2slate_net_prev_mode)
-        baseline_net.train(baseline_net_prev_mode)
 
         if not self.calc_cpe:
             return

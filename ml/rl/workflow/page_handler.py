@@ -182,9 +182,9 @@ class ImitatorPageHandler(PageHandler):
 class RankingTrainingPageHandler(PageHandler):
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
-        self.policy_gradient_loss = []
-        self.baseline_loss = []
-        self.per_seq_probs = []
+        self.policy_gradient_loss: List[float] = []
+        self.baseline_loss: List[float] = []
+        self.per_seq_probs: List[float] = []
 
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         res_dict = self.trainer_or_evaluator.train(tdp)

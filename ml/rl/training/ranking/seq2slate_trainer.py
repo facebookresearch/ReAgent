@@ -50,7 +50,9 @@ class Seq2SlateTrainer(Trainer):
         )
 
     def warm_start_components(self):
-        components = ["seq2slate_net", "baseline_net"]
+        components = ["seq2slate_net"]
+        if self.baseline_net:
+            components.append("baseline_net")
         return components
 
     def _compute_impt_sampling(
