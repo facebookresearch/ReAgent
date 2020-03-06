@@ -63,6 +63,7 @@ class SequentialDoublyRobustEstimator:
         doubly_robusts: List[float] = []
         episode_values: List[float] = []
 
+        assert edp.mdp_id is not None
         i = 0
         last_episode_end = -1
         while i < num_examples:

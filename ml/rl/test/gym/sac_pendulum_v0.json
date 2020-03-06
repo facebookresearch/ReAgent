@@ -10,9 +10,13 @@
     "softmax_policy": 1
   },
   "sac_training": {
+    "rl": {
+      "gamma": 0.99,
+      "target_update_rate": 0.005,
+      "epsilon": 0,
+      "softmax_policy": 1
+    },
     "minibatch_size": 256,
-    "use_value_network": true,
-    "use_2_q_functions": false,
     "q_network_optimizer": {
       "learning_rate": 0.001
     },
@@ -20,6 +24,9 @@
       "learning_rate": 0.001
     },
     "actor_network_optimizer": {
+      "learning_rate": 0.001
+    },
+    "alpha_optimizer": {
       "learning_rate": 0.001
     },
     "entropy_temperature": 0.1

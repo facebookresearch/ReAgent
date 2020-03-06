@@ -7,7 +7,11 @@
     "inputTableName": "pendulum",
     "outputTableName": "pendulum_training",
     "evalTableName": "pendulum_eval",
-    "numOutputShards": 1
+    "numOutputShards": 1,
+    "includePossibleActions": false,
+    "percentileFunction": "percentile_approx",
+    "rewardColumns": ["reward", "metrics"],
+    "extraFeatureColumns": []
   },
   "query": {
     "tableSample": 5

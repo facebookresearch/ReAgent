@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Type
 
+from ml.rl import types as rlt
 from ml.rl.models.base import ModelBase
 from ml.rl.models.dueling_q_network import DuelingQNetwork
 from ml.rl.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
@@ -32,6 +33,7 @@ class Dueling(DiscreteDQNNetBuilder):
 
     def build_q_network(
         self,
+        state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         output_dim: int,
     ) -> ModelBase:

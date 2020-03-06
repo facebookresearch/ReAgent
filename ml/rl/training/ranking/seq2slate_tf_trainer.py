@@ -35,7 +35,7 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         self.minibatch = 0
         self.optimizer = torch.optim.Adam(
             self.seq2slate_net.parameters(),
-            lr=self.parameters.baseline.learning_rate,
+            lr=self.parameters.transformer.learning_rate,
             amsgrad=True,
         )
         self.kl_div_loss = nn.KLDivLoss(reduction="batchmean")
@@ -54,19 +54,10 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         ).log_probs
         assert log_probs.requires_grad
 
-        if not self.parameters.on_policy:
-            importance_sampling = (
-                torch.exp(log_probs.detach()) / training_input.tgt_out_probs
-            )
-        else:
-            importance_sampling = torch.FloatTensor([1.0])
-            if self.use_gpu:
-                importance_sampling = importance_sampling.cuda()
-
         assert training_input.optim_tgt_out_idx is not None
         labels = self._transform_label(training_input.optim_tgt_out_idx)
         assert not labels.requires_grad
-        loss = importance_sampling * self.kl_div_loss(log_probs, labels)
+        loss = self.kl_div_loss(log_probs, labels)
 
         self.optimizer.zero_grad()
         loss.backward()

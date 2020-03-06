@@ -21,7 +21,7 @@ class SparseToDenseProcessor:
         return self.process(sparse_data)
 
 
-class PandasSparseToDenseProcessor(SparseToDenseProcessor):
+class StringKeySparseToDenseProcessor(SparseToDenseProcessor):
     """
     We just have this in case the input data is keyed by string
     """
@@ -40,7 +40,7 @@ class PandasSparseToDenseProcessor(SparseToDenseProcessor):
         for sd in sparse_data:
             sd_int = {}
             for k, v in sd.items():
-                sd_int[self._sparse_to_dense.feature_to_index[int(k)]] = v
+                sd_int[int(k)] = v
             sparse_data_int.append(sd_int)
         return self._sparse_to_dense(sparse_data_int)
 
@@ -63,10 +63,10 @@ class PythonSparseToDenseProcessor(SparseToDenseProcessor):
         state_features_df = pd.DataFrame(sparse_data).fillna(missing_value)
         # Add columns identified by normalization, but not present in batch
         for col in self.sorted_features:
-            if col not in state_features_df.columns:
-                state_features_df[col] = missing_value
+            if col not in state_features_df.columns:  # type: ignore
+                state_features_df[col] = missing_value  # type: ignore
         values = torch.from_numpy(
-            state_features_df[self.sorted_features].values
+            state_features_df[self.sorted_features].to_numpy()  # type: ignore
         ).float()
         if self.set_missing_value_to_zero:
             # When we set missing values to 0, we don't know what is and isn't missing

@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple
 import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import torch
+from ml.rl.core.tracker import observable
 from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.imitator_training import get_valid_actions_from_imitator
@@ -57,6 +58,17 @@ class DQNTrainerParameters:
         )
 
 
+@observable(
+    td_loss=torch.Tensor,
+    reward_loss=torch.Tensor,
+    logged_actions=torch.Tensor,
+    logged_propensities=torch.Tensor,
+    logged_rewards=torch.Tensor,
+    model_propensities=torch.Tensor,
+    model_rewards=torch.Tensor,
+    model_values=torch.Tensor,
+    model_action_idxs=torch.Tensor,
+)
 class DQNTrainer(DQNTrainerBase):
     def __init__(
         self,
@@ -69,6 +81,7 @@ class DQNTrainer(DQNTrainerBase):
         q_network_cpe_target=None,
         metrics_to_score=None,
         imitator=None,
+        loss_reporter=None,
     ) -> None:
         super().__init__(
             parameters.rl,
@@ -76,6 +89,7 @@ class DQNTrainer(DQNTrainerBase):
             metrics_to_score=metrics_to_score,
             actions=parameters.actions,
             evaluation_parameters=parameters.evaluation,
+            loss_reporter=loss_reporter,
         )
         assert self._actions is not None, "Discrete-action DQN needs action names"
         self.double_q_learning = parameters.double_q_learning
@@ -233,6 +247,18 @@ class DQNTrainer(DQNTrainerBase):
             self.all_action_scores,
             possible_actions_mask if self.maxq_learning else learning_input.action,
         )[1]
+
+        self.notify_observers(
+            td_loss=self.loss,
+            reward_loss=reward_loss,
+            logged_actions=logged_action_idxs,
+            logged_propensities=training_batch.extras.action_probability,
+            logged_rewards=rewards,
+            model_propensities=model_propensities,
+            model_rewards=model_rewards,
+            model_values=self.all_action_scores,
+            model_action_idxs=model_action_idxs,
+        )
 
         self.loss_reporter.report(
             td_loss=self.loss,

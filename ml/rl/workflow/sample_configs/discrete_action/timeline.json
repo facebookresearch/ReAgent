@@ -7,13 +7,14 @@
     "inputTableName": "cartpole_discrete",
     "outputTableName": "cartpole_discrete_training",
     "evalTableName": "cartpole_discrete_eval",
-    "numOutputShards": 1
+    "numOutputShards": 1,
+    "includePossibleActions": true,
+    "percentileFunction": "percentile_approx",
+    "rewardColumns": ["reward", "metrics"],
+    "extraFeatureColumns": []
   },
   "query": {
     "tableSample": 100,
-    "actions": [
-      "0",
-      "1"
-    ]
+    "actions": ["0", "1"]
   }
 }

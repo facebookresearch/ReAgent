@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import ml.rl.types as rlt
 import torch
@@ -49,6 +49,78 @@ class DiscreteDqnWithPreprocessor(ModelBase):
         return self.state_preprocessor.sorted_features
 
 
+class DiscreteDqnWithPreprocessorWithIdList(ModelBase):
+    """
+    This is separated from DiscreteDqnPredictorWrapper so that we can pass typed inputs
+    into the model. This is possible because JIT only traces tensor operation.
+    In contrast, JIT scripting needs to compile the code, therefore, it won't recognize
+    any custom Python type.
+    """
+
+    def __init__(
+        self,
+        model: ModelBase,
+        state_preprocessor: Preprocessor,
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+    ):
+        super().__init__()
+        self.model = model
+        self.state_preprocessor = state_preprocessor
+        self.state_feature_config = state_feature_config
+
+    def forward(
+        self,
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        state_id_list_features: Dict[int, Tuple[torch.Tensor, torch.Tensor]],
+    ):
+        preprocessed_state = self.state_preprocessor(
+            state_with_presence[0], state_with_presence[1]
+        )
+        id_list_features = {
+            id_list_feature_config.name: state_id_list_features[
+                id_list_feature_config.feature_id
+            ]
+            for id_list_feature_config in self.id_list_feature_configs
+        }
+        state_feature_vector = rlt.PreprocessedState(
+            state=rlt.PreprocessedFeatureVector(
+                float_features=preprocessed_state, id_list_features=id_list_features
+            )
+        )
+        q_values = self.model(state_feature_vector).q_values
+        return q_values
+
+    @property
+    def id_list_feature_configs(self) -> List[rlt.IdListFeatureConfig]:
+        if self.state_feature_config:
+            return self.state_feature_config.id_list_feature_configs
+        return []
+
+    def input_prototype(self):
+        feature_name_to_id = {
+            config.name: config.feature_id for config in self.id_list_feature_configs
+        }
+        state_id_list_features = {
+            feature_name_to_id[k]: v
+            for k, v in self.model.input_prototype().state.id_list_features.items()
+        }
+        # Terrible hack to make JIT tracing works. Python dict doesn't have type
+        # so we need to insert something so JIT tracer can infer the type.
+        if not state_id_list_features:
+            state_id_list_features = {
+                -1: (
+                    torch.zeros(1, dtype=torch.long),
+                    torch.tensor([], dtype=torch.long),
+                )
+            }
+        return (self.state_preprocessor.input_prototype(), state_id_list_features)
+
+    @property
+    def sorted_features(self):
+        # TODO: the interface here should be ModelFeatureConfig
+        return self.state_preprocessor.sorted_features
+
+
 class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
     __constants__ = ["state_sorted_features_t"]
 
@@ -83,6 +155,47 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
     ) -> Tuple[List[str], torch.Tensor]:
         q_values = self.dqn_with_preprocessor(state_with_presence)
+        return (self.action_names, q_values)
+
+
+class DiscreteDqnPredictorWrapperWithIdList(torch.jit.ScriptModule):
+    __constants__ = ["state_sorted_features_t"]
+
+    def __init__(
+        self,
+        dqn_with_preprocessor: DiscreteDqnWithPreprocessorWithIdList,
+        action_names: List[str],
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+    ) -> None:
+        """
+        state_feature_config is here to keep the interface consistent with FB internal
+        version
+        """
+        super().__init__()
+
+        self.state_sorted_features_t = dqn_with_preprocessor.sorted_features
+
+        self.dqn_with_preprocessor = torch.jit.trace(
+            dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
+        )
+        self.action_names = torch.jit.Attribute(action_names, List[str])
+
+    @torch.jit.script_method
+    def state_sorted_features(self) -> List[int]:
+        """
+        This interface is used by DiscreteDqnTorchPredictor
+        """
+        return self.state_sorted_features_t
+
+    @torch.jit.script_method
+    def forward(
+        self,
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        state_id_list_features: Dict[int, Tuple[torch.Tensor, torch.Tensor]],
+    ) -> Tuple[List[str], torch.Tensor]:
+        q_values = self.dqn_with_preprocessor(
+            state_with_presence, state_id_list_features
+        )
         return (self.action_names, q_values)
 
 
@@ -356,6 +469,7 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
         ranked_tgt_out_probs, ranked_tgt_out_idx = self.seq2slate_with_preprocessor(
             state_with_presence, candidate_with_presence
         )
+        # convert to slate-wise probabilities
         # ranked_tgt_out_probs shape: batch_size
         ranked_tgt_out_probs = torch.prod(
             torch.gather(

@@ -3,6 +3,7 @@
 
 import logging
 import unittest
+from typing import Optional
 
 import numpy as np
 import torch
@@ -11,12 +12,6 @@ from ml.rl import types as rlt
 from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.models.seq2slate import Seq2SlateMode
-from ml.rl.parameters import (
-    BaselineParameters,
-    Seq2SlateTransformerParameters,
-    TransformerParameters,
-)
-from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 
 
 logger = logging.getLogger(__name__)
@@ -65,26 +60,20 @@ class FakeSeq2SlateTransformerNet(nn.Module):
         super().__init__()
         self.fake_parms = nn.Linear(1, 1)
 
-    def forward(self, input: rlt.PreprocessedRankingInput, mode: str, greedy: bool):
+    def forward(
+        self,
+        input: rlt.PreprocessedRankingInput,
+        mode: str,
+        greedy: Optional[bool] = None,
+    ):
         # The creation of evaluation data pages only uses these specific arguments
-        assert greedy and mode == Seq2SlateMode.RANK_MODE
-        batch_size = input.state.float_features.shape[0]
-        ranked_tgt_out_idx = []
-
-        for i in range(batch_size):
-            ranked_tgt_out_idx.append(self._forward(input.state.float_features[i]))
-
-        return rlt.RankingOutput(
-            ranked_tgt_out_idx=torch.tensor(ranked_tgt_out_idx).long()
-        )
-
-    def _forward(self, state: torch.Tensor):
-        if (state == torch.tensor([1.0, 0.0, 0.0])).all():
-            return [2, 3]
-        elif (state == torch.tensor([0.0, 1.0, 0.0])).all():
-            return [3, 2]
-        elif (state == torch.tensor([0.0, 0.0, 1.0])).all():
-            return [2, 3]
+        assert mode in (Seq2SlateMode.RANK_MODE, Seq2SlateMode.PER_SEQ_LOG_PROB_MODE)
+        if mode == Seq2SlateMode.RANK_MODE:
+            assert greedy
+            return rlt.RankingOutput(
+                ranked_tgt_out_idx=torch.tensor([[2, 3], [3, 2], [2, 3]]).long()
+            )
+        return rlt.RankingOutput(log_probs=torch.log(torch.tensor([0.4, 0.3, 0.7])))
 
 
 class TestEvaluationDataPage(unittest.TestCase):
@@ -101,6 +90,9 @@ class TestEvaluationDataPage(unittest.TestCase):
         logged propensities: 0.2, 0.5, 0.4
         predicted rewards on logged slates: 2, 4, 6
         predicted rewards on model outputted slates: 1, 4, 5
+        predicted propensities: 0.4, 0.3, 0.7
+
+        When eval_greedy=True:
 
         Direct Method uses the predicted rewards on model outputted slates.
         Thus the result is expected to be (1 + 4 + 5) / 3
@@ -116,6 +108,15 @@ class TestEvaluationDataPage(unittest.TestCase):
          * Indicator(model slate == logged slate)
         Since only the second logged slate matches with the model outputted slate,
         the DR result is expected to be (1 + 4 + 5) / 3 + 1.0 / 0.5 * (5 - 4) / 3
+
+
+        When eval_greedy=False:
+
+        Only Inverse Propensity Scores would be accurate. Because it would be too
+        expensive to compute all possible slates' propensities and predicted rewards
+        for Direct Method.
+
+        The expected IPS = (0.4 / 0.2 * 4 + 0.3 / 0.5 * 5 + 0.7 / 0.4 * 7) / 3
         """
         batch_size = 3
         state_dim = 3
@@ -125,22 +126,6 @@ class TestEvaluationDataPage(unittest.TestCase):
 
         reward_net = FakeSeq2SlateRewardNetwork()
         seq2slate_net = FakeSeq2SlateTransformerNet()
-        baseline_net = nn.Linear(1, 1)
-        trainer = Seq2SlateTrainer(
-            seq2slate_net,
-            baseline_net,
-            # these parameters are not used in this test but some of them
-            # are required in __init__ function of Seq2SlateTrainer
-            parameters=Seq2SlateTransformerParameters(
-                transformer=TransformerParameters(
-                    num_heads=0, dim_model=0, dim_feedforward=0, num_stacked_layers=0
-                ),
-                baseline=BaselineParameters(dim_feedforward=0, num_stacked_layers=0),
-                on_policy=False,
-            ),
-            minibatch_size=3,
-            use_gpu=False,
-        )
 
         src_seq = torch.eye(candidate_dim).repeat(batch_size, 1, 1)
         tgt_out_idx = torch.LongTensor([[3, 2], [3, 2], [3, 2]])
@@ -167,7 +152,10 @@ class TestEvaluationDataPage(unittest.TestCase):
             ),
         )
 
-        edp = EvaluationDataPage.create_from_training_batch(ptb, trainer, reward_net)
+        edp = EvaluationDataPage.create_from_tensors_seq2slate(
+            seq2slate_net, reward_net, ptb.training_input, eval_greedy=True
+        )
+        logger.info("---------- Start evaluating eval_greedy=True -----------------")
         doubly_robust_estimator = DoublyRobustEstimator()
         direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
             edp
@@ -191,3 +179,22 @@ class TestEvaluationDataPage(unittest.TestCase):
         self.assertAlmostEqual(
             doubly_robust.normalized, doubly_robust.raw / avg_logged_reward, delta=1e-6
         )
+        logger.info("---------- Finish evaluating eval_greedy=True -----------------")
+
+        logger.info("---------- Start evaluating eval_greedy=False -----------------")
+        edp = EvaluationDataPage.create_from_tensors_seq2slate(
+            seq2slate_net, reward_net, ptb.training_input, eval_greedy=False
+        )
+        doubly_robust_estimator = DoublyRobustEstimator()
+        _, inverse_propensity, _ = doubly_robust_estimator.estimate(edp)
+        self.assertAlmostEqual(
+            inverse_propensity.raw,
+            (0.4 / 0.2 * 4 + 0.3 / 0.5 * 5 + 0.7 / 0.4 * 7) / 3,
+            delta=1e-6,
+        )
+        self.assertAlmostEqual(
+            inverse_propensity.normalized,
+            inverse_propensity.raw / avg_logged_reward,
+            delta=1e-6,
+        )
+        logger.info("---------- Finish evaluating eval_greedy=False -----------------")

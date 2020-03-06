@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch
+from ml.rl.core.tracker import observable
 from ml.rl.evaluation.cpe import CpeDetails
 from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
 from ml.rl.tensorboardX import SummaryWriterContext
@@ -28,6 +29,7 @@ class PageHandler:
     def __init__(self, trainer_or_evaluator):
         self.trainer_or_evaluator = trainer_or_evaluator
         self.results: List[Dict] = []
+        self.epoch = 0
 
     def refresh_results(self) -> None:
         self.results: List[Dict] = []
@@ -67,13 +69,16 @@ class PageHandler:
         self.epoch = epoch
 
 
+@observable(epoch_end=int)
 class TrainingPageHandler(PageHandler):
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         SummaryWriterContext.increase_global_step()
         self.trainer_or_evaluator.train(tdp)
 
     def finish(self) -> None:
+        self.notify_observers(epoch_end=self.epoch)  # type: ignore
         self.trainer_or_evaluator.loss_reporter.flush()
+        self.epoch += 1
 
 
 class EvaluationPageHandler(PageHandler):
@@ -175,18 +180,29 @@ class ImitatorPageHandler(PageHandler):
 
 
 class RankingTrainingPageHandler(PageHandler):
-    def __init__(self, trainer):
+    def __init__(self, trainer) -> None:
         super().__init__(trainer)
-        self.policy_gradient_loss = []
-        self.baseline_loss = []
+        self.policy_gradient_loss: List[float] = []
+        self.baseline_loss: List[float] = []
+        self.per_seq_probs: List[float] = []
 
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        _, _, rl_loss, baseline_loss = self.trainer_or_evaluator.train(tdp)
-        self.results.append({"pg": rl_loss, "baseline": baseline_loss})
+        res_dict = self.trainer_or_evaluator.train(tdp)
+        self.results.append(res_dict)
 
     def finish(self):
-        self.policy_gradient_loss.append(float(self.get_mean_loss(loss_name="pg")))
-        self.baseline_loss.append(float(self.get_mean_loss(loss_name="baseline")))
+        if "ips_rl_loss" in self.results[0]:
+            self.policy_gradient_loss.append(
+                float(self.get_mean_loss(loss_name="ips_rl_loss"))
+            )
+        if "baseline_loss" in self.results[0]:
+            self.baseline_loss.append(
+                float(self.get_mean_loss(loss_name="baseline_loss"))
+            )
+        if "per_seq_probs" in self.results[0]:
+            self.per_seq_probs.append(
+                float(self.get_mean_loss(loss_name="per_seq_probs"))
+            )
         self.refresh_results()
 
 

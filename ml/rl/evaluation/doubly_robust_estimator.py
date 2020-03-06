@@ -3,6 +3,7 @@
 
 import itertools
 import logging
+from dataclasses import dataclass
 from typing import Dict, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
@@ -43,7 +44,8 @@ class TrainValidEvalData(NamedTuple):
     num_examples_dict: Dict[str, int]
 
 
-class EstimationData(NamedTuple):
+@dataclass
+class EstimationData:
     contexts_actions_train: Optional[Tensor]
     policy_indicators_train: Optional[Tensor]
     weights_train: Optional[Tensor]
@@ -63,6 +65,22 @@ class EstimationData(NamedTuple):
     logged_rewards_eval: Tensor
     model_rewards_for_logged_action_eval: Tensor
     logged_propensities_eval: Tensor
+
+    def __post_init__(self):
+        assert (
+            self.model_propensities_eval.shape
+            == self.model_rewards_eval.shape
+            == self.action_mask_eval.shape
+        ) and len(self.model_propensities_eval.shape) == 2
+        assert (
+            (
+                self.logged_rewards_eval.shape
+                == self.model_rewards_for_logged_action_eval.shape
+                == self.logged_propensities_eval.shape
+            )
+            and len(self.logged_rewards_eval.shape) == 2
+            and self.logged_rewards_eval.shape[1] == 1
+        )
 
 
 class ImportanceSamplingData(NamedTuple):
@@ -167,7 +185,7 @@ class DoublyRobustEstimator:
         )
 
     def _prepare_data(self, edp: EvaluationDataPage) -> EstimationData:
-        return EstimationData(
+        ed = EstimationData(
             contexts_actions_train=None,
             policy_indicators_train=None,
             weights_train=None,
@@ -188,6 +206,7 @@ class DoublyRobustEstimator:
             model_rewards_for_logged_action_eval=edp.model_rewards_for_logged_action,
             logged_propensities_eval=edp.logged_propensities,
         )
+        return ed
 
     def _get_importance_sampling_inputs(
         self, ed: EstimationData
