@@ -103,6 +103,7 @@ class OpenAIGymEnvironment(Environment):
             self.env_name = gymenv
             if random_seed is not None:
                 self.env.seed(random_seed)
+                self.env.action_space.seed(random_seed)  # type: ignore
 
         supports_state = isinstance(self.env.observation_space, gym.spaces.Box) and len(
             self.env.observation_space.shape
