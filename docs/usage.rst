@@ -161,6 +161,15 @@ There are many output files.  The reason for this is that Spark expects many inp
 
 Now that all of our data has been grouped into consecutive pairs, we can run the normalization pipeline.
 
+Step 2.5 - Convert Timeline to Petastorm format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We now save timeline data as Petastorm parquet files.
+.. code-block::
+
+   python ml/rl/workflow/convert_timeline_to_petastorm.py
+
+
 Step 3 - Create the normalization parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

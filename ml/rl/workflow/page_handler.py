@@ -338,6 +338,7 @@ def petastorm_feed_pages(
                 time_diff=None,
             ),
             extras=ExtraData(
+                mdp_id=batch["mdp_id"],
                 metrics=None, # batch["metrics"],
             ),
         )

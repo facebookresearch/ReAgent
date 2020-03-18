@@ -100,6 +100,14 @@ def get_petastorm_schema(
                 shape=(len(actions),),
                 codec=NdarrayCodec(),
             )
+        elif struct_field.name in ["mdp_id"]:
+            # mdp_id string will be hashed into a scalar ID
+            add_field(
+                name=struct_field.name,
+                petastorm_type=ONE_HOT_TYPE,
+                shape=(),
+                codec=ScalarCodec(LongType()),
+            )
         # now perform sparse2dense
         elif isinstance(struct_field.dataType, MapType):
             val_type = struct_field.dataType.valueType
@@ -187,8 +195,11 @@ def preprocessing(
                 mask[i] = 1
             row_dict[k] = mask
 
+        row_dict["mdp_id"] = hash(row_dict["mdp_id"])
+
         # now handle rest of keys, including converting sparse to dense
-        rest_features = row_dict.keys() - set(action_keys + possible_action_keys)
+        used_keys = set(action_keys + possible_action_keys + ["mdp_id"])
+        rest_features = row_dict.keys() - used_keys
         for feature in rest_features:
             val_type = get_schema_type(feature)
             val = row_dict[feature]
@@ -248,9 +259,7 @@ def save_petastorm_dataset(
     spark = get_spark_session()
     output_uri = f"file://{abspath(output_table)}"
 
-    # Read dataframe, and drop unnecessary columns
-    # df = spark.sql(f"SELECT * FROM {input_table}").drop("ds", "mdp_id")
-    df = spark.read.table(input_table).drop("mdp_id")
+    df = spark.read.table(input_table)
     peta_schema = get_petastorm_schema(actions, feature_map, df.schema)
     with materialize_dataset(spark, output_uri, peta_schema, row_group_size_mb):
         rdd = df.rdd.map(preprocessing(actions, feature_map, peta_schema))
