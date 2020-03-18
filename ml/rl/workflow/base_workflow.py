@@ -18,6 +18,7 @@ from ml.rl.workflow.page_handler import (
     EvaluationPageHandler,
     TrainingPageHandler,
     feed_pages,
+    petastorm_feed_pages,
 )
 from torch import distributed
 
@@ -76,7 +77,6 @@ class BaseWorkflow:
                 data_streamer,
                 len(train_dataset),
                 epoch,
-                self.minibatch_size,
                 self.trainer.use_gpu,
                 TrainingPageHandler(self.trainer),
                 batch_preprocessor=self.batch_preprocessor,
@@ -95,7 +95,6 @@ class BaseWorkflow:
                     data_streamer,
                     len(eval_dataset),
                     epoch,
-                    self.minibatch_size,
                     self.trainer.use_gpu,
                     eval_page_handler,
                     batch_preprocessor=self.batch_preprocessor,
@@ -104,6 +103,35 @@ class BaseWorkflow:
                 SummaryWriterContext.increase_global_step()
 
         through_put = (len(train_dataset) * epochs) / (time.time() - start_time)
+        logger.info(
+            "Training finished. Processed ~{} examples / s.".format(round(through_put))
+        )
+
+    from torch.utils.data import DataLoader
+    def dataloader_train_network(
+        self, train_dataloader: DataLoader, eval_dataloader: DataLoader, epochs: int
+    ):
+        start_time = time.time()
+        for epoch in range(epochs):
+            logger.info(f"Starting epoch {epoch} of {epochs}")
+            petastorm_feed_pages(
+                train_dataloader,
+                epoch,
+                self.trainer.use_gpu,
+                TrainingPageHandler(self.trainer),
+                batch_preprocessor=self.batch_preprocessor,
+            )
+            if hasattr(self.trainer, "q_network_cpe"):
+                petastorm_feed_pages(
+                    eval_dataloader,
+                    epoch,
+                    self.trainer.use_gpu,
+                    EvaluationPageHandler(self.trainer, self.evaluator, self),
+                    batch_preprocessor=self.batch_preprocessor,
+                )
+                SummaryWriterContext.increase_global_step()
+
+        through_put = (train_dataset_size * epochs) / (time.time() - start_time)
         logger.info(
             "Training finished. Processed ~{} examples / s.".format(round(through_put))
         )

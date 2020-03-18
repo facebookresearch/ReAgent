@@ -1,6 +1,8 @@
 {
   "training_data_path": "training_data/cartpole_discrete_timeline.json",
+  "training_data_petastorm_path": "training_data/cartpole_discrete_timeline",
   "eval_data_path": "training_data/cartpole_discrete_timeline_eval.json",
+  "eval_data_petastorm_path": "training_data/cartpole_discrete_timeline_eval",
   "state_norm_data_path": "training_data/state_features_norm.json",
   "model_output_path": "outputs/",
   "use_gpu": true,

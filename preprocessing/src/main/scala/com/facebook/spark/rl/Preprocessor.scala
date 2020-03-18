@@ -77,7 +77,8 @@ object Preprocessor {
 
     inputDf.createOrReplaceTempView(timelineConfig.inputTableName)
 
-    Timeline.run(sparkSession.sqlContext, timelineConfig)
+    val tmpTableName = "tmp_table_for_preprocessor"
+    Timeline.run(sparkSession.sqlContext, timelineConfig, Some(tmpTableName))
     val query = if (timelineConfig.actionDiscrete) {
       Query.getDiscreteQuery(queryConfig)
     } else {
@@ -85,39 +86,32 @@ object Preprocessor {
     }
 
     val sqlCommand = query.concat(
-      s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'train')) % 10000 <= CAST(${queryConfig.tableSample} * 100 AS INTEGER)"
+      s" FROM ${tmpTableName} where ABS(HASH(mdp_id || 'train')) % 10000 <= CAST(${queryConfig.tableSample} * 100 AS INTEGER)"
     )
-
     log.info("Executing query: ")
     log.info(sqlCommand)
-
-    // Query the results
-    val outputDf = sparkSession.sql(sqlCommand)
-
+    val outputDf = sparkSession.sql(sqlCommand).repartition(timelineConfig.numOutputShards)
     outputDf.show()
     outputDf
-      .repartition(timelineConfig.numOutputShards)
       .write
       .json(timelineConfig.outputTableName)
+    outputDf.write.saveAsTable(timelineConfig.outputTableName)
 
-    // Write the eval table
     val evalSqlCommand =
       query.concat(
-        s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'eval')) % 10000 <= CAST(${queryConfig.tableSample / 10.0} * 100 AS INTEGER) ORDER BY mdp_id, sequence_number"
+        s" FROM ${tmpTableName} where ABS(HASH(mdp_id || 'eval')) % 10000 <= CAST(${queryConfig.tableSample / 10.0} * 100 AS INTEGER) ORDER BY mdp_id, sequence_number"
       )
-
     log.info("Executing query: ")
     log.info(evalSqlCommand)
-
-    // Query the results
-    val evalOutputDf = sparkSession.sql(evalSqlCommand)
-
+    val evalOutputDf = sparkSession.sql(evalSqlCommand).repartition(timelineConfig.numOutputShards)
     evalOutputDf.show()
     evalOutputDf
-      .repartition(timelineConfig.numOutputShards)
       .write
       .json(timelineConfig.evalTableName)
+    evalOutputDf.write.saveAsTable(timelineConfig.evalTableName)
 
+    // this table was a temporary proxy for the above two commands.
+    sparkSession.sql(s"DROP TABLE ${tmpTableName}")
     sparkSession.stop()
   }
 }

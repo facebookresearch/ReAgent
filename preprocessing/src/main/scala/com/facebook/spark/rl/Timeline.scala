@@ -122,7 +122,8 @@ case class TimelineConfiguration(
 object Timeline {
 
   private val log = LoggerFactory.getLogger(this.getClass.getName)
-  def run(sqlContext: SQLContext, config: TimelineConfiguration): Unit = {
+  def run(sqlContext: SQLContext, config: TimelineConfiguration, optionalTableName: Option[String] = None): Unit = {
+    val saveTableName = optionalTableName.getOrElse(config.outputTableName)
     var filterTerminal = "HAVING next_state_features IS NOT NULL";
     if (config.addTerminalStateRow) {
       filterTerminal = "";
@@ -149,7 +150,7 @@ object Timeline {
 
     Timeline.createTrainingTable(
       sqlContext,
-      config.outputTableName,
+      saveTableName,
       actionDataType,
       rewardColumnDataTypes,
       timelineJoinColumnDataTypes
@@ -328,7 +329,7 @@ object Timeline {
     df.createOrReplaceTempView(finalTableName)
 
     val insertCommand = s"""
-      INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
+      INSERT OVERWRITE TABLE ${saveTableName} PARTITION(ds='${config.endDs}')
       SELECT * FROM ${finalTableName}
     """.stripMargin
     sqlContext.sql(insertCommand)

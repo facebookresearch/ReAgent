@@ -155,6 +155,7 @@ def single_process_main(gpu_index, *args):
         len(action_names), StringKeySparseToDenseProcessor(sorted_features)
     )
 
+    """
     train_dataset = JSONDatasetReader(
         params["training_data_path"],
         batch_size=training_parameters.minibatch_size,
@@ -168,6 +169,36 @@ def single_process_main(gpu_index, *args):
 
     with summary_writer_context(writer):
         workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
+    """
+    from os.path import abspath
+    from petastorm import make_reader, TransformSpec
+    from petastorm.pytorch import DataLoader
+    from petastorm.spark_utils import dataset_as_rdd
+    from convert_timeline_to_petastorm import get_spark_session
+    transform = None # TransformSpec(lambda x: preprocess_handler.preprocess(x), removed_fields=[])
+    train_url = f"file://{abspath(params['training_data_petastorm_path'])}"
+    eval_url = f"file://{abspath(params['eval_data_petastorm_path'])}"
+
+    train_reader = make_reader(
+        train_url,
+        transform_spec=transform,
+        num_epochs=int(params["epochs"]),
+    )
+    eval_reader = make_reader(
+        eval_url,
+        transform_spec=transform,
+        num_epochs=int(params["epochs"]),
+    )
+    with DataLoader(
+        train_reader, batch_size=training_parameters.minibatch_size
+    ) as train_dataloader, DataLoader(
+        eval_reader, batch_size=training_parameters.minibatch_size
+    ) as eval_dataloader, summary_writer_context(
+        writer
+    ):
+        workflow.dataloader_train_network(
+            train_dataloader, eval_dataloader, int(params["epochs"])
+        )
 
     if int(params["node_index"]) == 0 and gpu_index == 0:
         workflow.save_models(params["model_output_path"])

@@ -17,7 +17,11 @@ from ml.rl.training.td3_trainer import TD3Trainer
 from ml.rl.types import (
     ExtraData,
     PreprocessedMemoryNetworkInput,
+    PreprocessedDiscreteDqnInput,
+    PreprocessedFeatureVector,
     PreprocessedTrainingBatch,
+    FeatureVector,
+    ValuePresence,
     RawTrainingBatch,
 )
 
@@ -229,22 +233,28 @@ class RewardNetTrainingPageHandler(PageHandler):
         self.refresh_results()
 
 
-def get_actual_minibatch_size(batch, minibatch_size_preset):
+def get_batch_size(batch):
     if isinstance(batch, (PreprocessedTrainingBatch, RawTrainingBatch)):
         batch_size = batch.batch_size()
     elif isinstance(batch, OrderedDict):
         first_key = next(iter(batch.keys()))
         batch_size = len(batch[first_key])
     else:
-        raise NotImplementedError()
+        raise NotImplementedError(f"type {type(batch)} isn't implemented yet")
     return batch_size
+
+
+def to_cuda(batch):
+    assert isinstance(batch, dict)
+    for k in batch:
+        batch[k] = batch[k].cuda()
+    return batch
 
 
 def feed_pages(
     data_loader,
     dataset_num_rows,
     epoch,
-    minibatch_size,
     use_gpu,
     page_handler,
     batch_preprocessor=None,
@@ -255,8 +265,8 @@ def feed_pages(
 
     for batch in data_loader:
         if use_gpu:
-            batch = batch.cuda()
-        batch_size = get_actual_minibatch_size(batch, minibatch_size)
+            batch = to_cuda(batch)
+        batch_size = get_batch_size(batch)
         num_rows_processed += batch_size
 
         if (
@@ -278,4 +288,61 @@ def feed_pages(
             batch = batch_preprocessor(batch)
         page_handler.handle(batch)
 
+    page_handler.finish()
+
+def petastorm_feed_pages(
+    data_loader,
+    epoch,
+    use_gpu,
+    page_handler,
+    batch_preprocessor=None,
+):
+    for idx, batch in enumerate(data_loader):
+        logger.info(f"batch {idx} of epoch {epoch} starting")
+        if use_gpu:
+            batch = to_cuda(batch)
+
+        # so if len(action) is given [in case of empty string], then remove it.
+        one_hot_action = torch.nn.functional.one_hot(batch["action"], num_classes=3)[:,:2]
+        one_hot_next_action = torch.nn.functional.one_hot(batch["next_action"], num_classes=3)[:,:2]
+
+        """
+        state = FeatureVector(
+                float_features=ValuePresence(
+                    value=batch["state_features"],
+                    presence=batch["state_features_presence"],
+                )
+            )
+
+        next_state = FeatureVector(
+                float_features=ValuePresence(
+                    value=batch["next_state_features"],
+                    presence=batch["next_state_features_presence"],
+                )
+            )
+        """
+        state = PreprocessedFeatureVector(float_features=batch["state_features"].float())
+        next_state = PreprocessedFeatureVector(float_features=batch["next_state_features"].float())
+
+        batch = PreprocessedTrainingBatch(
+            training_input=PreprocessedDiscreteDqnInput(
+                state=state,
+                action=one_hot_action,
+                next_state=next_state,
+                next_action=one_hot_next_action,
+                possible_actions_mask=batch["possible_actions"],
+                possible_next_actions_mask=batch["possible_next_actions"],
+                reward=batch["reward"].unsqueeze(1).float(),
+                not_terminal=(batch["possible_next_actions"].sum(1) > 0).float(),
+                step=None,
+                time_diff=None,
+            ),
+            extras=ExtraData(
+                metrics=None, # batch["metrics"],
+            ),
+        )
+
+        # if batch_preprocessor:
+            # batch = batch_preprocessor(batch)
+        page_handler.handle(batch)
     page_handler.finish()
