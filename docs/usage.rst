@@ -165,6 +165,7 @@ Step 2.5 - Convert Timeline to Petastorm format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We now save timeline data as Petastorm parquet files.
+
 .. code-block::
 
    python ml/rl/workflow/convert_timeline_to_petastorm.py
