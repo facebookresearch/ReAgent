@@ -184,16 +184,18 @@ def preprocessing(
         # first handle one-hot encoding of action/masks
         action_keys = ["action", "next_action"]
         for k in action_keys:
-            row_dict[k] = find_action_idx(row_dict[k])
+            continue
+            # row_dict[k] = find_action_idx(row_dict[k])
 
         possible_action_keys = ["possible_actions", "possible_next_actions"]
         for k in possible_action_keys:
-            mask = np.zeros(len(actions), dtype=ONE_HOT_TYPE)
-            for a in row_dict[k]:
-                i = find_action_idx(a)
-                assert i < len(actions), f"action {a} (type {type(a)}) was not found in {actions}"
-                mask[i] = 1
-            row_dict[k] = mask
+            row_dict[k] = np.array(row_dict[k])
+            # mask = np.zeros(len(actions), dtype=ONE_HOT_TYPE)
+            # for a in row_dict[k]:
+            #     i = find_action_idx(a)
+            #     assert i < len(actions), f"action {a} (type {type(a)}) was not found in {actions}"
+            #     mask[i] = 1
+            # row_dict[k] = mask
 
         row_dict["mdp_id"] = hash(row_dict["mdp_id"])
 
@@ -270,13 +272,15 @@ def save_petastorm_dataset(
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logging.getLogger().setLevel(logging.INFO)
-    # TODO hardcode for now
+    
+    # hardcoded paths for dqn workflow
     train_input_table = "cartpole_discrete_training"
     train_output_table = "training_data/cartpole_discrete_timeline"
     eval_input_table = "cartpole_discrete_eval"
     eval_output_table = "training_data/cartpole_discrete_timeline_eval"
 
     # list of all the actions (for one-hot encoding)
+    # NOTE: no longer needed
     actions = [0, 1]
 
     # list of all the features and their possible values

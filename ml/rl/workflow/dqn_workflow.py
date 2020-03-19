@@ -155,21 +155,6 @@ def single_process_main(gpu_index, *args):
         len(action_names), StringKeySparseToDenseProcessor(sorted_features)
     )
 
-    """
-    train_dataset = JSONDatasetReader(
-        params["training_data_path"],
-        batch_size=training_parameters.minibatch_size,
-        preprocess_handler=preprocess_handler,
-    )
-    eval_dataset = JSONDatasetReader(
-        params["eval_data_path"],
-        batch_size=training_parameters.minibatch_size,
-        preprocess_handler=preprocess_handler,
-    )
-
-    with summary_writer_context(writer):
-        workflow.train_network(train_dataset, eval_dataset, int(params["epochs"]))
-    """
     from os.path import abspath
     from petastorm import make_reader, TransformSpec
     from petastorm.pytorch import DataLoader

@@ -94,6 +94,7 @@ object Preprocessor {
     outputDf.show()
     outputDf
       .write
+      .mode(SaveMode.Overwrite)
       .json(timelineConfig.outputTableName)
     outputDf.write.saveAsTable(timelineConfig.outputTableName)
 
@@ -107,6 +108,7 @@ object Preprocessor {
     evalOutputDf.show()
     evalOutputDf
       .write
+      .mode(SaveMode.Overwrite)
       .json(timelineConfig.evalTableName)
     evalOutputDf.write.saveAsTable(timelineConfig.evalTableName)
 
