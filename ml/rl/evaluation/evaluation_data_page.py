@@ -602,9 +602,7 @@ class EvaluationDataPage(NamedTuple):
 
             prev_seq_num = seq_num
 
-        assert len(unique_mdp_ids) == mdp_count, "MDPs are broken up. {} vs {}".format(
-            len(unique_mdp_ids), mdp_count
-        )
+        assert len(unique_mdp_ids) == mdp_count, f"MDPs are broken up. {len(unique_mdp_ids)} vs {mdp_count}. Everything {flatten_mdp_id}. Uniques {unique_mdp_ids}"
 
     def set_metric_as_reward(self, i: int, num_actions: int):
         assert self.logged_metrics is not None, "metrics must not be none"

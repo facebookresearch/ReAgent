@@ -179,26 +179,35 @@ def single_process_main(gpu_index, *args):
     train_url = f"file://{abspath(params['training_data_petastorm_path'])}"
     eval_url = f"file://{abspath(params['eval_data_petastorm_path'])}"
 
-    train_reader = make_reader(
-        train_url,
-        transform_spec=transform,
-        num_epochs=int(params["epochs"]),
-    )
-    eval_reader = make_reader(
-        eval_url,
-        transform_spec=transform,
-        num_epochs=int(params["epochs"]),
-    )
-    with DataLoader(
-        train_reader, batch_size=training_parameters.minibatch_size
-    ) as train_dataloader, DataLoader(
-        eval_reader, batch_size=training_parameters.minibatch_size
-    ) as eval_dataloader, summary_writer_context(
-        writer
-    ):
-        workflow.dataloader_train_network(
-            train_dataloader, eval_dataloader, int(params["epochs"])
+    epochs = int(params["epochs"])
+    for epoch in range(epochs):
+        logger.info(f"Starting epoch {epoch} of {epochs}")
+
+        # make readers one epoch and iterate through them n times
+        train_reader = make_reader(
+            train_url,
+            transform_spec=transform,
+            num_epochs=1,
         )
+        eval_reader = make_reader(
+            eval_url,
+            transform_spec=transform,
+            num_epochs=1,
+        )
+
+        with DataLoader(
+            train_reader, batch_size=training_parameters.minibatch_size
+        ) as train_dataloader, DataLoader(
+            eval_reader, batch_size=training_parameters.minibatch_size
+        ) as eval_dataloader, summary_writer_context(
+            writer
+        ):
+            workflow.dataloader_train_network(
+                train_dataloader, eval_dataloader, epoch
+            )
+
+        logger.info(f"Finished epoch {epoch} of {epochs}")
+
 
     if int(params["node_index"]) == 0 and gpu_index == 0:
         workflow.save_models(params["model_output_path"])

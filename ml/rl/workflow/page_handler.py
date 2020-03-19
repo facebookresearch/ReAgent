@@ -335,10 +335,12 @@ def petastorm_feed_pages(
                 reward=batch["reward"].unsqueeze(1).float(),
                 not_terminal=(batch["possible_next_actions"].sum(1) > 0).float(),
                 step=None,
-                time_diff=None,
+                time_diff=batch["time_diff"].unsqueeze(1),
             ),
             extras=ExtraData(
-                mdp_id=batch["mdp_id"],
+                sequence_number=batch["sequence_number"].unsqueeze(1).numpy(),
+                mdp_id=batch["mdp_id"].unsqueeze(1).numpy(),
+                action_probability=batch["propensity"].unsqueeze(1).float(),
                 metrics=None, # batch["metrics"],
             ),
         )
