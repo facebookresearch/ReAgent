@@ -4,6 +4,11 @@ package com.facebook.spark.rl
 import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
 
+sealed abstract class TimelineExecutionFailure
+sealed abstract class ValidationFailure extends TimelineExecutionFailure
+case class UnexpectedOutput(message: String, result: DataFrame) extends ValidationFailure
+case class ExceptionDuringValidation(e: Throwable) extends ValidationFailure
+
 object Helper {
 
   private val log = LoggerFactory.getLogger(this.getClass.getName)
@@ -74,4 +79,30 @@ object Helper {
       case e: Throwable                                                   => log.error(e.toString())
     }
 
+  def validateTimeline(sqlContext: SQLContext, validationSql: String): Option[ValidationFailure] =
+    try {
+      log.info(s"Executing validation query: ${validationSql}")
+      val validationDf = sqlContext.sql(validationSql)
+
+      val maybeError = if (validationDf.count() == 0) {
+        Some("query did not return any results.")
+      } else if (validationDf.count() > 1) {
+        Some("query returned more than one row.")
+      } else {
+        val everyColumnIsTrue = validationDf.first().toSeq.forall { cell =>
+          true == cell
+        }
+        if (everyColumnIsTrue) {
+          None
+        } else {
+          Some("query returned one or more non-TRUE results.")
+        }
+      }
+
+      return maybeError.map { msg =>
+        UnexpectedOutput(msg, validationDf)
+      }
+    } catch {
+      case e: Throwable => Some(ExceptionDuringValidation(e))
+    }
 }
