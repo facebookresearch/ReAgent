@@ -150,17 +150,13 @@ def single_process_main(gpu_index, *args):
         params["use_all_avail_gpus"],
     )
 
-    sorted_features, _ = sort_features_by_normalization(state_normalization)
-    preprocess_handler = DiscreteDqnPreprocessHandler(
-        len(action_names), StringKeySparseToDenseProcessor(sorted_features)
-    )
 
     from os.path import abspath
     from petastorm import make_reader, TransformSpec
     from petastorm.pytorch import DataLoader
     from petastorm.spark_utils import dataset_as_rdd
     from convert_timeline_to_petastorm import get_spark_session
-    transform = None # TransformSpec(lambda x: preprocess_handler.preprocess(x), removed_fields=[])
+    transform = None
     train_url = f"file://{abspath(params['training_data_petastorm_path'])}"
     eval_url = f"file://{abspath(params['eval_data_petastorm_path'])}"
 
