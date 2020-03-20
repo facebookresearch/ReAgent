@@ -118,9 +118,10 @@ case class TimelineConfiguration(
   * A list of actions that were possible at the next step.
   *
   * config.validationSql (Option[String], default None).
-  * A SQL query to validate against a Timeline Pipeline output table where
+  * A SQL query to validate against a Timeline Pipeline input/output table where
   * result should have only one row and that row contains only true booleans
   * Ex: select if((select count(*) from {config.outputTableName} where mdp_id<0) == 0, TRUE, FALSE)
+  * Ex: select if((select count(*) from {config.inputTableName} where reward>1.0) == 0, TRUE, FALSE)
   */
 object Timeline {
 
@@ -337,7 +338,12 @@ object Timeline {
     df.createOrReplaceTempView(stagingTable)
 
     val maybeError = config.validationSql.flatMap { query =>
-      Helper.validateTimeline(sqlContext, query.replace("{config.outputTableName}", stagingTable))
+      Helper.validateTimeline(
+        sqlContext,
+        query
+          .replace("{config.outputTableName}", stagingTable)
+          .replace("{config.inputTableName}", config.inputTableName)
+      )
     }
 
     assert(maybeError.isEmpty, "validationSql validation failure: " + maybeError)
