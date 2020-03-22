@@ -296,9 +296,7 @@ def petastorm_feed_pages(
             batch = to_cuda(batch)
 
         # so if len(action) is given [in case of empty string], then remove it.
-        one_hot_action = torch.nn.functional.one_hot(batch["action"], num_classes=3)[
-            :, :2
-        ]
+        one_hot_action = torch.nn.functional.one_hot(batch["action"], num_classes=2)
         one_hot_next_action = torch.nn.functional.one_hot(
             batch["next_action"], num_classes=3
         )[:, :2]
@@ -339,5 +337,6 @@ def petastorm_feed_pages(
 
         if batch_preprocessor:
             batch = batch_preprocessor(batch)
+
         page_handler.handle(batch)
     page_handler.finish()
