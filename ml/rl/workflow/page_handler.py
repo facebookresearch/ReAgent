@@ -23,6 +23,7 @@ from ml.rl.types import (
     FeatureVector,
     ValuePresence,
     RawTrainingBatch,
+    RawDiscreteDqnInput,
 )
 
 
@@ -252,12 +253,7 @@ def to_cuda(batch):
 
 
 def feed_pages(
-    data_loader,
-    dataset_num_rows,
-    epoch,
-    use_gpu,
-    page_handler,
-    batch_preprocessor=None,
+    data_loader, dataset_num_rows, epoch, use_gpu, page_handler, batch_preprocessor=None
 ):
     num_rows_processed = 0
     num_rows_to_process_for_progress_tick = max(1, dataset_num_rows // 100)
@@ -290,12 +286,9 @@ def feed_pages(
 
     page_handler.finish()
 
+
 def petastorm_feed_pages(
-    data_loader,
-    epoch,
-    use_gpu,
-    page_handler,
-    batch_preprocessor=None,
+    data_loader, epoch, use_gpu, page_handler, batch_preprocessor=None
 ):
     for idx, batch in enumerate(data_loader):
         logger.info(f"batch {idx} of epoch {epoch} starting")
@@ -303,29 +296,28 @@ def petastorm_feed_pages(
             batch = to_cuda(batch)
 
         # so if len(action) is given [in case of empty string], then remove it.
-        one_hot_action = torch.nn.functional.one_hot(batch["action"], num_classes=3)[:,:2]
-        one_hot_next_action = torch.nn.functional.one_hot(batch["next_action"], num_classes=3)[:,:2]
+        one_hot_action = torch.nn.functional.one_hot(batch["action"], num_classes=3)[
+            :, :2
+        ]
+        one_hot_next_action = torch.nn.functional.one_hot(
+            batch["next_action"], num_classes=3
+        )[:, :2]
 
-        """
         state = FeatureVector(
-                float_features=ValuePresence(
-                    value=batch["state_features"],
-                    presence=batch["state_features_presence"],
-                )
+            float_features=ValuePresence(
+                value=batch["state_features"].float(),
+                presence=batch["state_features_presence"].float(),
             )
-
+        )
         next_state = FeatureVector(
-                float_features=ValuePresence(
-                    value=batch["next_state_features"],
-                    presence=batch["next_state_features_presence"],
-                )
+            float_features=ValuePresence(
+                value=batch["next_state_features"].float(),
+                presence=batch["next_state_features_presence"].float(),
             )
-        """
-        state = PreprocessedFeatureVector(float_features=batch["state_features"].float())
-        next_state = PreprocessedFeatureVector(float_features=batch["next_state_features"].float())
+        )
 
-        batch = PreprocessedTrainingBatch(
-            training_input=PreprocessedDiscreteDqnInput(
+        batch = RawTrainingBatch(
+            training_input=RawDiscreteDqnInput(
                 state=state,
                 action=one_hot_action,
                 next_state=next_state,
@@ -341,11 +333,11 @@ def petastorm_feed_pages(
                 sequence_number=batch["sequence_number"].unsqueeze(1).numpy(),
                 mdp_id=batch["mdp_id"].unsqueeze(1).numpy(),
                 action_probability=batch["propensity"].unsqueeze(1).float(),
-                metrics=None, # batch["metrics"],
+                metrics=None,  # batch["metrics"],
             ),
         )
 
-        # if batch_preprocessor:
-            # batch = batch_preprocessor(batch)
+        if batch_preprocessor:
+            batch = batch_preprocessor(batch)
         page_handler.handle(batch)
     page_handler.finish()

@@ -16,7 +16,7 @@ import petastorm
 from os.path import expanduser, join, abspath
 from petastorm.etl.dataset_metadata import materialize_dataset
 from petastorm.unischema import dict_to_spark_row, Unischema, UnischemaField
-from pyspark.sql.functions import udf, struct
+from pyspark.sql.functions import udf, struct, rand
 from petastorm.codecs import ScalarCodec, CompressedImageCodec, NdarrayCodec
 from pyspark.sql.types import (
     StructType,
@@ -234,6 +234,7 @@ def preprocessing(
 
     return row_map
 
+
 def get_spark_session(warehouse_dir="spark-warehouse"):
     warehouse_dir = abspath(warehouse_dir)
     spark = (
@@ -245,7 +246,13 @@ def get_spark_session(warehouse_dir="spark-warehouse"):
 
 
 def save_petastorm_dataset(
-    actions, feature_map, input_table, output_table, row_group_size_mb=256
+    actions,
+    feature_map,
+    input_table,
+    output_table,
+    shuffle=False,
+    seed=42,
+    row_group_size_mb=256,
 ):
     """ Assuming RLTimelineOperator output is in Hive storage at warehouse_dir,
         save the petastorm dataset after preprocessing.
@@ -264,6 +271,8 @@ def save_petastorm_dataset(
     df = spark.read.table(input_table)
     peta_schema = get_petastorm_schema(actions, feature_map, df.schema)
     with materialize_dataset(spark, output_uri, peta_schema, row_group_size_mb):
+        if shuffle:
+            df = df.orderBy(rand(seed))
         rdd = df.rdd.map(preprocessing(actions, feature_map, peta_schema))
         peta_df = spark.createDataFrame(rdd, peta_schema.as_spark_schema())
         peta_df.write.mode("overwrite").parquet(output_uri)
@@ -272,7 +281,7 @@ def save_petastorm_dataset(
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logging.getLogger().setLevel(logging.INFO)
-    
+
     # hardcoded paths for dqn workflow
     train_input_table = "cartpole_discrete_training"
     train_output_table = "training_data/cartpole_discrete_timeline"
@@ -291,12 +300,11 @@ if __name__ == "__main__":
     }
 
     save_petastorm_dataset(
-        actions, feature_map, train_input_table, train_output_table
+        actions, feature_map, train_input_table, train_output_table, shuffle=True
     )
     logger.info(f"Saved training table as {train_output_table}")
 
     save_petastorm_dataset(
-        actions, feature_map, eval_input_table, eval_output_table
+        actions, feature_map, eval_input_table, eval_output_table, shuffle=False
     )
     logger.info(f"Saved training table as {eval_output_table}")
-

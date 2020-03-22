@@ -150,13 +150,12 @@ def single_process_main(gpu_index, *args):
         params["use_all_avail_gpus"],
     )
 
-
     from os.path import abspath
     from petastorm import make_reader, TransformSpec
     from petastorm.pytorch import DataLoader
     from petastorm.spark_utils import dataset_as_rdd
     from convert_timeline_to_petastorm import get_spark_session
-    transform = None
+
     train_url = f"file://{abspath(params['training_data_petastorm_path'])}"
     eval_url = f"file://{abspath(params['eval_data_petastorm_path'])}"
 
@@ -165,16 +164,9 @@ def single_process_main(gpu_index, *args):
         logger.info(f"Starting epoch {epoch} of {epochs}")
 
         # make readers one epoch and iterate through them n times
-        train_reader = make_reader(
-            train_url,
-            transform_spec=transform,
-            num_epochs=1,
-        )
-        eval_reader = make_reader(
-            eval_url,
-            transform_spec=transform,
-            num_epochs=1,
-        )
+        print(train_url, eval_url)
+        train_reader = make_reader(train_url, num_epochs=1)
+        eval_reader = make_reader(eval_url, num_epochs=1)
 
         with DataLoader(
             train_reader, batch_size=training_parameters.minibatch_size
@@ -183,12 +175,9 @@ def single_process_main(gpu_index, *args):
         ) as eval_dataloader, summary_writer_context(
             writer
         ):
-            workflow.dataloader_train_network(
-                train_dataloader, eval_dataloader, epoch
-            )
+            workflow.dataloader_train_network(train_dataloader, eval_dataloader, epoch)
 
         logger.info(f"Finished epoch {epoch} of {epochs}")
-
 
     if int(params["node_index"]) == 0 and gpu_index == 0:
         workflow.save_models(params["model_output_path"])
