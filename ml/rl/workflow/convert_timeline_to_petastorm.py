@@ -4,12 +4,6 @@ Uses PySpark and Petastorm to convert RLTimelineOperator's output (in Hive) to
 parquet files. A key functionality is that each feature in the form of a Map
 (e.g. state_features), which Arrow can't yet handle, are converted to a dense
 array and a presence array, which is 1 iff ith feature_id is present.
-
-Additional transformations include: 
-- action, which was originally a string, will be represented by the index in
-the given list of possible actions
-- possible_actions, which was originally a list of strings, will be represented
-as a bitvector mask of length len(actions).
 """
 import pyspark
 import petastorm
@@ -59,14 +53,14 @@ def pyspark_to_numpy_types(pyspark_type):
 
 
 def get_petastorm_schema(
-    actions: List[str], feature_map: Dict[str, List[Any]], sparse_pyspark_schema
+    num_possible_actions: int, feature_map: Dict[str, List[Any]], sparse_pyspark_schema
 ) -> Unischema:
     """
     Creates the Petastorm storage schema from the schema of the
     RLTimelineOperator's sparse output. 
 
     Args:
-        actions: List of possible actions
+        num_possible_actions: number of possible actions
         feature_map: Some features (e.g. state_features) are mappings of 
             feature_id to value. This argument is a mapping of such features to
             the possible feature_ids that it may have. 
@@ -97,7 +91,7 @@ def get_petastorm_schema(
             add_field(
                 name=struct_field.name,
                 petastorm_type=ONE_HOT_TYPE,
-                shape=(len(actions),),
+                shape=(num_possible_actions,),
                 codec=NdarrayCodec(),
             )
         elif struct_field.name in ["mdp_id"]:
@@ -144,17 +138,13 @@ def get_petastorm_schema(
     return Unischema("TimelineSchema", unischema_fields)
 
 
-def preprocessing(
-    actions: List[str], feature_map: Dict[str, List[Any]], petastorm_schema
-):
+def preprocessing(feature_map: Dict[str, List[Any]], petastorm_schema):
     """ 
     Returns an RDD mapping function (mapping function on Rows) that converts 
-    the RLTimelineOperator's output into the petastorm format, with actions
-    one-hot encoded, with sparse features converted to dense, and with presence
-    arrays.
+    the RLTimelineOperator's output into the petastorm format, with sparse 
+    features converted to dense, and with presence arrays.
 
     Args:
-        actions: same as get_petastorm_schema
         feature_map: same as get_petastorm_schema
         petastorm_schema: Desired schema of the petastorm dataframe. 
     """
@@ -178,6 +168,7 @@ def preprocessing(
 
     def row_map(row):
         """ The RDD mapping function """
+
         # convert Row to dict
         row_dict = row.asDict()
 
@@ -185,17 +176,10 @@ def preprocessing(
         action_keys = ["action", "next_action"]
         for k in action_keys:
             continue
-            # row_dict[k] = find_action_idx(row_dict[k])
 
         possible_action_keys = ["possible_actions", "possible_next_actions"]
         for k in possible_action_keys:
             row_dict[k] = np.array(row_dict[k])
-            # mask = np.zeros(len(actions), dtype=ONE_HOT_TYPE)
-            # for a in row_dict[k]:
-            #     i = find_action_idx(a)
-            #     assert i < len(actions), f"action {a} (type {type(a)}) was not found in {actions}"
-            #     mask[i] = 1
-            # row_dict[k] = mask
 
         row_dict["mdp_id"] = hash(row_dict["mdp_id"])
 
@@ -246,19 +230,18 @@ def get_spark_session(warehouse_dir="spark-warehouse"):
 
 
 def save_petastorm_dataset(
-    actions,
-    feature_map,
+    num_possible_actions: int,
+    feature_map: Dict[str, List[Any]],
     input_table,
     output_table,
-    shuffle=False,
-    seed=42,
-    row_group_size_mb=256,
+    shuffle: bool = False,
+    seed: int = 42,
+    row_group_size_mb: int = 256,
 ):
     """ Assuming RLTimelineOperator output is in Hive storage at warehouse_dir,
         save the petastorm dataset after preprocessing.
 
         Args:
-            actions: same as get_petastorm_schema
             feature_map: same as get_petastorm_schema
             input_table: table to read output of RLTimelineOperator
             output_table: location to store the dataset
@@ -269,11 +252,11 @@ def save_petastorm_dataset(
     output_uri = f"file://{abspath(output_table)}"
 
     df = spark.read.table(input_table)
-    peta_schema = get_petastorm_schema(actions, feature_map, df.schema)
+    peta_schema = get_petastorm_schema(num_possible_actions, feature_map, df.schema)
     with materialize_dataset(spark, output_uri, peta_schema, row_group_size_mb):
         if shuffle:
             df = df.orderBy(rand(seed))
-        rdd = df.rdd.map(preprocessing(actions, feature_map, peta_schema))
+        rdd = df.rdd.map(preprocessing(feature_map, peta_schema))
         peta_df = spark.createDataFrame(rdd, peta_schema.as_spark_schema())
         peta_df.write.mode("overwrite").parquet(output_uri)
 
@@ -288,9 +271,7 @@ if __name__ == "__main__":
     eval_input_table = "cartpole_discrete_eval"
     eval_output_table = "training_data/cartpole_discrete_timeline_eval"
 
-    # list of all the actions (for one-hot encoding)
-    # NOTE: no longer needed
-    actions = [0, 1]
+    num_possible_actions = 2
 
     # list of all the features and their possible values
     feature_map = {
@@ -300,11 +281,19 @@ if __name__ == "__main__":
     }
 
     save_petastorm_dataset(
-        actions, feature_map, train_input_table, train_output_table, shuffle=True
+        num_possible_actions,
+        feature_map,
+        train_input_table,
+        train_output_table,
+        shuffle=False,
     )
     logger.info(f"Saved training table as {train_output_table}")
 
     save_petastorm_dataset(
-        actions, feature_map, eval_input_table, eval_output_table, shuffle=False
+        num_possible_actions,
+        feature_map,
+        eval_input_table,
+        eval_output_table,
+        shuffle=False,
     )
     logger.info(f"Saved training table as {eval_output_table}")

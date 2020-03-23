@@ -107,10 +107,7 @@ class BaseWorkflow:
             "Training finished. Processed ~{} examples / s.".format(round(through_put))
         )
 
-    from torch.utils.data import DataLoader
-    def dataloader_train_network(
-        self, train_dataloader: DataLoader, eval_dataloader: DataLoader, epoch: int,
-    ):
+    def dataloader_train_network(self, train_dataloader, epoch: int):
         petastorm_feed_pages(
             train_dataloader,
             epoch,
@@ -118,15 +115,6 @@ class BaseWorkflow:
             TrainingPageHandler(self.trainer),
             batch_preprocessor=self.batch_preprocessor,
         )
-        if hasattr(self.trainer, "q_network_cpe"):
-            petastorm_feed_pages(
-                eval_dataloader,
-                epoch,
-                self.trainer.use_gpu,
-                EvaluationPageHandler(self.trainer, self.evaluator, self),
-                batch_preprocessor=self.batch_preprocessor,
-            )
-            SummaryWriterContext.increase_global_step()
 
     def report(self, evaluation_details):
         evaluation_details.log_to_tensorboard()

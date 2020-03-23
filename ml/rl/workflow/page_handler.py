@@ -287,6 +287,53 @@ def feed_pages(
     page_handler.finish()
 
 
+def dict_batch_to_raw_training_batch(batch):
+    one_hot_action = torch.nn.functional.one_hot(batch["action"], num_classes=2)
+    # if action=len(actions), [i.e. in case of empty string], then remove it.
+    one_hot_next_action = torch.nn.functional.one_hot(
+        batch["next_action"], num_classes=3
+    )[:, :2]
+
+    state = FeatureVector(
+        float_features=ValuePresence(
+            value=batch["state_features"].float(),
+            presence=batch["state_features_presence"].float(),
+        )
+    )
+    next_state = FeatureVector(
+        float_features=ValuePresence(
+            value=batch["next_state_features"].float(),
+            presence=batch["next_state_features_presence"].float(),
+        )
+    )
+
+    not_terminal = (batch["possible_next_actions"].sum(1) > 0).unsqueeze(1).float()
+    sequence_number = batch["sequence_number"].unsqueeze(1)
+    mdp_id = batch["mdp_id"].unsqueeze(1)
+
+    batch = RawTrainingBatch(
+        training_input=RawDiscreteDqnInput(
+            state=state,
+            action=one_hot_action,
+            next_state=next_state,
+            next_action=one_hot_next_action,
+            possible_actions_mask=batch["possible_actions"],
+            possible_next_actions_mask=batch["possible_next_actions"],
+            reward=batch["reward"].unsqueeze(1).float(),
+            not_terminal=not_terminal,
+            step=None,
+            time_diff=batch["time_diff"].unsqueeze(1).to(torch.int32),
+        ),
+        extras=ExtraData(
+            sequence_number=sequence_number,
+            mdp_id=mdp_id,
+            action_probability=batch["propensity"].unsqueeze(1).float(),
+            metrics=None,
+        ),
+    )
+    return batch
+
+
 def petastorm_feed_pages(
     data_loader, epoch, use_gpu, page_handler, batch_preprocessor=None
 ):
@@ -295,46 +342,7 @@ def petastorm_feed_pages(
         if use_gpu:
             batch = to_cuda(batch)
 
-        # so if len(action) is given [in case of empty string], then remove it.
-        one_hot_action = torch.nn.functional.one_hot(batch["action"], num_classes=2)
-        one_hot_next_action = torch.nn.functional.one_hot(
-            batch["next_action"], num_classes=3
-        )[:, :2]
-
-        state = FeatureVector(
-            float_features=ValuePresence(
-                value=batch["state_features"].float(),
-                presence=batch["state_features_presence"].float(),
-            )
-        )
-        next_state = FeatureVector(
-            float_features=ValuePresence(
-                value=batch["next_state_features"].float(),
-                presence=batch["next_state_features_presence"].float(),
-            )
-        )
-
-        batch = RawTrainingBatch(
-            training_input=RawDiscreteDqnInput(
-                state=state,
-                action=one_hot_action,
-                next_state=next_state,
-                next_action=one_hot_next_action,
-                possible_actions_mask=batch["possible_actions"],
-                possible_next_actions_mask=batch["possible_next_actions"],
-                reward=batch["reward"].unsqueeze(1).float(),
-                not_terminal=(batch["possible_next_actions"].sum(1) > 0).float(),
-                step=None,
-                time_diff=batch["time_diff"].unsqueeze(1),
-            ),
-            extras=ExtraData(
-                sequence_number=batch["sequence_number"].unsqueeze(1).numpy(),
-                mdp_id=batch["mdp_id"].unsqueeze(1).numpy(),
-                action_probability=batch["propensity"].unsqueeze(1).float(),
-                metrics=None,  # batch["metrics"],
-            ),
-        )
-
+        batch = dict_batch_to_raw_training_batch(batch)
         if batch_preprocessor:
             batch = batch_preprocessor(batch)
 
