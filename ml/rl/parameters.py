@@ -217,6 +217,19 @@ class NormalizationData(BaseDataClass):
 
 
 @dataclass(frozen=True)
+class RewardOptions:
+    metric_reward_values: Optional[Dict[str, float]] = None
+    custom_reward_expression: Optional[str] = None
+    additional_reward_expression: Optional[str] = None
+
+    # for ranking
+    # key: feature id in slate_reward column, value: linear coefficient
+    slate_reward_values: Optional[Dict[str, float]] = None
+    # key: feature id in item_reward column, value: linear coefficient
+    item_reward_values: Optional[Dict[str, float]] = None
+
+
+@dataclass(frozen=True)
 class MDNRNNParameters(BaseDataClass):
     hidden_size: int = 64
     num_hidden_layers: int = 2
