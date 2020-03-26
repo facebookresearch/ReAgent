@@ -15,7 +15,7 @@ from ml.rl.parameters import (
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.test.base.horizon_test_base import HorizonTestBase
 from ml.rl.test.constant_reward.env import Env
-from ml.rl.workflow.transitional import create_dqn_trainer_from_params
+from ml.rl.workflow_utils.transitional import create_dqn_trainer_from_params
 
 
 logger = logging.getLogger(__name__)

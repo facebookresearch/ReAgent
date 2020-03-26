@@ -44,7 +44,7 @@ from ml.rl.training.rl_dataset import RLDataset
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
 from ml.rl.training.sac_trainer import SACTrainerParameters
 from ml.rl.types import BaseDataClass
-from ml.rl.workflow.transitional import (
+from ml.rl.workflow_utils.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
     get_cem_trainer,
