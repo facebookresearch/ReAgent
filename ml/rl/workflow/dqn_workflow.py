@@ -38,7 +38,7 @@ from ml.rl.workflow.helpers import (
     update_model_for_warm_start,
 )
 from ml.rl.workflow.preprocess_handler import DiscreteDqnPreprocessHandler
-from ml.rl.workflow.transitional import create_dqn_trainer_from_params
+from ml.rl.workflow_utils.transitional import create_dqn_trainer_from_params
 from torch import multiprocessing
 from torch.utils.tensorboard import SummaryWriter
 
