@@ -42,19 +42,6 @@ class ModelManager(metaclass=RegistryMeta):
         self._trainer: Optional[RLTrainer] = None
         self._use_gpu: Optional[bool] = None
 
-    @classmethod
-    @abc.abstractmethod
-    def config_type(cls) -> Type:
-        """
-        Return the config type. Must be conforming to Flow python 3 type API
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def state_feature_config(self) -> rlt.ModelFeatureConfig:
-        pass
-
     @property
     def use_gpu(self) -> bool:
         assert (

@@ -10,27 +10,20 @@ from ml.rl.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from ml.rl.parameters import NormalizationParameters, param_hash
 
 
-@dataclass(frozen=True)
-class FullyConnectedConfig:
+@dataclass
+class FullyConnected(DiscreteDQNNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     dropout_ratio: float = 0.0
 
-
-class FullyConnected(DiscreteDQNNetBuilder):
-    def __init__(self, config: FullyConnectedConfig):
+    def __post_init__(self):
         super().__init__()
-        assert len(config.sizes) == len(config.activations), (
+        assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
-            f"{config.sizes}, {config.activations}"
+            f"{self.sizes}, {self.activations}"
         )
-        self.config = config
-
-    @classmethod
-    def config_type(cls) -> Type:
-        return FullyConnectedConfig
 
     def build_q_network(
         self,
@@ -42,7 +35,7 @@ class FullyConnected(DiscreteDQNNetBuilder):
         return FullyConnectedDQN(
             state_dim=state_dim,
             action_dim=output_dim,
-            sizes=self.config.sizes,
-            activations=self.config.activations,
-            dropout_ratio=self.config.dropout_ratio,
+            sizes=self.sizes,
+            activations=self.activations,
+            dropout_ratio=self.dropout_ratio,
         )

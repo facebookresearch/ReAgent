@@ -9,27 +9,20 @@ from ml.rl.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
 from ml.rl.parameters import NormalizationParameters, param_hash
 
 
-@dataclass(frozen=True)
-class DuelingQuantileConfig:
+@dataclass
+class DuelingQuantile(QRDQNNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     num_atoms: int = 51
 
-
-class DuelingQuantile(QRDQNNetBuilder):
-    def __init__(self, config: DuelingQuantileConfig):
+    def __post_init__(self):
         super().__init__()
-        assert len(config.sizes) == len(config.activations), (
+        assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
-            f"{config.sizes}, {config.activations}"
+            f"{self.sizes}, {self.activations}"
         )
-        self.config = config
-
-    @classmethod
-    def config_type(cls) -> Type:
-        return DuelingQuantileConfig
 
     def build_q_network(
         self,
@@ -38,7 +31,7 @@ class DuelingQuantile(QRDQNNetBuilder):
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
         return DuelingQuantileDQN(
-            layers=[state_dim] + self.config.sizes + [output_dim],
-            activations=self.config.activations + ["linear"],
-            num_atoms=self.config.num_atoms,
+            layers=[state_dim] + self.sizes + [output_dim],
+            activations=self.activations + ["linear"],
+            num_atoms=self.num_atoms,
         )

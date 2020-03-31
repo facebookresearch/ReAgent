@@ -6,8 +6,8 @@ from typing import Optional
 
 from ml.rl import types as rlt
 from ml.rl.net_builder import discrete_dqn
-from ml.rl.net_builder.choosers import DiscreteDQNNetBuilderChooser
 from ml.rl.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
+from ml.rl.net_builder.unions import DiscreteDQNNetBuilder__Union
 from ml.rl.parameters import NormalizationParameters
 from ml.rl.preprocessing.identify_types import CONTINUOUS
 
@@ -27,11 +27,11 @@ except ImportError:
 class TestDiscreteDQNNetBuilder(unittest.TestCase):
     def _test_discrete_dqn_net_builder(
         self,
-        chooser: DiscreteDQNNetBuilderChooser,
+        chooser: DiscreteDQNNetBuilder__Union,
         state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
         serving_module_class=DiscreteDqnPredictorWrapper,
     ) -> None:
-        builder = DiscreteDQNNetBuilder.create_from_union(chooser)
+        builder = chooser.value
         state_dim = 3
         state_feature_config = state_feature_config or rlt.ModelFeatureConfig(
             float_feature_infos=[
@@ -62,22 +62,20 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
 
     def test_fully_connected(self):
         # Intentionally used this long path to make sure we included it in __init__.py
-        chooser = DiscreteDQNNetBuilderChooser(
-            FullyConnected=discrete_dqn.fully_connected.FullyConnected.config_type()()
+        chooser = DiscreteDQNNetBuilder__Union(
+            FullyConnected=discrete_dqn.fully_connected.FullyConnected()
         )
         self._test_discrete_dqn_net_builder(chooser)
 
     def test_dueling(self):
         # Intentionally used this long path to make sure we included it in __init__.py
-        chooser = DiscreteDQNNetBuilderChooser(
-            Dueling=discrete_dqn.dueling.Dueling.config_type()()
-        )
+        chooser = DiscreteDQNNetBuilder__Union(Dueling=discrete_dqn.dueling.Dueling())
         self._test_discrete_dqn_net_builder(chooser)
 
     def test_fully_connected_with_id_list_none(self):
         # Intentionally used this long path to make sure we included it in __init__.py
-        chooser = DiscreteDQNNetBuilderChooser(
-            FullyConnectedWithEmbedding=discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding.config_type()()
+        chooser = DiscreteDQNNetBuilder__Union(
+            FullyConnectedWithEmbedding=discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding()
         )
         self._test_discrete_dqn_net_builder(
             chooser, serving_module_class=DiscreteDqnPredictorWrapperWithIdList
@@ -85,8 +83,8 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
 
     def test_fully_connected_with_id_list(self):
         # Intentionally used this long path to make sure we included it in __init__.py
-        chooser = DiscreteDQNNetBuilderChooser(
-            FullyConnectedWithEmbedding=discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding.config_type()()
+        chooser = DiscreteDQNNetBuilder__Union(
+            FullyConnectedWithEmbedding=discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding()
         )
         state_feature_config = rlt.ModelFeatureConfig(
             float_feature_infos=[
