@@ -25,8 +25,7 @@ case class TimelineConfiguration(
     percentileFunction: String = "percentile_approx",
     rewardColumns: List[String] = Constants.DEFAULT_REWARD_COLUMNS,
     extraFeatureColumns: List[String] = Constants.DEFAULT_EXTRA_FEATURE_COLUMNS,
-    timeWindowLimit: Option[Long] = None,
-    storedAsParquet: Boolean = false
+    timeWindowLimit: Option[Long] = None
 )
 
 /**
@@ -148,14 +147,12 @@ object Timeline {
     log.info("timeline join column columns:" + s"${timelineJoinColumns}")
     log.info("timeline join column types:" + s"${timelineJoinColumnDataTypes}")
 
-    val storedAsParquet = (config.storedAsParquet == true)
     Timeline.createTrainingTable(
       sqlContext,
       config.outputTableName,
       actionDataType,
       rewardColumnDataTypes,
-      timelineJoinColumnDataTypes,
-      storedAsParquet
+      timelineJoinColumnDataTypes
     )
 
     config.outlierEpisodeLengthPercentile.foreach { percentile =>
@@ -312,8 +309,6 @@ object Timeline {
       )
     )
     for ((col_name, col_type) <- handle_cols) {
-      if (!storedAsParquet) {
-      
       val next_col_name = Helper.next_step_col_name(col_name)
       val empty_placeholder = col_type match {
         case "string"                                => Udfs.emptyStr()
@@ -327,7 +322,6 @@ object Timeline {
       }
       df = df
         .withColumn(next_col_name, coalesce(df(next_col_name), empty_placeholder))
-      }
     }
 
     val finalTableName = "finalTable"
@@ -383,8 +377,7 @@ object Timeline {
       tableName: String,
       actionDataType: String,
       rewardColumnDataTypes: Map[String, String] = Map("reward" -> "double"),
-      timelineJoinColumnDataTypes: Map[String, String] = Map(),
-      storedAsParquet: Boolean = false
+      timelineJoinColumnDataTypes: Map[String, String] = Map()
   ): Unit = {
     val rewardColumns = rewardColumnDataTypes.foldLeft("") {
       case (acc, (k, v)) => s"${acc}, ${k} ${v}"
@@ -393,9 +386,7 @@ object Timeline {
       case (acc, (k, v)) => s"${acc}, ${k} ${v}, ${Helper.next_step_col_name(k)} ${v}"
     }
 
-    sqlContext.sql("SET spark.sql.parquet.compression.codec=gzip")
-    val storedAs = if (storedAsParquet) "STORED AS PARQUET" else ""
-    val sqlCommand = s"""    
+    val sqlCommand = s"""
 CREATE TABLE IF NOT EXISTS ${tableName} (
     mdp_id STRING,
     state_features MAP < BIGINT,
@@ -411,8 +402,7 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
     time_diff BIGINT,
     time_since_first BIGINT
     ${timelineJoinColumns}
-) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30') 
-${storedAs}
+) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);
   }
