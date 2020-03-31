@@ -11,7 +11,8 @@
     "includePossibleActions": true,
     "percentileFunction": "percentile_approx",
     "rewardColumns": ["reward", "metrics"],
-    "extraFeatureColumns": []
+    "extraFeatureColumns": [],
+    "storedAsParquet": true
   },
   "query": {
     "tableSample": 100,

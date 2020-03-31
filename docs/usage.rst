@@ -126,6 +126,9 @@ First, we need to build the Spark library that will execute the timeline.  Apach
    # Build timeline package (only need to do this first time)
    mvn -f preprocessing/pom.xml clean package
 
+   # If above doesn't compile try setting JAVA_HOME to JDK 1.8, e.g., on OSX
+   JAVA_HOME=`/usr/libexec/java_home -v 1.8` mvn -f preprocessing/pom.xml clean package
+
 When running spark locally, spark creates a fake "cluster" where it stores all of the data.  We want to remove this before running so we don't accidentally pull in data from a prior run.  In a production setting, we would delete the output data table before running using a Hive command.
 
 .. code-block::
