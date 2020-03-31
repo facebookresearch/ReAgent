@@ -342,7 +342,9 @@ class ReplayBufferTest(unittest.TestCase):
         expected_terminal = np.array(
             [min((x + num_adds - replay_capacity) % 4, 1) for x in indices]
         )
-        batch = memory.sample_transition_batch(batch_size=len(indices), indices=indices)
+        batch = memory.sample_transition_batch(
+            batch_size=len(indices), indices=np.array(indices)
+        )
         (
             states,
             action,
@@ -408,7 +410,9 @@ class ReplayBufferTest(unittest.TestCase):
             [min((x + num_adds - replay_capacity) % 4, 1) for x in indices]
         )
         expected_extra2 = np.zeros([len(indices), 2])
-        batch = memory.sample_transition_batch(batch_size=len(indices), indices=indices)
+        batch = memory.sample_transition_batch(
+            batch_size=len(indices), indices=np.array(indices)
+        )
         (
             states,
             action,
@@ -451,7 +455,9 @@ class ReplayBufferTest(unittest.TestCase):
                 1 if i == 3 else 0,
             )  # terminal
         indices = [2, 3, 4]
-        batch = memory.sample_transition_batch(batch_size=len(indices), indices=indices)
+        batch = memory.sample_transition_batch(
+            batch_size=len(indices), indices=np.array(indices)
+        )
         states, action, reward, _, _, _, terminal, indices_batch = batch
         expected_states = np.array(
             [np.full(OBSERVATION_SHAPE + (1,), i, dtype=OBS_DTYPE) for i in indices]
@@ -514,7 +520,13 @@ class ReplayBufferTest(unittest.TestCase):
 
         # These valids account for the automatically applied padding (3 blanks each
         # episode.
-        correct_valids = [0, 0, 0, 1, 1, 0, 0, 0, 0, 0]
+        # correct_valids = [0, 0, 0, 1, 1, 0, 0, 0, 0, 0]
+        # The above comment is for the original Dopamine buffer, which doesn't
+        # account for terminal frames within the update_horizon frames before
+        # the cursor. In this case, the frame right before the cursor
+        # is terminal, so even though it is within [c-update_horizon, c],
+        # it should still be valid for sampling, as next state doesn't matter.
+        correct_valids = [0, 0, 0, 1, 1, 1, 0, 0, 0, 0]
         # The cursor is:                    ^\
         for i in range(10):
             self.assertEqual(

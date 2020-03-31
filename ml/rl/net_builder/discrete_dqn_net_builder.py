@@ -33,14 +33,6 @@ class DiscreteDQNNetBuilder(metaclass=RegistryMeta):
     Base class for discrete DQN net builder.
     """
 
-    @classmethod
-    @abc.abstractmethod
-    def config_type(cls) -> Type:
-        """
-        Return the config type. Must be conforming to Flow python 3 type API
-        """
-        pass
-
     @abc.abstractmethod
     def build_q_network(
         self,

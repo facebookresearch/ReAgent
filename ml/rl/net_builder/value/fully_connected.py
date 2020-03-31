@@ -10,27 +10,20 @@ from ml.rl.parameters import NormalizationData, param_hash
 from ml.rl.preprocessing.normalization import get_num_output_features
 
 
-@dataclass(frozen=True)
-class FullyConnectedConfig:
+@dataclass
+class FullyConnected(ValueNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     use_layer_norm: bool = False
 
-
-class FullyConnected(ValueNetBuilder):
-    def __init__(self, config: FullyConnectedConfig):
+    def __post_init__(self):
         super().__init__()
-        assert len(config.sizes) == len(config.activations), (
+        assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
-            f"{config.sizes}, {config.activations}"
+            f"{self.sizes}, {self.activations}"
         )
-        self.config = config
-
-    @classmethod
-    def config_type(cls) -> Type:
-        return FullyConnectedConfig
 
     def build_value_network(
         self, state_normalization_data: NormalizationData
@@ -39,7 +32,7 @@ class FullyConnected(ValueNetBuilder):
             state_normalization_data.dense_normalization_parameters
         )
         return FullyConnectedNetwork(
-            [state_dim] + self.config.sizes + [1],
-            self.config.activations + ["linear"],
-            use_layer_norm=self.config.use_layer_norm,
+            [state_dim] + self.sizes + [1],
+            self.activations + ["linear"],
+            use_layer_norm=self.use_layer_norm,
         )

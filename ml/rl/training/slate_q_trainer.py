@@ -83,7 +83,9 @@ class SlateQTrainer(DQNTrainerBase):
     @torch.no_grad()  # type: ignore
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
         learning_input = training_batch.training_input
-        assert isinstance(learning_input, rlt.PreprocessedSlateQInput)
+        assert isinstance(
+            learning_input, rlt.PreprocessedSlateQInput
+        ), f"learning input is a {type(learning_input)}"
         self.minibatch += 1
 
         reward = learning_input.reward

@@ -14,7 +14,7 @@ from ml.rl.preprocessing import normalization
 from ml.rl.readers.data_streamer import DataStreamer
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.torch_utils import export_module_to_buffer
-from ml.rl.workflow.page_handler import (
+from ml.rl.workflow_utils.page_handler import (
     EvaluationPageHandler,
     TrainingPageHandler,
     feed_pages,

@@ -5,7 +5,7 @@ import unittest
 
 import torch
 from ml.rl.net_builder import value
-from ml.rl.net_builder.choosers import ValueNetBuilderChooser
+from ml.rl.net_builder.unions import ValueNetBuilder__Union
 from ml.rl.net_builder.value_net_builder import ValueNetBuilder
 from ml.rl.parameters import NormalizationData, NormalizationParameters
 from ml.rl.preprocessing.identify_types import CONTINUOUS
@@ -13,10 +13,10 @@ from ml.rl.preprocessing.identify_types import CONTINUOUS
 
 class TestValueNetBuilder(unittest.TestCase):
     def test_fully_connected(self):
-        chooser = ValueNetBuilderChooser(
-            FullyConnected=value.fully_connected.FullyConnected.config_type()()
+        chooser = ValueNetBuilder__Union(
+            FullyConnected=value.fully_connected.FullyConnected()
         )
-        builder = ValueNetBuilder.create_from_union(chooser)
+        builder = chooser.value
         state_dim = 3
         norm_data = NormalizationData(
             dense_normalization_parameters={

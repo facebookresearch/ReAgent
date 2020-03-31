@@ -4,8 +4,8 @@
 import unittest
 
 from ml.rl.net_builder import parametric_dqn
-from ml.rl.net_builder.choosers import ParametricDQNNetBuilderChooser
 from ml.rl.net_builder.parametric_dqn_net_builder import ParametricDQNNetBuilder
+from ml.rl.net_builder.unions import ParametricDQNNetBuilder__Union
 from ml.rl.parameters import NormalizationParameters
 from ml.rl.preprocessing.identify_types import CONTINUOUS
 
@@ -22,9 +22,9 @@ except ImportError:
 
 class TestParametricDQNNetBuilder(unittest.TestCase):
     def _test_parametric_dqn_net_builder(
-        self, chooser: ParametricDQNNetBuilderChooser
+        self, chooser: ParametricDQNNetBuilder__Union
     ) -> None:
-        builder = ParametricDQNNetBuilder.create_from_union(chooser)
+        builder = chooser.value
         state_dim = 3
         state_norm_params = {
             i: NormalizationParameters(feature_type=CONTINUOUS, mean=0.0, stddev=1.0)
@@ -46,7 +46,7 @@ class TestParametricDQNNetBuilder(unittest.TestCase):
 
     def test_fully_connected(self):
         # Intentionally used this long path to make sure we included it in __init__.py
-        chooser = ParametricDQNNetBuilderChooser(
-            FullyConnected=parametric_dqn.fully_connected.FullyConnected.config_type()()
+        chooser = ParametricDQNNetBuilder__Union(
+            FullyConnected=parametric_dqn.fully_connected.FullyConnected()
         )
         self._test_parametric_dqn_net_builder(chooser)

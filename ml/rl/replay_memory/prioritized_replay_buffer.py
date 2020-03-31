@@ -155,7 +155,7 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
                     index = self.sum_tree.sample()
                     allowed_attempts -= 1
                 indices[i] = index
-        return indices
+        return np.array(indices)
 
     def sample_transition_batch(self, batch_size=None, indices=None):
         """Returns a batch of transitions with extra storage and the priorities.

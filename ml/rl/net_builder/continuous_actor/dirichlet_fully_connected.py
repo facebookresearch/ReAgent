@@ -11,27 +11,20 @@ from ml.rl.preprocessing.identify_types import DO_NOT_PREPROCESS
 from ml.rl.preprocessing.normalization import get_num_output_features
 
 
-@dataclass(frozen=True)
-class DirichletFullyConnectedConfig:
+@dataclass
+class DirichletFullyConnected(ContinuousActorNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [128, 64])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     use_batch_norm: bool = False
 
-
-class DirichletFullyConnected(ContinuousActorNetBuilder):
-    def __init__(self, config: DirichletFullyConnectedConfig):
+    def __post_init__(self):
         super().__init__()
-        assert len(config.sizes) == len(config.activations), (
+        assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
-            f"{config.sizes}, {config.activations}"
+            f"{self.sizes}, {self.activations}"
         )
-        self.config = config
-
-    @classmethod
-    def config_type(cls) -> Type:
-        return DirichletFullyConnectedConfig
 
     @property
     def default_action_preprocessing(self) -> str:
@@ -51,7 +44,7 @@ class DirichletFullyConnected(ContinuousActorNetBuilder):
         return DirichletFullyConnectedActor(
             state_dim=state_dim,
             action_dim=action_dim,
-            sizes=self.config.sizes,
-            activations=self.config.activations,
-            use_batch_norm=self.config.use_batch_norm,
+            sizes=self.sizes,
+            activations=self.activations,
+            use_batch_norm=self.use_batch_norm,
         )

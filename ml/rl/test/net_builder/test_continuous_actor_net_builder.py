@@ -4,8 +4,8 @@
 import unittest
 
 from ml.rl.net_builder import continuous_actor
-from ml.rl.net_builder.choosers import ContinuousActorNetBuilderChooser
 from ml.rl.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
+from ml.rl.net_builder.unions import ContinuousActorNetBuilder__Union
 from ml.rl.parameters import NormalizationData, NormalizationParameters
 from ml.rl.preprocessing.identify_types import CONTINUOUS
 
@@ -20,9 +20,9 @@ except ImportError:
 
 class TestContinuousActorNetBuilder(unittest.TestCase):
     def _test_actor_net_builder(
-        self, chooser: ContinuousActorNetBuilderChooser
+        self, chooser: ContinuousActorNetBuilder__Union
     ) -> None:
-        builder = ContinuousActorNetBuilder.create_from_union(chooser)
+        builder = chooser.value
         state_dim = 3
         state_norm_data = NormalizationData(
             dense_normalization_parameters={
@@ -57,14 +57,14 @@ class TestContinuousActorNetBuilder(unittest.TestCase):
 
     def test_gaussian_fully_connected(self):
         # Intentionally used this long path to make sure we included it in __init__.py
-        chooser = ContinuousActorNetBuilderChooser(
-            GaussianFullyConnected=continuous_actor.gaussian_fully_connected.GaussianFullyConnected.config_type()()
+        chooser = ContinuousActorNetBuilder__Union(
+            GaussianFullyConnected=continuous_actor.gaussian_fully_connected.GaussianFullyConnected()
         )
         self._test_actor_net_builder(chooser)
 
     def test_dirichlet_fully_connected(self):
         # Intentionally used this long path to make sure we included it in __init__.py
-        chooser = ContinuousActorNetBuilderChooser(
-            DirichletFullyConnected=continuous_actor.dirichlet_fully_connected.DirichletFullyConnected.config_type()()
+        chooser = ContinuousActorNetBuilder__Union(
+            DirichletFullyConnected=continuous_actor.dirichlet_fully_connected.DirichletFullyConnected()
         )
         self._test_actor_net_builder(chooser)

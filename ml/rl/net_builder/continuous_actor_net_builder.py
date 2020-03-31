@@ -25,14 +25,6 @@ class ContinuousActorNetBuilder(metaclass=RegistryMeta):
     Base class for continuous actor net builder.
     """
 
-    @classmethod
-    @abc.abstractmethod
-    def config_type(cls) -> Type:
-        """
-        Return the config type. Must be conforming to Flow python 3 type API
-        """
-        pass
-
     @property
     @abc.abstractmethod
     def default_action_preprocessing(self) -> str:

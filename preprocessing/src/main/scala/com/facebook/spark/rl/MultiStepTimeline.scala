@@ -23,8 +23,6 @@ case class MultiStepTimelineConfiguration(
   * mdp_id, state_features, action, reward, next_state_features, next_action,
   * sequence_number, sequence_number_ordinal, time_diff, possible_next_actions.
   * Shuffles the results.
-  * Reference:
-  * https://our.intern.facebook.com/intern/wiki/Reinforcement-learning/
   *
   * Args:
   * input_table: string, input table name

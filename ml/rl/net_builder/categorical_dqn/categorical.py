@@ -9,8 +9,8 @@ from ml.rl.net_builder.categorical_dqn_net_builder import CategoricalDQNNetBuild
 from ml.rl.parameters import NormalizationParameters, param_hash
 
 
-@dataclass(frozen=True)
-class CategoricalConfig:
+@dataclass
+class Categorical(CategoricalDQNNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])
@@ -19,19 +19,12 @@ class CategoricalConfig:
     qmin: int = -100
     qmax: int = 200
 
-
-class Categorical(CategoricalDQNNetBuilder):
-    def __init__(self, config: CategoricalConfig):
+    def __post_init__(self):
         super().__init__()
-        assert len(config.sizes) == len(config.activations), (
+        assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
-            f"{config.sizes}, {config.activations}"
+            f"{self.sizes}, {self.activations}"
         )
-        self.config = config
-
-    @classmethod
-    def config_type(cls) -> Type:
-        return CategoricalConfig
 
     def build_q_network(
         self,
@@ -42,11 +35,11 @@ class Categorical(CategoricalDQNNetBuilder):
         return CategoricalDQN(
             state_dim,
             action_dim=output_dim,
-            num_atoms=self.config.num_atoms,
-            qmin=self.config.qmin,
-            qmax=self.config.qmax,
-            sizes=self.config.sizes,
-            activations=self.config.activations,
+            num_atoms=self.num_atoms,
+            qmin=self.qmin,
+            qmax=self.qmax,
+            sizes=self.sizes,
+            activations=self.activations,
             use_batch_norm=False,
             dropout_ratio=0.0,
             use_gpu=False,

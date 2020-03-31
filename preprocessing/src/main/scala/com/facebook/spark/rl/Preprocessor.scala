@@ -78,6 +78,7 @@ object Preprocessor {
     inputDf.createOrReplaceTempView(timelineConfig.inputTableName)
 
     Timeline.run(sparkSession.sqlContext, timelineConfig)
+
     val query = if (timelineConfig.actionDiscrete) {
       Query.getDiscreteQuery(queryConfig)
     } else {

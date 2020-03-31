@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import NamedTuple, Union
+from typing import List, NamedTuple, Union
 
 import torch
 import torch.nn as nn
@@ -18,7 +18,13 @@ logger = logging.getLogger(__name__)
 
 
 class DuelingQNetwork(ModelBase):
-    def __init__(self, layers, activations, use_batch_norm=False, action_dim=0) -> None:
+    def __init__(
+        self,
+        layers: List[int],
+        activations: List[str],
+        use_batch_norm: bool = False,
+        action_dim: int = 0,
+    ) -> None:
         """
         Dueling Q-Network Architecture: https://arxiv.org/abs/1511.06581
 

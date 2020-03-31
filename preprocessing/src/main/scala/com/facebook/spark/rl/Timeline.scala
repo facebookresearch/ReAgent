@@ -25,7 +25,8 @@ case class TimelineConfiguration(
     percentileFunction: String = "percentile_approx",
     rewardColumns: List[String] = Constants.DEFAULT_REWARD_COLUMNS,
     extraFeatureColumns: List[String] = Constants.DEFAULT_EXTRA_FEATURE_COLUMNS,
-    timeWindowLimit: Option[Long] = None
+    timeWindowLimit: Option[Long] = None,
+    validationSql: Option[String] = None
 )
 
 /**
@@ -34,8 +35,6 @@ case class TimelineConfiguration(
   * mdp_id, state_features, action, reward, next_state_features, next_action,
   * sequence_number, sequence_number_ordinal, time_diff, possible_next_actions.
   * Shuffles the results.
-  * Reference:
-  * https://our.intern.facebook.com/intern/wiki/Reinforcement-learning/
   *
   * Args:
   * input_table: string, input table name
@@ -118,11 +117,19 @@ case class TimelineConfiguration(
   * possible_next_actions ( ARRAY<STRING> OR ARRAY<MAP<BIGINT,DOUBLE>> )
   * A list of actions that were possible at the next step.
   *
+  * config.validationSql (Option[String], default None).
+  * A SQL query to validate against a Timeline Pipeline input/output table where
+  * result should have only one row and that row contains only true booleans
+  * Ex: select if((select count(*) from {config.outputTableName} where mdp_id<0) == 0, TRUE, FALSE)
+  * Ex: select if((select count(*) from {config.inputTableName} where reward>1.0) == 0, TRUE, FALSE)
   */
 object Timeline {
 
   private val log = LoggerFactory.getLogger(this.getClass.getName)
-  def run(sqlContext: SQLContext, config: TimelineConfiguration): Unit = {
+  def run(
+      sqlContext: SQLContext,
+      config: TimelineConfiguration
+  ): Unit = {
     var filterTerminal = "HAVING next_state_features IS NOT NULL";
     if (config.addTerminalStateRow) {
       filterTerminal = "";
@@ -324,14 +331,28 @@ object Timeline {
         .withColumn(next_col_name, coalesce(df(next_col_name), empty_placeholder))
     }
 
-    val finalTableName = "finalTable"
-    df.createOrReplaceTempView(finalTableName)
+    val stagingTable = "stagingTable_" + config.outputTableName
+    if (sqlContext.tableNames.contains(stagingTable)) {
+      log.warn("RL ValidationSql staging table name collision occurred, name: " + stagingTable)
+    }
+    df.createOrReplaceTempView(stagingTable)
 
-    val insertCommand = s"""
+    val maybeError = config.validationSql.flatMap { query =>
+      Helper.validateTimeline(
+        sqlContext,
+        query
+          .replace("{config.outputTableName}", stagingTable)
+          .replace("{config.inputTableName}", config.inputTableName)
+      )
+    }
+
+    assert(maybeError.isEmpty, "validationSql validation failure: " + maybeError)
+
+    val insertCommandOutput = s"""
       INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
-      SELECT * FROM ${finalTableName}
+      SELECT * FROM ${stagingTable}
     """.stripMargin
-    sqlContext.sql(insertCommand)
+    sqlContext.sql(insertCommandOutput)
   }
 
   def mdpLengthThreshold(sqlContext: SQLContext, config: TimelineConfiguration): Option[Double] =

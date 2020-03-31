@@ -612,6 +612,298 @@ class TimelineTest extends PipelineTester {
     assert(firstRow.getAs[Map[String, Double]](14) == Map("Widgets" -> 10.0))
   }
 
+  test("two-state-continuous-mdp-validation-success-input") {
+    val action_discrete: Boolean = false
+    val sqlCtx = sqlContext
+    import sqlCtx.implicits._
+    val sparkContext = sqlCtx.sparkContext
+
+    // Setup configuration
+    val outputTableName = "some_rl_timeline_4"
+    val config = TimelineConfiguration(
+      startDs = "2018-01-01",
+      endDs = "2018-01-01",
+      addTerminalStateRow = false,
+      actionDiscrete = action_discrete,
+      inputTableName = "some_rl_input_4",
+      outputTableName = outputTableName,
+      evalTableName = null,
+      numOutputShards = 1,
+      validationSql = Some(
+        "select if((select count(*) from {config.inputTableName} where reward>1.0) == 0, TRUE, FALSE)"
+      )
+    )
+
+    // destroy previous schema
+    Helper.destroyTrainingTable(
+      sqlContext,
+      s"${config.outputTableName}"
+    )
+
+    // Create fake input data
+    val rl_input = sparkContext
+      .parallelize(
+        List(
+          (
+            "2018-01-01",
+            "mdp1",
+            1,
+            1.0,
+            Map(1001L -> 0.3, 1002L -> 0.5),
+            0.8,
+            Map(1L -> 1.0),
+            List(Map(1001L -> 0.3, 1002L -> 0.5), Map(1001L -> 0.6, 1002L -> 0.2)),
+            Map("Widgets" -> 10.0)
+          ), // First state
+          (
+            "2018-01-01",
+            "mdp1",
+            11,
+            0.2,
+            Map.empty[Long, Double],
+            0.7,
+            Map(2L -> 1.0),
+            List(),
+            Map("Widgets" -> 20.0)
+          ) // Second state
+        )
+      )
+      .toDF(
+        "ds",
+        "mdp_id",
+        "sequence_number",
+        "reward",
+        "action",
+        "action_probability",
+        "state_features",
+        "possible_actions",
+        "metrics"
+      )
+    rl_input.createOrReplaceTempView(config.inputTableName)
+
+    // Run the pipeline, assert made in Timeline.scala
+    Timeline.run(sqlContext, config)
+  }
+
+  test("two-state-continuous-mdp-validation-failure-input") {
+    val action_discrete: Boolean = false
+    val sqlCtx = sqlContext
+    import sqlCtx.implicits._
+    val sparkContext = sqlCtx.sparkContext
+
+    val outputTableName = "some_rl_timeline_4"
+    // Setup configuration
+    val config = TimelineConfiguration(
+      startDs = "2018-01-01",
+      endDs = "2018-01-01",
+      addTerminalStateRow = false,
+      actionDiscrete = action_discrete,
+      inputTableName = "some_rl_input_4",
+      outputTableName = outputTableName,
+      evalTableName = null,
+      numOutputShards = 1,
+      validationSql = Some(
+        "select if((select count(*) from {config.inputTableName} where reward<=1.0) == 0, TRUE, FALSE)"
+      )
+    )
+
+    // destroy previous schema
+    Helper.destroyTrainingTable(
+      sqlContext,
+      s"${config.outputTableName}"
+    )
+
+    // Create fake input data
+    val rl_input = sparkContext
+      .parallelize(
+        List(
+          (
+            "2018-01-01",
+            "mdp1",
+            1,
+            1.0,
+            Map(1001L -> 0.3, 1002L -> 0.5),
+            0.8,
+            Map(1L -> 1.0),
+            List(Map(1001L -> 0.3, 1002L -> 0.5), Map(1001L -> 0.6, 1002L -> 0.2)),
+            Map("Widgets" -> 10.0)
+          ), // First state
+          (
+            "2018-01-01",
+            "mdp1",
+            11,
+            0.2,
+            Map.empty[Long, Double],
+            0.7,
+            Map(2L -> 1.0),
+            List(),
+            Map("Widgets" -> 20.0)
+          ) // Second state
+        )
+      )
+      .toDF(
+        "ds",
+        "mdp_id",
+        "sequence_number",
+        "reward",
+        "action",
+        "action_probability",
+        "state_features",
+        "possible_actions",
+        "metrics"
+      )
+    rl_input.createOrReplaceTempView(config.inputTableName)
+
+    intercept[AssertionError] {
+      Timeline.run(sqlContext, config)
+    }
+  }
+
+  test("two-state-continuous-mdp-validation-success-output") {
+    val action_discrete: Boolean = false
+    val sqlCtx = sqlContext
+    import sqlCtx.implicits._
+    val sparkContext = sqlCtx.sparkContext
+
+    // Setup configuration
+    val outputTableName = "some_rl_timeline_4"
+    val config = TimelineConfiguration(
+      startDs = "2018-01-01",
+      endDs = "2018-01-01",
+      addTerminalStateRow = false,
+      actionDiscrete = action_discrete,
+      inputTableName = "some_rl_input_4",
+      outputTableName = outputTableName,
+      evalTableName = null,
+      numOutputShards = 1,
+      validationSql =
+        Some("select if((select count(*) from {config.outputTableName}) == 1, TRUE, FALSE)")
+    )
+
+    // destroy previous schema
+    Helper.destroyTrainingTable(
+      sqlContext,
+      s"${config.outputTableName}"
+    )
+
+    // Create fake input data
+    val rl_input = sparkContext
+      .parallelize(
+        List(
+          (
+            "2018-01-01",
+            "mdp1",
+            1,
+            1.0,
+            Map(1001L -> 0.3, 1002L -> 0.5),
+            0.8,
+            Map(1L -> 1.0),
+            List(Map(1001L -> 0.3, 1002L -> 0.5), Map(1001L -> 0.6, 1002L -> 0.2)),
+            Map("Widgets" -> 10.0)
+          ), // First state
+          (
+            "2018-01-01",
+            "mdp1",
+            11,
+            0.2,
+            Map.empty[Long, Double],
+            0.7,
+            Map(2L -> 1.0),
+            List(),
+            Map("Widgets" -> 20.0)
+          ) // Second state
+        )
+      )
+      .toDF(
+        "ds",
+        "mdp_id",
+        "sequence_number",
+        "reward",
+        "action",
+        "action_probability",
+        "state_features",
+        "possible_actions",
+        "metrics"
+      )
+    rl_input.createOrReplaceTempView(config.inputTableName)
+
+    // Run the pipeline, assert made in Timeline.scala
+    Timeline.run(sqlContext, config)
+  }
+
+  test("two-state-continuous-mdp-validation-failure-output") {
+    val action_discrete: Boolean = false
+    val sqlCtx = sqlContext
+    import sqlCtx.implicits._
+    val sparkContext = sqlCtx.sparkContext
+
+    val outputTableName = "some_rl_timeline_4"
+    // Setup configuration
+    val config = TimelineConfiguration(
+      startDs = "2018-01-01",
+      endDs = "2018-01-01",
+      addTerminalStateRow = false,
+      actionDiscrete = action_discrete,
+      inputTableName = "some_rl_input_4",
+      outputTableName = outputTableName,
+      evalTableName = null,
+      numOutputShards = 1,
+      validationSql =
+        Some(s"select if((select count(*) from {config.outputTableName}) == 0, TRUE, FALSE)")
+    )
+
+    // destroy previous schema
+    Helper.destroyTrainingTable(
+      sqlContext,
+      s"${config.outputTableName}"
+    )
+
+    // Create fake input data
+    val rl_input = sparkContext
+      .parallelize(
+        List(
+          (
+            "2018-01-01",
+            "mdp1",
+            1,
+            1.0,
+            Map(1001L -> 0.3, 1002L -> 0.5),
+            0.8,
+            Map(1L -> 1.0),
+            List(Map(1001L -> 0.3, 1002L -> 0.5), Map(1001L -> 0.6, 1002L -> 0.2)),
+            Map("Widgets" -> 10.0)
+          ), // First state
+          (
+            "2018-01-01",
+            "mdp1",
+            11,
+            0.2,
+            Map.empty[Long, Double],
+            0.7,
+            Map(2L -> 1.0),
+            List(),
+            Map("Widgets" -> 20.0)
+          ) // Second state
+        )
+      )
+      .toDF(
+        "ds",
+        "mdp_id",
+        "sequence_number",
+        "reward",
+        "action",
+        "action_probability",
+        "state_features",
+        "possible_actions",
+        "metrics"
+      )
+    rl_input.createOrReplaceTempView(config.inputTableName)
+
+    intercept[AssertionError] {
+      Timeline.run(sqlContext, config)
+    }
+  }
+
   test("two-state-continuous-mdp-sparse-action") {
     val action_discrete: Boolean = false
     val extraFeatureColumns: List[String] =
@@ -1357,5 +1649,4 @@ class TimelineTest extends PipelineTester {
     assert(thirdRow.getAs[Map[Long, Double]](10) == Map())
     assert(thirdRow.getAs[Map[Long, List[Map[Long, Double]]]](11) == Map())
   }
-
 }

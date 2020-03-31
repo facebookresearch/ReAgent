@@ -10,8 +10,8 @@ from ml.rl.parameters import NormalizationParameters, param_hash
 from ml.rl.preprocessing.normalization import get_num_output_features
 
 
-@dataclass(frozen=True)
-class FullyConnectedConfig:
+@dataclass
+class FullyConnected(ParametricDQNNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [128, 64])
@@ -19,19 +19,12 @@ class FullyConnectedConfig:
     use_batch_norm: bool = False
     use_layer_norm: bool = False
 
-
-class FullyConnected(ParametricDQNNetBuilder):
-    def __init__(self, config: FullyConnectedConfig):
+    def __post_init__(self):
         super().__init__()
-        assert len(config.sizes) == len(config.activations), (
+        assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
-            f"{config.sizes}, {config.activations}"
+            f"{self.sizes}, {self.activations}"
         )
-        self.config = config
-
-    @classmethod
-    def config_type(cls) -> Type:
-        return FullyConnectedConfig
 
     def build_q_network(
         self,
@@ -44,9 +37,9 @@ class FullyConnected(ParametricDQNNetBuilder):
         return FullyConnectedParametricDQN(
             state_dim=state_dim,
             action_dim=action_dim,
-            sizes=self.config.sizes,
-            activations=self.config.activations,
-            use_batch_norm=self.config.use_batch_norm,
-            use_layer_norm=self.config.use_layer_norm,
+            sizes=self.sizes,
+            activations=self.activations,
+            use_batch_norm=self.use_batch_norm,
+            use_layer_norm=self.use_layer_norm,
             output_dim=output_dim,
         )

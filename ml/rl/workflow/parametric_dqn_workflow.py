@@ -40,7 +40,7 @@ from ml.rl.workflow.preprocess_handler import (
     ParametricDqnPreprocessHandler,
     PreprocessHandler,
 )
-from ml.rl.workflow.transitional import create_parametric_dqn_trainer_from_params
+from ml.rl.workflow_utils.transitional import create_parametric_dqn_trainer_from_params
 from torch import multiprocessing
 from torch.utils.tensorboard import SummaryWriter
 

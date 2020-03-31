@@ -11,8 +11,8 @@ from ml.rl.preprocessing.identify_types import CONTINUOUS_ACTION
 from ml.rl.preprocessing.normalization import get_num_output_features
 
 
-@dataclass(frozen=True)
-class GaussianFullyConnectedConfig:
+@dataclass
+class GaussianFullyConnected(ContinuousActorNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [128, 64])
@@ -20,19 +20,12 @@ class GaussianFullyConnectedConfig:
     use_batch_norm: bool = False
     use_layer_norm: bool = False
 
-
-class GaussianFullyConnected(ContinuousActorNetBuilder):
-    def __init__(self, config: GaussianFullyConnectedConfig):
+    def __post_init__(self):
         super().__init__()
-        assert len(config.sizes) == len(config.activations), (
+        assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
-            f"{config.sizes}, {config.activations}"
+            f"{self.sizes}, {self.activations}"
         )
-        self.config = config
-
-    @classmethod
-    def config_type(cls) -> Type:
-        return GaussianFullyConnectedConfig
 
     @property
     def default_action_preprocessing(self) -> str:
@@ -52,8 +45,8 @@ class GaussianFullyConnected(ContinuousActorNetBuilder):
         return GaussianFullyConnectedActor(
             state_dim=state_dim,
             action_dim=action_dim,
-            sizes=self.config.sizes,
-            activations=self.config.activations,
-            use_batch_norm=self.config.use_batch_norm,
-            use_layer_norm=self.config.use_layer_norm,
+            sizes=self.sizes,
+            activations=self.activations,
+            use_batch_norm=self.use_batch_norm,
+            use_layer_norm=self.use_layer_norm,
         )
