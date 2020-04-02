@@ -1,34 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import dataclasses
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
+from ml.rl.core.configuration import param_hash
 from ml.rl.parameters_seq2slate import LearningMethod
 from ml.rl.types import BaseDataClass
-
-
-def param_hash(p):
-    """
-    Use this to make parameters hashable. This is required because __hash__()
-    is not inherited when subclass redefines __eq__(). We only need this when
-    the parameter dataclass has a list or dict field.
-    """
-    return hash(tuple(_hash_field(getattr(p, f.name)) for f in dataclasses.fields(p)))
-
-
-def _hash_field(val):
-    """
-    Returns hashable value of the argument. A list is converted to a tuple.
-    A dict is converted to a tuple of sorted pairs of key and value.
-    """
-    if isinstance(val, list):
-        return tuple(val)
-    elif isinstance(val, dict):
-        return tuple(sorted(val.items()))
-    else:
-        return val
 
 
 @dataclass(frozen=True)

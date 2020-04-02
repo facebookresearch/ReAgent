@@ -202,7 +202,7 @@ def create_parametric_dqn_trainer_from_params(
         q_network_target = q_network_target.get_distributed_data_parallel_model()
         reward_network = reward_network.get_distributed_data_parallel_model()
 
-    trainer_parameters = ParametricDQNTrainerParameters(
+    trainer_parameters = ParametricDQNTrainerParameters(  # type: ignore
         rl=model.rl,
         double_q_learning=model.rainbow.double_q_learning,
         minibatch_size=model.training.minibatch_size,
@@ -214,7 +214,11 @@ def create_parametric_dqn_trainer_from_params(
     )
 
     return ParametricDQNTrainer(
-        q_network, q_network_target, reward_network, trainer_parameters, use_gpu
+        q_network,
+        q_network_target,
+        reward_network,
+        use_gpu=use_gpu,
+        **trainer_parameters.asdict()  # type: ignore
     )
 
 
