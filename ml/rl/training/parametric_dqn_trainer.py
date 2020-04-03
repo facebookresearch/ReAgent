@@ -10,6 +10,7 @@ import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
+from ml.rl.core.configuration import make_config_class, resolve_defaults
 from ml.rl.parameters import ContinuousActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage
@@ -18,44 +19,42 @@ from ml.rl.training.training_data_page import TrainingDataPage
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
-class ParametricDQNTrainerParameters:
-    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
-    double_q_learning: bool = True
-    minibatch_size: int = 1024
-    minibatches_per_step: int = 1
-    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
-
-
 class ParametricDQNTrainer(DQNTrainerBase):
+    @resolve_defaults
     def __init__(
         self,
         q_network,
         q_network_target,
         reward_network,
-        parameters: ParametricDQNTrainerParameters,
+        rl: rlp.RLParameters = field(default_factory=rlp.RLParameters),  # noqa B008
+        double_q_learning: bool = True,
+        minibatch_size: int = 1024,
+        minibatches_per_step: int = 1,
+        optimizer: rlp.OptimizerParameters = field(  # noqa B008
+            default_factory=rlp.OptimizerParameters
+        ),
         use_gpu: bool = False,
     ) -> None:
-        super().__init__(parameters.rl, use_gpu=use_gpu)
+        super().__init__(rl, use_gpu=use_gpu)
 
-        self.double_q_learning = parameters.double_q_learning
-        self.minibatch_size = parameters.minibatch_size
-        self.minibatches_per_step = parameters.minibatches_per_step or 1
+        self.double_q_learning = double_q_learning
+        self.minibatch_size = minibatch_size
+        self.minibatches_per_step = minibatches_per_step or 1
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.optimizer.optimizer)
+        self._set_optimizer(optimizer.optimizer)
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(),
-            lr=parameters.optimizer.learning_rate,
-            weight_decay=parameters.optimizer.l2_decay,
+            lr=optimizer.learning_rate,
+            weight_decay=optimizer.l2_decay,
         )
 
         self.reward_network = reward_network
         self.reward_network_optimizer = self.optimizer_func(
             self.reward_network.parameters(),
-            lr=parameters.optimizer.learning_rate,
-            weight_decay=parameters.optimizer.l2_decay,
+            lr=optimizer.learning_rate,
+            weight_decay=optimizer.l2_decay,
         )
 
     def warm_start_components(self):
@@ -180,3 +179,8 @@ class ParametricDQNTrainer(DQNTrainerBase):
         )
         self.reward_network.train()
         return reward_estimates.q_value.cpu()
+
+
+@make_config_class(ParametricDQNTrainer.__init__, blacklist=["use_gpu"])
+class ParametricDQNTrainerParameters:
+    pass
