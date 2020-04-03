@@ -2,10 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import copy
-from typing import Any, Dict, Optional, Tuple
-
-from ml.rl.polyfill.decorators import classproperty
-from ml.rl.polyfill.exceptions import NonRetryableTypeError
+from typing import Any, Tuple
 
 
 class _EmptyValue:
@@ -20,11 +17,9 @@ _EMPTY_VALUE = _EmptyValue()
 class TaggedUnion:
     def __init__(self, **fields):
         if len(fields) != 1:
-            raise NonRetryableTypeError(
-                "The constructor of {} must be called with"
-                " exactly one key and value. (Got {})".format(
-                    type(self).__name__, fields
-                )
+            raise TypeError(
+                f"The constructor of {type(self).__name__} must be called with"
+                " exactly one key and value. (Got {fields})"
             )
 
         [(field, value)] = fields.items()
@@ -60,12 +55,15 @@ class TaggedUnion:
         self.__dict__["#"] = {field: _EMPTY_VALUE for field in self.__annotations__}
 
     def _set_field(self, field: str, value: Any) -> None:
+        if field not in self.__annotations__:
+            # We can't just use self in the message because this could be called from ctor
+            raise AttributeError(f"'{field}' is not a valid field of {type(self).__name__}")
         self._clear_all_fields()
         self.__dict__["#"][field] = value
 
     def __getattr__(self, field: str) -> Any:
         if field.startswith("__"):
-            raise AttributeError("Unable to get the private field '{}'".format(field))
+            raise AttributeError(f"Unable to get the private field '{field}'")
         if field not in self.__annotations__:
             raise AttributeError("'{}' is not a valid field of {}".format(field, self))
         else:
