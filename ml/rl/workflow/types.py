@@ -2,7 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from datetime import datetime as RecurringPeriod  # noqa
+from typing import Dict, List, NamedTuple, Optional
 
 from ml.rl.polyfill.types_lib.union import TaggedUnion  # noqa F401
 from ml.rl.preprocessing.normalization import (
@@ -12,6 +13,7 @@ from ml.rl.preprocessing.normalization import (
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
 from ml.rl.types import BaseDataClass
+from ml.rl.workflow.result_types import PublishingResults, ValidationResults
 
 
 @dataclass
@@ -32,3 +34,13 @@ class PreprocessingOptions(BaseDataClass):
     set_missing_value_to_zero: Optional[bool] = False
     whitelist_features: Optional[List[int]] = None
     assert_whitelist_feature_coverage: bool = True
+
+
+class PublishingOutput(NamedTuple):
+    success: bool
+    results: PublishingResults
+
+
+class ValidationOutput(NamedTuple):
+    should_publish: bool
+    results: ValidationResults

@@ -176,7 +176,7 @@ class ModelManager(metaclass=RegistryMeta):
         train_dataset: Dataset,
         eval_dataset: Optional[Dataset],
         normalization_data_map: Dict[str, NormalizationData],
-        model,  # fblearner.flow.projects.rl.workflow.training.ModelChooser
+        model,  # ml.rl.workflow.model_managers.ModelManager__Union
         num_epochs: int,
         use_gpu: bool,
         parent_workflow_id: int,
