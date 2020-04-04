@@ -6,17 +6,26 @@ import unittest
 import numpy as np
 from reagent.preprocessing.identify_types import CONTINUOUS
 from reagent.test.base.horizon_test_base import HorizonTestBase
-from reagent.workflow.identify_types_flow import (
-    get_spark_session,
-    identify_normalization_parameters,
-)
+from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import PreprocessingOptions, TableSpec
+from sparktestingbase.sqltestcase import SQLTestCase
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-class TestPreprocessing(HorizonTestBase):
+class TestPreprocessing(SQLTestCase):
+    def getConf(self):
+        from pyspark import SparkConf
+
+        conf = SparkConf()
+        # set shuffle partitions to a low number, e.g. <= cores * 2 to speed
+        # things up, otherwise the tests will use the default 200 partitions
+        # and it will take a lot more time to complete
+        conf.set("spark.sql.shuffle.partitions", "12")
+        return conf
+
     def test_preprocessing(self):
-        spark = get_spark_session()
-
         distributions = {}
         distributions["0"] = {"mean": 0, "stddev": 1, "size": (5,)}
         distributions["1"] = {"mean": 4, "stddev": 3, "size": (3,)}
@@ -31,7 +40,7 @@ class TestPreprocessing(HorizonTestBase):
 
         np.random.seed(42)
         data = [(i, get_random_feature()) for i in range(100000)]
-        df = spark.sparkContext.parallelize(data).toDF(["i", "states"])
+        df = self.sc.parallelize(data).toDF(["i", "states"])
         df.show()
 
         table_name = "test_table"
@@ -46,9 +55,9 @@ class TestPreprocessing(HorizonTestBase):
             table_spec, "states", preprocessing_options, seed=42
         )
 
-        print(normalization_params)
+        logger.info(normalization_params)
         for k, info in distributions.items():
-            print(
+            logger.info(
                 f"Expect {k} to be normal with mean {info['mean']}, stddev {info['stddev']}"
             )
             assert normalization_params[k].feature_type == CONTINUOUS
@@ -58,9 +67,7 @@ class TestPreprocessing(HorizonTestBase):
             assert abs(
                 normalization_params[k].stddev - info["stddev"] < 0.2
             ), f"{normalization_params[k].stddev} not close to {info['stddev']}"
-        print("Everything seems fine.")
-
-        spark.stop()
+        logger.info("identify_normalization_parameters seems fine.")
 
 
 if __name__ == "__main__":
