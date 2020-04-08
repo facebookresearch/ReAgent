@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from ml.rl.core.configuration import param_hash
-from ml.rl.parameters_seq2slate import LearningMethod
+from ml.rl.parameters_seq2slate import LearningMethod, RewardClamp
 from ml.rl.types import BaseDataClass
 
 
@@ -253,6 +253,7 @@ class Seq2SlateTransformerParameters(BaseDataClass):
     on_policy: bool
     learning_method: LearningMethod
     importance_sampling_clamp_max: Optional[float] = None
+    simulation_reward_clamp: Optional[RewardClamp] = None
 
 
 @dataclass(frozen=True)
