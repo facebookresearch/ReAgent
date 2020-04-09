@@ -10,6 +10,7 @@ numpy==1.17.2
 openjdk==8.0.144
 future==0.18.1
 pandas==0.25.0
+pydantic==1.4
 pytest-xdist==1.30.0
 pytorch
 pyspark==2.4.5

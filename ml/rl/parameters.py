@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from ml.rl.core.configuration import param_hash
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.parameters_seq2slate import LearningMethod, RewardClamp
 from ml.rl.types import BaseDataClass
 

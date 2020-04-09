@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass, field
 from typing import Dict, List, Type
 
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.models.base import ModelBase
 from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
 from ml.rl.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
@@ -17,7 +17,7 @@ class DuelingQuantile(QRDQNNetBuilder):
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     num_atoms: int = 51
 
-    def __post_init__(self):
+    def __post_init_post_parse__(self):
         super().__init__()
         assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "

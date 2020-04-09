@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass, field
 from typing import List, Type
 
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.models.actor import GaussianFullyConnectedActor
 from ml.rl.models.base import ModelBase
 from ml.rl.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
@@ -20,7 +20,7 @@ class GaussianFullyConnected(ContinuousActorNetBuilder):
     use_batch_norm: bool = False
     use_layer_norm: bool = False
 
-    def __post_init__(self):
+    def __post_init_post_parse__(self):
         super().__init__()
         assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import logging
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 from ml.rl import types as rlt
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.evaluation.evaluator import Evaluator, get_metrics_to_score
 from ml.rl.models.base import ModelBase
 from ml.rl.parameters import NormalizationData
@@ -41,7 +41,7 @@ class DiscreteDQNBase(ModelManager):
     preprocessing_options: Optional[PreprocessingOptions] = None
     reader_options: Optional[ReaderOptions] = None
 
-    def __post_init__(self):
+    def __post_init_post_parse__(self):
         super().__init__()
         self._metrics_to_score = None
         self._q_network: Optional[ModelBase] = None

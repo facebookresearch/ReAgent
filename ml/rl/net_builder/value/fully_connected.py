@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass, field
 from typing import List, Type
 
 import torch
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.models.fully_connected_network import FullyConnectedNetwork
 from ml.rl.net_builder.value_net_builder import ValueNetBuilder
 from ml.rl.parameters import NormalizationData, param_hash
@@ -18,7 +18,7 @@ class FullyConnected(ValueNetBuilder):
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     use_layer_norm: bool = False
 
-    def __post_init__(self):
+    def __post_init_post_parse__(self):
         super().__init__()
         assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
