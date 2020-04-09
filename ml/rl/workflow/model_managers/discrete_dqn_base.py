@@ -36,7 +36,7 @@ class DiscreteNormalizationParameterKeys:
 @dataclass
 class DiscreteDQNBase(ModelManager):
     target_action_distribution: Optional[List[float]] = None
-    state_feature_config: Optional[rlt.ModelFeatureConfig] = field(
+    state_feature_config: rlt.ModelFeatureConfig = field(
         default_factory=lambda: rlt.ModelFeatureConfig(float_feature_infos=[])
     )
     preprocessing_options: Optional[PreprocessingOptions] = None
