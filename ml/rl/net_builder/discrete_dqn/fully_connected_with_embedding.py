@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass, field
 from typing import Dict, List, Type
 
 from ml.rl import types as rlt
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.models.base import ModelBase
 from ml.rl.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
 from ml.rl.net_builder.discrete_dqn_net_builder import DiscreteDQNWithIdListNetBuilder
@@ -19,7 +19,7 @@ class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
     embedding_dim: int = 64
     dropout_ratio: float = 0.0
 
-    def __post_init__(self):
+    def __post_init_post_parse__(self):
         super().__init__()
         assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "

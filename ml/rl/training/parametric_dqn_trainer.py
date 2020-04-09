@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from dataclasses import dataclass, field
 from typing import Tuple
 
 import ml.rl.parameters as rlp
@@ -11,6 +10,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from ml.rl.core.configuration import make_config_class, resolve_defaults
+from ml.rl.core.dataclasses import field
 from ml.rl.parameters import ContinuousActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
 from ml.rl.training.training_data_page import TrainingDataPage

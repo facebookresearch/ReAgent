@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
 import functools
-from dataclasses import MISSING, Field, dataclass, fields
+from dataclasses import MISSING, Field, fields
 from inspect import Parameter, signature
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Union
 
+from ml.rl.core.dataclasses import dataclass
 from torch import nn
 
 
@@ -35,6 +36,11 @@ def make_config_class(
     blacklist_set = set(blacklist or [])
 
     def _is_type_blacklisted(t):
+        if getattr(t, "__origin__", None) is Union:
+            assert len(t.__args__) == 2 and t.__args__[1] == type(
+                None
+            ), "Only Unions of [X, None] (a.k.a. Optional[X]) are supported"
+            t = t.__args__[0]
         return any(issubclass(t, blacklist_type) for blacklist_type in blacklist_types)
 
     whitelist = whitelist or [

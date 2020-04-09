@@ -2,13 +2,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import copy
 import logging
-from dataclasses import dataclass, field
 from typing import List, Optional
 
 import ml.rl.types as rlt
 import numpy as np
 import torch
 import torch.nn.functional as F
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.parameters import OptimizerParameters, RLParameters, param_hash
 from ml.rl.tensorboardX import SummaryWriterContext
 from ml.rl.torch_utils import rescale_torch_tensor

@@ -14,7 +14,7 @@ class TestJsonSerialize(HorizonTestBase):
         damp = rlp.DiscreteActionModelParameters(
             actions=["foo", "bar"],
             rl=rlp.RLParameters(),
-            training=None,
+            training=rlp.TrainingParameters(),
             rainbow=rlp.RainbowDQNParameters(double_q_learning=False, categorical=True),
             state_feature_params=None,
             target_action_distribution=[1.0, 2.0],

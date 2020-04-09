@@ -29,7 +29,7 @@ trait PipelineTester extends FunSuiteLike with BeforeAndAfterAll with TestLoggin
   @transient private var _sqlContext: SQLContext = _
   def sqlContext: SQLContext = _sqlContext
 
-  val appID = new Date().toString + math.floor(math.random * 10E4).toLong.toString
+  val appID = new Date().toString + math.floor(math.random * 10e4).toLong.toString
 
   val sparkConf = new SparkConf()
     .setMaster("local[*]")

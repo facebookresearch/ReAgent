@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import logging
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 from ml.rl import types as rlt
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.evaluation.evaluator import Evaluator, get_metrics_to_score
 from ml.rl.models.base import ModelBase
 from ml.rl.parameters import NormalizationData
@@ -19,6 +19,7 @@ from ml.rl.workflow.types import (
     ReaderOptions,
     RewardOptions,
     RLTrainingOutput,
+    RLTrainingReport,
     TableSpec,
 )
 from ml.rl.workflow.utils import train_and_evaluate_generic
@@ -41,7 +42,7 @@ class DiscreteDQNBase(ModelManager):
     preprocessing_options: Optional[PreprocessingOptions] = None
     reader_options: Optional[ReaderOptions] = None
 
-    def __post_init__(self):
+    def __post_init_post_parse__(self):
         super().__init__()
         self._metrics_to_score = None
         self._q_network: Optional[ModelBase] = None
@@ -172,4 +173,7 @@ class DiscreteDQNBase(ModelManager):
             evaluation_page_handler,
             reader_options=self.reader_options,
         )
-        return RLTrainingOutput(training_report=reporter.generate_training_report())
+        training_report = RLTrainingReport.make_union_instance(
+            reporter.generate_training_report()
+        )
+        return RLTrainingOutput(training_report=training_report)

@@ -2,11 +2,19 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import dataclasses
-from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
+
+# The dataclasses in this file should be vanilla dataclass to have minimal overhead
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import torch
+from ml.rl.core.dataclasses import dataclass as pydantic_dataclass
+
+
+"""
+We should revisit this at some point. Config classes shouldn't subclass from this.
+"""
 
 
 @dataclass
@@ -16,7 +24,7 @@ class BaseDataClass:
 
     def pin_memory(self):
         pinned_memory = {}
-        for field in dataclasses.fields(self):
+        for field in dataclasses.fields(self):  # noqa F402
             f = getattr(self, field.name)
             if isinstance(f, (torch.Tensor, BaseDataClass)):
                 pinned_memory[field.name] = f.pin_memory()
@@ -24,7 +32,7 @@ class BaseDataClass:
 
     def cuda(self):
         cuda_tensor = {}
-        for field in dataclasses.fields(self):
+        for field in dataclasses.fields(self):  # noqa F402
             f = getattr(self, field.name)
             if isinstance(f, torch.Tensor):
                 cuda_tensor[field.name] = f.cuda(non_blocking=True)
@@ -33,13 +41,13 @@ class BaseDataClass:
         return self._replace(**cuda_tensor)
 
 
-@dataclass
-class ValuePresence(BaseDataClass):
-    value: torch.Tensor
-    presence: Optional[torch.Tensor]
+#####
+# FIXME: These config types are misplaced but we need to write FBL config adapter
+# if we moved them.
+######
 
 
-@dataclass
+@pydantic_dataclass
 class IdListFeatureConfig(BaseDataClass):
     """
     This describes how to map raw features to model features
@@ -51,24 +59,33 @@ class IdListFeatureConfig(BaseDataClass):
     # max_length: int
 
 
-@dataclass
+@pydantic_dataclass
 class FloatFeatureInfo(BaseDataClass):
     name: str
     feature_id: int
 
 
-@dataclass
+@pydantic_dataclass
 class IdMapping(BaseDataClass):
     ids: List[int]
 
 
-@dataclass
+@pydantic_dataclass
 class ModelFeatureConfig(BaseDataClass):
     float_feature_infos: List[FloatFeatureInfo]
-    id_mapping_config: Dict[str, IdMapping] = dataclasses.field(default_factory=dict)
-    id_list_feature_configs: List[IdListFeatureConfig] = dataclasses.field(
-        default_factory=list
-    )
+    id_mapping_config: Dict[str, IdMapping] = field(default_factory=dict)
+    id_list_feature_configs: List[IdListFeatureConfig] = field(default_factory=list)
+
+
+######
+# dataclasses for internal API
+######
+
+
+@dataclass
+class ValuePresence(BaseDataClass):
+    value: torch.Tensor
+    presence: Optional[torch.Tensor]
 
 
 IdListFeatureValue = Tuple[torch.Tensor, torch.Tensor]

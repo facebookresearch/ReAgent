@@ -2,11 +2,11 @@
 
 import copy
 import logging
-from dataclasses import dataclass, field
 from typing import List, Optional
 
 import torch  # @manual
 from ml.rl import types as rlt
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.net_builder.discrete_dqn.dueling import Dueling
 from ml.rl.net_builder.discrete_dqn.fully_connected import FullyConnected
 from ml.rl.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
@@ -34,8 +34,8 @@ class DiscreteDQN(DiscreteDQNBase):
         )
     )
 
-    def __post_init__(self,):
-        super().__post_init__()
+    def __post_init_post_parse__(self,):
+        super().__post_init_post_parse__()
         self.rl_parameters = self.trainer_param.rl
         self.eval_parameters = self.trainer_param.evaluation
         self.action_names = self.trainer_param.actions

@@ -170,13 +170,12 @@ class ModelManager(metaclass=RegistryMeta):
         """
         pass
 
-    @abc.abstractmethod
     def train_workflow(
         self,
         train_dataset: Dataset,
         eval_dataset: Optional[Dataset],
         normalization_data_map: Dict[str, NormalizationData],
-        model,  # fblearner.flow.projects.rl.workflow.training.ModelChooser
+        model,  # ml.rl.workflow.model_managers.ModelManager__Union
         num_epochs: int,
         use_gpu: bool,
         parent_workflow_id: int,
@@ -184,8 +183,7 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: Optional[RewardOptions] = None,
         warmstart_path: Optional[str] = None,
     ) -> RLTrainingOutput:
-        # FIXME: Implement this for OSS
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def train(

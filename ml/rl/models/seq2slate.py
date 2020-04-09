@@ -503,8 +503,11 @@ class Seq2SlateTransformerModel(nn.Module):
         :param input: model input
         :param mode: a string indicating which mode to perform.
             "rank": return ranked actions and their generative probabilities.
-            "log_probs": return generative log probabilities of given tgt sequences
-            (used for REINFORCE training)
+            "per_seq_log_probs": return generative log probabilities of given
+                tgt sequences (used for REINFORCE training)
+            "per_symbol_log_probs": return generative log probabilties of each
+                symbol in given tgt sequences (used in TEACHER FORCING and
+                DIFFERENTIABLE_REWARD training)
         :param tgt_seq_len: the length of output sequence to be decoded. Only used
             in rank mode
         :param greedy: whether to sample based on softmax distribution or greedily

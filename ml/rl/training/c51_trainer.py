@@ -2,12 +2,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-from dataclasses import dataclass, field
 from typing import List
 
 import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 import torch
+from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.core.tracker import observable
 from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.rl_trainer_pytorch import RLTrainer
