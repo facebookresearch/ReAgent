@@ -2,7 +2,10 @@
 
 import abc
 import logging
-from typing import Dict, Type
+from typing import Dict, Optional, Type
+
+from ml.rl.core.dataclasses import dataclass
+from ml.rl.core.tagged_union import TaggedUnion
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +33,16 @@ class RegistryMeta(abc.ABCMeta):
 
     def fill_union(cls):
         def wrapper(union):
+            if issubclass(union, TaggedUnion):
+                # OSS TaggedUnion
+                union.__annotations__ = {
+                    name: Optional[t] for name, t in cls.REGISTRY.items()
+                }
+                for name in cls.REGISTRY:
+                    setattr(union, name, None)
+                return dataclass(frozen=True)(union)
+
+            # FBL TaggedUnion
             union.__annotations__ = {name: t for name, t in cls.REGISTRY.items()}
             return union
 

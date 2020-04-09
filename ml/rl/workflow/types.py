@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime as RecurringPeriod  # noqa
 from typing import Dict, List, NamedTuple, Optional
 
-from ml.rl.polyfill.types_lib.union import TaggedUnion  # noqa F401
+from ml.rl.core.tagged_union import TaggedUnion  # noqa F401
 from ml.rl.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
     DEFAULT_MAX_UNIQUE_ENUM,
