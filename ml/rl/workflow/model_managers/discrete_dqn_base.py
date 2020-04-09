@@ -19,6 +19,7 @@ from ml.rl.workflow.types import (
     ReaderOptions,
     RewardOptions,
     RLTrainingOutput,
+    RLTrainingReport,
     TableSpec,
 )
 from ml.rl.workflow.utils import train_and_evaluate_generic
@@ -172,4 +173,7 @@ class DiscreteDQNBase(ModelManager):
             evaluation_page_handler,
             reader_options=self.reader_options,
         )
-        return RLTrainingOutput(training_report=reporter.generate_training_report())
+        training_report = RLTrainingReport.make_union_instance(
+            reporter.generate_training_report()
+        )
+        return RLTrainingOutput(training_report=training_report)

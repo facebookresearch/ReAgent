@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
+
+from ml.rl.core.dataclasses import dataclass
 
 
 class LearningMethod(Enum):

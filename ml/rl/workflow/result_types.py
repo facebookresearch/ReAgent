@@ -1,26 +1,15 @@
 #!/usr/bin/env python3
-
-from typing import NamedTuple, Optional
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from ml.rl.core.dataclasses import dataclass
-from ml.rl.core.tagged_union import TaggedUnion
-
-
-class NoPublishingResults(NamedTuple):
-    pass
-
-
-class NoValidationResults(NamedTuple):
-    pass
+from ml.rl.workflow.result_registries import PublishingResult, ValidationResult
 
 
 @dataclass
-class PublishingResults(TaggedUnion):
-    no_publishing_results: Optional[NoPublishingResults] = None
-    # Add your own validation results type here
+class NoPublishingResults(PublishingResult):
+    __registry_name__ = "no_publishing_results"
 
 
 @dataclass
-class ValidationResults(TaggedUnion):
-    no_validation_results: Optional[NoValidationResults] = None
-    # Add your own validation results type here
+class NoValidationResults(ValidationResult):
+    __registry_name__ = "no_validation_results"

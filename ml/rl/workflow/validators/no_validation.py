@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 
-from ml.rl.workflow.result_types import NoValidationResults, ValidationResults
-from ml.rl.workflow.types import RLTrainingOutput, ValidationOutput
+from ml.rl.workflow.result_types import NoValidationResults
+from ml.rl.workflow.types import RLTrainingOutput
 from ml.rl.workflow.validators.model_validator import ModelValidator
 
 
@@ -15,8 +15,5 @@ class NoValidation(ModelValidator):
     some validation.
     """
 
-    def validate(self, training_output: RLTrainingOutput) -> ValidationOutput:
-        return ValidationOutput(
-            should_publish=True,
-            results=ValidationResults(no_validation_results=NoValidationResults()),
-        )
+    def do_validate(self, training_output: RLTrainingOutput) -> NoValidationResults:
+        return NoValidationResults(should_publish=True)

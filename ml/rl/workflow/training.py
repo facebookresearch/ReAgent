@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import dataclasses
 import logging
 from typing import Dict, NamedTuple, Optional, Tuple
 
@@ -8,10 +9,12 @@ from ml.rl.workflow.env import get_workflow_id
 from ml.rl.workflow.model_managers.union import ModelManager__Union
 from ml.rl.workflow.publishers.union import ModelPublisher__Union
 from ml.rl.workflow.types import (
+    PublishingResult__Union,
     RecurringPeriod,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
+    ValidationResult__Union,
 )
 from ml.rl.workflow.validators.union import ModelValidator__Union
 
@@ -159,11 +162,11 @@ def run_validator(
     validator: ModelValidator__Union, training_output: RLTrainingOutput
 ) -> RLTrainingOutput:
     assert (
-        training_output.validation_output is None
+        training_output.validation_result is None
     ), f"validation_output was set to f{training_output.validation_output}"
     model_validator = validator.value
-    validation_output = model_validator.validate(training_output)
-    return training_output._replace(validation_output=validation_output)
+    validation_result = model_validator.validate(training_output)
+    return dataclasses.replace(training_output, validation_result=validation_result)
 
 
 def run_publisher(
@@ -175,15 +178,15 @@ def run_publisher(
     recurring_period: Optional[RecurringPeriod],
 ) -> RLTrainingOutput:
     assert (
-        training_output.publishing_output is None
+        training_output.publishing_result is None
     ), f"publishing_output was set to f{training_output.publishing_output}"
     model_publisher = publisher.value
     model_manager = model_chooser.value
-    publishing_output = model_publisher.publish(
+    publishing_result = model_publisher.publish(
         model_manager,
         training_output,
         recurring_workflow_id,
         child_workflow_id,
         recurring_period,
     )
-    return training_output._replace(publishing_output=publishing_output)
+    return dataclasses.replace(training_output, publishing_result=publishing_result)

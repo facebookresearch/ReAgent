@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from dataclasses import dataclass
 from datetime import datetime as RecurringPeriod  # noqa
 from typing import Dict, List, NamedTuple, Optional
 
-from ml.rl.core.tagged_union import TaggedUnion  # noqa F401
+# Triggering registration to registries
+import ml.rl.workflow.result_types  # noqa
+import ml.rl.workflow.training_reports  # noqa
+from ml.rl.core.dataclasses import dataclass
 from ml.rl.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
     DEFAULT_MAX_UNIQUE_ENUM,
@@ -13,7 +15,12 @@ from ml.rl.preprocessing.normalization import (
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
 from ml.rl.types import BaseDataClass
-from ml.rl.workflow.result_types import PublishingResults, ValidationResults
+from ml.rl.workflow.result_registries import (
+    PublishingResult,
+    TrainingReport,
+    ValidationResult,
+)
+from ml.rl.workflow.tagged_union import TaggedUnion  # noqa F401
 
 
 @dataclass
@@ -36,11 +43,23 @@ class PreprocessingOptions(BaseDataClass):
     assert_whitelist_feature_coverage: bool = True
 
 
-class PublishingOutput(NamedTuple):
-    success: bool
-    results: PublishingResults
+@PublishingResult.fill_union()
+class PublishingResult__Union(TaggedUnion):
+    pass
 
 
-class ValidationOutput(NamedTuple):
-    should_publish: bool
-    results: ValidationResults
+@ValidationResult.fill_union()
+class ValidationResult__Union(TaggedUnion):
+    pass
+
+
+@TrainingReport.fill_union()
+class RLTrainingReport(TaggedUnion):
+    pass
+
+
+@dataclass
+class RLTrainingOutput:
+    validation_result: Optional[ValidationResult__Union] = None
+    publishing_result: Optional[PublishingResult__Union] = None
+    training_report: Optional[RLTrainingReport] = None
