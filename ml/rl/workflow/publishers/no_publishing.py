@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
 from typing import Optional
 
+from ml.rl.core.dataclasses import dataclass
 from ml.rl.workflow.model_managers.model_manager import ModelManager
 from ml.rl.workflow.publishers.model_publisher import ModelPublisher
 from ml.rl.workflow.result_types import NoPublishingResults

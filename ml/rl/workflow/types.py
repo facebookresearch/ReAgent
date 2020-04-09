@@ -29,6 +29,21 @@ class TableSpec(BaseDataClass):
 
 
 @dataclass
+class Dataset:
+    url: str
+
+
+@dataclass
+class RewardOptions:
+    pass
+
+
+@dataclass
+class ReaderOptions:
+    pass
+
+
+@dataclass
 class PreprocessingOptions(BaseDataClass):
     num_samples: int = DEFAULT_NUM_SAMPLES
     max_unique_enum_values: int = DEFAULT_MAX_UNIQUE_ENUM

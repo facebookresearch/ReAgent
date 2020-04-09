@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
-
+from ml.rl.core.dataclasses import dataclass
 from ml.rl.workflow.result_types import NoValidationResults
 from ml.rl.workflow.types import RLTrainingOutput
 from ml.rl.workflow.validators.model_validator import ModelValidator

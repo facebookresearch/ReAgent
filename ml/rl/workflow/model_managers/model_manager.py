@@ -170,7 +170,6 @@ class ModelManager(metaclass=RegistryMeta):
         """
         pass
 
-    @abc.abstractmethod
     def train_workflow(
         self,
         train_dataset: Dataset,
@@ -184,8 +183,7 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: Optional[RewardOptions] = None,
         warmstart_path: Optional[str] = None,
     ) -> RLTrainingOutput:
-        # FIXME: Implement this for OSS
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def train(
