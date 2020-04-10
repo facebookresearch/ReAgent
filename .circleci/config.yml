@@ -58,8 +58,9 @@ jobs:
       - run:
           name: Setup to python 3.7
           command: |
-            pyenv uninstall 3.7.0
+            pyenv uninstall -f 3.7.0
             sudo apt-get install liblzma-dev
+            pyenv install 3.7.0
             pyenv global 3.7.0
             pip install --upgrade pip
             pip install tox
