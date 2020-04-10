@@ -84,6 +84,7 @@ jobs:
             echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> $BASH_ENV
             echo 'eval "$(pyenv init -)"' >> $BASH_ENV
             echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
+            echo $BASH_ENV
       - python37
       - run:
           name: Build preprocessing package
