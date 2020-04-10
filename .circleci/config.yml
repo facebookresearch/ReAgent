@@ -80,7 +80,7 @@ jobs:
     steps:
       - checkout_merge
       - run:
-          name: Install java
+          name: Installing SDKs
           command: |
             mv ~/.bashrc ~/.bashrc.bk
             curl -s "https://get.sdkman.io" | bash
@@ -89,16 +89,11 @@ jobs:
             sdk install java 8.0.242.hs-adpt
             sdk install scala
             sdk install maven
+            sdk install spark 2.3.3
       - run:
           name: Build preprocessing package
           command: |
             mvn -f preprocessing/pom.xml clean package
-      - run:
-          name: Download spark
-          command: |
-            wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoop2.7.tgz
-            tar -xzf spark-2.3.3-bin-hadoop2.7.tgz
-            mv spark-2.3.3-bin-hadoop2.7 /usr/local/spark
       - run:
           name: Pip install
           # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
