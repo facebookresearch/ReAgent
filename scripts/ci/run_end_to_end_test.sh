@@ -4,7 +4,7 @@
 
 set -ex
 
-pip install -e .
+pip install -e . --user
 
 mkdir -p cartpole_discrete
 python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_small_v0.json -f cartpole_discrete/training_data.json --seed 0
