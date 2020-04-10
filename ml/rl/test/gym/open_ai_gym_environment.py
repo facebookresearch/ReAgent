@@ -9,8 +9,6 @@ from typing import Dict, Optional, Tuple, Union
 import gym
 import ml.rl.test.gym.pomdp  # noqa
 import numpy as np
-import pybullet  # noqa
-import pybullet_envs  # noqa
 import torch
 from gym import Env
 from ml.rl.test.base.utils import only_continuous_normalizer
