@@ -55,15 +55,9 @@ jobs:
     steps:
       - checkout_merge
       - run:
-          name: Start docker
-          command: |
-            sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent << pipeline.parameters.image-tag >>
-      - run:
           name: Run unittests
           command: |
-            sudo docker exec -it reagent bash -c "\
-            cd ReAgent && \
-            scripts/ci/run_python_unittest.sh"
+            scripts/ci/run_python_unittest.sh
 
 workflows:
   build:
