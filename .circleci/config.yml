@@ -92,6 +92,13 @@ jobs:
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
             sdk install java 8.0.242.hs-adpt
+            sdk install scala
+      - run:
+          name: Download spark
+          command: |
+            wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoop2.7.tgz
+            tar -xzf spark-2.3.3-bin-hadoop2.7.tgz
+            mv spark-2.3.3-bin-hadoop2.7 /usr/local/spark
       - run:
           name: Build preprocessing package
           command: |
