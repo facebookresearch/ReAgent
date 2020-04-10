@@ -77,10 +77,14 @@ jobs:
     steps:
       - checkout_merge
       - run:
+          name: Install miniconda
+          command: |
+            wget https://repo.anaconda.com/miniconda/Miniconda2-latest-Linux-x86_64.sh -O ~/miniconda.sh
+            bash ~/miniconda.sh -b
+      - run:
           name: Install build deps
           command: |
-            sudo apt-get update
-            sudo apt-get install -y  --no-install-recommends cmake
+            conda install --file rasp_requirements.txt
       - run:
           name: Download libtorch
           command: |
