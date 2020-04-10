@@ -69,6 +69,36 @@ jobs:
           name: Run unittests
           command: |
             tox
+  
+  rasp_test:
+    docker:
+      - image: cimg/base:2020.01
+    resource_class: large
+    steps:
+      - checkout_merge
+      - run:
+          name: Download libtorch
+          command: |
+            wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
+            unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
+      - run:
+          name: Clone submodules
+          command: |
+            git submodule update --force --recursive --init --remote
+      - run:
+          name: Build RASP
+          command: |
+            mkdir -p serving/build
+            pushd serving/build
+            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+            make -j2
+            popd
+      - run:
+          name: Run RASP tests
+          command: |
+            serving/build/RaspTest
+
+
 
 workflows:
   build:
@@ -79,8 +109,4 @@ workflows:
           test_script: scripts/ci/run_end_to_end_test.sh
           resource_class_str: large
       - gpu_unittest
-      - binary_linux_conda:
-          name: linux_conda_py3.7_rasp_test
-          docker_image: << pipeline.parameters.image-tag >>
-          test_script: scripts/ci/run_rasp_test.sh
-          resource_class_str: large
+      - rasp_test
