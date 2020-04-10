@@ -37,7 +37,7 @@
       provided
     </parquet.deps.scope>
     <scala.version>
-      2.13.1
+      2.13
     </scala.version>
     <scala.binary.version>
       2.13.1
