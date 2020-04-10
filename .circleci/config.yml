@@ -83,6 +83,8 @@ jobs:
           name: Install pyenv
           command: |
             curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+            echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+            echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
             mv ~/.bashrc ~/.bashrc.bk
             touch ~/.bashrc
             echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
