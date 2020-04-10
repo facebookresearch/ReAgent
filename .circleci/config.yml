@@ -73,28 +73,21 @@ jobs:
 
   end_to_end_test:
     docker:
-      - image: circleci/openjdk:8u242-jdk
+      - image: circleci/python:3.7.7
     resource_class: large
-    environment:
-      - BASH_ENV: ~/.bashrc
     steps:
       - checkout_merge
       - run:
-          name: Install pyenv
+          name: Pip update
           # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-            
           command: |
-            git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-            mv ~/.bashrc ~/.bashrc.bk
-            touch ~/.bashrc
-            echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-            echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-            source ~/.bashrc
+            pip install --upgrade pip
+            pip install -e .
+      - run:
+          name: Install java
+          commmand: |
             sudo apt-get update
-            sudo apt-get install --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-            pyenv install 3.7.0
-            echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-      - python37
+            sudo apt-get install openjdk-8-jdk maven
       - run:
           name: Build preprocessing package
           command: |
