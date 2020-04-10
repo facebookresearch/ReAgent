@@ -76,7 +76,7 @@ jobs:
       - image: circleci/openjdk:8u242-jdk
     resource_class: large
     environment:
-      - BASH_ENV: $HOME/.bashrc
+      - BASH_ENV: ~/.bashrc
     steps:
       - checkout_merge
       - run:
@@ -84,10 +84,10 @@ jobs:
           command: |
             curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
             touch $HOME/.bashrc
-            echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> $BASH_ENV
-            echo 'eval "$(pyenv init -)"' >> $BASH_ENV
-            echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
-            cat $BASH_ENV
+            echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
+            echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+            echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+            cat ~/.bashrc
       - python37
       - run:
           name: Build preprocessing package
