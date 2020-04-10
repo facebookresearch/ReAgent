@@ -7,6 +7,7 @@ set -ex
 export PATH=${HOME}/miniconda/bin:$PATH
 
 pip uninstall -y reagent
+pip install pybullet==2.5.6
 
 # Installing from current directory, any update will be reflected system-wide
 pip install -e .

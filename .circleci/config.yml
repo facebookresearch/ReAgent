@@ -51,19 +51,20 @@ jobs:
   gpu_unittest:
     machine:
       image: ubuntu-1604-cuda-10.1:201909-23
-      docker_layer_caching: true
     resource_class: gpu.medium
     steps:
-      - checkout_merge
       - run:
           name: Setup to python 3.7
+          # lzma wasn't 
+          # https://stackoverflow.com/questions/57113269/import-pandas-results-in-modulenotfounderror-lzma
+          # pyenv uninstall -f 3.7.0
+          #  sudo apt-get install liblzma-dev
+          #  pyenv install 3.7.0
           command: |
-            pyenv uninstall -f 3.7.0
-            sudo apt-get install liblzma-dev
-            pyenv install 3.7.0
             pyenv global 3.7.0
             pip install --upgrade pip
             pip install tox
+      - checkout_merge
       - run:
           name: Run unittests
           command: |
