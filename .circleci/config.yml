@@ -73,7 +73,7 @@ jobs:
 
   end_to_end_test:
     docker:
-      - image: cimg/base:2020.01
+      - image: circleci/python:3.7
     resource_class: large
     steps:
       - checkout_merge
@@ -87,8 +87,7 @@ jobs:
           name: Install java
           command: |
             sudo apt-get update
-            sudo apt-get search openjdk
-            sudo apt-get install maven openjdk-8-jdk
+            sudo apt-get install maven
       - run:
           name: Build preprocessing package
           command: |
