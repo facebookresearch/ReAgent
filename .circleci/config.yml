@@ -75,7 +75,7 @@ jobs:
     docker:
       - image: circleci/openjdk:8u242-jdk
     resource_class: large
-    enviroment:
+    environment:
       BASH_ENV: ~/.bashrc
     steps:
       - checkout_merge
