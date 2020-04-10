@@ -4,10 +4,6 @@
 
 set -ex
 
-export PATH=${HOME}/miniconda/bin:$PATH
-
-pip uninstall -y reagent
-
 # Installing from current directory, any update will be reflected system-wide
 pip install -e .
-pytest
+tox
