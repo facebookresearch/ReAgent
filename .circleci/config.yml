@@ -78,14 +78,14 @@ jobs:
     steps:
       - checkout_merge
       - run:
-          name: Pip update
+          name: Pip install
           # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
           command: |
             pip install --upgrade pip
             pip install -e .
       - run:
           name: Install java
-          commmand: |
+          command: |
             sudo apt-get update
             sudo apt-get install openjdk-8-jdk maven
       - run:
