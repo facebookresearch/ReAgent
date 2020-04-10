@@ -78,12 +78,6 @@ jobs:
     steps:
       - checkout_merge
       - run:
-          name: Pip install
-          # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-          command: |
-            pip install --upgrade pip
-            pip install .
-      - run:
           name: Install java
           command: |
             sudo apt-get update
@@ -94,15 +88,21 @@ jobs:
             sdk install java 8.0.242.hs-adpt
             sdk install scala
       - run:
+          name: Build preprocessing package
+          command: |
+            mvn -f preprocessing/pom.xml clean package
+      - run:
           name: Download spark
           command: |
             wget https://archive.apache.org/dist/spark/spark-2.3.3/spark-2.3.3-bin-hadoop2.7.tgz
             tar -xzf spark-2.3.3-bin-hadoop2.7.tgz
             mv spark-2.3.3-bin-hadoop2.7 /usr/local/spark
       - run:
-          name: Build preprocessing package
+          name: Pip install
+          # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
           command: |
-            mvn -f preprocessing/pom.xml clean package
+            pip install --upgrade pip
+            pip install .
   
   rasp_test:
     docker:
