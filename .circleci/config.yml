@@ -89,6 +89,8 @@ jobs:
             echo 'eval "$(pyenv init -)"' >> ~/.bashrc
             echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
             cat ~/.bashrc.bk >> ~/.bashrc
+            source ~/.bashrc
+            pyenv install 3.7.0
       - python37
       - run:
           name: Build preprocessing package
