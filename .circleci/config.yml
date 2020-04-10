@@ -30,7 +30,6 @@ commands:
       - run:
           name: Setup to python 3.7
           command: |
-            source ~/.bashrc
             pyenv global 3.7.0
             pip install --upgrade pip
             pip install tox
@@ -82,10 +81,9 @@ jobs:
           name: Install pyenv
           command: |
             curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
-            echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
-            echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-            echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
-            source ~/.bashrc
+            echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> $BASH_ENV
+            echo 'eval "$(pyenv init -)"' >> $BASH_ENV
+            echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
       - python37
       - run:
           name: Build preprocessing package
