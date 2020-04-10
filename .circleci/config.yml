@@ -91,7 +91,7 @@ jobs:
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
-            sdk install java 8.0.144-open
+            sdk install java 8u144
       - run:
           name: Build preprocessing package
           command: |
