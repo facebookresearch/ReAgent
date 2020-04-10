@@ -1,14 +1,9 @@
 version: 2.1
-parameters:
-  image-tag:
-    type: string
-    default: "reagent/reagent:gpu_test"
 
 # How to test the Linux jobs:
 #   - Install CircleCI local CLI: https://circleci.com/docs/2.0/local-cli/
-#   - circleci config process .circleci/config.yml > gen.yml && circleci local execute -c gen.yml --job binary_linux_conda_py3.7_cpu
-#     - Replace binary_linux_conda_py3.7_cpu with the name of the job you want to test.
-#       Job names are 'name:' key.
+#   - circleci config process .circleci/config.yml > gen.yml && circleci local execute -c gen.yml --job end_to_end_test 
+#     - Replace end_to_end_test with the name of the job you want to test.
 
 commands:
   checkout_merge:
@@ -24,48 +19,19 @@ commands:
               git merge origin/master
             fi
   
-  python37:
-    description: "Switch to python 3.7"
-    steps:
-      - run:
-          name: Setup to python 3.7
-          command: |
-            pyenv global 3.7.0
-            pip install --upgrade pip
-            pip install tox
-
-
-binary_common: &binary_common
-  parameters:
-    docker_image:
-      description: "Docker image"
-      type: string
-    resource_class_str:
-      description: "Resource class to use"
-      type: string
-    test_script:
-      description: "Path to test script"
-      type: string
-  environment:
-    DOCKER_IMAGE: << parameters.docker_image >>
-
 jobs:
-  binary_linux_conda:
-    <<: *binary_common
-    docker:
-      - image: << parameters.docker_image >>
-    resource_class: << parameters.resource_class_str >>
-    steps:
-      - checkout_merge
-      - run: << parameters.test_script >>
-
   gpu_unittest:
     machine:
       image: ubuntu-1604-cuda-10.1:201909-23
     resource_class: gpu.medium
     steps:
       - checkout_merge
-      - python37
+      - run:
+          name: Switch to python 3.7
+          command: |
+            pyenv global 3.7.0
+            pip install --upgrade pip
+            pip install tox
       - run:
           name: Run unittests
           command: |
@@ -81,7 +47,6 @@ jobs:
       - checkout_merge
       - run:
           name: Pip install
-          # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
           command: |
             pip install --upgrade pip
             sudo pip install -e .      
@@ -144,8 +109,6 @@ jobs:
           name: Run RASP tests
           command: |
             serving/build/RaspTest
-
-
 
 workflows:
   build:
