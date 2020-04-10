@@ -82,10 +82,12 @@ jobs:
       - run:
           name: Download libtorch
           command: |
+            pushd ..
             wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
             unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
             pwd
             ls
+            popd
       - run:
           name: Clone submodules
           command: |
