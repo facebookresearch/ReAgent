@@ -55,14 +55,14 @@ jobs:
     steps:
       - checkout_merge
       - run:
-          name: Switch to python 3.7
+          name: Setup to python 3.7
           command: |
             pyenv global 3.7.0
             pip install --upgrade pip
+            pip install tox
       - run:
           name: Run unittests
           command: |
-            pip install tox
             tox
 
 workflows:
