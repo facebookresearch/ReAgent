@@ -75,11 +75,14 @@ jobs:
     docker:
       - image: circleci/python:3.7
     resource_class: large
+    environment:
+      - BASH_ENV: ~/.bashrc
     steps:
       - checkout_merge
       - run:
           name: Install java
           command: |
+            mv ~/.bashrc ~/.bashrc.bk
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
