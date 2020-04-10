@@ -78,7 +78,7 @@ jobs:
       - checkout_merge
       - run:
           name: Install build deps
-          commnad: |
+          command: |
             sudo apt-get update
             sudo apt-get install -y  --no-install-recommends cmake
       - run:
