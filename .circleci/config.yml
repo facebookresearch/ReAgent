@@ -87,7 +87,7 @@ jobs:
           name: Install java
           command: |
             sudo apt-get update
-            sudo apt-get install openjdk-8-jdk maven
+            sudo apt-get install maven openjdk-8-jdk
       - run:
           name: Build preprocessing package
           command: |
