@@ -77,6 +77,11 @@ jobs:
     steps:
       - checkout_merge
       - run:
+          name: Install build deps
+          commnad: |
+            sudo apt-get update
+            sudo apt-get install -y  --no-install-recommends cmake
+      - run:
           name: Download libtorch
           command: |
             wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
