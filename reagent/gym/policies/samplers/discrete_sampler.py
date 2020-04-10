@@ -30,8 +30,6 @@ class SoftmaxActionSampler(Sampler):
     def sample_action(
         self, scores: torch.Tensor, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
-        # TODO: temp hack, convert to single instead of batched
-        scores = scores.unsqueeze(0)
         assert scores.dim() == 2, (
             "scores dim is %d" % scores.dim()
         )  # batch_size x num_actions

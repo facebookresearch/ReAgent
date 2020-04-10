@@ -46,6 +46,14 @@ def _load_func_and_config_class(workflow):
     return func, ConfigClass
 
 
+def select_relevant_params(config_dict, ConfigClass):
+    result = {}
+    for param in ConfigClass.__dataclass_fields__.keys():
+        if param in config_dict:
+            result[param] = config_dict[param]
+    return result
+
+
 @reagent.command(short_help="Run the workflow with config file")
 @click.argument("workflow")
 @click.argument("config_file", type=click.File("r"))
@@ -60,6 +68,7 @@ def run(workflow, config_file):
 
     yaml = YAML(typ="safe")
     config_dict = yaml.load(config_file.read())
+    config_dict = select_relevant_params(config_dict, ConfigClass)
     config = ConfigClass(**config_dict)
     func(**config.asdict())
 

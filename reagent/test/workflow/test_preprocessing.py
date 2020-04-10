@@ -44,14 +44,12 @@ class TestPreprocessing(SQLTestCase):
     @pytest.mark.serial
     def test_preprocessing(self):
         distributions = {}
-        distributions["0"] = {"mean": 0, "stddev": 1, "size": (5,)}
-        distributions["1"] = {"mean": 4, "stddev": 3, "size": (3,)}
+        distributions["0"] = {"mean": 0, "stddev": 1}
+        distributions["1"] = {"mean": 4, "stddev": 3}
 
         def get_random_feature():
             return {
-                k: np.random.normal(
-                    loc=info["mean"], scale=info["stddev"], size=info["size"]
-                ).tolist()
+                k: np.random.normal(loc=info["mean"], scale=info["stddev"])
                 for k, info in distributions.items()
             }
 
@@ -62,7 +60,7 @@ class TestPreprocessing(SQLTestCase):
         table_name = "test_table"
         df.createOrReplaceTempView(table_name)
 
-        num_samples = NUM_ROWS / 10
+        num_samples = NUM_ROWS / 2
         preprocessing_options = PreprocessingOptions(num_samples=num_samples)
 
         table_spec = TableSpec(table_name=table_name)

@@ -108,18 +108,15 @@ class DiscreteDQNBase(ModelManager):
         reward_options: RewardOptions,
         eval_dataset: bool,
     ) -> Dataset:
-        # sort is set to False because EvaluationPageHandler sort the data anyway
         return query_data(
-            input_table_spec,
-            self.action_names,
-            self.rl_parameters.use_seq_num_diff_as_time_diff,
+            input_table_spec=input_table_spec,
+            states=self.state_names,
+            actions=self.action_names,
+            metrics=self.metric_names,
             sample_range=sample_range,
-            metric_reward_values=reward_options.metric_reward_values,
             custom_reward_expression=reward_options.custom_reward_expression,
-            additional_reward_expression=reward_options.additional_reward_expression,
             multi_steps=self.multi_steps,
             gamma=self.rl_parameters.gamma,
-            sort=False,
         )
 
     @property

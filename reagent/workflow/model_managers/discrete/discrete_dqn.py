@@ -39,6 +39,8 @@ class DiscreteDQN(DiscreteDQNBase):
         self.rl_parameters = self.trainer_param.rl
         self.eval_parameters = self.trainer_param.evaluation
         self.action_names = self.trainer_param.actions
+        self.state_names = self.trainer_param.states
+        self.metric_names = self.trainer_param.metrics
         assert len(self.action_names) > 1, "DiscreteDQNModel needs at least 2 actions"
         assert (
             self.trainer_param.minibatch_size % 8 == 0

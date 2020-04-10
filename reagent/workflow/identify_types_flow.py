@@ -76,7 +76,7 @@ def identify_normalization_parameters(
     table_spec: TableSpec,
     column_name: str,
     preprocessing_options: PreprocessingOptions,
-    seed: int,
+    seed: Optional[int] = None,
 ) -> Dict[int, NormalizationParameters]:
     """ Get normalization parameters """
     sqlCtx = get_spark_session()
@@ -99,7 +99,7 @@ def identify_normalization_parameters(
     return normalization_processor(rows)
 
 
-def create_normalization_spec_spark(df, column, num_samples: int, seed: int):
+def create_normalization_spec_spark(df, column, num_samples: int, seed: Optional[int] = None):
     """Returns approximately num_samples random rows from column of df."""
 
     df = df.select(
@@ -117,9 +117,9 @@ def create_normalization_spec_spark(df, column, num_samples: int, seed: int):
     # perform sampling and collect them
     df = df.sampleBy("feature_name", fractions=frac, seed=seed)
     df = df.groupBy("feature_name").agg(
-        collect_list("feature_value").alias("feature_value_list")
+        collect_list("feature_value").alias("feature_values")
     )
-    df = df.select(
-        "feature_name", flatten("feature_value_list").alias("feature_values")
-    )
+    # df = df.select(
+    #     "feature_name", flatten("feature_value_list").alias("feature_values")
+    # )
     return df

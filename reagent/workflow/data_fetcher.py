@@ -21,17 +21,17 @@ logger = logging.getLogger(__name__)
 MAX_UINT32 = 4294967295
 
 
-def calc_custom_reward(sqlCtx, df, custom_reward_expr: str):
+def calc_custom_reward(sqlCtx, df, custom_reward_expression: str):
     temp_table_name = "_tmp_calc_reward_df"
     temp_reward_name = "_tmp_reward_col"
     df.createOrReplaceTempView(temp_table_name)
     df = sqlCtx.sql(
-        f"SELECT *, CAST(COALESCE({custom_reward_expr}, 0) AS FLOAT) as {temp_reward_name} FROM {temp_table_name}"
+        f"SELECT *, CAST(COALESCE({custom_reward_expression}, 0) AS FLOAT) as {temp_reward_name} FROM {temp_table_name}"
     )
     return df.drop("reward").withColumnRenamed(temp_reward_name, "reward")
 
 
-def calc_reward_multi_step(sqlCtx, df, multi_step: int, gamma: float):
+def calc_reward_multi_steps(sqlCtx, df, multi_steps: int, gamma: float):
     # computes r_0 + gamma * (r_1 + gamma * (r_2 + ... ))
     expr = f"AGGREGATE(REVERSE(reward), FLOAT(0), (s, x) -> FLOAT({gamma}) * s + x)"
     return calc_custom_reward(sqlCtx, df, expr)
@@ -40,19 +40,19 @@ def calc_reward_multi_step(sqlCtx, df, multi_step: int, gamma: float):
 def perform_preprocessing(
     sqlCtx,
     table_spec: TableSpec,
-    state_keys: List[int],
+    states: List[int],
     actions: List[str],
-    metrics_keys: List[str],
-    custom_reward_expr: Optional[str] = None,
+    metrics: List[str],
+    custom_reward_expression: Optional[str] = None,
     sample_range: Optional[Tuple[float, float]] = None,
-    multi_step: Optional[int] = None,
+    multi_steps: Optional[int] = None,
     gamma: Optional[float] = None,
 ):
     """ Perform preprocessing of given dataframe df.
     Preprocessing steps include calculating the reward,
     performing sparse-to-dense for mapped columns like state_features
     and metrics, and subsampling based on sample_range.
-    If multi_step is set (with gamma), then we assume multi_step RL setting.
+    If multi_steps is set (with gamma), then we assume multi_steps RL setting.
     """
     if sample_range:
         assert (
@@ -64,17 +64,17 @@ def perform_preprocessing(
     df = sqlCtx.sql(f"SELECT * FROM {table_spec.table_name}")
 
     # after this, reward column should be set to be the reward now
-    if custom_reward_expr is not None:
-        df = calc_custom_reward(sqlCtx, df, custom_reward_expr)
-    elif multi_step is not None:
+    if custom_reward_expression is not None:
+        df = calc_custom_reward(sqlCtx, df, custom_reward_expression)
+    elif multi_steps is not None:
         assert gamma is not None
-        df = calc_reward_multi_step(sqlCtx, df, multi_step, gamma)
+        df = calc_reward_multi_steps(sqlCtx, df, multi_steps, gamma)
     # assume single step case reward is already a column
 
     def get_step(next_col):
         """ get step count """
-        if multi_step is not None:
-            return min(len(next_col), multi_step)
+        if multi_steps is not None:
+            return min(len(next_col), multi_steps)
         else:
             return 1
 
@@ -86,8 +86,8 @@ def perform_preprocessing(
 
         def get_next(next_col):
             """ generic function to get the next item """
-            if multi_step is not None:
-                step = min(len(next_col), multi_step)
+            if multi_steps is not None:
+                step = min(len(next_col), multi_steps)
                 return next_col[step - 1]
             else:
                 return next_col
@@ -129,14 +129,14 @@ def perform_preprocessing(
         df = df.withColumn(col_name, col(f"{col_name}.dense"))
         return df
 
-    df = make_sparse2dense(df, "state_features", state_keys)
+    df = make_sparse2dense(df, "state_features", states)
 
     next_map_udf = make_next_udf(MapType(LongType(), FloatType()))
     df = df.withColumn("next_state_features", next_map_udf("next_state_features"))
-    df = make_sparse2dense(df, "next_state_features", state_keys)
+    df = make_sparse2dense(df, "next_state_features", states)
 
     df = df.withColumn("metrics", next_map_udf("metrics"))
-    df = make_sparse2dense(df, "metrics", metrics_keys)
+    df = make_sparse2dense(df, "metrics", metrics)
 
     def where(arr: List[str]):
         """ locate the index of item in arr, len(arr) if not found. """
@@ -215,28 +215,27 @@ def perform_preprocessing(
 
 
 def query_data(
-    table_spec: TableSpec,
-    output_spec: Dataset,
-    state_keys: List[int],
+    input_table_spec: TableSpec,
+    states: List[int],
     actions: List[str],
-    metrics_keys: List[str],
-    custom_reward_expr: Optional[str] = None,
+    metrics: List[str],
+    custom_reward_expression: Optional[str] = None,
     sample_range: Optional[Tuple[float, float]] = None,
-    multi_step: Optional[int] = None,
+    multi_steps: Optional[int] = None,
     gamma: Optional[float] = None,
 ) -> None:
     sqlCtx = get_spark_session()
     # includes rewards preprocessing, sparse2dense
     preprocessed_df = perform_preprocessing(
         sqlCtx,
-        table_spec=table_spec,
-        state_keys=state_keys,
+        table_spec=input_table_spec,
+        states=states,
         actions=actions,
-        metrics_keys=metrics_keys,
-        custom_reward_expr=custom_reward_expr,
+        metrics=metrics,
+        custom_reward_expression=custom_reward_expression,
         sample_range=sample_range,
-        multi_step=multi_step,
+        multi_steps=multi_steps,
         gamma=gamma,
     )
-    preprocessed_df.write.mode("overwrite").parquet(output_spec.parquet_url)
+    preprocessed_df.write.mode("overwrite").parquet(input_table_spec.output_dataset.parquet_url)
     return

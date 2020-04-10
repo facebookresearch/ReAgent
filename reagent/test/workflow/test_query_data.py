@@ -291,9 +291,9 @@ class TestQueryData(SQLTestCase):
         )
 
     def _read_data(self, custom_reward_expr=None, gamma=None, multi_step=None):
+        ts = TableSpec(table_name=self.table_name, output_dataset=Dataset(parquet_url=self.parquet_url))
         dataset_url = query_data(
-            table_spec=TableSpec(table_name=self.table_name),
-            output_spec=Dataset(parquet_url=self.parquet_url),
+            input_table_spec=ts,
             state_keys=[0, 1, 4, 5, 6],
             actions=["L", "R", "U", "D"],
             metrics_keys=["reward"],

@@ -25,7 +25,9 @@ class BCQConfig:
 class DQNTrainerParameters:
     __hash__ = rlp.param_hash
 
+    states: List[int] = field(default_factory=list)
     actions: List[str] = field(default_factory=list)
+    metrics: List[str] = field(default_factory=list)
     rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
     double_q_learning: bool = True
     bcq: Optional[BCQConfig] = None

@@ -52,7 +52,8 @@ object Preprocessor {
       )
     )
 
-    var inputDf = sparkSession.read.schema(schema).json(timelineConfig.inputTableName)
+    // var inputDf = sparkSession.read.schema(schema).json(timelineConfig.inputTableName)
+    var inputDf = sparkSession.sqlContext.sql(s"SELECT * FROM ${timelineConfig.inputTableName}")
 
     val mapStringDoubleToLongDouble = udf(
       (r: Map[String, Double]) => r.map({ case (key, value) => (key.toLong, value) })
@@ -77,7 +78,9 @@ object Preprocessor {
 
     inputDf.createOrReplaceTempView(timelineConfig.inputTableName)
 
-    Timeline.run(sparkSession.sqlContext, timelineConfig)
+    // Timeline.run(sparkSession.sqlContext, timelineConfig)
+    val tmpTableName = "tmp_table_for_preprocessor"
+    Timeline.run(sparkSession.sqlContext, timelineConfig, Some(tmpTableName))
 
     val query = if (timelineConfig.actionDiscrete) {
       Query.getDiscreteQuery(queryConfig)
@@ -86,34 +89,32 @@ object Preprocessor {
     }
 
     val sqlCommand = query.concat(
-      s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'train')) % 10000 <= CAST(${queryConfig.tableSample} * 100 AS INTEGER)"
+      s" FROM ${tmpTableName} where ABS(HASH(mdp_id || 'train')) % 10000 <= CAST(${queryConfig.tableSample} * 100 AS INTEGER)"
+    )
+    val evalSqlCommand = query.concat(
+        s" FROM ${tmpTableName} where ABS(HASH(mdp_id || 'eval')) % 10000 <= CAST(${queryConfig.tableSample / 10.0} * 100 AS INTEGER) ORDER BY mdp_id, sequence_number"
     )
 
+    // Query the results
     log.info("Executing query: ")
     log.info(sqlCommand)
-
-    // Query the results
     val outputDf = sparkSession.sql(sqlCommand)
-
     outputDf.show()
+
+    log.info("Executing query: ")
+    log.info(evalSqlCommand)
+    val evalOutputDf = sparkSession.sql(evalSqlCommand)
+    evalOutputDf.show()
+
+    outputDf.write.saveAsTable(timelineConfig.outputTableName)
+    evalOutputDf.write.saveAsTable(timelineConfig.evalTableName)
+
+    // TODO: these should be deprecated, but keep them for now for JSON workflow
     outputDf
       .repartition(timelineConfig.numOutputShards)
       .write
       .json(timelineConfig.outputTableName)
 
-    // Write the eval table
-    val evalSqlCommand =
-      query.concat(
-        s" FROM ${timelineConfig.outputTableName} where ABS(HASH(mdp_id || 'eval')) % 10000 <= CAST(${queryConfig.tableSample / 10.0} * 100 AS INTEGER) ORDER BY mdp_id, sequence_number"
-      )
-
-    log.info("Executing query: ")
-    log.info(evalSqlCommand)
-
-    // Query the results
-    val evalOutputDf = sparkSession.sql(evalSqlCommand)
-
-    evalOutputDf.show()
     evalOutputDf
       .repartition(timelineConfig.numOutputShards)
       .write

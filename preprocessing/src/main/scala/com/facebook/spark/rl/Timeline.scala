@@ -128,8 +128,10 @@ object Timeline {
   private val log = LoggerFactory.getLogger(this.getClass.getName)
   def run(
       sqlContext: SQLContext,
-      config: TimelineConfiguration
+      config: TimelineConfiguration,
+      optionalTableName: Option[String] = None
   ): Unit = {
+    var saveTableName = optionalTableName.getOrElse(config.outputTableName)
     var filterTerminal = "HAVING next_state_features IS NOT NULL";
     if (config.addTerminalStateRow) {
       filterTerminal = "";
@@ -156,7 +158,7 @@ object Timeline {
 
     Timeline.createTrainingTable(
       sqlContext,
-      config.outputTableName,
+      saveTableName,
       actionDataType,
       rewardColumnDataTypes,
       timelineJoinColumnDataTypes
@@ -349,7 +351,7 @@ object Timeline {
     assert(maybeError.isEmpty, "validationSql validation failure: " + maybeError)
 
     val insertCommandOutput = s"""
-      INSERT OVERWRITE TABLE ${config.outputTableName} PARTITION(ds='${config.endDs}')
+      INSERT OVERWRITE TABLE ${saveTableName} PARTITION(ds='${config.endDs}')
       SELECT * FROM ${stagingTable}
     """.stripMargin
     sqlContext.sql(insertCommandOutput)

@@ -5,7 +5,8 @@ import gzip
 import json
 import logging
 import pickle
-
+import pandas as pd
+from typing import Optional
 import torch
 
 
@@ -14,7 +15,7 @@ logger.setLevel(logging.INFO)
 
 
 class RLDataset:
-    def __init__(self, file_path):
+    def __init__(self, file_path: Optional[str] = None):
         """
         Holds a collection of RL samples:
             1) Can insert in the "pre-timeline" format (file extension json)
@@ -22,14 +23,19 @@ class RLDataset:
 
         :param file_path: String load/save the dataset from/to this file.
         """
-        file_extension = file_path.split(".")[-1]
-        assert file_extension in (
-            "json",
-            "pkl",
-        ), "File type {} not supported. Only json and pkl supported."
+        file_extension = None
+        if file_path is not None:
+            file_extension = file_path.split(".")[-1]
+            assert file_extension in (
+                "json",
+                "pkl",
+            ), "File type {} not supported. Only json and pkl supported."
         self.use_pickle = True if file_extension == "pkl" else False
         self.file_path = file_path
         self.rows = []
+
+    def __len__(self):
+        return len(self.rows)
 
     def load(self):
         """Load samples from a gzipped json file."""
@@ -48,6 +54,9 @@ class RLDataset:
                     json.dump(data, f)
                     f.write("\n")
         logger.info("RLDataset saved to {}".format(self.file_path))
+
+    def to_pandas_df(self):
+        return pd.DataFrame(self.rows)
 
     def insert(self, **kwargs):
         # we do not see any use case with time_diff != 1
@@ -112,7 +121,7 @@ class RLDataset:
         mdp_id,
         sequence_number,
         state,
-        timeline_format_action,
+        action,
         reward,
         possible_actions,
         time_diff,
@@ -124,7 +133,6 @@ class RLDataset:
         Format needed for running timeline operator and for uploading dataset to hive.
         """
         state = state.tolist()
-        action = timeline_format_action
         if possible_actions:
             possible_actions = possible_actions.tolist()
         else:

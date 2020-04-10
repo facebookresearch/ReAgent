@@ -183,7 +183,47 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: Optional[RewardOptions] = None,
         warmstart_path: Optional[str] = None,
     ) -> RLTrainingOutput:
-        raise NotImplementedError
+        # TODO: clean this up
+        np.random.seed(0)
+        random.seed(0)
+        torch.manual_seed(0)
+
+        manager = model.value
+
+        writer = summary_writer()
+        logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
+
+        warmstart_input_path = warmstart_path or None
+        manager.initialize_trainer(
+            use_gpu=use_gpu,
+            reward_options=reward_options,
+            normalization_data_map=normalization_data_map,
+            warmstart_path=warmstart_input_path,
+        )
+        with summary_writer_context(writer):
+            evaluation_results = manager.train(train_dataset, eval_dataset, num_epochs)
+
+        logger.info("Saving model")
+
+        serving_module = manager.build_serving_module()
+        output_path = save_torch_model(
+            export_module_to_buffer(serving_module),
+            "{}_{}_0.pt".format(parent_workflow_id, child_workflow_id),
+        )
+
+        warmstart_output_path = types.GLUSTERPATH.new(
+            retention_period=datetime.timedelta(days=180)
+        )
+        manager.save_trainer(warmstart_output_path.path)
+
+        vis_metrics = vis_metrics_from_writer(writer)
+
+        return dataclasses.replace(
+            evaluation_results,
+            output_path=types.MODEL(types.GLUSTERPATH).new(output_path),
+            warmstart_output_path=warmstart_output_path,
+            vis_metrics=vis_metrics,
+        )
 
     @abc.abstractmethod
     def train(
