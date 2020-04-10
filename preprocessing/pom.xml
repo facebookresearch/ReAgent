@@ -37,10 +37,10 @@
       provided
     </parquet.deps.scope>
     <scala.version>
-      2.13
+      2.11.7
     </scala.version>
     <scala.binary.version>
-      2.13.1
+      2.11
     </scala.binary.version>
     <spark.version>
       2.3.2
