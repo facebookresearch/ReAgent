@@ -80,8 +80,8 @@ jobs:
           name: Install miniconda
           command: |
             wget https://repo.anaconda.com/miniconda/Miniconda2-latest-Linux-x86_64.sh -O ~/miniconda.sh
-            bash ~/miniconda.sh -b
-            source miniconda2/bin/activate
+            bash ~/miniconda.sh -b -p $HOME/miniconda
+            source $HOME/miniconda/bin/activate
             conda init
       - run:
           name: Install build deps
