@@ -51,12 +51,15 @@ jobs:
   gpu_unittest:
     machine:
       image: ubuntu-1604-cuda-10.1:201909-23
+      docker_layer_caching: true
     resource_class: gpu.medium
     steps:
       - checkout_merge
       - run:
           name: Setup to python 3.7
           command: |
+            pyenv uninstall 3.7.0
+            sudo apt-get install liblzma-dev
             pyenv global 3.7.0
             pip install --upgrade pip
             pip install tox
