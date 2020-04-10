@@ -49,7 +49,7 @@ jobs:
           name: Pip install
           command: |
             pip install --upgrade pip
-            sudo pip install -e .      
+            sudo pip install -e .[gym]
       - run:
           name: Installing SDKs
           command: |
