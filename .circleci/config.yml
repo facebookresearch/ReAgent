@@ -87,7 +87,7 @@ jobs:
           name: Install java
           command: |
             sudo apt-get update
-            sudo apt-get install maven
+            sudo apt-get install maven scala
       - run:
           name: Build preprocessing package
           command: |
