@@ -5,6 +5,6 @@
 set -ex
 
 # Installing from current directory, any update will be reflected system-wide
-pip install --upgrade pip
-pip install -e .
+pip3 install --upgrade pip
+pip3 install -e .
 tox
