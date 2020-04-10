@@ -55,11 +55,6 @@ jobs:
     steps:
       - run:
           name: Setup to python 3.7
-          # lzma wasn't 
-          # https://stackoverflow.com/questions/57113269/import-pandas-results-in-modulenotfounderror-lzma
-          # pyenv uninstall -f 3.7.0
-          #  sudo apt-get install liblzma-dev
-          #  pyenv install 3.7.0
           command: |
             pyenv global 3.7.0
             pip install --upgrade pip
@@ -97,6 +92,7 @@ jobs:
           name: Build RASP
           command: |
             source $HOME/miniconda/bin/activate
+            echo $HOME
             mkdir -p serving/build
             pushd serving/build
             cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
