@@ -80,6 +80,12 @@ jobs:
     steps:
       - checkout_merge
       - run:
+          name: Pip install
+          # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+          command: |
+            pip install --upgrade pip
+            sudo pip install -e .      
+      - run:
           name: Installing SDKs
           command: |
             mv ~/.bashrc ~/.bashrc.bk
@@ -94,12 +100,6 @@ jobs:
           name: Build preprocessing package
           command: |
             mvn -f preprocessing/pom.xml clean package
-      - run:
-          name: Pip install
-          # echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-          command: |
-            pip install --upgrade pip
-            pip install --user  -e .
       - run:
           name: Run script
           command: |
