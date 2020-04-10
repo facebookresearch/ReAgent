@@ -96,6 +96,7 @@ jobs:
       - run:
           name: Build RASP
           command: |
+            source $HOME/miniconda/bin/activate
             mkdir -p serving/build
             pushd serving/build
             cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
