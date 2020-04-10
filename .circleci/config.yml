@@ -83,12 +83,12 @@ jobs:
           name: Install pyenv
           command: |
             curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
-            rm ~/.bashrc
+            mv ~/.bashrc ~/.bashrc.bk
             touch ~/.bashrc
             echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
             echo 'eval "$(pyenv init -)"' >> ~/.bashrc
             echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
-            cat ~/.bashrc
+            cat ~/.bashrc.bk >> ~/.bashrc
       - python37
       - run:
           name: Build preprocessing package
