@@ -86,9 +86,12 @@ jobs:
       - run:
           name: Install java
           command: |
+            sudo apt-get update
+            sudo apt-get install maven
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
+            sdk install java 8.0.144-open
       - run:
           name: Build preprocessing package
           command: |
