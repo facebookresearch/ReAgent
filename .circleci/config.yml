@@ -55,6 +55,14 @@ jobs:
     steps:
       - checkout_merge
       - run:
+          name: Install python 3
+          command: |
+            sudo apt-get update
+            sudo apt-get install software-properties-common
+            sudo add-apt-repository ppa:deadsnakes/ppa
+            sudo apt-get update
+            sudo apt-get install python3.7
+      - run:
           name: Run unittests
           command: |
             scripts/ci/run_python_unittest.sh
