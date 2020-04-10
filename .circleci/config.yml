@@ -100,7 +100,11 @@ jobs:
           command: |
             pip install --upgrade pip
             pip install .
-  
+      - run:
+          name: Run script
+          command: |
+            bash scripts/ci/run_end_to_end_test.sh
+
   rasp_test:
     docker:
       - image: cimg/base:2020.01
