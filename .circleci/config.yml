@@ -61,6 +61,8 @@ jobs:
             sdk install scala
             sdk install maven
             sdk install spark 2.3.3
+            sudo apt-get update
+            sudo apt-get install bc
       - run:
           name: Build preprocessing package
           command: |
