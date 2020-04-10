@@ -23,6 +23,17 @@ commands:
             if [[ "$BRANCH" != "master" ]]; then
               git merge origin/master
             fi
+  
+  python37:
+    description: "Switch to python 3.7"
+    steps:
+      - run:
+          name: Setup to python 3.7
+          command: |
+            pyenv global 3.7.0
+            pip install --upgrade pip
+            pip install tox
+
 
 binary_common: &binary_common
   parameters:
@@ -53,17 +64,24 @@ jobs:
       image: ubuntu-1604-cuda-10.1:201909-23
     resource_class: gpu.medium
     steps:
-      - run:
-          name: Setup to python 3.7
-          command: |
-            pyenv global 3.7.0
-            pip install --upgrade pip
-            pip install tox
       - checkout_merge
+      - python37
       - run:
           name: Run unittests
           command: |
             tox
+
+  end_to_end_test:
+    docker:
+      - image: circleci/openjdk:8u242-jdk
+    resource_class: large
+    steps:
+      - checkout_merge
+      - python37
+      - run:
+          name: Build preprocessing package
+          command: |
+            mvn -f preprocessing/pom.xml clean package
   
   rasp_test:
     docker:
@@ -85,8 +103,6 @@ jobs:
             pushd ..
             wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
             unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
-            pwd
-            ls
             popd
       - run:
           name: Clone submodules
@@ -112,10 +128,6 @@ jobs:
 workflows:
   build:
     jobs:
-      - binary_linux_conda:
-          name: linux_conda_py3.7_end_to_end
-          docker_image: << pipeline.parameters.image-tag >>
-          test_script: scripts/ci/run_end_to_end_test.sh
-          resource_class_str: large
+      - end_to_end_test
       - gpu_unittest
       - rasp_test
