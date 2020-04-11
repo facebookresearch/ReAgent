@@ -31,7 +31,7 @@ jobs:
           command: |
             pyenv global 3.7.0
             pip install --upgrade pip
-            pip install tox
+            pip install --upgrade tox wheel setuptools
       - run:
           name: Run unittests
           command: |
@@ -40,6 +40,8 @@ jobs:
       - store_artifacts:
           path: dist/reagent-0.1-py3-none-any.whl
           destination: reagent-0.1-py3-none-any.whl
+      - store_test_results:
+          path: .tox/py37/log/
 
   end_to_end_test:
     docker:
