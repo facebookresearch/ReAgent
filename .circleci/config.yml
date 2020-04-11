@@ -117,6 +117,11 @@ jobs:
           name: Run RASP tests
           command: |
             serving/build/RaspTest
+      - run:
+          name: Publish artifacts
+          command: |
+            cp serving/build/RaspTest $CIRCLE_ARTIFACTS/
+            cp serving/build/RaspCli $CIRCLE_ARTIFACTS/
   
 workflows:
   build:
