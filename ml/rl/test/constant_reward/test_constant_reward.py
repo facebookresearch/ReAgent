@@ -69,7 +69,7 @@ class TestConstantReward(HorizonTestBase):
         self.state_dims = 5
         self.action_dims = 2
         self.num_samples = 1024 * 10  # multiple of minibatch_size (1024)
-        self.epochs = 42
+        self.epochs = 25
         super().setUp()
 
     def test_trainer_maxq(self):

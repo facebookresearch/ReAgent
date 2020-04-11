@@ -1,14 +1,9 @@
 version: 2.1
-parameters:
-  image-tag:
-    type: string
-    default: "reagent/reagent:gpu_test"
 
 # How to test the Linux jobs:
 #   - Install CircleCI local CLI: https://circleci.com/docs/2.0/local-cli/
-#   - circleci config process .circleci/config.yml > gen.yml && circleci local execute -c gen.yml --job binary_linux_conda_py3.7_cpu
-#     - Replace binary_linux_conda_py3.7_cpu with the name of the job you want to test.
-#       Job names are 'name:' key.
+#   - circleci config process .circleci/config.yml > gen.yml && circleci local execute -c gen.yml --job end_to_end_test 
+#     - Replace end_to_end_test with the name of the job you want to test.
 
 commands:
   checkout_merge:
@@ -23,92 +18,101 @@ commands:
             if [[ "$BRANCH" != "master" ]]; then
               git merge origin/master
             fi
-
-binary_common: &binary_common
-  parameters:
-    docker_image:
-      description: "Docker image"
-      type: string
-    resource_class_str:
-      description: "Resource class to use"
-      type: string
-    test_script:
-      description: "Path to test script"
-      type: string
-  environment:
-    DOCKER_IMAGE: << parameters.docker_image >>
-
+  
 jobs:
-  binary_linux_conda:
-    <<: *binary_common
-    docker:
-      - image: << parameters.docker_image >>
-    resource_class: << parameters.resource_class_str >>
-    steps:
-      - checkout_merge
-      - run: << parameters.test_script >>
-
   gpu_unittest:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-1604-cuda-10.1:201909-23
     resource_class: gpu.medium
     steps:
       - checkout_merge
       - run:
-          name: Setup Docker and nvidia-docker
+          name: Switch to python 3.7
           command: |
-            # Install CUDA 9.2
-            wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_9.2.148-1_amd64.deb
-            sudo dpkg -i cuda-repo-ubuntu1604_9.2.148-1_amd64.deb
-            sudo apt-get update || true
-            sudo apt-get --yes --force-yes install cuda
-            nvidia-smi
-            # Install Docker
-            sudo apt-get update
-            sudo apt-get install \
-            apt-transport-https \
-            ca-certificates \
-            curl \
-            software-properties-common
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-            sudo apt-key fingerprint 0EBFCD88
-            sudo add-apt-repository \
-            "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-            $(lsb_release -cs) \
-            stable"
-            sudo apt-get update
-            sudo apt-get install docker-ce
-            # Install nvidia-docker
-            distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-            curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-            curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
-            sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-            sudo apt-get update
-            # Install nvidia-docker2 and reload the Docker daemon configuration
-            sudo apt-get install -y nvidia-docker2
-            sudo pkill -SIGHUP dockerd
-      - run:
-          name: Start docker
-          command: |
-            sudo docker run --runtime=nvidia --rm -itd -v $PWD:/home/ReAgent --ipc=host --name reagent << pipeline.parameters.image-tag >>
+            pyenv global 3.7.0
+            pip install --upgrade pip
+            pip install tox
       - run:
           name: Run unittests
           command: |
-            sudo docker exec -it reagent bash -c "\
-            cd ReAgent && \
-            scripts/ci/run_python_unittest.sh"
+            tox
+
+  end_to_end_test:
+    docker:
+      - image: circleci/python:3.7
+    resource_class: large
+    environment:
+      - BASH_ENV: ~/.bashrc
+    steps:
+      - checkout_merge
+      - run:
+          name: Pip install
+          command: |
+            pip install --upgrade pip
+            sudo pip install -e .[gym]
+      - run:
+          name: Installing SDKs
+          command: |
+            mv ~/.bashrc ~/.bashrc.bk
+            curl -s "https://get.sdkman.io" | bash
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sdk version
+            sdk install java 8.0.242.hs-adpt
+            sdk install scala
+            sdk install maven
+            sdk install spark 2.3.3
+      - run:
+          name: Build preprocessing package
+          command: |
+            mvn -f preprocessing/pom.xml clean package
+      - run:
+          name: Run script
+          command: |
+            bash scripts/ci/run_end_to_end_test.sh
+
+  rasp_test:
+    docker:
+      - image: cimg/base:2020.01
+    resource_class: large
+    steps:
+      - checkout_merge
+      - run:
+          name: Install build deps
+          command: |
+            wget https://repo.anaconda.com/miniconda/Miniconda2-latest-Linux-x86_64.sh -O ~/miniconda.sh
+            bash ~/miniconda.sh -b -p $HOME/miniconda
+            source $HOME/miniconda/bin/activate
+            conda init
+            conda install --file rasp_requirements.txt
+      - run:
+          name: Download libtorch
+          command: |
+            pushd ..
+            wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
+            unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
+            popd
+      - run:
+          name: Clone submodules
+          command: |
+            git submodule update --force --recursive --init --remote
+      - run:
+          name: Build RASP
+          command: |
+            source $HOME/miniconda/bin/activate
+            echo $HOME
+            mkdir -p serving/build
+            pushd serving/build
+            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+            make -j2
+            popd
+      - run:
+          name: Run RASP tests
+          command: |
+            serving/build/RaspTest
 
 workflows:
   build:
     jobs:
-      - binary_linux_conda:
-          name: linux_conda_py3.7_end_to_end
-          docker_image: << pipeline.parameters.image-tag >>
-          test_script: scripts/ci/run_end_to_end_test.sh
-          resource_class_str: large
+      - end_to_end_test
       - gpu_unittest
-      - binary_linux_conda:
-          name: linux_conda_py3.7_rasp_test
-          docker_image: << pipeline.parameters.image-tag >>
-          test_script: scripts/ci/run_rasp_test.sh
-          resource_class_str: large
+      - rasp_test
