@@ -77,6 +77,14 @@ jobs:
           name: Run script
           command: |
             bash scripts/ci/run_end_to_end_test.sh
+       - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
       - store_artifacts:
           path: preprocessing/target/rl-preprocessing-1.1.jar
           destination: rl-preprocessing-1.1.jar
