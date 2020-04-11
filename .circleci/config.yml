@@ -70,7 +70,10 @@ jobs:
       - run:
           name: Run script
           command: |
-            bash scripts/ci/run_end_to_end_test.sh
+            echo 'bash scripts/ci/run_end_to_end_test.sh'
+      - persist_to_workspace:
+          root: preprocessing/target
+          paths: rl-preprocessing-1.1.jar
 
   rasp_test:
     docker:
@@ -111,6 +114,18 @@ jobs:
           name: Run RASP tests
           command: |
             serving/build/RaspTest
+  
+  release_to_gh:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: Publish Release on Github
+          command: |
+            VERSION=head
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
 
 workflows:
   build:
@@ -118,3 +133,6 @@ workflows:
       - end_to_end_test
       - gpu_unittest
       - rasp_test
+      - release_to_gh:
+          requires:
+            - end_to_end_test
