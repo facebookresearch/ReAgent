@@ -36,11 +36,10 @@ jobs:
           name: Run unittests
           command: |
             tox
-      - run:
-          name: Build artifacts
-          command: |
-            python setup.py bdist_wheel
-            cp dist/reagent-0.1-py3-none-any.whl $CIRCLE_ARTIFACTS/
+      - run: python setup.py bdist_wheel
+      - store_artifacts:
+          path: dist/reagent-0.1-py3-none-any.whl
+          destination: reagent-0.1-py3-none-any.whl
 
   end_to_end_test:
     docker:
@@ -75,8 +74,10 @@ jobs:
       - run:
           name: Run script
           command: |
-            echo 'bash scripts/ci/run_end_to_end_test.sh'
-      - run: cp preprocessing/target/rl-preprocessing-1.1.jar $CIRCLE_ARTIFACTS/
+            bash scripts/ci/run_end_to_end_test.sh
+      - store_artifacts:
+          path: preprocessing/target/rl-preprocessing-1.1.jar
+          destination: rl-preprocessing-1.1.jar
 
   rasp_test:
     docker:
@@ -117,11 +118,12 @@ jobs:
           name: Run RASP tests
           command: |
             serving/build/RaspTest
-      - run:
-          name: Publish artifacts
-          command: |
-            cp serving/build/RaspTest $CIRCLE_ARTIFACTS/
-            cp serving/build/RaspCli $CIRCLE_ARTIFACTS/
+      - store_artifacts:
+          path: serving/build/RaspTest
+          destination: RaspTest
+      - store_artifacts:
+          path: serving/build/RaspCli
+          destination: RaspCli
   
 workflows:
   build:
