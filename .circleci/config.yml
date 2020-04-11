@@ -77,7 +77,7 @@ jobs:
           name: Run script
           command: |
             bash scripts/ci/run_end_to_end_test.sh
-       - run:
+      - run:
           name: Save test results
           command: |
             mkdir -p ~/test-results/junit/
