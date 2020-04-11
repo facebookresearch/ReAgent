@@ -36,6 +36,11 @@ jobs:
           name: Run unittests
           command: |
             tox
+      - run:
+          name: Build artifacts
+          command: |
+            python setup.py bdist_wheel
+            cp dist/reagent-0.1-py3-none-any.whl $CIRCLE_ARTIFACTS/
 
   end_to_end_test:
     docker:
@@ -71,9 +76,7 @@ jobs:
           name: Run script
           command: |
             echo 'bash scripts/ci/run_end_to_end_test.sh'
-      - persist_to_workspace:
-          root: preprocessing/target
-          paths: rl-preprocessing-1.1.jar
+      - run: cp preprocessing/target/rl-preprocessing-1.1.jar $CIRCLE_ARTIFACTS/
 
   rasp_test:
     docker:
@@ -115,24 +118,9 @@ jobs:
           command: |
             serving/build/RaspTest
   
-  release_to_gh:
-    docker:
-      - image: cibuilds/github:0.10
-    steps:
-      - attach_workspace:
-          at: ./artifacts
-      - run:
-          name: Publish Release on Github
-          command: |
-            VERSION=head
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
-
 workflows:
   build:
     jobs:
       - end_to_end_test
       - gpu_unittest
       - rasp_test
-      - release_to_gh:
-          requires:
-            - end_to_end_test
