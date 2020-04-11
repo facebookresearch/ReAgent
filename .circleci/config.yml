@@ -1,6 +1,4 @@
 version: 2.1
-orbs:
-  codecov: codecov/codecov@1.0.2
 
 # How to test the Linux jobs:
 #   - Install CircleCI local CLI: https://circleci.com/docs/2.0/local-cli/
@@ -20,6 +18,13 @@ commands:
             if [[ "$BRANCH" != "master" ]]; then
               git merge origin/master
             fi
+
+  upload_coverage:
+    description: "Upload coverage report to codecov.io"
+    steps:
+      - run:
+          name: "Upload coverage report"
+          command: bash <(curl -s https://codecov.io/bash)
   
 jobs:
   gpu_unittest:
@@ -44,6 +49,7 @@ jobs:
           destination: reagent-0.1-py3-none-any.whl
       - store_test_results:
           path: .tox/py37/log/
+      - upload_coverage
 
   end_to_end_test:
     docker:
