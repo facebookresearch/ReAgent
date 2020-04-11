@@ -4,20 +4,10 @@
 
 set -ex
 
-export PATH=${HOME}/miniconda/bin:$PATH
-
-pip uninstall -y reagent
-
-# Installing from current directory, any update will be reflected system-wide
-pip install -e .
-
-# Build the spark package
-mvn -f preprocessing/pom.xml clean package
-
 mkdir -p cartpole_discrete
 python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_small_v0.json -f cartpole_discrete/training_data.json --seed 0
 
-/usr/local/spark/bin/spark-submit \
+spark-submit \
   --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
   "$(cat ml/rl/workflow/sample_configs/discrete_action/timeline.json)"
 
