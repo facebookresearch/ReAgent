@@ -4,7 +4,7 @@ import random
 from abc import abstractmethod
 from typing import Optional
 
-from ml.rl.ope.estimators.estimator import (
+from reagent.ope.estimators.estimator import (
     Mdp,
     Model,
     RLPolicy,

@@ -3,7 +3,7 @@
 import logging
 
 from gym.envs.registration import register, registry
-from ml.rl.test.environment.linear_dynamics import LinDynaEnv  # noqa
+from reagent.test.environment.linear_dynamics import LinDynaEnv  # noqa
 
 
 logger = logging.getLogger(__name__)
@@ -19,5 +19,5 @@ def register_if_not_exists(id, entry_point):
 
 register_if_not_exists(
     id="LinearDynamics-v0",
-    entry_point="ml.rl.test.environment.linear_dynamics:LinDynaEnv",
+    entry_point="reagent.test.environment.linear_dynamics:LinDynaEnv",
 )

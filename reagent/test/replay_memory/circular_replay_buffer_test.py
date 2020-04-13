@@ -23,7 +23,7 @@ import unittest
 
 import numpy as np
 import numpy.testing as npt
-from ml.rl.replay_memory import circular_replay_buffer
+from reagent.replay_memory import circular_replay_buffer
 
 
 # Default parameters used when creating the replay memory.

@@ -5,15 +5,15 @@ import logging
 from typing import List, Optional
 
 import torch  # @manual
-from ml.rl import types as rlt
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.net_builder.categorical_dqn.categorical import Categorical
-from ml.rl.net_builder.categorical_dqn_net_builder import CategoricalDQNNetBuilder
-from ml.rl.net_builder.unions import CategoricalDQNNetBuilder__Union
-from ml.rl.parameters import param_hash
-from ml.rl.training.c51_trainer import C51Trainer, C51TrainerParameters
-from ml.rl.training.loss_reporter import NoOpLossReporter
-from ml.rl.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
+from reagent import types as rlt
+from reagent.core.dataclasses import dataclass, field
+from reagent.net_builder.categorical_dqn.categorical import Categorical
+from reagent.net_builder.categorical_dqn_net_builder import CategoricalDQNNetBuilder
+from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
+from reagent.parameters import param_hash
+from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
+from reagent.training.loss_reporter import NoOpLossReporter
+from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 
 
 logger = logging.getLogger(__name__)

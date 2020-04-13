@@ -4,20 +4,22 @@ import abc
 from typing import Type
 
 import torch
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.models.base import ModelBase
-from ml.rl.parameters import NormalizationData
-from ml.rl.prediction.predictor_wrapper import ActorWithPreprocessor
-from ml.rl.preprocessing.postprocessor import Postprocessor
-from ml.rl.preprocessing.preprocessor import Preprocessor
+from reagent.core.registry_meta import RegistryMeta
+from reagent.models.base import ModelBase
+from reagent.parameters import NormalizationData
+from reagent.prediction.predictor_wrapper import ActorWithPreprocessor
+from reagent.preprocessing.postprocessor import Postprocessor
+from reagent.preprocessing.preprocessor import Preprocessor
 
 
 try:
-    from ml.rl.fb.prediction.fb_predictor_wrapper import (
+    from reagent.fb.prediction.fb_predictor_wrapper import (
         FbActorPredictorWrapper as ActorPredictorWrapper,
     )
 except ImportError:
-    from ml.rl.prediction.predictor_wrapper import ActorPredictorWrapper  # type: ignore
+    from reagent.prediction.predictor_wrapper import (  # type: ignore
+        ActorPredictorWrapper,
+    )
 
 
 class ContinuousActorNetBuilder(metaclass=RegistryMeta):

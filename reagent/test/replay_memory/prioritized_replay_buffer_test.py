@@ -19,7 +19,7 @@
 import unittest
 
 import numpy as np
-from ml.rl.replay_memory import prioritized_replay_buffer
+from reagent.replay_memory import prioritized_replay_buffer
 
 
 # Default parameters used when creating the replay memory.

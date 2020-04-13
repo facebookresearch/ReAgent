@@ -3,10 +3,10 @@
 import abc
 import unittest
 
-from ml.rl.core.configuration import make_config_class, resolve_defaults
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.core.tagged_union import TaggedUnion
+from reagent.core.configuration import make_config_class, resolve_defaults
+from reagent.core.dataclasses import dataclass, field
+from reagent.core.registry_meta import RegistryMeta
+from reagent.core.tagged_union import TaggedUnion
 
 
 class A:

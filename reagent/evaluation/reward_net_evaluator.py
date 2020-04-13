@@ -6,9 +6,9 @@ import logging
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl import types as rlt
-from ml.rl.training.reward_network_trainer import RewardNetTrainer
-from ml.rl.types import PreprocessedTrainingBatch
+from reagent import types as rlt
+from reagent.training.reward_network_trainer import RewardNetTrainer
+from reagent.types import PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)

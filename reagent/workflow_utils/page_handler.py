@@ -8,13 +8,13 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch
-from ml.rl.core.tracker import observable
-from ml.rl.evaluation.cpe import CpeDetails
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.training.sac_trainer import SACTrainer
-from ml.rl.training.td3_trainer import TD3Trainer
-from ml.rl.types import (
+from reagent.core.tracker import observable
+from reagent.evaluation.cpe import CpeDetails
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.training.sac_trainer import SACTrainer
+from reagent.training.td3_trainer import TD3Trainer
+from reagent.types import (
     ExtraData,
     PreprocessedMemoryNetworkInput,
     PreprocessedTrainingBatch,

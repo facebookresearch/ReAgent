@@ -4,8 +4,8 @@
 import logging
 import unittest
 
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.test.models.test_utils import check_save_load
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.test.models.test_utils import check_save_load
 
 
 logger = logging.getLogger(__name__)

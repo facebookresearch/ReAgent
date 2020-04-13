@@ -7,8 +7,8 @@ import torch
 import torch.distributed as distributed
 import torch.nn
 import torch.optim
-from ml.rl.parameters import EvolutionParameters
-from ml.rl.training.gradient_free.evolution_pool import EvolutionPool
+from reagent.parameters import EvolutionParameters
+from reagent.training.gradient_free.evolution_pool import EvolutionPool
 from torch.distributed import ProcessGroup
 
 

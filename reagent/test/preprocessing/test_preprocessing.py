@@ -7,16 +7,16 @@ import numpy as np
 import numpy.testing as npt
 import six
 import torch
-from ml.rl.preprocessing import identify_types, normalization
-from ml.rl.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
-from ml.rl.preprocessing.normalization import (
+from reagent.preprocessing import identify_types, normalization
+from reagent.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
+from reagent.preprocessing.normalization import (
     MISSING_VALUE,
     NormalizationParameters,
     sort_features_by_normalization,
 )
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.test.base.utils import NumpyFeatureProcessor
-from ml.rl.test.preprocessing.preprocessing_util import (
+from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.test.base.utils import NumpyFeatureProcessor
+from reagent.test.preprocessing.preprocessing_util import (
     BOXCOX_FEATURE_ID,
     CONTINUOUS_ACTION_FEATURE_ID,
     CONTINUOUS_ACTION_FEATURE_ID_2,

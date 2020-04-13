@@ -3,9 +3,9 @@
 
 from typing import Any, Optional
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.replay_memory.circular_replay_buffer import ReplayBuffer
+from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
 def replay_buffer_add_fn(

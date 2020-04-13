@@ -15,24 +15,24 @@ import sys
 from collections import deque
 
 import gym
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
 from gym import Env
 from gym.spaces import Box
-from ml.rl.json_serialize import from_json, json_to_object
-from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
-from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
-from ml.rl.test.gym.run_gym import (
+from reagent.json_serialize import from_json, json_to_object
+from reagent.models.world_model import MemoryNetwork
+from reagent.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
+from reagent.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
+from reagent.test.gym.run_gym import (
     OpenAiGymParameters,
     create_epsilon,
     create_predictor,
     create_trainer,
     train_gym_offline_rl,
 )
-from ml.rl.test.gym.world_model.mdnrnn_gym import create_embed_rl_dataset, mdnrnn_gym
-from ml.rl.training.rl_dataset import RLDataset
+from reagent.test.gym.world_model.mdnrnn_gym import create_embed_rl_dataset, mdnrnn_gym
+from reagent.training.rl_dataset import RLDataset
 
 
 logger = logging.getLogger(__name__)

@@ -3,10 +3,10 @@
 
 from typing import Optional
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
-from ml.rl.models.mdn_rnn import transpose
+from reagent.models.mdn_rnn import transpose
 
 
 class TrainingDataPage(object):

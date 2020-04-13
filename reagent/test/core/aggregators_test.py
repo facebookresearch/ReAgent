@@ -5,7 +5,7 @@
 import unittest
 
 import torch
-from ml.rl.core.aggregators import ActionCountAggregator
+from reagent.core.aggregators import ActionCountAggregator
 
 
 class ActionCountAggregatorTest(unittest.TestCase):

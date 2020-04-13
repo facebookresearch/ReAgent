@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from ml.rl.workflow import types
+from reagent.workflow import types
 
 from . import categorical_dqn  # noqa
 from . import continuous_actor  # noqa

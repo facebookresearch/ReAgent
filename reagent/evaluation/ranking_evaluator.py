@@ -10,11 +10,11 @@ import scipy.stats as stats
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
-from ml.rl.models.seq2slate import Seq2SlateMode
-from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
-from ml.rl.types import PreprocessedTrainingBatch
+from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.models.seq2slate import Seq2SlateMode
+from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
+from reagent.types import PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)

@@ -3,12 +3,12 @@
 import abc
 from typing import Dict, Optional, Tuple, Type
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch  # @manual
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.parameters import NormalizationData, NormalizationParameters
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
-from ml.rl.workflow.types import Dataset, RewardOptions, RLTrainingOutput, TableSpec
+from reagent.core.registry_meta import RegistryMeta
+from reagent.parameters import NormalizationData, NormalizationParameters
+from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.workflow.types import Dataset, RewardOptions, RLTrainingOutput, TableSpec
 
 
 class ModelManager(metaclass=RegistryMeta):
@@ -175,7 +175,7 @@ class ModelManager(metaclass=RegistryMeta):
         train_dataset: Dataset,
         eval_dataset: Optional[Dataset],
         normalization_data_map: Dict[str, NormalizationData],
-        model,  # ml.rl.workflow.model_managers.ModelManager__Union
+        model,  # reagent.workflow.model_managers.ModelManager__Union
         num_epochs: int,
         use_gpu: bool,
         parent_workflow_id: int,

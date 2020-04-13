@@ -3,9 +3,9 @@
 
 from typing import Optional
 
-from ml.rl.gym.types import ReplayBufferTrainFn, TrainerPreprocessor
-from ml.rl.replay_memory.circular_replay_buffer import ReplayBuffer
-from ml.rl.training.trainer import Trainer
+from reagent.gym.types import ReplayBufferTrainFn, TrainerPreprocessor
+from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
+from reagent.training.trainer import Trainer
 
 
 def replay_buffer_train_fn(

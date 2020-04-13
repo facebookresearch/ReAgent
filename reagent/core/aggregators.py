@@ -7,8 +7,8 @@ from typing import Callable, Deque, Dict, List, Optional
 
 import numpy as np
 import torch
-from ml.rl.core.tracker import Aggregator
-from ml.rl.tensorboardX import SummaryWriterContext
+from reagent.core.tracker import Aggregator
+from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)

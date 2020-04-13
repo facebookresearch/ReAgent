@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 import torch
-from ml.rl.ope.utils import Clamper, RunningAverage
+from reagent.ope.utils import Clamper, RunningAverage
 
 
 class TestUtils(unittest.TestCase):

@@ -6,20 +6,20 @@ import logging
 from typing import Dict, List, Optional, Union
 
 import torch
-from ml.rl.preprocessing.normalization import sort_features_by_normalization
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
-from ml.rl.test.base.utils import (
+from reagent.preprocessing.normalization import sort_features_by_normalization
+from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
+from reagent.test.base.utils import (
     only_continuous_action_normalizer,
     only_continuous_normalizer,
 )
-from ml.rl.test.environment.environment import (
+from reagent.test.environment.environment import (
     MultiStepSamples,
     Samples,
     shuffle_samples,
 )
-from ml.rl.test.gridworld.gridworld_base import GridworldBase
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.test.gridworld.gridworld_base import GridworldBase
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)

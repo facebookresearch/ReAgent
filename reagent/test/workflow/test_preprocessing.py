@@ -4,13 +4,13 @@
 import unittest
 
 import numpy as np
-from ml.rl.preprocessing.identify_types import CONTINUOUS
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.workflow.identify_types_flow import (
+from reagent.preprocessing.identify_types import CONTINUOUS
+from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.workflow.identify_types_flow import (
     get_spark_session,
     identify_normalization_parameters,
 )
-from ml.rl.workflow.types import PreprocessingOptions, TableSpec
+from reagent.workflow.types import PreprocessingOptions, TableSpec
 
 
 class TestPreprocessing(HorizonTestBase):

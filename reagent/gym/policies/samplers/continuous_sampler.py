@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.gym.types import GaussianSamplerScore, Sampler
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.torch_utils import rescale_torch_tensor
+from reagent.gym.types import GaussianSamplerScore, Sampler
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.torch_utils import rescale_torch_tensor
 
 
 class GaussianSampler(Sampler):

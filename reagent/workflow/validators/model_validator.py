@@ -4,9 +4,9 @@ import abc
 import inspect
 import logging
 
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.workflow.result_registries import ValidationResult
-from ml.rl.workflow.types import RLTrainingOutput
+from reagent.core.registry_meta import RegistryMeta
+from reagent.workflow.result_registries import ValidationResult
+from reagent.workflow.types import RLTrainingOutput
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class ModelValidator(metaclass=RegistryMeta):
         """
         result = self.do_validate(training_output)
         # Avoid circular dependency at import time
-        from ml.rl.workflow.types import ValidationResult__Union
+        from reagent.workflow.types import ValidationResult__Union
 
         # We need to use inspection because the result can be a future when running on
         # FBL

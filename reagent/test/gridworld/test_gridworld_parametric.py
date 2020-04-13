@@ -6,20 +6,20 @@ import unittest
 
 import numpy as np
 import torch
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.parameters import OptimizerParameters, RLParameters
-from ml.rl.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
-from ml.rl.prediction.predictor_wrapper import (
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.parameters import OptimizerParameters, RLParameters
+from reagent.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
+from reagent.prediction.predictor_wrapper import (
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
 )
-from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT
-from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
-from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
-from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.training.parametric_dqn_trainer import (
+from reagent.preprocessing.normalization import get_num_output_features
+from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.test.gridworld.gridworld_base import DISCOUNT
+from reagent.test.gridworld.gridworld_continuous import GridworldContinuous
+from reagent.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
+from reagent.test.gridworld.gridworld_test_base import GridworldTestBase
+from reagent.training.parametric_dqn_trainer import (
     ParametricDQNTrainer,
     ParametricDQNTrainerParameters,
 )

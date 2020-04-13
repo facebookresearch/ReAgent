@@ -4,9 +4,9 @@
 from typing import Dict, List, Optional
 
 import pyspark
-from ml.rl.preprocessing import normalization
-from ml.rl.workflow.types import PreprocessingOptions, TableSpec
 from pyspark.sql.functions import col, collect_list, explode, flatten
+from reagent.preprocessing import normalization
+from reagent.workflow.types import PreprocessingOptions, TableSpec
 
 
 LOCAL_MASTER = "local[1]"

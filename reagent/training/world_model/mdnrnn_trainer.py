@@ -5,12 +5,12 @@ import logging
 from collections import deque
 from typing import Deque, Optional
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from ml.rl.models.mdn_rnn import gmm_loss, transpose
-from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.parameters import MDNRNNParameters
+from reagent.models.mdn_rnn import gmm_loss, transpose
+from reagent.models.world_model import MemoryNetwork
+from reagent.parameters import MDNRNNParameters
 
 
 logger = logging.getLogger(__name__)

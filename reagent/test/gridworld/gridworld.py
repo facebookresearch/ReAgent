@@ -4,9 +4,9 @@
 
 from typing import List, Optional, Union
 
-from ml.rl.test.environment.environment import MultiStepSamples
-from ml.rl.test.gridworld.gridworld_base import GridworldBase, Samples
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.test.environment.environment import MultiStepSamples
+from reagent.test.gridworld.gridworld_base import GridworldBase, Samples
+from reagent.training.training_data_page import TrainingDataPage
 
 
 class Gridworld(GridworldBase):

@@ -2,13 +2,13 @@
 
 from typing import List, Type
 
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.models.actor import GaussianFullyConnectedActor
-from ml.rl.models.base import ModelBase
-from ml.rl.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
-from ml.rl.parameters import NormalizationData, param_hash
-from ml.rl.preprocessing.identify_types import CONTINUOUS_ACTION
-from ml.rl.preprocessing.normalization import get_num_output_features
+from reagent.core.dataclasses import dataclass, field
+from reagent.models.actor import GaussianFullyConnectedActor
+from reagent.models.base import ModelBase
+from reagent.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
+from reagent.parameters import NormalizationData, param_hash
+from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
+from reagent.preprocessing.normalization import get_num_output_features
 
 
 @dataclass

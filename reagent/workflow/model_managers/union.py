@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import ml.rl.workflow.model_managers.discrete  # noqa
-from ml.rl.workflow import types
-from ml.rl.workflow.model_managers.model_manager import ModelManager
+import reagent.workflow.model_managers.discrete  # noqa
+from reagent.workflow import types
+from reagent.workflow.model_managers.model_manager import ModelManager
 
 
 @ModelManager.fill_union()

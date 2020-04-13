@@ -9,9 +9,9 @@ from typing import Dict
 
 import numpy as np
 import torch
-from ml.rl.evaluation.evaluator import Evaluator
-from ml.rl.json_serialize import from_json
-from ml.rl.parameters import (
+from reagent.evaluation.evaluator import Evaluator
+from reagent.json_serialize import from_json
+from reagent.parameters import (
     DiscreteActionModelParameters,
     EvaluationParameters,
     NormalizationParameters,
@@ -19,26 +19,26 @@ from ml.rl.parameters import (
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.prediction.predictor_wrapper import (
+from reagent.prediction.predictor_wrapper import (
     DiscreteDqnPredictorWrapper,
     DiscreteDqnWithPreprocessor,
 )
-from ml.rl.preprocessing.batch_preprocessor import DiscreteDqnBatchPreprocessor
-from ml.rl.preprocessing.normalization import sort_features_by_normalization
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import StringKeySparseToDenseProcessor
-from ml.rl.readers.json_dataset_reader import JSONDatasetReader
-from ml.rl.tensorboardX import summary_writer_context
-from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.workflow.base_workflow import BaseWorkflow
-from ml.rl.workflow.helpers import (
+from reagent.preprocessing.batch_preprocessor import DiscreteDqnBatchPreprocessor
+from reagent.preprocessing.normalization import sort_features_by_normalization
+from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.sparse_to_dense import StringKeySparseToDenseProcessor
+from reagent.readers.json_dataset_reader import JSONDatasetReader
+from reagent.tensorboardX import summary_writer_context
+from reagent.training.dqn_trainer import DQNTrainer
+from reagent.workflow.base_workflow import BaseWorkflow
+from reagent.workflow.helpers import (
     minibatch_size_multiplier,
     parse_args,
     save_model_to_file,
     update_model_for_warm_start,
 )
-from ml.rl.workflow.preprocess_handler import DiscreteDqnPreprocessHandler
-from ml.rl.workflow_utils.transitional import create_dqn_trainer_from_params
+from reagent.workflow.preprocess_handler import DiscreteDqnPreprocessHandler
+from reagent.workflow_utils.transitional import create_dqn_trainer_from_params
 from torch import multiprocessing
 from torch.utils.tensorboard import SummaryWriter
 

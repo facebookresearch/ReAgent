@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import torch
-from ml.rl.core.dataclasses import dataclass as pydantic_dataclass
+from reagent.core.dataclasses import dataclass as pydantic_dataclass
 
 
 """

@@ -9,12 +9,12 @@ import time
 from typing import Dict
 
 import torch
-from ml.rl.parameters import NormalizationParameters
-from ml.rl.preprocessing import normalization
-from ml.rl.readers.data_streamer import DataStreamer
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.torch_utils import export_module_to_buffer
-from ml.rl.workflow_utils.page_handler import (
+from reagent.parameters import NormalizationParameters
+from reagent.preprocessing import normalization
+from reagent.readers.data_streamer import DataStreamer
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.torch_utils import export_module_to_buffer
+from reagent.workflow_utils.page_handler import (
     EvaluationPageHandler,
     TrainingPageHandler,
     feed_pages,

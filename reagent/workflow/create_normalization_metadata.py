@@ -9,7 +9,7 @@ from collections import defaultdict
 
 # @manual=third-party//pandas:pandas-py
 import pandas as pd
-from ml.rl.preprocessing.normalization import (
+from reagent.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
     DEFAULT_MAX_UNIQUE_ENUM,
     DEFAULT_NUM_SAMPLES,
@@ -17,8 +17,8 @@ from ml.rl.preprocessing.normalization import (
     get_feature_norm_metadata,
     serialize,
 )
-from ml.rl.readers.json_dataset_reader import JSONDatasetReader
-from ml.rl.workflow.helpers import parse_args
+from reagent.readers.json_dataset_reader import JSONDatasetReader
+from reagent.workflow.helpers import parse_args
 
 
 logger = logging.getLogger(__name__)

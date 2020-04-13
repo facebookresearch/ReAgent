@@ -9,31 +9,34 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 import torch
-from ml.rl.models.actor import DirichletFullyConnectedActor, GaussianFullyConnectedActor
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.parameters import FeedForwardParameters, OptimizerParameters, RLParameters
-from ml.rl.prediction.dqn_torch_predictor import (
+from reagent.models.actor import (
+    DirichletFullyConnectedActor,
+    GaussianFullyConnectedActor,
+)
+from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.parameters import FeedForwardParameters, OptimizerParameters, RLParameters
+from reagent.prediction.dqn_torch_predictor import (
     ActorTorchPredictor,
     ParametricDqnTorchPredictor,
 )
-from ml.rl.prediction.predictor_wrapper import (
+from reagent.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
 )
-from ml.rl.preprocessing.normalization import (
+from reagent.preprocessing.normalization import (
     get_num_output_features,
     sort_features_by_normalization,
 )
-from ml.rl.preprocessing.postprocessor import Postprocessor
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT
-from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
-from ml.rl.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
-from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.training.sac_trainer import SACTrainer, SACTrainerParameters
+from reagent.preprocessing.postprocessor import Postprocessor
+from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.test.gridworld.gridworld_base import DISCOUNT
+from reagent.test.gridworld.gridworld_continuous import GridworldContinuous
+from reagent.test.gridworld.gridworld_evaluator import GridworldContinuousEvaluator
+from reagent.test.gridworld.gridworld_test_base import GridworldTestBase
+from reagent.training.sac_trainer import SACTrainer, SACTrainerParameters
 
 
 class TestGridworldSAC(GridworldTestBase):

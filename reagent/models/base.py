@@ -10,7 +10,7 @@ from typing import Any, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
-from ml.rl import types as rlt
+from reagent import types as rlt
 
 
 # add ABCMeta once https://github.com/sphinx-doc/sphinx/issues/5995 is fixed

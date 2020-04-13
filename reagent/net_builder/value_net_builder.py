@@ -4,8 +4,8 @@ import abc
 from typing import Type
 
 import torch
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.parameters import NormalizationData
+from reagent.core.registry_meta import RegistryMeta
+from reagent.parameters import NormalizationData
 
 
 class ValueNetBuilder(metaclass=RegistryMeta):

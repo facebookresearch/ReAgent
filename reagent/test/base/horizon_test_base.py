@@ -3,7 +3,7 @@
 
 import unittest
 
-from ml.rl.tensorboardX import SummaryWriterContext
+from reagent.tensorboardX import SummaryWriterContext
 
 
 class HorizonTestBase(unittest.TestCase):

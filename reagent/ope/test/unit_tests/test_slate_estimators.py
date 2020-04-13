@@ -5,7 +5,7 @@ import unittest
 from functools import reduce
 
 import torch
-from ml.rl.ope.estimators.slate_estimators import (
+from reagent.ope.estimators.slate_estimators import (
     DCGSlateMetric,
     NDCGSlateMetric,
     Slate,

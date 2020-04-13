@@ -6,7 +6,7 @@ from typing import Iterable, Optional, Sequence, Tuple
 
 import numpy as np
 import torch
-from ml.rl.ope.estimators.sequential_estimators import (
+from reagent.ope.estimators.sequential_estimators import (
     DMEstimator,
     DREstimator,
     EpsilonGreedyRLPolicy,
@@ -20,9 +20,9 @@ from ml.rl.ope.estimators.sequential_estimators import (
     StateReward,
     ValueFunction,
 )
-from ml.rl.ope.estimators.types import Action, ActionSpace
-from ml.rl.ope.test.envs import Environment, PolicyLogGenerator
-from ml.rl.ope.trainers.rl_tabular_trainers import (
+from reagent.ope.estimators.types import Action, ActionSpace
+from reagent.ope.test.envs import Environment, PolicyLogGenerator
+from reagent.ope.trainers.rl_tabular_trainers import (
     DPTrainer,
     DPValueFunction,
     TabularPolicy,

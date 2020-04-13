@@ -2,11 +2,11 @@
 
 from typing import Dict, List, Type
 
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.models.base import ModelBase
-from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
-from ml.rl.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
-from ml.rl.parameters import NormalizationParameters, param_hash
+from reagent.core.dataclasses import dataclass, field
+from reagent.models.base import ModelBase
+from reagent.models.dueling_quantile_dqn import DuelingQuantileDQN
+from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
+from reagent.parameters import NormalizationParameters, param_hash
 
 
 @dataclass

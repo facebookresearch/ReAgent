@@ -4,9 +4,9 @@ import copy
 
 import torch
 import torch.nn as nn
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
-from ml.rl.models.seq2slate import (
+from reagent import types as rlt
+from reagent.models.base import ModelBase
+from reagent.models.seq2slate import (
     Decoder,
     DecoderLayer,
     Embedder,

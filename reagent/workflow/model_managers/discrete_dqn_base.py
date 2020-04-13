@@ -3,17 +3,17 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from ml.rl import types as rlt
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.evaluation.evaluator import Evaluator, get_metrics_to_score
-from ml.rl.models.base import ModelBase
-from ml.rl.parameters import NormalizationData
-from ml.rl.preprocessing.batch_preprocessor import BatchPreprocessor
-from ml.rl.workflow.data_fetcher import query_data
-from ml.rl.workflow.identify_types_flow import identify_normalization_parameters
-from ml.rl.workflow.model_managers.model_manager import ModelManager
-from ml.rl.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
-from ml.rl.workflow.types import (
+from reagent import types as rlt
+from reagent.core.dataclasses import dataclass, field
+from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
+from reagent.models.base import ModelBase
+from reagent.parameters import NormalizationData
+from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+from reagent.workflow.data_fetcher import query_data
+from reagent.workflow.identify_types_flow import identify_normalization_parameters
+from reagent.workflow.model_managers.model_manager import ModelManager
+from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
+from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
     ReaderOptions,
@@ -22,8 +22,11 @@ from ml.rl.workflow.types import (
     RLTrainingReport,
     TableSpec,
 )
-from ml.rl.workflow.utils import train_and_evaluate_generic
-from ml.rl.workflow_utils.page_handler import EvaluationPageHandler, TrainingPageHandler
+from reagent.workflow.utils import train_and_evaluate_generic
+from reagent.workflow_utils.page_handler import (
+    EvaluationPageHandler,
+    TrainingPageHandler,
+)
 
 
 logger = logging.getLogger(__name__)

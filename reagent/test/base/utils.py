@@ -9,9 +9,9 @@ from typing import Dict, List
 import numpy as np
 import six
 import torch
-from ml.rl import types as rlt
-from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing.normalization import (
+from reagent import types as rlt
+from reagent.preprocessing import identify_types
+from reagent.preprocessing.normalization import (
     BOX_COX_MARGIN,
     MAX_FEATURE_VALUE,
     MIN_FEATURE_VALUE,

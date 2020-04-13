@@ -4,8 +4,8 @@
 import logging
 import unittest
 
-from ml.rl.models.dueling_q_network import DuelingQNetwork
-from ml.rl.test.models.test_utils import check_save_load
+from reagent.models.dueling_q_network import DuelingQNetwork
+from reagent.test.models.test_utils import check_save_load
 
 
 logger = logging.getLogger(__name__)

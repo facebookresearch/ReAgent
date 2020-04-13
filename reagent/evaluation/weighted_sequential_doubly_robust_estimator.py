@@ -7,8 +7,8 @@ import logging
 import numpy as np
 import scipy as sp
 import torch
-from ml.rl.evaluation.cpe import CpeEstimate
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.evaluation.cpe import CpeEstimate
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 
 
 logger = logging.getLogger(__name__)

@@ -4,8 +4,8 @@
 import logging
 import unittest
 
-from ml.rl.models.example_sequence_model import ExampleSequenceModel
-from ml.rl.test.models.test_utils import check_save_load
+from reagent.models.example_sequence_model import ExampleSequenceModel
+from reagent.test.models.test_utils import check_save_load
 
 
 logger = logging.getLogger(__name__)

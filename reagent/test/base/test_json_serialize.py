@@ -4,9 +4,9 @@
 import dataclasses
 import typing
 
-from ml.rl import parameters as rlp
-from ml.rl.json_serialize import json_to_object, object_to_json
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
+from reagent import parameters as rlp
+from reagent.json_serialize import json_to_object, object_to_json
+from reagent.test.base.horizon_test_base import HorizonTestBase
 
 
 class TestJsonSerialize(HorizonTestBase):
