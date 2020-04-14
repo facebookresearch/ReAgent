@@ -4,16 +4,16 @@ import logging
 from itertools import permutations
 from typing import Optional
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.models.seq2slate import (
+from reagent.models.seq2slate import (
     DECODER_START_SYMBOL,
     BaselineNet,
     Seq2SlateTransformerNet,
 )
-from ml.rl.parameters import Seq2SlateTransformerParameters
-from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
-from ml.rl.training.trainer import Trainer
+from reagent.parameters import Seq2SlateTransformerParameters
+from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)

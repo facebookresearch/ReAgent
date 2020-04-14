@@ -7,13 +7,13 @@ from functools import reduce
 from typing import Dict, Optional, Tuple, Union
 
 import gym
-import ml.rl.test.gym.pomdp  # noqa
 import numpy as np
+import reagent.test.gym.pomdp  # noqa
 import torch
 from gym import Env
-from ml.rl.test.base.utils import only_continuous_normalizer
-from ml.rl.test.environment.environment import Environment
-from ml.rl.training.on_policy_predictor import OnPolicyPredictor
+from reagent.test.base.utils import only_continuous_normalizer
+from reagent.test.environment.environment import Environment
+from reagent.training.on_policy_predictor import OnPolicyPredictor
 
 
 logger = logging.getLogger(__name__)

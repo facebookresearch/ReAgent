@@ -4,9 +4,9 @@
 from typing import Any, Optional
 
 import torch
-from ml.rl.gym.policies.policy import Policy
-from ml.rl.gym.types import ActionPreprocessor, ReplayBufferAddFn, ReplayBufferTrainFn
-from ml.rl.replay_memory.circular_replay_buffer import ReplayBuffer
+from reagent.gym.policies.policy import Policy
+from reagent.gym.types import ActionPreprocessor, ReplayBufferAddFn, ReplayBufferTrainFn
+from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
 class Agent:

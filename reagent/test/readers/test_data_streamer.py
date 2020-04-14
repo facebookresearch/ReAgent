@@ -6,8 +6,8 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.testing as npt
-from ml.rl.readers.data_streamer import DataStreamer
-from ml.rl.readers.nparray_reader import NpArrayReader
+from reagent.readers.data_streamer import DataStreamer
+from reagent.readers.nparray_reader import NpArrayReader
 
 
 class TestDataStreamer(unittest.TestCase):

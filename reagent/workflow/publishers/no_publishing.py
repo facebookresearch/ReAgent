@@ -2,11 +2,11 @@
 
 from typing import Optional
 
-from ml.rl.core.dataclasses import dataclass
-from ml.rl.workflow.model_managers.model_manager import ModelManager
-from ml.rl.workflow.publishers.model_publisher import ModelPublisher
-from ml.rl.workflow.result_types import NoPublishingResults
-from ml.rl.workflow.types import RecurringPeriod, RLTrainingOutput
+from reagent.core.dataclasses import dataclass
+from reagent.workflow.model_managers.model_manager import ModelManager
+from reagent.workflow.publishers.model_publisher import ModelPublisher
+from reagent.workflow.result_types import NoPublishingResults
+from reagent.workflow.types import RecurringPeriod, RLTrainingOutput
 
 
 @dataclass

@@ -18,7 +18,7 @@
 import random
 import unittest
 
-from ml.rl.replay_memory import sum_tree
+from reagent.replay_memory import sum_tree
 
 
 class SumTreeTest(unittest.TestCase):

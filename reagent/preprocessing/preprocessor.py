@@ -5,8 +5,8 @@ import logging
 from typing import Dict, List, Tuple, cast
 
 import torch
-from ml.rl.preprocessing.identify_types import ENUM, FEATURE_TYPES
-from ml.rl.preprocessing.normalization import (
+from reagent.preprocessing.identify_types import ENUM, FEATURE_TYPES
+from reagent.preprocessing.normalization import (
     EPS,
     MAX_FEATURE_VALUE,
     MIN_FEATURE_VALUE,

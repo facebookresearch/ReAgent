@@ -3,10 +3,10 @@
 
 from typing import Dict, List, Optional
 
-from ml.rl.core.configuration import param_hash
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.parameters_seq2slate import LearningMethod, RewardClamp
-from ml.rl.types import BaseDataClass
+from reagent.core.configuration import param_hash
+from reagent.core.dataclasses import dataclass, field
+from reagent.parameters_seq2slate import LearningMethod, RewardClamp
+from reagent.types import BaseDataClass
 
 
 @dataclass(frozen=True)

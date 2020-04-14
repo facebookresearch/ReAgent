@@ -4,11 +4,11 @@ import dataclasses
 import logging
 from typing import Dict, NamedTuple, Optional, Tuple
 
-from ml.rl.parameters import NormalizationData
-from ml.rl.workflow.env import get_workflow_id
-from ml.rl.workflow.model_managers.union import ModelManager__Union
-from ml.rl.workflow.publishers.union import ModelPublisher__Union
-from ml.rl.workflow.types import (
+from reagent.parameters import NormalizationData
+from reagent.workflow.env import get_workflow_id
+from reagent.workflow.model_managers.union import ModelManager__Union
+from reagent.workflow.publishers.union import ModelPublisher__Union
+from reagent.workflow.types import (
     PublishingResult__Union,
     RecurringPeriod,
     RewardOptions,
@@ -16,7 +16,7 @@ from ml.rl.workflow.types import (
     TableSpec,
     ValidationResult__Union,
 )
-from ml.rl.workflow.validators.union import ModelValidator__Union
+from reagent.workflow.validators.union import ModelValidator__Union
 
 
 logger = logging.getLogger(__name__)

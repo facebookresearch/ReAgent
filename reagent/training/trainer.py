@@ -4,7 +4,7 @@
 import logging
 from typing import List
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 
 
 logger = logging.getLogger(__name__)

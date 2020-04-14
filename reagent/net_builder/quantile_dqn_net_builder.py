@@ -3,22 +3,22 @@
 import abc
 from typing import Dict, List, Type
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.models.base import ModelBase
-from ml.rl.parameters import NormalizationParameters
-from ml.rl.prediction.predictor_wrapper import DiscreteDqnWithPreprocessor
-from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.preprocessing.preprocessor import Preprocessor
+from reagent.core.registry_meta import RegistryMeta
+from reagent.models.base import ModelBase
+from reagent.parameters import NormalizationParameters
+from reagent.prediction.predictor_wrapper import DiscreteDqnWithPreprocessor
+from reagent.preprocessing.normalization import get_num_output_features
+from reagent.preprocessing.preprocessor import Preprocessor
 
 
 try:
-    from ml.rl.fb.prediction.fb_predictor_wrapper import (
+    from reagent.fb.prediction.fb_predictor_wrapper import (
         FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
     )
 except ImportError:
-    from ml.rl.prediction.predictor_wrapper import (  # type: ignore
+    from reagent.prediction.predictor_wrapper import (  # type: ignore
         DiscreteDqnPredictorWrapper,
     )
 

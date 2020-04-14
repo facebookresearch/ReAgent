@@ -5,15 +5,15 @@ from dataclasses import dataclass
 from typing import Iterable, Optional, Sequence, Union
 
 import numpy as np
-from ml.rl.ope.estimators.estimator import Estimator, EstimatorResults
-from ml.rl.ope.estimators.types import (
+from reagent.ope.estimators.estimator import Estimator, EstimatorResults
+from reagent.ope.estimators.types import (
     Action,
     ActionDistribution,
     ActionSpace,
     Reward,
     Values,
 )
-from ml.rl.ope.utils import Clamper, RunningAverage
+from reagent.ope.utils import Clamper, RunningAverage
 from torch import Tensor
 
 

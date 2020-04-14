@@ -4,10 +4,10 @@ import abc
 import inspect
 from typing import Optional
 
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.workflow.model_managers.model_manager import ModelManager
-from ml.rl.workflow.result_registries import PublishingResult
-from ml.rl.workflow.types import RecurringPeriod, RLTrainingOutput
+from reagent.core.registry_meta import RegistryMeta
+from reagent.workflow.model_managers.model_manager import ModelManager
+from reagent.workflow.result_registries import PublishingResult
+from reagent.workflow.types import RecurringPeriod, RLTrainingOutput
 
 
 class ModelPublisher(metaclass=RegistryMeta):
@@ -38,7 +38,7 @@ class ModelPublisher(metaclass=RegistryMeta):
             recurring_period,
         )
         # Avoid circular dependency at import time
-        from ml.rl.workflow.types import PublishingResult__Union
+        from reagent.workflow.types import PublishingResult__Union
 
         # We need to use inspection because the result can be a future when running on
         # FBL

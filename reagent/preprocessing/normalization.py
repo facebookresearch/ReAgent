@@ -9,9 +9,9 @@ from typing import Dict, List, Tuple
 import numpy as np
 import six
 import torch
-from ml.rl.parameters import NormalizationParameters
-from ml.rl.preprocessing import identify_types
-from ml.rl.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
+from reagent.parameters import NormalizationParameters
+from reagent.preprocessing import identify_types
+from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
 from scipy.stats.mstats import mquantiles
 
@@ -174,7 +174,7 @@ def identify_parameter(
     )
 
 
-def get_num_output_features(normalization_parameters):
+def get_num_output_features(normalization_parameters) -> int:
     return sum(
         map(
             lambda np: (

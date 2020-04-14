@@ -10,12 +10,12 @@ import unittest
 
 import numpy as np
 import torch
-from ml.rl.json_serialize import json_to_object
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.test.gym.run_gym import OpenAiGymParameters, run_gym
+from reagent.json_serialize import json_to_object
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.test.gym.run_gym import OpenAiGymParameters, run_gym
 
 
-DQN_CARTPOLE_JSON = "ml/rl/test/gym/discrete_dqn_cartpole_v0.json"
+DQN_CARTPOLE_JSON = "reagent/test/gym/discrete_dqn_cartpole_v0.json"
 # Though maximal score is 200, we set a lower bar to let tests finish in time
 CARTPOLE_SCORE_BAR = 100
 SEED = 0

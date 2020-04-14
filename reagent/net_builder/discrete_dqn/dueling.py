@@ -2,12 +2,12 @@
 
 from typing import Dict, List, Type
 
-from ml.rl import types as rlt
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.models.base import ModelBase
-from ml.rl.models.dueling_q_network import DuelingQNetwork
-from ml.rl.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
-from ml.rl.parameters import NormalizationParameters, param_hash
+from reagent import types as rlt
+from reagent.core.dataclasses import dataclass, field
+from reagent.models.base import ModelBase
+from reagent.models.dueling_q_network import DuelingQNetwork
+from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
+from reagent.parameters import NormalizationParameters, param_hash
 
 
 @dataclass

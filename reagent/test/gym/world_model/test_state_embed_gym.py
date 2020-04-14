@@ -9,10 +9,10 @@ from typing import List
 
 import numpy as np
 import torch
-from ml.rl.json_serialize import json_to_object
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.test.gym.run_gym import OpenAiGymParameters
-from ml.rl.test.gym.world_model.state_embed_gym import (
+from reagent.json_serialize import json_to_object
+from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.test.gym.run_gym import OpenAiGymParameters
+from reagent.test.gym.world_model.state_embed_gym import (
     create_mdnrnn_trainer_and_embed_dataset,
     run_gym,
 )
@@ -20,8 +20,8 @@ from ml.rl.test.gym.world_model.state_embed_gym import (
 
 logger = logging.getLogger(__name__)
 
-MDNRNN_STRING_GAME_JSON = "ml/rl/test/configs/mdnrnn_string_game_v0.json"
-DQN_STRING_GAME_JSON = "ml/rl/test/configs/discrete_dqn_string_game_v0.json"
+MDNRNN_STRING_GAME_JSON = "reagent/test/configs/mdnrnn_string_game_v0.json"
+DQN_STRING_GAME_JSON = "reagent/test/configs/discrete_dqn_string_game_v0.json"
 
 
 class TestStateEmbedGym(HorizonTestBase):

@@ -3,9 +3,9 @@
 
 from typing import Any, Optional
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.gym.types import PolicyPreprocessor, Sampler, Scorer
+from reagent.gym.types import PolicyPreprocessor, Sampler, Scorer
 
 
 class Policy:

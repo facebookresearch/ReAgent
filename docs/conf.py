@@ -40,9 +40,9 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinxcontrib.napoleon",
 ]
-apidoc_module_dir = "../ml"
+apidoc_module_dir = "../reagent"
 apidoc_output_dir = "api"
-apidoc_excluded_paths = ["rl/test"]
+apidoc_excluded_paths = ["test"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -59,7 +59,7 @@ autodoc_mock_imports = [
     "torch",
     "pandas",
     "sklearn",
-    "ml.rl.test",
+    "reagent.test",
     "onnx",
     "xgboost",
 ]

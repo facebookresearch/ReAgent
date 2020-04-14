@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from ml.rl.workflow import types
-from ml.rl.workflow.publishers.no_publishing import NoPublishing  # noqa
+from reagent.workflow import types
+from reagent.workflow.publishers.no_publishing import NoPublishing  # noqa
 
 from .model_publisher import ModelPublisher
 

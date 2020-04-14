@@ -8,12 +8,13 @@ import os
 import sys
 
 import click
-from ml.rl import debug_on_error
 from ruamel.yaml import YAML
 
 
 @click.group()
 def reagent():
+    from reagent import debug_on_error
+
     debug_on_error.start()
 
     os.environ["USE_VANILLA_DATACLASS"] = "0"
@@ -36,7 +37,7 @@ def _load_func_and_config_class(workflow):
     func = getattr(module, func_name)
 
     # Import in here so that logging and override take place first
-    from ml.rl.core.configuration import make_config_class
+    from reagent.core.configuration import make_config_class
 
     @make_config_class(func)
     class ConfigClass:

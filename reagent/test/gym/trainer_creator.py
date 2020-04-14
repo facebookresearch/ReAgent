@@ -4,13 +4,13 @@
 from typing import Optional
 
 import torch
-from ml.rl.models.actor import GaussianFullyConnectedActor
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.parameters import FeedForwardParameters, RLParameters
-from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
-from ml.rl.training.sac_trainer import SACTrainer, SACTrainerParameters
+from reagent.models.actor import GaussianFullyConnectedActor
+from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.parameters import FeedForwardParameters, RLParameters
+from reagent.preprocessing.normalization import get_num_output_features
+from reagent.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
+from reagent.training.sac_trainer import SACTrainer, SACTrainerParameters
 
 
 def get_sac_trainer(

@@ -4,7 +4,7 @@
 from typing import Optional
 
 from gym import Env
-from ml.rl.gym.agents.agent import Agent
+from reagent.gym.agents.agent import Agent
 
 
 def run_episode(env: Env, agent: Agent, max_steps: Optional[int] = None) -> float:

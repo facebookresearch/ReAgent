@@ -2,12 +2,12 @@
 
 from typing import Dict, List, Type
 
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.models.base import ModelBase
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.net_builder.parametric_dqn_net_builder import ParametricDQNNetBuilder
-from ml.rl.parameters import NormalizationParameters, param_hash
-from ml.rl.preprocessing.normalization import get_num_output_features
+from reagent.core.dataclasses import dataclass, field
+from reagent.models.base import ModelBase
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.net_builder.parametric_dqn_net_builder import ParametricDQNNetBuilder
+from reagent.parameters import NormalizationParameters, param_hash
+from reagent.preprocessing.normalization import get_num_output_features
 
 
 @dataclass

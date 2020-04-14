@@ -9,29 +9,29 @@ import logging
 import sys
 from typing import Dict, Optional
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
-from ml.rl.evaluation.world_model_evaluator import (
+from reagent.evaluation.world_model_evaluator import (
     FeatureImportanceEvaluator,
     FeatureSensitivityEvaluator,
 )
-from ml.rl.json_serialize import json_to_object
-from ml.rl.models.mdn_rnn import MDNRNNMemoryPool
-from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.test.gym.open_ai_gym_environment import (
+from reagent.json_serialize import json_to_object
+from reagent.models.mdn_rnn import MDNRNNMemoryPool
+from reagent.models.world_model import MemoryNetwork
+from reagent.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
     OpenAIGymEnvironment,
 )
-from ml.rl.test.gym.run_gym import (
+from reagent.test.gym.run_gym import (
     OpenAiGymParameters,
     OpenAiRunDetails,
     dict_to_np,
     get_possible_actions,
 )
-from ml.rl.training.rl_dataset import RLDataset
-from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
+from reagent.training.rl_dataset import RLDataset
+from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
 logger = logging.getLogger(__name__)

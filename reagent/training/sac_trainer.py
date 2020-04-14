@@ -4,15 +4,15 @@ import copy
 import logging
 from typing import List, Optional
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.parameters import OptimizerParameters, RLParameters, param_hash
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.torch_utils import rescale_torch_tensor
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
+from reagent.core.dataclasses import dataclass, field
+from reagent.parameters import OptimizerParameters, RLParameters, param_hash
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.torch_utils import rescale_torch_tensor
+from reagent.training.rl_trainer_pytorch import RLTrainer
 
 
 logger = logging.getLogger(__name__)

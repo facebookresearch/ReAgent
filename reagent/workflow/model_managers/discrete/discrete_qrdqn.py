@@ -5,16 +5,16 @@ import logging
 from typing import List, Optional
 
 import torch  # @manual
-from ml.rl import types as rlt
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
-from ml.rl.net_builder.quantile_dqn.quantile import Quantile
-from ml.rl.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
-from ml.rl.net_builder.unions import QRDQNNetBuilder__Union
-from ml.rl.parameters import param_hash
-from ml.rl.training.loss_reporter import NoOpLossReporter
-from ml.rl.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
-from ml.rl.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
+from reagent import types as rlt
+from reagent.core.dataclasses import dataclass, field
+from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
+from reagent.net_builder.quantile_dqn.quantile import Quantile
+from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
+from reagent.net_builder.unions import QRDQNNetBuilder__Union
+from reagent.parameters import param_hash
+from reagent.training.loss_reporter import NoOpLossReporter
+from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
+from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 
 
 logger = logging.getLogger(__name__)

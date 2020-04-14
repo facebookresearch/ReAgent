@@ -2,10 +2,10 @@
 
 from typing import List, NamedTuple, Optional, Tuple
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
+from reagent.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
 
 
 _DEFAULT_QUALITY_MEANS = [(-3.0, 0.0)] * 14 + [(0.0, 3.0)] * 6

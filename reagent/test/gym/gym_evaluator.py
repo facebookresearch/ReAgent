@@ -6,10 +6,10 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
-from ml.rl.evaluation.evaluator import Evaluator
-from ml.rl.test.gym.open_ai_gym_environment import EnvType
-from ml.rl.training.on_policy_predictor import OnPolicyPredictor
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from reagent.evaluation.evaluator import Evaluator
+from reagent.test.gym.open_ai_gym_environment import EnvType
+from reagent.training.on_policy_predictor import OnPolicyPredictor
+from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 logger = logging.getLogger(__name__)

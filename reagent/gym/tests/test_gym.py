@@ -13,46 +13,46 @@ from typing import Optional
 import gym
 import numpy as np
 import torch
-from ml.rl.gym.agents.agent import Agent
-from ml.rl.gym.agents.replay_buffer_add_fn import replay_buffer_add_fn
-from ml.rl.gym.agents.replay_buffer_train_fn import replay_buffer_train_fn
-from ml.rl.gym.policies.policy import Policy
-from ml.rl.gym.policies.samplers.continuous_sampler import GaussianSampler
-from ml.rl.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
-from ml.rl.gym.policies.scorers.continuous_scorer import sac_scorer
-from ml.rl.gym.policies.scorers.discrete_scorer import (
+from reagent.gym.agents.agent import Agent
+from reagent.gym.agents.replay_buffer_add_fn import replay_buffer_add_fn
+from reagent.gym.agents.replay_buffer_train_fn import replay_buffer_train_fn
+from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.samplers.continuous_sampler import GaussianSampler
+from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+from reagent.gym.policies.scorers.continuous_scorer import sac_scorer
+from reagent.gym.policies.scorers.discrete_scorer import (
     discrete_dqn_scorer,
     parametric_dqn_scorer,
 )
-from ml.rl.gym.preprocessors.action_preprocessors.action_preprocessor import (
+from reagent.gym.preprocessors.action_preprocessors.action_preprocessor import (
     continuous_action_preprocessor,
     discrete_action_preprocessor,
 )
-from ml.rl.gym.preprocessors.policy_preprocessors.policy_preprocessor import (
+from reagent.gym.preprocessors.policy_preprocessors.policy_preprocessor import (
     numpy_policy_preprocessor,
     tiled_numpy_policy_preprocessor,
 )
-from ml.rl.gym.preprocessors.trainer_preprocessors.trainer_preprocessor import (
+from reagent.gym.preprocessors.trainer_preprocessors.trainer_preprocessor import (
     discrete_dqn_trainer_preprocessor,
     parametric_dqn_trainer_preprocessor,
     sac_trainer_preprocessor,
 )
-from ml.rl.gym.runners.gymrunner import run_episode
-from ml.rl.json_serialize import from_json
-from ml.rl.replay_memory.circular_replay_buffer import ReplayBuffer, ReplayElement
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
-from ml.rl.test.gym.run_gym import OpenAiGymParameters, create_trainer
+from reagent.gym.runners.gymrunner import run_episode
+from reagent.json_serialize import from_json
+from reagent.replay_memory.circular_replay_buffer import ReplayBuffer, ReplayElement
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
+from reagent.test.gym.run_gym import OpenAiGymParameters, create_trainer
 
 
-DISCRETE_DQN_CARTPOLE_JSON = "ml/rl/test/gym/discrete_dqn_cartpole_v0.json"
+DISCRETE_DQN_CARTPOLE_JSON = "reagent/test/gym/discrete_dqn_cartpole_v0.json"
 DISCRETE_DQN_CARTPOLE_NUM_EPISODES = 50
-PARAMETRIC_DQN_CARTPOLE_JSON = "ml/rl/test/gym/parametric_dqn_cartpole_v0.json"
+PARAMETRIC_DQN_CARTPOLE_JSON = "reagent/test/gym/parametric_dqn_cartpole_v0.json"
 PARAMETRIC_DQN_CARTPOLE_NUM_EPISODES = 50
 # Though maximal score is 200, we set a lower bar to let tests finish in time
 CARTPOLE_SCORE_BAR = 100
 
-SAC_PENDULUM_JSON = "ml/rl/test/gym/sac_pendulum_v0.json"
+SAC_PENDULUM_JSON = "reagent/test/gym/sac_pendulum_v0.json"
 SAC_PENDULUM_NUM_EPISODES = 50
 # Though maximal score is 0, we set lower bar to let tests finish in time
 PENDULUM_SCORE_BAR = -750

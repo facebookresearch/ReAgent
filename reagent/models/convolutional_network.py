@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
 logger = logging.getLogger(__name__)

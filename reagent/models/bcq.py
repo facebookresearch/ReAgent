@@ -2,8 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import torch
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
+from reagent import types as rlt
+from reagent.models.base import ModelBase
 
 
 class BatchConstrainedDQN(ModelBase):

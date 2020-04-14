@@ -4,36 +4,36 @@
 from typing import Dict
 
 import torch
-from ml.rl.models.actor import FullyConnectedActor
-from ml.rl.models.categorical_dqn import CategoricalDQN
-from ml.rl.models.cem_planner import CEMPlannerNetwork
-from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.models.dueling_q_network import DuelingQNetwork
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.models.quantile_dqn import QuantileDQN
-from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.parameters import (
+from reagent.models.actor import FullyConnectedActor
+from reagent.models.categorical_dqn import CategoricalDQN
+from reagent.models.cem_planner import CEMPlannerNetwork
+from reagent.models.dqn import FullyConnectedDQN
+from reagent.models.dueling_q_network import DuelingQNetwork
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.models.quantile_dqn import QuantileDQN
+from reagent.models.world_model import MemoryNetwork
+from reagent.parameters import (
     CEMParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
     MDNRNNParameters,
     OptimizerParameters,
 )
-from ml.rl.preprocessing.normalization import (
+from reagent.preprocessing.normalization import (
     NormalizationParameters,
     get_num_output_features,
 )
-from ml.rl.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
-from ml.rl.training.c51_trainer import C51Trainer, C51TrainerParameters
-from ml.rl.training.cem_trainer import CEMTrainer
-from ml.rl.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
-from ml.rl.training.parametric_dqn_trainer import (
+from reagent.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
+from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
+from reagent.training.cem_trainer import CEMTrainer
+from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
+from reagent.training.parametric_dqn_trainer import (
     ParametricDQNTrainer,
     ParametricDQNTrainerParameters,
 )
-from ml.rl.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
-from ml.rl.training.td3_trainer import TD3Trainer
-from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
+from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
+from reagent.training.td3_trainer import TD3Trainer
+from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
 def create_dqn_trainer_from_params(

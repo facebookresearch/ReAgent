@@ -7,8 +7,8 @@ import logging
 import sys
 
 import torch
-from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
-from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
+from reagent.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
+from reagent.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 
 
 logger = logging.getLogger(__name__)

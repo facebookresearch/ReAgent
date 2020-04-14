@@ -6,8 +6,8 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 import torch
-from ml.rl.torch_utils import masked_softmax
-from ml.rl.types import DqnPolicyActionSet, SacPolicyActionSet
+from reagent.torch_utils import masked_softmax
+from reagent.types import DqnPolicyActionSet, SacPolicyActionSet
 
 
 logger = logging.getLogger(__name__)

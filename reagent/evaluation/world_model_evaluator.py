@@ -4,9 +4,9 @@ import logging
 from typing import Dict, List
 
 import torch
-from ml.rl.models.mdn_rnn import transpose
-from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-from ml.rl.types import (
+from reagent.models.mdn_rnn import transpose
+from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
+from reagent.types import (
     ExtraData,
     PreprocessedFeatureVector,
     PreprocessedMemoryNetworkInput,

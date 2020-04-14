@@ -8,9 +8,8 @@ arrays, while our scorer would expect Tensors (potentially GPU).
 
 import numpy as np
 import torch
-from ml.rl import types as rlt
-
-from ml.rl.gym.types import PolicyPreprocessor
+from reagent import types as rlt
+from reagent.gym.types import PolicyPreprocessor
 
 
 def numpy_policy_preprocessor(device: str = "cpu") -> PolicyPreprocessor:

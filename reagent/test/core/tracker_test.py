@@ -4,8 +4,8 @@
 
 import unittest
 
-from ml.rl.core.observers import ValueListObserver
-from ml.rl.core.tracker import observable
+from reagent.core.observers import ValueListObserver
+from reagent.core.tracker import observable
 
 
 class TestObservable(unittest.TestCase):

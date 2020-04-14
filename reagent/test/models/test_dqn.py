@@ -4,8 +4,8 @@
 import logging
 import unittest
 
-from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.test.models.test_utils import check_save_load
+from reagent.models.dqn import FullyConnectedDQN
+from reagent.test.models.test_utils import check_save_load
 
 
 logger = logging.getLogger(__name__)

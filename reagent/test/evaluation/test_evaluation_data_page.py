@@ -8,10 +8,10 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.nn as nn
-from ml.rl import types as rlt
-from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
-from ml.rl.models.seq2slate import Seq2SlateMode
+from reagent import types as rlt
+from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.models.seq2slate import Seq2SlateMode
 
 
 logger = logging.getLogger(__name__)

@@ -6,35 +6,35 @@ import random
 import tempfile
 import unittest
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
-from ml.rl.models.categorical_dqn import CategoricalDQN
-from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.models.dueling_q_network import DuelingQNetwork
-from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
-from ml.rl.models.quantile_dqn import QuantileDQN
-from ml.rl.parameters import (
+from reagent.models.categorical_dqn import CategoricalDQN
+from reagent.models.dqn import FullyConnectedDQN
+from reagent.models.dueling_q_network import DuelingQNetwork
+from reagent.models.dueling_quantile_dqn import DuelingQuantileDQN
+from reagent.models.quantile_dqn import QuantileDQN
+from reagent.parameters import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
-from ml.rl.prediction.predictor_wrapper import (
+from reagent.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
+from reagent.prediction.predictor_wrapper import (
     DiscreteDqnPredictorWrapper,
     DiscreteDqnWithPreprocessor,
 )
-from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.test.gridworld.gridworld import Gridworld
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
-from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
-from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
-from ml.rl.torch_utils import export_module_to_buffer
-from ml.rl.training.c51_trainer import C51Trainer, C51TrainerParameters
-from ml.rl.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
-from ml.rl.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
+from reagent.preprocessing.normalization import get_num_output_features
+from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.test.gridworld.gridworld import Gridworld
+from reagent.test.gridworld.gridworld_base import DISCOUNT, Samples
+from reagent.test.gridworld.gridworld_evaluator import GridworldEvaluator
+from reagent.test.gridworld.gridworld_test_base import GridworldTestBase
+from reagent.torch_utils import export_module_to_buffer
+from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
+from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
+from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
 
 
 class TestGridworld(GridworldTestBase):

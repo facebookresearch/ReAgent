@@ -2,11 +2,11 @@
 
 from typing import Dict, List, Type
 
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.models.base import ModelBase
-from ml.rl.models.categorical_dqn import CategoricalDQN
-from ml.rl.net_builder.categorical_dqn_net_builder import CategoricalDQNNetBuilder
-from ml.rl.parameters import NormalizationParameters, param_hash
+from reagent.core.dataclasses import dataclass, field
+from reagent.models.base import ModelBase
+from reagent.models.categorical_dqn import CategoricalDQN
+from reagent.net_builder.categorical_dqn_net_builder import CategoricalDQNNetBuilder
+from reagent.parameters import NormalizationParameters, param_hash
 
 
 @dataclass

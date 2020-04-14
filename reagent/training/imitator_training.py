@@ -4,9 +4,9 @@
 import logging
 
 import torch
-from ml.rl.parameters import DiscreteActionModelParameters
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.parameters import DiscreteActionModelParameters
+from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)

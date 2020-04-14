@@ -5,10 +5,10 @@ import unittest
 
 import numpy.testing as npt
 import torch
-from ml.rl.preprocessing.identify_types import CONTINUOUS_ACTION, DO_NOT_PREPROCESS
-from ml.rl.preprocessing.normalization import NormalizationParameters
-from ml.rl.preprocessing.postprocessor import Postprocessor
-from ml.rl.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.identify_types import CONTINUOUS_ACTION, DO_NOT_PREPROCESS
+from reagent.preprocessing.normalization import NormalizationParameters
+from reagent.preprocessing.postprocessor import Postprocessor
+from reagent.preprocessing.preprocessor import Preprocessor
 
 
 class TestPostprocessing(unittest.TestCase):

@@ -3,19 +3,19 @@
 
 import unittest
 
-from ml.rl.net_builder import parametric_dqn
-from ml.rl.net_builder.parametric_dqn_net_builder import ParametricDQNNetBuilder
-from ml.rl.net_builder.unions import ParametricDQNNetBuilder__Union
-from ml.rl.parameters import NormalizationParameters
-from ml.rl.preprocessing.identify_types import CONTINUOUS
+from reagent.net_builder import parametric_dqn
+from reagent.net_builder.parametric_dqn_net_builder import ParametricDQNNetBuilder
+from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
+from reagent.parameters import NormalizationParameters
+from reagent.preprocessing.identify_types import CONTINUOUS
 
 
 try:
-    from ml.rl.fb.prediction.fb_predictor_wrapper import (
+    from reagent.fb.prediction.fb_predictor_wrapper import (
         FbParametricDqnPredictorWrapper as ParametricDqnPredictorWrapper,
     )
 except ImportError:
-    from ml.rl.prediction.predictor_wrapper import (  # type: ignore
+    from reagent.prediction.predictor_wrapper import (  # type: ignore
         ParametricDqnPredictorWrapper,
     )
 

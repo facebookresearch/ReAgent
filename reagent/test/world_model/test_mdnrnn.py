@@ -6,11 +6,11 @@ import unittest
 
 import numpy as np
 import torch
-from ml.rl.models.mdn_rnn import MDNRNNMemoryPool, gmm_loss
-from ml.rl.models.world_model import MemoryNetwork
-from ml.rl.parameters import MDNRNNParameters
-from ml.rl.test.world_model.simulated_world_model import SimulatedWorldModel
-from ml.rl.training.world_model.mdnrnn_trainer import MDNRNNTrainer
+from reagent.models.mdn_rnn import MDNRNNMemoryPool, gmm_loss
+from reagent.models.world_model import MemoryNetwork
+from reagent.parameters import MDNRNNParameters
+from reagent.test.world_model.simulated_world_model import SimulatedWorldModel
+from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from torch.distributions.categorical import Categorical
 from torch.distributions.normal import Normal
 

@@ -13,8 +13,8 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
-from ml.rl.ope.estimators.estimator import Estimator, EstimatorResults
-from ml.rl.ope.estimators.slate_estimators import (
+from reagent.ope.estimators.estimator import Estimator, EstimatorResults
+from reagent.ope.estimators.slate_estimators import (
     DMEstimator,
     LogEpisode,
     LogSample,
@@ -30,7 +30,7 @@ from ml.rl.ope.estimators.slate_estimators import (
     SlateQuery,
     SlateSlots,
 )
-from ml.rl.ope.trainers.linear_trainers import (
+from reagent.ope.trainers.linear_trainers import (
     DecisionTreeClassifierTrainer,
     DecisionTreeTrainer,
     LassoTrainer,

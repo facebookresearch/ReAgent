@@ -6,10 +6,10 @@ from typing import List, Union
 
 import numpy as np
 import numpy.testing as npt
-from ml.rl.evaluation.evaluator import Evaluator
-from ml.rl.test.gridworld.gridworld import Gridworld
-from ml.rl.test.gridworld.gridworld_base import GridworldBase
-from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
+from reagent.evaluation.evaluator import Evaluator
+from reagent.test.gridworld.gridworld import Gridworld
+from reagent.test.gridworld.gridworld_base import GridworldBase
+from reagent.test.gridworld.gridworld_continuous import GridworldContinuous
 
 
 logger = logging.getLogger(__name__)

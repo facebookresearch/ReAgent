@@ -4,9 +4,9 @@
 import logging
 import unittest
 
-from ml.rl.test.gridworld.gridworld import Gridworld
-from ml.rl.test.gridworld.gridworld_continuous import GridworldContinuous
-from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
+from reagent.test.gridworld.gridworld import Gridworld
+from reagent.test.gridworld.gridworld_continuous import GridworldContinuous
+from reagent.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 
 
 logger = logging.getLogger(__name__)

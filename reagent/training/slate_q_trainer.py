@@ -4,11 +4,11 @@
 import logging
 from typing import List
 
-import ml.rl.parameters as rlp
-import ml.rl.types as rlt
+import reagent.parameters as rlp
+import reagent.types as rlt
 import torch
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.training.dqn_trainer_base import DQNTrainerBase
+from reagent.core.dataclasses import dataclass, field
+from reagent.training.dqn_trainer_base import DQNTrainerBase
 
 
 logger = logging.getLogger(__name__)

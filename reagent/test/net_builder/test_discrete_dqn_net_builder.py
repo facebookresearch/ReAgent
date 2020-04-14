@@ -4,21 +4,21 @@
 import unittest
 from typing import Optional
 
-from ml.rl import types as rlt
-from ml.rl.net_builder import discrete_dqn
-from ml.rl.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
-from ml.rl.net_builder.unions import DiscreteDQNNetBuilder__Union
-from ml.rl.parameters import NormalizationParameters
-from ml.rl.preprocessing.identify_types import CONTINUOUS
+from reagent import types as rlt
+from reagent.net_builder import discrete_dqn
+from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
+from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
+from reagent.parameters import NormalizationParameters
+from reagent.preprocessing.identify_types import CONTINUOUS
 
 
 try:
-    from ml.rl.fb.prediction.fb_predictor_wrapper import (
+    from reagent.fb.prediction.fb_predictor_wrapper import (
         FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
         FbDiscreteDqnPredictorWrapperWithIdList as DiscreteDqnPredictorWrapperWithIdList,
     )
 except ImportError:
-    from ml.rl.prediction.predictor_wrapper import (  # type: ignore
+    from reagent.prediction.predictor_wrapper import (  # type: ignore
         DiscreteDqnPredictorWrapper,
         DiscreteDqnPredictorWrapperWithIdList,
     )

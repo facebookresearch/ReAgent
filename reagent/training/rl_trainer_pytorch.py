@@ -7,10 +7,10 @@ from typing import List, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ml.rl.parameters import EvaluationParameters, OptimizerParameters, RLParameters
-from ml.rl.torch_utils import masked_softmax
-from ml.rl.training.loss_reporter import LossReporter
-from ml.rl.training.trainer import Trainer
+from reagent.parameters import EvaluationParameters, OptimizerParameters, RLParameters
+from reagent.torch_utils import masked_softmax
+from reagent.training.loss_reporter import LossReporter
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)

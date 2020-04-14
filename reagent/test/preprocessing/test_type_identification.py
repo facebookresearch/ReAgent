@@ -3,8 +3,8 @@
 
 import unittest
 
-from ml.rl.preprocessing import identify_types
-from ml.rl.test.preprocessing.preprocessing_util import (
+from reagent.preprocessing import identify_types
+from reagent.test.preprocessing.preprocessing_util import (
     BINARY_FEATURE_ID,
     BOXCOX_FEATURE_ID,
     CONTINUOUS_FEATURE_ID,

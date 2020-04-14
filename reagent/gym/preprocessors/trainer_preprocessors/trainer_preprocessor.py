@@ -8,9 +8,9 @@ Trainer.train, which we expect accepts rlt.PreprocessedTrainingBatch.
 from typing import Any, Dict
 
 import torch
-from ml.rl import types as rlt
-from ml.rl.gym.types import TrainerPreprocessor
-from ml.rl.parameters import NormalizationParameters
+from reagent import types as rlt
+from reagent.gym.types import TrainerPreprocessor
+from reagent.parameters import NormalizationParameters
 
 
 def discrete_dqn_trainer_preprocessor(

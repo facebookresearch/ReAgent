@@ -5,11 +5,11 @@ import logging
 import unittest
 
 import torch
-from ml.rl.models.bcq import BatchConstrainedDQN
-from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.test.models.test_utils import check_save_load
-from ml.rl.types import FeatureVector, PreprocessedState
+from reagent.models.bcq import BatchConstrainedDQN
+from reagent.models.dqn import FullyConnectedDQN
+from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.test.models.test_utils import check_save_load
+from reagent.types import FeatureVector, PreprocessedState
 
 
 logger = logging.getLogger(__name__)

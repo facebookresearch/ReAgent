@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.gym.types import GaussianSamplerScore, Scorer
-from ml.rl.models.base import ModelBase
+from reagent.gym.types import GaussianSamplerScore, Scorer
+from reagent.models.base import ModelBase
 
 
 def sac_scorer(actor_network: ModelBase) -> Scorer:

@@ -4,16 +4,16 @@
 import logging
 from typing import Tuple
 
-import ml.rl.parameters as rlp
-import ml.rl.types as rlt
 import numpy as np
+import reagent.parameters as rlp
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from ml.rl.core.configuration import make_config_class, resolve_defaults
-from ml.rl.core.dataclasses import field
-from ml.rl.parameters import ContinuousActionModelParameters
-from ml.rl.training.dqn_trainer_base import DQNTrainerBase
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.core.configuration import make_config_class, resolve_defaults
+from reagent.core.dataclasses import field
+from reagent.parameters import ContinuousActionModelParameters
+from reagent.training.dqn_trainer_base import DQNTrainerBase
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)

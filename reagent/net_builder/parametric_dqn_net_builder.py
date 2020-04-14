@@ -4,19 +4,19 @@ import abc
 from typing import Dict, Type
 
 import torch
-from ml.rl.core.registry_meta import RegistryMeta
-from ml.rl.models.base import ModelBase
-from ml.rl.parameters import NormalizationParameters
-from ml.rl.prediction.predictor_wrapper import ParametricDqnWithPreprocessor
-from ml.rl.preprocessing.preprocessor import Preprocessor
+from reagent.core.registry_meta import RegistryMeta
+from reagent.models.base import ModelBase
+from reagent.parameters import NormalizationParameters
+from reagent.prediction.predictor_wrapper import ParametricDqnWithPreprocessor
+from reagent.preprocessing.preprocessor import Preprocessor
 
 
 try:
-    from ml.rl.fb.prediction.fb_predictor_wrapper import (
+    from reagent.fb.prediction.fb_predictor_wrapper import (
         FbParametricDqnPredictorWrapper as ParametricDqnPredictorWrapper,
     )
 except ImportError:
-    from ml.rl.prediction.predictor_wrapper import (  # type: ignore
+    from reagent.prediction.predictor_wrapper import (  # type: ignore
         ParametricDqnPredictorWrapper,
     )
 

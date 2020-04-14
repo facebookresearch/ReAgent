@@ -5,10 +5,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
-from ml.rl.replay_memory.circular_replay_buffer import ReplayBuffer
+from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
 class Sampler(ABC):
