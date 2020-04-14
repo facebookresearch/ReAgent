@@ -24,9 +24,9 @@ Once you make sure you have the right version, you can simply clone this repo an
    cd ReAgent
    pip install .[gym]
 
-If you don't want need gym dependencies, you can remove `[gym]`
+If you don't want need gym dependencies, you can remove :code:`[gym]`
 
-To verify your setup please run tox
+To verify your setup please run `tox <https://tox.readthedocs.io/en/latest/>`_.
 
 .. code-block:: bash
 
@@ -86,7 +86,7 @@ If you want to install those requirements via conda, you can type this in the sh
 
 To get libtorch, please go to `pytorch <https://pytorch.org/get-started/locally/>`_.
 Please make sure to download the "Preview (Nightly)" since our code is tested with that version.
-Below, we assumed you put the extracted file at `$HOME/libtorch`.
+Below, we assumed you put the extracted file at :code:`$HOME/libtorch`.
 
 You will also need to make sure to init git submodules
 
