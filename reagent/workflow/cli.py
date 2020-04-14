@@ -8,12 +8,12 @@ import os
 import sys
 
 import click
-from reagent import debug_on_error
 from ruamel.yaml import YAML
 
 
 @click.group()
 def reagent():
+    from reagent import debug_on_error
     debug_on_error.start()
 
     os.environ["USE_VANILLA_DATACLASS"] = "0"
