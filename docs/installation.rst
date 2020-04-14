@@ -60,7 +60,7 @@ Now, you can build our preprocessing JAR
 
 .. code-block:: bash
 
-   mvn -f preprocessing/pom.xml clean packag
+   mvn -f preprocessing/pom.xml clean package
 
 RASP
 ^^^^
