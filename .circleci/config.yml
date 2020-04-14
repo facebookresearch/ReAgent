@@ -62,7 +62,7 @@ commands:
             echo $HOME
             mkdir -p serving/build
             pushd serving/build
-            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
+            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch -DCMAKE_CXX_STANDARD=11 ..
             make -j2
             popd
       - run:
