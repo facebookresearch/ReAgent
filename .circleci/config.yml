@@ -2,7 +2,7 @@ version: 2.1
 
 # How to test the Linux jobs:
 #   - Install CircleCI local CLI: https://circleci.com/docs/2.0/local-cli/
-#   - circleci config process .circleci/config.yml > gen.yml && circleci local execute -c gen.yml --job end_to_end_test 
+#   - circleci config process .circleci/config.yml > gen.yml && circleci local execute -c gen.yml --job end_to_end_test
 #     - Replace end_to_end_test with the name of the job you want to test.
 
 commands:
@@ -18,7 +18,58 @@ commands:
             if [[ "$BRANCH" != "master" ]]; then
               git merge origin/master
             fi
-  
+
+  rasp_build_deps:
+    description: Install RASP build deps
+    parameters:
+      miniconda2:
+        type: string
+    steps:
+      - run:
+          name: Install build deps
+          command: |
+            curl <<parameters.miniconda2>> -o ~/miniconda.sh
+            bash ~/miniconda.sh -b -p $HOME/miniconda
+            source $HOME/miniconda/bin/activate
+            conda init
+            conda install -y --file rasp_requirements.txt
+
+  install_libtorch:
+    description: Download & unzip libtorch
+    parameters:
+      source:
+        type: string
+    steps:
+      - run:
+          name: Download libtorch
+          command: |
+            pushd ..
+            curl <<parameters.source>> -o libtorch.zip
+            unzip libtorch.zip
+            popd
+
+  rasp_build_test:
+    description: Build & test RASP
+    steps:
+      - run:
+          name: Clone submodules
+          command: |
+            git submodule update --force --recursive --init --remote
+      - run:
+          name: Build RASP
+          command: |
+            source $HOME/miniconda/bin/activate
+            echo $HOME
+            mkdir -p serving/build
+            pushd serving/build
+            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch -DCMAKE_CXX_STANDARD=17 ..
+            make -j2
+            popd
+      - run:
+          name: Run RASP tests
+          command: |
+            serving/build/RaspTest
+
 jobs:
   gpu_unittest:
     machine:
@@ -89,55 +140,45 @@ jobs:
           path: preprocessing/target/rl-preprocessing-1.1.jar
           destination: rl-preprocessing-1.1.jar
 
-  rasp_test:
+  rasp_test_linux:
     docker:
       - image: cimg/base:2020.01
     resource_class: large
     steps:
       - checkout_merge
-      - run:
-          name: Install build deps
-          command: |
-            wget https://repo.anaconda.com/miniconda/Miniconda2-latest-Linux-x86_64.sh -O ~/miniconda.sh
-            bash ~/miniconda.sh -b -p $HOME/miniconda
-            source $HOME/miniconda/bin/activate
-            conda init
-            conda install --file rasp_requirements.txt
-      - run:
-          name: Download libtorch
-          command: |
-            pushd ..
-            wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
-            unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
-            popd
-      - run:
-          name: Clone submodules
-          command: |
-            git submodule update --force --recursive --init --remote
-      - run:
-          name: Build RASP
-          command: |
-            source $HOME/miniconda/bin/activate
-            echo $HOME
-            mkdir -p serving/build
-            pushd serving/build
-            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch ..
-            make -j2
-            popd
-      - run:
-          name: Run RASP tests
-          command: |
-            serving/build/RaspTest
+      - rasp_build_deps:
+          miniconda2: https://repo.anaconda.com/miniconda/Miniconda2-latest-Linux-x86_64.sh
+      - install_libtorch:
+          source: https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
+      - rasp_build_test
       - store_artifacts:
           path: serving/build/RaspTest
           destination: RaspTest
       - store_artifacts:
           path: serving/build/RaspCli
           destination: RaspCli
-  
+
+  rasp_test_mac:
+    macos:
+      xcode: 11.3.0
+    steps:
+      - checkout_merge
+      - rasp_build_deps:
+          miniconda2: https://repo.anaconda.com/miniconda/Miniconda2-latest-MacOSX-x86_64.sh
+      - install_libtorch:
+          source: https://download.pytorch.org/libtorch/nightly/cpu/libtorch-macos-latest.zip
+      - rasp_build_test
+      - store_artifacts:
+          path: serving/build/RaspTest
+          destination: RaspTest
+      - store_artifacts:
+          path: serving/build/RaspCli
+          destination: RaspCli
+
 workflows:
   build:
     jobs:
       - end_to_end_test
       - gpu_unittest
-      - rasp_test
+      - rasp_test_linux
+      - rasp_test_mac

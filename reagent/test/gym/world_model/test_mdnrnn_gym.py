@@ -16,7 +16,7 @@ from reagent.test.gym.world_model.mdnrnn_gym import mdnrnn_gym
 
 logger = logging.getLogger(__name__)
 
-MDNRNN_CARTPOLE_JSON = "ml/rl/test/configs/mdnrnn_cartpole_v0.json"
+MDNRNN_CARTPOLE_JSON = "reagent/test/configs/mdnrnn_cartpole_v0.json"
 
 
 class TestMDNRNNGym(unittest.TestCase):
