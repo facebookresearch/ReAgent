@@ -6,16 +6,16 @@ import random
 
 import numpy as np
 import torch
-from ml.rl.parameters import (
+from reagent.parameters import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
-from ml.rl.tensorboardX import SummaryWriterContext
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.test.constant_reward.env import Env
-from ml.rl.workflow_utils.transitional import create_dqn_trainer_from_params
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.test.constant_reward.env import Env
+from reagent.workflow_utils.transitional import create_dqn_trainer_from_params
 
 
 logger = logging.getLogger(__name__)

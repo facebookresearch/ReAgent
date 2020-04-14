@@ -4,7 +4,7 @@
 import logging
 
 import torch
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.rl_trainer_pytorch import RLTrainer
 
 
 logger = logging.getLogger(__name__)

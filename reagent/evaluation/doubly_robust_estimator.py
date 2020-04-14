@@ -9,8 +9,8 @@ from typing import Dict, NamedTuple, Optional, Tuple, Union
 import numpy as np
 import torch
 import xgboost as xgb
-from ml.rl.evaluation.cpe import CpeEstimate, bootstrapped_std_error_of_mean
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.evaluation.cpe import CpeEstimate, bootstrapped_std_error_of_mean
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from torch import Tensor
 
 

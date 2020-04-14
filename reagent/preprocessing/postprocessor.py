@@ -5,8 +5,8 @@ from typing import Dict, Tuple
 
 import torch
 import torch.nn as nn
-from ml.rl.preprocessing.identify_types import CONTINUOUS_ACTION, DO_NOT_PREPROCESS
-from ml.rl.preprocessing.normalization import (
+from reagent.preprocessing.identify_types import CONTINUOUS_ACTION, DO_NOT_PREPROCESS
+from reagent.preprocessing.normalization import (
     EPS,
     NormalizationParameters,
     get_num_output_features,
@@ -59,7 +59,7 @@ class Postprocessor(nn.Module):
             )
 
     def input_prototype(self) -> Tuple[torch.Tensor]:
-        return (torch.randn(1, len(self.num_output_features)),)
+        return (torch.randn(1, self.num_output_features),)
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.feature_type == CONTINUOUS_ACTION:

@@ -5,7 +5,7 @@ from typing import Tuple, Union
 
 import numpy as np
 import torch
-from ml.rl.ope.estimators.types import Distribution, Items, TypeWrapper, Values
+from reagent.ope.estimators.types import Distribution, Items, TypeWrapper, Values
 from torch import Tensor
 
 

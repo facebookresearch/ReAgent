@@ -5,22 +5,22 @@ from datetime import datetime as RecurringPeriod  # noqa
 from typing import Dict, List, NamedTuple, Optional
 
 # Triggering registration to registries
-import ml.rl.workflow.result_types  # noqa
-import ml.rl.workflow.training_reports  # noqa
-from ml.rl.core.dataclasses import dataclass
-from ml.rl.preprocessing.normalization import (
+import reagent.workflow.result_types  # noqa
+import reagent.workflow.training_reports  # noqa
+from reagent.core.dataclasses import dataclass
+from reagent.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
     DEFAULT_MAX_UNIQUE_ENUM,
     DEFAULT_NUM_SAMPLES,
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
-from ml.rl.types import BaseDataClass
-from ml.rl.workflow.result_registries import (
+from reagent.types import BaseDataClass
+from reagent.workflow.result_registries import (
     PublishingResult,
     TrainingReport,
     ValidationResult,
 )
-from ml.rl.workflow.tagged_union import TaggedUnion  # noqa F401
+from reagent.workflow.tagged_union import TaggedUnion  # noqa F401
 
 
 @dataclass

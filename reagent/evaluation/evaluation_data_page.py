@@ -8,13 +8,13 @@ from typing import NamedTuple, Optional, Union, cast
 import numpy as np
 import torch
 import torch.nn as nn
-from ml.rl import types as rlt
-from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
-from ml.rl.torch_utils import masked_softmax
-from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
-from ml.rl.training.ranking.seq2slate_trainer import Seq2SlateTrainer
-from ml.rl.training.trainer import Trainer
+from reagent import types as rlt
+from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.torch_utils import masked_softmax
+from reagent.training.dqn_trainer import DQNTrainer
+from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
+from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)

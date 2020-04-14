@@ -12,7 +12,7 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import torch
-from ml.rl.ope.estimators.contextual_bandits_estimators import (
+from reagent.ope.estimators.contextual_bandits_estimators import (
     Action,
     ActionDistribution,
     ActionRewards,
@@ -24,8 +24,8 @@ from ml.rl.ope.estimators.contextual_bandits_estimators import (
     Log,
     LogSample,
 )
-from ml.rl.ope.estimators.types import ActionSpace, Policy
-from ml.rl.ope.trainers.linear_trainers import (
+from reagent.ope.estimators.types import ActionSpace, Policy
+from reagent.ope.trainers.linear_trainers import (
     LogisticRegressionTrainer,
     SGDClassifierTrainer,
     TrainingData,

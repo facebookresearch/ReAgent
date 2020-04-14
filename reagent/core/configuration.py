@@ -5,7 +5,7 @@ from dataclasses import MISSING, Field, fields
 from inspect import Parameter, signature
 from typing import List, Optional, Type, Union
 
-from ml.rl.core.dataclasses import dataclass
+from reagent.core.dataclasses import dataclass
 from torch import nn
 
 

@@ -4,11 +4,11 @@
 import unittest
 
 import torch
-from ml.rl.net_builder import value
-from ml.rl.net_builder.unions import ValueNetBuilder__Union
-from ml.rl.net_builder.value_net_builder import ValueNetBuilder
-from ml.rl.parameters import NormalizationData, NormalizationParameters
-from ml.rl.preprocessing.identify_types import CONTINUOUS
+from reagent.net_builder import value
+from reagent.net_builder.unions import ValueNetBuilder__Union
+from reagent.net_builder.value_net_builder import ValueNetBuilder
+from reagent.parameters import NormalizationData, NormalizationParameters
+from reagent.preprocessing.identify_types import CONTINUOUS
 
 
 class TestValueNetBuilder(unittest.TestCase):

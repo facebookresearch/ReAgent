@@ -13,11 +13,11 @@ import numpy as np
 import numpy.testing as npt
 import torch
 import torch.nn as nn
-from ml.rl.models.base import ModelBase
-from ml.rl.preprocessing.identify_types import CONTINUOUS
-from ml.rl.preprocessing.normalization import NormalizationParameters
-from ml.rl.test.models.test_utils import check_save_load
-from ml.rl.types import FeatureVector, PreprocessedStateAction
+from reagent.models.base import ModelBase
+from reagent.preprocessing.identify_types import CONTINUOUS
+from reagent.preprocessing.normalization import NormalizationParameters
+from reagent.test.models.test_utils import check_save_load
+from reagent.types import FeatureVector, PreprocessedStateAction
 
 
 logger = logging.getLogger(__name__)

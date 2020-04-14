@@ -7,8 +7,8 @@ from typing import Dict, List
 
 import torch
 import torch.nn as nn
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
+from reagent import types as rlt
+from reagent.models.base import ModelBase
 
 
 logger = logging.getLogger(__name__)

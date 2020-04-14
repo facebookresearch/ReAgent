@@ -5,10 +5,10 @@ import math
 
 import torch
 import torch.nn as nn
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.tensorboardX import SummaryWriterContext
+from reagent import types as rlt
+from reagent.models.base import ModelBase
+from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.tensorboardX import SummaryWriterContext
 from torch.distributions import Dirichlet  # type: ignore
 from torch.distributions.normal import Normal
 

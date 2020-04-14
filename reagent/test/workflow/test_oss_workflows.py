@@ -8,12 +8,12 @@ import unittest
 from pathlib import Path
 
 import torch
-from ml.rl.prediction.dqn_torch_predictor import (
+from reagent.prediction.dqn_torch_predictor import (
     DiscreteDqnTorchPredictor,
     ParametricDqnTorchPredictor,
 )
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.workflow import dqn_workflow, parametric_dqn_workflow
+from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.workflow import dqn_workflow, parametric_dqn_workflow
 
 
 curr_dir = os.path.dirname(__file__)

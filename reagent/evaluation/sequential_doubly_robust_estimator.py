@@ -6,8 +6,8 @@ from typing import List
 
 import numpy as np
 import torch
-from ml.rl.evaluation.cpe import CpeEstimate, bootstrapped_std_error_of_mean
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.evaluation.cpe import CpeEstimate, bootstrapped_std_error_of_mean
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 
 
 logger = logging.getLogger(__name__)

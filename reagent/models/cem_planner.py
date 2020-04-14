@@ -17,9 +17,9 @@ import numpy as np
 import scipy.stats as stats
 import torch
 import torch.nn as nn
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
-from ml.rl.models.world_model import MemoryNetwork
+from reagent import types as rlt
+from reagent.models.base import ModelBase
+from reagent.models.world_model import MemoryNetwork
 from torch.distributions.bernoulli import Bernoulli
 from torch.distributions.categorical import Categorical
 from torch.distributions.normal import Normal

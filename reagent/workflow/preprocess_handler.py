@@ -5,8 +5,8 @@ from typing import Dict, List, cast
 
 import numpy as np
 import torch
-from ml.rl import types as rlt
-from ml.rl.preprocessing.sparse_to_dense import SparseToDenseProcessor
+from reagent import types as rlt
+from reagent.preprocessing.sparse_to_dense import SparseToDenseProcessor
 
 
 class PreprocessHandler:

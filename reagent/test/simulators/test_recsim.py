@@ -4,7 +4,7 @@
 import unittest
 
 import torch
-from ml.rl.simulators.recsim import RecSim
+from reagent.simulators.recsim import RecSim
 
 
 class RandomPolicy:

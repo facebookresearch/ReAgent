@@ -2,9 +2,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import torch
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
-from ml.rl.models.mdn_rnn import MDNRNN
+from reagent import types as rlt
+from reagent.models.base import ModelBase
+from reagent.models.mdn_rnn import MDNRNN
 from torch.nn.parallel.distributed import DistributedDataParallel
 
 

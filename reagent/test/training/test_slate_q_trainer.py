@@ -4,16 +4,16 @@
 from functools import partial
 from typing import Tuple
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.simulators.recsim import RecSim, random_policy, top_k_policy
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.test.gym.open_ai_gym_environment import ModelType
-from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
-from ml.rl.training.slate_q_trainer import SlateQTrainer, SlateQTrainerParameters
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.simulators.recsim import RecSim, random_policy, top_k_policy
+from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.test.gym.open_ai_gym_environment import ModelType
+from reagent.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
+from reagent.training.slate_q_trainer import SlateQTrainer, SlateQTrainerParameters
 
 
 class TestSlateQTrainer(HorizonTestBase):

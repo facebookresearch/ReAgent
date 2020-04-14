@@ -12,7 +12,7 @@ from typing import List, MutableMapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torch
-from ml.rl.ope.estimators.slate_estimators import (
+from reagent.ope.estimators.slate_estimators import (
     DMEstimator,
     LogEpisode,
     LogSample,
@@ -29,7 +29,7 @@ from ml.rl.ope.estimators.slate_estimators import (
     SlateSlotValues,
     make_slate,
 )
-from ml.rl.ope.utils import RunningAverage
+from reagent.ope.utils import RunningAverage
 
 
 # Slate test using Yandex Personalized Web Search Dataset:

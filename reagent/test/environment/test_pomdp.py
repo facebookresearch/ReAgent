@@ -6,8 +6,8 @@ import time
 import unittest
 
 import numpy as np
-from ml.rl.test.gym.pomdp.pocman import PocManEnv
-from ml.rl.test.gym.pomdp.string_game import StringGameEnv
+from reagent.test.gym.pomdp.pocman import PocManEnv
+from reagent.test.gym.pomdp.string_game import StringGameEnv
 
 
 logger = logging.getLogger(__name__)

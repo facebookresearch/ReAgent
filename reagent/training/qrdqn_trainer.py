@@ -4,13 +4,13 @@
 import logging
 from typing import List
 
-import ml.rl.parameters as rlp
-import ml.rl.types as rlt
+import reagent.parameters as rlp
+import reagent.types as rlt
 import torch
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.core.tracker import observable
-from ml.rl.training.dqn_trainer_base import DQNTrainerBase
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.core.dataclasses import dataclass, field
+from reagent.core.tracker import observable
+from reagent.training.dqn_trainer_base import DQNTrainerBase
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)

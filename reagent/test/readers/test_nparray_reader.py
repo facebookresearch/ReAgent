@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.testing as npt
-from ml.rl.readers.nparray_reader import NpArrayReader
+from reagent.readers.nparray_reader import NpArrayReader
 
 
 class TestNpArrayReader(unittest.TestCase):

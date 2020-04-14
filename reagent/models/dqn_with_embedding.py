@@ -2,9 +2,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import torch
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from reagent import types as rlt
+from reagent.models.base import ModelBase
+from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
 class FullyConnectedDQNWithEmbedding(ModelBase):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from ml.rl.workflow import types
+from reagent.workflow import types
 
 from .model_validator import ModelValidator
 from .no_validation import NoValidation  # noqa

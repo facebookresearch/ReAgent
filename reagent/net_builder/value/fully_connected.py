@@ -3,11 +3,11 @@
 from typing import List, Type
 
 import torch
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
-from ml.rl.net_builder.value_net_builder import ValueNetBuilder
-from ml.rl.parameters import NormalizationData, param_hash
-from ml.rl.preprocessing.normalization import get_num_output_features
+from reagent.core.dataclasses import dataclass, field
+from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.net_builder.value_net_builder import ValueNetBuilder
+from reagent.parameters import NormalizationData, param_hash
+from reagent.preprocessing.normalization import get_num_output_features
 
 
 @dataclass

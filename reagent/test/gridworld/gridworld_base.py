@@ -10,17 +10,17 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from ml.rl.preprocessing.normalization import sort_features_by_normalization
-from ml.rl.preprocessing.preprocessor import Preprocessor
-from ml.rl.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
-from ml.rl.test.base.utils import default_normalizer
-from ml.rl.test.environment.environment import (
+from reagent.preprocessing.normalization import sort_features_by_normalization
+from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
+from reagent.test.base.utils import default_normalizer
+from reagent.test.environment.environment import (
     ACTION,
     Environment,
     Samples,
     shuffle_samples,
 )
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)

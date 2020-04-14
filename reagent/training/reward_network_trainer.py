@@ -2,10 +2,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.models.base import ModelBase
-from ml.rl.training.trainer import Trainer
+from reagent.models.base import ModelBase
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)

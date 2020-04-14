@@ -6,17 +6,17 @@ import random
 
 import numpy as np
 import torch
-from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
-from ml.rl.evaluation.sequential_doubly_robust_estimator import (
+from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.evaluation.sequential_doubly_robust_estimator import (
     SequentialDoublyRobustEstimator,
 )
-from ml.rl.evaluation.weighted_sequential_doubly_robust_estimator import (
+from reagent.evaluation.weighted_sequential_doubly_robust_estimator import (
     WeightedSequentialDoublyRobustEstimator,
 )
-from ml.rl.test.gridworld.gridworld import Gridworld
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT
-from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
+from reagent.test.gridworld.gridworld import Gridworld
+from reagent.test.gridworld.gridworld_base import DISCOUNT
+from reagent.test.gridworld.gridworld_test_base import GridworldTestBase
 
 
 logger = logging.getLogger(__name__)

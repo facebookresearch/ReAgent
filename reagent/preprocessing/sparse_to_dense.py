@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 # @manual=third-party//pandas:pandas-py
 import pandas as pd
 import torch
-from ml.rl.preprocessing import normalization
+from reagent.preprocessing import normalization
 
 
 class SparseToDenseProcessor:

@@ -5,8 +5,8 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from ml.rl.test.base.utils import default_normalizer
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.test.base.utils import default_normalizer
+from reagent.training.training_data_page import TrainingDataPage
 
 
 class Env(object):

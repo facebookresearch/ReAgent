@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from ml.rl.core.dataclasses import dataclass
-from ml.rl.workflow.result_types import NoValidationResults
-from ml.rl.workflow.types import RLTrainingOutput
-from ml.rl.workflow.validators.model_validator import ModelValidator
+from reagent.core.dataclasses import dataclass
+from reagent.workflow.result_types import NoValidationResults
+from reagent.workflow.types import RLTrainingOutput
+from reagent.workflow.validators.model_validator import ModelValidator
 
 
 @dataclass

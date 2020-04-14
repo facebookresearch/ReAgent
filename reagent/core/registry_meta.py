@@ -4,8 +4,8 @@ import abc
 import logging
 from typing import Dict, Optional, Type
 
-from ml.rl.core.dataclasses import dataclass
-from ml.rl.core.tagged_union import TaggedUnion
+from reagent.core.dataclasses import dataclass
+from reagent.core.tagged_union import TaggedUnion
 
 
 logger = logging.getLogger(__name__)

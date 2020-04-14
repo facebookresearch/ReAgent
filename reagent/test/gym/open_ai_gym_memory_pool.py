@@ -8,9 +8,9 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from ml.rl.test.gym.open_ai_gym_environment import ModelType
-from ml.rl.torch_utils import stack
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.test.gym.open_ai_gym_environment import ModelType
+from reagent.torch_utils import stack
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)

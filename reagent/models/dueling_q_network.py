@@ -8,10 +8,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
-from ml.rl.models.fully_connected_network import gaussian_fill_w_gain
-from ml.rl.tensorboardX import SummaryWriterContext
+from reagent import types as rlt
+from reagent.models.base import ModelBase
+from reagent.models.fully_connected_network import gaussian_fill_w_gain
+from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)

@@ -7,8 +7,8 @@ Note that these actions are the ones inputted into RB, so we can assume here
 that actor_output been called with cpu() and detach().
 """
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 
 
 def discrete_action_preprocessor(actor_output: rlt.ActorOutput) -> np.array:

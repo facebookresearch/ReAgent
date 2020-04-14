@@ -5,7 +5,7 @@ from functools import reduce
 from typing import Mapping, Sequence
 
 import torch
-from ml.rl.ope.estimators.estimator import (
+from reagent.ope.estimators.estimator import (
     Action,
     ActionDistribution,
     ActionSpace,
@@ -14,7 +14,7 @@ from ml.rl.ope.estimators.estimator import (
     State,
     ValueFunction,
 )
-from ml.rl.ope.test.envs import Environment, PolicyLogGenerator
+from reagent.ope.test.envs import Environment, PolicyLogGenerator
 
 
 class TabularPolicy(RLPolicy):

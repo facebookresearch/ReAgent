@@ -4,7 +4,7 @@
 from enum import Enum
 from typing import Optional
 
-from ml.rl.core.dataclasses import dataclass
+from reagent.core.dataclasses import dataclass
 
 
 class LearningMethod(Enum):

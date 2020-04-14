@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from ml.rl.gym.types import Scorer
-from ml.rl.models.base import ModelBase
+from reagent.gym.types import Scorer
+from reagent.models.base import ModelBase
 
 
 def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:

@@ -6,12 +6,12 @@ import unittest
 
 import numpy.testing as npt
 import torch
-from ml.rl.models.actor import (
+from reagent.models.actor import (
     DirichletFullyConnectedActor,
     FullyConnectedActor,
     GaussianFullyConnectedActor,
 )
-from ml.rl.test.models.test_utils import check_save_load
+from reagent.test.models.test_utils import check_save_load
 
 
 logger = logging.getLogger(__name__)

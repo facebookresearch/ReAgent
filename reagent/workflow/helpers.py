@@ -8,9 +8,9 @@ import os
 import time
 
 import torch
-from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.training.dqn_trainer import DQNTrainer
-from ml.rl.training.parametric_dqn_trainer import ParametricDQNTrainer
+from reagent.models.dqn import FullyConnectedDQN
+from reagent.training.dqn_trainer import DQNTrainer
+from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 
 
 logger = logging.getLogger(__name__)

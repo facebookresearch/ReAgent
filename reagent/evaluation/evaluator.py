@@ -7,14 +7,14 @@ from typing import Dict, List, Optional
 
 import torch
 import torch.nn.functional as F
-from ml.rl.core.tracker import observable
-from ml.rl.evaluation.cpe import CpeDetails, CpeEstimateSet
-from ml.rl.evaluation.doubly_robust_estimator import DoublyRobustEstimator
-from ml.rl.evaluation.evaluation_data_page import EvaluationDataPage
-from ml.rl.evaluation.sequential_doubly_robust_estimator import (
+from reagent.core.tracker import observable
+from reagent.evaluation.cpe import CpeDetails, CpeEstimateSet
+from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.evaluation.sequential_doubly_robust_estimator import (
     SequentialDoublyRobustEstimator,
 )
-from ml.rl.evaluation.weighted_sequential_doubly_robust_estimator import (
+from reagent.evaluation.weighted_sequential_doubly_robust_estimator import (
     WeightedSequentialDoublyRobustEstimator,
 )
 

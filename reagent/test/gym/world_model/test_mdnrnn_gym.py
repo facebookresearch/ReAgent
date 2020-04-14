@@ -9,9 +9,9 @@ from typing import Dict, List
 
 import numpy as np
 import torch
-from ml.rl.json_serialize import json_to_object
-from ml.rl.test.gym.run_gym import OpenAiGymParameters
-from ml.rl.test.gym.world_model.mdnrnn_gym import mdnrnn_gym
+from reagent.json_serialize import json_to_object
+from reagent.test.gym.run_gym import OpenAiGymParameters
+from reagent.test.gym.world_model.mdnrnn_gym import mdnrnn_gym
 
 
 logger = logging.getLogger(__name__)

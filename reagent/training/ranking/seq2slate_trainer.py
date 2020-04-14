@@ -3,12 +3,12 @@
 import logging
 from typing import Optional
 
-import ml.rl.types as rlt
 import numpy as np
+import reagent.types as rlt
 import torch
-from ml.rl.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
-from ml.rl.parameters import Seq2SlateTransformerParameters
-from ml.rl.training.trainer import Trainer
+from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.parameters import Seq2SlateTransformerParameters
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)

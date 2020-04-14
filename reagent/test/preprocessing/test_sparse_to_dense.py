@@ -4,8 +4,8 @@
 import unittest
 
 import torch
-from ml.rl.preprocessing import normalization
-from ml.rl.preprocessing.sparse_to_dense import (
+from reagent.preprocessing import normalization
+from reagent.preprocessing.sparse_to_dense import (
     PythonSparseToDenseProcessor,
     StringKeySparseToDenseProcessor,
 )

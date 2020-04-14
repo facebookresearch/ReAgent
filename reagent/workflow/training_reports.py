@@ -2,9 +2,9 @@
 
 from typing import Optional
 
-from ml.rl.core.dataclasses import dataclass
-from ml.rl.evaluation.cpe import CpeEstimate
-from ml.rl.workflow.result_registries import TrainingReport
+from reagent.core.dataclasses import dataclass
+from reagent.evaluation.cpe import CpeEstimate
+from reagent.workflow.result_registries import TrainingReport
 
 
 @dataclass

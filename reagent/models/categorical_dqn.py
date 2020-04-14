@@ -3,9 +3,9 @@
 
 import torch
 import torch.nn.functional as F
-from ml.rl import types as rlt
-from ml.rl.models.base import ModelBase
-from ml.rl.models.fully_connected_network import FullyConnectedNetwork
+from reagent import types as rlt
+from reagent.models.base import ModelBase
+from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
 class CategoricalDQN(ModelBase):

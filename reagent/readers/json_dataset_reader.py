@@ -10,7 +10,7 @@ from typing import Optional
 
 # @manual=third-party//pandas:pandas-py
 import pandas as pd
-from ml.rl.readers.base import ReaderBase, ReaderIter
+from reagent.readers.base import ReaderBase, ReaderIter
 
 
 class JSONDatasetReaderIter(ReaderIter):

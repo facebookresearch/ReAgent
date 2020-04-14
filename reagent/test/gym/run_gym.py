@@ -11,8 +11,8 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
-from ml.rl.json_serialize import json_to_object
-from ml.rl.parameters import (
+from reagent.json_serialize import json_to_object
+from reagent.parameters import (
     CEMParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
@@ -25,26 +25,26 @@ from ml.rl.parameters import (
     TD3TrainingParameters,
     TrainingParameters,
 )
-from ml.rl.test.base.utils import write_lists_to_csv
-from ml.rl.test.gym.open_ai_gym_environment import (
+from reagent.test.base.utils import write_lists_to_csv
+from reagent.test.gym.open_ai_gym_environment import (
     EnvType,
     ModelType,
     OpenAIGymEnvironment,
 )
-from ml.rl.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
-from ml.rl.test.gym.trainer_creator import get_sac_trainer
-from ml.rl.training.on_policy_predictor import (
+from reagent.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
+from reagent.test.gym.trainer_creator import get_sac_trainer
+from reagent.training.on_policy_predictor import (
     CEMPlanningPredictor,
     ContinuousActionOnPolicyPredictor,
     DiscreteDQNOnPolicyPredictor,
     OnPolicyPredictor,
     ParametricDQNOnPolicyPredictor,
 )
-from ml.rl.training.rl_dataset import RLDataset
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
-from ml.rl.training.sac_trainer import SACTrainerParameters
-from ml.rl.types import BaseDataClass
-from ml.rl.workflow_utils.transitional import (
+from reagent.training.rl_dataset import RLDataset
+from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.sac_trainer import SACTrainerParameters
+from reagent.types import BaseDataClass
+from reagent.workflow_utils.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
     get_cem_trainer,
@@ -905,7 +905,7 @@ def create_predictor(trainer, model_type, use_gpu, action_dim=None):
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logging.getLogger().setLevel(logging.INFO)
-    from ml.rl import debug_on_error
+    from reagent import debug_on_error
 
     debug_on_error.start()
     args = sys.argv

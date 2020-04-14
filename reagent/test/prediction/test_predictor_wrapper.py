@@ -3,14 +3,14 @@
 
 import unittest
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.models.actor import FullyConnectedActor
-from ml.rl.models.dqn import FullyConnectedDQN
-from ml.rl.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
-from ml.rl.models.parametric_dqn import FullyConnectedParametricDQN
-from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
-from ml.rl.prediction.predictor_wrapper import (
+from reagent.models.actor import FullyConnectedActor
+from reagent.models.dqn import FullyConnectedDQN
+from reagent.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
+from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
     DiscreteDqnPredictorWrapper,
@@ -22,10 +22,10 @@ from ml.rl.prediction.predictor_wrapper import (
     Seq2SlatePredictorWrapper,
     Seq2SlateWithPreprocessor,
 )
-from ml.rl.preprocessing.identify_types import CONTINUOUS, CONTINUOUS_ACTION
-from ml.rl.preprocessing.normalization import NormalizationParameters
-from ml.rl.preprocessing.postprocessor import Postprocessor
-from ml.rl.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.identify_types import CONTINUOUS, CONTINUOUS_ACTION
+from reagent.preprocessing.normalization import NormalizationParameters
+from reagent.preprocessing.postprocessor import Postprocessor
+from reagent.preprocessing.preprocessor import Preprocessor
 
 
 def _cont_norm():

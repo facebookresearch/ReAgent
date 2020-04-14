@@ -4,14 +4,14 @@
 
 from typing import List
 
-import ml.rl.parameters as rlp
-import ml.rl.types as rlt
+import reagent.parameters as rlp
+import reagent.types as rlt
 import torch
-from ml.rl.core.dataclasses import dataclass, field
-from ml.rl.core.tracker import observable
-from ml.rl.parameters import DiscreteActionModelParameters
-from ml.rl.training.rl_trainer_pytorch import RLTrainer
-from ml.rl.training.training_data_page import TrainingDataPage
+from reagent.core.dataclasses import dataclass, field
+from reagent.core.tracker import observable
+from reagent.parameters import DiscreteActionModelParameters
+from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.training_data_page import TrainingDataPage
 
 
 @dataclass(frozen=True)

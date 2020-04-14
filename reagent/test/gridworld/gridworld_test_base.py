@@ -6,10 +6,10 @@ import os
 import tempfile
 
 import torch
-from ml.rl.test.base.horizon_test_base import HorizonTestBase
-from ml.rl.test.gridworld.gridworld_base import DISCOUNT, GridworldBase
-from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
-from ml.rl.torch_utils import export_module_to_buffer
+from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.test.gridworld.gridworld_base import DISCOUNT, GridworldBase
+from reagent.test.gridworld.gridworld_evaluator import GridworldEvaluator
+from reagent.torch_utils import export_module_to_buffer
 
 
 logger = logging.getLogger(__name__)

@@ -3,13 +3,13 @@
 import logging
 import time
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
-from ml.rl.parameters import Seq2SlateTransformerParameters
-from ml.rl.training.trainer import Trainer
+from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.parameters import Seq2SlateTransformerParameters
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)

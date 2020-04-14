@@ -3,19 +3,21 @@
 
 import unittest
 
-from ml.rl.net_builder import continuous_actor
-from ml.rl.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
-from ml.rl.net_builder.unions import ContinuousActorNetBuilder__Union
-from ml.rl.parameters import NormalizationData, NormalizationParameters
-from ml.rl.preprocessing.identify_types import CONTINUOUS
+from reagent.net_builder import continuous_actor
+from reagent.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
+from reagent.net_builder.unions import ContinuousActorNetBuilder__Union
+from reagent.parameters import NormalizationData, NormalizationParameters
+from reagent.preprocessing.identify_types import CONTINUOUS
 
 
 try:
-    from ml.rl.fb.prediction.fb_predictor_wrapper import (
+    from reagent.fb.prediction.fb_predictor_wrapper import (
         FbActorPredictorWrapper as ActorPredictorWrapper,
     )
 except ImportError:
-    from ml.rl.prediction.predictor_wrapper import ActorPredictorWrapper  # type: ignore
+    from reagent.prediction.predictor_wrapper import (  # type: ignore
+        ActorPredictorWrapper,
+    )
 
 
 class TestContinuousActorNetBuilder(unittest.TestCase):

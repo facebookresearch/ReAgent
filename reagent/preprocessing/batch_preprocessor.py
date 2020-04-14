@@ -3,9 +3,9 @@
 from typing import Tuple, Union, cast
 
 import torch
-from ml.rl import types as rlt
-from ml.rl.preprocessing.normalization import get_num_output_features
-from ml.rl.preprocessing.preprocessor import Preprocessor
+from reagent import types as rlt
+from reagent.preprocessing.normalization import get_num_output_features
+from reagent.preprocessing.preprocessor import Preprocessor
 
 
 class BatchPreprocessor:

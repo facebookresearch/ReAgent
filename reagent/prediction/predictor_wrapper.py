@@ -4,12 +4,12 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import ml.rl.types as rlt
+import reagent.types as rlt
 import torch
-from ml.rl.models.base import ModelBase
-from ml.rl.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
-from ml.rl.preprocessing.postprocessor import Postprocessor
-from ml.rl.preprocessing.preprocessor import Preprocessor
+from reagent.models.base import ModelBase
+from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.preprocessing.postprocessor import Postprocessor
+from reagent.preprocessing.preprocessor import Preprocessor
 from torch import nn
 
 
