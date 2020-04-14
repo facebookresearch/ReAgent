@@ -62,7 +62,7 @@ commands:
             echo $HOME
             mkdir -p serving/build
             pushd serving/build
-            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch -DCMAKE_CXX_STANDARD=11 ..
+            cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch -DCMAKE_CXX_STANDARD=17 ..
             make -j2
             popd
       - run:
@@ -166,7 +166,7 @@ jobs:
       - rasp_build_deps:
           miniconda2: https://repo.anaconda.com/miniconda/Miniconda2-latest-MacOSX-x86_64.sh
       - install_libtorch:
-          source: https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.4.0.zip
+          source: https://download.pytorch.org/libtorch/nightly/cpu/libtorch-macos-latest.zip
       - rasp_build_test
       - store_artifacts:
           path: serving/build/RaspTest
