@@ -31,11 +31,17 @@ jobs:
           command: |
             pyenv global 3.7.0
             pip install --upgrade pip
-            pip install tox
+            pip install --upgrade tox wheel setuptools
       - run:
           name: Run unittests
           command: |
             tox
+      - run: python setup.py bdist_wheel
+      - store_artifacts:
+          path: dist/reagent-0.1-py3-none-any.whl
+          destination: reagent-0.1-py3-none-any.whl
+      - store_test_results:
+          path: .tox/py37/log/
 
   end_to_end_test:
     docker:
@@ -61,6 +67,8 @@ jobs:
             sdk install scala
             sdk install maven
             sdk install spark 2.3.3
+            sudo apt-get update
+            sudo apt-get install bc
       - run:
           name: Build preprocessing package
           command: |
@@ -69,6 +77,17 @@ jobs:
           name: Run script
           command: |
             bash scripts/ci/run_end_to_end_test.sh
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: preprocessing/target/rl-preprocessing-1.1.jar
+          destination: rl-preprocessing-1.1.jar
 
   rasp_test:
     docker:
@@ -109,7 +128,13 @@ jobs:
           name: Run RASP tests
           command: |
             serving/build/RaspTest
-
+      - store_artifacts:
+          path: serving/build/RaspTest
+          destination: RaspTest
+      - store_artifacts:
+          path: serving/build/RaspCli
+          destination: RaspCli
+  
 workflows:
   build:
     jobs:
