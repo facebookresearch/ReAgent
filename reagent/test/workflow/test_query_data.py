@@ -14,6 +14,7 @@ from sparktestingbase.sqltestcase import SQLTestCase
 from pyspark.sql.functions import asc
 import tempfile
 import logging
+import pytest
 
 logger = logging.getLogger(__name__)
 
@@ -245,6 +246,14 @@ def verify_multi_step_except_rewards(df):
     )
 
 
+def rand_string(length=10):
+    import string, random
+
+    """Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return "".join(random.choice(letters) for _ in range(length))
+
+
 class TestQueryData(SQLTestCase):
     def getConf(self):
         from pyspark import SparkConf
@@ -254,12 +263,22 @@ class TestQueryData(SQLTestCase):
         # things up, otherwise the tests will use the default 200 partitions
         # and it will take a lot more time to complete
         conf.set("spark.sql.shuffle.partitions", "12")
+        conf.set("spark.sql.warehouse.dir", "_test_query_data_warehouse")
+        conf.set("spark.port.maxRetries", "30")
         return conf
 
     def setUp(self):
-        self.table_name = "test_table"
+        import os, shutil
+
+        if os.path.isdir("metastore_db"):
+            shutil.rmtree("metastore_db")
+
+        logging.basicConfig(level=logging.INFO)
+        logging.getLogger(__name__).setLevel(logging.INFO)
+        self.table_name = rand_string()
         self.temp_parquet = tempfile.TemporaryDirectory()
         self.parquet_url = f"file://{abspath(self.temp_parquet.name)}"
+        logger.info(f"Table name is {self.table_name}")
         super().setUp()
 
     def tearDown(self):
@@ -271,7 +290,7 @@ class TestQueryData(SQLTestCase):
             self.sqlCtx, multi_step=multi_step, table_name=self.table_name
         )
 
-    def read_data(self, custom_reward_expr=None, gamma=None, multi_step=None):
+    def _read_data(self, custom_reward_expr=None, gamma=None, multi_step=None):
         dataset_url = query_data(
             table_spec=TableSpec(table_name=self.table_name),
             output_spec=Dataset(parquet_url=self.parquet_url),
@@ -288,26 +307,29 @@ class TestQueryData(SQLTestCase):
         df.show()
         return df
 
+    @pytest.mark.serial
     def test_query_data_single_step(self):
         self.generate_data()
-        df = self.read_data()
+        df = self._read_data()
         df = df.toPandas()
         verify_single_step_except_rewards(df)
         assertEq(df["reward"], np.array([0.0, 1.0, 4.0, 5.0], dtype="float32"))
         logger.info("single-step seems fine")
 
+    @pytest.mark.serial
     def test_query_data_single_step_custom_reward(self):
         self.generate_data()
-        df = self.read_data(custom_reward_expr="POWER(reward, 3) + 10")
+        df = self._read_data(custom_reward_expr="POWER(reward, 3) + 10")
         df = df.toPandas()
         verify_single_step_except_rewards(df)
         assertEq(df["reward"], np.array([10.0, 11.0, 74.0, 135.0], dtype="float32"))
         logger.info("single-step custom reward seems fine")
 
+    @pytest.mark.serial
     def test_query_data_multi_step(self):
         gamma = 0.9
         self.generate_data(multi_step=True)
-        df = self.read_data(multi_step=2, gamma=gamma)
+        df = self._read_data(multi_step=2, gamma=gamma)
         df = df.toPandas()
         verify_multi_step_except_rewards(df)
         assertAllClose(
