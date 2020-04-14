@@ -12,12 +12,12 @@ If you don't have that, you can either install it via `pyenv <https://github.com
 `conda <https://docs.conda.io/projects/conda/en/latest/index.html>`_. To verify that you have the right version,
 type the following command on your shell:
 
-.. code-block: bash
+.. code-block:: bash
    python --version
 
 Once you make sure you have the right version, you can simply clone this repo and pip install
 
-.. code-block: bash
+.. code-block:: bash
    git clone https://github.com/facebookresearch/ReAgent.git
    cd ReAgent
    pip install .[gym]
@@ -26,7 +26,7 @@ If you don't want need gym dependencies, you can remove `[gym]`
 
 To verify your setup please run tox
 
-.. code-block: bash
+.. code-block:: bash
    pip install tox
    tox
 
@@ -38,7 +38,7 @@ under `the artifact section of end_to_end_test <https://app.circleci.com/pipelin
 
 To build from source, you'll need JDK, Scala, & Maven. We will use `SDKMAN! <https://sdkman.io/>`_ to install them.
 
-.. code-block: bash
+.. code-block:: bash
    curl -s "https://get.sdkman.io" | bash
    source "$HOME/.sdkman/bin/sdkman-init.sh"
    sdk version
@@ -48,12 +48,12 @@ To build from source, you'll need JDK, Scala, & Maven. We will use `SDKMAN! <htt
 
 If you are testing locally, you can also install Spark
 
-.. code-block: bash
+.. code-block:: bash
    sdk install spark 2.3.3
 
 Now, you can build our preprocessing JAR
 
-.. code-block: bash
+.. code-block:: bash
    mvn -f preprocessing/pom.xml clean packag
 
 RASP
@@ -63,6 +63,7 @@ RASP (ReAgent Serving Platform) is a decision-serving library. It also has stand
 which cannot be statically linked at the moment. Therefore, we don't have a pre-built version.
 
 To build the CLI, you'll need `CMake <https://cmake.org/>`_ and the following libraries:
+
 -  Nightly build of `libtorch <https://pytorch.org/cppdocs/>`_
 - `boost <https://www.boost.org/>`_
 - `gflags <https://gflags.github.io/gflags/>`_
