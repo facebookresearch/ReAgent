@@ -32,7 +32,7 @@ commands:
             bash ~/miniconda.sh -b -p $HOME/miniconda
             source $HOME/miniconda/bin/activate
             conda init
-            conda install --file rasp_requirements.txt
+            conda install -y --file rasp_requirements.txt
 
   install_libtorch:
     description: Download & unzip libtorch
