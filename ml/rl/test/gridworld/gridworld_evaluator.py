@@ -37,6 +37,7 @@ class GridworldEvaluator(Evaluator):
         else:
             samples = env.generate_samples(10000, 1.0, gamma)
         self.logged_states = samples.states
+        self.logged_possible_actions = samples.possible_actions
         self.logged_actions = samples.actions
         self.logged_propensities = np.array(samples.action_probabilities).reshape(-1, 1)
         self.logged_terminals = np.array(samples.terminals).reshape(-1, 1)
@@ -95,7 +96,8 @@ class GridworldEvaluator(Evaluator):
         )
         for x in range(len(self.logged_states)):
             for action_index, action in enumerate(self._env.ACTIONS):
-                prediction[x][action_index] = prediction_string[x].get(action, 1e-9)
+                if action in self.logged_possible_actions[x]:
+                    prediction[x][action_index] = prediction_string[x].get(action, 1e-9)
 
         # Print out scores using all states
         all_states = []

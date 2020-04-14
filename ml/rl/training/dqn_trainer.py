@@ -4,9 +4,10 @@
 
 from typing import List, Optional, Tuple
 
+import torch
+
 import ml.rl.parameters as rlp
 import ml.rl.types as rlt
-import torch
 from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.core.tracker import observable
 from ml.rl.parameters import DiscreteActionModelParameters
@@ -109,7 +110,6 @@ class DQNTrainer(DQNTrainerBase):
             parameters,
             reward_network,
             q_network_cpe,
-            q_network_cpe_target,
             cpe_optimizer_parameters=parameters.optimizer,
         )
 

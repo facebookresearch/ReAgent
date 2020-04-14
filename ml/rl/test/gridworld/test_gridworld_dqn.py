@@ -6,9 +6,10 @@ import random
 import tempfile
 import unittest
 
-import ml.rl.types as rlt
 import numpy as np
 import torch
+
+import ml.rl.types as rlt
 from ml.rl.models.categorical_dqn import CategoricalDQN
 from ml.rl.models.dqn import FullyConnectedDQN
 from ml.rl.models.dueling_q_network import DuelingQNetwork
@@ -156,7 +157,7 @@ class TestGridworld(GridworldTestBase):
                     activations=parameters.training.activations[:-1],
                 )
 
-        q_network_cpe, q_network_cpe_target, reward_network = None, None, None
+        q_network_cpe, reward_network = None, None
 
         if parameters.evaluation and parameters.evaluation.calc_cpe_in_training:
             q_network_cpe = FullyConnectedDQN(
@@ -165,7 +166,6 @@ class TestGridworld(GridworldTestBase):
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
-            q_network_cpe_target = q_network_cpe.get_target_network()
             reward_network = FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
@@ -178,14 +178,10 @@ class TestGridworld(GridworldTestBase):
             if parameters.evaluation.calc_cpe_in_training:
                 reward_network = reward_network.cuda()
                 q_network_cpe = q_network_cpe.cuda()
-                q_network_cpe_target = q_network_cpe_target.cuda()
             if use_all_avail_gpus and not categorical:
                 q_network = q_network.get_distributed_data_parallel_model()
                 reward_network = reward_network.get_distributed_data_parallel_model()
                 q_network_cpe = q_network_cpe.get_distributed_data_parallel_model()
-                q_network_cpe_target = (
-                    q_network_cpe_target.get_distributed_data_parallel_model()
-                )
 
         if quantile:
             parameters = QRDQNTrainerParameters.from_discrete_action_model_parameters(
@@ -198,7 +194,6 @@ class TestGridworld(GridworldTestBase):
                 use_gpu,
                 reward_network=reward_network,
                 q_network_cpe=q_network_cpe,
-                q_network_cpe_target=q_network_cpe_target,
             )
         elif categorical:
             parameters = C51TrainerParameters.from_discrete_action_model_parameters(
@@ -218,7 +213,6 @@ class TestGridworld(GridworldTestBase):
                 parameters,
                 use_gpu,
                 q_network_cpe=q_network_cpe,
-                q_network_cpe_target=q_network_cpe_target,
             )
         return trainer
 

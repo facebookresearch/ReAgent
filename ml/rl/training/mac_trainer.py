@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import logging
-from typing import List
+
+from typing import List, Optional, Tuple
 
 import torch
 
@@ -10,50 +10,40 @@ import ml.rl.parameters as rlp
 import ml.rl.types as rlt
 from ml.rl.core.dataclasses import dataclass, field
 from ml.rl.core.tracker import observable
+from ml.rl.parameters import DiscreteActionModelParameters
 from ml.rl.training.dqn_trainer_base import DQNTrainerBase
+from ml.rl.training.imitator_training import get_valid_actions_from_imitator
 from ml.rl.training.training_data_page import TrainingDataPage
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
-class QRDQNTrainerParameters:
+class MACTrainerParameters:
     __hash__ = rlp.param_hash
 
     actions: List[str] = field(default_factory=list)
     rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
     double_q_learning: bool = True
-    num_atoms: int = 51
     minibatch_size: int = 1024
     minibatches_per_step: int = 1
     optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
-    cpe_optimizer: rlp.OptimizerParameters = field(
-        default_factory=rlp.OptimizerParameters
-    )
     evaluation: rlp.EvaluationParameters = field(
         default_factory=rlp.EvaluationParameters
     )
 
     @classmethod
     def from_discrete_action_model_parameters(
-        cls, params: rlp.DiscreteActionModelParameters
+        cls, params: DiscreteActionModelParameters
     ):
         return cls(
             actions=params.actions,
             rl=params.rl,
             double_q_learning=params.rainbow.double_q_learning,
-            num_atoms=params.rainbow.num_atoms,
             minibatch_size=params.training.minibatch_size,
             minibatches_per_step=params.training.minibatches_per_step,
-            cpe_optimizer=rlp.OptimizerParameters(
-                optimizer=params.training.optimizer,
-                learning_rate=params.training.learning_rate,
-                l2_decay=params.training.l2_decay,
-            ),
             optimizer=rlp.OptimizerParameters(
                 optimizer=params.training.optimizer,
                 learning_rate=params.training.learning_rate,
-                l2_decay=params.rainbow.c51_l2_decay,
+                l2_decay=params.training.l2_decay,
             ),
             evaluation=params.evaluation,
         )
@@ -61,6 +51,7 @@ class QRDQNTrainerParameters:
 
 @observable(
     td_loss=torch.Tensor,
+    reward_loss=torch.Tensor,
     logged_actions=torch.Tensor,
     logged_propensities=torch.Tensor,
     logged_rewards=torch.Tensor,
@@ -69,22 +60,17 @@ class QRDQNTrainerParameters:
     model_values=torch.Tensor,
     model_action_idxs=torch.Tensor,
 )
-class QRDQNTrainer(DQNTrainerBase):
-    """
-    Implementation of QR-DQN (Quantile Regression Deep Q-Network)
-
-    See https://arxiv.org/abs/1710.10044 for details
-    """
-
+class MACTrainer(DQNTrainerBase):
     def __init__(
         self,
         q_network,
-        q_network_target,
-        parameters: QRDQNTrainerParameters,
+        policy_network,
+        reward_network,
+        parameters: MACTrainerParameters,
         use_gpu=False,
-        metrics_to_score=None,
-        reward_network=None,
         q_network_cpe=None,
+        metrics_to_score=None,
+        imitator=None,
         loss_reporter=None,
     ) -> None:
         super().__init__(
@@ -95,29 +81,30 @@ class QRDQNTrainer(DQNTrainerBase):
             evaluation_parameters=parameters.evaluation,
             loss_reporter=loss_reporter,
         )
-
+        assert self._actions is not None, "Discrete-action DQN needs action names"
         self.double_q_learning = parameters.double_q_learning
         self.minibatch_size = parameters.minibatch_size
         self.minibatches_per_step = parameters.minibatches_per_step or 1
-        self._actions = parameters.actions if parameters.actions is not None else []
 
         self.q_network = q_network
-        self.q_network_target = q_network_target
-        self.q_network_optimizer = self._get_optimizer(
-            self.q_network, parameters.optimizer
+        self.policy_network = policy_network
+        self._set_optimizer(parameters.optimizer.optimizer)
+        self.q_network_optimizer = self.optimizer_func(
+            self.q_network.parameters(),
+            lr=parameters.optimizer.learning_rate,
+            weight_decay=parameters.optimizer.l2_decay,
         )
-
-        self.num_atoms = parameters.num_atoms
-        self.quantiles = (
-            (0.5 + torch.arange(self.num_atoms, device=self.device).float())
-            / float(self.num_atoms)
-        ).view(1, -1)
+        self.policy_network_optimizer = self.optimizer_func(
+            self.policy_network.parameters(),
+            lr=parameters.optimizer.learning_rate,
+            weight_decay=parameters.optimizer.l2_decay,
+        )
 
         self._initialize_cpe(
             parameters,
             reward_network,
             q_network_cpe,
-            cpe_optimizer_parameters=parameters.cpe_optimizer,
+            cpe_optimizer_parameters=parameters.optimizer,
         )
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
@@ -138,19 +125,28 @@ class QRDQNTrainer(DQNTrainerBase):
         return components
 
     @torch.no_grad()  # type: ignore
+    def get_detached_q_values(
+        self, state
+    ) -> Tuple[rlt.AllActionQValues, Optional[rlt.AllActionQValues]]:
+        """ Gets the q values from the model and target networks """
+        input = rlt.PreprocessedState(state=state)
+        q_values = self.q_network(input).q_values
+        return q_values, None
+
+    @torch.no_grad()  # type: ignore
     def train(self, training_batch):
+        torch.autograd.set_detect_anomaly(True)
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
 
         learning_input = training_batch.training_input
-        state = rlt.PreprocessedState(state=learning_input.state)
-        next_state = rlt.PreprocessedState(state=learning_input.next_state)
-        rewards = self.boost_rewards(learning_input.reward, learning_input.action)
-        discount_tensor = torch.full_like(rewards, self.gamma)
-        possible_next_actions_mask = learning_input.possible_next_actions_mask.float()
-        possible_actions_mask = learning_input.possible_actions_mask.float()
+        boosted_rewards = self.boost_rewards(
+            learning_input.reward, learning_input.action
+        )
 
         self.minibatch += 1
+        rewards = boosted_rewards
+        discount_tensor = torch.full_like(rewards, self.gamma)
         not_done_mask = learning_input.not_terminal.float()
 
         if self.use_seq_num_diff_as_time_diff:
@@ -159,89 +155,109 @@ class QRDQNTrainer(DQNTrainerBase):
         if self.multi_steps is not None:
             discount_tensor = torch.pow(self.gamma, learning_input.step.float())
 
-        next_qf = self.q_network_target.dist(next_state)
+        all_next_q_values, _ = self.get_detached_q_values(learning_input.next_state)
+        all_q_values, _ = self.get_detached_q_values(learning_input.state)
 
         if self.maxq_learning:
-            # Select distribution corresponding to max valued action
-            next_q_values = (
-                self.q_network(next_state).q_values
-                if self.double_q_learning
-                else next_qf.mean(dim=2)
+            # Compute max a' Q(s', a') over all possible actions
+            possible_next_actions_mask = (
+                learning_input.possible_next_actions_mask.float()
             )
-            next_action = self.argmax_with_mask(
-                next_q_values, possible_next_actions_mask
+            next_q_values, max_q_action_idxs = self.get_max_q_values(
+                all_next_q_values, possible_next_actions_mask
             )
-            next_qf = next_qf[range(rewards.shape[0]), next_action.reshape(-1)]
         else:
-            next_qf = (next_qf * learning_input.next_action.unsqueeze(-1)).sum(1)
+            # SARSA
+            next_q_values, max_q_action_idxs = self.get_max_q_values(
+                all_next_q_values, learning_input.next_action
+            )
 
-        # Build target distribution
-        target_Q = rewards + discount_tensor * not_done_mask * next_qf
+        filtered_next_q_vals = next_q_values * not_done_mask
+
+        target_q_values = rewards + (discount_tensor * filtered_next_q_vals)
 
         with torch.enable_grad():
-            current_qf = self.q_network.dist(state)
+            current_state = rlt.PreprocessedState(state=learning_input.state)
 
-            # for reporting only
-            all_q_values = current_qf.mean(2).detach()
+            # Policy Gradient
+            action_scores_unscaled = (
+                self.policy_network(current_state).action
+                * learning_input.possible_actions_mask.float().detach()
+            )
+            action_scores = action_scores_unscaled / action_scores_unscaled.sum(
+                dim=1, keepdim=True
+            )
+            assert all_q_values.size() == action_scores.size()
+            expected_value = (all_q_values.detach() * action_scores).sum(
+                dim=1, keepdim=True
+            )
 
-            current_qf = (current_qf * learning_input.action.unsqueeze(-1)).sum(1)
+            # Regret Policy Gradient
+            loss = (-1 * action_scores * (all_q_values.detach() - expected_value)).sum()
+            loss.backward()
+            self._maybe_run_optimizer(
+                self.policy_network_optimizer, self.minibatches_per_step
+            )
 
-            # (batch, atoms) -> (atoms, batch, 1) -> (atoms, batch, atoms)
-            td = target_Q.t().unsqueeze(-1) - current_qf
-            loss = (
-                self.huber(td) * (self.quantiles - (td.detach() < 0).float()).abs()
-            ).mean()
+            # Get Q-value of action taken
+            all_q_values = self.q_network(current_state).q_values
+            self.all_action_scores = all_q_values.detach()
+            q_values = torch.sum(all_q_values * learning_input.action, 1, keepdim=True)
+
+            loss = self.q_network_loss(q_values, target_q_values)
+            self.loss = loss.detach()
 
             loss.backward()
             self._maybe_run_optimizer(
                 self.q_network_optimizer, self.minibatches_per_step
             )
 
-        # Use the soft update rule to update target network
-        self._maybe_soft_update(
-            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
-        )
-
         # Get Q-values of next states, used in computing cpe
+        next_state = rlt.PreprocessedState(state=learning_input.next_state)
         all_next_action_scores = self.q_network(next_state).q_values.detach()
 
         logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self._calculate_cpes(
             training_batch,
-            state,
+            current_state,
             next_state,
-            all_q_values,
+            self.all_action_scores,
             all_next_action_scores,
             logged_action_idxs,
             discount_tensor,
             not_done_mask,
         )
 
-        model_action_idxs = self.argmax_with_mask(
-            all_q_values,
+        if self.maxq_learning:
+            possible_actions_mask = learning_input.possible_actions_mask
+
+        model_action_idxs = self.get_max_q_values(
+            self.all_action_scores,
             possible_actions_mask if self.maxq_learning else learning_input.action,
-        )
+        )[1]
 
         self.notify_observers(
-            td_loss=loss,
+            td_loss=self.loss,
+            reward_loss=reward_loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,
             model_propensities=model_propensities,
             model_rewards=model_rewards,
-            model_values=all_q_values,
+            model_values=self.all_action_scores,
             model_action_idxs=model_action_idxs,
         )
 
         self.loss_reporter.report(
-            td_loss=loss,
+            td_loss=self.loss,
+            reward_loss=reward_loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,
             logged_values=None,  # Compute at end of each epoch for CPE
             model_propensities=model_propensities,
             model_rewards=model_rewards,
-            model_values=all_q_values,
+            model_values=self.all_action_scores,
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=model_action_idxs,
         )
@@ -251,39 +267,22 @@ class QRDQNTrainer(DQNTrainerBase):
         """
         Only used by Gym
         """
-        self.q_network.eval()
-        q_values = self.q_network(rlt.PreprocessedState.from_tensor(input))
-        q_values = q_values.q_values.cpu()
-        self.q_network.train()
-
-        return q_values
-
-    @torch.no_grad()  # type: ignore
-    def boost_rewards(
-        self, rewards: torch.Tensor, actions: torch.Tensor
-    ) -> torch.Tensor:
-        # Apply reward boost if specified
-        reward_boosts = torch.sum(
-            actions.float() * self.reward_boosts,  # type: ignore
-            dim=1,
-            keepdim=True,
+        self.policy_network.eval()
+        action_scores_unscaled = self.policy_network(
+            rlt.PreprocessedState.from_tensor(input)
+        ).action.cpu()
+        action_scores = action_scores_unscaled / action_scores_unscaled.sum(
+            dim=1, keepdim=True
         )
-        return rewards + reward_boosts
-
-    def argmax_with_mask(self, q_values, possible_actions_mask):
-        # Set q-values of impossible actions to a very large negative number.
-        q_values = q_values.reshape(possible_actions_mask.shape)
-        q_values = q_values + self.ACTION_NOT_POSSIBLE_VAL * (1 - possible_actions_mask)
-        return q_values.argmax(1)
-
-    # Used to prevent warning when a.shape != b.shape
-    def huber(self, x):
-        return torch.where(x.abs() < 1, 0.5 * x.pow(2), x.abs() - 0.5)
+        self.policy_network.train()
+        return action_scores
 
     @torch.no_grad()  # type: ignore
-    def get_detached_q_values(self, state):
-        """ Gets the q values from the model and target networks """
-        input = rlt.PreprocessedState(state=state)
-        q_values = self.q_network(input).q_values
-        q_values_target = self.q_network_target(input).q_values
-        return q_values, q_values_target
+    def internal_reward_estimation(self, input):
+        """
+        Only used by Gym
+        """
+        self.reward_network.eval()
+        reward_estimates = self.reward_network(rlt.PreprocessedState.from_tensor(input))
+        self.reward_network.train()
+        return reward_estimates.q_values.cpu()
