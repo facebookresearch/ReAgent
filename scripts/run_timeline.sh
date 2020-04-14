@@ -13,7 +13,7 @@ trap finish EXIT
 # Run timelime on pre-timeline data
 /usr/local/spark/bin/spark-submit \
   --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
-  "`cat ml/rl/workflow/sample_configs/discrete_action/timeline.json`"
+  "`cat reagent/workflow/sample_configs/discrete_action/timeline.json`"
 
 mkdir training_data
 mv cartpole_discrete_timeline/part* training_data/cartpole_training_data.json

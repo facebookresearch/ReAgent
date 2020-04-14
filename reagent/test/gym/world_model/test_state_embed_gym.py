@@ -20,8 +20,8 @@ from ml.rl.test.gym.world_model.state_embed_gym import (
 
 logger = logging.getLogger(__name__)
 
-MDNRNN_STRING_GAME_JSON = "ml/rl/test/configs/mdnrnn_string_game_v0.json"
-DQN_STRING_GAME_JSON = "ml/rl/test/configs/discrete_dqn_string_game_v0.json"
+MDNRNN_STRING_GAME_JSON = "reagent/test/configs/mdnrnn_string_game_v0.json"
+DQN_STRING_GAME_JSON = "reagent/test/configs/discrete_dqn_string_game_v0.json"
 
 
 class TestStateEmbedGym(HorizonTestBase):

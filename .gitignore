@@ -129,6 +129,8 @@ ENV/
 .DS_Store
 
 # Thrift output
+reagent/thrift/__init__.py
+reagent/thrift/core/
 ml/rl/thrift/__init__.py
 ml/rl/thrift/core/
 

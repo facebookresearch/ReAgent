@@ -17,4 +17,4 @@ make test
 popd
 
 # Run workflow tests
-pytest ml/rl/test/workflow/test_oss_workflows.py
+pytest reagent/test/workflow/test_oss_workflows.py

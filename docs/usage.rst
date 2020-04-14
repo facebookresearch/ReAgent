@@ -19,9 +19,9 @@ Open AI Gym is a set of environments: simulators that can run policies for a giv
 
 .. code-block::
 
-   python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_v0.json
+   python reagent/test/gym/run_gym.py -p reagent/test/gym/discrete_dqn_cartpole_v0.json
 
-Configs for different environments and algorithms can be found in ``ml/rl/test/gym/``.
+Configs for different environments and algorithms can be found in ``reagent/test/gym/``.
 
 While this is typically the set up for people conducting RL research, it isn't always practical to deploy on-policy RL for several reasons:
 
@@ -49,7 +49,7 @@ First we need to generate the data required to train our RL models. For this exa
 
    mkdir cartpole_discrete
 
-   python ml/rl/test/gym/run_gym.py -p ml/rl/test/gym/discrete_dqn_cartpole_small_v0.json -f cartpole_discrete/training_data.json --seed 0
+   python reagent/test/gym/run_gym.py -p reagent/test/gym/discrete_dqn_cartpole_small_v0.json -f cartpole_discrete/training_data.json --seed 0
 
 Let's look at one row of data to see the expected input format:
 
@@ -140,7 +140,7 @@ Now that we are ready, let's run our spark job on our local machine.  This will 
    # Run timelime on pre-timeline data
    /usr/local/spark/bin/spark-submit \
      --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
-     "`cat ml/rl/workflow/sample_configs/discrete_action/timeline.json`"
+     "`cat reagent/workflow/sample_configs/discrete_action/timeline.json`"
 
    # Look at the first row of training & eval
    head -n1 cartpole_discrete_training/part*
@@ -168,7 +168,7 @@ Data from production systems is often sparse, noisy and arbitrarily distributed.
 
 .. code-block::
 
-   python ml/rl/workflow/create_normalization_metadata.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_example.json
+   python reagent/workflow/create_normalization_metadata.py -p reagent/workflow/sample_configs/discrete_action/dqn_example.json
 
 Now we can look at the normalization file.  It's a JSON file where each key is a feature id and each value is a string-encoded JSON object describing the normalization:
 
@@ -193,7 +193,7 @@ Now we are ready to train a model by running:
    # Store model outputs here
    mkdir outputs
 
-   python ml/rl/workflow/dqn_workflow.py -p ml/rl/workflow/sample_configs/discrete_action/dqn_example.json
+   python reagent/workflow/dqn_workflow.py -p reagent/workflow/sample_configs/discrete_action/dqn_example.json
 
 Note that, even in the OpenAI Gym case, we aren't running the gym at this step.  We are taking a batch of data that we generated previously and training by looping over that data and interatively learning a better policy than the policy that generated the data.
 
@@ -204,7 +204,7 @@ Now that we have trained a new policy on the offline ``Cartpole-v0`` data, we ca
 
 .. code-block::
 
-   python ml/rl/test/workflow/eval_cartpole.py -m outputs/model_* --softmax_temperature=0.35 --log_file=outputs/eval_output.txt
+   python reagent/test/workflow/eval_cartpole.py -m outputs/model_* --softmax_temperature=0.35 --log_file=outputs/eval_output.txt
 
 Step 6 - Visualize Results via Tensorboard
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

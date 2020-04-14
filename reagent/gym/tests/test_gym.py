@@ -45,14 +45,14 @@ from ml.rl.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 from ml.rl.test.gym.run_gym import OpenAiGymParameters, create_trainer
 
 
-DISCRETE_DQN_CARTPOLE_JSON = "ml/rl/test/gym/discrete_dqn_cartpole_v0.json"
+DISCRETE_DQN_CARTPOLE_JSON = "reagent/test/gym/discrete_dqn_cartpole_v0.json"
 DISCRETE_DQN_CARTPOLE_NUM_EPISODES = 50
-PARAMETRIC_DQN_CARTPOLE_JSON = "ml/rl/test/gym/parametric_dqn_cartpole_v0.json"
+PARAMETRIC_DQN_CARTPOLE_JSON = "reagent/test/gym/parametric_dqn_cartpole_v0.json"
 PARAMETRIC_DQN_CARTPOLE_NUM_EPISODES = 50
 # Though maximal score is 200, we set a lower bar to let tests finish in time
 CARTPOLE_SCORE_BAR = 100
 
-SAC_PENDULUM_JSON = "ml/rl/test/gym/sac_pendulum_v0.json"
+SAC_PENDULUM_JSON = "reagent/test/gym/sac_pendulum_v0.json"
 SAC_PENDULUM_NUM_EPISODES = 50
 # Though maximal score is 0, we set lower bar to let tests finish in time
 PENDULUM_SCORE_BAR = -750
