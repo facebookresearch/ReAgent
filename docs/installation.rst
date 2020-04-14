@@ -13,11 +13,13 @@ If you don't have that, you can either install it via `pyenv <https://github.com
 type the following command on your shell:
 
 .. code-block:: bash
+
    python --version
 
 Once you make sure you have the right version, you can simply clone this repo and pip install
 
 .. code-block:: bash
+
    git clone https://github.com/facebookresearch/ReAgent.git
    cd ReAgent
    pip install .[gym]
@@ -27,6 +29,7 @@ If you don't want need gym dependencies, you can remove `[gym]`
 To verify your setup please run tox
 
 .. code-block:: bash
+
    pip install tox
    tox
 
@@ -39,6 +42,7 @@ under `the artifact section of end_to_end_test <https://app.circleci.com/pipelin
 To build from source, you'll need JDK, Scala, & Maven. We will use `SDKMAN! <https://sdkman.io/>`_ to install them.
 
 .. code-block:: bash
+
    curl -s "https://get.sdkman.io" | bash
    source "$HOME/.sdkman/bin/sdkman-init.sh"
    sdk version
@@ -49,11 +53,13 @@ To build from source, you'll need JDK, Scala, & Maven. We will use `SDKMAN! <htt
 If you are testing locally, you can also install Spark
 
 .. code-block:: bash
+
    sdk install spark 2.3.3
 
 Now, you can build our preprocessing JAR
 
 .. code-block:: bash
+
    mvn -f preprocessing/pom.xml clean packag
 
 RASP
@@ -75,6 +81,7 @@ We recommend `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ for t
 If you want to install those requirements via conda, you can type this in the shell:
 
 .. code-block::
+
    conda install --file rasp_requirements.txt
 
 To get libtorch, please go to `pytorch <https://pytorch.org/get-started/locally/>`_.
@@ -84,11 +91,13 @@ Below, we assumed you put the extracted file at `$HOME/libtorch`.
 You will also need to make sure to init git submodules
 
 .. code-block::
+
    git submodule update --force --recursive --init --remote
 
 Now, you are ready to build
 
 .. code-block::
+
    mkdir -p serving/build
    cd serving/build
    cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch -DCMAKE_CXX_STANDARD=17 ..
