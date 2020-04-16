@@ -4,13 +4,32 @@
 from typing import Optional
 
 from gym import Env
+from reagent.gym.policies.policy import Policy
 from reagent.gym.agents.agent import Agent
+from reagent.gym.types import (
+    PolicyPreprocessor,
+    ActionPreprocessor,
+    PostStep,
+    Scorer,
+    Sampler,
+)
 
 
-def run_episode(env: Env, agent: Agent, max_steps: Optional[int] = None) -> float:
+def run_episode(
+    env: Env,
+    policy: Policy,
+    action_preprocessor: ActionPreprocessor,
+    post_step: PostStep,
+    max_steps: Optional[int] = None,
+) -> float:
     """
-    Return total reward
+    Constructs the agent and runs it for an episode.
+    Return sum of rewards from episode.
     """
+    agent = Agent(
+        policy=policy, action_preprocessor=action_preprocessor, post_step=post_step
+    )
+
     ep_reward = 0.0
     obs = env.reset()
     terminal = False

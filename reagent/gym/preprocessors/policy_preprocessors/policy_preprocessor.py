@@ -16,7 +16,10 @@ def numpy_policy_preprocessor(device: str = "cpu") -> PolicyPreprocessor:
     device = torch.device(device)
 
     def preprocess_obs(obs: np.array) -> rlt.PreprocessedState:
-        return rlt.PreprocessedState.from_tensor(torch.tensor(obs).float().to(device))
+        # convert to batch of one
+        assert obs.ndim == 1, f"Expect single obs of dim 1, got obs with shape {obs.shape}"
+        state = torch.tensor(obs).float().unsqueeze(0).to(device)
+        return rlt.PreprocessedState.from_tensor(state)
 
     return preprocess_obs
 
@@ -31,7 +34,7 @@ def tiled_numpy_policy_preprocessor(
         tiled_state = torch.repeat_interleave(
             obs.unsqueeze(0), repeats=num_actions, axis=0
         )
-        actions = torch.eye(num_actions)
+        actions = torch.eye(num_actions).to(device)
         ts_size = tiled_state.size(0)
         a_size = actions.size(0)
         assert (
