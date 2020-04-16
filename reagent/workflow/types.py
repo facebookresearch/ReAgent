@@ -24,13 +24,13 @@ from reagent.workflow.tagged_union import TaggedUnion  # noqa F401
 
 
 @dataclass
-class TableSpec(BaseDataClass):
+class TableSpec:
     table_name: str
 
 
 @dataclass
 class Dataset:
-    url: str
+    parquet_url: str
 
 
 @dataclass
