@@ -348,7 +348,7 @@ need normalization to prevent some large features from drowning others.
 
 ::
 
-   ➜  python ml/rl/workflow/create_normalization_metadata.py -p serving/examples/ecommerce/training/cb_train.json
+   ➜  python reagent/workflow/create_normalization_metadata.py -p serving/examples/ecommerce/training/cb_train.json
 
    WARNING:root:This caffe2 python run does not have GPU support. Will run in CPU only mode.
    INFO:ml.rl.preprocessing.normalization:Got feature: 0
@@ -361,7 +361,7 @@ Now we can train our contextual bandit:
 
 ::
 
-   ➜  rm -Rf "outputs/*" ; python ml/rl/workflow/dqn_workflow.py -p serving/examples/ecommerce/training/cb_train.json
+   ➜  rm -Rf "outputs/*" ; python reagent/workflow/dqn_workflow.py -p serving/examples/ecommerce/training/cb_train.json
    INFO:ml.rl.json_serialize:TYPE:
    INFO:ml.rl.json_serialize:{'gamma': 0.0, 'target_update_rate': 1.0, 'maxq_learning': True, 'epsilon': 0.2, 'temperature': 0.35, 'softmax_policy': 0}
    ...
@@ -369,9 +369,9 @@ Now we can train our contextual bandit:
    INFO:ml.rl.workflow.base_workflow:Training finished. Processed ~6555 examples / s.
    INFO:ml.rl.preprocessing.preprocessor:CUDA availability: False
    INFO:ml.rl.preprocessing.preprocessor:NOT Using GPU: GPU not requested or not available.
-   /Users/jjg/github/Horizon/ml/rl/preprocessing/preprocessor.py:546: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+   /Users/jjg/github/Horizon/reagent/preprocessing/preprocessor.py:546: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
      elif max_value.gt(MAX_FEATURE_VALUE):
-   /Users/jjg/github/Horizon/ml/rl/preprocessing/preprocessor.py:552: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+   /Users/jjg/github/Horizon/reagent/preprocessing/preprocessor.py:552: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
      elif min_value.lt(MIN_FEATURE_VALUE):
    INFO:__main__:Saving PyTorch trainer to outputs/trainer_1571105504.pt
    INFO:ml.rl.workflow.base_workflow:Saving TorchScript predictor to outputs/model_1571105504.torchscript

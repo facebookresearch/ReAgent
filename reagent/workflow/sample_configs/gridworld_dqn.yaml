@@ -1,0 +1,68 @@
+---
+input_table_spec:
+  table_name: test_table
+model:
+  DiscreteDQN:
+    trainer_param:
+      actions:
+      - U
+      - D
+      - L
+      - R
+      rl:
+        gamma: 0.9
+        epsilon: 0.1
+        target_update_rate: 0.001
+        maxq_learning: true
+        reward_boost:
+        temperature: 0.01
+        softmax_policy: 1
+        use_seq_num_diff_as_time_diff: false
+        q_network_loss: mse
+        set_missing_value_to_zero: false
+        tensorboard_logging_freq: 0
+        predictor_atol_check: 0
+        predictor_rtol_check: 5.0e-05
+        time_diff_unit_length: 1
+        multi_steps:
+        ratio_different_predictions_tolerance: 0
+      double_q_learning: true
+      bcq:
+      minibatch_size: 1024
+      minibatches_per_step: 1
+      optimizer:
+        optimizer: ADAM
+        learning_rate: 0.001
+        l2_decay: 0.01
+      evaluation:
+        calc_cpe_in_training: true
+    net_builder:
+      Dueling:
+        sizes:
+        - 256
+        - 128
+        activations:
+        - relu
+        - relu
+    cpe_net_builder:
+      FullyConnected:
+        sizes:
+        - 256
+        - 128
+        activations:
+        - relu
+        - relu
+        dropout_ratio: 0
+    target_action_distribution:
+    preprocessing_options:
+      feature_overrides:
+      tablesample:
+      whitelist_features:
+      max_unique_enum_values: 0
+    reader_options:
+num_epochs: 1
+reward_options: {}
+validator:
+  NoValidation: {}
+publisher:
+  NoPublishing: {}
