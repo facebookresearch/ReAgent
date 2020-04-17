@@ -5,6 +5,7 @@ from functools import partial
 from typing import Tuple
 
 import numpy as np
+import pytest
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
@@ -22,6 +23,7 @@ class TestSlateQTrainer(HorizonTestBase):
         torch.manual_seed(0)
         np.random.seed(0)
 
+    @pytest.mark.serial
     def test_slate_q_trainer(self):
         recsim = RecSim(num_users=10)
 
