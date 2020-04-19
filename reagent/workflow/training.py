@@ -9,12 +9,10 @@ from reagent.workflow.env import get_workflow_id
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.publishers.union import ModelPublisher__Union
 from reagent.workflow.types import (
-    PublishingResult__Union,
     RecurringPeriod,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
-    ValidationResult__Union,
 )
 from reagent.workflow.validators.union import ModelValidator__Union
 

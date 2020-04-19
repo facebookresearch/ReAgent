@@ -4,14 +4,12 @@
 import logging
 from typing import Tuple
 
-import numpy as np
 import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.configuration import make_config_class, resolve_defaults
 from reagent.core.dataclasses import field
-from reagent.parameters import ContinuousActionModelParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.training_data_page import TrainingDataPage
 

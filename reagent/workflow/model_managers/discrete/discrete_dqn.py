@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 
-import copy
 import logging
-from typing import List, Optional
 
 import torch  # @manual
-from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
-from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
 from reagent.parameters import param_hash
 from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
@@ -39,6 +35,8 @@ class DiscreteDQN(DiscreteDQNBase):
         self.rl_parameters = self.trainer_param.rl
         self.eval_parameters = self.trainer_param.evaluation
         self.action_names = self.trainer_param.actions
+        self.state_names = self.trainer_param.states
+        self.metric_names = self.trainer_param.metrics
         assert len(self.action_names) > 1, "DiscreteDQNModel needs at least 2 actions"
         assert (
             self.trainer_param.minibatch_size % 8 == 0
