@@ -19,7 +19,7 @@ from reagent.workflow.types import Dataset, TableSpec
 logger = logging.getLogger(__name__)
 
 
-def generate_data_discrete(sqlCtx, multi_step: bool, table_name: str):
+def generate_data_discrete(sqlCtx, multi_steps: bool, table_name: str):
     # Simulate the following MDP:
     # state: 0, action: 7 ('L'), reward: 0,
     # state: 1, action: 8 ('R'), reward: 1,
@@ -29,8 +29,8 @@ def generate_data_discrete(sqlCtx, multi_step: bool, table_name: str):
     actions = ["L", "R", "U", "D"]
     possible_actions = [["L", "R"], ["R", "U"], ["U", "D"], ["D"]]
 
-    # assume multi_step=2
-    if multi_step:
+    # assume multi_steps=2
+    if multi_steps:
         rewards = [[0, 1], [1, 4], [4, 5], [5]]
         metrics = [
             [{"reward": 0}, {"reward": 1}],
@@ -71,7 +71,7 @@ def generate_data_discrete(sqlCtx, multi_step: bool, table_name: str):
         terminals=terminals,
         possible_next_actions=possible_next_actions,
     )
-    if not multi_step:
+    if not multi_steps:
         samples = samples.to_single_step()
 
     next_state_features = samples.next_states
@@ -182,7 +182,7 @@ def verify_single_step_except_rewards(df):
     )
 
 
-def verify_multi_step_except_rewards(df):
+def verify_multi_steps_except_rewards(df):
     assertEq(df["sequence_number"], pandas.Series([1, 2, 3, 4]))
 
     state_features_presence = np.array(
@@ -268,20 +268,23 @@ class TestQueryData(ReagentSQLTestBase):
         self.temp_parquet.cleanup()
         super().tearDown()
 
-    def generate_data(self, multi_step=False):
+    def generate_data(self, multi_steps=False):
         generate_data_discrete(
-            self.sqlCtx, multi_step=multi_step, table_name=self.table_name
+            self.sqlCtx, multi_steps=multi_steps, table_name=self.table_name
         )
 
-    def _read_data(self, custom_reward_expr=None, gamma=None, multi_step=None):
+    def _read_data(self, custom_reward_expression=None, gamma=None, multi_steps=None):
+        ts = TableSpec(
+            table_name=self.table_name,
+            output_dataset=Dataset(parquet_url=self.parquet_url),
+        )
         query_data(
-            table_spec=TableSpec(table_name=self.table_name),
-            output_spec=Dataset(parquet_url=self.parquet_url),
-            state_keys=[0, 1, 4, 5, 6],
+            input_table_spec=ts,
+            states=[0, 1, 4, 5, 6],
             actions=["L", "R", "U", "D"],
-            metrics_keys=["reward"],
-            custom_reward_expr=custom_reward_expr,
-            multi_step=multi_step,
+            metrics=["reward"],
+            custom_reward_expression=custom_reward_expression,
+            multi_steps=multi_steps,
             gamma=gamma,
         )
         df = self.sqlCtx.read.parquet(self.parquet_url)
@@ -302,19 +305,19 @@ class TestQueryData(ReagentSQLTestBase):
     @pytest.mark.serial
     def test_query_data_single_step_custom_reward(self):
         self.generate_data()
-        df = self._read_data(custom_reward_expr="POWER(reward, 3) + 10")
+        df = self._read_data(custom_reward_expression="POWER(reward, 3) + 10")
         df = df.toPandas()
         verify_single_step_except_rewards(df)
         assertEq(df["reward"], np.array([10.0, 11.0, 74.0, 135.0], dtype="float32"))
         logger.info("single-step custom reward seems fine")
 
     @pytest.mark.serial
-    def test_query_data_multi_step(self):
+    def test_query_data_multi_steps(self):
         gamma = 0.9
-        self.generate_data(multi_step=True)
-        df = self._read_data(multi_step=2, gamma=gamma)
+        self.generate_data(multi_steps=True)
+        df = self._read_data(multi_steps=2, gamma=gamma)
         df = df.toPandas()
-        verify_multi_step_except_rewards(df)
+        verify_multi_steps_except_rewards(df)
         assertAllClose(
             df["reward"],
             np.array(
