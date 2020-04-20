@@ -7,7 +7,6 @@ import sys
 import time
 from typing import Dict
 
-import numpy as np
 import torch
 from reagent.evaluation.evaluator import Evaluator
 from reagent.json_serialize import from_json
@@ -130,6 +129,7 @@ def single_process_main(gpu_index, *args):
         evaluation=evaluation_parameters,
     )
     state_normalization = BaseWorkflow.read_norm_file(params["state_norm_data_path"])
+    logger.info(f"Got state normalization: {state_normalization}")
 
     writer = SummaryWriter(log_dir=params["model_output_path"])
     logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
