@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 
-import copy
 import logging
-from typing import List, Optional
 
 import torch  # @manual
-from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
-from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
 from reagent.parameters import param_hash
 from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters

@@ -5,7 +5,6 @@ import argparse
 import json
 import logging
 import os
-import time
 
 import torch
 from reagent.models.dqn import FullyConnectedDQN
