@@ -6,6 +6,7 @@ can be tested in this file.
 """
 import json
 import logging
+import os
 import random
 import unittest
 from typing import Optional
@@ -16,6 +17,7 @@ import torch
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.replay_buffer_add_fn import replay_buffer_add_fn
 from reagent.gym.agents.replay_buffer_train_fn import replay_buffer_train_fn
+from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.continuous_sampler import GaussianSampler
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -45,14 +47,24 @@ from reagent.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 from reagent.test.gym.run_gym import OpenAiGymParameters, create_trainer
 
 
-DISCRETE_DQN_CARTPOLE_JSON = "reagent/test/gym/discrete_dqn_cartpole_v0.json"
-DISCRETE_DQN_CARTPOLE_NUM_EPISODES = 50
-PARAMETRIC_DQN_CARTPOLE_JSON = "reagent/test/gym/parametric_dqn_cartpole_v0.json"
-PARAMETRIC_DQN_CARTPOLE_NUM_EPISODES = 50
-# Though maximal score is 200, we set a lower bar to let tests finish in time
-CARTPOLE_SCORE_BAR = 100
+curr_dir = os.path.dirname(__file__)
 
-SAC_PENDULUM_JSON = "reagent/test/gym/sac_pendulum_v0.json"
+
+DISCRETE_DQN_CARTPOLE_JSON = os.path.join(
+    curr_dir, "configs/discrete_dqn_cartpole_v0.json"
+)
+DISCRETE_DQN_CARTPOLE_NUM_EPISODES = 150
+PARAMETRIC_DQN_CARTPOLE_JSON = os.path.join(
+    curr_dir, "configs/parametric_dqn_cartpole_v0.json"
+)
+PARAMETRIC_DQN_CARTPOLE_NUM_EPISODES = 150
+CARTPOLE_SCORE_BAR = 200
+
+OPEN_GRIDWORLD_JSON = os.path.join(curr_dir, "configs/open_gridworld.json")
+OPEN_GRIDWORLD_NUM_EPISODES = 100
+OPEN_GRIDWORLD_SCORE_BAR = 0.9
+
+SAC_PENDULUM_JSON = os.path.join(curr_dir, "configs/sac_pendulum_v0.json")
 SAC_PENDULUM_NUM_EPISODES = 50
 # Though maximal score is 0, we set lower bar to let tests finish in time
 PENDULUM_SCORE_BAR = -750
@@ -78,8 +90,9 @@ def build_trainer(config):
 def run(env: gym.Env, agent: Agent, num_episodes: int, max_steps: Optional[int] = None):
     reward_history = []
     for i in range(num_episodes):
-        print(f"running episode {i}")
+        print(f"Starting episode {i}")
         ep_reward = run_episode(env, agent, max_steps)
+        print(f"Finished episode {i} with reward {ep_reward}")
         reward_history.append(ep_reward)
     return reward_history
 
@@ -87,7 +100,7 @@ def run(env: gym.Env, agent: Agent, num_episodes: int, max_steps: Optional[int] 
 def run_discrete_dqn_cartpole(config):
     trainer = build_trainer(config)
     num_episodes = DISCRETE_DQN_CARTPOLE_NUM_EPISODES
-    env = gym.make(config.env)
+    env = EnvFactory.make(config.env)
     wrapped_env = OpenAIGymEnvironment(config.env)
     action_shape = np.array(wrapped_env.actions).shape
     action_type = np.int32
@@ -111,7 +124,7 @@ def run_discrete_dqn_cartpole(config):
     normalization = wrapped_env.normalization
     policy = Policy(
         scorer=discrete_dqn_scorer(trainer.q_network),
-        sampler=SoftmaxActionSampler(),
+        sampler=SoftmaxActionSampler(temperature=0.01),
         policy_preprocessor=numpy_policy_preprocessor(),
     )
     agent = Agent(
@@ -142,7 +155,7 @@ def run_discrete_dqn_cartpole(config):
 def run_parametric_dqn_cartpole(config):
     trainer = build_trainer(config)
     num_episodes = PARAMETRIC_DQN_CARTPOLE_NUM_EPISODES
-    env = gym.make(config.env)
+    env = EnvFactory.make(config.env)
     wrapped_env = OpenAIGymEnvironment(config.env)
     action_shape = np.array(wrapped_env.actions).shape
     action_type = np.float32
@@ -167,7 +180,7 @@ def run_parametric_dqn_cartpole(config):
 
     policy = Policy(
         scorer=parametric_dqn_scorer(len(actions), trainer.q_network),
-        sampler=SoftmaxActionSampler(),
+        sampler=SoftmaxActionSampler(temperature=0.01),
         policy_preprocessor=tiled_numpy_policy_preprocessor(len(actions)),
     )
     agent = Agent(
@@ -195,10 +208,65 @@ def run_parametric_dqn_cartpole(config):
     return reward_history
 
 
+def run_open_gridworld(config):
+    trainer = build_trainer(config)
+    num_episodes = OPEN_GRIDWORLD_NUM_EPISODES
+    env = EnvFactory.make(config.env)
+    wrapped_env = OpenAIGymEnvironment(config.env)
+    action_shape = np.array(wrapped_env.actions).shape
+    action_type = np.int32
+    replay_buffer = ReplayBuffer(
+        observation_shape=env.reset().shape,
+        stack_size=1,
+        replay_capacity=config.max_replay_memory_size,
+        batch_size=trainer.minibatch_size,
+        observation_dtype=np.float32,
+        action_shape=action_shape,
+        action_dtype=action_type,
+        reward_shape=(),
+        reward_dtype=np.float32,
+        extra_storage_types=[
+            ReplayElement("possible_actions_mask", action_shape, action_type),
+            ReplayElement("log_prob", (), np.float32),
+        ],
+    )
+
+    actions = wrapped_env.actions
+    normalization = wrapped_env.normalization
+    policy = Policy(
+        scorer=discrete_dqn_scorer(trainer.q_network),
+        sampler=SoftmaxActionSampler(temperature=0.01),
+        policy_preprocessor=numpy_policy_preprocessor(),
+    )
+    agent = Agent(
+        policy=policy,
+        action_preprocessor=discrete_action_preprocessor,
+        replay_buffer=replay_buffer,
+        replay_buffer_add_fn=replay_buffer_add_fn,
+        replay_buffer_train_fn=replay_buffer_train_fn(
+            trainer=trainer,
+            trainer_preprocessor=discrete_dqn_trainer_preprocessor(
+                len(actions), normalization
+            ),
+            training_freq=config.run_details.train_every_ts,
+            batch_size=trainer.minibatch_size,
+            replay_burnin=config.run_details.train_after_ts,
+        ),
+    )
+
+    reward_history = run(
+        env=env,
+        agent=agent,
+        num_episodes=num_episodes,
+        max_steps=config.run_details.max_steps,
+    )
+    return reward_history
+
+
 def run_sac_pendulum(config):
     trainer = build_trainer(config)
     num_episodes = SAC_PENDULUM_NUM_EPISODES
-    env = gym.make(config.env)
+    env = EnvFactory.make(config.env)
     action_shape = (1,)
     action_type = np.float32
     replay_buffer = ReplayBuffer(
@@ -270,6 +338,21 @@ class TestGym(unittest.TestCase):
                 len(reward_history),
                 reward_history[-1],
                 CARTPOLE_SCORE_BAR,
+                reward_history,
+            ),
+        )
+
+    def test_open_gridworld(self):
+        config = extract_config(OPEN_GRIDWORLD_JSON)
+        self.assertTrue(config.model_type == "pytorch_discrete_dqn")
+        reward_history = run_open_gridworld(config)
+        self.assertTrue(
+            reward_history[-1] >= OPEN_GRIDWORLD_SCORE_BAR,
+            "reward after %d episodes is %f < %f...\nFull reward history: %s"
+            % (
+                len(reward_history),
+                reward_history[-1],
+                OPEN_GRIDWORLD_SCORE_BAR,
                 reward_history,
             ),
         )
