@@ -22,13 +22,23 @@ class BaseDataClass:
     def _replace(self, **kwargs):
         return cast(type(self), dataclasses.replace(self, **kwargs))
 
-    def pin_memory(self):
-        pinned_memory = {}
-        for field in dataclasses.fields(self):  # noqa F402
-            f = getattr(self, field.name)
-            if isinstance(f, (torch.Tensor, BaseDataClass)):
-                pinned_memory[field.name] = f.pin_memory()
-        return self._replace(**pinned_memory)
+
+@dataclass
+class TensorDataClass(BaseDataClass):
+    def __getattr__(self, attr):
+        tensor_attr = getattr(torch.Tensor, attr, None)
+        if tensor_attr is None or not callable(tensor_attr):
+            raise AttributeError(f"torch.Tensor doesn't have {attr} method")
+
+        def f(*args, **kwargs):
+            values = {}
+            for field in dataclasses.fields(self):  # noqa F402
+                f = getattr(self, field.name)
+                if isinstance(f, (torch.Tensor, TensorDataClass)):
+                    values[field.name] = getattr(f, attr)(*args, **kwargs)
+            return self._replace(**values)
+
+        return f
 
     def cuda(self):
         cuda_tensor = {}
@@ -83,7 +93,7 @@ class ModelFeatureConfig(BaseDataClass):
 
 
 @dataclass
-class ValuePresence(BaseDataClass):
+class ValuePresence(TensorDataClass):
     value: torch.Tensor
     presence: Optional[torch.Tensor]
 
@@ -93,7 +103,7 @@ IdListFeatures = Dict[str, IdListFeatureValue]
 
 
 @dataclass
-class FeatureVector(BaseDataClass):
+class FeatureVector(TensorDataClass):
     float_features: ValuePresence
     id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # Experimental: sticking this here instead of putting it in float_features
@@ -103,14 +113,14 @@ class FeatureVector(BaseDataClass):
 
 
 @dataclass
-class ActorOutput(BaseDataClass):
+class ActorOutput(TensorDataClass):
     action: torch.Tensor
     log_prob: Optional[torch.Tensor] = None
     action_mean: Optional[torch.Tensor] = None
 
 
 @dataclass
-class PreprocessedFeatureVector(BaseDataClass):
+class PreprocessedFeatureVector(TensorDataClass):
     float_features: torch.Tensor
     id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # Experimental: sticking this here instead of putting it in float_features
@@ -120,7 +130,7 @@ class PreprocessedFeatureVector(BaseDataClass):
 
 
 @dataclass
-class PreprocessedTiledFeatureVector(BaseDataClass):
+class PreprocessedTiledFeatureVector(TensorDataClass):
     float_features: torch.Tensor
 
     def as_preprocessed_feature_vector(self) -> PreprocessedFeatureVector:
@@ -130,7 +140,7 @@ class PreprocessedTiledFeatureVector(BaseDataClass):
 
 
 @dataclass
-class PreprocessedState(BaseDataClass):
+class PreprocessedState(TensorDataClass):
     """
     This class makes it easier to plug modules into predictor
     """
@@ -150,7 +160,7 @@ class PreprocessedState(BaseDataClass):
 
 
 @dataclass
-class PreprocessedStateAction(BaseDataClass):
+class PreprocessedStateAction(TensorDataClass):
     state: PreprocessedFeatureVector
     action: PreprocessedFeatureVector
 
@@ -172,7 +182,7 @@ class PreprocessedStateAction(BaseDataClass):
 
 
 @dataclass
-class PreprocessedRankingInput(BaseDataClass):
+class PreprocessedRankingInput(TensorDataClass):
     state: PreprocessedFeatureVector
     src_seq: PreprocessedFeatureVector
     src_src_mask: torch.Tensor
@@ -276,13 +286,13 @@ class PreprocessedRankingInput(BaseDataClass):
 
 
 @dataclass
-class RawStateAction(BaseDataClass):
+class RawStateAction(TensorDataClass):
     state: FeatureVector
     action: FeatureVector
 
 
 @dataclass
-class CommonInput(BaseDataClass):
+class CommonInput(TensorDataClass):
     """
     Base class for all inputs, both raw and preprocessed
     """
@@ -308,7 +318,7 @@ class PreprocessedDiscreteDqnInput(PreprocessedBaseInput):
 
 
 @dataclass
-class PreprocessedSlateFeatureVector(BaseDataClass):
+class PreprocessedSlateFeatureVector(TensorDataClass):
     """
     The shape of `float_features` is
     `(batch_size, slate_size, item_dim)`.
@@ -625,7 +635,7 @@ class RawMemoryNetworkInput(RawBaseInput):
 
 
 @dataclass
-class ExtraData(BaseDataClass):
+class ExtraData(TensorDataClass):
     mdp_id: Optional[
         np.ndarray
     ] = None  # Need to use a numpy array because torch doesn't support strings
@@ -636,7 +646,7 @@ class ExtraData(BaseDataClass):
 
 
 @dataclass
-class PreprocessedTrainingBatch(BaseDataClass):
+class PreprocessedTrainingBatch(TensorDataClass):
     training_input: Union[
         PreprocessedBaseInput,
         PreprocessedDiscreteDqnInput,
@@ -653,7 +663,7 @@ class PreprocessedTrainingBatch(BaseDataClass):
 
 
 @dataclass
-class RawTrainingBatch(BaseDataClass):
+class RawTrainingBatch(TensorDataClass):
     training_input: Union[
         RawBaseInput, RawDiscreteDqnInput, RawParametricDqnInput, RawPolicyNetworkInput
     ]
@@ -678,17 +688,17 @@ class RawTrainingBatch(BaseDataClass):
 
 
 @dataclass
-class SingleQValue(BaseDataClass):
+class SingleQValue(TensorDataClass):
     q_value: torch.Tensor
 
 
 @dataclass
-class AllActionQValues(BaseDataClass):
+class AllActionQValues(TensorDataClass):
     q_values: torch.Tensor
 
 
 @dataclass
-class MemoryNetworkOutput(BaseDataClass):
+class MemoryNetworkOutput(TensorDataClass):
     mus: torch.Tensor
     sigmas: torch.Tensor
     logpi: torch.Tensor
@@ -700,7 +710,7 @@ class MemoryNetworkOutput(BaseDataClass):
 
 
 @dataclass
-class DqnPolicyActionSet(BaseDataClass):
+class DqnPolicyActionSet(TensorDataClass):
     greedy: int
     softmax: Optional[int] = None
     greedy_act_name: Optional[str] = None
@@ -709,13 +719,13 @@ class DqnPolicyActionSet(BaseDataClass):
 
 
 @dataclass
-class SacPolicyActionSet(BaseDataClass):
+class SacPolicyActionSet(TensorDataClass):
     greedy: torch.Tensor
     greedy_propensity: float
 
 
 @dataclass
-class PlanningPolicyOutput(BaseDataClass):
+class PlanningPolicyOutput(TensorDataClass):
     # best action to take next
     next_best_continuous_action: Optional[torch.Tensor] = None
     next_best_discrete_action_one_hot: Optional[torch.Tensor] = None
@@ -723,7 +733,7 @@ class PlanningPolicyOutput(BaseDataClass):
 
 
 @dataclass
-class RankingOutput(BaseDataClass):
+class RankingOutput(TensorDataClass):
     # a tensor of integer indices w.r.t. to possible candidates
     # shape: batch_size, tgt_seq_len
     ranked_tgt_out_idx: Optional[torch.Tensor] = None
@@ -738,5 +748,5 @@ class RankingOutput(BaseDataClass):
 
 
 @dataclass
-class RewardNetworkOutput(BaseDataClass):
+class RewardNetworkOutput(TensorDataClass):
     predicted_reward: torch.Tensor

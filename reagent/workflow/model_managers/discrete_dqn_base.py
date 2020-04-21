@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
+from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData
 from reagent.preprocessing.batch_preprocessor import (
@@ -35,18 +36,6 @@ from reagent.workflow_utils.page_handler import (
 
 logger = logging.getLogger(__name__)
 
-try:
-    from reagent.gym.policies.policy import Policy
-    from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
-    from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
-    from reagent.gym.preprocessors import (
-        argmax_action_preprocessor,
-        discrete_dqn_trainer_preprocessor,
-        numpy_policy_preprocessor,
-    )
-except ImportError:
-    logger.info(f"Using {__file__} without reagent.gym.")
-
 
 class DiscreteNormalizationParameterKeys:
     STATE = "state"
@@ -70,22 +59,22 @@ class DiscreteDQNBase(ModelManager):
     def normalization_key(cls) -> str:
         return DiscreteNormalizationParameterKeys.STATE
 
-    def create_policy(self, env) -> Policy:
+    def create_policy(self) -> Policy:
         """ Create an online DiscreteDQN Policy from env.
-            Args:
-                env: gym.Env is the environment to run on.
         """
+        # Avoiding potentially importing gym when it's not installed
+
+        from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+        from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
+
         sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
         scorer = discrete_dqn_scorer(self.trainer.q_network)
-        policy_preprocessor = numpy_policy_preprocessor()
-        return Policy(
-            scorer=scorer, sampler=sampler, policy_preprocessor=policy_preprocessor
-        )
-
-    def create_action_preprocessor(self):
-        return argmax_action_preprocessor
+        return Policy(scorer=scorer, sampler=sampler)
 
     def create_trainer_preprocessor(self):
+        # Avoiding potentially importing gym when it's not installed
+        from reagent.gym.preprocessors import discrete_dqn_trainer_preprocessor
+
         return discrete_dqn_trainer_preprocessor(
             len(self.action_names), self.state_normalization_parameters
         )

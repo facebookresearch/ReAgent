@@ -5,13 +5,11 @@ from typing import Any, Optional
 
 import reagent.types as rlt
 import torch
-from reagent.gym.types import PolicyPreprocessor, Sampler, Scorer
+from reagent.gym.types import Sampler, Scorer
 
 
 class Policy:
-    def __init__(
-        self, scorer: Scorer, sampler: Sampler, policy_preprocessor: PolicyPreprocessor
-    ):
+    def __init__(self, scorer: Scorer, sampler: Sampler):
         """
         The Policy composes the scorer and sampler to create actions.
 
@@ -22,7 +20,6 @@ class Policy:
         """
         self.scorer = scorer
         self.sampler = sampler
-        self.policy_preprocessor = policy_preprocessor
 
     def act(
         self, obs: Any, possible_actions_mask: Optional[torch.Tensor] = None
@@ -32,21 +29,13 @@ class Policy:
         Optionally takes in a possible_actions_mask
             (only useful in the discrete case)
         These are the actions being put into the replay buffer, not necessary
-        the actions taken by the environment! Those will be preprocessed once more
-        with the action_preprocessor.
+        the actions taken by the environment!
         """
-        preprocessed_obs = self.policy_preprocessor(obs)
-        scores = self.scorer(preprocessed_obs)
+        scores = self.scorer(obs)
         if possible_actions_mask is None:
             # samplers that don't expect this mask will go here
             actor_output = self.sampler.sample_action(scores)
         else:
             actor_output = self.sampler.sample_action(scores, possible_actions_mask)
 
-        # detach + convert to cpu
-        actor_output.action = actor_output.action.cpu().detach()
-        if actor_output.log_prob:
-            actor_output.log_prob = actor_output.log_prob.cpu().detach()
-        if actor_output.action_mean:
-            actor_output.action_mean = actor_output.action_mean.cpu().detach()
-        return actor_output
+        return actor_output.cpu().detach()

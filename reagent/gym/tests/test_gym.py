@@ -70,6 +70,8 @@ def run_test(
     last_score_bar: float,
 ):
     env = EnvFactory.make(env)
+    env.seed(SEED)
+    env.action_space.seed(SEED)
     normalization = build_normalizer(env)
     logger.info(f"Normalization is {normalization}")
 
@@ -80,7 +82,7 @@ def run_test(
         normalization_data_map=normalization,
     )
 
-    policy = manager.create_policy(env)
+    policy = manager.create_policy()
     replay_buffer = ReplayBuffer.create_from_env(
         env=env,
         replay_memory_size=replay_memory_size,
@@ -96,11 +98,7 @@ def run_test(
         replay_burnin=train_after_ts,
     )
 
-    agent = Agent(
-        policy=policy,
-        action_preprocessor=manager.create_action_preprocessor(),
-        post_transition_callback=post_step,
-    )
+    agent = Agent.create_for_env(env, policy=policy, post_transition_callback=post_step)
 
     reward_history = []
     for i in range(num_episodes):

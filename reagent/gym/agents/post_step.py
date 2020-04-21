@@ -62,6 +62,7 @@ def train_with_replay_buffer_post_step(
     return post_step
 
 
+# TODO: do not poass action_preprocessor here
 def log_data_post_step(
     dataset: RLDataset, action_preprocessor: ActionPreprocessor, mdp_id: str
 ) -> PostStep:
