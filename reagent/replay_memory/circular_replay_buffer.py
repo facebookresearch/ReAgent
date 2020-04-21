@@ -34,7 +34,9 @@ import os
 import pickle
 from typing import Dict, List, Optional, Tuple
 
+import gym
 import numpy as np
+from gym.spaces import Box, Discrete
 
 
 logger = logging.getLogger(__name__)
@@ -195,6 +197,53 @@ class ReplayBuffer(object):
     @property
     def size(self) -> int:
         return self._num_valid_indices
+
+    @classmethod
+    def create_from_env(
+        cls,
+        env: gym.Env,
+        replay_memory_size: int,
+        batch_size: int,
+        stack_size: int = 1,
+        store_possible_actions_mask: bool = True,
+        store_log_prob: bool = True,
+    ):
+        assert isinstance(
+            env.observation_space, Box
+        ), f"observation space has type {type(env.observation_space)}"
+        if isinstance(env.action_space, Box):
+            actions_type = env.action_space.dtype  # type: ignore
+            actions_shape = env.action_space.shape  # type: ignore
+        elif isinstance(env.action_space, Discrete):
+            # TODO: don't store one-hot encoded actions in RB.
+            actions_type = env.action_space.dtype  # type: ignore
+            actions_shape = (env.action_space.n,)  # type: ignore
+        else:
+            raise NotImplementedError(
+                f"env.action_space {type(env.action_space)} not supported."
+            )
+
+        extra_storage_types = []
+        if store_possible_actions_mask:
+            extra_storage_types.append(
+                ReplayElement("possible_actions_mask", actions_shape, np.int64)
+            )
+
+        if store_log_prob:
+            extra_storage_types.append(ReplayElement("log_prob", (), np.float32))
+
+        return cls(
+            stack_size=stack_size,
+            replay_capacity=replay_memory_size,
+            batch_size=batch_size,
+            observation_shape=env.observation_space.shape,  # type: ignore
+            observation_dtype=env.observation_space.dtype,  # type: ignore
+            action_shape=actions_shape,
+            action_dtype=actions_type,
+            reward_shape=(),
+            reward_dtype=np.float32,
+            extra_storage_types=extra_storage_types,
+        )
 
     def set_index_valid_status(self, idx: int, is_valid: bool):
         old_valid = self._is_index_valid[idx]

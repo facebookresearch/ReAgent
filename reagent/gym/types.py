@@ -8,7 +8,6 @@ from typing import Any, Callable, Optional
 import numpy as np
 import reagent.types as rlt
 import torch
-from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
 class Sampler(ABC):
@@ -43,24 +42,10 @@ PolicyPreprocessor = Callable[[Any], Any]
 ActionPreprocessor = Callable[[rlt.ActorOutput], np.array]
 
 
-ObservationType = Any
-RewardType = float
-TerminalType = bool
-PossibleActionsMaskType = Optional[torch.Tensor]
-ReplayBufferAddFn = Callable[
-    [
-        ReplayBuffer,
-        ObservationType,
-        rlt.ActorOutput,
-        RewardType,
-        TerminalType,
-        PossibleActionsMaskType,
-    ],
-    None,
-]
-
-# Called in post_step of Agent to train on sampled batch from RB
-ReplayBufferTrainFn = Callable[[ReplayBuffer], None]
+""" Called after env.step(action)
+Args: (state, actor_output, reward, terminal, possible_actions_mask)
+"""
+PostStep = Callable[[Any, rlt.ActorOutput, float, bool, Optional[torch.Tensor]], None]
 
 
 @dataclass

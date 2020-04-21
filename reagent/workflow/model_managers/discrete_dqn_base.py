@@ -8,7 +8,11 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData
-from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+from reagent.preprocessing.batch_preprocessor import (
+    BatchPreprocessor,
+    DiscreteDqnBatchPreprocessor,
+)
+from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -30,6 +34,18 @@ from reagent.workflow_utils.page_handler import (
 
 
 logger = logging.getLogger(__name__)
+
+try:
+    from reagent.gym.policies.policy import Policy
+    from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+    from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
+    from reagent.gym.preprocessors import (
+        argmax_action_preprocessor,
+        discrete_dqn_trainer_preprocessor,
+        numpy_policy_preprocessor,
+    )
+except ImportError:
+    logger.info(f"Using {__file__} without reagent.gym.")
 
 
 class DiscreteNormalizationParameterKeys:
@@ -53,6 +69,26 @@ class DiscreteDQNBase(ModelManager):
     @classmethod
     def normalization_key(cls) -> str:
         return DiscreteNormalizationParameterKeys.STATE
+
+    def create_policy(self, env) -> Policy:
+        """ Create an online DiscreteDQN Policy from env.
+            Args:
+                env: gym.Env is the environment to run on.
+        """
+        sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
+        scorer = discrete_dqn_scorer(self.trainer.q_network)
+        policy_preprocessor = numpy_policy_preprocessor()
+        return Policy(
+            scorer=scorer, sampler=sampler, policy_preprocessor=policy_preprocessor
+        )
+
+    def create_action_preprocessor(self):
+        return argmax_action_preprocessor
+
+    def create_trainer_preprocessor(self):
+        return discrete_dqn_trainer_preprocessor(
+            len(self.action_names), self.state_normalization_parameters
+        )
 
     @property
     def metrics_to_score(self) -> List[str]:
@@ -108,18 +144,13 @@ class DiscreteDQNBase(ModelManager):
         reward_options: RewardOptions,
         eval_dataset: bool,
     ) -> Dataset:
-        # sort is set to False because EvaluationPageHandler sort the data anyway
         return query_data(
-            input_table_spec,
-            self.action_names,
-            self.rl_parameters.use_seq_num_diff_as_time_diff,
+            input_table_spec=input_table_spec,
+            actions=self.action_names,
             sample_range=sample_range,
-            metric_reward_values=reward_options.metric_reward_values,
             custom_reward_expression=reward_options.custom_reward_expression,
-            additional_reward_expression=reward_options.additional_reward_expression,
             multi_steps=self.multi_steps,
             gamma=self.rl_parameters.gamma,
-            sort=False,
         )
 
     @property
@@ -127,7 +158,12 @@ class DiscreteDQNBase(ModelManager):
         return self.rl_parameters.multi_steps
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
-        raise NotImplementedError
+        return DiscreteDqnBatchPreprocessor(
+            state_preprocessor=Preprocessor(
+                normalization_parameters=self.state_normalization_parameters,
+                use_gpu=self.use_gpu,
+            )
+        )
 
     def train(
         self, train_dataset: Dataset, eval_dataset: Optional[Dataset], num_epochs: int
@@ -135,7 +171,7 @@ class DiscreteDQNBase(ModelManager):
         """
         Train the model
 
-        Returns partially filled RLTrainningOutput. The field that should not be filled
+        Returns partially filled RLTrainingOutput. The field that should not be filled
         are:
         - output_path
         - warmstart_output_path

@@ -1,0 +1,38 @@
+env: MiniGrid-Empty-5x5-v0
+model:
+  DiscreteDQN:
+    trainer_param:
+      actions:
+      - 101
+      - 102
+      - 103
+      - 104
+      - 105
+      - 106
+      - 107
+      rl:
+        gamma: 0.99
+        epsilon: 0.05
+        target_update_rate: 0.1
+        maxq_learning: true
+        temperature: 0.01
+        softmax_policy: false
+        q_network_loss: mse
+      double_q_learning: true
+      minibatch_size: 512
+      minibatches_per_step: 1
+      optimizer:
+        optimizer: ADAM
+        learning_rate: 0.1
+      evaluation:
+        calc_cpe_in_training: false
+    net_builder:
+      FullyConnected:
+        sizes: []
+        activations: []
+replay_memory_size: 2000
+train_every_ts: 3
+train_after_ts: 1
+num_episodes: 100
+max_steps: 2000
+last_score_bar: 0.9

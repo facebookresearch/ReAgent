@@ -10,7 +10,8 @@ class EnvFactory:
     @staticmethod
     def make(name: str) -> gym.Env:
         env = gym.make(name)
+        env = ReseedWrapper(env)
         if name.startswith("MiniGrid-"):
             # Wrap in minigrid simplifier
-            env = SimpleObsWrapper(ReseedWrapper(env))
+            env = SimpleObsWrapper(env)
         return env

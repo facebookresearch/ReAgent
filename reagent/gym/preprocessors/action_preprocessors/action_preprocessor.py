@@ -11,7 +11,7 @@ import numpy as np
 import reagent.types as rlt
 
 
-def discrete_action_preprocessor(actor_output: rlt.ActorOutput) -> np.array:
+def argmax_action_preprocessor(actor_output: rlt.ActorOutput) -> np.array:
     """ Simply reverses the one-hot encoding and convert to numpy """
     action = actor_output.action
     assert action.dim() == 1, "action has dim %d" % action.dim()
@@ -19,6 +19,6 @@ def discrete_action_preprocessor(actor_output: rlt.ActorOutput) -> np.array:
     return idx
 
 
-def continuous_action_preprocessor(actor_output: rlt.ActorOutput) -> np.array:
+def numpy_action_preprocessor(actor_output: rlt.ActorOutput) -> np.array:
     """ Simply identity map """
     return actor_output.action.numpy()
