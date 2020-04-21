@@ -51,10 +51,8 @@ class EvaluationDataPage(NamedTuple):
         trainer: Trainer,
         reward_network: Optional[nn.Module] = None,
     ):
-        if type(tdb.training_input) == rlt.PreprocessedDiscreteDqnInput:
-            discrete_training_input = cast(
-                rlt.PreprocessedDiscreteDqnInput, tdb.training_input
-            )
+        if isinstance(tdb, rlt.PreprocessedDiscreteDqnInput):
+            discrete_training_input = cast(rlt.PreprocessedDiscreteDqnInput, tdb)
 
             return EvaluationDataPage.create_from_tensors_dqn(  # type: ignore
                 trainer,
@@ -67,7 +65,7 @@ class EvaluationDataPage(NamedTuple):
                 discrete_training_input.possible_actions_mask,  # type: ignore
                 metrics=tdb.extras.metrics,
             )
-        elif type(tdb.training_input) == rlt.PreprocessedParametricDqnInput:
+        elif isinstance(tdb.training_input, rlt.PreprocessedParametricDqnInput):
             parametric_training_input = cast(
                 rlt.PreprocessedParametricDqnInput, tdb.training_input
             )

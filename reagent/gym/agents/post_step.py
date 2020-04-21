@@ -2,23 +2,28 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
+import inspect
+import logging
 from typing import Any, Optional
 
 import reagent.types as rlt
 import torch
-from reagent.gym.types import ActionPreprocessor, PostStep, TrainerPreprocessor
+from reagent.gym.types import ActionPreprocessor, PostStep
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.training.rl_dataset import RLDataset
 from reagent.training.trainer import Trainer
 
 
+logger = logging.getLogger(__name__)
+
+
 def train_with_replay_buffer_post_step(
     replay_buffer: ReplayBuffer,
     trainer: Trainer,
-    trainer_preprocessor: TrainerPreprocessor,
     training_freq: int,
     batch_size: int,
     replay_burnin: Optional[int] = None,
+    trainer_preprocessor=None,
 ) -> PostStep:
     """ Called in post_step of agent to train based on replay buffer (RB).
         Args:
@@ -33,6 +38,22 @@ def train_with_replay_buffer_post_step(
     size_req = batch_size
     if replay_burnin is not None:
         size_req = max(size_req, replay_burnin)
+
+    if trainer_preprocessor is None:
+        sig = inspect.signature(trainer.train)
+        logger.info(f"Deriving trainer_preprocessor from {sig.parameters}")
+        # Assuming training_batch is in the first position (excluding self)
+        training_batch_param = list(sig.parameters.values())[0]
+        training_batch_type = training_batch_param.annotation
+        assert training_batch_type != inspect.Parameter.empty
+        if not hasattr(training_batch_type, "from_replay_buffer"):
+            raise NotImplementedError(
+                f"{training_batch_type} does not implement from_replay_buffer"
+            )
+
+        # TODO: handle cuda() call
+        def trainer_preprocessor(batch):
+            return training_batch_type.from_replay_buffer(batch)
 
     def post_step(
         obs: Any,

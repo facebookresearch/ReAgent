@@ -230,9 +230,11 @@ class RewardNetTrainingPageHandler(PageHandler):
 
 
 def get_actual_minibatch_size(batch, minibatch_size_preset):
-    if isinstance(batch, (PreprocessedTrainingBatch, RawTrainingBatch)):
-        batch_size = batch.batch_size()
-    elif isinstance(batch, OrderedDict):
+    try:
+        return batch.batch_size()
+    except AttributeError:
+        pass
+    if isinstance(batch, OrderedDict):
         first_key = next(iter(batch.keys()))
         batch_size = len(batch[first_key])
     else:

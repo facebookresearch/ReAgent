@@ -3,6 +3,7 @@
 
 import json
 import logging
+import os
 import random
 import unittest
 from typing import Dict, List
@@ -16,7 +17,8 @@ from reagent.test.gym.world_model.mdnrnn_gym import mdnrnn_gym
 
 logger = logging.getLogger(__name__)
 
-MDNRNN_CARTPOLE_JSON = "reagent/test/configs/mdnrnn_cartpole_v0.json"
+curr_dir = os.path.dirname(__file__)
+MDNRNN_CARTPOLE_JSON = os.path.join(curr_dir, "../../configs/mdnrnn_cartpole_v0.json")
 
 
 class TestMDNRNNGym(unittest.TestCase):

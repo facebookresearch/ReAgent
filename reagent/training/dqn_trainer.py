@@ -149,39 +149,39 @@ class DQNTrainer(DQNTrainerBase):
         return q_values, q_values_target
 
     @torch.no_grad()  # type: ignore
-    def train(self, training_batch):
+    def train(self, training_batch: rlt.PreprocessedDiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
-
-        learning_input = training_batch.training_input
+        assert isinstance(training_batch, rlt.PreprocessedDiscreteDqnInput)
         boosted_rewards = self.boost_rewards(
-            learning_input.reward, learning_input.action
+            training_batch.reward, training_batch.action
         )
 
         self.minibatch += 1
         rewards = boosted_rewards
         discount_tensor = torch.full_like(rewards, self.gamma)
-        not_done_mask = learning_input.not_terminal.float()
+        not_done_mask = training_batch.not_terminal.float()
 
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None
-            discount_tensor = torch.pow(self.gamma, learning_input.time_diff.float())
+            discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
-            discount_tensor = torch.pow(self.gamma, learning_input.step.float())
+            assert training_batch.step is not None
+            discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
-            learning_input.next_state
+            training_batch.next_state
         )
 
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
             possible_next_actions_mask = (
-                learning_input.possible_next_actions_mask.float()
+                training_batch.possible_next_actions_mask.float()
             )
             if self.bcq:
                 action_on_policy = get_valid_actions_from_imitator(
                     self.bcq_imitator,
-                    learning_input.next_state,
+                    training_batch.next_state,
                     self.bcq_drop_threshold,
                 )
                 possible_next_actions_mask *= action_on_policy
@@ -191,7 +191,7 @@ class DQNTrainer(DQNTrainerBase):
         else:
             # SARSA
             next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
-                all_next_q_values, all_next_q_values_target, learning_input.next_action
+                all_next_q_values, all_next_q_values_target, training_batch.next_action
             )
 
         filtered_next_q_vals = next_q_values * not_done_mask
@@ -200,10 +200,10 @@ class DQNTrainer(DQNTrainerBase):
 
         with torch.enable_grad():
             # Get Q-value of action taken
-            current_state = rlt.PreprocessedState(state=learning_input.state)
+            current_state = rlt.PreprocessedState(state=training_batch.state)
             all_q_values = self.q_network(current_state).q_values
             self.all_action_scores = all_q_values.detach()
-            q_values = torch.sum(all_q_values * learning_input.action, 1, keepdim=True)
+            q_values = torch.sum(all_q_values * training_batch.action, 1, keepdim=True)
 
             loss = self.q_network_loss(q_values, target_q_values)
             self.loss = loss.detach()
@@ -219,10 +219,10 @@ class DQNTrainer(DQNTrainerBase):
         )
 
         # Get Q-values of next states, used in computing cpe
-        next_state = rlt.PreprocessedState(state=learning_input.next_state)
+        next_state = rlt.PreprocessedState(state=training_batch.next_state)
         all_next_action_scores = self.q_network(next_state).q_values.detach()
 
-        logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
+        logged_action_idxs = torch.argmax(training_batch.action, dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self._calculate_cpes(
             training_batch,
             current_state,
@@ -235,20 +235,20 @@ class DQNTrainer(DQNTrainerBase):
         )
 
         if self.maxq_learning:
-            possible_actions_mask = learning_input.possible_actions_mask
+            possible_actions_mask = training_batch.possible_actions_mask
 
         if self.bcq:
             action_on_policy = get_valid_actions_from_imitator(
-                self.bcq_imitator, learning_input.state, self.bcq_drop_threshold
+                self.bcq_imitator, training_batch.state, self.bcq_drop_threshold
             )
             possible_actions_mask *= action_on_policy
 
         model_action_idxs = self.get_max_q_values(
             self.all_action_scores,
-            possible_actions_mask if self.maxq_learning else learning_input.action,
+            possible_actions_mask if self.maxq_learning else training_batch.action,
         )[1]
 
-        self.notify_observers(
+        self.notify_observers(  # type: ignore
             td_loss=self.loss,
             reward_loss=reward_loss,
             logged_actions=logged_action_idxs,

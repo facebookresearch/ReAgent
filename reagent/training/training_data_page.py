@@ -177,21 +177,17 @@ class TrainingDataPage(object):
         )
 
     def as_discrete_maxq_training_batch(self):
-        return rlt.PreprocessedTrainingBatch(
-            training_input=rlt.PreprocessedDiscreteDqnInput(
-                state=rlt.PreprocessedFeatureVector(float_features=self.states),
-                action=self.actions,
-                next_state=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_states
-                ),
-                next_action=self.next_actions,
-                possible_actions_mask=self.possible_actions_mask,
-                possible_next_actions_mask=self.possible_next_actions_mask,
-                reward=self.rewards,
-                not_terminal=self.not_terminal,
-                step=self.step,
-                time_diff=self.time_diffs,
-            ),
+        return rlt.PreprocessedDiscreteDqnInput(
+            state=rlt.PreprocessedFeatureVector(float_features=self.states),
+            action=self.actions,
+            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
+            next_action=self.next_actions,
+            possible_actions_mask=self.possible_actions_mask,
+            possible_next_actions_mask=self.possible_next_actions_mask,
+            reward=self.rewards,
+            not_terminal=self.not_terminal,
+            step=self.step,
+            time_diff=self.time_diffs,
             extras=rlt.ExtraData(
                 mdp_id=self.mdp_ids,
                 sequence_number=self.sequence_numbers,

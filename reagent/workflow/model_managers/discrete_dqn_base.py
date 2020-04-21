@@ -71,14 +71,6 @@ class DiscreteDQNBase(ModelManager):
         scorer = discrete_dqn_scorer(self.trainer.q_network)
         return Policy(scorer=scorer, sampler=sampler)
 
-    def create_trainer_preprocessor(self):
-        # Avoiding potentially importing gym when it's not installed
-        from reagent.gym.preprocessors import discrete_dqn_trainer_preprocessor
-
-        return discrete_dqn_trainer_preprocessor(
-            len(self.action_names), self.state_normalization_parameters
-        )
-
     @property
     def metrics_to_score(self) -> List[str]:
         assert self.reward_options is not None
