@@ -20,12 +20,12 @@ class SimpleObsWrapper(gym.core.ObservationWrapper):
             low=0,
             high=1,
             shape=(self.env.width * self.env.height * NUM_DIRECTIONS,),
-            dtype="uint8",
+            dtype="float32",
         )
 
     def observation(self, obs):
         retval = np.zeros(
-            (self.env.width * self.env.height * NUM_DIRECTIONS,), dtype=np.uint8
+            (self.env.width * self.env.height * NUM_DIRECTIONS,), dtype=np.float32
         )
         retval[
             self.env.agent_pos[0] * self.env.height * NUM_DIRECTIONS

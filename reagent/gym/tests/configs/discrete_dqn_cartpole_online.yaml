@@ -1,0 +1,38 @@
+env: CartPole-v0
+model:
+  DiscreteDQN:
+    trainer_param:
+      actions:
+      - 4
+      - 5
+      rl:
+        gamma: 0.99
+        epsilon: 0.05
+        target_update_rate: 0.1
+        maxq_learning: true
+        temperature: 1.0
+        softmax_policy: false
+        q_network_loss: mse
+      double_q_learning: true
+      minibatch_size: 512
+      minibatches_per_step: 1
+      optimizer:
+        optimizer: ADAM
+        learning_rate: 0.01
+        l2_decay: 0
+      evaluation:
+        calc_cpe_in_training: false
+    net_builder:
+      FullyConnected:
+        sizes:
+        - 128
+        - 64
+        activations:
+        - relu
+        - relu
+replay_memory_size: 20000
+train_every_ts: 3
+train_after_ts: 1
+num_episodes: 50
+max_steps: 200
+last_score_bar: 100.0

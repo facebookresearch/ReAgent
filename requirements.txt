@@ -1,5 +1,6 @@
 click==7.0
 gym[classic_control,box2d,atari]
+gym-minigrid
 numpy==1.17.2
 pandas==0.25.0
 pydantic==1.4

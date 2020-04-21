@@ -280,9 +280,7 @@ class TestQueryData(ReagentSQLTestBase):
         )
         query_data(
             input_table_spec=ts,
-            states=[0, 1, 4, 5, 6],
             actions=["L", "R", "U", "D"],
-            metrics=["reward"],
             custom_reward_expression=custom_reward_expression,
             multi_steps=multi_steps,
             gamma=gamma,

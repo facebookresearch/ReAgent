@@ -9,7 +9,7 @@ from reagent.gym.agents.agent import Agent
 
 def run_episode(env: Env, agent: Agent, max_steps: Optional[int] = None) -> float:
     """
-    Return total reward
+    Return sum of rewards from episode.
     """
     ep_reward = 0.0
     obs = env.reset()
