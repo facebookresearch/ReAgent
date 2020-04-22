@@ -21,13 +21,18 @@ def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
 
 def parametric_dqn_scorer(num_actions: int, q_network: ModelBase) -> Scorer:
     @torch.no_grad()
-    def score(preprocessed_obs: rlt.PreprocessedStateAction) -> torch.Tensor:
+    def score(preprocessed_obs: rlt.PreprocessedState) -> torch.Tensor:
+        tiled_state = preprocessed_obs.repeat_interleave(repeats=num_actions, axis=0)
+
+        actions = rlt.PreprocessedFeatureVector(float_features=torch.eye(num_actions))
+        preprocessed_obs = rlt.PreprocessedStateAction(tiled_state.state, actions)
+
         q_network.eval()
-        scores = q_network(preprocessed_obs).q_value.view(-1)
+        scores = q_network(preprocessed_obs).q_value.view(-1, num_actions)
         assert (
-            scores.size(0) == num_actions
+            scores.size(1) == num_actions
         ), f"scores size is {scores.size(0)}, num_actions is {num_actions}"
         q_network.train()
-        return F.log_softmax(scores)
+        return F.log_softmax(scores, dim=-1)
 
     return score

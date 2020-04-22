@@ -42,12 +42,16 @@ class SoftmaxActionSampler(Sampler):
             mod_scores = scores
         m = torch.distributions.Categorical(**{self.key: mod_scores / self.temperature})
         raw_action = m.sample()
-        action = F.one_hot(raw_action, num_actions).squeeze(0)
-        log_prob = m.log_prob(raw_action).float().squeeze(0)
+        assert raw_action.ndim == 1
+        action = F.one_hot(raw_action, num_actions)
+        assert action.ndim == 2
+        log_prob = m.log_prob(raw_action).float()
+        assert log_prob.ndim == 1
         return rlt.ActorOutput(action=action, log_prob=log_prob)
 
     @torch.no_grad()
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+        assert scores.ndim == 2
         m = torch.distributions.Categorical(**{self.key: scores / self.temperature})
         return m.log_prob(action.argmax(dim=-1)).float()
 
@@ -61,12 +65,10 @@ class GreedyActionSampler(Sampler):
     def sample_action(
         self, scores: torch.Tensor, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
-        # TODO: temp hack
-        scores = scores.unsqueeze(0)
         assert scores.dim() == 2, (
             "scores dim is %d" % scores.dim()
         )  # batch_size x num_actions
-        _, num_actions = scores.shape
+        batch_size, num_actions = scores.shape
         if possible_actions_mask is not None:
             assert scores.shape == possible_actions_mask.shape
             mod_scores = scores.clone().float()
@@ -74,14 +76,16 @@ class GreedyActionSampler(Sampler):
         else:
             mod_scores = scores
         raw_action = mod_scores.argmax(dim=1)
-        return rlt.ActorOutput(
-            action=F.one_hot(raw_action, num_actions), log_prob=torch.tensor(1.0)
-        )
+        assert raw_action.ndim == 2
+        action = F.one_hot(raw_action, num_actions)
+        assert action.shape == (batch_size, num_actions)
+        log_prob = torch.ones(batch_size, device=scores.device)
+        return rlt.ActorOutput(action=action, log_prob=log_prob)
 
     @torch.no_grad()
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         max_index = scores.argmax(-1)
-        match = max_index == action.argmax()
+        match = max_index == action.argmax(-1)
         lp = torch.zeros(scores.shape[0]).float()
         lp[match] = -float("inf")
         return lp
@@ -111,8 +115,6 @@ class EpsilonGreedyActionSampler(Sampler):
     def sample_action(
         self, scores: torch.Tensor, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
-        # TODO: temp hack
-        scores = scores.unsqueeze(0)
         assert scores.dim() == 2, (
             "scores dim is %d" % scores.dim()
         )  # batch_size x num_actions
@@ -125,9 +127,7 @@ class EpsilonGreedyActionSampler(Sampler):
 
         p = torch.zeros_like(scores)
         allowed_action_count = float(possible_actions_mask.sum().item())
-        mask = torch.repeat_interleave(
-            possible_actions_mask.bool().unsqueeze(0), batch_size, axis=0
-        )
+        mask = torch.repeat_interleave(possible_actions_mask.bool(), batch_size, axis=0)
 
         rand_prob = self.epsilon / allowed_action_count
         p[mask] = rand_prob
@@ -137,8 +137,10 @@ class EpsilonGreedyActionSampler(Sampler):
 
         m = torch.distributions.Categorical(probs=p)
         raw_action = m.sample()
-        action = F.one_hot(raw_action, num_actions).squeeze(0)
-        log_prob = m.log_prob(raw_action).squeeze(0)
+        action = F.one_hot(raw_action, num_actions)
+        assert action.shape == (batch_size, num_actions)
+        log_prob = m.log_prob(raw_action)
+        assert log_prob.shape == (batch_size,)
         return rlt.ActorOutput(action=action, log_prob=log_prob)
 
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
