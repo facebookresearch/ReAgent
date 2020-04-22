@@ -1,6 +1,6 @@
 ![Banner](logo/reagent_banner.png)
 ### Applied Reinforcement Learning @ Facebook
-[![License](https://img.shields.io/badge/license-BSD%203--Clause-brightgreen)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-green)](LICENSE)
 [![CircleCI](https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=shield)](https://circleci.com/gh/facebookresearch/ReAgent/tree/master)
 [![codecov](https://codecov.io/gh/facebookresearch/ReAgent/branch/master/graph/badge.svg)](https://codecov.io/gh/facebookresearch/ReAgent)
 ---
