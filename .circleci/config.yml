@@ -87,6 +87,7 @@ jobs:
           name: Run unittests
           command: |
             tox -e circleci
+            bash <(curl -s https://codecov.io/bash)
       - run: python setup.py bdist_wheel
       - store_artifacts:
           path: dist/reagent-0.1-py3-none-any.whl
@@ -124,6 +125,7 @@ jobs:
           name: Build preprocessing package
           command: |
             mvn -f preprocessing/pom.xml clean package
+            bash <(curl -s https://codecov.io/bash)
       - run:
           name: Run script
           command: |
