@@ -69,7 +69,7 @@
         jacoco-maven-plugin
       </artifactId>
       <version>
-        0.5.8
+        0.8.5
       </version>
       <scope>
         test
@@ -357,7 +357,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.5.8</version>
+        <version>0.8.5</version>
         <executions>
           <execution>
             <goals>
