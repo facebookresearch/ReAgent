@@ -210,18 +210,17 @@ class RLTrainer(Trainer):
             return None, None, None
 
         if training_batch.extras.metrics is None:
-            metrics_reward_concat_real_vals = training_batch.training_input.reward
+            metrics_reward_concat_real_vals = training_batch.reward
         else:
             metrics_reward_concat_real_vals = torch.cat(
-                (training_batch.training_input.reward, training_batch.extras.metrics),
-                dim=1,
+                (training_batch.reward, training_batch.extras.metrics), dim=1
             )
 
         model_propensities_next_states = masked_softmax(
             all_next_action_scores,
-            training_batch.training_input.possible_next_actions_mask
+            training_batch.possible_next_actions_mask
             if self.maxq_learning
-            else training_batch.training_input.next_action,
+            else training_batch.next_action,
             self.rl_temperature,
         )
 
@@ -282,9 +281,9 @@ class RLTrainer(Trainer):
 
         model_propensities = masked_softmax(
             all_action_scores,
-            training_batch.training_input.possible_actions_mask
+            training_batch.possible_actions_mask
             if self.maxq_learning
-            else training_batch.training_input.action,
+            else training_batch.action,
             self.rl_temperature,
         )
         model_rewards = reward_estimates[

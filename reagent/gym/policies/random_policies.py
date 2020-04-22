@@ -27,6 +27,6 @@ class DiscreteRandomPolicy(Policy):
         # sample a random action
         m = torch.distributions.Categorical(weights)
         raw_action = m.sample()
-        action = F.one_hot(raw_action, self.num_actions).squeeze(0)
-        log_prob = m.log_prob(raw_action).float().squeeze(0)
+        action = F.one_hot(raw_action, self.num_actions)
+        log_prob = m.log_prob(raw_action).float()
         return rlt.ActorOutput(action=action, log_prob=log_prob)

@@ -141,26 +141,26 @@ class QRDQNTrainer(DQNTrainerBase):
         return components
 
     @torch.no_grad()  # type: ignore
-    def train(self, training_batch):
+    def train(self, training_batch: rlt.PreprocessedDiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
 
-        learning_input = training_batch.training_input
-        state = rlt.PreprocessedState(state=learning_input.state)
-        next_state = rlt.PreprocessedState(state=learning_input.next_state)
-        rewards = self.boost_rewards(learning_input.reward, learning_input.action)
+        state = rlt.PreprocessedState(state=training_batch.state)
+        next_state = rlt.PreprocessedState(state=training_batch.next_state)
+        rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
-        possible_next_actions_mask = learning_input.possible_next_actions_mask.float()
-        possible_actions_mask = learning_input.possible_actions_mask.float()
+        possible_next_actions_mask = training_batch.possible_next_actions_mask.float()
+        possible_actions_mask = training_batch.possible_actions_mask.float()
 
         self.minibatch += 1
-        not_done_mask = learning_input.not_terminal.float()
+        not_done_mask = training_batch.not_terminal.float()
 
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None
-            discount_tensor = torch.pow(self.gamma, learning_input.time_diff.float())
+            discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
-            discount_tensor = torch.pow(self.gamma, learning_input.step.float())
+            assert training_batch.step is not None
+            discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         next_qf = self.q_network_target.dist(next_state)
 
@@ -176,7 +176,7 @@ class QRDQNTrainer(DQNTrainerBase):
             )
             next_qf = next_qf[range(rewards.shape[0]), next_action.reshape(-1)]
         else:
-            next_qf = (next_qf * learning_input.next_action.unsqueeze(-1)).sum(1)
+            next_qf = (next_qf * training_batch.next_action.unsqueeze(-1)).sum(1)
 
         # Build target distribution
         target_Q = rewards + discount_tensor * not_done_mask * next_qf
@@ -187,7 +187,7 @@ class QRDQNTrainer(DQNTrainerBase):
             # for reporting only
             all_q_values = current_qf.mean(2).detach()
 
-            current_qf = (current_qf * learning_input.action.unsqueeze(-1)).sum(1)
+            current_qf = (current_qf * training_batch.action.unsqueeze(-1)).sum(1)
 
             # (batch, atoms) -> (atoms, batch, 1) -> (atoms, batch, atoms)
             td = target_Q.t().unsqueeze(-1) - current_qf
@@ -208,7 +208,7 @@ class QRDQNTrainer(DQNTrainerBase):
         # Get Q-values of next states, used in computing cpe
         all_next_action_scores = self.q_network(next_state).q_values.detach()
 
-        logged_action_idxs = learning_input.action.argmax(dim=1, keepdim=True)
+        logged_action_idxs = torch.argmax(training_batch.action, dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self._calculate_cpes(
             training_batch,
             state,
@@ -222,10 +222,10 @@ class QRDQNTrainer(DQNTrainerBase):
 
         model_action_idxs = self.argmax_with_mask(
             all_q_values,
-            possible_actions_mask if self.maxq_learning else learning_input.action,
+            possible_actions_mask if self.maxq_learning else training_batch.action,
         )
 
-        self.notify_observers(
+        self.notify_observers(  # type: ignore
             td_loss=loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,

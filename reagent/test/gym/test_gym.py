@@ -5,6 +5,7 @@ Environments that require short training and evaluation time (<=10min)
 can be tested in this file.
 """
 import logging
+import os
 import random
 import unittest
 
@@ -15,7 +16,10 @@ from reagent.tensorboardX import SummaryWriterContext
 from reagent.test.gym.run_gym import OpenAiGymParameters, run_gym
 
 
-DQN_CARTPOLE_JSON = "reagent/test/gym/discrete_dqn_cartpole_v0.json"
+curr_dir = os.path.dirname(__file__)
+
+
+DQN_CARTPOLE_JSON = os.path.join(curr_dir, "discrete_dqn_cartpole_v0.json")
 # Though maximal score is 200, we set a lower bar to let tests finish in time
 CARTPOLE_SCORE_BAR = 100
 SEED = 0

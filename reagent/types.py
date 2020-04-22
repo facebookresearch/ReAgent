@@ -131,6 +131,17 @@ class PreprocessedFeatureVector(TensorDataClass):
     # normalization parameters.
     time_since_first: Optional[torch.Tensor] = None
 
+    @classmethod
+    def from_feature_vector(cls, feature_vector: FeatureVector, preprocessor):
+        return cls(
+            float_features=preprocessor(
+                feature_vector.float_features.value,
+                feature_vector.float_features.presence,
+            ),
+            id_list_features=feature_vector.id_list_features,
+            time_since_first=feature_vector.time_since_first,
+        )
+
 
 @dataclass
 class PreprocessedTiledFeatureVector(TensorDataClass):
@@ -205,6 +216,9 @@ class PreprocessedRankingInput(TensorDataClass):
     optim_tgt_out_idx: Optional[torch.Tensor] = None
     optim_tgt_in_seq: Optional[PreprocessedFeatureVector] = None
     optim_tgt_out_seq: Optional[PreprocessedFeatureVector] = None
+
+    def batch_size(self):
+        return self.state.float_features.size()[0]
 
     @classmethod
     def from_tensors(
@@ -307,9 +321,23 @@ class CommonInput(TensorDataClass):
 
 
 @dataclass
+class ExtraData(TensorDataClass):
+    mdp_id: Optional[
+        np.ndarray
+    ] = None  # Need to use a numpy array because torch doesn't support strings
+    sequence_number: Optional[torch.Tensor] = None
+    action_probability: Optional[torch.Tensor] = None
+    max_num_actions: Optional[int] = None
+    metrics: Optional[torch.Tensor] = None
+
+
+@dataclass
 class PreprocessedBaseInput(CommonInput):
     state: PreprocessedFeatureVector
     next_state: PreprocessedFeatureVector
+
+    def batch_size(self):
+        return self.state.float_features.size()[0]
 
 
 @dataclass
@@ -318,6 +346,52 @@ class PreprocessedDiscreteDqnInput(PreprocessedBaseInput):
     next_action: torch.Tensor
     possible_actions_mask: torch.Tensor
     possible_next_actions_mask: torch.Tensor
+    extras: ExtraData
+
+    @classmethod
+    def from_replay_buffer(cls, replay_buffer_batch):
+        (
+            obs,
+            action,
+            reward,
+            next_obs,
+            next_action,
+            next_reward,
+            terminal,
+            idxs,
+            possible_actions_mask,
+            log_prob,
+        ) = replay_buffer_batch
+        num_actions = action.shape[1]
+
+        obs = torch.tensor(obs).squeeze(2)
+        action = torch.tensor(action)
+        reward = torch.tensor(reward).unsqueeze(1)
+        next_obs = torch.tensor(next_obs).squeeze(2)
+        next_action = torch.tensor(next_action)
+        not_terminal = 1.0 - torch.tensor(terminal).unsqueeze(1).float()
+        possible_actions_mask = torch.tensor(possible_actions_mask)
+        next_possible_actions_mask = not_terminal.repeat(1, num_actions)
+        log_prob = torch.tensor(log_prob)
+        return cls(
+            state=PreprocessedFeatureVector(float_features=obs),
+            action=action,
+            next_state=PreprocessedFeatureVector(float_features=next_obs),
+            next_action=next_action,
+            possible_actions_mask=possible_actions_mask,
+            possible_next_actions_mask=next_possible_actions_mask,
+            reward=reward,
+            not_terminal=not_terminal,
+            step=None,
+            time_diff=None,
+            extras=ExtraData(
+                mdp_id=None,
+                sequence_number=None,
+                action_probability=log_prob.exp(),
+                max_num_actions=None,
+                metrics=None,
+            ),
+        )
 
 
 @dataclass
@@ -397,7 +471,10 @@ class RawDiscreteDqnInput(RawBaseInput):
     possible_next_actions_mask: torch.Tensor
 
     def preprocess(
-        self, state: PreprocessedFeatureVector, next_state: PreprocessedFeatureVector
+        self,
+        state: PreprocessedFeatureVector,
+        next_state: PreprocessedFeatureVector,
+        extras: ExtraData,
     ):
         assert isinstance(state, PreprocessedFeatureVector)
         assert isinstance(next_state, PreprocessedFeatureVector)
@@ -412,9 +489,12 @@ class RawDiscreteDqnInput(RawBaseInput):
             self.next_action.float(),
             self.possible_actions_mask.float(),
             self.possible_next_actions_mask.float(),
+            extras=extras,
         )
 
-    def preprocess_tensors(self, state: torch.Tensor, next_state: torch.Tensor):
+    def preprocess_tensors(
+        self, state: torch.Tensor, next_state: torch.Tensor, extras: ExtraData
+    ):
         assert isinstance(state, torch.Tensor)
         assert isinstance(next_state, torch.Tensor)
         return PreprocessedDiscreteDqnInput(
@@ -436,6 +516,7 @@ class RawDiscreteDqnInput(RawBaseInput):
             self.next_action.float(),
             self.possible_actions_mask.float(),
             self.possible_next_actions_mask.float(),
+            extras=extras,
         )
 
 
@@ -576,7 +657,7 @@ class RawMemoryNetworkInput(RawBaseInput):
         state: PreprocessedFeatureVector,
         next_state: PreprocessedFeatureVector,
         action: Optional[torch.Tensor] = None,
-    ):
+    ) -> PreprocessedMemoryNetworkInput:
         assert isinstance(state, PreprocessedFeatureVector)
         assert isinstance(next_state, PreprocessedFeatureVector)
         if action is not None:
@@ -608,7 +689,7 @@ class RawMemoryNetworkInput(RawBaseInput):
         state: torch.Tensor,
         next_state: torch.Tensor,
         action: Optional[torch.Tensor] = None,
-    ):
+    ) -> PreprocessedMemoryNetworkInput:
         assert isinstance(state, torch.Tensor)
         assert isinstance(next_state, torch.Tensor)
 
@@ -635,17 +716,6 @@ class RawMemoryNetworkInput(RawBaseInput):
                 PreprocessedFeatureVector(float_features=next_state),
                 self.action.float(),
             )
-
-
-@dataclass
-class ExtraData(TensorDataClass):
-    mdp_id: Optional[
-        np.ndarray
-    ] = None  # Need to use a numpy array because torch doesn't support strings
-    sequence_number: Optional[torch.Tensor] = None
-    action_probability: Optional[torch.Tensor] = None
-    max_num_actions: Optional[int] = None
-    metrics: Optional[torch.Tensor] = None
 
 
 @dataclass
@@ -678,13 +748,12 @@ class RawTrainingBatch(TensorDataClass):
     def preprocess(
         self,
         training_input: Union[
-            PreprocessedBaseInput,
-            PreprocessedDiscreteDqnInput,
             PreprocessedParametricDqnInput,
             PreprocessedMemoryNetworkInput,
             PreprocessedPolicyNetworkInput,
         ],
     ) -> PreprocessedTrainingBatch:
+        # FIXME: depends on the type of the input
         return PreprocessedTrainingBatch(
             training_input=training_input, extras=self.extras
         )

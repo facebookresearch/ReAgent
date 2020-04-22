@@ -92,7 +92,6 @@ def run_test(
     post_step = train_with_replay_buffer_post_step(
         replay_buffer=replay_buffer,
         trainer=trainer,
-        trainer_preprocessor=manager.create_trainer_preprocessor(),
         training_freq=train_every_ts,
         batch_size=trainer.minibatch_size,
         replay_burnin=train_after_ts,
