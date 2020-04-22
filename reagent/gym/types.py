@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# Please DO NOT import gym in here. We might have installation without gym depending on
+# this module for typing
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
@@ -8,7 +11,6 @@ from typing import Any, Callable, Optional
 import numpy as np
 import reagent.types as rlt
 import torch
-from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
 class Sampler(ABC):
@@ -35,32 +37,14 @@ Scorer = Callable[[Any], Any]
 # Transform ReplayBuffer's transition batch to trainer.train
 TrainerPreprocessor = Callable[[Any], rlt.PreprocessedTrainingBatch]
 
-# Transform gym.Env's observation to Scorer's input
-PolicyPreprocessor = Callable[[Any], Any]
-
-
 # Transform sampled action to input to gym.Env.step
 ActionPreprocessor = Callable[[rlt.ActorOutput], np.array]
 
 
-ObservationType = Any
-RewardType = float
-TerminalType = bool
-PossibleActionsMaskType = Optional[torch.Tensor]
-ReplayBufferAddFn = Callable[
-    [
-        ReplayBuffer,
-        ObservationType,
-        rlt.ActorOutput,
-        RewardType,
-        TerminalType,
-        PossibleActionsMaskType,
-    ],
-    None,
-]
-
-# Called in post_step of Agent to train on sampled batch from RB
-ReplayBufferTrainFn = Callable[[ReplayBuffer], None]
+""" Called after env.step(action)
+Args: (state, actor_output, reward, terminal, possible_actions_mask)
+"""
+PostStep = Callable[[Any, rlt.ActorOutput, float, bool, Optional[torch.Tensor]], None]
 
 
 @dataclass

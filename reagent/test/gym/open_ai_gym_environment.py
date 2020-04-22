@@ -11,6 +11,7 @@ import numpy as np
 import reagent.test.gym.pomdp  # noqa
 import torch
 from gym import Env
+from reagent.gym.envs.env_factory import EnvFactory
 from reagent.test.base.utils import only_continuous_normalizer
 from reagent.test.environment.environment import Environment
 from reagent.training.on_policy_predictor import OnPolicyPredictor
@@ -99,7 +100,7 @@ class OpenAIGymEnvironment(Environment):
         else:
             if gymenv not in [e.id for e in gym.envs.registry.all()]:
                 raise Exception("Env {} not found in OpenAI Gym.".format(gymenv))
-            self.env = gym.make(gymenv)
+            self.env = EnvFactory.make(gymenv)
             self.env_name = gymenv
             if random_seed is not None:
                 self.env.seed(random_seed)

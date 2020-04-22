@@ -41,7 +41,7 @@ class GaussianSampler(Sampler):
                 "actor/forward/squash_correction", squash_correction.detach().cpu()
             )
         log_prob = torch.sum(log_prob - squash_correction, dim=1)
-        return action, log_prob.reshape(-1, 1)
+        return action, log_prob
 
     @torch.no_grad()
     def sample_action(self, scores: GaussianSamplerScore) -> rlt.ActorOutput:
@@ -60,9 +60,7 @@ class GaussianSampler(Sampler):
             prev_max=self.max_training_action,
         )
         self.actor_network.train()
-        action = rescaled_actions.squeeze(0)
-        log_prob = torch.tensor(log_prob.item())
-        return rlt.ActorOutput(action=action, log_prob=log_prob)
+        return rlt.ActorOutput(action=rescaled_actions, log_prob=log_prob)
 
     def _log_prob(
         self, loc: torch.Tensor, scale_log: torch.Tensor, squashed_action: torch.Tensor
@@ -85,7 +83,7 @@ class GaussianSampler(Sampler):
             SummaryWriterContext.add_histogram(
                 "actor/get_log_prob/squash_correction", squash_correction.detach().cpu()
             )
-        log_prob = torch.sum(log_prob - squash_correction, dim=1).reshape(-1, 1)
+        log_prob = torch.sum(log_prob - squash_correction, dim=1)
         return log_prob
 
     @torch.no_grad()

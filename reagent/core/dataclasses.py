@@ -26,9 +26,17 @@ except ImportError:
     USE_VANILLA_DATACLASS = False
 
 
+ARBITRARY_TYPES_ALLOWED = False
+
+
 try:
     # Allowing override, e.g., in unit test
     USE_VANILLA_DATACLASS = bool(int(os.environ["USE_VANILLA_DATACLASS"]))
+except KeyError:
+    pass
+
+try:
+    ARBITRARY_TYPES_ALLOWED = bool(int(os.environ["ARBITRARY_TYPES_ALLOWED"]))
 except KeyError:
     pass
 
@@ -37,6 +45,7 @@ logger = logging.getLogger(__name__)
 
 
 logger.info(f"USE_VANILLA_DATACLASS: {USE_VANILLA_DATACLASS}")
+logger.info(f"ARBITRARY_TYPES_ALLOWED: {ARBITRARY_TYPES_ALLOWED}")
 
 
 if TYPE_CHECKING:
@@ -71,6 +80,14 @@ else:
 
                 return dataclasses.dataclass(**kwargs)(cls)
             else:
+                if ARBITRARY_TYPES_ALLOWED:
+
+                    class Config:
+                        arbitrary_types_allowed = ARBITRARY_TYPES_ALLOWED
+
+                    assert config not in kwargs
+                    kwargs["config"] = Config
+
                 return pydantic.dataclasses.dataclass(cls, **kwargs)
 
         if _cls is None:

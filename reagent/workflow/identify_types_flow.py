@@ -3,23 +3,13 @@
 
 from typing import Dict, List, Optional
 
-import pyspark
-from pyspark.sql.functions import col, collect_list, explode, flatten
-from reagent.preprocessing import normalization
+from pyspark.sql.functions import col, collect_list, explode
+from reagent.preprocessing.normalization import (
+    NormalizationParameters,
+    get_feature_norm_metadata,
+)
+from reagent.workflow.spark_utils import get_spark_session
 from reagent.workflow.types import PreprocessingOptions, TableSpec
-
-
-LOCAL_MASTER = "local[1]"
-
-
-def get_spark_session(master: str = LOCAL_MASTER):
-    """ Get a spark session """
-    spark = (
-        pyspark.sql.SparkSession.builder.master(master)
-        .enableHiveSupport()
-        .getOrCreate()
-    )
-    return spark
 
 
 def normalization_helper(
@@ -47,7 +37,7 @@ def normalization_helper(
     whitelist_features = set(whitelist_features or [])
 
     def validate_whitelist_features(
-        params: Dict[int, normalization.NormalizationParameters],
+        params: Dict[int, NormalizationParameters],
     ) -> None:
         if not whitelist_features:
             return
@@ -61,12 +51,12 @@ def normalization_helper(
             )
         )
 
-    def process(rows: List) -> Dict[int, normalization.NormalizationParameters]:
+    def process(rows: List) -> Dict[int, NormalizationParameters]:
         params = {}
         for row in rows:
             assert "feature_name" in row
             assert "feature_values" in row
-            norm_metdata = normalization.get_feature_norm_metadata(
+            norm_metdata = get_feature_norm_metadata(
                 row["feature_name"], row["feature_values"], norm_params
             )
             if norm_metdata is not None and (
@@ -85,17 +75,15 @@ def identify_normalization_parameters(
     table_spec: TableSpec,
     column_name: str,
     preprocessing_options: PreprocessingOptions,
-    seed: int,
-) -> Dict[int, normalization.NormalizationParameters]:
+    seed: Optional[int] = None,
+) -> Dict[int, NormalizationParameters]:
     """ Get normalization parameters """
-
-    spark = get_spark_session()
-    df = spark.sql(f"SELECT * FROM {table_spec.table_name}")
+    sqlCtx = get_spark_session()
+    df = sqlCtx.sql(f"SELECT * FROM {table_spec.table_name}")
     df = create_normalization_spec_spark(
         df, column_name, preprocessing_options.num_samples, seed
     )
     rows = df.collect()
-    spark.stop()
 
     normalization_processor = normalization_helper(
         max_unique_enum_values=preprocessing_options.max_unique_enum_values,
@@ -110,7 +98,9 @@ def identify_normalization_parameters(
     return normalization_processor(rows)
 
 
-def create_normalization_spec_spark(df, column, num_samples: int, seed: int):
+def create_normalization_spec_spark(
+    df, column, num_samples: int, seed: Optional[int] = None
+):
     """Returns approximately num_samples random rows from column of df."""
 
     df = df.select(
@@ -128,9 +118,6 @@ def create_normalization_spec_spark(df, column, num_samples: int, seed: int):
     # perform sampling and collect them
     df = df.sampleBy("feature_name", fractions=frac, seed=seed)
     df = df.groupBy("feature_name").agg(
-        collect_list("feature_value").alias("feature_value_list")
-    )
-    df = df.select(
-        "feature_name", flatten("feature_value_list").alias("feature_values")
+        collect_list("feature_value").alias("feature_values")
     )
     return df

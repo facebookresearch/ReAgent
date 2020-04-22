@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import abc
-from typing import Dict, Optional, Tuple, Type
+from typing import Dict, Optional, Tuple
 
-import reagent.types as rlt
 import torch  # @manual
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData, NormalizationParameters
@@ -148,7 +147,7 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: RewardOptions,
         normalization_data_map: Dict[str, NormalizationData],
         warmstart_path: Optional[str] = None,
-    ) -> None:
+    ) -> RLTrainer:
         """
         Initialize the trainer. Subclass should not override this. Instead,
         subclass should implement `_set_normalization_parameters()` and
@@ -162,6 +161,7 @@ class ModelManager(metaclass=RegistryMeta):
         if warmstart_path is not None:
             trainer_state = torch.load(warmstart_path)
             self._trainer.load_state_dict(trainer_state)
+        return self._trainer
 
     @abc.abstractmethod
     def build_trainer(self) -> RLTrainer:

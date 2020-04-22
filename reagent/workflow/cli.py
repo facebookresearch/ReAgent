@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
+import dataclasses
 import importlib
 import logging
 import os
@@ -46,6 +47,14 @@ def _load_func_and_config_class(workflow):
     return func, ConfigClass
 
 
+def select_relevant_params(config_dict, ConfigClass):
+    return {
+        field.name: config_dict[field.name]
+        for field in dataclasses.fields(ConfigClass)
+        if field.name in config_dict
+    }
+
+
 @reagent.command(short_help="Run the workflow with config file")
 @click.argument("workflow")
 @click.argument("config_file", type=click.File("r"))
@@ -60,6 +69,7 @@ def run(workflow, config_file):
 
     yaml = YAML(typ="safe")
     config_dict = yaml.load(config_file.read())
+    config_dict = select_relevant_params(config_dict, ConfigClass)
     config = ConfigClass(**config_dict)
     func(**config.asdict())
 

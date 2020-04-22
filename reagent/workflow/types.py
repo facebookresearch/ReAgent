@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from datetime import datetime as RecurringPeriod  # noqa
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, Optional
 
 # Triggering registration to registries
 import reagent.workflow.result_types  # noqa
@@ -24,18 +24,22 @@ from reagent.workflow.tagged_union import TaggedUnion  # noqa F401
 
 
 @dataclass
-class TableSpec(BaseDataClass):
-    table_name: str
+class Dataset:
+    parquet_url: str
 
 
 @dataclass
-class Dataset:
-    url: str
+class TableSpec:
+    table_name: str
+    output_dataset: Optional[Dataset] = None
+    table_sample: Optional[float] = None
+    eval_table_sample: Optional[float] = None
 
 
 @dataclass
 class RewardOptions:
-    pass
+    custom_reward_expression: Optional[str] = None
+    metric_reward_values: Optional[Dict[str, float]] = None
 
 
 @dataclass

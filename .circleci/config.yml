@@ -86,7 +86,7 @@ jobs:
       - run:
           name: Run unittests
           command: |
-            tox
+            tox -e circleci
       - run: python setup.py bdist_wheel
       - store_artifacts:
           path: dist/reagent-0.1-py3-none-any.whl
@@ -114,7 +114,7 @@ jobs:
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
-            sdk install java 8.0.242.hs-adpt
+            sdk install java 8.0.252.hs-adpt
             sdk install scala
             sdk install maven
             sdk install spark 2.3.3
