@@ -22,7 +22,7 @@ Once you make sure you have the right version, you can simply clone this repo an
 
    git clone https://github.com/facebookresearch/ReAgent.git
    cd ReAgent
-   pip install .[gym]
+   pip install ".[gym]"
 
 If you don't want need gym dependencies, you can remove :code:`[gym]`
 
@@ -31,7 +31,7 @@ To verify your setup please run `tox <https://tox.readthedocs.io/en/latest/>`_.
 .. code-block:: bash
 
    pip install tox
-   tox
+   tox -e mac
 
 Spark preprocessing JAR
 ^^^^^^^^^^^^^^^^^^^^^^^
