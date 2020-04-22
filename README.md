@@ -1,6 +1,6 @@
 ![Banner](logo/reagent_banner.png)
 ### Applied Reinforcement Learning @ Facebook
-[![CircleCI](https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=svg)](https://circleci.com/gh/facebookresearch/ReAgent/tree/master)
+[![CircleCI](https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=shield)](https://circleci.com/gh/facebookresearch/ReAgent/tree/master)[![codecov](https://codecov.io/gh/facebookresearch/ReAgent/branch/master/graph/badge.svg)](https://codecov.io/gh/facebookresearch/ReAgent)
 ---
 
 #### Overview
