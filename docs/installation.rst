@@ -31,7 +31,7 @@ To verify your setup please run `tox <https://tox.readthedocs.io/en/latest/>`_.
 .. code-block:: bash
 
    pip install tox
-   tox -e mac
+   tox
 
 Spark preprocessing JAR
 ^^^^^^^^^^^^^^^^^^^^^^^

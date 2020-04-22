@@ -86,7 +86,7 @@ jobs:
       - run:
           name: Run unittests
           command: |
-            tox -e linux
+            tox -e circleci
       - run: python setup.py bdist_wheel
       - store_artifacts:
           path: dist/reagent-0.1-py3-none-any.whl
