@@ -1,6 +1,8 @@
 ![Banner](logo/reagent_banner.png)
 ### Applied Reinforcement Learning @ Facebook
-[![CircleCI](https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=shield)](https://circleci.com/gh/facebookresearch/ReAgent/tree/master)[![codecov](https://codecov.io/gh/facebookresearch/ReAgent/branch/master/graph/badge.svg)](https://codecov.io/gh/facebookresearch/ReAgent)
+[![License](https://img.shields.io/badge/license-BSD%203--Clause-brightgreen)](LICENSE)
+[![CircleCI](https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=shield)](https://circleci.com/gh/facebookresearch/ReAgent/tree/master)
+[![codecov](https://codecov.io/gh/facebookresearch/ReAgent/branch/master/graph/badge.svg)](https://codecov.io/gh/facebookresearch/ReAgent)
 ---
 
 #### Overview
@@ -25,7 +27,7 @@ Detailed instructions on how to use ReAgent Models can be found [here](docs/usag
 The ReAgent Serving Platform (RASP) tutorial is available [here](docs/rasp_tutorial.rst).
 
 #### License
-ReAgent is released under a BSD license.  Find out more about it [here](LICENSE).
+ReAgent is released under a BSD 3-Clause license.  Find out more about it [here](LICENSE).
 
 #### Citing
 @article{gauci2018horizon,
