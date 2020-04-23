@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 class TensorAggregator(Aggregator):
     def __call__(self, key: str, values):
-        values = torch.cat(values, dim=0)
+        # Ensure that tensor is on cpu before aggregation.
+        values = torch.cat(values, dim=0).cpu()
         return super().__call__(key, values)
 
 

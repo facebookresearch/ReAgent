@@ -98,7 +98,7 @@ def observable(cls=None, **kwargs):
                         value = torch.tensor(value)
                     if len(value.shape) == 0:
                         value = value.reshape(1)
-                    value = value.detach().cpu()
+                    value = value.detach()
 
                 for observer in self._observers[key]:
                     observer.update(key, value)

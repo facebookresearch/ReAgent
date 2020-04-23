@@ -35,23 +35,26 @@ class TensorDataClass(BaseDataClass):
 
         def f(*args, **kwargs):
             values = {}
-            for field in dataclasses.fields(self):  # noqa F402
-                f = getattr(self, field.name)
-                if isinstance(f, (torch.Tensor, TensorDataClass)):
-                    values[field.name] = getattr(f, attr)(*args, **kwargs)
-            return self._replace(**values)
+            for k, v in self.__dict__.items():  # noqa F402
+                if isinstance(v, (torch.Tensor, TensorDataClass)):
+                    values[k] = getattr(v, attr)(*args, **kwargs)
+                else:
+                    values[k] = v
+            return type(self)(**values)
 
         return f
 
-    def cuda(self):
+    def cuda(self, *args, **kwargs):
         cuda_tensor = {}
-        for field in dataclasses.fields(self):  # noqa F402
-            f = getattr(self, field.name)
-            if isinstance(f, torch.Tensor):
-                cuda_tensor[field.name] = f.cuda(non_blocking=True)
-            elif isinstance(f, TensorDataClass):
-                cuda_tensor[field.name] = f.cuda()
-        return self._replace(**cuda_tensor)
+        for k, v in self.__dict__.items():  # noqa F402
+            if isinstance(v, torch.Tensor):
+                kwargs["non_blocking"] = kwargs.get("non_blocking", True)
+                cuda_tensor[k] = v.cuda(*args, **kwargs)
+            elif isinstance(v, TensorDataClass):
+                cuda_tensor[k] = v.cuda(*args, **kwargs)
+            else:
+                cuda_tensor[k] = v
+        return type(self)(**cuda_tensor)
 
 
 #####
@@ -141,6 +144,11 @@ class PreprocessedFeatureVector(TensorDataClass):
             id_list_features=feature_vector.id_list_features,
             time_since_first=feature_vector.time_since_first,
         )
+
+    @classmethod
+    def from_dict(cls, d, name: str):
+        # TODO: Looks for id_list_features
+        return cls(float_features=d[name])
 
 
 @dataclass
@@ -320,6 +328,10 @@ class ExtraData(TensorDataClass):
     max_num_actions: Optional[int] = None
     metrics: Optional[torch.Tensor] = None
 
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**{f.name: d.get(f.name, None) for f in dataclasses.fields(cls)})
+
 
 @dataclass
 class PreprocessedBaseInput(CommonInput):
@@ -419,6 +431,31 @@ class PreprocessedSlateQInput(PreprocessedBaseInput):
     next_action: PreprocessedSlateFeatureVector
     reward_mask: torch.Tensor
     extras: ExtraData
+
+    @classmethod
+    def from_dict(cls, d):
+        action = PreprocessedSlateFeatureVector(
+            float_features=d["action"],
+            item_mask=d["item_mask"],
+            item_probability=d["item_probability"],
+        )
+        next_action = PreprocessedSlateFeatureVector(
+            float_features=d["next_action"],
+            item_mask=d["next_item_mask"],
+            item_probability=d["next_item_probability"],
+        )
+        return cls(
+            state=PreprocessedFeatureVector.from_dict(d, "state_features"),
+            next_state=PreprocessedFeatureVector.from_dict(d, "next_state_features"),
+            action=action,
+            next_action=next_action,
+            reward=d["reward"],
+            reward_mask=d["reward_mask"],
+            time_diff=d["time_diff"],
+            not_terminal=d["not_terminal"],
+            step=None,
+            extras=ExtraData.from_dict(d),
+        )
 
 
 @dataclass
