@@ -49,7 +49,7 @@ class TensorDataClass(BaseDataClass):
             f = getattr(self, field.name)
             if isinstance(f, torch.Tensor):
                 cuda_tensor[field.name] = f.cuda(non_blocking=True)
-            elif isinstance(f, BaseDataClass):
+            elif isinstance(f, TensorDataClass):
                 cuda_tensor[field.name] = f.cuda()
         return self._replace(**cuda_tensor)
 
@@ -140,16 +140,6 @@ class PreprocessedFeatureVector(TensorDataClass):
             ),
             id_list_features=feature_vector.id_list_features,
             time_since_first=feature_vector.time_since_first,
-        )
-
-
-@dataclass
-class PreprocessedTiledFeatureVector(TensorDataClass):
-    float_features: torch.Tensor
-
-    def as_preprocessed_feature_vector(self) -> PreprocessedFeatureVector:
-        return PreprocessedFeatureVector(
-            float_features=self.float_features.view(-1, self.float_features.shape[2])
         )
 
 
@@ -418,9 +408,6 @@ class PreprocessedSlateFeatureVector(TensorDataClass):
 @dataclass
 class PreprocessedSlateQInput(PreprocessedBaseInput):
     """
-    The shapes of `tiled_state` & `tiled_next_state` are
-    `(batch_size, slate_size, state_dim)`.
-
     The shapes of `reward`, `reward_mask`, & `next_item_mask` are
     `(batch_size, slate_size)`.
 
@@ -428,11 +415,10 @@ class PreprocessedSlateQInput(PreprocessedBaseInput):
     the item got into viewport or not.
     """
 
-    tiled_state: PreprocessedTiledFeatureVector
-    tiled_next_state: PreprocessedTiledFeatureVector
     action: PreprocessedSlateFeatureVector
     next_action: PreprocessedSlateFeatureVector
     reward_mask: torch.Tensor
+    extras: ExtraData
 
 
 @dataclass
@@ -721,13 +707,10 @@ class RawMemoryNetworkInput(RawBaseInput):
 @dataclass
 class PreprocessedTrainingBatch(TensorDataClass):
     training_input: Union[
-        PreprocessedBaseInput,
-        PreprocessedDiscreteDqnInput,
         PreprocessedParametricDqnInput,
         PreprocessedMemoryNetworkInput,
         PreprocessedPolicyNetworkInput,
         PreprocessedRankingInput,
-        PreprocessedSlateQInput,
     ]
     extras: Any
 
