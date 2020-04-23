@@ -116,8 +116,6 @@ class Seq2SlateSimulationTrainer(Trainer):
                 training_input.src_seq.float_features,
                 sim_tgt_out_seq.float_features,
                 training_input.src_src_mask,
-                # TODO: reward_network should not need slate_reward as input
-                training_input.slate_reward,
                 sim_tgt_out_idx,
             )
             .squeeze()

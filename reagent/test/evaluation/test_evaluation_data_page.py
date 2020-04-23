@@ -28,7 +28,6 @@ class FakeSeq2SlateRewardNetwork(nn.Module):
         src_seq: torch.Tensor,
         tgt_out_seq: torch.Tensor,
         src_src_mask: torch.Tensor,
-        slate_reward: torch.Tensor,
         tgt_out_idx: torch.Tensor,
     ):
         batch_size = state.shape[0]

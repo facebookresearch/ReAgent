@@ -145,7 +145,6 @@ class EvaluationDataPage(NamedTuple):
             training_input.src_seq.float_features,
             training_input.tgt_out_seq.float_features,
             training_input.src_src_mask,
-            training_input.slate_reward,
             training_input.tgt_out_idx,
         ).reshape(-1, 1)
 
@@ -163,7 +162,6 @@ class EvaluationDataPage(NamedTuple):
             training_input.src_seq.float_features,
             ranked_tgt_out_seq,
             training_input.src_src_mask,
-            training_input.slate_reward,
             rank_output.ranked_tgt_out_idx,
         ).reshape(-1, 1)
         logged_rewards = training_input.slate_reward.reshape(-1, 1)

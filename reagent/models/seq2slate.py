@@ -728,26 +728,26 @@ class Seq2SlateTransformerModel(nn.Module):
     def encode(self, state, src_seq, src_mask):
         # state: batch_size, state_dim
         # src_seq: batch_size, src_seq_len, dim_candidate
-        # src_src_mask shape: batch_size, seq_len, seq_len
+        # src_src_mask shape: batch_size, src_seq_len, src_seq_len
         batch_size = src_seq.shape[0]
 
-        # candidate_embed: batch_size, seq_len, dim_model/2
+        # candidate_embed: batch_size, src_seq_len, dim_model/2
         candidate_embed = self.candidate_embedder(src_seq)
         # state_embed: batch_size, dim_model/2
         state_embed = self.state_embedder(state)
-        # transform state_embed into shape: batch_size, seq_len, dim_model/2
+        # transform state_embed into shape: batch_size, src_seq_len, dim_model/2
         state_embed = state_embed.repeat(1, self.max_src_seq_len).reshape(
             batch_size, self.max_src_seq_len, -1
         )
 
         # Input at each encoder step is actually concatenation of state_embed
         # and candidate embed. state_embed is replicated at each encoding step.
-        # src_embed shape: batch_size, seq_len, dim_model
+        # src_embed shape: batch_size, src_seq_len, dim_model
         src_embed = self.positional_encoding(
             torch.cat((state_embed, candidate_embed), dim=2), self.max_src_seq_len
         )
 
-        # encoder_output shape: batch_size, seq_len, dim_model
+        # encoder_output shape: batch_size, src_seq_len, dim_model
         return self.encoder(src_embed, src_mask)
 
     def decode(
@@ -760,22 +760,22 @@ class Seq2SlateTransformerModel(nn.Module):
         # tgt_tgt_mask shape: batch_size, tgt_seq_len, tgt_seq_len
         batch_size = tgt_in_seq.shape[0]
 
-        # candidate_embed shape: batch_size, seq_len, dim_model/2
+        # candidate_embed shape: batch_size, tgt_seq_len, dim_model/2
         candidate_embed = self.candidate_embedder(tgt_in_seq)
         # state_embed: batch_size, dim_model/2
         state_embed = self.state_embedder(state)
-        # state_embed: batch_size, seq_len, dim_model/2
+        # state_embed: batch_size, tgt_seq_len, dim_model/2
         state_embed = state_embed.repeat(1, tgt_seq_len).reshape(
             batch_size, tgt_seq_len, -1
         )
 
-        # tgt_embed: batch_size, seq_len, dim_model
+        # tgt_embed: batch_size, tgt_seq_len, dim_model
         tgt_embed = self.positional_encoding(
             torch.cat((state_embed, candidate_embed), dim=2), tgt_seq_len
         )
 
         # output of decoder will be later transformed into probabilities over symbols.
-        # shape: batch_size, seq_len, dim_model
+        # shape: batch_size, tgt_seq_len, dim_model
         return self.decoder(tgt_embed, memory, tgt_src_mask, tgt_tgt_mask)
 
 
