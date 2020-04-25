@@ -6,9 +6,10 @@ import inspect
 import logging
 from typing import Any, Optional
 
+import gym
 import reagent.types as rlt
 import torch
-from reagent.gym.types import ActionPreprocessor, PostStep
+from reagent.gym.types import PostStep
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.training.rl_dataset import RLDataset
 from reagent.training.trainer import Trainer
@@ -83,10 +84,15 @@ def train_with_replay_buffer_post_step(
     return post_step
 
 
-# TODO: do not poass action_preprocessor here
-def log_data_post_step(
-    dataset: RLDataset, action_preprocessor: ActionPreprocessor, mdp_id: str
-) -> PostStep:
+"""
+TODO: Make PostStep a class that has an end-of-episode update function, like
+sampler. This will be even more generic and allow us to auto-infer mdp_id.
+This will also be useful when doing distributed training, where post_step
+is inserting into a shared buffer and end_of_episode update is training.
+"""
+
+
+def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostStep:
     sequence_number = 0
 
     def post_step(
@@ -106,18 +112,25 @@ def log_data_post_step(
             possible_actions_mask = torch.zeros_like(actor_output.action).to(torch.bool)
 
         # timeline operator expects str for disc and map<str, double> for cts
-        # TODO: case for cts
-        action = str(action_preprocessor(actor_output))
+        # TODO: make output of policy the desired type already (which means
+        # altering RB logic to store scalar types) What to do about continuous?
+        actor_output = actor_output.squeeze(0)
+        assert isinstance(env.action_space, gym.spaces.Discrete)
+        action = str(actor_output.action.argmax().item())
+        action_prob = actor_output.log_prob.exp().item()
+
+        possible_actions = None  # TODO: this shouldn't be none if env passes it to u
+        time_diff = 1  # TODO: should this be hardcoded?
 
         dataset.insert_pre_timeline_format(
-            mdp_id=None,
+            mdp_id=mdp_id,
             sequence_number=sequence_number,
             state=obs,
             action=action,
             reward=reward,
-            possible_actions=None,
-            time_diff=1,
-            action_probability=actor_output.log_prob.exp().item(),
+            possible_actions=possible_actions,
+            time_diff=time_diff,
+            action_probability=action_prob,
             possible_actions_mask=possible_actions_mask,
         )
         sequence_number += 1

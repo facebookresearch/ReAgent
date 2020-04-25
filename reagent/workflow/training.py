@@ -70,14 +70,16 @@ def get_sample_range(
         )
 
     assert (
-        eval_table_sample and table_sample and eval_table_sample + table_sample <= 100
+        eval_table_sample
+        and table_sample
+        and (eval_table_sample + table_sample) <= (100.0 + 1e-7)
     ), (
-        "calc_cpe_in_training is set to True. Please specify table_sample"
-        "(current={}) and eval_table_sample(current={}) such that"
-        "eval_table_sample + table_sample <= 100. In order to reliably calculate"
-        "CPE, eval_table_sample should not be too small.".format(
-            table_sample, eval_table_sample
-        )
+        "calc_cpe_in_training is set to True. "
+        f"Please specify table_sample(current={table_sample}) and "
+        f"eval_table_sample(current={eval_table_sample}) such that "
+        "eval_table_sample + table_sample <= 100. "
+        "In order to reliably calculate CPE, eval_table_sample "
+        "should not be too small."
     )
 
     return TrainEvalSampleRanges(
@@ -108,22 +110,19 @@ def query_and_train(
     reward_options = reward_options or RewardOptions()
     manager = model.value
 
-    sample_range_output = get_sample_range(
-        input_table_spec, manager.should_generate_eval_dataset
-    )
+    calc_cpe_in_training = manager.should_generate_eval_dataset
+    sample_range_output = get_sample_range(input_table_spec, calc_cpe_in_training)
     train_dataset = manager.query_data(
-        input_table_spec,
+        input_table_spec=input_table_spec,
         sample_range=sample_range_output.train_sample_range,
         reward_options=reward_options,
-        eval_dataset=False,
     )
     eval_dataset = None
-    if manager.should_generate_eval_dataset:
+    if calc_cpe_in_training:
         eval_dataset = manager.query_data(
-            input_table_spec,
+            input_table_spec=input_table_spec,
             sample_range=sample_range_output.eval_sample_range,
             reward_options=reward_options,
-            eval_dataset=True,
         )
 
     logger.info("Starting training")

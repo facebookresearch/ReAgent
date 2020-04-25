@@ -117,7 +117,7 @@ class ReplayBufferTest(unittest.TestCase):
         zeros = np.zeros(OBSERVATION_SHAPE)
         memory.add(zeros, 0, 0, 0, 0, [0, 0])
 
-        with self.assertRaisesRegexp(ValueError, "Add expects"):
+        with self.assertRaisesRegex(ValueError, "Add expects"):
             memory.add(zeros, 0, 0, 0)
         # Check if the cursor moved STACK_SIZE -1 zeros adds + 1, (the one above).
         self.assertEqual(memory.cursor(), STACK_SIZE)
@@ -137,11 +137,11 @@ class ReplayBufferTest(unittest.TestCase):
 
         memory._check_add_types(zeros, 0, 0, 0, 0, [0, 0])
 
-        with self.assertRaisesRegexp(ValueError, "Add expects"):
+        with self.assertRaisesRegex(ValueError, "Add expects"):
             memory._check_add_types(zeros, 0, 0, 0)
 
     def testLowCapacity(self):
-        with self.assertRaisesRegexp(ValueError, "There is not enough capacity"):
+        with self.assertRaisesRegex(ValueError, "There is not enough capacity"):
             circular_replay_buffer.ReplayBuffer(
                 observation_shape=OBSERVATION_SHAPE,
                 stack_size=10,
@@ -151,7 +151,7 @@ class ReplayBufferTest(unittest.TestCase):
                 gamma=1.0,
             )
 
-        with self.assertRaisesRegexp(ValueError, "There is not enough capacity"):
+        with self.assertRaisesRegex(ValueError, "There is not enough capacity"):
             circular_replay_buffer.ReplayBuffer(
                 observation_shape=OBSERVATION_SHAPE,
                 stack_size=5,
@@ -182,7 +182,7 @@ class ReplayBufferTest(unittest.TestCase):
             update_horizon=5,
             gamma=1.0,
         )
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             AssertionError, "end_index must be larger than start_index"
         ):
             memory.get_range([], 2, 1)
@@ -192,7 +192,7 @@ class ReplayBufferTest(unittest.TestCase):
         with self.assertRaises(AssertionError):
             # Start index beyond replay capacity.
             memory.get_range([], replay_capacity, replay_capacity + 1)
-        with self.assertRaisesRegexp(AssertionError, "Index 1 has not been added."):
+        with self.assertRaisesRegex(AssertionError, "Index 1 has not been added."):
             memory.get_range([], 1, 2)
 
     def testGetRangeNoWraparound(self):

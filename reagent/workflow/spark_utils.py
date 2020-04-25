@@ -1,24 +1,51 @@
 #!/usr/bin/env python3
 
+import logging
+import os
 import pprint
-from os.path import abspath
+from os.path import abspath, dirname, join
 from typing import Dict, Optional
 
+import reagent
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+
+logger = logging.getLogger(__name__)
+
+# This is where Scala preprocessing (i.e TimelineOperator) is located
+SPARK_JAR_FROM_ROOT_DIR = "preprocessing/target/rl-preprocessing-1.1.jar"
+
+"""
+SPARK_JAR is abspath to the above jar file.
+
+Assume file structure
+ReAgent/
+    preprocessing/...
+    reagent/...
+"""
+SPARK_JAR = join(dirname(reagent.__file__), os.pardir, SPARK_JAR_FROM_ROOT_DIR)
 
 
 DEFAULT_SPARK_CONFIG = {
-    "spark.master": "local[1]",
+    "spark.master": "local[*]",
     "spark.app.name": "ReAgent",
     "spark.sql.session.timeZone": "UTC",
     "spark.sql.warehouse.dir": abspath("spark-warehouse"),
+    # Set shuffle partitions to a low number, e.g. <= cores * 2 to speed
+    # things up, otherwise the tests will use the default 200 partitions
+    # and it will take a lot more time to complete
     "spark.sql.shuffle.partitions": "12",
+    "spark.sql.execution.arrow.enabled": "true",
+    # For accessing timeline operator
+    "spark.driver.extraClassPath": SPARK_JAR,
+    # Same effect as builder.enableHiveSupport() [useful for test framework]
+    "spark.sql.catalogImplementation": "hive",
 }
 
 
 def get_spark_session(config: Optional[Dict[str, str]] = DEFAULT_SPARK_CONFIG):
-    print("Building with config: ")
-    pprint.pprint(config)
+    logger.info(f"Building with config: \n{pprint.pformat(config)}")
     spark = SparkSession.builder.enableHiveSupport()
     if config is not None:
         for k, v in config.items():
@@ -26,3 +53,20 @@ def get_spark_session(config: Optional[Dict[str, str]] = DEFAULT_SPARK_CONFIG):
     spark = spark.getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     return spark
+
+
+def get_table_url(table_name: str) -> str:
+    spark = get_spark_session()
+    url = (
+        spark.sql(f"DESCRIBE FORMATTED {table_name}")
+        .filter((col("col_name") == "Location"))
+        .select("data_type")
+        .toPandas()
+        .astype(str)["data_type"]
+        .values[0]
+    )
+    # unfortunately url is file:/... or hdfs:/... not file:///...
+    # so we need to insert '//'
+    assert url.count(":") == 1, f"{url} has more than one :"
+    schema, path = url.split(":")
+    return f"{schema}://{path}"

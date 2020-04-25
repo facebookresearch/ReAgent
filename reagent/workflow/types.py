@@ -31,7 +31,6 @@ class Dataset:
 @dataclass
 class TableSpec:
     table_name: str
-    output_dataset: Optional[Dataset] = None
     table_sample: Optional[float] = None
     eval_table_sample: Optional[float] = None
 
@@ -44,7 +43,7 @@ class RewardOptions:
 
 @dataclass
 class ReaderOptions:
-    pass
+    petastorm_reader_pool_type: str = "thread"
 
 
 @dataclass
@@ -79,6 +78,7 @@ class RLTrainingReport(TaggedUnion):
 
 @dataclass
 class RLTrainingOutput:
+    output_path: Optional[str] = None
     validation_result: Optional[ValidationResult__Union] = None
     publishing_result: Optional[PublishingResult__Union] = None
     training_report: Optional[RLTrainingReport] = None

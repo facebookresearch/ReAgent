@@ -24,6 +24,5 @@ def run_episode(env: Env, agent: Agent, max_steps: Optional[int] = None) -> floa
         if max_steps is not None and num_steps > max_steps:
             terminal = True
 
-        # add sample to replay buffer and optionally train
         agent.post_step(reward, terminal)
     return ep_reward

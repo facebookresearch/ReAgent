@@ -60,8 +60,7 @@ class DiscreteDQNBase(ModelManager):
         return DiscreteNormalizationParameterKeys.STATE
 
     def create_policy(self) -> Policy:
-        """ Create an online DiscreteDQN Policy from env.
-        """
+        """ Create an online DiscreteDQN Policy from env. """
         # Avoiding potentially importing gym when it's not installed
 
         from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -123,7 +122,6 @@ class DiscreteDQNBase(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
-        eval_dataset: bool,
     ) -> Dataset:
         return query_data(
             input_table_spec=input_table_spec,
@@ -140,10 +138,12 @@ class DiscreteDQNBase(ModelManager):
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         return DiscreteDqnBatchPreprocessor(
+            num_actions=len(self.action_names),
             state_preprocessor=Preprocessor(
                 normalization_parameters=self.state_normalization_parameters,
                 use_gpu=self.use_gpu,
-            )
+            ),
+            use_gpu=self.use_gpu,
         )
 
     def train(

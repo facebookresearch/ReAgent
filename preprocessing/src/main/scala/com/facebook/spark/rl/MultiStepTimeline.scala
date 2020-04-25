@@ -9,11 +9,8 @@ case class MultiStepTimelineConfiguration(
     startDs: String,
     endDs: String,
     addTerminalStateRow: Boolean,
-    actionDiscrete: Boolean,
     inputTableName: String,
     outputTableName: String,
-    evalTableName: String,
-    numOutputShards: Int,
     steps: Int
 )
 

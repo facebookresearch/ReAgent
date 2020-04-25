@@ -161,6 +161,7 @@ class DQNTrainer(DQNTrainerBase):
         rewards = boosted_rewards
         discount_tensor = torch.full_like(rewards, self.gamma)
         not_done_mask = training_batch.not_terminal.float()
+        assert not_done_mask.dim() == 2
 
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None

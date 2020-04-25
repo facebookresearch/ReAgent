@@ -2,7 +2,8 @@
 package com.facebook.spark.rl
 
 import scala.math.abs
-
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.slf4j.LoggerFactory
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.coalesce
@@ -15,11 +16,8 @@ case class TimelineConfiguration(
     startDs: String,
     endDs: String,
     addTerminalStateRow: Boolean,
-    actionDiscrete: Boolean,
     inputTableName: String,
     outputTableName: String,
-    evalTableName: String,
-    numOutputShards: Int,
     includePossibleActions: Boolean = true,
     outlierEpisodeLengthPercentile: Option[Double] = None,
     percentileFunction: String = "percentile_approx",
@@ -426,5 +424,14 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
 ) PARTITIONED BY (ds STRING) TBLPROPERTIES ('RETENTION'='30')
 """.stripMargin
     sqlContext.sql(sqlCommand);
+  }
+
+  def main(configJson: String) {
+    val sparkSession = SparkSession.builder().enableHiveSupport().getOrCreate()
+    val mapper = new ObjectMapper()
+    mapper.registerModule(DefaultScalaModule)
+    val timelineConfig = mapper.readValue(configJson, classOf[TimelineConfiguration])
+    Timeline.run(sparkSession.sqlContext, timelineConfig)
+    sparkSession.stop()
   }
 }

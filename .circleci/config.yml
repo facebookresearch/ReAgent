@@ -118,7 +118,7 @@ jobs:
             sdk install java 8.0.252.hs-adpt
             sdk install scala
             sdk install maven
-            sdk install spark 2.3.3
+            sdk install spark 2.4.4
             sudo apt-get update
             sudo apt-get install bc
       - run:

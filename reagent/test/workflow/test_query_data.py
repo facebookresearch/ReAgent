@@ -2,9 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-import tempfile
 import unittest
-from os.path import abspath
 
 import numpy as np
 import pandas
@@ -246,27 +244,12 @@ def verify_multi_steps_except_rewards(df):
     )
 
 
-def rand_string(length=10):
-    import string
-    import random
-
-    """Generate a random string of fixed length """
-    letters = string.ascii_lowercase
-    return "".join(random.choice(letters) for _ in range(length))
-
-
 class TestQueryData(ReagentSQLTestBase):
     def setUp(self):
         super().setUp()
         logging.getLogger(__name__).setLevel(logging.INFO)
-        self.table_name = rand_string()
-        self.temp_parquet = tempfile.TemporaryDirectory()
-        self.parquet_url = f"file://{abspath(self.temp_parquet.name)}"
+        self.table_name = "test_table"
         logger.info(f"Table name is {self.table_name}")
-
-    def tearDown(self):
-        self.temp_parquet.cleanup()
-        super().tearDown()
 
     def generate_data(self, multi_steps=False):
         generate_data_discrete(
@@ -274,25 +257,23 @@ class TestQueryData(ReagentSQLTestBase):
         )
 
     def _read_data(self, custom_reward_expression=None, gamma=None, multi_steps=None):
-        ts = TableSpec(
-            table_name=self.table_name,
-            output_dataset=Dataset(parquet_url=self.parquet_url),
-        )
-        query_data(
+        ts = TableSpec(table_name=self.table_name)
+        dataset: Dataset = query_data(
             input_table_spec=ts,
             actions=["L", "R", "U", "D"],
             custom_reward_expression=custom_reward_expression,
             multi_steps=multi_steps,
             gamma=gamma,
         )
-        df = self.sqlCtx.read.parquet(self.parquet_url)
+        df = self.sqlCtx.read.parquet(dataset.parquet_url)
         df = df.orderBy(asc("sequence_number"))
-        logger.info("Read parquet dataframe")
+        logger.info("Read parquet dataframe: ")
         df.show()
         return df
 
     @pytest.mark.serial
-    def test_query_data_single_step(self):
+    def test_query_data(self):
+        # single step
         self.generate_data()
         df = self._read_data()
         df = df.toPandas()
@@ -300,17 +281,14 @@ class TestQueryData(ReagentSQLTestBase):
         assertEq(df["reward"], np.array([0.0, 1.0, 4.0, 5.0], dtype="float32"))
         logger.info("single-step seems fine")
 
-    @pytest.mark.serial
-    def test_query_data_single_step_custom_reward(self):
-        self.generate_data()
+        # single step with reward := reward^3 + 10
         df = self._read_data(custom_reward_expression="POWER(reward, 3) + 10")
         df = df.toPandas()
         verify_single_step_except_rewards(df)
         assertEq(df["reward"], np.array([10.0, 11.0, 74.0, 135.0], dtype="float32"))
         logger.info("single-step custom reward seems fine")
 
-    @pytest.mark.serial
-    def test_query_data_multi_steps(self):
+        # multi-step
         gamma = 0.9
         self.generate_data(multi_steps=True)
         df = self._read_data(multi_steps=2, gamma=gamma)

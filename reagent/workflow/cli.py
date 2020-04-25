@@ -69,6 +69,7 @@ def run(workflow, config_file):
 
     yaml = YAML(typ="safe")
     config_dict = yaml.load(config_file.read())
+    assert config_dict is not None, "failed to read yaml file"
     config_dict = select_relevant_params(config_dict, ConfigClass)
     config = ConfigClass(**config_dict)
     func(**config.asdict())

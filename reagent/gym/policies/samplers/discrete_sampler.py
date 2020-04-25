@@ -76,7 +76,7 @@ class GreedyActionSampler(Sampler):
         else:
             mod_scores = scores
         raw_action = mod_scores.argmax(dim=1)
-        assert raw_action.ndim == 2
+        assert raw_action.ndim == 1
         action = F.one_hot(raw_action, num_actions)
         assert action.shape == (batch_size, num_actions)
         log_prob = torch.ones(batch_size, device=scores.device)
