@@ -135,6 +135,13 @@ class RankingEvaluator:
         }
 
         if self.calc_cpe:
+            eval_res["mean_ips_greedy"] = self._mean_ips(
+                self.eval_data_pages_g, greedy=True
+            )
+            eval_res["mean_ips_non_greedy"] = self._mean_ips(
+                self.eval_data_pages_ng, greedy=False
+            )
+
             doubly_robust_estimator = DoublyRobustEstimator()
             direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
                 self.eval_data_pages_g
@@ -162,3 +169,27 @@ class RankingEvaluator:
         self.eval_data_pages_ng = None
 
         return eval_res
+
+    def _mean_ips(self, eval_data_page: EvaluationDataPage, greedy: bool):
+        assert (
+            (
+                eval_data_page.action_mask.shape
+                == eval_data_page.logged_propensities.shape
+                == eval_data_page.model_propensities.shape
+            )
+            and len(eval_data_page.logged_propensities.shape) == 2
+            and eval_data_page.logged_propensities.shape[1] == 1
+        ), (
+            f"{eval_data_page.action_mask.shape} "
+            f"{eval_data_page.model_propensities.shape} "
+            f"{eval_data_page.logged_propensities.shape}"
+        )
+        if greedy:
+            return np.mean(
+                eval_data_page.action_mask.cpu().numpy()
+                / eval_data_page.logged_propensities.cpu().numpy()
+            )
+        return np.mean(
+            eval_data_page.model_propensities.cpu().numpy()
+            / eval_data_page.logged_propensities.cpu().numpy()
+        )
