@@ -1,40 +1,68 @@
 #!/usr/bin/env python3
 
-from typing import Tuple, Union, cast
+from typing import Dict
 
 import torch
+import torch.nn.functional as F
 from reagent import types as rlt
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.preprocessing.preprocessor import Preprocessor
 
 
 class BatchPreprocessor:
-    def __call__(self, batch: rlt.RawTrainingBatch):
+    def __call__(self, batch: rlt.RawTrainingBatch) -> rlt.TensorDataClass:
         raise NotImplementedError()
 
 
+def batch_to_device(batch: Dict[str, torch.Tensor], device: torch.device):
+    out = {}
+    for k in batch:
+        out[k] = batch[k].to(device)
+    return out
+
+
 class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
-    def __init__(self, state_preprocessor: Preprocessor):
+    def __init__(
+        self, num_actions: int, state_preprocessor: Preprocessor, use_gpu: bool
+    ):
+        self.num_actions = num_actions
         self.state_preprocessor = state_preprocessor
+        self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    def __call__(self, batch: rlt.RawTrainingBatch) -> rlt.PreprocessedDiscreteDqnInput:
-        training_input = batch.training_input
-        assert isinstance(
-            training_input, rlt.RawDiscreteDqnInput
-        ), "Wrong Type: {}".format(str(type(training_input)))
-
+    # TODO: remove type ignore after converting rest of BatchPreprocessors to Dict input
+    def __call__(  # type: ignore
+        self, batch: Dict[str, torch.Tensor]
+    ) -> rlt.PreprocessedDiscreteDqnInput:
+        batch = batch_to_device(batch, self.device)
         preprocessed_state = self.state_preprocessor(
-            training_input.state.float_features.value,
-            training_input.state.float_features.presence,
+            batch["state_features"], batch["state_features_presence"]
         )
         preprocessed_next_state = self.state_preprocessor(
-            training_input.next_state.float_features.value,
-            training_input.next_state.float_features.presence,
+            batch["next_state_features"], batch["next_state_features_presence"]
         )
-        return training_input.preprocess_tensors(
-            state=preprocessed_state,
-            next_state=preprocessed_next_state,
-            extras=batch.extras,
+        # not terminal iff at least one possible for next action
+        not_terminal = batch["possible_next_actions_mask"].max(dim=1)[0].float()
+        action = F.one_hot(batch["action"].to(torch.int64), self.num_actions)
+        # next action can potentially have value self.num_action if not available
+        next_action = F.one_hot(
+            batch["next_action"].to(torch.int64), self.num_actions + 1
+        )[:, : self.num_actions]
+        return rlt.PreprocessedDiscreteDqnInput(
+            state=rlt.PreprocessedFeatureVector(preprocessed_state),
+            next_state=rlt.PreprocessedFeatureVector(preprocessed_next_state),
+            action=action,
+            next_action=next_action,
+            reward=batch["reward"].unsqueeze(1),
+            time_diff=batch["time_diff"].unsqueeze(1),
+            step=batch["step"].unsqueeze(1),
+            not_terminal=not_terminal.unsqueeze(1),
+            possible_actions_mask=batch["possible_actions_mask"],
+            possible_next_actions_mask=batch["possible_next_actions_mask"],
+            extras=rlt.ExtraData(
+                mdp_id=batch["mdp_id"].unsqueeze(1).cpu().numpy(),
+                sequence_number=batch["sequence_number"].unsqueeze(1),
+                action_probability=batch["action_probability"].unsqueeze(1),
+            ),
         )
 
 

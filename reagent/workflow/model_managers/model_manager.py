@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 
 import abc
+import dataclasses
+import logging
+import time
 from typing import Dict, Optional, Tuple
 
-import torch  # @manual
+import torch
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData, NormalizationParameters
+from reagent.tensorboardX import summary_writer_context
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.workflow.types import Dataset, RewardOptions, RLTrainingOutput, TableSpec
+from torch.utils.tensorboard import SummaryWriter
+
+
+logger = logging.getLogger(__name__)
 
 
 class ModelManager(metaclass=RegistryMeta):
@@ -129,7 +137,6 @@ class ModelManager(metaclass=RegistryMeta):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
-        eval_dataset: bool,
     ) -> Dataset:
         """
         Massage input table into the format expected by the trainer
@@ -183,7 +190,28 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: Optional[RewardOptions] = None,
         warmstart_path: Optional[str] = None,
     ) -> RLTrainingOutput:
-        raise NotImplementedError
+        manager = model.value
+
+        writer = SummaryWriter()
+        logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
+
+        warmstart_input_path = warmstart_path or None
+        manager.initialize_trainer(
+            use_gpu=use_gpu,
+            reward_options=reward_options,
+            normalization_data_map=normalization_data_map,
+            warmstart_path=warmstart_input_path,
+        )
+
+        with summary_writer_context(writer):
+            train_output = manager.train(train_dataset, eval_dataset, num_epochs)
+
+        # TODO: make this a parameter
+        torchscript_output_path = f"model_{round(time.time())}.torchscript"
+        serving_module = manager.build_serving_module()
+        torch.jit.save(serving_module, torchscript_output_path)
+        logger.info(f"Saved torchscript model to {torchscript_output_path}")
+        return dataclasses.replace(train_output, output_path=torchscript_output_path)
 
     @abc.abstractmethod
     def train(

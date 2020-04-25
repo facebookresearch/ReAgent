@@ -138,8 +138,9 @@ class DuelingQNetwork(ModelBase):
                 raw_advantage.detach().mean().cpu(),
             )
             if not self.parametric_action:
+                advantage = advantage.detach()
                 for i in range(advantage.shape[1]):
-                    a = advantage.detach()[:, i]
+                    a = advantage[:, i]
                     SummaryWriterContext.add_histogram(
                         "dueling_network/{}/advantage/{}".format(self._name, i), a.cpu()
                     )

@@ -67,7 +67,7 @@ def run_test(
     train_after_ts: int,
     num_episodes: int,
     max_steps: Optional[int],
-    last_score_bar: float,
+    passing_score_bar: float,
 ):
     env = EnvFactory.make(env)
     env.seed(SEED)
@@ -105,9 +105,9 @@ def run_test(
         ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
         reward_history.append(ep_reward)
 
-    assert reward_history[-1] >= last_score_bar, (
+    assert reward_history[-1] >= passing_score_bar, (
         f"reward after {len(reward_history)} episodes is {reward_history[-1]},"
-        f"less than < {last_score_bar}...\n"
+        f"less than < {passing_score_bar}...\n"
         f"Full reward history: {reward_history}"
     )
 

@@ -35,4 +35,4 @@ train_every_ts: 3
 train_after_ts: 1
 num_episodes: 50
 max_steps: 200
-last_score_bar: 100.0
+passing_score_bar: 100.0

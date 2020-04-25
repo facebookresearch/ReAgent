@@ -3,7 +3,7 @@
 
 import logging
 import math
-from typing import NamedTuple, Optional, Union, cast
+from typing import NamedTuple, Optional, cast
 
 import numpy as np
 import torch
@@ -13,7 +13,6 @@ from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.torch_utils import masked_softmax
 from reagent.training.dqn_trainer import DQNTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
-from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 from reagent.training.trainer import Trainer
 
 
@@ -584,7 +583,7 @@ class EvaluationDataPage(NamedTuple):
             assert minibatch_size == self.model_metrics_values.shape[0]
 
         flatten_mdp_id = self.mdp_id.reshape(-1)
-        unique_mdp_ids = set(flatten_mdp_id)
+        unique_mdp_ids = set(flatten_mdp_id.tolist())
         prev_mdp_id, prev_seq_num = None, None
         mdp_count = 0
         for mdp_id, seq_num in zip(flatten_mdp_id, self.sequence_number):

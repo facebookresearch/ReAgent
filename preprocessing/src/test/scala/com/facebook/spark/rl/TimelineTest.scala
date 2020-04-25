@@ -12,7 +12,6 @@ class TimelineTest extends PipelineTester {
   implicit val doubleEq = TolerantNumerics.tolerantDoubleEquality(0.01)
 
   test("two-state-discrete-mdp-one-step-rl") {
-    val action_discrete: Boolean = true
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -22,11 +21,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_1",
       "some_rl_timeline_1",
-      null,
-      1,
       1
     )
     // destroy previous schema
@@ -129,7 +125,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("four-state-discrete-mdp-three-step-rl") {
-    val action_discrete: Boolean = true
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -139,11 +134,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_2",
       "some_rl_timeline_2",
-      null,
-      1,
       3
     )
     // destroy previous schema
@@ -328,7 +320,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("three-state-continuous-mdp-two-step-rl") {
-    val action_discrete: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -338,11 +329,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_3",
       "some_rl_timeline_3",
-      null,
-      1,
       2
     )
     // destroy previous schema
@@ -504,7 +492,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-continuous-mdp") {
-    val action_discrete: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -514,11 +501,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_4",
-      "some_rl_timeline_4",
-      null,
-      1
+      "some_rl_timeline_4"
     )
 
     // destroy previous schema
@@ -613,7 +597,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-continuous-mdp-validation-success-input") {
-    val action_discrete: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -624,11 +607,8 @@ class TimelineTest extends PipelineTester {
       startDs = "2018-01-01",
       endDs = "2018-01-01",
       addTerminalStateRow = false,
-      actionDiscrete = action_discrete,
       inputTableName = "some_rl_input_4",
       outputTableName = outputTableName,
-      evalTableName = null,
-      numOutputShards = 1,
       validationSql = Some(
         "select if((select count(*) from {config.inputTableName} where reward>1.0) == 0, TRUE, FALSE)"
       )
@@ -686,7 +666,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-continuous-mdp-validation-failure-input") {
-    val action_discrete: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -697,11 +676,8 @@ class TimelineTest extends PipelineTester {
       startDs = "2018-01-01",
       endDs = "2018-01-01",
       addTerminalStateRow = false,
-      actionDiscrete = action_discrete,
       inputTableName = "some_rl_input_4",
       outputTableName = outputTableName,
-      evalTableName = null,
-      numOutputShards = 1,
       validationSql = Some(
         "select if((select count(*) from {config.inputTableName} where reward<=1.0) == 0, TRUE, FALSE)"
       )
@@ -760,7 +736,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-continuous-mdp-validation-success-output") {
-    val action_discrete: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -771,11 +746,8 @@ class TimelineTest extends PipelineTester {
       startDs = "2018-01-01",
       endDs = "2018-01-01",
       addTerminalStateRow = false,
-      actionDiscrete = action_discrete,
       inputTableName = "some_rl_input_4",
       outputTableName = outputTableName,
-      evalTableName = null,
-      numOutputShards = 1,
       validationSql =
         Some("select if((select count(*) from {config.outputTableName}) == 1, TRUE, FALSE)")
     )
@@ -832,7 +804,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-continuous-mdp-validation-failure-output") {
-    val action_discrete: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -843,11 +814,8 @@ class TimelineTest extends PipelineTester {
       startDs = "2018-01-01",
       endDs = "2018-01-01",
       addTerminalStateRow = false,
-      actionDiscrete = action_discrete,
       inputTableName = "some_rl_input_4",
       outputTableName = outputTableName,
-      evalTableName = null,
-      numOutputShards = 1,
       validationSql =
         Some(s"select if((select count(*) from {config.outputTableName}) == 0, TRUE, FALSE)")
     )
@@ -905,7 +873,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-continuous-mdp-sparse-action") {
-    val action_discrete: Boolean = false
     val extraFeatureColumns: List[String] =
       List("action_id_list_features", "action_id_score_list_features")
     val sqlCtx = sqlContext
@@ -917,11 +884,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_5",
       "some_rl_timeline_5",
-      null,
-      1,
       extraFeatureColumns = extraFeatureColumns
     )
 
@@ -1048,7 +1012,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-discrete-sparse-mdp") {
-    val action_discrete: Boolean = true
     val extraFeatureColumns: List[String] =
       List("state_id_list_features", "state_id_score_list_features")
     val sqlCtx = sqlContext
@@ -1060,11 +1023,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_6",
       "some_rl_timeline_6",
-      null,
-      1,
       extraFeatureColumns = extraFeatureColumns
     )
 
@@ -1190,7 +1150,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("two-state-discrete-mdp") {
-    val action_discrete: Boolean = true
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -1200,11 +1159,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_7",
-      "some_rl_timeline_7",
-      null,
-      1
+      "some_rl_timeline_7"
     )
 
     // destroy previous schema
@@ -1294,7 +1250,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("filter-outliers") {
-    val action_discrete: Boolean = true
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -1306,11 +1261,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       false,
-      action_discrete,
       "some_rl_input_8",
       "some_rl_timeline_8",
-      null,
-      1,
       true,
       Some(0.95),
       percentileFunc
@@ -1390,7 +1342,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("time-window-limit") {
-    val action_discrete: Boolean = true
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -1402,11 +1353,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       true,
-      action_discrete,
       "some_rl_input_9",
       "some_rl_timeline_9",
-      null,
-      1,
       true,
       Some(0.95),
       percentileFunc,
@@ -1478,7 +1426,6 @@ class TimelineTest extends PipelineTester {
   }
 
   test("three-states-ranking-mdp") {
-    val action_discrete: Boolean = false
     val sqlCtx = sqlContext
     import sqlCtx.implicits._
     val sparkContext = sqlCtx.sparkContext
@@ -1488,11 +1435,8 @@ class TimelineTest extends PipelineTester {
       "2018-01-01",
       "2018-01-01",
       true,
-      action_discrete,
       "some_rl_input_10",
       "some_rl_timeline_10",
-      null,
-      1,
       false,
       rewardColumns = List("slate_reward", "item_reward"),
       extraFeatureColumns = List("state_sequence_features")
