@@ -47,6 +47,7 @@ class SoftmaxActionSampler(Sampler):
         assert action.ndim == 2
         log_prob = m.log_prob(raw_action).float()
         assert log_prob.ndim == 1
+        print("SAMPLED ACTION", action)
         return rlt.ActorOutput(action=action, log_prob=log_prob)
 
     @torch.no_grad()

@@ -137,7 +137,12 @@ class Agent:
         """ to be called after step(action) """
         assert self._obs is not None
         assert self._actor_output is not None
-        self.post_transition_callback(
-            self._obs, self._actor_output, reward, terminal, self._possible_actions_mask
-        )
+        if self.post_transition_callback is not None:
+            self.post_transition_callback(
+                self._obs,
+                self._actor_output,
+                reward,
+                terminal,
+                self._possible_actions_mask,
+            )
         self._reset_internal_states()

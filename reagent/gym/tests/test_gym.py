@@ -8,11 +8,12 @@ import logging
 import os
 import random
 import unittest
-from typing import Optional
+from typing import Optional, Tuple
 
 import gym
 import numpy as np
 import torch
+from parameterized import parameterized
 from reagent.core.configuration import make_config_class
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
@@ -31,11 +32,6 @@ logger = logging.getLogger(__name__)
 curr_dir = os.path.dirname(__file__)
 
 SEED = 0
-DISCRETE_DQN_CARTPOLE_CONFIG = os.path.join(
-    curr_dir, "configs/discrete_dqn_cartpole_online.yaml"
-)
-
-OPEN_GRIDWORLD_CONFIG = os.path.join(curr_dir, "configs/open_gridworld.yaml")
 
 
 def build_normalizer(env):
@@ -68,6 +64,7 @@ def run_test(
     num_episodes: int,
     max_steps: Optional[int],
     passing_score_bar: float,
+    use_gpu: bool,
 ):
     env = EnvFactory.make(env)
     env.seed(SEED)
@@ -77,12 +74,12 @@ def run_test(
 
     manager = model.value
     trainer = manager.initialize_trainer(
-        use_gpu=False,
+        use_gpu=use_gpu,
         reward_options=RewardOptions(),
         normalization_data_map=normalization,
     )
 
-    policy = manager.create_policy()
+    policy = manager.create_policy(False)
     replay_buffer = ReplayBuffer.create_from_env(
         env=env,
         replay_memory_size=replay_memory_size,
@@ -111,13 +108,32 @@ def run_test(
         f"Full reward history: {reward_history}"
     )
 
+    def gym_to_reagent_serving(obs: np.array) -> Tuple[torch.Tensor, torch.Tensor]:
+        obs_tensor = torch.tensor(obs).float().unsqueeze(0)
+        presence_tensor = torch.ones_like(obs_tensor)
+        return (obs_tensor, presence_tensor)
+
+    agent = Agent.create_for_env(
+        env,
+        policy=manager.create_policy(True),
+        post_transition_callback=None,
+        obs_preprocessor=gym_to_reagent_serving,
+    )
+    ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
+    assert ep_reward >= passing_score_bar, (
+        f"Predictor reward is {ep_reward},"
+        f"less than < {passing_score_bar}...\n"
+        f"Full reward history: {reward_history}"
+    )
+
     return reward_history
 
 
-def run_from_config(path):
+def run_from_config(path, use_gpu):
     yaml = YAML(typ="safe")
     with open(path, "r") as f:
         config_dict = yaml.load(f.read())
+    config_dict["use_gpu"] = use_gpu
 
     @make_config_class(run_test)
     class ConfigClass:
@@ -125,6 +141,15 @@ def run_from_config(path):
 
     config = ConfigClass(**config_dict)
     return run_test(**config.asdict())
+
+
+GYM_TESTS = [
+    ("Discrete Dqn Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
+    (
+        "Discrete Dqn Open Gridworld",
+        "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
+    ),
+]
 
 
 class TestGym(unittest.TestCase):
@@ -135,21 +160,16 @@ class TestGym(unittest.TestCase):
         torch.manual_seed(SEED)
         random.seed(SEED)
 
-    def test_discrete_dqn_cartpole(self):
-        reward_history = run_from_config(DISCRETE_DQN_CARTPOLE_CONFIG)
-        logger.info(f"Discrete DQN passes, with reward_history={reward_history}.")
+    @parameterized.expand(GYM_TESTS)
+    def test_gym_cpu(self, name: str, config_path: str):
+        reward_history = run_from_config(os.path.join(curr_dir, config_path), False)
+        logger.info(f"{name} passes, with reward_history={reward_history}.")
 
-    def test_open_gridworld(self):
-        reward_history = run_from_config(OPEN_GRIDWORLD_CONFIG)
-        logger.info(f"Open GridWorld passes, with reward_history={reward_history}.")
-
-    @unittest.skip("To be implemented...")
-    def test_parametric_dqn_cartpole(self):
-        raise NotImplementedError("TODO: make model manager for PDQN")
-
-    @unittest.skip("To be implemented...")
-    def test_sac_pendulum(self):
-        raise NotImplementedError("TODO: make model manager for SAC")
+    @parameterized.expand(GYM_TESTS)
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_gym_gpu(self, name: str, config_path: str):
+        reward_history = run_from_config(os.path.join(curr_dir, config_path), True)
+        logger.info(f"{name} passes, with reward_history={reward_history}.")
 
 
 if __name__ == "__main__":

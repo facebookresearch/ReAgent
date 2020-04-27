@@ -158,6 +158,9 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         return (self.action_names, q_values)
 
 
+DiscreteDqnPredictorUnwrapper = torch.nn.Identity
+
+
 class DiscreteDqnPredictorWrapperWithIdList(torch.jit.ScriptModule):
     __constants__ = ["state_sorted_features_t"]
 

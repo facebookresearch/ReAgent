@@ -19,6 +19,14 @@ def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
     return score
 
 
+def discrete_dqn_serving_scorer(q_network: torch.nn.Module) -> Scorer:
+    @torch.no_grad()
+    def score(preprocessed_obs: rlt.PreprocessedState) -> torch.Tensor:
+        return q_network(preprocessed_obs)[1]
+
+    return score
+
+
 def parametric_dqn_scorer(num_actions: int, q_network: ModelBase) -> Scorer:
     @torch.no_grad()
     def score(preprocessed_obs: rlt.PreprocessedState) -> torch.Tensor:
