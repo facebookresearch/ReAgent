@@ -32,7 +32,7 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
     # TODO: remove type ignore after converting rest of BatchPreprocessors to Dict input
     def __call__(  # type: ignore
         self, batch: Dict[str, torch.Tensor]
-    ) -> rlt.PreprocessedDiscreteDqnInput:
+    ) -> rlt.DiscreteDqnInput:
         batch = batch_to_device(batch, self.device)
         preprocessed_state = self.state_preprocessor(
             batch["state_features"], batch["state_features_presence"]
@@ -47,7 +47,7 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
         next_action = F.one_hot(
             batch["next_action"].to(torch.int64), self.num_actions + 1
         )[:, : self.num_actions]
-        return rlt.PreprocessedDiscreteDqnInput(
+        return rlt.DiscreteDqnInput(
             state=rlt.PreprocessedFeatureVector(preprocessed_state),
             next_state=rlt.PreprocessedFeatureVector(preprocessed_next_state),
             action=action,

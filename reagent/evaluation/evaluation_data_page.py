@@ -50,8 +50,8 @@ class EvaluationDataPage(NamedTuple):
         trainer: Trainer,
         reward_network: Optional[nn.Module] = None,
     ):
-        if isinstance(tdb, rlt.PreprocessedDiscreteDqnInput):
-            discrete_training_input = cast(rlt.PreprocessedDiscreteDqnInput, tdb)
+        if isinstance(tdb, rlt.DiscreteDqnInput):
+            discrete_training_input = cast(rlt.DiscreteDqnInput, tdb)
 
             return EvaluationDataPage.create_from_tensors_dqn(  # type: ignore
                 trainer,

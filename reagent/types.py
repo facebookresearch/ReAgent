@@ -344,7 +344,7 @@ class PreprocessedBaseInput(CommonInput):
 
 
 @dataclass
-class PreprocessedDiscreteDqnInput(PreprocessedBaseInput):
+class DiscreteDqnInput(PreprocessedBaseInput):
     action: torch.Tensor
     next_action: torch.Tensor
     possible_actions_mask: torch.Tensor
@@ -485,63 +485,6 @@ class PreprocessedMemoryNetworkInput(PreprocessedBaseInput):
 class RawBaseInput(CommonInput):
     state: FeatureVector
     next_state: FeatureVector
-
-
-@dataclass
-class RawDiscreteDqnInput(RawBaseInput):
-    action: torch.Tensor
-    next_action: torch.Tensor
-    possible_actions_mask: torch.Tensor
-    possible_next_actions_mask: torch.Tensor
-
-    def preprocess(
-        self,
-        state: PreprocessedFeatureVector,
-        next_state: PreprocessedFeatureVector,
-        extras: ExtraData,
-    ):
-        assert isinstance(state, PreprocessedFeatureVector)
-        assert isinstance(next_state, PreprocessedFeatureVector)
-        return PreprocessedDiscreteDqnInput(
-            self.reward,
-            self.time_diff,
-            self.step,
-            self.not_terminal.float(),
-            state,
-            next_state,
-            self.action.float(),
-            self.next_action.float(),
-            self.possible_actions_mask.float(),
-            self.possible_next_actions_mask.float(),
-            extras=extras,
-        )
-
-    def preprocess_tensors(
-        self, state: torch.Tensor, next_state: torch.Tensor, extras: ExtraData
-    ):
-        assert isinstance(state, torch.Tensor)
-        assert isinstance(next_state, torch.Tensor)
-        return PreprocessedDiscreteDqnInput(
-            self.reward,
-            self.time_diff,
-            self.step,
-            self.not_terminal.float(),
-            PreprocessedFeatureVector(
-                float_features=state,
-                id_list_features=self.state.id_list_features,
-                time_since_first=self.state.time_since_first,
-            ),
-            PreprocessedFeatureVector(
-                float_features=next_state,
-                id_list_features=self.next_state.id_list_features,
-                time_since_first=self.next_state.time_since_first,
-            ),
-            self.action.float(),
-            self.next_action.float(),
-            self.possible_actions_mask.float(),
-            self.possible_next_actions_mask.float(),
-            extras=extras,
-        )
 
 
 @dataclass
@@ -758,9 +701,7 @@ class PreprocessedTrainingBatch(TensorDataClass):
 
 @dataclass
 class RawTrainingBatch(TensorDataClass):
-    training_input: Union[
-        RawBaseInput, RawDiscreteDqnInput, RawParametricDqnInput, RawPolicyNetworkInput
-    ]
+    training_input: Union[RawBaseInput, RawParametricDqnInput, RawPolicyNetworkInput]
     extras: Any
 
     def batch_size(self):

@@ -177,7 +177,7 @@ class TrainingDataPage(object):
         )
 
     def as_discrete_maxq_training_batch(self):
-        return rlt.PreprocessedDiscreteDqnInput(
+        return rlt.DiscreteDqnInput(
             state=rlt.PreprocessedFeatureVector(float_features=self.states),
             action=self.actions,
             next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),

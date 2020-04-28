@@ -61,50 +61,6 @@ class PreprocessHandler:
         )
 
 
-class DiscreteDqnPreprocessHandler(PreprocessHandler):
-    def __init__(
-        self, num_actions: int, sparse_to_dense_processor: SparseToDenseProcessor
-    ):
-        super().__init__(sparse_to_dense_processor)
-        self.num_actions = num_actions
-
-    def read_actions(self, actions):
-        actions = np.array(actions)
-        actions = np.expand_dims(actions, axis=1)
-        action_names_tiled = np.tile(list(range(self.num_actions)), actions.shape)
-        retval = torch.tensor(
-            (actions == action_names_tiled).astype(np.float32), dtype=torch.float32
-        )
-        return retval
-
-    def preprocess(self, batch) -> rlt.RawTrainingBatch:
-        training_batch = super().preprocess(batch)
-        actions = self.read_actions(batch["action"])
-        pas_mask = torch.from_numpy(
-            np.array(batch["possible_actions"], dtype=np.float32)
-        ).byte()
-
-        next_actions = self.read_actions(batch["next_action"])
-        pnas_mask = np.array(batch["possible_next_actions"], dtype=np.float32)
-        not_terminal = torch.max(next_actions, 1)[0].float().reshape(-1, 1)
-        pnas_mask_torch = torch.from_numpy(pnas_mask).byte()
-
-        base_input = training_batch.training_input
-        training_input = rlt.RawDiscreteDqnInput(
-            state=base_input.state,
-            reward=base_input.reward,
-            time_diff=base_input.time_diff,
-            action=actions,
-            next_action=next_actions,
-            not_terminal=not_terminal,
-            next_state=base_input.next_state,
-            possible_actions_mask=pas_mask,
-            possible_next_actions_mask=pnas_mask_torch,
-            step=None,
-        )
-        return training_batch._replace(training_input=training_input)
-
-
 class ParametricDqnPreprocessHandler(PreprocessHandler):
     def __init__(
         self,
@@ -191,40 +147,6 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
                     float_features=rlt.ValuePresence(value=pnas, presence=pnas_presence)
                 ),
                 possible_next_actions_mask=pnas_mask,
-                step=None,
-            )
-        )
-
-
-class ContinuousPreprocessHandler(PreprocessHandler):
-    def __init__(
-        self,
-        state_sparse_to_dense: SparseToDenseProcessor,
-        action_sparse_to_dense: SparseToDenseProcessor,
-    ):
-        super().__init__(state_sparse_to_dense)
-        self.action_sparse_to_dense = action_sparse_to_dense
-
-    def preprocess(self, batch) -> rlt.RawTrainingBatch:
-        training_batch = super().preprocess(batch)
-
-        actions = self.action_sparse_to_dense(batch["action"])
-        next_actions = self.action_sparse_to_dense(batch["next_action"])
-
-        not_terminal = torch.from_numpy(
-            np.array(batch["next_action"], dtype=np.bool).astype(np.float32)
-        ).reshape(-1, 1)
-
-        base_input = cast(rlt.RawBaseInput, training_batch.training_input)
-        return training_batch._replace(
-            training_input=rlt.RawPolicyNetworkInput(
-                state=base_input.state,
-                action=actions,
-                next_state=base_input.next_state,
-                next_action=next_actions,
-                reward=base_input.reward,
-                not_terminal=not_terminal,
-                time_diff=base_input.time_diff,
                 step=None,
             )
         )

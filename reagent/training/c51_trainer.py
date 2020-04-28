@@ -107,7 +107,7 @@ class C51Trainer(RLTrainer):
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
     @torch.no_grad()  # type: ignore
-    def train(self, training_batch: rlt.PreprocessedDiscreteDqnInput):
+    def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
 
