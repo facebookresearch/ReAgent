@@ -61,9 +61,10 @@ def run_test(
     replay_memory_size: int,
     train_every_ts: int,
     train_after_ts: int,
-    num_episodes: int,
+    num_train_episodes: int,
     max_steps: Optional[int],
     passing_score_bar: float,
+    num_eval_episodes: int,
     use_gpu: bool,
 ):
     env = EnvFactory.make(env)
@@ -79,54 +80,66 @@ def run_test(
         normalization_data_map=normalization,
     )
 
-    policy = manager.create_policy(False)
     replay_buffer = ReplayBuffer.create_from_env(
         env=env,
         replay_memory_size=replay_memory_size,
         batch_size=trainer.minibatch_size,
     )
 
+    device = torch.device("cuda") if use_gpu else None
     post_step = train_with_replay_buffer_post_step(
         replay_buffer=replay_buffer,
         trainer=trainer,
         training_freq=train_every_ts,
         batch_size=trainer.minibatch_size,
         replay_burnin=train_after_ts,
+        device=device,
     )
 
-    agent = Agent.create_for_env(env, policy=policy, post_transition_callback=post_step)
+    training_policy = manager.create_policy(serving=False)
+    agent = Agent.create_for_env(
+        env, policy=training_policy, post_transition_callback=post_step, device=device
+    )
 
-    reward_history = []
-    for i in range(num_episodes):
-        logger.info(f"running episode {i}")
+    train_rewards = []
+    for i in range(num_train_episodes):
         ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
-        reward_history.append(ep_reward)
+        train_rewards.append(ep_reward)
+        logger.info(f"Finished training episode {i} with reward {ep_reward}.")
 
-    assert reward_history[-1] >= passing_score_bar, (
-        f"reward after {len(reward_history)} episodes is {reward_history[-1]},"
+    assert train_rewards[-1] >= passing_score_bar, (
+        f"reward after {len(train_rewards)} episodes is {train_rewards[-1]},"
         f"less than < {passing_score_bar}...\n"
-        f"Full reward history: {reward_history}"
+        f"Full reward history: {train_rewards}"
     )
+
+    logger.info("============Train rewards=============")
+    logger.info(train_rewards)
 
     def gym_to_reagent_serving(obs: np.array) -> Tuple[torch.Tensor, torch.Tensor]:
         obs_tensor = torch.tensor(obs).float().unsqueeze(0)
         presence_tensor = torch.ones_like(obs_tensor)
         return (obs_tensor, presence_tensor)
 
+    serving_policy = manager.create_policy(serving=True)
     agent = Agent.create_for_env(
-        env,
-        policy=manager.create_policy(True),
-        post_transition_callback=None,
-        obs_preprocessor=gym_to_reagent_serving,
-    )
-    ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
-    assert ep_reward >= passing_score_bar, (
-        f"Predictor reward is {ep_reward},"
-        f"less than < {passing_score_bar}...\n"
-        f"Full reward history: {reward_history}"
+        env, policy=serving_policy, obs_preprocessor=gym_to_reagent_serving
     )
 
-    return reward_history
+    eval_rewards = []
+    for i in range(num_eval_episodes):
+        ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
+        eval_rewards.append(ep_reward)
+        logger.info(f"Finished eval episode {i} with reward {ep_reward}.")
+
+    assert np.mean(eval_rewards) >= passing_score_bar, (
+        f"Predictor reward is {np.mean(eval_rewards)},"
+        f"less than < {passing_score_bar}...\n"
+        f"Full eval rewards: {eval_rewards}."
+    )
+
+    logger.info("============Eval rewards==============")
+    logger.info(eval_rewards)
 
 
 def run_from_config(path, use_gpu):
@@ -162,14 +175,14 @@ class TestGym(unittest.TestCase):
 
     @parameterized.expand(GYM_TESTS)
     def test_gym_cpu(self, name: str, config_path: str):
-        reward_history = run_from_config(os.path.join(curr_dir, config_path), False)
-        logger.info(f"{name} passes, with reward_history={reward_history}.")
+        run_from_config(os.path.join(curr_dir, config_path), False)
+        logger.info(f"{name} passes!")
 
     @parameterized.expand(GYM_TESTS)
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_gym_gpu(self, name: str, config_path: str):
-        reward_history = run_from_config(os.path.join(curr_dir, config_path), True)
-        logger.info(f"{name} passes, with reward_history={reward_history}.")
+        run_from_config(os.path.join(curr_dir, config_path), True)
+        logger.info(f"{name} passes!")
 
 
 if __name__ == "__main__":

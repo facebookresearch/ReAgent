@@ -70,9 +70,7 @@ class DiscreteDQNBase(ModelManager):
         return DiscreteNormalizationParameterKeys.STATE
 
     def create_policy(self, serving: bool) -> Policy:
-        """ Create an online DiscreteDQN Policy from env.
-        """
-        # Avoiding potentially importing gym when it's not installed
+        """ Create an online DiscreteDQN Policy from env. """
 
         from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
         from reagent.gym.policies.scorers.discrete_scorer import (

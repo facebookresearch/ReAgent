@@ -4,7 +4,7 @@
 
 import inspect
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import gym
 import reagent.types as rlt
@@ -25,6 +25,7 @@ def train_with_replay_buffer_post_step(
     batch_size: int,
     replay_burnin: Optional[int] = None,
     trainer_preprocessor=None,
+    device: Optional[Union[str, torch.device]] = None,
 ) -> PostStep:
     """ Called in post_step of agent to train based on replay buffer (RB).
         Args:
@@ -35,6 +36,9 @@ def train_with_replay_buffer_post_step(
             replay_burnin: optional requirement for minimum size of RB before
                 training begins. (i.e. burn in this many frames)
     """
+    if device is not None and isinstance(device, str):
+        device = torch.device(device)
+
     _num_steps = 0
     size_req = batch_size
     if replay_burnin is not None:
@@ -52,9 +56,11 @@ def train_with_replay_buffer_post_step(
                 f"{training_batch_type} does not implement from_replay_buffer"
             )
 
-        # TODO: handle cuda() call
         def trainer_preprocessor(batch):
-            return training_batch_type.from_replay_buffer(batch)
+            retval = training_batch_type.from_replay_buffer(batch)
+            if device is not None:
+                retval = retval.to(device)
+            return retval
 
     def post_step(
         obs: Any,
@@ -82,14 +88,6 @@ def train_with_replay_buffer_post_step(
         return
 
     return post_step
-
-
-"""
-TODO: Make PostStep a class that has an end-of-episode update function, like
-sampler. This will be even more generic and allow us to auto-infer mdp_id.
-This will also be useful when doing distributed training, where post_step
-is inserting into a shared buffer and end_of_episode update is training.
-"""
 
 
 def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostStep:
