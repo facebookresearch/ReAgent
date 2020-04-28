@@ -91,7 +91,7 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
             torch.sum(self.kl_div_loss(per_symbol_log_probs, labels), dim=2)
             * training_input.position_reward
         )
-        # weighted_batch_loss shape: batch_size
+        # weighted_batch_loss shape: batch_size, 1
         weighted_batch_loss = torch.sum(
             1.0
             / torch.log(
@@ -100,6 +100,7 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
             )
             * batch_loss,
             dim=1,
+            keepdim=True,
         )
         loss = 1.0 / batch_size * torch.sum(importance_sampling * weighted_batch_loss)
 

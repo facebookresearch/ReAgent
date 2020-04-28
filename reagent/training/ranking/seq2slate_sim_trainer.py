@@ -90,10 +90,14 @@ class Seq2SlateSimulationTrainer(Trainer):
 
         if self.parameters.simulation_distance_penalty is not None:
             assert self.parameters.simulation_distance_penalty > 0
-            self.permutation_distance = torch.tensor(
-                [swap_dist(x.tolist()) for x in self.permutation_index],
-                device=self.device,
-            ).float()
+            self.permutation_distance = (
+                torch.tensor(
+                    [swap_dist(x.tolist()) for x in self.permutation_index],
+                    device=self.device,
+                )
+                .unsqueeze(1)
+                .float()
+            )
             self.MAX_DISTANCE = torch.max(self.permutation_distance)
 
         self.trainer = Seq2SlateTrainer(
@@ -151,17 +155,18 @@ class Seq2SlateSimulationTrainer(Trainer):
 
         if self.reward_net is None:
             self.reward_net = _load_reward_net(self.reward_net_path, self.use_gpu)
-        slate_reward = (
-            self.reward_net(
-                training_input.state.float_features,
-                training_input.src_seq.float_features,
-                sim_tgt_out_seq.float_features,
-                training_input.src_src_mask,
-                sim_tgt_out_idx,
-            )
-            .squeeze()
-            .detach()
-        )
+        slate_reward = self.reward_net(
+            training_input.state.float_features,
+            training_input.src_seq.float_features,
+            sim_tgt_out_seq.float_features,
+            training_input.src_src_mask,
+            sim_tgt_out_idx,
+        ).detach()
+        if slate_reward.ndim == 1:
+            logger.warning(f"Slate reward should be 2-D tensor, unsqueezing")
+            slate_reward = slate_reward.unsqueeze(1)
+        elif slate_reward.ndim != 2:
+            raise RuntimeError("Expect slate reward to be 2-D tensor")
         # guard-rail reward prediction range
         reward_clamp = self.parameters.simulation_reward_clamp
         if reward_clamp is not None:
@@ -172,6 +177,10 @@ class Seq2SlateSimulationTrainer(Trainer):
         distance_penalty = self.parameters.simulation_distance_penalty
         if distance_penalty is not None:
             slate_reward += distance_penalty * (self.MAX_DISTANCE - sim_distance)
+
+        assert (
+            len(slate_reward.shape) == 2 and slate_reward.shape[1] == 1
+        ), f"{slate_reward.shape}"
 
         on_policy_input = rlt.PreprocessedRankingInput(
             state=training_input.state,

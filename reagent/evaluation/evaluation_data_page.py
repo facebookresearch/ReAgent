@@ -136,7 +136,7 @@ class EvaluationDataPage(NamedTuple):
                 seq2slate_net(
                     training_input, Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
                 ).log_probs
-            ).unsqueeze(1)
+            )
             action_mask = torch.ones(batch_size, 1, device=device).float()
 
         model_rewards_for_logged_action = reward_network(

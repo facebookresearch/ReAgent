@@ -162,7 +162,9 @@ class FixedLengthSequences:
         expected_offsets = torch.arange(
             0, offsets.shape[0] * self.expected_length, self.expected_length
         )
-        assert all(expected_offsets == offsets)
+        assert all(
+            expected_offsets == offsets
+        ), f"Unexpected offsets for {self.key} {self.sequence_id}: {offsets}"
 
         data[self.to_key] = value
         return data

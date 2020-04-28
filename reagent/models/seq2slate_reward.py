@@ -211,7 +211,7 @@ class Seq2SlateRewardNet(ModelBase):
         )
 
         # use the decoder's last step embedding to predict the slate reward
-        pred_reward = self.proj(decoder_output[:, -1, :]).squeeze()
+        pred_reward = self.proj(decoder_output[:, -1, :])
         return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
 
 

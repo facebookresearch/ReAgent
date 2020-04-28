@@ -71,7 +71,11 @@ class EstimationData:
             self.model_propensities_eval.shape
             == self.model_rewards_eval.shape
             == self.action_mask_eval.shape
-        ) and len(self.model_propensities_eval.shape) == 2
+        ) and len(self.model_propensities_eval.shape) == 2, (
+            f"{self.model_propensities_eval.shape} "
+            f"{self.model_rewards_eval.shape} "
+            f"{self.action_mask_eval.shape}"
+        )
         assert (
             (
                 self.logged_rewards_eval.shape
@@ -80,6 +84,10 @@ class EstimationData:
             )
             and len(self.logged_rewards_eval.shape) == 2
             and self.logged_rewards_eval.shape[1] == 1
+        ), (
+            f"{self.logged_rewards_eval.shape} "
+            f"{self.model_rewards_for_logged_action_eval.shape} "
+            f"{self.logged_propensities_eval.shape}"
         )
 
 

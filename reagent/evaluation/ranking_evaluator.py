@@ -61,7 +61,7 @@ class RankingEvaluator:
             baseline_net = self.trainer.baseline_net
             baseline_net_prev_mode = baseline_net.training
             baseline_net.eval()
-            b = baseline_net(eval_tdp.training_input).squeeze().detach()
+            b = baseline_net(eval_tdp.training_input).detach()
             self.baseline_loss.append(
                 F.mse_loss(b, eval_tdp.training_input.slate_reward).item()
             )

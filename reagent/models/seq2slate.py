@@ -692,7 +692,7 @@ class Seq2SlateTransformerModel(nn.Module):
         if mode == self._PER_SYMBOL_LOG_PROB_DIST_MODE:
             return per_symbol_log_probs
 
-        # shape: batch_size
+        # shape: batch_size, 1
         return self.per_symbol_to_per_seq_log_probs(per_symbol_log_probs, tgt_out_idx)
 
     @staticmethod
@@ -704,8 +704,8 @@ class Seq2SlateTransformerModel(nn.Module):
         log_probs = per_symbol_log_probs.view(-1, candidate_size)[
             torch.arange(batch_size * seq_len, device=device), tgt_out_idx.flatten()
         ].view(batch_size, seq_len)
-        # shape: batch_size
-        return log_probs.sum(dim=1)
+        # shape: batch_size, 1
+        return log_probs.sum(dim=1, keepdim=True)
 
     def encoder_output_to_scores(self, state, src_seq, src_src_mask, tgt_out_idx):
         # encoder_output shape: batch_size, src_seq_len, dim_model

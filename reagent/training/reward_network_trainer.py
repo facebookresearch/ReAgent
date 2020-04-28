@@ -34,7 +34,7 @@ class RewardNetTrainer(Trainer):
         else:
             target_reward = training_input.reward
 
-        predicted_reward = self.reward_net(training_input).predicted_reward.squeeze()
+        predicted_reward = self.reward_net(training_input).predicted_reward
         mse_loss = self.loss_fn(predicted_reward, target_reward)
         self.opt.zero_grad()
         mse_loss.backward()

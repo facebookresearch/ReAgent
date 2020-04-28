@@ -237,6 +237,7 @@ class PreprocessedRankingInput(TensorDataClass):
         optim_tgt_out_idx: Optional[torch.Tensor] = None,
         optim_tgt_in_seq: Optional[torch.Tensor] = None,
         optim_tgt_out_seq: Optional[torch.Tensor] = None,
+        **kwargs,
     ):
         assert isinstance(state, torch.Tensor)
         assert isinstance(src_seq, torch.Tensor)
