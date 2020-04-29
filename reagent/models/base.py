@@ -14,7 +14,35 @@ from reagent import types as rlt
 
 
 # add ABCMeta once https://github.com/sphinx-doc/sphinx/issues/5995 is fixed
-class ModelBase(nn.Module):
+class ModuleWithDimensions(nn.Module):
+    def input_dim(self):
+        raise NotImplementedError()
+
+    def output_dim(self):
+        raise NotImplementedError()
+
+
+class IdentityModuleWithDimensions(torch.nn.Identity):  # type: ignore
+    def __init__(self, dim: int):
+        super().__init__()
+        self.dim = dim
+
+    def input_dim(self):
+        return self.dim
+
+    def output_dim(self):
+        return self.dim
+
+
+class SequentialWithDimensions(torch.nn.Sequential):  # type: ignore
+    def input_dim(self):
+        return self[0].input_dim()
+
+    def output_dim(self):
+        return self[-1].output_dim()
+
+
+class ModelBase(ModuleWithDimensions):
     """
     A base class to support exporting through ONNX
     """

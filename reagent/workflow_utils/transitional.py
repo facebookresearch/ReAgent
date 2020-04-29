@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import copy
 from typing import Dict
 
 import torch
@@ -9,8 +10,8 @@ from reagent.models.categorical_dqn import CategoricalDQN
 from reagent.models.cem_planner import CEMPlannerNetwork
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.dueling_q_network import DuelingQNetwork
+from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.models.parametric_dqn import FullyConnectedParametricDQN
-from reagent.models.quantile_dqn import QuantileDQN
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import (
     CEMParameters,
@@ -45,16 +46,18 @@ def create_dqn_trainer_from_params(
 ):
     metrics_to_score = metrics_to_score or []
 
+    embedding = FullyConnectedNetwork(
+        layers=[get_num_output_features(normalization_parameters)]
+        + model.training.layers[1:-1],
+        activations=model.training.activations[:-1],
+        dropout_ratio=model.training.dropout_ratio,
+    )
+
+    quantiles = 1
     if model.rainbow.quantile:
-        q_network = QuantileDQN(
-            state_dim=get_num_output_features(normalization_parameters),
-            action_dim=len(model.actions),
-            num_atoms=model.rainbow.num_atoms,
-            sizes=model.training.layers[1:-1],
-            activations=model.training.activations[:-1],
-            dropout_ratio=model.training.dropout_ratio,
-        )
-    elif model.rainbow.categorical:
+        quantiles = model.rainbow.num_atoms
+
+    if model.rainbow.categorical:
         q_network = CategoricalDQN(  # type: ignore
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
@@ -68,18 +71,11 @@ def create_dqn_trainer_from_params(
         )
     elif model.rainbow.dueling_architecture:
         q_network = DuelingQNetwork(  # type: ignore
-            layers=[get_num_output_features(normalization_parameters)]
-            + model.training.layers[1:-1]
-            + [len(model.actions)],
-            activations=model.training.activations,
+            embedding=embedding, action_dim=len(model.actions), quantiles=quantiles
         )
     else:
         q_network = FullyConnectedDQN(  # type: ignore
-            state_dim=get_num_output_features(normalization_parameters),
-            action_dim=len(model.actions),
-            sizes=model.training.layers[1:-1],
-            activations=model.training.activations[:-1],
-            dropout_ratio=model.training.dropout_ratio,
+            embedding=embedding, action_dim=len(model.actions), quantiles=quantiles
         )
 
     if use_gpu and torch.cuda.is_available():
@@ -92,18 +88,14 @@ def create_dqn_trainer_from_params(
         # Metrics + reward
         num_output_nodes = (len(metrics_to_score) + 1) * len(model.actions)
         reward_network = FullyConnectedDQN(
-            state_dim=get_num_output_features(normalization_parameters),
             action_dim=num_output_nodes,
-            sizes=model.training.layers[1:-1],
-            activations=model.training.activations[:-1],
-            dropout_ratio=model.training.dropout_ratio,
+            embedding=copy.deepcopy(embedding),
+            quantiles=quantiles,
         )
         q_network_cpe = FullyConnectedDQN(
-            state_dim=get_num_output_features(normalization_parameters),
             action_dim=num_output_nodes,
-            sizes=model.training.layers[1:-1],
-            activations=model.training.activations[:-1],
-            dropout_ratio=model.training.dropout_ratio,
+            embedding=copy.deepcopy(embedding),
+            quantiles=quantiles,
         )
 
         if use_gpu and torch.cuda.is_available():

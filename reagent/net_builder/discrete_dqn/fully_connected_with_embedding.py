@@ -2,10 +2,13 @@
 
 from typing import Dict, List, Type
 
+import torch
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
-from reagent.models.base import ModelBase
-from reagent.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
+from reagent.models.base import ModelBase, SequentialWithDimensions
+from reagent.models.dqn import FullyConnectedDQN
+from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.models.id_list_joiner import IdListJoiner
 from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNWithIdListNetBuilder
 from reagent.parameters import NormalizationParameters, param_hash
 
@@ -33,12 +36,14 @@ class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
         output_dim: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
-        return FullyConnectedDQNWithEmbedding(
-            state_dim=state_dim,
-            action_dim=output_dim,
-            sizes=self.sizes,
+        id_list_joiner = IdListJoiner(
+            state_feature_config, state_dim, self.embedding_dim
+        )
+        embedding = FullyConnectedNetwork(
+            layers=[id_list_joiner.output_dim()] + self.sizes,
             activations=self.activations,
-            model_feature_config=state_feature_config,
-            embedding_dim=self.embedding_dim,
             dropout_ratio=self.dropout_ratio,
+        )
+        return FullyConnectedDQN(
+            action_dim=output_dim, feature_extractor=id_list_joiner, embedding=embedding
         )

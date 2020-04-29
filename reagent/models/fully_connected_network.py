@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+from reagent.models.base import ModuleWithDimensions
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ def gaussian_fill_w_gain(tensor, activation, dim_in, min_std=0.0) -> None:
     init.normal_(tensor, mean=0, std=max(gain * math.sqrt(1 / dim_in), min_std))
 
 
-class FullyConnectedNetwork(nn.Module):
+class FullyConnectedNetwork(ModuleWithDimensions):
     def __init__(
         self,
         layers,
@@ -78,3 +79,9 @@ class FullyConnectedNetwork(nn.Module):
             if self.use_dropout and i < len(self.dropout_layers):
                 x = self.dropout_layers[i](x)
         return x
+
+    def input_dim(self):
+        return self.layers[0].in_features
+
+    def output_dim(self):
+        return self.layers[-1].out_features
