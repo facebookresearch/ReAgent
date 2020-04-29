@@ -174,14 +174,9 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
         transition = super(PrioritizedReplayBuffer, self).sample_transition_batch(
             batch_size, indices
         )
-        transition_elements = self.get_transition_elements(batch_size)
-        transition_names = [e.name for e in transition_elements]
-        probabilities_index = transition_names.index("sampling_probabilities")
-        indices_index = transition_names.index("indices")
-        indices = transition[indices_index]
         # The parent returned an empty array for the probabilities. Fill it with the
         # contents of the sum tree.
-        transition[probabilities_index][:] = self.get_priority(indices)
+        transition.sampling_probabilities[:] = self.get_priority(transition.indices)
         return transition
 
     def set_priority(self, indices, priorities):

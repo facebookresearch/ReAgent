@@ -352,45 +352,23 @@ class DiscreteDqnInput(PreprocessedBaseInput):
     extras: ExtraData
 
     @classmethod
-    def from_replay_buffer(cls, replay_buffer_batch):
-        (
-            obs,
-            action,
-            reward,
-            next_obs,
-            next_action,
-            next_reward,
-            terminal,
-            idxs,
-            possible_actions_mask,
-            log_prob,
-        ) = replay_buffer_batch
-        num_actions = action.shape[1]
-
-        obs = torch.tensor(obs).squeeze(2)
-        action = torch.tensor(action)
-        reward = torch.tensor(reward).unsqueeze(1)
-        next_obs = torch.tensor(next_obs).squeeze(2)
-        next_action = torch.tensor(next_action)
-        not_terminal = 1.0 - torch.tensor(terminal).unsqueeze(1).float()
-        possible_actions_mask = torch.tensor(possible_actions_mask)
-        next_possible_actions_mask = not_terminal.repeat(1, num_actions)
-        log_prob = torch.tensor(log_prob)
+    def from_replay_buffer(cls, batch):
+        not_terminal = 1.0 - batch.terminal.float()
         return cls(
-            state=PreprocessedFeatureVector(float_features=obs),
-            action=action,
-            next_state=PreprocessedFeatureVector(float_features=next_obs),
-            next_action=next_action,
-            possible_actions_mask=possible_actions_mask,
-            possible_next_actions_mask=next_possible_actions_mask,
-            reward=reward,
+            state=PreprocessedFeatureVector(float_features=batch.state),
+            action=batch.action,
+            next_state=PreprocessedFeatureVector(float_features=batch.next_state),
+            next_action=batch.next_action,
+            possible_actions_mask=batch.possible_actions_mask,
+            possible_next_actions_mask=batch.next_possible_actions_mask,
+            reward=batch.reward,
             not_terminal=not_terminal,
             step=None,
             time_diff=None,
             extras=ExtraData(
                 mdp_id=None,
                 sequence_number=None,
-                action_probability=log_prob.exp(),
+                action_probability=batch.log_prob.exp(),
                 max_num_actions=None,
                 metrics=None,
             ),

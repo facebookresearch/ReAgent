@@ -81,7 +81,9 @@ def train_with_replay_buffer_post_step(
         )
 
         if replay_buffer.size >= size_req and _num_steps % training_freq == 0:
-            train_batch = replay_buffer.sample_transition_batch(batch_size=batch_size)
+            train_batch = replay_buffer.sample_transition_batch_tensor(
+                batch_size=batch_size
+            )
             preprocessed_batch = trainer_preprocessor(train_batch)
             trainer.train(preprocessed_batch)
         _num_steps += 1
