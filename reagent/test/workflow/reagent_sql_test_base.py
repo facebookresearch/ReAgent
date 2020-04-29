@@ -35,6 +35,23 @@ class ReagentSQLTestBase(SQLTestCase):
         np.random.seed(SEED)
         logging.basicConfig()
 
+    def assertEq(self, series_a, arr_b):
+        """ Assert panda series is equal to np array """
+        arr_a = np.array(series_a.tolist())
+        np.testing.assert_equal(arr_a, arr_b)
+
+    def assertAllClose(self, series_a, arr_b):
+        """ Assert panda series is allclose to np array """
+        arr_a = np.array(series_a.tolist())
+        np.testing.assert_allclose(arr_a, arr_b)
+
+    def assertEqWithPresence(self, series_a, presence, arr_b):
+        """ Assert panda series given presence array is equal to np array """
+        arr_a = np.array(series_a.tolist())
+        present_a = arr_a[presence]
+        present_b = arr_b[presence]
+        np.testing.assert_equal(present_a, present_b)
+
     def tearDown(self):
         super().tearDown()
 

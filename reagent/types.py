@@ -7,7 +7,6 @@ import dataclasses
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-import numpy as np
 import torch
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 
@@ -321,9 +320,7 @@ class CommonInput(TensorDataClass):
 
 @dataclass
 class ExtraData(TensorDataClass):
-    mdp_id: Optional[
-        np.ndarray
-    ] = None  # Need to use a numpy array because torch doesn't support strings
+    mdp_id: Optional[torch.Tensor] = None
     sequence_number: Optional[torch.Tensor] = None
     action_probability: Optional[torch.Tensor] = None
     max_num_actions: Optional[int] = None
@@ -474,6 +471,47 @@ class PreprocessedParametricDqnInput(PreprocessedBaseInput):
 class PreprocessedPolicyNetworkInput(PreprocessedBaseInput):
     action: PreprocessedFeatureVector
     next_action: PreprocessedFeatureVector
+    extras: ExtraData
+
+    @classmethod
+    def from_replay_buffer(cls, replay_buffer_batch):
+        (
+            obs,
+            action,
+            reward,
+            next_obs,
+            next_action,
+            next_reward,
+            terminal,
+            idxs,
+            possible_actions_mask,
+            log_prob,
+        ) = replay_buffer_batch
+
+        obs = torch.tensor(obs).squeeze(2)
+        action = torch.tensor(action).float()
+        reward = torch.tensor(reward).unsqueeze(1)
+        next_obs = torch.tensor(next_obs).squeeze(2)
+        next_action = torch.tensor(next_action).float()
+        not_terminal = 1.0 - torch.tensor(terminal).unsqueeze(1).float()
+        log_prob = torch.tensor(log_prob).unsqueeze(1)
+        return cls(
+            state=PreprocessedFeatureVector(float_features=obs),
+            action=PreprocessedFeatureVector(float_features=action),
+            next_state=PreprocessedFeatureVector(float_features=next_obs),
+            next_action=PreprocessedFeatureVector(float_features=next_action),
+            reward=reward,
+            not_terminal=not_terminal,
+            step=None,
+            time_diff=None,
+            extras=ExtraData(
+                mdp_id=None,
+                sequence_number=None,
+                action_probability=log_prob.exp(),
+                max_num_actions=None,
+                metrics=None,
+            ),
+        )
 
 
 @dataclass
@@ -693,7 +731,8 @@ class PreprocessedTrainingBatch(TensorDataClass):
         PreprocessedPolicyNetworkInput,
         PreprocessedRankingInput,
     ]
-    extras: Any
+    # TODO: deplicate this and move into individual ones.
+    extras: Optional[Any]
 
     def batch_size(self):
         return self.training_input.state.float_features.size()[0]

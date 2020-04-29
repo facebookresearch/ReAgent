@@ -12,6 +12,7 @@ from reagent.parameters import NormalizationData
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     DiscreteDqnBatchPreprocessor,
+    InputColumn,
 )
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.workflow.data_fetcher import query_data
@@ -47,10 +48,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class DiscreteNormalizationParameterKeys:
-    STATE = "state"
-
-
 @dataclass
 class DiscreteDQNBase(ModelManager):
     target_action_distribution: Optional[List[float]] = None
@@ -67,7 +64,7 @@ class DiscreteDQNBase(ModelManager):
 
     @classmethod
     def normalization_key(cls) -> str:
-        return DiscreteNormalizationParameterKeys.STATE
+        return InputColumn.STATE_FEATURES
 
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
@@ -89,7 +86,7 @@ class DiscreteDQNBase(ModelManager):
 
     @property
     def metrics_to_score(self) -> List[str]:
-        assert self.reward_options is not None
+        assert self._reward_options is not None
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
                 self._reward_options.metric_reward_values
@@ -129,7 +126,7 @@ class DiscreteDQNBase(ModelManager):
             input_table_spec, "state_features", preprocessing_options
         )
         return {
-            DiscreteNormalizationParameterKeys.STATE: NormalizationData(
+            InputColumn.STATE_FEATURES: NormalizationData(
                 dense_normalization_parameters=state_normalization_parameters
             )
         }

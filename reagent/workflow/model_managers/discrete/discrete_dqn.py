@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Optional
 
-import torch  # @manual
+import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
-from reagent.parameters import param_hash
+from reagent.parameters import EvaluationParameters, param_hash
 from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
@@ -29,11 +30,12 @@ class DiscreteDQN(DiscreteDQNBase):
             FullyConnected=FullyConnected()
         )
     )
+    evaluation: Optional[EvaluationParameters] = None
 
     def __post_init_post_parse__(self,):
         super().__post_init_post_parse__()
         self.rl_parameters = self.trainer_param.rl
-        self.eval_parameters = self.trainer_param.evaluation
+        self.eval_parameters = self.evaluation or EvaluationParameters()
         self.action_names = self.trainer_param.actions
         assert len(self.action_names) > 1, "DiscreteDQNModel needs at least 2 actions"
         assert (

@@ -7,6 +7,7 @@ import logging
 from typing import Any, Optional, Union
 
 import gym
+import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.gym.types import PostStep
@@ -48,8 +49,10 @@ def train_with_replay_buffer_post_step(
         sig = inspect.signature(trainer.train)
         logger.info(f"Deriving trainer_preprocessor from {sig.parameters}")
         # Assuming training_batch is in the first position (excluding self)
-        training_batch_param = list(sig.parameters.values())[0]
-        training_batch_type = training_batch_param.annotation
+        assert (
+            list(sig.parameters.keys())[0] == "training_batch"
+        ), f"{sig.parameters} doesn't have training batch in first position."
+        training_batch_type = sig.parameters["training_batch"].annotation
         assert training_batch_type != inspect.Parameter.empty
         if not hasattr(training_batch_type, "from_replay_buffer"):
             raise NotImplementedError(
@@ -103,22 +106,38 @@ def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostSte
         """ log data into dataset """
         nonlocal sequence_number
 
-        if possible_actions_mask is None:
-            possible_actions_mask = torch.ones_like(actor_output.action).to(torch.bool)
+        # actor_output = actor_output.squeeze(0)
+        if isinstance(env.action_space, gym.spaces.Discrete):
+            # TimelineOperator expects str for discrete action
+            action = str(actor_output.action.argmax().item())
+            if possible_actions_mask is None:
+                possible_actions_mask = torch.ones_like(actor_output.action).to(
+                    torch.bool
+                )
 
-        if terminal:
-            possible_actions_mask = torch.zeros_like(actor_output.action).to(torch.bool)
-
-        # timeline operator expects str for disc and map<str, double> for cts
+            if terminal:
+                possible_actions_mask = torch.zeros_like(actor_output.action).to(
+                    torch.bool
+                )
+        elif isinstance(env.action_space, gym.spaces.Box):
+            # TimelineOperator expects map<long, double> for discrete action
+            assert actor_output.action.dim() == 1, f"action dim > 1 in {actor_output}"
+            action = {
+                i: actor_output.action[i].item()
+                for i in range(actor_output.action.size(0))
+            }
+        else:
+            raise NotImplementedError(f"{env.action_space} not supported!")
         # TODO: make output of policy the desired type already (which means
         # altering RB logic to store scalar types) What to do about continuous?
-        actor_output = actor_output.squeeze(0)
-        assert isinstance(env.action_space, gym.spaces.Discrete)
-        action = str(actor_output.action.argmax().item())
-        action_prob = actor_output.log_prob.exp().item()
 
-        possible_actions = None  # TODO: this shouldn't be none if env passes it to u
+        action_prob = actor_output.log_prob.exp().item()
+        possible_actions = None  # TODO: this shouldn't be none if env passes it
         time_diff = 1  # TODO: should this be hardcoded?
+
+        # Some environments return numpy instead
+        if isinstance(reward, np.float64):
+            reward = reward.item()
 
         dataset.insert_pre_timeline_format(
             mdp_id=mdp_id,

@@ -8,6 +8,7 @@ from reagent.core.dataclasses import dataclass
 from reagent.core.tagged_union import TaggedUnion
 
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 

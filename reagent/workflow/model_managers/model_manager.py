@@ -56,16 +56,6 @@ class ModelManager(metaclass=RegistryMeta):
         ), "Call initialize_trainer() to set the value first"
         return self._use_gpu
 
-    @property
-    def reward_options(self) -> RewardOptions:
-        assert self._reward_options is not None
-        return self._reward_options
-
-    @reward_options.setter
-    def reward_options(self, reward_options: RewardOptions):
-        assert self._reward_options is None
-        self._reward_options = reward_options
-
     @abc.abstractmethod
     def run_feature_identification(
         self, input_table_spec: TableSpec
@@ -127,9 +117,8 @@ class ModelManager(metaclass=RegistryMeta):
         return dense_norm_params
 
     @property
-    @abc.abstractmethod
     def should_generate_eval_dataset(self) -> bool:
-        pass
+        return self.eval_parameters.calc_cpe_in_training
 
     @abc.abstractmethod
     def query_data(
@@ -162,7 +151,7 @@ class ModelManager(metaclass=RegistryMeta):
         """
         assert self._trainer is None, "Trainer was intialized"
         self._use_gpu = use_gpu
-        self.reward_options = reward_options
+        self._reward_options = reward_options
         self._set_normalization_parameters(normalization_data_map)
         self._trainer = self.build_trainer()
         if warmstart_path is not None:

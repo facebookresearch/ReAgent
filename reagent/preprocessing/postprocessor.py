@@ -36,7 +36,7 @@ class Postprocessor(nn.Module):
         assert self.feature_type in {
             CONTINUOUS_ACTION,
             DO_NOT_PREPROCESS,
-        }, "Only support CONTINUOUS_ACTION & DO_NOT_PREPROCESS"
+        }, f"{self.feature_type} is not CONTINUOUS_ACTION & DO_NOT_PREPROCESS"
 
         self.device = torch.device("cuda" if use_gpu else "cpu")  # type: ignore
 

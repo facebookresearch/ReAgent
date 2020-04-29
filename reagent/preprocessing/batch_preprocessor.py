@@ -9,6 +9,38 @@ from reagent.preprocessing.normalization import get_num_output_features
 from reagent.preprocessing.preprocessor import Preprocessor
 
 
+class InputColumn(object):
+    STATE_FEATURES = "state_features"
+    STATE_ID_LIST_FEATURES = "state_id_list_features"
+    STATE_ID_SCORE_LIST_FEATURES = "state_id_score_list_features"
+    NEXT_STATE_FEATURES = "next_state_features"
+    NEXT_STATE_ID_LIST_FEATURES = "next_state_id_list_features"
+    NEXT_STATE_ID_SCORE_LIST_FEATURES = "next_state_id_score_list_features"
+    ACTION = "action"
+    NEXT_ACTION = "next_action"
+    POSSIBLE_ACTIONS = "possible_actions"
+    POSSIBLE_ACTIONS_MASK = "possible_actions_mask"
+    POSSIBLE_NEXT_ACTIONS = "possible_next_actions"
+    POSSIBLE_NEXT_ACTIONS_MASK = "possible_next_actions_mask"
+    NOT_TERMINAL = "not_terminal"
+    STEP = "step"
+    TIME_DIFF = "time_diff"
+    TIME_SINCE_FIRST = "time_since_first"
+    MDP_ID = "mdp_id"
+    SEQUENCE_NUMBER = "sequence_number"
+    METRICS = "metrics"
+    REWARD = "reward"
+    ACTION_PROBABILITY = "action_probability"
+    SLATE_REWARD = "slate_reward"
+    POSITION_REWARD = "position_reward"
+    CANDIDATE_FEATURES = "candidate_features"
+    REWARD_MASK = "reward_mask"
+    ITEM_MASK = "item_mask"
+    NEXT_ITEM_MASK = "next_item_mask"
+    ITEM_PROBABILITY = "item_probability"
+    NEXT_ITEM_PROBABILITY = "next_item_probability"
+
+
 class BatchPreprocessor:
     def __call__(self, batch: rlt.RawTrainingBatch) -> rlt.TensorDataClass:
         raise NotImplementedError()
@@ -59,7 +91,7 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
             possible_actions_mask=batch["possible_actions_mask"],
             possible_next_actions_mask=batch["possible_next_actions_mask"],
             extras=rlt.ExtraData(
-                mdp_id=batch["mdp_id"].unsqueeze(1).cpu().numpy(),
+                mdp_id=batch["mdp_id"].unsqueeze(1),
                 sequence_number=batch["sequence_number"].unsqueeze(1),
                 action_probability=batch["action_probability"].unsqueeze(1),
             ),
@@ -224,36 +256,44 @@ class SequentialParametricDqnBatchPreprocessor(ParametricDqnBatchPreprocessor):
 
 class PolicyNetworkBatchPreprocessor(BatchPreprocessor):
     def __init__(
-        self, state_preprocessor: Preprocessor, action_preprocessor: Preprocessor
+        self,
+        state_preprocessor: Preprocessor,
+        action_preprocessor: Preprocessor,
+        use_gpu: bool,
     ):
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
+        self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    def __call__(self, batch: rlt.RawTrainingBatch) -> rlt.PreprocessedTrainingBatch:
-        training_input = batch.training_input
-        assert isinstance(training_input, rlt.RawPolicyNetworkInput)
-
+    # TODO: remove type ignore after converting rest of BatchPreprocessors to Dict input
+    def __call__(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> rlt.PreprocessedPolicyNetworkInput:
+        batch = batch_to_device(batch, self.device)
         preprocessed_state = self.state_preprocessor(
-            training_input.state.float_features.value,
-            training_input.state.float_features.presence,
+            batch["state_features"], batch["state_features_presence"]
         )
         preprocessed_next_state = self.state_preprocessor(
-            training_input.next_state.float_features.value,
-            training_input.next_state.float_features.presence,
+            batch["next_state_features"], batch["next_state_features_presence"]
         )
         preprocessed_action = self.action_preprocessor(
-            training_input.action.float_features.value,
-            training_input.action.float_features.presence,
+            batch["action"], batch["action_presence"]
         )
         preprocessed_next_action = self.action_preprocessor(
-            training_input.next_action.float_features.value,
-            training_input.next_action.float_features.presence,
+            batch["next_action"], batch["next_action_presence"]
         )
-        return batch.preprocess(
-            training_input=training_input.preprocess_tensors(
-                state=preprocessed_state,
-                next_state=preprocessed_next_state,
-                action=preprocessed_action,
-                next_action=preprocessed_next_action,
-            )
+        return rlt.PreprocessedPolicyNetworkInput(
+            state=rlt.PreprocessedFeatureVector(preprocessed_state),
+            next_state=rlt.PreprocessedFeatureVector(preprocessed_next_state),
+            action=rlt.PreprocessedFeatureVector(preprocessed_action),
+            next_action=rlt.PreprocessedFeatureVector(preprocessed_next_action),
+            reward=batch["reward"].unsqueeze(1),
+            time_diff=batch["time_diff"].unsqueeze(1),
+            step=batch["step"].unsqueeze(1),
+            not_terminal=batch["not_terminal"].unsqueeze(1),
+            extras=rlt.ExtraData(
+                mdp_id=batch["mdp_id"].unsqueeze(1),
+                sequence_number=batch["sequence_number"].unsqueeze(1),
+                action_probability=batch["action_probability"].unsqueeze(1),
+            ),
         )

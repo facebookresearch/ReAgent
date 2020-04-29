@@ -33,6 +33,7 @@ class TestGym(unittest.TestCase):
         torch.manual_seed(SEED)
         random.seed(SEED)
 
+    @unittest.skip("Replaced with new gym tests.. Remove when possible.")
     def test_dqn_cartpole_offline(self):
         """ Test if the json config works for offline DQN in Cartpole """
         with open(DQN_CARTPOLE_JSON, "r") as f:
@@ -42,6 +43,7 @@ class TestGym(unittest.TestCase):
         )
         assert reward_history[-1] >= CARTPOLE_SCORE_BAR
 
+    @unittest.skip("Replaced with new gym tests.. Remove when possible.")
     def test_dqn_cartpole_online(self):
         """ Test if the json config works for online DQN in Cartpole """
         with open(DQN_CARTPOLE_JSON, "r") as f:
