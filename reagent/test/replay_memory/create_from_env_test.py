@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 
 
 class CreateFromEnvTest(unittest.TestCase):
-    @unittest.skipIf(not HAS_RECSIM)
+    @unittest.skipIf(not HAS_RECSIM, "recsim is not installed")
     def test_create_from_recsim(self):
         env_config = {
             "num_candidates": 20,
