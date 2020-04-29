@@ -28,9 +28,13 @@ SPARK_JAR = join(dirname(reagent.__file__), os.pardir, SPARK_JAR_FROM_ROOT_DIR)
 
 
 DEFAULT_SPARK_CONFIG = {
-    "spark.master": "local[*]",
     "spark.app.name": "ReAgent",
     "spark.sql.session.timeZone": "UTC",
+    # use local host
+    "spark.driver.host": "127.0.0.1",
+    # use as many worker threads as possible on machine
+    "spark.master": "local[*]",
+    # default local warehouse for Hive
     "spark.sql.warehouse.dir": abspath("spark-warehouse"),
     # Set shuffle partitions to a low number, e.g. <= cores * 2 to speed
     # things up, otherwise the tests will use the default 200 partitions

@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 # for normalizing crc32 output
 MAX_UINT32 = 4294967295
 
+# for generating/checking random tmp table names for upload_as_parquet
+UPLOAD_PARQUET_TMP_SUFFIX_LEN = 10
+MAX_UPLOAD_PARQUET_TRIES = 10
+
 
 def calc_custom_reward(df, custom_reward_expression: str):
     sqlCtx = get_spark_session()
@@ -154,15 +158,6 @@ def make_where_udf(arr: List[str]):
     return udf(find, LongType())
 
 
-def make_not_terminal_udf(actions: List[str]):
-    """ Return true iff next_action is terminal (i.e. idx = len(actions)). """
-
-    def get_not_terminal(next_action):
-        return next_action < len(actions)
-
-    return udf(get_not_terminal, BooleanType())
-
-
 def make_existence_bitvector_udf(arr: List[str]):
     """ one-hot encode elements of target depending on their existence in arr. """
 
@@ -178,34 +173,8 @@ def make_existence_bitvector_udf(arr: List[str]):
     return udf(encode, ArrayType(LongType()))
 
 
-def perform_preprocessing(
-    df,
-    states: List[int],
-    actions: List[str],
-    metrics: List[str],
-    multi_steps: Optional[int] = None,
-):
-    """ Perform (1) sparse-to-dense, (2) preprocessing for actions,
-    and (3) other miscellaneous columns.
-
-    (1) For each column of type Map, w/ name X, output two columns.
-        Map values are assumed to be scalar. This process is called sparse-to-dense.
-        X = {"state_features", "next_state_features", "metrics"}.
-        (a) Replace column X with a dense repesentation of the inputted (sparse) map.
-            Dense representation is to concatenate map values into a list.
-        (b) Create new column X_presence, which is a list of same length as (a) and
-            the ith entry is 1 iff the key was present in the original map.
-
-    (2) Inputted actions and possible_actions are strings, which isn't supported
-        for PyTorch Tensors. Here, we represent them with LongType.
-        (a) action and next_action are strings, so simply return their position
-            in the action_space (as given by argument actions).
-        (b) possible_actions and possible_next_actions are list of strs, so
-            return an existence bitvector of length len(actions), where ith
-            index is true iff actions[i] was in the list.
-
-    (3) Miscellaneous columns are step, time_diff, sequence_number, not_terminal
-    """
+def misc_column_preprocessing(df, multi_steps: Optional[int]):
+    """ Miscellaneous columns are step, time_diff, sequence_number, not_terminal. """
 
     # step refers to n in n-step RL; special case when approaching terminal
     df = df.withColumn("step", make_get_step_udf(multi_steps)("next_state_features"))
@@ -214,18 +183,64 @@ def perform_preprocessing(
     next_long_udf = make_next_udf(multi_steps, LongType())
     df = df.withColumn("time_diff", next_long_udf("time_diff"))
 
-    # sparse-to-dense of states and metrics
+    # assuming use_seq_num_diff_as_time_diff = False for now
+    df = df.withColumn("sequence_number", col("sequence_number_ordinal"))
+
+    return df
+
+
+def state_and_metrics_sparse2dense(
+    df, states: List[int], metrics: List[str], multi_steps: Optional[int]
+):
+    """ Sparse-to-dense preprocessing of Map columns, which are states and metrics.
+    For each column of type Map, w/ name X, output two columns.
+        Map values are assumed to be scalar. This process is called sparse-to-dense.
+        X = {"state_features", "next_state_features", "metrics"}.
+        (a) Replace column X with a dense repesentation of the inputted (sparse) map.
+            Dense representation is to concatenate map values into a list.
+        (b) Create new column X_presence, which is a list of same length as (a) and
+            the ith entry is 1 iff the key was present in the original map.
+    """
     next_map_udf = make_next_udf(multi_steps, MapType(LongType(), FloatType()))
     df = df.withColumn("next_state_features", next_map_udf("next_state_features"))
     df = df.withColumn("metrics", next_map_udf("metrics"))
     df = make_sparse2dense(df, "state_features", states)
     df = make_sparse2dense(df, "next_state_features", states)
     df = make_sparse2dense(df, "metrics", metrics)
+    return df
+
+
+def discrete_action_preprocessing(
+    df, actions: List[str], multi_steps: Optional[int] = None
+):
+    """
+    Inputted actions and possible_actions are strings, which isn't supported
+        for PyTorch Tensors. Here, we represent them with LongType.
+        (a) action and next_action are strings, so simply return their position
+            in the action_space (as given by argument actions).
+        (b) possible_actions and possible_next_actions are list of strs, so
+            return an existence bitvector of length len(actions), where ith
+            index is true iff actions[i] was in the list.
+
+    By-product: output not_terminal from preprocessing actions.
+    """
 
     # turn string actions into indices
     where_udf = make_where_udf(actions)
     df = df.withColumn("action", where_udf("action"))
+    next_long_udf = make_next_udf(multi_steps, LongType())
     df = df.withColumn("next_action", where_udf(next_long_udf("next_action")))
+
+    def make_not_terminal_udf(actions: List[str]):
+        """ Return true iff next_action is terminal (i.e. idx = len(actions)). """
+
+        def get_not_terminal(next_action):
+            return next_action < len(actions)
+
+        return udf(get_not_terminal, BooleanType())
+
+    not_terminal_udf = make_not_terminal_udf(actions)
+    df = df.withColumn("not_terminal", not_terminal_udf("next_action"))
 
     # turn List[str] possible_actions into existence bitvectors
     next_long_arr_udf = make_next_udf(multi_steps, ArrayType(LongType()))
@@ -237,37 +252,83 @@ def perform_preprocessing(
         "possible_next_actions_mask",
         existence_bitvector_udf(next_long_arr_udf("possible_next_actions")),
     )
-
-    # calculate not_terminal
-    not_terminal_udf = make_not_terminal_udf(actions)
-    df = df.withColumn("not_terminal", not_terminal_udf("next_action"))
-
-    # assuming use_seq_num_diff_as_time_diff = False for now
-    df = df.withColumn("sequence_number", col("sequence_number_ordinal"))
     return df
 
 
-def select_relevant_columns(df):
+def parametric_action_preprocessing(
+    df,
+    actions: List[str],
+    multi_steps: Optional[int] = None,
+    include_possible_actions: bool = True,
+):
+    assert (
+        not include_possible_actions
+    ), "current we don't support include_possible_actions"
+
+    next_map_udf = make_next_udf(multi_steps, MapType(LongType(), FloatType()))
+    df = df.withColumn("next_action", next_map_udf("next_action"))
+
+    def make_not_terminal_udf():
+        """ Return true iff next_action is an empty map """
+
+        def get_not_terminal(next_action):
+            return len(next_action) > 0
+
+        return udf(get_not_terminal, BooleanType())
+
+    not_terminal_udf = make_not_terminal_udf()
+    df = df.withColumn("not_terminal", not_terminal_udf("next_action"))
+
+    df = make_sparse2dense(df, "action", actions)
+    df = make_sparse2dense(df, "next_action", actions)
+    return df
+
+
+def select_relevant_columns(
+    df, discrete_action: bool = True, include_possible_actions: bool = True
+):
     """ Select all the relevant columns and perform type conversions. """
-    return df.select(
+    if not discrete_action:
+        assert (
+            not include_possible_actions
+        ), "current we don't support include_possible_actions"
+
+    select_col_list = [
         col("reward").cast(FloatType()),
         col("state_features").cast(ArrayType(FloatType())),
         col("state_features_presence").cast(ArrayType(BooleanType())),
         col("next_state_features").cast(ArrayType(FloatType())),
         col("next_state_features_presence").cast(ArrayType(BooleanType())),
-        col("action").cast(LongType()),
-        col("action_probability").cast(FloatType()),
         col("not_terminal").cast(BooleanType()),
-        col("next_action").cast(LongType()),
-        col("possible_actions_mask").cast(ArrayType(LongType())),
-        col("possible_next_actions_mask").cast(ArrayType(LongType())),
+        col("action_probability").cast(FloatType()),
         col("mdp_id").cast(LongType()),
         col("sequence_number").cast(LongType()),
         col("step").cast(LongType()),
         col("time_diff").cast(LongType()),
         col("metrics").cast(ArrayType(FloatType())),
         col("metrics_presence").cast(ArrayType(BooleanType())),
-    )
+    ]
+
+    if discrete_action:
+        select_col_list += [
+            col("action").cast(LongType()),
+            col("next_action").cast(LongType()),
+        ]
+    else:
+        select_col_list += [
+            col("action").cast(ArrayType(FloatType())),
+            col("next_action").cast(ArrayType(FloatType())),
+            col("action_presence").cast(ArrayType(BooleanType())),
+            col("next_action_presence").cast(ArrayType(BooleanType())),
+        ]
+
+    if include_possible_actions:
+        select_col_list += [
+            col("possible_actions_mask").cast(ArrayType(LongType())),
+            col("possible_next_actions_mask").cast(ArrayType(LongType())),
+        ]
+
+    return df.select(*select_col_list)
 
 
 def get_distinct_keys(df, col_name, is_col_arr_map=False):
@@ -291,6 +352,15 @@ def infer_states_names(df, multi_steps: Optional[int]):
     return sorted(set(state_keys) | set(next_state_keys))
 
 
+def infer_action_names(df, multi_steps: Optional[int]):
+    action_keys = get_distinct_keys(df, "action")
+    next_action_is_col_arr_map = not (multi_steps is None)
+    next_action_keys = get_distinct_keys(
+        df, "next_action", is_col_arr_map=next_action_is_col_arr_map
+    )
+    return sorted(set(action_keys) | set(next_action_keys))
+
+
 def infer_metrics_names(df, multi_steps: Optional[int]):
     """ Infer possible metrics names.
     Assume in multi-step case, metrics is an array of maps.
@@ -309,9 +379,21 @@ def rand_string(length):
 
 
 def upload_as_parquet(df) -> Dataset:
-    """ Generate a random parquet """
-    suffix = rand_string(length=10)
-    rand_name = f"tmp_parquet_{suffix}"
+    """ Generate a random parquet. Fails if cannot generate a non-existent name. """
+
+    # get a random tmp name and check if it exists
+    sqlCtx = get_spark_session()
+    success = False
+    for _ in range(MAX_UPLOAD_PARQUET_TRIES):
+        suffix = rand_string(length=UPLOAD_PARQUET_TMP_SUFFIX_LEN)
+        rand_name = f"tmp_parquet_{suffix}"
+        if not sqlCtx.catalog._jcatalog.tableExists(rand_name):
+            success = True
+            break
+    if not success:
+        raise Exception(f"Failed to find name after {MAX_UPLOAD_PARQUET_TRIES} tries.")
+
+    # perform the write
     df.write.mode("errorifexists").format("parquet").saveAsTable(rand_name)
     parquet_url = get_table_url(rand_name)
     logger.info(f"Saved parquet to {parquet_url}")
@@ -320,7 +402,9 @@ def upload_as_parquet(df) -> Dataset:
 
 def query_data(
     input_table_spec: TableSpec,
-    actions: List[str],
+    discrete_action: bool,
+    actions: Optional[List[str]] = None,
+    include_possible_actions=True,
     custom_reward_expression: Optional[str] = None,
     sample_range: Optional[Tuple[float, float]] = None,
     multi_steps: Optional[int] = None,
@@ -331,8 +415,6 @@ def query_data(
     """
     sqlCtx = get_spark_session()
     df = sqlCtx.sql(f"SELECT * FROM {input_table_spec.table_name}")
-    states = infer_states_names(df, multi_steps)
-    metrics = infer_metrics_names(df, multi_steps)
     df = set_reward_col_as_reward(
         df,
         custom_reward_expression=custom_reward_expression,
@@ -340,8 +422,29 @@ def query_data(
         gamma=gamma,
     )
     df = hash_mdp_id_and_subsample(df, sample_range=sample_range)
-    df = perform_preprocessing(
-        df, states=states, actions=actions, metrics=metrics, multi_steps=multi_steps
+    df = misc_column_preprocessing(df, multi_steps=multi_steps)
+    df = state_and_metrics_sparse2dense(
+        df,
+        states=infer_states_names(df, multi_steps),
+        metrics=infer_metrics_names(df, multi_steps),
+        multi_steps=multi_steps,
     )
-    df = select_relevant_columns(df)
+    if discrete_action:
+        assert include_possible_actions
+        assert actions is not None, "in discrete case, actions must be given."
+        df = discrete_action_preprocessing(df, actions=actions, multi_steps=multi_steps)
+    else:
+        actions = infer_action_names(df, multi_steps)
+        df = parametric_action_preprocessing(
+            df,
+            actions=actions,
+            multi_steps=multi_steps,
+            include_possible_actions=include_possible_actions,
+        )
+
+    df = select_relevant_columns(
+        df,
+        discrete_action=discrete_action,
+        include_possible_actions=include_possible_actions,
+    )
     return upload_as_parquet(df)

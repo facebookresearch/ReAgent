@@ -16,6 +16,7 @@ from reagent.preprocessing.batch_preprocessor import (
     PolicyNetworkBatchPreprocessor,
     Preprocessor,
 )
+from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
@@ -206,7 +207,14 @@ class ActorCriticBase(ModelManager):
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
     ) -> Dataset:
-        raise NotImplementedError()
+        logger.info("Starting query")
+        return query_data(
+            input_table_spec=input_table_spec,
+            discrete_action=False,
+            include_possible_actions=False,
+            custom_reward_expression=reward_options.custom_reward_expression,
+            sample_range=sample_range,
+        )
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         return PolicyNetworkBatchPreprocessor(

@@ -139,7 +139,9 @@ class DiscreteDQNBase(ModelManager):
     ) -> Dataset:
         return query_data(
             input_table_spec=input_table_spec,
+            discrete_action=True,
             actions=self.action_names,
+            include_possible_actions=True,
             sample_range=sample_range,
             custom_reward_expression=reward_options.custom_reward_expression,
             multi_steps=self.multi_steps,

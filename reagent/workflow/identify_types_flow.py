@@ -103,6 +103,7 @@ def create_normalization_spec_spark(
 ):
     """Returns approximately num_samples random rows from column of df."""
 
+    # assumes column has a type of map
     df = df.select(
         explode(col(column).alias("features")).alias("feature_name", "feature_value")
     )
