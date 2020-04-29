@@ -4,7 +4,7 @@
 
 set -ex
 
-CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
+CONFIG=reagent/workflow/sample_configs/sac_pendulum_offline.yaml
 
 # gather data and store as pickle
 ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG

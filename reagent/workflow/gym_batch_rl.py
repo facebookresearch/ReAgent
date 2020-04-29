@@ -5,17 +5,25 @@ import logging
 import random
 from typing import Optional
 
+import gym
 import numpy as np
 import pandas as pd
 import torch
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import log_data_post_step
 from reagent.gym.envs.env_factory import EnvFactory
-from reagent.gym.policies import DiscreteRandomPolicy, Policy
+from reagent.gym.policies import ContinuousRandomPolicy, DiscreteRandomPolicy
 from reagent.gym.runners.gymrunner import run_episode
-from reagent.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
+from reagent.prediction.dqn_torch_predictor import (
+    ActorTorchPredictor,
+    DiscreteDqnTorchPredictor,
+)
 from reagent.training.rl_dataset import RLDataset
 from reagent.workflow.model_managers.union import ModelManager__Union
+from reagent.workflow.predictor_policies import (
+    ActorTorchPredictorPolicy,
+    DiscreteDqnTorchPredictorPolicy,
+)
 from reagent.workflow.publishers.union import ModelPublisher__Union
 from reagent.workflow.spark_utils import get_spark_session
 from reagent.workflow.training import identify_and_train_network
@@ -47,7 +55,15 @@ def offline_gym(
     initialize_seed(seed)
     env = EnvFactory.make(env)
 
-    policy = DiscreteRandomPolicy.create_for_env(env)
+    if isinstance(env.action_space, gym.spaces.Discrete):
+        # discrete action space
+        policy = DiscreteRandomPolicy.create_for_env(env)
+    elif isinstance(env.action_space, gym.spaces.Box):
+        # continuous action space
+        policy = ContinuousRandomPolicy.create_for_env(env)
+    else:
+        raise NotImplementedError(f"{env.action_space} not supported")
+
     dataset = RLDataset()
     for i in range(num_episodes_for_data_batch):
         logger.info(f"Starting episode {i}")
@@ -63,58 +79,60 @@ def offline_gym(
 PRE_TIMELINE_SUFFIX = "_pre_timeline_operator"
 
 
-def upload_to_hive(pkl_path: str, input_table_spec: TableSpec):
-    """ Loads a pandas parquet, converts to pyspark, and uploads df to Hive. """
+def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
+    """ Loads a pandas parquet, converts to pyspark, and uploads df to Hive.
+        Then call the timeline operator.
+    """
+
     pd_df = pd.read_pickle(pkl_path)
     spark = get_spark_session()
     df = spark.createDataFrame(pd_df)
-    tbl_name = f"{input_table_spec.table_name}{PRE_TIMELINE_SUFFIX}"
-    df.write.mode("overwrite").saveAsTable(tbl_name)
-
-
-def timeline_operator(input_table_spec: TableSpec):
-    """ Call the timeline operator. """
     input_name = f"{input_table_spec.table_name}{PRE_TIMELINE_SUFFIX}"
+    df.createTempView(input_name)
+
     output_name = input_table_spec.table_name
+    include_possible_actions = "possible_actions" in pd_df
     arg = {
         "startDs": "2019-01-01",
         "endDs": "2019-01-01",
         "addTerminalStateRow": True,
         "inputTableName": input_name,
         "outputTableName": output_name,
-        "includePossibleActions": True,
+        "includePossibleActions": include_possible_actions,
         "percentileFunction": "percentile_approx",
         "rewardColumns": ["reward", "metrics"],
         "extraFeatureColumns": [],
     }
     input_json = json.dumps(arg)
-    spark = get_spark_session()
     spark._jvm.com.facebook.spark.rl.Timeline.main(input_json)
-
-
-class TorchPredictorPolicy(Policy):
-    def __init__(self, predictor):
-        self.predictor = predictor
-
-    def act(self, state: np.ndarray, possible_actions_mask) -> int:
-        state = torch.tensor(state).unsqueeze(0).to(torch.float32)
-        return torch.tensor(self.predictor.policy(state).softmax)
 
 
 def evaluate_gym(
     env: str,
-    model,
+    model: torch.nn.Module,
     eval_temperature: float,
     num_eval_episodes: int,
     passing_score_bar: float,
     max_steps: Optional[int] = None,
 ):
-    predictor = DiscreteDqnTorchPredictor(model)
-    predictor.softmax_temperature = eval_temperature
-
     env = EnvFactory.make(env)
-    policy = TorchPredictorPolicy(predictor)
-    agent = Agent(policy=policy, action_extractor=lambda x: x.item())
+    if isinstance(env.action_space, gym.spaces.Discrete):
+        predictor = DiscreteDqnTorchPredictor(model)
+        predictor.softmax_temperature = eval_temperature
+        policy = DiscreteDqnTorchPredictorPolicy(predictor)
+    elif isinstance(env.action_space, gym.spaces.Box):
+        assert len(env.action_space.shape) == 1
+        predictor = ActorTorchPredictor(
+            model, action_feature_ids=list(range(env.action_space.shape[0]))
+        )
+        policy = ActorTorchPredictorPolicy(predictor)
+    else:
+        raise NotImplementedError(f"{env.action_space} not supported")
+
+    # since we already return softmax action, override action_extractor
+    agent = Agent.create_for_env(
+        env, policy=policy, action_extractor=policy.get_action_extractor()
+    )
 
     rewards = []
     for _ in range(num_eval_episodes):
@@ -123,11 +141,12 @@ def evaluate_gym(
 
     avg_reward = np.mean(rewards)
     logger.info(
-        f"Average reward over {num_eval_episodes} is {avg_reward}, "
-        f"which passes the bar of {passing_score_bar}!\n"
+        f"Average reward over {num_eval_episodes} is {avg_reward}.\n"
         f"List of rewards: {rewards}"
     )
-    assert avg_reward >= passing_score_bar
+    assert (
+        avg_reward >= passing_score_bar
+    ), f"{avg_reward} fails to pass the bar of {passing_score_bar}!"
 
 
 def train_and_evaluate_gym(
