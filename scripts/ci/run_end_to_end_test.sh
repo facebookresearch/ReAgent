@@ -4,30 +4,16 @@
 
 set -ex
 
-mkdir -p cartpole_discrete
-python reagent/test/gym/run_gym.py -p reagent/test/gym/discrete_dqn_cartpole_small_v0.json -f cartpole_discrete/training_data.json --seed 0
+chmod +x ./reagent/workflow/cli.py
 
-spark-submit \
-  --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
-  "$(cat reagent/workflow/sample_configs/discrete_action/timeline.json)"
+# gather data and upload to hive
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.upload_to_hive reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
 
-mkdir -p training_data
-cat cartpole_discrete_training/part* > training_data/cartpole_discrete_timeline.json
-cat cartpole_discrete_eval/part* > training_data/cartpole_discrete_timeline_eval.json
+# run through timeline operator
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
 
-# Remove the output data folder
-rm -Rf cartpole_discrete_training cartpole_discrete_eval
+# train and evaluate
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
 
-python reagent/workflow/create_normalization_metadata.py -p reagent/workflow/sample_configs/discrete_action/dqn_example.json
-
-mkdir -p outputs
-rm -Rf outputs/model_* outputs/*.txt
-python reagent/workflow/dqn_workflow.py -p reagent/workflow/sample_configs/discrete_action/dqn_example.json
-
-# Evaluate
-python reagent/test/workflow/eval_cartpole.py -m outputs/model_* --softmax_temperature=0.35 --log_file=outputs/eval_output.txt
-
-# Reach at least 120 in cart-pole
-eval_res=$(awk '/Achieved an average reward score of /{print $7}' outputs/eval_output.txt)
-pass=$(echo "$eval_res > 120.0" | bc)
-if [ "$pass" -eq 0 ]; then exit 1;  fi
+echo "End-to-end test passed!"

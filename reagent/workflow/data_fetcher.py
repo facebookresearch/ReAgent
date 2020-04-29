@@ -12,7 +12,7 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
-from reagent.workflow.spark_utils import get_spark_session
+from reagent.workflow.spark_utils import get_spark_session, get_table_url
 from reagent.workflow.types import Dataset, TableSpec
 
 
@@ -299,6 +299,25 @@ def infer_metrics_names(df, multi_steps: Optional[int]):
     return sorted(get_distinct_keys(df, "metrics", is_col_arr_map=is_col_arr_map))
 
 
+def rand_string(length):
+    import string
+    import random
+
+    """Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return "".join(random.choice(letters) for _ in range(length))
+
+
+def upload_as_parquet(df) -> Dataset:
+    """ Generate a random parquet """
+    suffix = rand_string(length=10)
+    rand_name = f"tmp_parquet_{suffix}"
+    df.write.mode("errorifexists").format("parquet").saveAsTable(rand_name)
+    parquet_url = get_table_url(rand_name)
+    logger.info(f"Saved parquet to {parquet_url}")
+    return Dataset(parquet_url=parquet_url)
+
+
 def query_data(
     input_table_spec: TableSpec,
     actions: List[str],
@@ -325,5 +344,4 @@ def query_data(
         df, states=states, actions=actions, metrics=metrics, multi_steps=multi_steps
     )
     df = select_relevant_columns(df)
-    df.write.mode("overwrite").parquet(input_table_spec.output_dataset.parquet_url)
-    return input_table_spec.output_dataset
+    return upload_as_parquet(df)

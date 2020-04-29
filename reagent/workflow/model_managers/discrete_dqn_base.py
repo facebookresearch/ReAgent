@@ -34,6 +34,16 @@ from reagent.workflow_utils.page_handler import (
 )
 
 
+try:
+    from reagent.fb.prediction.fb_predictor_wrapper import (
+        FbDiscreteDqnPredictorUnwrapper as DiscreteDqnPredictorUnwrapper,
+    )
+except ImportError:
+    from reagent.prediction.predictor_wrapper import (  # type: ignore
+        DiscreteDqnPredictorUnwrapper,
+    )
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,16 +69,22 @@ class DiscreteDQNBase(ModelManager):
     def normalization_key(cls) -> str:
         return DiscreteNormalizationParameterKeys.STATE
 
-    def create_policy(self) -> Policy:
-        """ Create an online DiscreteDQN Policy from env.
-        """
-        # Avoiding potentially importing gym when it's not installed
+    def create_policy(self, serving: bool) -> Policy:
+        """ Create an online DiscreteDQN Policy from env. """
 
         from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
-        from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
+        from reagent.gym.policies.scorers.discrete_scorer import (
+            discrete_dqn_scorer,
+            discrete_dqn_serving_scorer,
+        )
 
         sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
-        scorer = discrete_dqn_scorer(self.trainer.q_network)
+        if serving:
+            scorer = discrete_dqn_serving_scorer(
+                DiscreteDqnPredictorUnwrapper(self.build_serving_module())
+            )
+        else:
+            scorer = discrete_dqn_scorer(self.trainer.q_network)
         return Policy(scorer=scorer, sampler=sampler)
 
     @property
@@ -123,7 +139,6 @@ class DiscreteDQNBase(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
-        eval_dataset: bool,
     ) -> Dataset:
         return query_data(
             input_table_spec=input_table_spec,
@@ -140,10 +155,12 @@ class DiscreteDQNBase(ModelManager):
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         return DiscreteDqnBatchPreprocessor(
+            num_actions=len(self.action_names),
             state_preprocessor=Preprocessor(
                 normalization_parameters=self.state_normalization_parameters,
                 use_gpu=self.use_gpu,
-            )
+            ),
+            use_gpu=self.use_gpu,
         )
 
     def train(

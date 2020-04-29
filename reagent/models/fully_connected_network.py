@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def gaussian_fill_w_gain(tensor, activation, dim_in, min_std=0.0) -> None:
     """ Gaussian initialization with gain."""
-    gain = math.sqrt(2) if activation == "relu" else 1
+    gain = math.sqrt(2) if (activation == "relu" or activation == "leaky_relu") else 1
     init.normal_(tensor, mean=0, std=max(gain * math.sqrt(1 / dim_in), min_std))
 
 
@@ -57,7 +57,7 @@ class FullyConnectedNetwork(nn.Module):
             )
             init.constant_(self.layers[i].bias, 0)
 
-    def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         """ Forward pass for generic feed-forward DNNs. Assumes activation names
         are valid pytorch activation names.
         :param input tensor

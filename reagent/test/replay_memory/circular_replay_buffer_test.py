@@ -117,7 +117,7 @@ class ReplayBufferTest(unittest.TestCase):
         zeros = np.zeros(OBSERVATION_SHAPE)
         memory.add(zeros, 0, 0, 0, 0, [0, 0])
 
-        with self.assertRaisesRegexp(ValueError, "Add expects"):
+        with self.assertRaisesRegex(ValueError, "Add expects"):
             memory.add(zeros, 0, 0, 0)
         # Check if the cursor moved STACK_SIZE -1 zeros adds + 1, (the one above).
         self.assertEqual(memory.cursor(), STACK_SIZE)
@@ -137,11 +137,11 @@ class ReplayBufferTest(unittest.TestCase):
 
         memory._check_add_types(zeros, 0, 0, 0, 0, [0, 0])
 
-        with self.assertRaisesRegexp(ValueError, "Add expects"):
+        with self.assertRaisesRegex(ValueError, "Add expects"):
             memory._check_add_types(zeros, 0, 0, 0)
 
     def testLowCapacity(self):
-        with self.assertRaisesRegexp(ValueError, "There is not enough capacity"):
+        with self.assertRaisesRegex(ValueError, "There is not enough capacity"):
             circular_replay_buffer.ReplayBuffer(
                 observation_shape=OBSERVATION_SHAPE,
                 stack_size=10,
@@ -151,7 +151,7 @@ class ReplayBufferTest(unittest.TestCase):
                 gamma=1.0,
             )
 
-        with self.assertRaisesRegexp(ValueError, "There is not enough capacity"):
+        with self.assertRaisesRegex(ValueError, "There is not enough capacity"):
             circular_replay_buffer.ReplayBuffer(
                 observation_shape=OBSERVATION_SHAPE,
                 stack_size=5,
@@ -182,7 +182,7 @@ class ReplayBufferTest(unittest.TestCase):
             update_horizon=5,
             gamma=1.0,
         )
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             AssertionError, "end_index must be larger than start_index"
         ):
             memory.get_range([], 2, 1)
@@ -192,7 +192,7 @@ class ReplayBufferTest(unittest.TestCase):
         with self.assertRaises(AssertionError):
             # Start index beyond replay capacity.
             memory.get_range([], replay_capacity, replay_capacity + 1)
-        with self.assertRaisesRegexp(AssertionError, "Index 1 has not been added."):
+        with self.assertRaisesRegex(AssertionError, "Index 1 has not been added."):
             memory.get_range([], 1, 2)
 
     def testGetRangeNoWraparound(self):
@@ -379,7 +379,12 @@ class ReplayBufferTest(unittest.TestCase):
         num_adds = 50  # The number of transitions to add to the memory.
         for i in range(num_adds):
             memory.add(
-                np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE), 0, 0, i % 4, 0, [0, 0]
+                np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE),
+                0,
+                0,
+                i % 4,
+                i % 2,
+                [i % 2, 0],
             )  # Every 4 transitions is terminal.
         # Test sampling with default batch size.
         for _i in range(1000):
@@ -409,7 +414,26 @@ class ReplayBufferTest(unittest.TestCase):
         expected_terminal = np.array(
             [min((x + num_adds - replay_capacity) % 4, 1) for x in indices]
         )
-        expected_extra2 = np.zeros([len(indices), 2])
+        expected_extra1 = np.array(
+            [(x + num_adds - replay_capacity) % 2 for x in indices]
+        )
+        expected_next_extra1 = np.array(
+            [(x + 1 + num_adds - replay_capacity) % 2 for x in indices]
+        )
+        expected_extra2 = np.stack(
+            [
+                [(x + num_adds - replay_capacity) % 2 for x in indices],
+                np.zeros((len(indices),)),
+            ],
+            axis=1,
+        )
+        expected_next_extra2 = np.stack(
+            [
+                [(x + 1 + num_adds - replay_capacity) % 2 for x in indices],
+                np.zeros((len(indices),)),
+            ],
+            axis=1,
+        )
         batch = memory.sample_transition_batch(
             batch_size=len(indices), indices=np.array(indices)
         )
@@ -423,7 +447,9 @@ class ReplayBufferTest(unittest.TestCase):
             terminal,
             indices_batch,
             extra1,
+            next_extra1,
             extra2,
+            next_extra2,
         ) = batch
         npt.assert_array_equal(states, expected_states)
         npt.assert_array_equal(action, np.zeros(len(indices)))
@@ -433,8 +459,10 @@ class ReplayBufferTest(unittest.TestCase):
         npt.assert_array_equal(next_states, expected_next_states)
         npt.assert_array_equal(terminal, expected_terminal)
         npt.assert_array_equal(indices_batch, indices)
-        npt.assert_array_equal(extra1, np.zeros(len(indices)))
+        npt.assert_array_equal(extra1, expected_extra1)
+        npt.assert_array_equal(next_extra1, expected_next_extra1)
         npt.assert_array_equal(extra2, expected_extra2)
+        npt.assert_array_equal(next_extra2, expected_next_extra2)
 
     def testSamplingWithterminalInTrajectory(self):
         replay_capacity = 10

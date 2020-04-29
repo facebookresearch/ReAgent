@@ -177,7 +177,7 @@ class TrainingDataPage(object):
         )
 
     def as_discrete_maxq_training_batch(self):
-        return rlt.PreprocessedDiscreteDqnInput(
+        return rlt.DiscreteDqnInput(
             state=rlt.PreprocessedFeatureVector(float_features=self.states),
             action=self.actions,
             next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
@@ -200,42 +200,28 @@ class TrainingDataPage(object):
     def as_slate_q_training_batch(self):
         batch_size, state_dim = self.states.shape
         action_dim = self.actions.shape[1]
-        return rlt.PreprocessedTrainingBatch(
-            training_input=rlt.PreprocessedSlateQInput(
-                state=rlt.PreprocessedFeatureVector(float_features=self.states),
-                next_state=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_states
+        return rlt.PreprocessedSlateQInput(
+            state=rlt.PreprocessedFeatureVector(float_features=self.states),
+            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
+            action=rlt.PreprocessedSlateFeatureVector(
+                float_features=self.possible_actions_state_concat[:, state_dim:].view(
+                    batch_size, -1, action_dim
                 ),
-                tiled_state=rlt.PreprocessedTiledFeatureVector(
-                    float_features=self.possible_actions_state_concat[
-                        :, :state_dim
-                    ].view(batch_size, -1, state_dim)
-                ),
-                tiled_next_state=rlt.PreprocessedTiledFeatureVector(
-                    float_features=self.possible_next_actions_state_concat[
-                        :, :state_dim
-                    ].view(batch_size, -1, state_dim)
-                ),
-                action=rlt.PreprocessedSlateFeatureVector(
-                    float_features=self.possible_actions_state_concat[
-                        :, state_dim:
-                    ].view(batch_size, -1, action_dim),
-                    item_mask=self.possible_actions_mask,
-                    item_probability=self.propensities,
-                ),
-                next_action=rlt.PreprocessedSlateFeatureVector(
-                    float_features=self.possible_next_actions_state_concat[
-                        :, state_dim:
-                    ].view(batch_size, -1, action_dim),
-                    item_mask=self.possible_next_actions_mask,
-                    item_probability=self.next_propensities,
-                ),
-                reward=self.rewards,
-                reward_mask=self.rewards_mask,
-                time_diff=self.time_diffs,
-                step=self.step,
-                not_terminal=self.not_terminal,
+                item_mask=self.possible_actions_mask,
+                item_probability=self.propensities,
             ),
+            next_action=rlt.PreprocessedSlateFeatureVector(
+                float_features=self.possible_next_actions_state_concat[
+                    :, state_dim:
+                ].view(batch_size, -1, action_dim),
+                item_mask=self.possible_next_actions_mask,
+                item_probability=self.next_propensities,
+            ),
+            reward=self.rewards,
+            reward_mask=self.rewards_mask,
+            time_diff=self.time_diffs,
+            step=self.step,
+            not_terminal=self.not_terminal,
             extras=rlt.ExtraData(
                 mdp_id=self.mdp_ids,
                 sequence_number=self.sequence_numbers,

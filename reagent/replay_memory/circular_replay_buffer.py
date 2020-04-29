@@ -34,12 +34,30 @@ import os
 import pickle
 from typing import Dict, List, Optional, Tuple
 
-import gym
 import numpy as np
-from gym.spaces import Box, Discrete
+import torch
 
 
 logger = logging.getLogger(__name__)
+
+try:
+    import gym
+    from gym import spaces
+
+    HAS_GYM = True
+except ImportError:
+    HAS_GYM = False
+    logger.warning(
+        f"ReplayBuffer.create_from_env() will not work because gym is not installed"
+    )
+
+try:
+    from recsim.simulator.recsim_gym import RecSimGymEnv
+
+    HAS_RECSIM = True
+except ImportError:
+    HAS_RECSIM = False
+    logger.warning(f"ReplayBuffer.create_from_env() will not recognize RecSim env")
 
 
 # Defines a type describing part of the tuple returned by the replay
@@ -193,6 +211,9 @@ class ReplayBuffer(object):
         self._is_index_valid = np.zeros(self._replay_capacity, dtype=np.bool)
         self._num_valid_indices = 0
         self._num_transitions_in_current_episode = 0
+        self._batch_type = collections.namedtuple(
+            "batch_type", [e.name for e in self.get_transition_elements()]
+        )
 
     @property
     def size(self) -> int:
@@ -201,32 +222,53 @@ class ReplayBuffer(object):
     @classmethod
     def create_from_env(
         cls,
-        env: gym.Env,
+        env: "gym.Env",
+        *,
         replay_memory_size: int,
         batch_size: int,
         stack_size: int = 1,
         store_possible_actions_mask: bool = True,
         store_log_prob: bool = True,
     ):
-        assert isinstance(
-            env.observation_space, Box
-        ), f"observation space has type {type(env.observation_space)}"
-        if isinstance(env.action_space, Box):
-            actions_type = env.action_space.dtype  # type: ignore
-            actions_shape = env.action_space.shape  # type: ignore
-        elif isinstance(env.action_space, Discrete):
+        extra_storage_types: List[ReplayElement] = []
+        obs_space = env.observation_space
+        if HAS_RECSIM and isinstance(env, RecSimGymEnv):
+            assert isinstance(obs_space, spaces.Dict)
+            user_obs_space = obs_space["user"]
+            if not isinstance(user_obs_space, spaces.Box):
+                raise NotImplementedError(
+                    f"User observation space {type(user_obs_space)} is not supported"
+                )
+            # Put user into observation part of replay buffer
+            observation_shape = user_obs_space.shape
+            observation_dtype = user_obs_space.dtype
+
+            # Create an element for doc & response
+            extra_storage_types.extend(cls._get_replay_elements_for_recsim(obs_space))
+        elif isinstance(obs_space, spaces.Box):
+            observation_shape = obs_space.shape
+            observation_dtype = obs_space.dtype
+        else:
+            raise NotImplementedError(
+                f"Observation type {type(env.observation_space)} is not supported"
+            )
+
+        action_space = env.action_space
+        if isinstance(action_space, (spaces.Box, spaces.MultiDiscrete)):
+            action_dtype = action_space.dtype
+            action_shape = action_space.shape
+        elif isinstance(action_space, spaces.Discrete):
             # TODO: don't store one-hot encoded actions in RB.
-            actions_type = env.action_space.dtype  # type: ignore
-            actions_shape = (env.action_space.n,)  # type: ignore
+            action_dtype = action_space.dtype
+            action_shape = (action_space.n,)
         else:
             raise NotImplementedError(
                 f"env.action_space {type(env.action_space)} not supported."
             )
 
-        extra_storage_types = []
         if store_possible_actions_mask:
             extra_storage_types.append(
-                ReplayElement("possible_actions_mask", actions_shape, np.int64)
+                ReplayElement("possible_actions_mask", action_shape, np.int64)
             )
 
         if store_log_prob:
@@ -236,14 +278,65 @@ class ReplayBuffer(object):
             stack_size=stack_size,
             replay_capacity=replay_memory_size,
             batch_size=batch_size,
-            observation_shape=env.observation_space.shape,  # type: ignore
-            observation_dtype=env.observation_space.dtype,  # type: ignore
-            action_shape=actions_shape,
-            action_dtype=actions_type,
+            observation_shape=observation_shape,
+            observation_dtype=observation_dtype,
+            action_shape=action_shape,
+            action_dtype=action_dtype,
             reward_shape=(),
             reward_dtype=np.float32,
             extra_storage_types=extra_storage_types,
         )
+
+    @staticmethod
+    def _get_replay_elements_for_recsim(obs_space) -> List[ReplayElement]:
+        """
+        obs_space["doc"] is a dict with as many keys as number of candidates.
+        All the values should be identical. They should be dict with keys
+        corresponding to document features.
+
+        obs_space["response"] is a tuple. Its length is the slate size presented
+        to the user. Each element should be identical. They should be dict with
+        keys corresponding to the type of response.
+        """
+        doc_obs_space = obs_space["doc"]
+        if not isinstance(doc_obs_space, spaces.Dict):
+            raise NotImplementedError(
+                f"Doc space {type(doc_obs_space)} is not supported"
+            )
+
+        num_docs = len(doc_obs_space.spaces)
+
+        # Assume that all docs are in the same space
+
+        replay_elements: List[ReplayElement] = []
+        for k, v in doc_obs_space["0"].spaces.items():
+            if isinstance(v, (spaces.Discrete, spaces.Box)):
+                shape = (num_docs, *v.shape)
+                replay_elements.append(ReplayElement(f"doc_{k}", shape, v.dtype))
+            else:
+                raise NotImplementedError(
+                    f"Doc feature {k} with the observation space of {type(v)}"
+                    " is not supported"
+                )
+
+        response_space = obs_space["response"]
+        assert isinstance(response_space, spaces.Tuple)
+
+        slate_size = len(response_space)
+
+        response_space_0 = response_space[0]
+        assert isinstance(response_space_0, spaces.Dict)
+        for k, v in response_space_0.spaces.items():
+            if isinstance(v, (spaces.Discrete, spaces.Box)):
+                shape = (slate_size, *v.shape)
+                replay_elements.append(ReplayElement(f"response_{k}", shape, v.dtype))
+            else:
+                raise NotImplementedError(
+                    f"Response {k} with the observation space of {type(v)} "
+                    "is not supported"
+                )
+
+        return replay_elements
 
     def set_index_valid_status(self, idx: int, is_valid: bool):
         old_valid = self._is_index_valid[idx]
@@ -303,7 +396,7 @@ class ReplayBuffer(object):
             )
         self._add(*zero_transition)
 
-    def add(self, observation, action, reward, terminal, *args):
+    def add(self, observation, action, reward, terminal, *args, **kwargs):
         """Adds a transition to the replay memory.
         This function checks the types and handles the padding at the beginning of
         an episode. Then it calls the _add function.
@@ -319,7 +412,7 @@ class ReplayBuffer(object):
           *args: extra contents with shapes and dtypes according to
             extra_storage_types.
         """
-        self._check_add_types(observation, action, reward, terminal, *args)
+        self._check_add_types(observation, action, reward, terminal, *args, **kwargs)
         last_idx = (self.cursor() - 1) % self._replay_capacity
         if self.is_empty() or self._store["terminal"][last_idx] == 1:
             self._num_transitions_in_current_episode = 0
@@ -334,7 +427,7 @@ class ReplayBuffer(object):
         if self._num_transitions_in_current_episode >= self._update_horizon:
             idx = (cur_idx - self._update_horizon) % self._replay_capacity
             self.set_index_valid_status(idx=idx, is_valid=True)
-        self._add(observation, action, reward, terminal, *args)
+        self._add(observation, action, reward, terminal, *args, **kwargs)
         self._num_transitions_in_current_episode += 1
 
         # mark the next stack_size-1 as invalid (note cursor has advanced by 1)
@@ -361,16 +454,16 @@ class ReplayBuffer(object):
                 idx = (cur_idx - i) % self._replay_capacity
                 self.set_index_valid_status(idx=idx, is_valid=True)
 
-    def _add(self, *args):
+    def _add(self, *args, **kwargs):
         """Internal add method to add to the storage arrays.
         Args:
           *args: All the elements in a transition.
         """
-        self._check_args_length(*args)
-        transition = {
-            e.name: args[idx] for idx, e in enumerate(self.get_add_args_signature())
-        }
-        self._add_transition(transition)
+        self._check_args_length(*args, **kwargs)
+        kwargs.update(
+            {e.name: arg for arg, e in zip(args, self.get_add_args_signature())}
+        )
+        self._add_transition(kwargs)
 
     def _add_transition(self, transition):
         """Internal add method to add transition dictionary to storage arrays.
@@ -387,29 +480,31 @@ class ReplayBuffer(object):
             self.cursor(), self._replay_capacity, self._stack_size, self._update_horizon
         )
 
-    def _check_args_length(self, *args):
+    def _check_args_length(self, *args, **kwargs):
         """Check if args passed to the add method have the same length as storage.
         Args:
           *args: Args for elements used in storage.
         Raises:
           ValueError: If args have wrong length.
         """
-        if len(args) != len(self.get_add_args_signature()):
+        if len(args) + len(kwargs) != len(self.get_add_args_signature()):
             raise ValueError(
                 "Add expects {} elements, received {}".format(
-                    len(self.get_add_args_signature()), len(args)
+                    len(self.get_add_args_signature()), len(args) + len(kwargs)
                 )
             )
 
-    def _check_add_types(self, *args):
+    def _check_add_types(self, *args, **kwargs):
         """Checks if args passed to the add method match those of the storage.
         Args:
           *args: Args whose types need to be validated.
         Raises:
           ValueError: If args have wrong shape or dtype.
         """
-        self._check_args_length(*args)
-        for arg_element, store_element in zip(args, self.get_add_args_signature()):
+        self._check_args_length(*args, **kwargs)
+        add_arg_signature = self.get_add_args_signature()
+
+        def _check(arg_element, store_element):
             if isinstance(arg_element, np.ndarray):
                 arg_shape = arg_element.shape
             elif isinstance(arg_element, tuple) or isinstance(arg_element, list):
@@ -425,6 +520,13 @@ class ReplayBuffer(object):
                         store_element.name, arg_shape, store_element_shape
                     )
                 )
+
+        for arg_element, store_element in zip(args, add_arg_signature):
+            _check(arg_element, store_element)
+
+        for store_element in add_arg_signature[len(args) :]:
+            arg_element = kwargs[store_element.name]
+            _check(arg_element, store_element)
 
     def is_empty(self) -> bool:
         """Is the Replay Buffer empty?"""
@@ -489,23 +591,6 @@ class ReplayBuffer(object):
     def is_valid_transition(self, index):
         return self._is_index_valid[index]
 
-    def _create_batch_arrays(self, batch_size):
-        """Create a tuple of arrays with the type of get_transition_elements.
-        When using the WrappedReplayBuffer with staging enabled it is important to
-        create new arrays every sample because StaginArea keeps a pointer to the
-        returned arrays.
-        Args:
-          batch_size: (int) number of transitions returned. If None the default
-            batch_size will be used.
-        Returns:
-          Tuple of np.arrays with the shape and type of get_transition_elements.
-        """
-        transition_elements = self.get_transition_elements(batch_size)
-        batch_arrays = []
-        for element in transition_elements:
-            batch_arrays.append(np.empty(element.shape, dtype=element.type))
-        return tuple(batch_arrays)
-
     def sample_index_batch(self, batch_size):
         """Returns a batch of valid indices sampled uniformly.
         Args:
@@ -524,6 +609,26 @@ class ReplayBuffer(object):
             a=self._replay_capacity, size=batch_size, replace=True, p=p
         )
         return indices
+
+    def sample_transition_batch_tensor(self, batch_size=None, indices=None):
+        """
+        Like sample_transition_batch, but returns torch tensors. Also, reshaping to
+        our common shapes. I.e., state is 2-D unless stack_size > 1.
+        Scalar values are returned as (batch_size, 1) instead of (batch_size,)
+        """
+        batch = self.sample_transition_batch(batch_size=batch_size, indices=indices)
+
+        def _normalize_tensor(k, v):
+            t = torch.tensor(v)
+            if (k == "state" or k == "next_state") and self._stack_size == 1:
+                t = t.squeeze(2)
+            elif t.ndim == 1:
+                t = t.unsqueeze(1)
+            return t
+
+        return batch._replace(
+            **{k: _normalize_tensor(k, v) for k, v in batch._asdict().items()}
+        )
 
     def sample_transition_batch(self, batch_size=None, indices=None):
         """Returns a batch of transitions (including any extra contents).
@@ -613,13 +718,15 @@ class ReplayBuffer(object):
             elif element.name in ("next_action", "next_reward"):
                 store_name = element.name.lstrip("next_")
                 batch = self._store[store_name][next_indices]
-            elif element.name in self._store.keys():
+            elif element.name in self._store:
                 batch = self._store[element.name][indices]
+            elif element.name.startswith("next_") and element.name[5:] in self._store:
+                batch = self._store[element.name[5:]][next_indices]
 
             batch = batch.astype(element.type)
             batch_arrays.append(batch)
 
-        batch_arrays = tuple(batch_arrays)
+        batch_arrays = self._batch_type(*batch_arrays)
 
         # We assume the other elements are filled in by the subclass.
         return batch_arrays
@@ -657,11 +764,14 @@ class ReplayBuffer(object):
             ReplayElement("indices", (batch_size,), np.int32),
         ]
         for element in self._extra_storage_types:
-            transition_elements.append(
-                ReplayElement(
-                    element.name, (batch_size,) + tuple(element.shape), element.type
+            for prefix in ["", "next_"]:
+                transition_elements.append(
+                    ReplayElement(
+                        f"{prefix}{element.name}",
+                        (batch_size,) + tuple(element.shape),
+                        element.type,
+                    )
                 )
-            )
         return transition_elements
 
     def _generate_filename(self, checkpoint_dir, name, suffix):

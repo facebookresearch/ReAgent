@@ -28,14 +28,13 @@ class FakeSeq2SlateRewardNetwork(nn.Module):
         src_seq: torch.Tensor,
         tgt_out_seq: torch.Tensor,
         src_src_mask: torch.Tensor,
-        slate_reward: torch.Tensor,
         tgt_out_idx: torch.Tensor,
     ):
         batch_size = state.shape[0]
         rewards = []
         for i in range(batch_size):
             rewards.append(self._forward(state[i], tgt_out_idx[i]))
-        return torch.tensor(rewards).float()
+        return torch.tensor(rewards).unsqueeze(1)
 
     def _forward(self, state: torch.Tensor, tgt_out_idx: torch.Tensor):
         if (state == torch.tensor([1.0, 0.0, 0.0])).all():
@@ -73,7 +72,9 @@ class FakeSeq2SlateTransformerNet(nn.Module):
             return rlt.RankingOutput(
                 ranked_tgt_out_idx=torch.tensor([[2, 3], [3, 2], [2, 3]]).long()
             )
-        return rlt.RankingOutput(log_probs=torch.log(torch.tensor([0.4, 0.3, 0.7])))
+        return rlt.RankingOutput(
+            log_probs=torch.log(torch.tensor([0.4, 0.3, 0.7]).unsqueeze(1))
+        )
 
 
 class TestEvaluationDataPage(unittest.TestCase):

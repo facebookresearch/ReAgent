@@ -158,6 +158,18 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         return (self.action_names, q_values)
 
 
+# Pass through serving module's output
+class DiscreteDqnPredictorUnwrapper(nn.Module):
+    def __init__(self, model: nn.Module) -> None:
+        super().__init__()
+        self.model = model
+
+    def forward(
+        self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
+    ) -> Tuple[List[str], torch.Tensor]:
+        return self.model(state_with_presence)
+
+
 class DiscreteDqnPredictorWrapperWithIdList(torch.jit.ScriptModule):
     __constants__ = ["state_sorted_features_t"]
 

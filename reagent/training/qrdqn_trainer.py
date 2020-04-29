@@ -141,7 +141,7 @@ class QRDQNTrainer(DQNTrainerBase):
         return components
 
     @torch.no_grad()  # type: ignore
-    def train(self, training_batch: rlt.PreprocessedDiscreteDqnInput):
+    def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
 

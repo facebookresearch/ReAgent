@@ -2,8 +2,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 from itertools import permutations
-from typing import Optional
+from typing import List, Optional
 
+import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.models.seq2slate import (
@@ -24,6 +25,35 @@ def _load_reward_net(path, use_gpu):
     if use_gpu:
         reward_network = reward_network.cuda()
     return reward_network
+
+
+def swap_dist_in_slate(idx_):
+    # Do not want to modify the original list because swap happens in place.
+    idx = idx_.copy()
+    swapcount = 0
+    for j in range(len(idx)):
+        for i in range(1, len(idx) - j):
+            if idx[i - 1] > idx[i]:
+                swapcount += 1
+                idx[i - 1], idx[i] = idx[i], idx[i - 1]
+    return swapcount
+
+
+def swap_dist_out_slate(idx):
+    return np.sum(x - i for i, x in enumerate(idx))
+
+
+def swap_dist(idx: List[int]):
+    """
+    A distance which measures how many swaps the prod
+    ordering needs to get to idx
+
+    Examples:
+    swap_dist([0, 1, 2, 4]) = 1
+    swap_dist([0, 1, 5, 2]) = 3
+    """
+    assert type(idx) is list
+    return swap_dist_in_slate(idx) + swap_dist_out_slate(idx)
 
 
 class Seq2SlateSimulationTrainer(Trainer):
@@ -57,6 +87,19 @@ class Seq2SlateSimulationTrainer(Trainer):
             ),
             device=self.device,
         ).long()
+
+        if self.parameters.simulation_distance_penalty is not None:
+            assert self.parameters.simulation_distance_penalty > 0
+            self.permutation_distance = (
+                torch.tensor(
+                    [swap_dist(x.tolist()) for x in self.permutation_index],
+                    device=self.device,
+                )
+                .unsqueeze(1)
+                .float()
+            )
+            self.MAX_DISTANCE = torch.max(self.permutation_distance)
+
         self.trainer = Seq2SlateTrainer(
             seq2slate_net, parameters, minibatch_size, baseline_net, use_gpu
         )
@@ -67,7 +110,9 @@ class Seq2SlateSimulationTrainer(Trainer):
         components = ["seq2slate_net"]
         return components
 
-    def _simulated_training_input(self, training_input, sim_tgt_out_idx, device):
+    def _simulated_training_input(
+        self, training_input, sim_tgt_out_idx, sim_distance, device
+    ):
         batch_size, max_tgt_seq_len = sim_tgt_out_idx.shape
         _, max_src_seq_len, candidate_feat_dim = (
             training_input.src_seq.float_features.shape
@@ -92,7 +137,7 @@ class Seq2SlateSimulationTrainer(Trainer):
                     max_tgt_seq_len
                 ),
                 sim_tgt_in_idx.flatten(),
-            ].view(batch_size, max_tgt_seq_len, -1)
+            ].view(batch_size, max_tgt_seq_len, candidate_feat_dim)
         )
         sim_tgt_out_seq = rlt.PreprocessedFeatureVector(
             float_features=src_seq_augment[
@@ -102,7 +147,7 @@ class Seq2SlateSimulationTrainer(Trainer):
                     max_tgt_seq_len
                 ),
                 sim_tgt_out_idx.flatten(),
-            ].view(batch_size, max_tgt_seq_len, -1)
+            ].view(batch_size, max_tgt_seq_len, candidate_feat_dim)
         )
         sim_tgt_out_probs = torch.tensor(
             [1.0 / len(self.permutation_index)], device=self.device
@@ -110,25 +155,32 @@ class Seq2SlateSimulationTrainer(Trainer):
 
         if self.reward_net is None:
             self.reward_net = _load_reward_net(self.reward_net_path, self.use_gpu)
-        slate_reward = (
-            self.reward_net(
-                training_input.state.float_features,
-                training_input.src_seq.float_features,
-                sim_tgt_out_seq.float_features,
-                training_input.src_src_mask,
-                # TODO: reward_network should not need slate_reward as input
-                training_input.slate_reward,
-                sim_tgt_out_idx,
-            )
-            .squeeze()
-            .detach()
-        )
-        # guard-rail reward prediction
+        slate_reward = self.reward_net(
+            training_input.state.float_features,
+            training_input.src_seq.float_features,
+            sim_tgt_out_seq.float_features,
+            training_input.src_src_mask,
+            sim_tgt_out_idx,
+        ).detach()
+        if slate_reward.ndim == 1:
+            logger.warning(f"Slate reward should be 2-D tensor, unsqueezing")
+            slate_reward = slate_reward.unsqueeze(1)
+        elif slate_reward.ndim != 2:
+            raise RuntimeError("Expect slate reward to be 2-D tensor")
+        # guard-rail reward prediction range
         reward_clamp = self.parameters.simulation_reward_clamp
         if reward_clamp is not None:
             slate_reward = torch.clamp(
                 slate_reward, min=reward_clamp.clamp_min, max=reward_clamp.clamp_max
             )
+        # guard-rail sequence similarity
+        distance_penalty = self.parameters.simulation_distance_penalty
+        if distance_penalty is not None:
+            slate_reward += distance_penalty * (self.MAX_DISTANCE - sim_distance)
+
+        assert (
+            len(slate_reward.shape) == 2 and slate_reward.shape[1] == 1
+        ), f"{slate_reward.shape}"
 
         on_policy_input = rlt.PreprocessedRankingInput(
             state=training_input.state,
@@ -154,11 +206,16 @@ class Seq2SlateSimulationTrainer(Trainer):
 
         # randomly pick a permutation for every slate
         random_indices = torch.randint(0, len(self.permutation_index), (batch_size,))
-        random_tgt_out_idx = self.permutation_index[random_indices] + 2
+        sim_tgt_out_idx = self.permutation_index[random_indices] + 2
+        if self.parameters.simulation_distance_penalty is not None:
+            sim_distance = self.permutation_distance[random_indices]
+        else:
+            sim_distance = None
+
         with torch.no_grad():
-            # then format data according to the new ordering
+            # format data according to the new ordering
             training_input = self._simulated_training_input(
-                training_input, random_tgt_out_idx, self.device
+                training_input, sim_tgt_out_idx, sim_distance, self.device
             )
 
         return self.trainer.train(

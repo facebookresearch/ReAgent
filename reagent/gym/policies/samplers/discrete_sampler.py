@@ -43,6 +43,9 @@ class SoftmaxActionSampler(Sampler):
         m = torch.distributions.Categorical(**{self.key: mod_scores / self.temperature})
         raw_action = m.sample()
         assert raw_action.ndim == 1
+        assert (
+            0 <= raw_action and raw_action < num_actions
+        ), f"negative {raw_action} or >= {num_actions}."
         action = F.one_hot(raw_action, num_actions)
         assert action.ndim == 2
         log_prob = m.log_prob(raw_action).float()
@@ -76,7 +79,7 @@ class GreedyActionSampler(Sampler):
         else:
             mod_scores = scores
         raw_action = mod_scores.argmax(dim=1)
-        assert raw_action.ndim == 2
+        assert raw_action.ndim == 1
         action = F.one_hot(raw_action, num_actions)
         assert action.shape == (batch_size, num_actions)
         log_prob = torch.ones(batch_size, device=scores.device)

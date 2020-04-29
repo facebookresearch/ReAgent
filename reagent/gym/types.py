@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
-import numpy as np
 import reagent.types as rlt
 import torch
 
@@ -36,9 +35,6 @@ Scorer = Callable[[Any], Any]
 
 # Transform ReplayBuffer's transition batch to trainer.train
 TrainerPreprocessor = Callable[[Any], rlt.PreprocessedTrainingBatch]
-
-# Transform sampled action to input to gym.Env.step
-ActionPreprocessor = Callable[[rlt.ActorOutput], np.array]
 
 
 """ Called after env.step(action)

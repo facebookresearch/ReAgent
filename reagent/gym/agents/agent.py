@@ -11,10 +11,6 @@ from reagent.gym.policies.policy import Policy
 from reagent.gym.types import PostStep
 
 
-def no_op(*args, **kwargs):
-    pass
-
-
 def _id(x):
     return x
 
@@ -23,7 +19,7 @@ class Agent:
     def __init__(
         self,
         policy: Policy,
-        post_transition_callback: PostStep = no_op,
+        post_transition_callback: Optional[PostStep] = None,
         obs_preprocessor=_id,
         action_extractor=_id,
     ):
@@ -73,8 +69,8 @@ class Agent:
             # Maybe we need to organize the code better here
             def obs_preprocessor(obs: np.array) -> rlt.PreprocessedState:
                 obs_tensor = torch.tensor(obs).float().unsqueeze(0)
-                if device:
-                    obs_tensor.to(device)
+                if device is not None:
+                    obs_tensor = obs_tensor.to(device)
                 return rlt.PreprocessedState.from_tensor(obs_tensor)
 
         else:
@@ -137,7 +133,12 @@ class Agent:
         """ to be called after step(action) """
         assert self._obs is not None
         assert self._actor_output is not None
-        self.post_transition_callback(
-            self._obs, self._actor_output, reward, terminal, self._possible_actions_mask
-        )
+        if self.post_transition_callback is not None:
+            self.post_transition_callback(
+                self._obs,
+                self._actor_output,
+                reward,
+                terminal,
+                self._possible_actions_mask,
+            )
         self._reset_internal_states()

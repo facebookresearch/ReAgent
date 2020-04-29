@@ -52,45 +52,41 @@ class SlateQTrainer(DQNTrainerBase):
         components = ["q_network", "q_network_target", "q_network_optimizer"]
         return components
 
-    @torch.no_grad()  # type: ignore
-    def get_detached_q_values_target(
-        self,
-        tiled_state: rlt.PreprocessedTiledFeatureVector,
-        action: rlt.PreprocessedSlateFeatureVector,
-    ) -> torch.Tensor:
-        """ Gets the q values from the target network """
-        return self.get_slate_q_value(self.q_network_target, tiled_state, action)
-
     def get_slate_q_value(
         self,
         q_network,
-        tiled_state: rlt.PreprocessedTiledFeatureVector,
+        state: rlt.PreprocessedFeatureVector,
         action: rlt.PreprocessedSlateFeatureVector,
     ) -> torch.Tensor:
         """ Gets the q values from the model and target networks """
-        input = rlt.PreprocessedStateAction(
-            state=tiled_state.as_preprocessed_feature_vector(),
-            action=action.as_preprocessed_feature_vector(),
-        )
-        q_value = self.q_network_target(input).q_value
-        q_value = (
-            q_value.view(action.float_features.shape[0], action.float_features.shape[1])
+        return (
+            self._get_unmask_q_values(q_network, state, action)
             * action.item_mask
             * action.item_probability
+        ).sum(dim=1, keepdim=True)
+
+    def _get_unmask_q_values(
+        self,
+        q_network,
+        state: rlt.PreprocessedFeatureVector,
+        action: rlt.PreprocessedSlateFeatureVector,
+    ) -> torch.Tensor:
+        batch_size, slate_size, _ = action.float_features.shape
+        input = rlt.PreprocessedStateAction(
+            state=state.repeat_interleave(slate_size, dim=0),
+            action=action.as_preprocessed_feature_vector(),
         )
-        return q_value.sum(dim=1, keepdim=True)
+        return q_network(input).q_value.view(batch_size, slate_size)
 
     @torch.no_grad()  # type: ignore
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        learning_input = training_batch.training_input
+    def train(self, training_batch: rlt.PreprocessedSlateQInput):
         assert isinstance(
-            learning_input, rlt.PreprocessedSlateQInput
-        ), f"learning input is a {type(learning_input)}"
+            training_batch, rlt.PreprocessedSlateQInput
+        ), f"learning input is a {type(training_batch)}"
         self.minibatch += 1
 
-        reward = learning_input.reward
-        reward_mask = learning_input.reward_mask
-        not_done_mask = learning_input.not_terminal
+        reward = training_batch.reward
+        reward_mask = training_batch.reward_mask
 
         discount_tensor = torch.full_like(reward, self.gamma)
 
@@ -98,23 +94,21 @@ class SlateQTrainer(DQNTrainerBase):
             raise NotImplementedError("Q-Learning for SlateQ is not implemented")
         else:
             # SARSA (Use the target network)
-            next_q_values = self.get_detached_q_values_target(
-                learning_input.tiled_next_state, learning_input.next_action
+            next_q_values = self.get_slate_q_value(
+                self.q_network_target,
+                training_batch.next_state,
+                training_batch.next_action,
             )
 
-        filtered_max_q_vals = next_q_values * not_done_mask.float()
+        filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
 
         target_q_values = reward + (discount_tensor * filtered_max_q_vals)
         target_q_values = target_q_values[reward_mask]
 
         with torch.enable_grad():
             # Get Q-value of action taken
-            current_state_action = rlt.PreprocessedStateAction(
-                state=learning_input.tiled_state.as_preprocessed_feature_vector(),
-                action=learning_input.action.as_preprocessed_feature_vector(),
-            )
-            q_values = self.q_network(current_state_action).q_value.view(
-                *reward_mask.shape
+            q_values = self._get_unmask_q_values(
+                self.q_network, training_batch.state, training_batch.action
             )[reward_mask]
             all_action_scores = q_values.detach()
 

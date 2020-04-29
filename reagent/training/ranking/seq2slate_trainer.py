@@ -63,7 +63,7 @@ class Seq2SlateTrainer(Trainer):
         if not self.parameters.on_policy:
             return model_propensities / logged_propensities
         # on policy performs no importance sampling correction = setting IS to 1
-        return torch.tensor([1.0], device=device).repeat(batch_size)
+        return torch.ones(batch_size, 1, device=device)
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
         assert type(training_batch) is rlt.PreprocessedTrainingBatch
@@ -79,7 +79,7 @@ class Seq2SlateTrainer(Trainer):
 
         if self.baseline_net:
             # Train baseline
-            b = self.baseline_net(training_input).squeeze()
+            b = self.baseline_net(training_input)
             baseline_loss = 1.0 / batch_size * torch.sum((b - reward) ** 2)
             self.baseline_opt.zero_grad()
             baseline_loss.backward()
@@ -94,7 +94,9 @@ class Seq2SlateTrainer(Trainer):
             training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
         ).log_probs
         b = b.detach()
-        assert b.shape == reward.shape == log_probs.shape
+        assert (
+            b.shape == reward.shape == log_probs.shape
+        ), f"{b.shape} {reward.shape} {log_probs.shape}"
 
         importance_sampling = self._compute_impt_sampling(
             torch.exp(log_probs.detach()), training_input.tgt_out_probs

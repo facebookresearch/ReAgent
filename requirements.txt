@@ -5,6 +5,8 @@ numpy==1.17.2
 pandas==0.25.0
 pydantic==1.4
 torch
+petastorm==0.9.0
+parameterized==0.7.4
 pyspark==2.4.5
 pytest==5.3
 pytest-xdist==1.30.0

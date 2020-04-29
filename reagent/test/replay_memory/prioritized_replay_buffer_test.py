@@ -63,7 +63,7 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
 
         # Check that the prioritized replay buffer expects an additional argument
         # for priority.
-        with self.assertRaisesRegexp(ValueError, "Add expects"):
+        with self.assertRaisesRegex(ValueError, "Add expects"):
             memory.add(zeros, 0, 0, 0)
 
     def testDummyScreensAddedToNewMemory(self):

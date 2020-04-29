@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Dict, List, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 import torch
 from reagent.preprocessing.identify_types import ENUM, FEATURE_TYPES
@@ -22,7 +22,8 @@ class Preprocessor(Module):
     def __init__(
         self,
         normalization_parameters: Dict[int, NormalizationParameters],
-        use_gpu: bool,
+        use_gpu: Optional[bool] = None,
+        device: Optional[torch.device] = None,
     ) -> None:
         super().__init__()
         self.normalization_parameters = normalization_parameters
@@ -32,40 +33,41 @@ class Preprocessor(Module):
 
         cuda_available = torch.cuda.is_available()
         logger.info("CUDA availability: {}".format(cuda_available))
-        if use_gpu and cuda_available:
+        if device is not None:
+            self.device = device
+        elif use_gpu and cuda_available:
+            logger.warn("use_gpu is deprecated, please pass in the device directly")
             logger.info("Using GPU: GPU requested and available.")
-            self.use_gpu = True
-            self.dtype = torch.cuda.FloatTensor  # type: ignore
+            self.device = torch.device("cuda")
         else:
             logger.info("NOT Using GPU: GPU not requested or not available.")
-            self.use_gpu = False
-            self.dtype = torch.FloatTensor
+            self.device = torch.device("cpu")
 
         # NOTE: Because of the way we call AppendNet to squash ONNX to a C2 net,
         # We need to make tensors for every numeric literal
         self.zero_tensor = Parameter(
-            torch.tensor([0.0]).type(self.dtype), requires_grad=False
+            torch.tensor([0.0], device=self.device), requires_grad=False
         )
         self.one_tensor = Parameter(
-            torch.tensor([1.0]).type(self.dtype), requires_grad=False
+            torch.tensor([1.0], device=self.device), requires_grad=False
         )
         self.one_half_tensor = Parameter(
-            torch.tensor([0.5]).type(self.dtype), requires_grad=False
+            torch.tensor([0.5], device=self.device), requires_grad=False
         )
         self.one_hundredth_tensor = Parameter(
-            torch.tensor([0.01]).type(self.dtype), requires_grad=False
+            torch.tensor([0.01], device=self.device), requires_grad=False
         )
         self.negative_one_tensor = Parameter(
-            torch.tensor([-1.0]).type(self.dtype), requires_grad=False
+            torch.tensor([-1.0], device=self.device), requires_grad=False
         )
         self.min_tensor = Parameter(
-            torch.tensor([-1e20]).type(self.dtype), requires_grad=False
+            torch.tensor([-1e20], device=self.device), requires_grad=False
         )
         self.max_tensor = Parameter(
-            torch.tensor([1e20]).type(self.dtype), requires_grad=False
+            torch.tensor([1e20], device=self.device), requires_grad=False
         )
         self.epsilon_tensor = Parameter(
-            torch.tensor([EPS]).type(self.dtype), requires_grad=False
+            torch.tensor([EPS], device=self.device), requires_grad=False
         )
 
         self.feature_starts = self._get_type_boundaries()
@@ -97,8 +99,13 @@ class Preprocessor(Module):
 
     def input_prototype(self) -> Tuple[torch.Tensor, torch.Tensor]:
         return (
-            torch.randn(1, len(self.normalization_parameters)),
-            torch.ones(1, len(self.normalization_parameters), dtype=torch.uint8),
+            torch.randn(1, len(self.normalization_parameters), device=self.device),
+            torch.ones(
+                1,
+                len(self.normalization_parameters),
+                dtype=torch.uint8,
+                device=self.device,
+            ),
         )
 
     def forward(
@@ -231,22 +238,21 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "min_serving_value",
-            torch.Tensor([p.min_value for p in norm_params]).type(self.dtype),
+            torch.tensor([p.min_value for p in norm_params], device=self.device),
         )
         self._create_parameter(
             begin_index,
             "min_training_value",
-            torch.ones(len(norm_params)).type(self.dtype) * -1 + EPS,
+            torch.ones(len(norm_params), device=self.device) * -1 + EPS,
         )
         self._create_parameter(
             begin_index,
             "scaling_factor",
-            (torch.ones(len(norm_params)).type(self.dtype) - EPS)
+            (torch.ones(len(norm_params), device=self.device) - EPS)
             * 2
             / torch.tensor(
-                [p.max_value - p.min_value for p in norm_params]  # type: ignore
-            ).type(  # type: ignore
-                self.dtype
+                [p.max_value - p.min_value for p in norm_params],  # type: ignore
+                device=self.device,
             ),
         )
 
@@ -270,12 +276,12 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "means",
-            torch.Tensor([p.mean for p in norm_params]).type(self.dtype),
+            torch.tensor([p.mean for p in norm_params], device=self.device),
         )
         self._create_parameter(
             begin_index,
             "stddevs",
-            torch.Tensor([p.stddev for p in norm_params]).type(self.dtype),
+            torch.tensor([p.stddev for p in norm_params], device=self.device),
         )
 
     def _preprocess_CONTINUOUS(
@@ -295,7 +301,7 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "shifts",
-            torch.Tensor([p.boxcox_shift for p in norm_params]).type(self.dtype),
+            torch.tensor([p.boxcox_shift for p in norm_params], device=self.device),
         )
         for p in norm_params:
             assert (
@@ -304,7 +310,7 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "lambdas",
-            torch.Tensor([p.boxcox_lambda for p in norm_params]).type(self.dtype),
+            torch.tensor([p.boxcox_lambda for p in norm_params], device=self.device),
         )
         self._create_parameters_CONTINUOUS(begin_index, norm_params)
 
@@ -334,8 +340,9 @@ class Preprocessor(Module):
         F = len(norm_params)
 
         num_quantiles = torch.tensor(
-            [[float(len(p.quantiles)) - 1 for p in norm_params]]  # type: ignore
-        ).type(self.dtype)
+            [[float(len(p.quantiles)) - 1 for p in norm_params]],  # type: ignore
+            device=self.device,
+        )
         self._create_parameter(begin_index, "num_quantiles", num_quantiles)
 
         max_num_quantile_boundaries = int(
@@ -353,25 +360,23 @@ class Preprocessor(Module):
 
         # We project the quantiles boundaries to 3d and create a 1xFxB tensor
         quantile_boundaries = torch.zeros(
-            [1, len(norm_params), max_num_quantile_boundaries]
-        ).type(self.dtype)
-        max_quantile_boundaries = torch.zeros([1, len(norm_params)]).type(self.dtype)
-        min_quantile_boundaries = torch.zeros([1, len(norm_params)]).type(self.dtype)
+            [1, len(norm_params), max_num_quantile_boundaries], device=self.device
+        )
+        max_quantile_boundaries = torch.zeros([1, len(norm_params)], device=self.device)
+        min_quantile_boundaries = torch.zeros([1, len(norm_params)], device=self.device)
         for i, p in enumerate(norm_params):
             quantile_boundaries[0, i, :] = p.quantiles[-1]  # type: ignore
             quantile_boundaries[
                 0, i, 0 : len(p.quantiles)  # type: ignore
             ] = torch.tensor(  # type: ignore
-                p.quantiles
-            ).type(
-                self.dtype
+                p.quantiles, device=self.device
             )
             max_quantile_boundaries[0, i] = max(p.quantiles)  # type: ignore
             min_quantile_boundaries[0, i] = min(p.quantiles)  # type: ignore
 
-        quantile_boundaries = quantile_boundaries.type(self.dtype)
-        max_quantile_boundaries = max_quantile_boundaries.type(self.dtype)
-        min_quantile_boundaries = min_quantile_boundaries.type(self.dtype)
+        quantile_boundaries = quantile_boundaries.to(self.device)
+        max_quantile_boundaries = max_quantile_boundaries.to(self.device)
+        min_quantile_boundaries = min_quantile_boundaries.to(self.device)
 
         self._create_parameter(begin_index, "quantile_boundaries", quantile_boundaries)
         self._create_parameter(
@@ -383,7 +388,7 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "quantile_boundary_mask",
-            torch.ones([1, F, B]).type(self.dtype),
+            torch.ones([1, F, B], device=self.device),
         )
 
     def _preprocess_QUANTILE(
@@ -465,7 +470,7 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "enum_values",
-            torch.Tensor(norm_params.possible_values).unsqueeze(0).type(self.dtype),
+            torch.tensor(norm_params.possible_values, device=self.device).unsqueeze(0),
         )
 
     def _preprocess_ENUM(
@@ -540,15 +545,13 @@ class Preprocessor(Module):
         if feature_type in ("BOXCOX", "CONTINUOUS"):
             # Continuous features may be in range (-inf, inf)
             pass
-        elif max_value.gt(MAX_FEATURE_VALUE):
+        elif max_value.item() > MAX_FEATURE_VALUE:
             raise Exception(
-                "A {} feature type has max value {} which is > than accepted post pre-processing max of {}".format(
-                    feature_type, max_value, MAX_FEATURE_VALUE
-                )
+                f"A {feature_type} feature type has max value {max_value} which is >"
+                f" than accepted post pre-processing max of {MAX_FEATURE_VALUE}"
             )
-        elif min_value.lt(MIN_FEATURE_VALUE):
+        elif min_value.item() < MIN_FEATURE_VALUE:
             raise Exception(
-                "A {} feature type has min value {} which is < accepted post pre-processing min of {}".format(
-                    feature_type, min_value, MIN_FEATURE_VALUE
-                )
+                f"A {feature_type} feature type has min value {min_value} which is <"
+                f" accepted post pre-processing min of {MIN_FEATURE_VALUE}"
             )

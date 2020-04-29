@@ -3,7 +3,7 @@
 
 import logging
 import math
-from typing import NamedTuple, Optional, Union, cast
+from typing import NamedTuple, Optional, cast
 
 import numpy as np
 import torch
@@ -13,7 +13,6 @@ from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.torch_utils import masked_softmax
 from reagent.training.dqn_trainer import DQNTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
-from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 from reagent.training.trainer import Trainer
 
 
@@ -51,8 +50,8 @@ class EvaluationDataPage(NamedTuple):
         trainer: Trainer,
         reward_network: Optional[nn.Module] = None,
     ):
-        if isinstance(tdb, rlt.PreprocessedDiscreteDqnInput):
-            discrete_training_input = cast(rlt.PreprocessedDiscreteDqnInput, tdb)
+        if isinstance(tdb, rlt.DiscreteDqnInput):
+            discrete_training_input = cast(rlt.DiscreteDqnInput, tdb)
 
             return EvaluationDataPage.create_from_tensors_dqn(  # type: ignore
                 trainer,
@@ -137,7 +136,7 @@ class EvaluationDataPage(NamedTuple):
                 seq2slate_net(
                     training_input, Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
                 ).log_probs
-            ).unsqueeze(1)
+            )
             action_mask = torch.ones(batch_size, 1, device=device).float()
 
         model_rewards_for_logged_action = reward_network(
@@ -145,7 +144,6 @@ class EvaluationDataPage(NamedTuple):
             training_input.src_seq.float_features,
             training_input.tgt_out_seq.float_features,
             training_input.src_src_mask,
-            training_input.slate_reward,
             training_input.tgt_out_idx,
         ).reshape(-1, 1)
 
@@ -163,7 +161,6 @@ class EvaluationDataPage(NamedTuple):
             training_input.src_seq.float_features,
             ranked_tgt_out_seq,
             training_input.src_src_mask,
-            training_input.slate_reward,
             rank_output.ranked_tgt_out_idx,
         ).reshape(-1, 1)
         logged_rewards = training_input.slate_reward.reshape(-1, 1)
@@ -586,7 +583,7 @@ class EvaluationDataPage(NamedTuple):
             assert minibatch_size == self.model_metrics_values.shape[0]
 
         flatten_mdp_id = self.mdp_id.reshape(-1)
-        unique_mdp_ids = set(flatten_mdp_id)
+        unique_mdp_ids = set(flatten_mdp_id.tolist())
         prev_mdp_id, prev_seq_num = None, None
         mdp_count = 0
         for mdp_id, seq_num in zip(flatten_mdp_id, self.sequence_number):

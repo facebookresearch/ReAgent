@@ -97,6 +97,7 @@ class DiscreteDQN(DiscreteDQNBase):
         Returns a TorchScript predictor module
         """
         assert self._q_network is not None, "_q_network was not initialized"
+
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,

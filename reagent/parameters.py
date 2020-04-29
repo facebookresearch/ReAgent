@@ -254,6 +254,8 @@ class Seq2SlateTransformerParameters(BaseDataClass):
     learning_method: LearningMethod
     importance_sampling_clamp_max: Optional[float] = None
     simulation_reward_clamp: Optional[RewardClamp] = None
+    # penalize sequences far away from prod
+    simulation_distance_penalty: Optional[float] = None
 
 
 @dataclass(frozen=True)

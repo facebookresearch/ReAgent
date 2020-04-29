@@ -149,10 +149,10 @@ class DQNTrainer(DQNTrainerBase):
         return q_values, q_values_target
 
     @torch.no_grad()  # type: ignore
-    def train(self, training_batch: rlt.PreprocessedDiscreteDqnInput):
+    def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
-        assert isinstance(training_batch, rlt.PreprocessedDiscreteDqnInput)
+        assert isinstance(training_batch, rlt.DiscreteDqnInput)
         boosted_rewards = self.boost_rewards(
             training_batch.reward, training_batch.action
         )
@@ -161,6 +161,7 @@ class DQNTrainer(DQNTrainerBase):
         rewards = boosted_rewards
         discount_tensor = torch.full_like(rewards, self.gamma)
         not_done_mask = training_batch.not_terminal.float()
+        assert not_done_mask.dim() == 2
 
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None
