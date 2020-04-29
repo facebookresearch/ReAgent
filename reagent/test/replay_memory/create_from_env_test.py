@@ -4,10 +4,16 @@ import unittest
 
 import numpy as np
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-from recsim.environments import interest_exploration
+
+try:
+    from recsim.environments import interest_exploration
+    HAS_RECSIM = True
+except ModuleNotFoundError:
+    HAS_RECSIM = False
 
 
 class CreateFromEnvTest(unittest.TestCase):
+    @unittest.skipIf(not HAS_RECSIM)
     def test_create_from_recsim(self):
         env_config = {
             "num_candidates": 20,
