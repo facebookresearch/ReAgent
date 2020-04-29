@@ -141,8 +141,8 @@ class TestConstantReward(HorizonTestBase):
         logger.info("Training model 2")
         trainer2 = self._train(model_parameters2, env2)
 
-        weight1 = trainer1.q_network.layer.weight.detach().numpy()
-        weight2 = trainer2.q_network.layer.weight.detach().numpy()
+        weight1 = trainer1.q_network.fc.layers[-1].weight.detach().numpy()
+        weight2 = trainer2.q_network.fc.layers[-1].weight.detach().numpy()
 
         # Due to numerical stability this tolerance has to be fairly high
         self.assertTrue(np.allclose(weight1, weight2, rtol=0.0, atol=1e-3))

@@ -2,22 +2,20 @@
 
 from typing import Dict, List, Type
 
-from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
-from reagent.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
-from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNWithIdListNetBuilder
+from reagent.models.dueling_quantile_dqn import DuelingQuantileDQN
+from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
 from reagent.parameters import NormalizationParameters, param_hash
 
 
 @dataclass
-class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
+class DuelingQuantile(QRDQNNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
-    embedding_dim: int = 64
-    dropout_ratio: float = 0.0
+    num_atoms: int = 51
 
     def __post_init_post_parse__(self):
         super().__init__()
@@ -28,17 +26,12 @@ class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
 
     def build_q_network(
         self,
-        state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         output_dim: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
-        return FullyConnectedDQNWithEmbedding(
-            state_dim=state_dim,
-            action_dim=output_dim,
-            sizes=self.sizes,
-            activations=self.activations,
-            model_feature_config=state_feature_config,
-            embedding_dim=self.embedding_dim,
-            dropout_ratio=self.dropout_ratio,
+        return DuelingQuantileDQN(
+            layers=[state_dim] + self.sizes + [output_dim],
+            activations=self.activations + ["linear"],
+            num_atoms=self.num_atoms,
         )

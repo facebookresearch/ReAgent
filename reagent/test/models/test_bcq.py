@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import copy
 import logging
 import unittest
 
@@ -10,7 +9,7 @@ from reagent.models.bcq import BatchConstrainedDQN
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.test.models.test_utils import check_save_load
-from reagent.types import PreprocessedState
+from reagent.types import FeatureVector, PreprocessedState
 
 
 logger = logging.getLogger(__name__)
@@ -20,13 +19,15 @@ class TestBCQ(unittest.TestCase):
     def test_basic(self):
         state_dim = 8
         action_dim = 4
-        embedding = FullyConnectedNetwork(
-            layers=[state_dim, 8, 4], activations=["relu", "relu"]
+        q_network = FullyConnectedDQN(
+            state_dim, action_dim, sizes=[8, 4], activations=["relu", "relu"]
         )
-        imitator_network = FullyConnectedDQN(action_dim=action_dim, embedding=embedding)
+        imitator_network = FullyConnectedNetwork(
+            layers=[state_dim, 8, 4, action_dim], activations=["relu", "relu", "linear"]
+        )
         model = BatchConstrainedDQN(
-            action_dim=action_dim,
-            embedding=copy.deepcopy(embedding),
+            state_dim=state_dim,
+            q_network=q_network,
             imitator_network=imitator_network,
             bcq_drop_threshold=0.05,
         )
@@ -39,13 +40,15 @@ class TestBCQ(unittest.TestCase):
     def test_save_load(self):
         state_dim = 8
         action_dim = 4
-        embedding = FullyConnectedNetwork(
-            layers=[state_dim, 8, 4], activations=["relu", "relu"]
+        q_network = FullyConnectedDQN(
+            state_dim, action_dim, sizes=[8, 4], activations=["relu", "relu"]
         )
-        imitator_network = FullyConnectedDQN(action_dim=action_dim, embedding=embedding)
+        imitator_network = FullyConnectedNetwork(
+            layers=[state_dim, 8, 4, action_dim], activations=["relu", "relu", "linear"]
+        )
         model = BatchConstrainedDQN(
-            action_dim=action_dim,
-            embedding=copy.deepcopy(embedding),
+            state_dim=state_dim,
+            q_network=q_network,
             imitator_network=imitator_network,
             bcq_drop_threshold=0.05,
         )
@@ -60,48 +63,46 @@ class TestBCQ(unittest.TestCase):
         action_dim = 2
         input = PreprocessedState.from_tensor(state=torch.tensor([[2.0]]))
         bcq_drop_threshold = 0.20
-        embedding = FullyConnectedNetwork(layers=[state_dim, 2], activations=["relu"])
-        imitator_network = FullyConnectedDQN(action_dim=action_dim, embedding=embedding)
 
+        q_network = FullyConnectedDQN(
+            state_dim, action_dim, sizes=[2], activations=["relu"]
+        )
+        # Set weights of q-network to make it deterministic
+        q_net_layer_0_w = torch.tensor([[1.2], [0.9]])
+        q_network.state_dict()["fc.layers.0.weight"].data.copy_(q_net_layer_0_w)
+        q_net_layer_0_b = torch.tensor([0.0, 0.0])
+        q_network.state_dict()["fc.layers.0.bias"].data.copy_(q_net_layer_0_b)
+        q_net_layer_1_w = torch.tensor([[0.5, -0.5], [1.0, 1.0]])
+        q_network.state_dict()["fc.layers.1.weight"].data.copy_(q_net_layer_1_w)
+        q_net_layer_1_b = torch.tensor([0.0, 0.0])
+        q_network.state_dict()["fc.layers.1.bias"].data.copy_(q_net_layer_1_b)
+
+        imitator_network = FullyConnectedNetwork(
+            layers=[state_dim, 2, action_dim], activations=["relu", "linear"]
+        )
         # Set weights of imitator network to make it deterministic
         im_net_layer_0_w = torch.tensor([[1.2], [0.9]])
-        imitator_network.state_dict()["embedding.layers.0.weight"].data.copy_(
-            im_net_layer_0_w
-        )
+        imitator_network.state_dict()["layers.0.weight"].data.copy_(im_net_layer_0_w)
         im_net_layer_0_b = torch.tensor([0.0, 0.0])
-        imitator_network.state_dict()["embedding.layers.0.bias"].data.copy_(
-            im_net_layer_0_b
-        )
+        imitator_network.state_dict()["layers.0.bias"].data.copy_(im_net_layer_0_b)
         im_net_layer_1_w = torch.tensor([[0.5, 1.5], [1.0, 2.0]])
-        imitator_network.state_dict()["layer.weight"].data.copy_(im_net_layer_1_w)
+        imitator_network.state_dict()["layers.1.weight"].data.copy_(im_net_layer_1_w)
         im_net_layer_1_b = torch.tensor([0.0, 0.0])
-        imitator_network.state_dict()["layer.bias"].data.copy_(im_net_layer_1_b)
+        imitator_network.state_dict()["layers.1.bias"].data.copy_(im_net_layer_1_b)
 
         imitator_probs = torch.nn.functional.softmax(
-            imitator_network(input).q_values, dim=1
+            imitator_network(input.state.float_features), dim=1
         )
         bcq_mask = imitator_probs < bcq_drop_threshold
         assert bcq_mask[0][0] == 1
         assert bcq_mask[0][1] == 0
 
         model = BatchConstrainedDQN(
-            action_dim=action_dim,
-            embedding=copy.deepcopy(embedding),
+            state_dim=state_dim,
+            q_network=q_network,
             imitator_network=imitator_network,
             bcq_drop_threshold=bcq_drop_threshold,
         )
-
-        # Set weights of bcq network to make it deterministic
-        q_net_layer_0_w = torch.tensor([[1.2], [0.9]])
-        print(model.state_dict())
-        model.state_dict()["embedding.layers.0.weight"].data.copy_(q_net_layer_0_w)
-        q_net_layer_0_b = torch.tensor([0.0, 0.0])
-        model.state_dict()["embedding.layers.0.bias"].data.copy_(q_net_layer_0_b)
-        q_net_layer_1_w = torch.tensor([[0.5, -0.5], [1.0, 1.0]])
-        model.state_dict()["layer.weight"].data.copy_(q_net_layer_1_w)
-        q_net_layer_1_b = torch.tensor([0.0, 0.0])
-        model.state_dict()["layer.bias"].data.copy_(q_net_layer_1_b)
-
         final_q_values = model(input)
         assert final_q_values.q_values[0][0] == -1e10
         assert abs(final_q_values.q_values[0][1] - 4.2) < 0.0001

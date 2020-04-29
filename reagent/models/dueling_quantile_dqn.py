@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, NamedTuple, Union
 
 import torch
 import torch.nn as nn
@@ -17,21 +16,14 @@ from reagent.tensorboardX import SummaryWriterContext
 logger = logging.getLogger(__name__)
 
 
-class DuelingQNetwork(ModelBase):
-    def __init__(
-        self,
-        layers: List[int],
-        activations: List[str],
-        use_batch_norm: bool = False,
-        action_dim: int = 0,
-    ) -> None:
+class DuelingQuantileDQN(ModelBase):
+    def __init__(self, layers, activations, num_atoms=50, use_batch_norm=False) -> None:
         """
         Dueling Q-Network Architecture: https://arxiv.org/abs/1511.06581
 
         :param layers: List of layer dimensions
         :param activations: List of layer activations
         :param use_batch_norm: bool indicating whether to apply batch normalization
-        :param action_dim: if !=0 use parametric dueling DQN, else standard dueling DQN
         """
         super().__init__()
         self.layers: nn.ModuleList = nn.ModuleList()
@@ -49,7 +41,9 @@ class DuelingQNetwork(ModelBase):
         divisible by 2."""
 
         self.state_dim = layers[0]
-        self.action_dim = action_dim
+
+        self.num_actions = layers[-1]
+        self.num_atoms = num_atoms
 
         for i, layer in enumerate(layers[1:-1]):
             self.layers.append(nn.Linear(layers[i], layer))
@@ -57,37 +51,28 @@ class DuelingQNetwork(ModelBase):
             gaussian_fill_w_gain(self.layers[i].weight, self.activations[i], layers[i])
             init.constant_(self.layers[i].bias, 0)
 
-        self.parametric_action = action_dim > 0
         # Split last layer into a value & advantage stream
         self.advantage = nn.Sequential(  # type: ignore
-            nn.Linear(int(layers[-2] + action_dim), int(layers[-2] / 2)),
+            nn.Linear(int(layers[-2]), int(layers[-2] / 2)),
             nn.ReLU(),  # type: ignore
-            nn.Linear(int(layers[-2] / 2), layers[-1]),
+            nn.Linear(int(layers[-2] / 2), layers[-1] * self.num_atoms),
         )
         self.value = nn.Sequential(  # type: ignore
             nn.Linear(int(layers[-2]), int(layers[-2] / 2)),
             nn.ReLU(),  # type: ignore
-            nn.Linear(int(layers[-2] / 2), 1),
+            nn.Linear(int(layers[-2] / 2), self.num_atoms),
         )
         self._name = "unnamed"
 
     def input_prototype(self):
-        if self.parametric_action:
-            return rlt.PreprocessedStateAction.from_tensors(
-                state=torch.randn(1, self.state_dim),
-                action=torch.randn(1, self.action_dim),
-            )
-        else:
-            return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
-    def forward(self, input) -> Union[NamedTuple, torch.FloatTensor]:  # type: ignore
-        output_tensor = False
-        if self.parametric_action:
-            state = input.state.float_features
-            action = input.action.float_features
-        else:
-            state = input.state.float_features
-            action = None
+    def forward(self, input: rlt.PreprocessedState):
+        q_values = self.dist(input).mean(dim=2)
+        return rlt.AllActionQValues(q_values=q_values)
+
+    def dist(self, input: rlt.PreprocessedState):
+        state = input.state.float_features
 
         x = state
         for i, activation in enumerate(self.activations[:-1]):
@@ -103,27 +88,24 @@ class DuelingQNetwork(ModelBase):
                 activation_func = getattr(F, activation)
             x = activation_func(x)
 
-        value = self.value(x)
-        if action is not None:
-            x = torch.cat((x, action), dim=1)
-        raw_advantage = self.advantage(x)
-        if self.parametric_action:
-            advantage = raw_advantage
-        else:
-            advantage = raw_advantage - raw_advantage.mean(dim=1, keepdim=True)
+        value = self.value(x).unsqueeze(dim=1)
+        raw_advantage = self.advantage(x).reshape(-1, self.num_actions, self.num_atoms)
+        advantage = raw_advantage - raw_advantage.mean(dim=1, keepdim=True)
 
         q_value = value + advantage
 
         if SummaryWriterContext._global_step % 1000 == 0:
             SummaryWriterContext.add_histogram(
-                "dueling_network/{}/value".format(self._name), value.detach().cpu()
+                "dueling_network/{}/value".format(self._name),
+                value.detach().mean(dim=2).cpu(),
             )
             SummaryWriterContext.add_scalar(
                 "dueling_network/{}/mean_value".format(self._name),
                 value.detach().mean().cpu(),
             )
             SummaryWriterContext.add_histogram(
-                "dueling_network/{}/q_value".format(self._name), q_value.detach().cpu()
+                "dueling_network/{}/q_value".format(self._name),
+                q_value.detach().mean(dim=2).cpu(),
             )
             SummaryWriterContext.add_scalar(
                 "dueling_network/{}/mean_q_value".format(self._name),
@@ -131,27 +113,21 @@ class DuelingQNetwork(ModelBase):
             )
             SummaryWriterContext.add_histogram(
                 "dueling_network/{}/raw_advantage".format(self._name),
-                raw_advantage.detach().cpu(),
+                raw_advantage.detach().mean(dim=2).cpu(),
             )
             SummaryWriterContext.add_scalar(
                 "dueling_network/{}/mean_raw_advantage".format(self._name),
                 raw_advantage.detach().mean().cpu(),
             )
-            if not self.parametric_action:
-                advantage = advantage.detach()
-                for i in range(advantage.shape[1]):
-                    a = advantage[:, i]
-                    SummaryWriterContext.add_histogram(
-                        "dueling_network/{}/advantage/{}".format(self._name, i), a.cpu()
-                    )
-                    SummaryWriterContext.add_scalar(
-                        "dueling_network/{}/mean_advantage/{}".format(self._name, i),
-                        a.mean().cpu(),
-                    )
+            advantage = advantage.detach()
+            for i in range(advantage.shape[1]):
+                a = advantage[:, i, :].mean(dim=1)
+                SummaryWriterContext.add_histogram(
+                    "dueling_network/{}/advantage/{}".format(self._name, i), a.cpu()
+                )
+                SummaryWriterContext.add_scalar(
+                    "dueling_network/{}/mean_advantage/{}".format(self._name, i),
+                    a.mean().cpu(),
+                )
 
-        if output_tensor:
-            return q_value  # type: ignore
-        elif self.parametric_action:
-            return rlt.SingleQValue(q_value=q_value)  # type: ignore
-        else:
-            return rlt.AllActionQValues(q_values=q_value)  # type: ignore
+        return q_value

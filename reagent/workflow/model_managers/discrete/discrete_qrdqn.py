@@ -7,10 +7,10 @@ from typing import List, Optional
 import torch  # @manual
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
-from reagent.net_builder.discrete_dqn.dueling import Dueling
-from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
+from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
+from reagent.net_builder.quantile_dqn.quantile import Quantile
 from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
-from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
+from reagent.net_builder.unions import QRDQNNetBuilder__Union
 from reagent.parameters import param_hash
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
@@ -27,13 +27,13 @@ class DiscreteQRDQN(DiscreteDQNBase):
     trainer_param: QRDQNTrainerParameters = field(
         default_factory=QRDQNTrainerParameters
     )
-    net_builder: DiscreteDQNNetBuilder__Union = field(
-        default_factory=lambda: DiscreteDQNNetBuilder__Union(Dueling=Dueling())
-    )
-    cpe_net_builder: DiscreteDQNNetBuilder__Union = field(
-        default_factory=lambda: DiscreteDQNNetBuilder__Union(
-            FullyConnected=FullyConnected()
+    net_builder: QRDQNNetBuilder__Union = field(
+        default_factory=lambda: QRDQNNetBuilder__Union(
+            DuelingQuantile=DuelingQuantile()
         )
+    )
+    cpe_net_builder: QRDQNNetBuilder__Union = field(
+        default_factory=lambda: QRDQNNetBuilder__Union(Quantile=Quantile())
     )
 
     def __post_init_post_parse__(self):
@@ -49,9 +49,7 @@ class DiscreteQRDQN(DiscreteDQNBase):
     def build_trainer(self) -> QRDQNTrainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
-            self.state_feature_config,
-            self.state_normalization_parameters,
-            len(self.action_names),
+            self.state_normalization_parameters, len(self.action_names)
         )
 
         if self.use_gpu:
@@ -68,14 +66,10 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
             cpe_net_builder = self.cpe_net_builder.value
             reward_network = cpe_net_builder.build_q_network(
-                self.state_feature_config,
-                self.state_normalization_parameters,
-                num_output_nodes,
+                self.state_normalization_parameters, num_output_nodes
             )
             q_network_cpe = cpe_net_builder.build_q_network(
-                self.state_feature_config,
-                self.state_normalization_parameters,
-                num_output_nodes,
+                self.state_normalization_parameters, num_output_nodes
             )
 
             if self.use_gpu:

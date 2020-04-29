@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List
+from typing import Dict, List, Type
 
-import torch
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
-from reagent.models.base import IdentityModuleWithDimensions, ModelBase
+from reagent.models.base import ModelBase
 from reagent.models.dqn import FullyConnectedDQN
-from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from reagent.parameters import NormalizationParameters, param_hash
 
@@ -19,7 +17,6 @@ class FullyConnected(DiscreteDQNNetBuilder):
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     dropout_ratio: float = 0.0
-    quantiles: int = 1
 
     def __post_init_post_parse__(self):
         super().__init__()
@@ -35,14 +32,10 @@ class FullyConnected(DiscreteDQNNetBuilder):
         output_dim: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
-        if len(self.sizes) > 0:
-            embedding = FullyConnectedNetwork(
-                layers=[state_dim] + self.sizes,
-                activations=self.activations,
-                dropout_ratio=self.dropout_ratio,
-            )
-        else:
-            embedding = IdentityModuleWithDimensions(state_dim)
         return FullyConnectedDQN(
-            action_dim=output_dim, embedding=embedding, quantiles=self.quantiles
+            state_dim=state_dim,
+            action_dim=output_dim,
+            sizes=self.sizes,
+            activations=self.activations,
+            dropout_ratio=self.dropout_ratio,
         )

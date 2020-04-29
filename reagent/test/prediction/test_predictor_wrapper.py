@@ -6,10 +6,8 @@ import unittest
 import reagent.types as rlt
 import torch
 from reagent.models.actor import FullyConnectedActor
-from reagent.models.base import SequentialWithDimensions
 from reagent.models.dqn import FullyConnectedDQN
-from reagent.models.fully_connected_network import FullyConnectedNetwork
-from reagent.models.id_list_joiner import IdListJoiner
+from reagent.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
 from reagent.models.parametric_dqn import FullyConnectedParametricDQN
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.prediction.predictor_wrapper import (
@@ -46,10 +44,10 @@ class TestPredictorWrapper(unittest.TestCase):
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         action_dim = 2
         dqn = FullyConnectedDQN(
+            state_dim=len(state_normalization_parameters),
             action_dim=action_dim,
-            embedding=FullyConnectedNetwork(
-                layers=[len(state_normalization_parameters), 16], activations=["relu"]
-            ),
+            sizes=[16],
+            activations=["relu"],
         )
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(dqn, state_preprocessor)
         action_names = ["L", "R"]
@@ -69,10 +67,10 @@ class TestPredictorWrapper(unittest.TestCase):
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         action_dim = 2
         dqn = FullyConnectedDQN(
+            state_dim=len(state_normalization_parameters),
             action_dim=action_dim,
-            embedding=FullyConnectedNetwork(
-                layers=[len(state_normalization_parameters), 16], activations=["relu"]
-            ),
+            sizes=[16],
+            activations=["relu"],
         )
         dqn_with_preprocessor = DiscreteDqnWithPreprocessorWithIdList(
             dqn, state_preprocessor
@@ -106,17 +104,14 @@ class TestPredictorWrapper(unittest.TestCase):
             ],
             id_mapping_config={"A_mapping": rlt.IdMapping(ids=[0, 1, 2])},
         )
-
-        id_list_joiner = IdListJoiner(
-            state_feature_config, len(state_normalization_parameters), 8
+        dqn = FullyConnectedDQNWithEmbedding(
+            state_dim=len(state_normalization_parameters),
+            action_dim=action_dim,
+            sizes=[16],
+            activations=["relu"],
+            model_feature_config=state_feature_config,
+            embedding_dim=8,
         )
-        embedding = FullyConnectedNetwork(
-            layers=[id_list_joiner.output_dim(), 16], activations=["relu"]
-        )
-        dqn = FullyConnectedDQN(
-            action_dim=action_dim, feature_extractor=id_list_joiner, embedding=embedding
-        )
-
         dqn_with_preprocessor = DiscreteDqnWithPreprocessorWithIdList(
             dqn, state_preprocessor, state_feature_config
         )

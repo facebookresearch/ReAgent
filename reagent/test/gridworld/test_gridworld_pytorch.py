@@ -12,7 +12,8 @@ import torch
 from reagent.models.categorical_dqn import CategoricalDQN
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.dueling_q_network import DuelingQNetwork
-from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.models.dueling_quantile_dqn import DuelingQuantileDQN
+from reagent.models.quantile_dqn import QuantileDQN
 from reagent.parameters import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
@@ -54,8 +55,8 @@ class TestGridworld(GridworldTestBase):
             reward_boost=reward_shape,
         )
         training_parameters = TrainingParameters(
-            layers=[-1, -1] if categorical else [-1, 128, -1],
-            activations=["linear"] if categorical else ["relu", "linear"],
+            layers=[-1, 128, -1] if dueling else [-1, -1],
+            activations=["relu", "relu"] if dueling else ["linear"],
             minibatch_size=self.minibatch_size,
             learning_rate=0.05,
             optimizer="ADAM",
@@ -111,24 +112,25 @@ class TestGridworld(GridworldTestBase):
             environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
         )
 
-        if not categorical:
-            embedding = FullyConnectedNetwork(
-                layers=[get_num_output_features(environment.normalization)]
-                + parameters.training.layers[1:-1],
-                activations=parameters.training.activations[:-1],
-            )
-
-        quantiles = 1
         if quantile:
-            quantiles = parameters.rainbow.num_atoms
-
-        if dueling:
-            q_network = DuelingQNetwork(
-                action_dim=len(environment.ACTIONS),
-                embedding=embedding,
-                quantiles=quantiles,
-            )
+            if dueling:
+                q_network = DuelingQuantileDQN(
+                    layers=[get_num_output_features(environment.normalization)]
+                    + parameters.training.layers[1:-1]
+                    + [len(environment.ACTIONS)],
+                    activations=parameters.training.activations,
+                    num_atoms=parameters.rainbow.num_atoms,
+                )
+            else:
+                q_network = QuantileDQN(
+                    state_dim=get_num_output_features(environment.normalization),
+                    action_dim=len(environment.ACTIONS),
+                    num_atoms=parameters.rainbow.num_atoms,
+                    sizes=parameters.training.layers[1:-1],
+                    activations=parameters.training.activations[:-1],
+                )
         elif categorical:
+            assert not dueling
             q_network = CategoricalDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
@@ -139,36 +141,36 @@ class TestGridworld(GridworldTestBase):
                 activations=parameters.training.activations[:-1],
             )
         else:
-            q_network = FullyConnectedDQN(
-                action_dim=len(environment.ACTIONS),
-                embedding=embedding,
-                quantiles=quantiles,
-            )
+            if dueling:
+                q_network = DuelingQNetwork(
+                    layers=[get_num_output_features(environment.normalization)]
+                    + parameters.training.layers[1:-1]
+                    + [len(environment.ACTIONS)],
+                    activations=parameters.training.activations,
+                )
+            else:
+                q_network = FullyConnectedDQN(
+                    state_dim=get_num_output_features(environment.normalization),
+                    action_dim=len(environment.ACTIONS),
+                    sizes=parameters.training.layers[1:-1],
+                    activations=parameters.training.activations[:-1],
+                )
 
         q_network_cpe, q_network_cpe_target, reward_network = None, None, None
 
-        # TODO: Support CPE + Categorical or just delete it since we have quantile DQN
-        if (
-            not categorical
-            and parameters.evaluation
-            and parameters.evaluation.calc_cpe_in_training
-        ):
+        if parameters.evaluation and parameters.evaluation.calc_cpe_in_training:
             q_network_cpe = FullyConnectedDQN(
+                state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
-                embedding=FullyConnectedNetwork(
-                    layers=[get_num_output_features(environment.normalization)]
-                    + parameters.training.layers[1:-1],
-                    activations=parameters.training.activations[:-1],
-                ),
+                sizes=parameters.training.layers[1:-1],
+                activations=parameters.training.activations[:-1],
             )
             q_network_cpe_target = q_network_cpe.get_target_network()
             reward_network = FullyConnectedDQN(
+                state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
-                embedding=FullyConnectedNetwork(
-                    layers=[get_num_output_features(environment.normalization)]
-                    + parameters.training.layers[1:-1],
-                    activations=parameters.training.activations[:-1],
-                ),
+                sizes=parameters.training.layers[1:-1],
+                activations=parameters.training.activations[:-1],
             )
 
         if use_gpu:

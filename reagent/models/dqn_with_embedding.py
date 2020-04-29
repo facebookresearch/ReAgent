@@ -4,25 +4,37 @@
 import torch
 from reagent import types as rlt
 from reagent.models.base import ModelBase
+from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
-class IdListJoiner(ModelBase):
+class FullyConnectedDQNWithEmbedding(ModelBase):
     """
-    Concatenating embedding with float features
+    Concatenating embedding with float features before passing the input
+    to DQN
     """
 
     def __init__(
         self,
+        state_dim,
+        action_dim,
+        sizes,
+        activations,
         model_feature_config: rlt.ModelFeatureConfig,
-        input_dim: int,
         embedding_dim: int,
+        use_batch_norm=False,
+        dropout_ratio=0.0,
     ):
         super().__init__()
-        self._input_dim = input_dim
-        self._output_dim = (
-            input_dim
-            + len(model_feature_config.id_list_feature_configs) * embedding_dim
+        assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
+        assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+        assert len(sizes) == len(
+            activations
+        ), "The numbers of sizes and activations must match; got {} vs {}".format(
+            len(sizes), len(activations)
         )
+
         self.embedding_bags = torch.nn.ModuleDict(  # type: ignore
             {
                 id_list_feature.name: torch.nn.EmbeddingBag(  # type: ignore
@@ -37,16 +49,22 @@ class IdListJoiner(ModelBase):
             }
         )
 
-    def input_dim(self):
-        return self._input_dim
+        fc_input_dim = (
+            state_dim
+            + len(model_feature_config.id_list_feature_configs) * embedding_dim
+        )
 
-    def output_dim(self):
-        return self._output_dim
+        self.fc = FullyConnectedNetwork(
+            [fc_input_dim] + sizes + [action_dim],
+            activations + ["linear"],
+            use_batch_norm=use_batch_norm,
+            dropout_ratio=dropout_ratio,
+        )
 
     def input_prototype(self):
         return rlt.PreprocessedState(
             state=rlt.PreprocessedFeatureVector(
-                float_features=torch.randn(1, self._input_dim),
+                float_features=torch.randn(1, self.state_dim),
                 id_list_features={
                     k: (
                         torch.zeros(1, dtype=torch.long),
@@ -57,7 +75,7 @@ class IdListJoiner(ModelBase):
             )
         )
 
-    def forward(self, input: rlt.PreprocessedState) -> torch.Tensor:
+    def forward(self, input: rlt.PreprocessedState):
         embeddings = [
             m(
                 input.state.id_list_features[name][1],
@@ -65,4 +83,6 @@ class IdListJoiner(ModelBase):
             )
             for name, m in self.embedding_bags.items()
         ]
-        return torch.cat(embeddings + [input.state.float_features], dim=1)
+        fc_input = torch.cat(embeddings + [input.state.float_features], dim=1)
+        q_values = self.fc(fc_input)
+        return rlt.AllActionQValues(q_values=q_values)

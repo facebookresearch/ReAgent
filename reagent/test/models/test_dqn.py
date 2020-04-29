@@ -5,7 +5,6 @@ import logging
 import unittest
 
 from reagent.models.dqn import FullyConnectedDQN
-from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.test.models.test_utils import check_save_load
 
 
@@ -17,12 +16,11 @@ class TestFullyConnectedDQN(unittest.TestCase):
         state_dim = 8
         action_dim = 4
         model = FullyConnectedDQN(
-            action_dim=action_dim,
-            embedding=FullyConnectedNetwork(
-                layers=[state_dim] + [8, 4],
-                activations=["relu", "relu"],
-                use_batch_norm=True,
-            ),
+            state_dim,
+            action_dim,
+            sizes=[8, 4],
+            activations=["relu", "relu"],
+            use_batch_norm=True,
         )
         input = model.input_prototype()
         self.assertEqual((1, state_dim), input.state.float_features.shape)
@@ -35,12 +33,11 @@ class TestFullyConnectedDQN(unittest.TestCase):
         state_dim = 8
         action_dim = 4
         model = FullyConnectedDQN(
-            action_dim=action_dim,
-            embedding=FullyConnectedNetwork(
-                layers=[state_dim, 8, 4],
-                activations=["relu", "relu"],
-                use_batch_norm=True,
-            ),
+            state_dim,
+            action_dim,
+            sizes=[8, 4],
+            activations=["relu", "relu"],
+            use_batch_norm=False,
         )
         expected_num_params, expected_num_inputs, expected_num_outputs = 6, 1, 1
         check_save_load(
@@ -51,12 +48,11 @@ class TestFullyConnectedDQN(unittest.TestCase):
         state_dim = 8
         action_dim = 4
         model = FullyConnectedDQN(
-            action_dim=action_dim,
-            embedding=FullyConnectedNetwork(
-                layers=[state_dim, 8, 4],
-                activations=["relu", "relu"],
-                use_batch_norm=True,
-            ),
+            state_dim,
+            action_dim,
+            sizes=[8, 4],
+            activations=["relu", "relu"],
+            use_batch_norm=True,
         )
         # Freezing batch_norm
         model.eval()

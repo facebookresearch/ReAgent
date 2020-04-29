@@ -162,7 +162,7 @@ class QRDQNTrainer(DQNTrainerBase):
             assert training_batch.step is not None
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
-        next_qf = self.q_network_target.dist(next_state).q_values
+        next_qf = self.q_network_target.dist(next_state)
 
         if self.maxq_learning:
             # Select distribution corresponding to max valued action
@@ -176,18 +176,18 @@ class QRDQNTrainer(DQNTrainerBase):
             )
             next_qf = next_qf[range(rewards.shape[0]), next_action.reshape(-1)]
         else:
-            next_qf = (next_qf * training_batch.next_action.unsqueeze(-1)).sum(dim=1)
+            next_qf = (next_qf * training_batch.next_action.unsqueeze(-1)).sum(1)
 
         # Build target distribution
         target_Q = rewards + discount_tensor * not_done_mask * next_qf
 
         with torch.enable_grad():
-            current_qf = self.q_network.dist(state).q_values
+            current_qf = self.q_network.dist(state)
 
             # for reporting only
-            all_q_values = current_qf.mean(dim=2).detach()
+            all_q_values = current_qf.mean(2).detach()
 
-            current_qf = (current_qf * training_batch.action.unsqueeze(-1)).sum(dim=1)
+            current_qf = (current_qf * training_batch.action.unsqueeze(-1)).sum(1)
 
             # (batch, atoms) -> (atoms, batch, 1) -> (atoms, batch, atoms)
             td = target_Q.t().unsqueeze(-1) - current_qf
