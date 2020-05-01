@@ -13,8 +13,15 @@ from reagent.workflow.spark_utils import DEFAULT_SPARK_CONFIG
 from sparktestingbase.sqltestcase import SQLTestCase
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(level=logging.INFO)
+
+# path to local hive metastore
 HIVE_METASTORE = "metastore_db"
-SEED = 42
+
+# for setting seeds
+GLOBAL_TEST_CLASS_COUNTER = 0
 
 
 class ReagentSQLTestBase(SQLTestCase):
@@ -24,15 +31,26 @@ class ReagentSQLTestBase(SQLTestCase):
             conf.set(k, v)
         return conf
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # set up the seed for the class to prevent
+        # clashing random table names for example
+        global GLOBAL_TEST_CLASS_COUNTER
+        cls.test_class_seed = GLOBAL_TEST_CLASS_COUNTER
+        logger.info(f"Allocating seed {cls.test_class_seed} to {cls.__name__}.")
+        GLOBAL_TEST_CLASS_COUNTER += 1
+
     def setUp(self):
         super().setUp()
         assert not os.path.isdir(
             HIVE_METASTORE
         ), f"{HIVE_METASTORE} already exists! Try deleting it."
 
-        random.seed(SEED)
-        torch.manual_seed(SEED)
-        np.random.seed(SEED)
+        random.seed(self.test_class_seed)
+        torch.manual_seed(self.test_class_seed)
+        np.random.seed(self.test_class_seed)
         logging.basicConfig()
 
     def assertEq(self, series_a, arr_b):
