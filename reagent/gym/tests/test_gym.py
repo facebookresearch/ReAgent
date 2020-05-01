@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-"""
-Environments that require short training and evaluation time (<=10min)
-can be tested in this file.
-"""
 import logging
 import os
+import pprint
 import random
 import unittest
 from typing import Optional, Tuple
@@ -19,10 +16,13 @@ from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.runners.gymrunner import run_episode
-from reagent.parameters import NormalizationData
+from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.tensorboardX import SummaryWriterContext
-from reagent.test.base.utils import only_continuous_normalizer
+from reagent.test.base.utils import (
+    only_continuous_action_normalizer,
+    only_continuous_normalizer,
+)
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
 from ruamel.yaml import YAML
@@ -34,25 +34,52 @@ curr_dir = os.path.dirname(__file__)
 SEED = 0
 
 
-def build_normalizer(env):
+def build_state_normalizer(env):
     if isinstance(env.observation_space, gym.spaces.Box):
         assert (
             len(env.observation_space.shape) == 1
-        ), f"{env.observation_space} not supported."
-        return {
-            "state": NormalizationData(
-                dense_normalization_parameters=only_continuous_normalizer(
-                    list(range(env.observation_space.shape[0])),
-                    env.observation_space.low,
-                    env.observation_space.high,
-                )
+        ), f"{env.observation_space.shape} has dim > 1, and is not supported."
+        return NormalizationData(
+            dense_normalization_parameters=only_continuous_normalizer(
+                list(range(env.observation_space.shape[0])),
+                env.observation_space.low,
+                env.observation_space.high,
             )
-        }
+        )
     elif isinstance(env.observation_space, gym.spaces.Dict):
         # assuming env.observation_space is image
         return None
     else:
         raise NotImplementedError(f"{env.observation_space} not supported")
+
+
+def build_action_normalizer(env):
+    action_space = env.action_space
+    if isinstance(action_space, gym.spaces.Discrete):
+        return only_continuous_normalizer(
+            list(range(action_space.n)), min_value=0, max_value=1
+        )
+    elif isinstance(action_space, gym.spaces.Box):
+        assert action_space.shape == (
+            1,
+        ), f"Box action shape {action_space.shape} not supported."
+
+        return NormalizationData(
+            dense_normalization_parameters=only_continuous_action_normalizer(
+                [0],
+                min_value=action_space.low.item(),
+                max_value=action_space.high.item(),
+            )
+        )
+    else:
+        raise NotImplementedError(f"{action_space} not supported.")
+
+
+def build_normalizer(env):
+    return {
+        NormalizationKey.STATE: build_state_normalizer(env),
+        NormalizationKey.ACTION: build_action_normalizer(env),
+    }
 
 
 def run_test(
@@ -71,7 +98,7 @@ def run_test(
     env.seed(SEED)
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)
-    logger.info(f"Normalization is {normalization}")
+    logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
     manager = model.value
     trainer = manager.initialize_trainer(
@@ -162,13 +189,19 @@ GYM_TESTS = [
         "Discrete Dqn Open Gridworld",
         "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
     ),
+    ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
 ]
 
 
 class TestGym(unittest.TestCase):
+    """
+    Environments that require short training time (<=10min) can be tested here.
+    """
+
     def setUp(self):
         SummaryWriterContext._reset_globals()
         logging.basicConfig(level=logging.INFO)
+        logger.setLevel(logging.INFO)
         np.random.seed(SEED)
         torch.manual_seed(SEED)
         random.seed(SEED)

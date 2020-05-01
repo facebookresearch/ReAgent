@@ -107,6 +107,30 @@ class ColumnVector:
         return data
 
 
+class MaskByPresence:
+    """
+    Expect data is (value, presence) and return value * presence.
+    """
+
+    def __init__(self, keys: List[str]):
+        self.keys = keys
+
+    def __call__(self, data):
+        for k in self.keys:
+            value_presence = data[k]
+            assert (
+                isinstance(value_presence, tuple) and len(value_presence) == 2
+            ), f"Not valid value, presence tuple: {value_presence}"
+            value, presence = value_presence
+            assert value.shape == presence.shape, (
+                f"Unmatching value shape ({value.shape})"
+                f" and presence shape ({presence.shape})"
+            )
+            data[k] = value * presence.float()
+
+        return data
+
+
 class StackDenseFixedSizeArray:
     def __init__(self, keys: List[str], size: int, dtype=torch.float):
         self.keys = keys

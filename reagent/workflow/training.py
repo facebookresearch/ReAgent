@@ -72,7 +72,7 @@ def get_sample_range(
     assert (
         eval_table_sample
         and table_sample
-        and (eval_table_sample + table_sample) <= (100.0 + 1e-7)
+        and (eval_table_sample + table_sample) <= (100.0 + 1e-3)
     ), (
         "calc_cpe_in_training is set to True. "
         f"Please specify table_sample(current={table_sample}) and "

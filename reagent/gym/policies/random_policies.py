@@ -19,7 +19,6 @@ class DiscreteRandomPolicy(Policy):
     def __init__(self, num_actions: int):
         """ Random actor for accumulating random offline data. """
         self.num_actions = num_actions
-        self.default_weights = torch.ones(num_actions)
 
     @classmethod
     def create_for_env(cls, env: gym.Env):
@@ -32,12 +31,18 @@ class DiscreteRandomPolicy(Policy):
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
     def act(
-        self, obs: Any, possible_actions_mask: Optional[torch.Tensor] = None
+        self,
+        obs: rlt.PreprocessedState,
+        possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
-        weights = self.default_weights
+        obs = obs.state.float_features
+        assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
+        batch_size = obs.shape[0]
+        weights = torch.ones((batch_size, self.num_actions))
         if possible_actions_mask:
-            assert possible_actions_mask.shape == self.default_weights.shape
+            assert possible_actions_mask.shape == (batch_size, self.num_actions)
+            # element-wise multiplication
             weights = weights * possible_actions_mask
 
         # sample a random action
@@ -52,6 +57,9 @@ class ContinuousRandomPolicy(Policy):
     def __init__(self, low: torch.Tensor, high: torch.Tensor):
         self.low = low
         self.high = high
+        assert (
+            low.shape == high.shape
+        ), f"low.shape = {low.shape}, high.shape = {high.shape}"
         self.dist = torch.distributions.uniform.Uniform(self.low, self.high)
 
     @classmethod
@@ -68,7 +76,11 @@ class ContinuousRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    def act(self, obs: Any, possible_actions_mask=None) -> rlt.ActorOutput:
-        action = self.dist.sample()
+    def act(self, obs: rlt.PreprocessedState) -> rlt.ActorOutput:
+        """ Act randomly regardless of the observation. """
+        obs = obs.state.float_features
+        assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
+        batch_size = obs.size(0)
+        action = self.dist.sample((batch_size,))
         log_prob = self.dist.log_prob(action)
         return rlt.ActorOutput(action=action, log_prob=log_prob)

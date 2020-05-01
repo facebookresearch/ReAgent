@@ -7,7 +7,6 @@ import dataclasses
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-import numpy as np
 import torch
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 
@@ -321,9 +320,7 @@ class CommonInput(TensorDataClass):
 
 @dataclass
 class ExtraData(TensorDataClass):
-    mdp_id: Optional[
-        np.ndarray
-    ] = None  # Need to use a numpy array because torch doesn't support strings
+    mdp_id: Optional[torch.Tensor] = None
     sequence_number: Optional[torch.Tensor] = None
     action_probability: Optional[torch.Tensor] = None
     max_num_actions: Optional[int] = None
@@ -409,7 +406,7 @@ class PreprocessedSlateQInput(PreprocessedBaseInput):
     action: PreprocessedSlateFeatureVector
     next_action: PreprocessedSlateFeatureVector
     reward_mask: torch.Tensor
-    extras: ExtraData
+    extras: Optional[ExtraData] = None
 
     @classmethod
     def from_dict(cls, d):
@@ -449,9 +446,31 @@ class PreprocessedParametricDqnInput(PreprocessedBaseInput):
 
 
 @dataclass
-class PreprocessedPolicyNetworkInput(PreprocessedBaseInput):
+class PolicyNetworkInput(PreprocessedBaseInput):
     action: PreprocessedFeatureVector
     next_action: PreprocessedFeatureVector
+    extras: Optional[ExtraData] = None
+
+    @classmethod
+    def from_replay_buffer(cls, batch):
+        not_terminal = 1.0 - batch.terminal.float()
+        return cls(
+            state=PreprocessedFeatureVector(float_features=batch.state),
+            action=PreprocessedFeatureVector(float_features=batch.action),
+            next_state=PreprocessedFeatureVector(float_features=batch.next_state),
+            next_action=PreprocessedFeatureVector(float_features=batch.next_action),
+            reward=batch.reward,
+            not_terminal=not_terminal,
+            step=None,
+            time_diff=None,
+            extras=ExtraData(
+                mdp_id=None,
+                sequence_number=None,
+                action_probability=batch.log_prob.exp(),
+                max_num_actions=None,
+                metrics=None,
+            ),
+        )
 
 
 @dataclass
@@ -544,56 +563,6 @@ class RawParametricDqnInput(RawBaseInput):
 
 
 @dataclass
-class RawPolicyNetworkInput(RawBaseInput):
-    action: FeatureVector
-    next_action: FeatureVector
-
-    def preprocess(
-        self,
-        state: PreprocessedFeatureVector,
-        next_state: PreprocessedFeatureVector,
-        action: PreprocessedFeatureVector,
-        next_action: PreprocessedFeatureVector,
-    ):
-        assert isinstance(state, PreprocessedFeatureVector)
-        assert isinstance(next_state, PreprocessedFeatureVector)
-        assert isinstance(action, PreprocessedFeatureVector)
-        assert isinstance(next_action, PreprocessedFeatureVector)
-        return PreprocessedPolicyNetworkInput(
-            self.reward,
-            self.time_diff,
-            self.step,
-            self.not_terminal,
-            state,
-            next_state,
-            action,
-            next_action,
-        )
-
-    def preprocess_tensors(
-        self,
-        state: torch.Tensor,
-        next_state: torch.Tensor,
-        action: torch.Tensor,
-        next_action: torch.Tensor,
-    ):
-        assert isinstance(state, torch.Tensor)
-        assert isinstance(next_state, torch.Tensor)
-        assert isinstance(action, torch.Tensor)
-        assert isinstance(next_action, torch.Tensor)
-        return PreprocessedPolicyNetworkInput(
-            self.reward,
-            self.time_diff,
-            self.step,
-            self.not_terminal,
-            PreprocessedFeatureVector(float_features=state),
-            PreprocessedFeatureVector(float_features=next_state),
-            PreprocessedFeatureVector(float_features=action),
-            PreprocessedFeatureVector(float_features=next_action),
-        )
-
-
-@dataclass
 class RawMemoryNetworkInput(RawBaseInput):
     action: Union[FeatureVector, torch.Tensor]
 
@@ -668,10 +637,10 @@ class PreprocessedTrainingBatch(TensorDataClass):
     training_input: Union[
         PreprocessedParametricDqnInput,
         PreprocessedMemoryNetworkInput,
-        PreprocessedPolicyNetworkInput,
         PreprocessedRankingInput,
     ]
-    extras: Any
+    # TODO: deplicate this and move into individual ones.
+    extras: ExtraData = field(default_factory=ExtraData)
 
     def batch_size(self):
         return self.training_input.state.float_features.size()[0]
@@ -679,7 +648,7 @@ class PreprocessedTrainingBatch(TensorDataClass):
 
 @dataclass
 class RawTrainingBatch(TensorDataClass):
-    training_input: Union[RawBaseInput, RawParametricDqnInput, RawPolicyNetworkInput]
+    training_input: Union[RawBaseInput, RawParametricDqnInput]
     extras: Any
 
     def batch_size(self):
@@ -688,9 +657,7 @@ class RawTrainingBatch(TensorDataClass):
     def preprocess(
         self,
         training_input: Union[
-            PreprocessedParametricDqnInput,
-            PreprocessedMemoryNetworkInput,
-            PreprocessedPolicyNetworkInput,
+            PreprocessedParametricDqnInput, PreprocessedMemoryNetworkInput
         ],
     ) -> PreprocessedTrainingBatch:
         # FIXME: depends on the type of the input
