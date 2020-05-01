@@ -26,8 +26,6 @@ model:
         optimizer: ADAM
         learning_rate: 0.01
         l2_decay: 0.01
-      evaluation:
-        calc_cpe_in_training: true
     net_builder:
       FullyConnected:
         sizes:
@@ -46,6 +44,8 @@ model:
         - relu
     preprocessing_options:
       num_samples: 1000
+    eval_parameters:
+        calc_cpe_in_training: true
 num_episodes_for_data_batch: 150
 max_steps: 200
 seed: 42

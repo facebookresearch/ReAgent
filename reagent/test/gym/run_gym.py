@@ -32,7 +32,6 @@ from reagent.test.gym.open_ai_gym_environment import (
     OpenAIGymEnvironment,
 )
 from reagent.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
-from reagent.test.gym.trainer_creator import get_sac_trainer
 from reagent.training.on_policy_predictor import (
     CEMPlanningPredictor,
     ContinuousActionOnPolicyPredictor,
@@ -858,18 +857,7 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
         trainer = get_td3_trainer(env, td3_trainer_params, use_gpu)
 
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        assert params.sac_training is not None
-        assert params.critic_training is not None
-        assert params.actor_training is not None
-        trainer = get_sac_trainer(
-            env,
-            rl_parameters,
-            params.sac_training,
-            params.critic_training,
-            params.actor_training,
-            params.sac_value_training,
-            use_gpu,
-        )
+        raise NotImplementedError("To be deleted...")
     elif model_type == ModelType.CEM.value:
         assert params.cem is not None
         cem_trainer_params = params.cem._replace(rl=params.rl)

@@ -159,7 +159,7 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
 
 
 # Pass through serving module's output
-class DiscreteDqnPredictorUnwrapper(nn.Module):
+class OSSPredictorUnwrapper(nn.Module):
     def __init__(self, model: nn.Module) -> None:
         super().__init__()
         self.model = model
@@ -168,6 +168,10 @@ class DiscreteDqnPredictorUnwrapper(nn.Module):
         self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
     ) -> Tuple[List[str], torch.Tensor]:
         return self.model(state_with_presence)
+
+
+DiscreteDqnPredictorUnwrapper = OSSPredictorUnwrapper
+ActorPredictorUnwrapper = OSSPredictorUnwrapper
 
 
 class DiscreteDqnPredictorWrapperWithIdList(torch.jit.ScriptModule):

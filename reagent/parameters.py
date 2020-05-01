@@ -187,6 +187,13 @@ class NormalizationParameters(BaseDataClass):
     max_value: Optional[float] = None
 
 
+class NormalizationKey(object):
+    """ Keys for dictionaries of NormalizationData """
+
+    STATE = "state"
+    ACTION = "action"
+
+
 @dataclass(frozen=True)
 class NormalizationData(BaseDataClass):
     __hash__ = param_hash

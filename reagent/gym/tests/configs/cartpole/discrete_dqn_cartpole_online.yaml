@@ -19,8 +19,6 @@ model:
       optimizer:
         optimizer: ADAM
         learning_rate: 0.05
-      evaluation:
-        calc_cpe_in_training: false
     net_builder:
       FullyConnected:
         sizes:
@@ -29,6 +27,8 @@ model:
         activations:
         - leaky_relu
         - leaky_relu
+    eval_parameters:
+      calc_cpe_in_training: false
 replay_memory_size: 20000
 train_every_ts: 3
 train_after_ts: 1

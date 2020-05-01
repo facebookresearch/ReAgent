@@ -12,6 +12,7 @@ from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 LOSS_REPORT_INTERVAL = 100
 

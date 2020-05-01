@@ -10,6 +10,7 @@ from reagent.parameters import TD3ModelParameters
 from reagent.tensorboardX import SummaryWriterContext
 from reagent.torch_utils import rescale_torch_tensor
 from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
@@ -92,24 +93,27 @@ class TD3Trainer(RLTrainer):
 
         return components
 
-    def train(self, training_batch) -> None:
+    def train(self, training_batch: rlt.PolicyNetworkInput) -> None:  # type: ignore
         """
         IMPORTANT: the input action here is assumed to be preprocessed to match the
         range of the output of the actor.
         """
-        if hasattr(training_batch, "as_policy_network_training_batch"):
+        if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_policy_network_training_batch()
 
-        learning_input = training_batch.training_input
+        assert isinstance(training_batch, rlt.PolicyNetworkInput)
+
         self.minibatch += 1
 
-        state = learning_input.state
-        action = learning_input.action
-        next_state = learning_input.next_state
-        reward = learning_input.reward
-        not_done_mask = learning_input.not_terminal
+        state = training_batch.state
+        next_state = training_batch.next_state
+        reward = training_batch.reward
+        not_done_mask = training_batch.not_terminal
 
-        action = self._maybe_scale_action_in_train(action.float_features)
+        # TODO: remove, just like sac
+        action = self._maybe_scale_action_in_train(
+            training_batch.action.float_features
+        )  # type: ignore
 
         max_action = (
             self.max_action_range_tensor_training
@@ -124,7 +128,8 @@ class TD3Trainer(RLTrainer):
 
         # Compute current value estimates
         current_state_action = rlt.PreprocessedStateAction(
-            state=state, action=rlt.PreprocessedFeatureVector(float_features=action)
+            state=state,
+            action=rlt.PreprocessedFeatureVector(float_features=action),  # type: ignore
         )
         q1_value = self.q1_network(current_state_action).q_value
         if self.q2_network:
