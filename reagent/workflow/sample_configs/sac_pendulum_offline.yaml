@@ -1,0 +1,78 @@
+env: Pendulum-v0
+model_path: "pendulum_batch_rl_model.torchscript"
+pkl_path: "/tmp/tmp_pickle.pkl"
+input_table_spec:
+  table_name: test_table
+  table_sample: 90
+  eval_table_sample: 10
+model:
+  SoftActorCritic:
+    trainer_param:
+      rl:
+        gamma: 0.9
+        target_update_rate: 0.5
+        softmax_policy: true
+      entropy_temperature: 0.01
+      minibatch_size: 1024
+      q_network_optimizer:
+        optimizer: ADAM
+        learning_rate: 0.001
+        l2_decay: 0.01
+      value_network_optimizer:
+        optimizer: ADAM
+        learning_rate: 0.001
+        l2_decay: 0.01
+      actor_network_optimizer:
+        optimizer: ADAM
+        learning_rate: 0.001
+        l2_decay: 0.01
+      alpha_optimizer: null
+    actor_net_builder:
+      GaussianFullyConnected:
+        sizes:
+        - 128
+        - 64
+        activations:
+        - relu
+        - relu
+    critic_net_builder:
+      FullyConnected:
+        sizes:
+        - 128
+        - 64
+        activations:
+        - relu
+        - relu
+    value_net_builder:
+      FullyConnected:
+        sizes:
+        - 128
+        - 64
+        activations:
+        - relu
+        - relu
+    state_preprocessing_options:
+      num_samples: 5000
+    action_preprocessing_options:
+      num_samples: 5000
+    action_float_features: [[0, "0"]]
+    eval_parameters:
+      calc_cpe_in_training: false
+
+num_episodes_for_data_batch: 200
+max_steps: 200
+seed: 42
+
+use_gpu: false
+num_train_epochs: 1000
+reward_options:
+  custom_reward_expression:
+validator:
+  NoValidation: {}
+publisher:
+  NoPublishing: {}
+
+# evaluation
+eval_temperature: 0.1
+num_eval_episodes: 50
+passing_score_bar: -800

@@ -7,11 +7,11 @@ from typing import List, Optional
 import torch
 from reagent.core import aggregators as agg
 from reagent.core.observers import (
-    CompositeObserver,
     EpochEndObserver,
     IntervalAggregatingObserver,
     ValueListObserver,
 )
+from reagent.workflow.reporters.reporter_base import ReporterBase
 from reagent.workflow.training_reports import DQNTrainingReport
 
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 # TODO(T64634239): Create OSS version of DiscreteDQNReporter
-class DiscreteDQNReporter(CompositeObserver):
+class DiscreteDQNReporter(ReporterBase):
     def __init__(
         self,
         actions: List[str],

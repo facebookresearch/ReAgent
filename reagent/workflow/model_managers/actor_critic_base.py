@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
 from reagent.core.dataclasses import dataclass, field
-from reagent.evaluation.evaluator import get_metrics_to_score
+from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
 from reagent.parameters import (
@@ -23,13 +23,20 @@ from reagent.preprocessing.batch_preprocessor import (
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
+from reagent.workflow.reporters.actor_critic_reporter import ActorCriticReporter
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
     ReaderOptions,
     RewardOptions,
     RLTrainingOutput,
+    RLTrainingReport,
     TableSpec,
+)
+from reagent.workflow.utils import train_and_evaluate_generic
+from reagent.workflow_utils.page_handler import (
+    EvaluationPageHandler,
+    TrainingPageHandler,
 )
 
 
@@ -233,7 +240,41 @@ class ActorCriticBase(ModelManager):
     def train(
         self, train_dataset: Dataset, eval_dataset: Optional[Dataset], num_epochs: int
     ) -> RLTrainingOutput:
-        """
-        Train the model
-        """
-        raise NotImplementedError()
+        # cts action space
+        actions = None
+
+        logger.info("Creating reporter")
+        reporter = ActorCriticReporter()
+
+        training_page_handler = TrainingPageHandler(self.trainer)
+        training_page_handler.add_observer(reporter)
+
+        evaluator = Evaluator(
+            action_names=actions,
+            gamma=self.rl_parameters.gamma,
+            model=self.trainer,
+            metrics_to_score=self.metrics_to_score,
+        )
+        evaluator.add_observer(reporter)
+        evaluation_page_handler = EvaluationPageHandler(
+            self.trainer, evaluator, reporter
+        )
+
+        batch_preprocessor = self.build_batch_preprocessor()
+        train_and_evaluate_generic(
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            trainer=self.trainer,
+            num_epochs=num_epochs,
+            use_gpu=self.use_gpu,
+            batch_preprocessor=batch_preprocessor,
+            train_page_handler=training_page_handler,
+            eval_page_handler=evaluation_page_handler,
+            reader_options=self.reader_options,
+        )
+        training_report = RLTrainingReport.make_union_instance(
+            reporter.generate_training_report()
+        )
+
+        # TODO: save actor/critic weights
+        return RLTrainingOutput(training_report=training_report)

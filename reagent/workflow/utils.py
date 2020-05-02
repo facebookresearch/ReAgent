@@ -25,7 +25,7 @@ def get_table_row_count(parquet_url: str):
     return spark.read.parquet(parquet_url).count()
 
 
-# TODO: paralellize preprocessing by putting into transform of petastorm reader
+# TODO(kaiwenw): paralellize preprocessing by putting into transform of petastorm reader
 def collate_and_preprocess(batch_preprocessor: BatchPreprocessor):
     def collate_fn(batch_list: List[Dict]):
         batch = decimal_friendly_collate(batch_list)

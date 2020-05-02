@@ -29,7 +29,7 @@ DQN_WORKFLOW_PARQUET_ZIP = os.path.join(
 )
 DQN_WORKFLOW_PARQUET_REL_PATH = "dqn_workflow"
 DQN_WORKFLOW_YAML = os.path.join(
-    base_dir, "workflow/sample_configs/cartpole_discrete_dqn_offline.yaml"
+    base_dir, "workflow/sample_configs/discrete_dqn_cartpole_offline.yaml"
 )
 
 # where to store config for testing cli
@@ -117,19 +117,6 @@ class TestOSSWorkflows(HorizonTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_dqn_workflow_gpu(self):
         self._test_dqn_workflow(use_gpu=True)
-
-    def _test_parametric_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
-        """Run Parametric DQN workflow to ensure no crashes, algorithm correctness
-        not tested here."""
-        raise NotImplementedError("Not implemented yet")
-
-    @unittest.skip("old workflow")
-    def test_parametric_dqn_workflow(self):
-        self._test_parametric_dqn_workflow()
-
-    @unittest.skipIf(True or not torch.cuda.is_available(), "CUDA not available")
-    def test_parametric_dqn_workflow_gpu(self):
-        self._test_parametric_dqn_workflow(use_gpu=True)
 
 
 if __name__ == "__main__":
