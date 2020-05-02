@@ -158,21 +158,15 @@ class TrainingDataPage(object):
         )
 
     def as_policy_network_training_batch(self):
-        return rlt.PreprocessedTrainingBatch(
-            training_input=rlt.PreprocessedPolicyNetworkInput(
-                state=rlt.PreprocessedFeatureVector(float_features=self.states),
-                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
-                next_state=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_states
-                ),
-                next_action=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_actions
-                ),
-                reward=self.rewards,
-                not_terminal=self.not_terminal,
-                step=self.step,
-                time_diff=self.time_diffs,
-            ),
+        return rlt.PolicyNetworkInput(
+            state=rlt.PreprocessedFeatureVector(float_features=self.states),
+            action=rlt.PreprocessedFeatureVector(float_features=self.actions),
+            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
+            next_action=rlt.PreprocessedFeatureVector(float_features=self.next_actions),
+            reward=self.rewards,
+            not_terminal=self.not_terminal,
+            step=self.step,
+            time_diff=self.time_diffs,
             extras=rlt.ExtraData(),
         )
 

@@ -2,7 +2,7 @@
 
 import logging
 
-import torch  # @manual
+import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
@@ -29,6 +29,9 @@ class DiscreteDQN(DiscreteDQNBase):
             FullyConnected=FullyConnected()
         )
     )
+    # TODO: move evaluation parameters to here from trainer_param.evaluation
+    # note that only DiscreteDQN and QRDQN call RLTrainer._initialize_cpe,
+    # so maybe can be removed from the RLTrainer class.
 
     def __post_init_post_parse__(self,):
         super().__post_init_post_parse__()

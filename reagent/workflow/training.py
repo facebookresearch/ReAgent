@@ -69,11 +69,7 @@ def get_sample_range(
             eval_sample_range=(0.0, 0.0),
         )
 
-    assert (
-        eval_table_sample
-        and table_sample
-        and (eval_table_sample + table_sample) <= (100.0 + 1e-7)
-    ), (
+    error_msg = (
         "calc_cpe_in_training is set to True. "
         f"Please specify table_sample(current={table_sample}) and "
         f"eval_table_sample(current={eval_table_sample}) such that "
@@ -81,6 +77,9 @@ def get_sample_range(
         "In order to reliably calculate CPE, eval_table_sample "
         "should not be too small."
     )
+    assert table_sample is not None, error_msg
+    assert eval_table_sample is not None, error_msg
+    assert (eval_table_sample + table_sample) <= (100.0 + 1e-3), error_msg
 
     return TrainEvalSampleRanges(
         train_sample_range=(0.0, table_sample),

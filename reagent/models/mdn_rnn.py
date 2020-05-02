@@ -175,7 +175,7 @@ class MDNRNNMemoryPool:
             not_terminal=not_terminal,
             step=None,
         )
-        return rlt.PreprocessedTrainingBatch(training_input=training_input, extras=None)
+        return rlt.PreprocessedTrainingBatch(training_input=training_input)
 
     def insert_into_memory(self, state, action, next_state, reward, not_terminal):
         self.replay_memory.append(

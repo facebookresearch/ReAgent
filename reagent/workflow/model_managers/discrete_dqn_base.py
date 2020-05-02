@@ -8,10 +8,11 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
-from reagent.parameters import NormalizationData
+from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     DiscreteDqnBatchPreprocessor,
+    InputColumn,
 )
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.workflow.data_fetcher import query_data
@@ -47,10 +48,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class DiscreteNormalizationParameterKeys:
-    STATE = "state"
-
-
 @dataclass
 class DiscreteDQNBase(ModelManager):
     target_action_distribution: Optional[List[float]] = None
@@ -67,7 +64,11 @@ class DiscreteDQNBase(ModelManager):
 
     @classmethod
     def normalization_key(cls) -> str:
-        return DiscreteNormalizationParameterKeys.STATE
+        return NormalizationKey.STATE
+
+    @property
+    def should_generate_eval_dataset(self) -> bool:
+        return self.eval_parameters.calc_cpe_in_training
 
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
@@ -89,7 +90,7 @@ class DiscreteDQNBase(ModelManager):
 
     @property
     def metrics_to_score(self) -> List[str]:
-        assert self.reward_options is not None
+        assert self._reward_options is not None
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
                 self._reward_options.metric_reward_values
@@ -126,10 +127,10 @@ class DiscreteDQNBase(ModelManager):
         )
 
         state_normalization_parameters = identify_normalization_parameters(
-            input_table_spec, "state_features", preprocessing_options
+            input_table_spec, InputColumn.STATE_FEATURES, preprocessing_options
         )
         return {
-            DiscreteNormalizationParameterKeys.STATE: NormalizationData(
+            NormalizationKey.STATE: NormalizationData(
                 dense_normalization_parameters=state_normalization_parameters
             )
         }
