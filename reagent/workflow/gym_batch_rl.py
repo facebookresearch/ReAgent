@@ -12,7 +12,7 @@ import torch
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import log_data_post_step
 from reagent.gym.envs.env_factory import EnvFactory
-from reagent.gym.policies import ContinuousRandomPolicy, DiscreteRandomPolicy
+from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.runners.gymrunner import run_episode
 from reagent.prediction.dqn_torch_predictor import (
     ActorTorchPredictor,
@@ -39,17 +39,6 @@ def initialize_seed(seed: Optional[int] = None):
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
-
-
-def make_random_policy_for_env(env: gym.Env):
-    if isinstance(env.action_space, gym.spaces.Discrete):
-        # discrete action space
-        return DiscreteRandomPolicy.create_for_env(env)
-    elif isinstance(env.action_space, gym.spaces.Box):
-        # continuous action space
-        return ContinuousRandomPolicy.create_for_env(env)
-    else:
-        raise NotImplementedError(f"{env.action_space} not supported")
 
 
 def offline_gym(

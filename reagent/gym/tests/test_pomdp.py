@@ -6,8 +6,7 @@ import time
 import unittest
 
 import numpy as np
-from reagent.test.gym.pomdp.pocman import PocManEnv
-from reagent.test.gym.pomdp.string_game import StringGameEnv
+from reagent.gym.envs.env_factory import EnvFactory
 
 
 logger = logging.getLogger(__name__)
@@ -18,13 +17,13 @@ class TestPOMDPEnvironment(unittest.TestCase):
         logging.getLogger().setLevel(logging.DEBUG)
 
     def test_string_game(self):
-        env = StringGameEnv()
+        env = EnvFactory.make("StringGame-v0")
         env.seed(313)
         mean_acc_reward = self._test_env(env)
         assert 0.1 >= mean_acc_reward
 
     def test_pocman(self):
-        env = PocManEnv()
+        env = EnvFactory.make("Pocman-v0")
         env.seed(313)
         mean_acc_reward = self._test_env(env)
         assert -80 <= mean_acc_reward <= -70

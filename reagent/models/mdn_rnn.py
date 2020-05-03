@@ -16,42 +16,29 @@ from torch.distributions.normal import Normal
 logger = logging.getLogger(__name__)
 
 
-class _MDNRNNBase(nn.Module):
+class MDNRNN(nn.Module):
+    """ Mixture Density Network - Recurrent Neural Network """
+
     def __init__(
         self, state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
     ):
-        super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.num_hiddens = num_hiddens
         self.num_hidden_layers = num_hidden_layers
-        self.num_gaussians = num_gaussians
+        self.rnn = nn.LSTM(
+            input_size=state_dim + action_dim,
+            hidden_size=num_hiddens,
+            num_layers=num_hidden_layers,
+        )
 
+        self.num_gaussians = num_gaussians
         # outputs:
         # 1. mu, sigma, and pi for each gaussian
         # 2. non-terminal signal
         # 3. reward
         self.gmm_linear = nn.Linear(
             num_hiddens, (2 * state_dim + 1) * num_gaussians + 2
-        )
-
-    def forward(self, *inputs):
-        pass
-
-
-class MDNRNN(_MDNRNNBase):
-    """ Mixture Density Network - Recurrent Neural Network """
-
-    def __init__(
-        self, state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
-    ):
-        super().__init__(
-            state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
-        )
-        self.rnn = nn.LSTM(
-            input_size=state_dim + action_dim,
-            hidden_size=num_hiddens,
-            num_layers=num_hidden_layers,
         )
 
     def forward(self, actions, states, hidden=None):

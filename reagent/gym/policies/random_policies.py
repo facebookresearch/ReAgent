@@ -10,9 +10,17 @@ import torch.nn.functional as F
 from reagent.gym.policies.policy import Policy
 
 
-"""
-TODO: remove explicit argument of possible_actions_mask since cts doesn't have.
-"""
+def make_random_policy_for_env(env: gym.Env):
+    if isinstance(env.action_space, gym.spaces.Discrete):
+        # discrete action space
+        return DiscreteRandomPolicy.create_for_env(env)
+    elif isinstance(env.action_space, gym.spaces.Box):
+        # continuous action space
+        return ContinuousRandomPolicy.create_for_env(env)
+    else:
+        raise NotImplementedError(f"{env.action_space} not supported")
+
+
 
 
 class DiscreteRandomPolicy(Policy):

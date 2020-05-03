@@ -3,8 +3,9 @@
 from reagent.workflow import types
 from reagent.workflow.model_managers.model_manager import ModelManager
 
-from .actor_critic import SoftActorCritic  # noqa
-from .discrete import DiscreteC51DQN, DiscreteDQN, DiscreteQRDQN  # noqa
+from .actor_critic import *  # noqa
+from .discrete import *  # noqa
+from .model_based import *  # noqa
 
 
 @ModelManager.fill_union()

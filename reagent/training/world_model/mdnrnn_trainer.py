@@ -5,36 +5,51 @@ import logging
 from collections import deque
 from typing import Deque, Optional
 
+import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
+from reagent.core.dataclasses import dataclass
 from reagent.models.mdn_rnn import gmm_loss, transpose
 from reagent.models.world_model import MemoryNetwork
-from reagent.parameters import MDNRNNParameters
 
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class MDNRNNTrainerParameters:
+    __hash__ = rlp.param_hash
+
+    hidden_size: int = 64
+    num_hidden_layers: int = 2
+    minibatch_size: int = 16
+    learning_rate: float = 0.001
+    num_gaussians: int = 5
+    train_data_percentage: float = 60.0
+    validation_data_percentage: float = 20.0
+    test_data_percentage: float = 20.0
+    # weight in calculating world-model loss
+    reward_loss_weight: float = 1.0
+    next_state_loss_weight: float = 1.0
+    not_terminal_loss_weight: float = 1.0
+    fit_only_one_next_step: bool = False
+
+
 class MDNRNNTrainer:
     """ Trainer for MDN-RNN """
 
-    def __init__(
-        self,
-        mdnrnn_network: MemoryNetwork,
-        params: MDNRNNParameters,
-        cum_loss_hist: int = 100,
-    ):
+    def __init__(self, mdnrnn_network: MemoryNetwork, params: MDNRNNTrainerParameters):
         self.mdnrnn = mdnrnn_network
         self.params = params
         self.optimizer = torch.optim.Adam(
             self.mdnrnn.mdnrnn.parameters(), lr=params.learning_rate
         )
         self.minibatch = 0
-        self.cum_loss: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_bce: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
+        self.cum_loss = []
+        self.cum_bce = []
+        self.cum_gmm = []
+        self.cum_mse = []
 
     def train(
         self, training_batch: rlt.PreprocessedTrainingBatch, batch_first: bool = False
@@ -49,13 +64,17 @@ class MDNRNNTrainer:
 
         self.minibatch += 1
         if batch_first:
-            batch_size, seq_len, state_dim = (
-                training_batch.training_input.state.float_features.shape
-            )
+            (
+                batch_size,
+                seq_len,
+                state_dim,
+            ) = training_batch.training_input.state.float_features.shape
         else:
-            seq_len, batch_size, state_dim = (
-                training_batch.training_input.state.float_features.shape
-            )
+            (
+                seq_len,
+                batch_size,
+                state_dim,
+            ) = training_batch.training_input.state.float_features.shape
 
         self.mdnrnn.mdnrnn.train()
         self.optimizer.zero_grad()
@@ -63,12 +82,7 @@ class MDNRNNTrainer:
         losses["loss"].backward()
         self.optimizer.step()
 
-        detached_losses = {
-            "loss": losses["loss"].cpu().detach().item(),
-            "gmm": losses["gmm"].cpu().detach().item(),
-            "bce": losses["bce"].cpu().detach().item(),
-            "mse": losses["mse"].cpu().detach().item(),
-        }
+        detached_losses = {k: loss.cpu().detach().item() for k, loss in losses.items()}
         self.cum_loss.append(detached_losses["loss"])
         self.cum_gmm.append(detached_losses["gmm"])
         self.cum_bce.append(detached_losses["bce"])
