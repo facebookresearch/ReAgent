@@ -15,13 +15,13 @@ Before we get started using ReAgent as it is intended, let's begin with a tradit
 1 - On-Policy RL Training
 -------------------------
 
-Open AI Gym is a set of environments: simulators that can run policies for a given task and generate rewards.  If a simulator is accessible, on-policy training (where the latest version of the policy makes new decisions in real-time) can give better results. To train a model on OpenAI Gym, simply run:
+OpenAI Gym is a set of environments: simulators that can run policies for a given task and generate rewards.  If a simulator is accessible, on-policy training (where the latest version of the policy makes new decisions in real-time) can give better results. We have a suite of benchmarks on OpenAI Gym, which is listed in ``reagent/gym/tests/test_gym.py``'s ``GYM_TESTS``. To train a model on OpenAI Gym, simply run:
 
 .. code-block::
 
-   python reagent/test/gym/run_gym.py -p reagent/test/gym/discrete_dqn_cartpole_v0.json
+   python reagent/gym/tests/test_gym.py TestGym.test_gym_cpu_0_Discrete_Dqn_Cartpole
 
-Configs for different environments and algorithms can be found in ``reagent/test/gym/``.
+Configs for different environments and algorithms can be found in ``reagent/gym/tests/configs/<env_name>/<algorithm>_<env_name>_online.yaml``.
 
 While this is typically the set up for people conducting RL research, it isn't always practical to deploy on-policy RL for several reasons:
 
@@ -38,45 +38,34 @@ For these reasons, ReAgent is designed to support batch, off-policy RL.  Let's n
 
 The main use case of ReAgent is to train RL models in the **batch** setting. In batch reinforcement learning the data collection and policy learning steps are decoupled. Specifically, we try to learn the best possible policy given the input data. In batch RL, being able to handle thousands of varying feature types and distributions and algorithm performance estimates before deployment are of key importance.
 
-In this example, we will train a DQN model on Offline ``Cartpole-v0`` data:
+In this example, we will train a DQN model on Offline ``CartPole-v0`` data, where the config should be set to
+
+.. code-block::
+    
+    export CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
+
+This example workflow is shown in ``reagent/workflow/gym_batch_rl.py``, where Step 1 corresponds to function ``offline_gym``, Step 2 corresponds to function ``timeline_operator`` and Steps 3, 4, 5 correspond to ``train_and_evaluate_gym``. To run these steps, check out ``scripts/ci/run_end_to_end_test.sh``.
+We now proceed to describe our workflow and give some pseudo-code to mock out the main ideas.
+
 
 Step 1 - Create training data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First we need to generate the data required to train our RL models. For this example we generate data from the ``Cartpole-v0`` environment in OpenAI Gym. In practice, end users would generate a dataset in a similar format from their production system.
+We first generate data from a random policy (chooses random actions) run on the ``CartPole-v0`` environment. In practice, end users would generate a dataset in a similar format from their production system. For this example, the data is stored as a pickled Pandas dataframe.
 
 .. code-block::
 
-   mkdir cartpole_discrete
+    dataset = RLDataset()
+    for epoch in range(num_episodes_for_data_batch):
+      run_episode & store transitions to dataset
 
-   python reagent/test/gym/run_gym.py -p reagent/test/gym/discrete_dqn_cartpole_small_v0.json -f cartpole_discrete/training_data.json --seed 0
+    df = dataset.to_pandas_df()
+    df.to_pickle(pkl_path)
 
-Let's look at one row of data to see the expected input format:
+This should have ran 150 episodes of ``CartPole-v0`` (max steps of 200) and stored the pickled dataframe in ``/tmp/tmp_pickle.pkl``, which you may inspect via ``pd_df = pd.read_pickle(pkl_path)``. 
 
-.. code-block::
 
-   cat cartpole_discrete/training_data.json | head -n1 | python -m json.tool
-
-   {
-       "mdp_id": "10",
-       "sequence_number": 0,
-       "state_features": {
-           "2": 0.0021880944,
-           "1": -0.015781501,
-           "0": -0.031933542,
-           "3": 0.04611974
-       },
-       "action": "0",
-       "reward": 1.0,
-       "possible_actions": [
-           "0",
-           "1"
-       ],
-       "action_probability": 0.9,
-       "ds": "2018-06-25"
-   }
-
-The input data is a flat file containing a JSON object per-line separated by newlines (the first line is pretty-printed here for readability).  This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data is parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:
+This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data are parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:
 
 .. list-table::
    :header-rows: 1
@@ -110,8 +99,6 @@ The input data is a flat file containing a JSON object per-line separated by new
      - A unique ID for this dataset.
 
 
-Note that JSON does not support integer keys in objects so in our JSON format we replace the ``map<integer,float>`` with ``map<string,float>``\ , but even in this case the keys must be strings of integers.
-
 Once you have data on this format (or you have generated data using our gym script) you can move on to step 2:
 
 Step 2 - Convert the data to the ``timeline`` format
@@ -133,48 +120,42 @@ When running spark locally, spark creates a fake "cluster" where it stores all o
    # Clear last run's spark data (in case of interruption)
    rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log
 
-Now that we are ready, let's run our spark job on our local machine.  This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated:
+Now that we are ready, let's run our spark job on our local machine.  This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated.
+
 
 .. code-block::
 
-   # Run timelime on pre-timeline data
-   /usr/local/spark/bin/spark-submit \
-     --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
-     "`cat reagent/workflow/sample_configs/discrete_action/timeline.json`"
+   # load pandas dataframe
+   pd_df = pd.read_pickle(pkl_path)
 
-   # Look at the first row of training & eval
-   head -n1 cartpole_discrete_training/part*
+   # convert to Spark dataframe
+   spark = get_spark_session()
+   df = spark.createDataFrame(pd_df)
 
-   head -n1 cartpole_discrete_eval/part*
+   # run timelime operator
+   json_params = make_input_to_timeline_operator()
+   spark._jvm.com.facebook.spark.rl.Timeline.main(json_params)
 
-There are many output files.  The reason for this is that Spark expects many input & output files: otherwise it wouldn't be able to efficiently run on many machines and output data in parallel.  For this tutorial, we will merge all of this data into a single file, but in a production use-case we would be streaming data from HDFS during training.
 
-.. code-block::
 
-   # Merge output data to single file
-   mkdir training_data
-   cat cartpole_discrete_training/part* > training_data/cartpole_discrete_timeline.json
-   cat cartpole_discrete_eval/part* > training_data/cartpole_discrete_timeline_eval.json
-
-   # Remove the output data folder
-   rm -Rf cartpole_discrete_training cartpole_discrete_eval
-
-Now that all of our data has been grouped into consecutive pairs, we can run the normalization pipeline.
+Note: Steps 3,4,5
 
 Step 3 - Create the normalization parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data:
+Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data, which we do in ``reagent/workflow/training.py`` via ``run_feature_identification``.
 
 .. code-block::
 
-   python reagent/workflow/create_normalization_metadata.py -p reagent/workflow/sample_configs/discrete_action/dqn_example.json
+   model: ModelManager__Union
+   manager = model.value
+   manager.run_feature_identification(input_table_spec)
 
-Now we can look at the normalization file.  It's a JSON file where each key is a feature id and each value is a string-encoded JSON object describing the normalization:
+
+The normalization is a Python dictionary where each key is a feature id and each value is NormalizationData.
+An example of this, in JSON format, is 
 
 .. code-block::
-
-   cat training_data/state_features_norm.json | python -m json.tool
 
    {
        "0": "{\"feature_type\":\"CONTINUOUS\",\"mean\":0.5675003528594971,\"stddev\":1.0,\"min_value\":-0.1467551738023758,\"max_value\":2.1779561042785645}",
@@ -186,25 +167,67 @@ Now we can look at the normalization file.  It's a JSON file where each key is a
 Step 4 - Train model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+To train the model, we first save our Spark table to Parquet format, and use `Petastorm <https://github.com/uber/petastorm>`'s PyTorch DataLoader, which can efficiently read Parquet formatted data. We do this via our ``query_data``, which each ``ModelManager`` in our registry of models must implement. In this step, we also process the rewards, i.e. computing multi-step rewards or computing the reward from columns directly.
+
+.. code-block::
+    train_dataset = manager.query_data(
+        input_table_spec=input_table_spec,  # description of Spark table
+        sample_range=train_sample_range,  # what percentage of data to use for training
+        reward_options=reward_options,  # config to calculate rewards
+    )
+    # train_dataset now points to a Parquet
+
 Now we are ready to train a model by running:
 
 .. code-block::
+    
+    # make preprocessor from the normalization parameters of Step 3
+    batch_preprocessor = manager.build_batch_preprocessor()
 
-   # Store model outputs here
-   mkdir outputs
+    # read preprocessed data
+    data_reader = petastorm.make_batch_reader(train_dataset.parquet_url)
+    with DataLoader(data_reader, batch_preprocessor) as dataloader:
+      for batch in dataloader:
+        trainer.train(batch)
 
-   python reagent/workflow/dqn_workflow.py -p reagent/workflow/sample_configs/discrete_action/dqn_example.json
 
-Note that, even in the OpenAI Gym case, we aren't running the gym at this step.  We are taking a batch of data that we generated previously and training by looping over that data and interatively learning a better policy than the policy that generated the data.
+    # Store model outputs
+    torchscript_output_path = f"model_{round(time.time())}.torchscript"
+    serving_module = manager.build_serving_module()
+    torch.jit.save(serving_module, torchscript_output_path)
+
+    # store for later use
+    training_output.output_path = torchscript_output_path
+
+Note that the model is trained purely on the randomly generated data we collected in Step 1.
+We are taking a batch of data that we generated previously and training by looping over that data and interatively learning a better policy than the policy that generated the data.
+Effectively, this is learning to perform a task by observing completely random transitions from an environment! While doing so, we are not even building a dynamics model of the environment.
+
+NB: We can do the same for the ``eval_dataset`` if we want to perform CPE during training as a diagnosis tool.
 
 Step 5 - Evaluate the Model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now that we have trained a new policy on the offline ``Cartpole-v0`` data, we can try it out to see how it does:
+Now that we have trained a new policy on the offline ``CartPole-v0`` data, we can try it out to see how it does:
 
 .. code-block::
 
-   python reagent/test/workflow/eval_cartpole.py -m outputs/model_* --softmax_temperature=0.35 --log_file=outputs/eval_output.txt
+    # load our previous serving module
+    jit_model = torch.jit.load(training_output.output_path)
+
+    # wrap around module to fit our gymrunner interface
+    policy = create_predictor_policy_from_model(env, jit_model)
+    agent = Agent.create_for_env(
+        env, policy=policy, action_extractor=policy.get_action_extractor()
+    )
+
+    # observe rewards
+    for _ in range(num_eval_episodes):
+        ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
+
+
+Surprisingly, even on completely random data, the DQN was able to learn a policy that gets rewards close to the max score of 200!
+
 
 Step 6 - Visualize Results via Tensorboard
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
