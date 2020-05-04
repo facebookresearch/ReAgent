@@ -4,10 +4,9 @@ import abc
 import logging
 from typing import List
 
-import torch
 from reagent.core.observers import CompositeObserver
 from reagent.core.tracker import Observer
-from reagent.oss_workflow.result_registries import TrainingReport
+from reagent.workflow.result_registries import TrainingReport
 
 
 logger = logging.getLogger(__name__)
