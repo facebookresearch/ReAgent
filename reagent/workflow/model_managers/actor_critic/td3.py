@@ -8,20 +8,18 @@ from typing import Optional
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
-from reagent.net_builder.continuous_actor.gaussian_fully_connected import (
-    GaussianFullyConnected,
+from reagent.net_builder.continuous_actor.fully_connected import (
+    FullyConnected as ContinuousFullyConnected,
 )
-from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
+from reagent.net_builder.parametric_dqn.fully_connected import (
+    FullyConnected as ParametricFullyConnected,
+)
 from reagent.net_builder.unions import (
     ContinuousActorNetBuilder__Union,
     ParametricDQNNetBuilder__Union,
-    ValueNetBuilder__Union,
-)
-from reagent.net_builder.value.fully_connected import (
-    FullyConnected as ValueFullyConnected,
 )
 from reagent.parameters import EvaluationParameters, NormalizationKey, param_hash
-from reagent.training import SACTrainer, SACTrainerParameters
+from reagent.training import TD3Trainer, TD3TrainingParameters
 from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
 
 
@@ -29,23 +27,18 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class SoftActorCritic(ActorCriticBase):
+class TD3(ActorCriticBase):
     __hash__ = param_hash
 
-    trainer_param: SACTrainerParameters = field(default_factory=SACTrainerParameters)
+    trainer_param: TD3TrainingParameters = field(default_factory=TD3TrainingParameters)
     actor_net_builder: ContinuousActorNetBuilder__Union = field(
         default_factory=lambda: ContinuousActorNetBuilder__Union(
-            GaussianFullyConnected=GaussianFullyConnected()
+            FullyConnected=ContinuousFullyConnected()
         )
     )
     critic_net_builder: ParametricDQNNetBuilder__Union = field(
         default_factory=lambda: ParametricDQNNetBuilder__Union(
-            FullyConnected=FullyConnected()
-        )
-    )
-    value_net_builder: Optional[ValueNetBuilder__Union] = field(
-        default_factory=lambda: ValueNetBuilder__Union(
-            FullyConnected=ValueFullyConnected()
+            FullyConnected=ParametricFullyConnected()
         )
     )
     use_2_q_functions: bool = True
@@ -56,7 +49,7 @@ class SoftActorCritic(ActorCriticBase):
         self._actor_network: Optional[ModelBase] = None
         self.rl_parameters = self.trainer_param.rl
 
-    def build_trainer(self) -> SACTrainer:
+    def build_trainer(self) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
         self._actor_network = actor_net_builder.build_actor(
             self.get_normalization_data(NormalizationKey.STATE),
@@ -76,26 +69,16 @@ class SoftActorCritic(ActorCriticBase):
             else None
         )
 
-        value_network = None
-        if self.value_net_builder:
-            value_net_builder = self.value_net_builder.value
-            value_network = value_net_builder.build_value_network(
-                self.get_normalization_data(NormalizationKey.STATE)
-            )
-
         if self.use_gpu:
             q1_network.cuda()
             if q2_network:
                 q2_network.cuda()
-            if value_network:
-                value_network.cuda()
             self._actor_network.cuda()
 
-        trainer = SACTrainer(
+        trainer = TD3Trainer(
             q1_network,
             self._actor_network,
             self.trainer_param,
-            value_network=value_network,
             q2_network=q2_network,
             use_gpu=self.use_gpu,
         )

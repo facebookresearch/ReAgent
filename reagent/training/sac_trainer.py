@@ -59,7 +59,7 @@ class SACTrainer(RLTrainer):
         q1_network,
         actor_network,
         parameters: SACTrainerParameters,
-        use_gpu=False,
+        use_gpu: bool = False,
         value_network=None,
         q2_network=None,
     ) -> None:
@@ -204,9 +204,11 @@ class SACTrainer(RLTrainer):
             # Optimize Alpha
             if self.alpha_optimizer is not None:
                 alpha_loss = -(
-                    self.log_alpha
-                    * (actor_output.log_prob + self.target_entropy).detach()
-                ).mean()
+                    (
+                        self.log_alpha
+                        * (actor_output.log_prob + self.target_entropy).detach()
+                    ).mean()
+                )
                 self.alpha_optimizer.zero_grad()
                 alpha_loss.backward()
                 self.alpha_optimizer.step()

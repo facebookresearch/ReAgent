@@ -21,8 +21,6 @@ from reagent.parameters import (
     MDNRNNParameters,
     RainbowDQNParameters,
     RLParameters,
-    TD3ModelParameters,
-    TD3TrainingParameters,
     TrainingParameters,
 )
 from reagent.test.base.utils import write_lists_to_csv
@@ -41,13 +39,11 @@ from reagent.training.on_policy_predictor import (
 )
 from reagent.training.rl_dataset import RLDataset
 from reagent.training.rl_trainer_pytorch import RLTrainer
-from reagent.training.sac_trainer import SACTrainerParameters
 from reagent.types import BaseDataClass
 from reagent.workflow_utils.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
     get_cem_trainer,
-    get_td3_trainer,
 )
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
@@ -93,9 +89,6 @@ class OpenAiGymParameters(BaseDataClass):
     rl: Optional[RLParameters] = None
     rainbow: Optional[RainbowDQNParameters] = None
     training: Optional[TrainingParameters] = None
-    td3_training: Optional[TD3TrainingParameters] = None
-    sac_training: Optional[SACTrainerParameters] = None
-    sac_value_training: Optional[FeedForwardParameters] = None
     critic_training: Optional[FeedForwardParameters] = None
     actor_training: Optional[FeedForwardParameters] = None
     cem: Optional[CEMParameters] = None
@@ -845,16 +838,7 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
         )
 
     elif model_type == ModelType.TD3.value:
-        assert params.td3_training is not None
-        assert params.critic_training is not None
-        assert params.actor_training is not None
-        td3_trainer_params = TD3ModelParameters(
-            rl=rl_parameters,
-            training=params.td3_training,
-            q_network=params.critic_training,
-            actor_network=params.actor_training,
-        )
-        trainer = get_td3_trainer(env, td3_trainer_params, use_gpu)
+        raise NotImplementedError("To be deleted...")
 
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
         raise NotImplementedError("To be deleted...")

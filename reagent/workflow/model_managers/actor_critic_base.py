@@ -5,6 +5,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
+import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
@@ -65,6 +66,20 @@ def get_feature_config(
     return rlt.ModelFeatureConfig(float_feature_infos=float_feature_infos)
 
 
+class ActorPolicyWrapper(Policy):
+    """ Actor's forward function is our act """
+
+    def __init__(self, actor_network):
+        self.actor_network = actor_network
+
+    @torch.no_grad()
+    def act(self, obs: rlt.PreprocessedState) -> rlt.ActorOutput:
+        self.actor_network.eval()
+        output = self.actor_network(obs)
+        self.actor_network.train()
+        return output.detach().cpu()
+
+
 @dataclass
 class ActorCriticBase(ModelManager):
     state_preprocessing_options: Optional[PreprocessingOptions] = None
@@ -96,7 +111,6 @@ class ActorCriticBase(ModelManager):
             Dict[int, NormalizationParameters]
         ] = None
         self._actor_network: Optional[ModelBase] = None
-        self._q1_network: Optional[ModelBase] = None
         self._metrics_to_score = None
 
     @property
@@ -106,8 +120,6 @@ class ActorCriticBase(ModelManager):
     def create_policy(self, serving: bool) -> Policy:
         """ Create online actor critic policy. """
 
-        from reagent.gym.policies.samplers.continuous_sampler import GaussianSampler
-        from reagent.gym.policies.scorers.continuous_scorer import sac_scorer
         from reagent.gym.policies import ActorPredictorPolicy
 
         if serving:
@@ -115,9 +127,7 @@ class ActorCriticBase(ModelManager):
                 ActorPredictorUnwrapper(self.build_serving_module())
             )
         else:
-            sampler = GaussianSampler(self.trainer.actor_network)
-            scorer = sac_scorer(self.trainer.actor_network)
-            return Policy(scorer=scorer, sampler=sampler)
+            return ActorPolicyWrapper(self._actor_network)
 
     @property
     def metrics_to_score(self) -> List[str]:

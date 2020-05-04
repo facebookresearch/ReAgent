@@ -2,13 +2,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import math
+from typing import List, Optional
 
 import torch
 import torch.nn as nn
 from reagent import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
-from reagent.tensorboardX import SummaryWriterContext
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from torch.distributions import Dirichlet  # type: ignore
 from torch.distributions.normal import Normal
 
@@ -16,12 +17,13 @@ from torch.distributions.normal import Normal
 class FullyConnectedActor(ModelBase):
     def __init__(
         self,
-        state_dim,
-        action_dim,
-        sizes,
-        activations,
-        use_batch_norm=False,
-        action_activation="tanh",
+        state_dim: int,
+        action_dim: int,
+        sizes: List[int],
+        activations: List[str],
+        use_batch_norm: bool = False,
+        action_activation: str = "tanh",
+        exploration_variance: Optional[float] = None,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -40,24 +42,50 @@ class FullyConnectedActor(ModelBase):
             use_batch_norm=use_batch_norm,
         )
 
+        # Gaussian noise for exploration.
+        self.exploration_variance = exploration_variance
+        if exploration_variance is not None:
+            assert exploration_variance > 0
+            loc = torch.zeros(action_dim).float()
+            scale = torch.ones(action_dim).float() * exploration_variance
+            self.noise_dist = Normal(loc=loc, scale=scale)
+
     def input_prototype(self):
         return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
-    def forward(self, input):
+    def forward(self, input: rlt.PreprocessedState):
         action = self.fc(input.state.float_features)
-        return rlt.ActorOutput(action=action)
+        batch_size = action.shape[0]
+        assert action.shape == (
+            batch_size,
+            self.action_dim,
+        ), f"{action.shape} != ({batch_size}, {self.action_dim})"
+
+        if self.exploration_variance is None:
+            log_prob = torch.zeros(batch_size).to(action.device).float().view(-1, 1)
+            return rlt.ActorOutput(action=action, log_prob=log_prob)
+
+        noise = self.noise_dist.sample((batch_size,))
+        # TODO: log prob is affected by clamping, how to handle that?
+        log_prob = (
+            self.noise_dist.log_prob(noise).to(action.device).sum(dim=1).view(-1, 1)
+        )
+        action = (action + noise.to(action.device)).clamp(
+            *CONTINUOUS_TRAINING_ACTION_RANGE
+        )
+        return rlt.ActorOutput(action=action, log_prob=log_prob)
 
 
 class GaussianFullyConnectedActor(ModelBase):
     def __init__(
         self,
-        state_dim,
-        action_dim,
-        sizes,
-        activations,
-        scale=0.05,
-        use_batch_norm=False,
-        use_layer_norm=False,
+        state_dim: int,
+        action_dim: int,
+        sizes: List[int],
+        activations: List[str],
+        scale: float = 0.05,
+        use_batch_norm: bool = False,
+        use_layer_norm: bool = False,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -98,8 +126,8 @@ class GaussianFullyConnectedActor(ModelBase):
         -((value - loc) ** 2) / (2 * var) - log_scale - math.log(math.sqrt(2 * math.pi))
         ```
 
-        In the context of this class, `value = loc + r * scale`. Therefore, this function
-        only takes `r` & `scale`; it can be reduced to below.
+        In the context of this class, `value = loc + r * scale`. Therefore, this
+        function only takes `r` & `scale`; it can be reduced to below.
 
         The primary reason we don't use Normal class is that it currently
         cannot be exported through ONNX.
@@ -125,27 +153,14 @@ class GaussianFullyConnectedActor(ModelBase):
         scale_log = scale_log.clamp(*self._log_min_max)
         return loc, scale_log
 
-    def forward(self, input):
+    def forward(self, input: rlt.PreprocessedState):
         loc, scale_log = self._get_loc_and_scale_log(input.state)
         r = torch.randn_like(scale_log, device=scale_log.device)
         action = torch.tanh(loc + r * scale_log.exp())
-        if not self.training:
-            # ONNX doesn't like reshape either..
-            return rlt.ActorOutput(action=action)
+
         # Since each dim are independent, log-prob is simply sum
         log_prob = self._log_prob(r, scale_log)
         squash_correction = self._squash_correction(action)
-        if SummaryWriterContext._global_step % 1000 == 0:
-            SummaryWriterContext.add_histogram("actor/forward/loc", loc.detach().cpu())
-            SummaryWriterContext.add_histogram(
-                "actor/forward/scale_log", scale_log.detach().cpu()
-            )
-            SummaryWriterContext.add_histogram(
-                "actor/forward/log_prob", log_prob.detach().cpu()
-            )
-            SummaryWriterContext.add_histogram(
-                "actor/forward/squash_correction", squash_correction.detach().cpu()
-            )
         log_prob = torch.sum(log_prob - squash_correction, dim=1)
 
         return rlt.ActorOutput(
@@ -170,19 +185,6 @@ class GaussianFullyConnectedActor(ModelBase):
 
         log_prob = n.log_prob(raw_action)
         squash_correction = self._squash_correction(squashed_action)
-        if SummaryWriterContext._global_step % 1000 == 0:
-            SummaryWriterContext.add_histogram(
-                "actor/get_log_prob/loc", loc.detach().cpu()
-            )
-            SummaryWriterContext.add_histogram(
-                "actor/get_log_prob/scale_log", scale_log.detach().cpu()
-            )
-            SummaryWriterContext.add_histogram(
-                "actor/get_log_prob/log_prob", log_prob.detach().cpu()
-            )
-            SummaryWriterContext.add_histogram(
-                "actor/get_log_prob/squash_correction", squash_correction.detach().cpu()
-            )
         log_prob = torch.sum(log_prob - squash_correction, dim=1).reshape(-1, 1)
 
         return log_prob
