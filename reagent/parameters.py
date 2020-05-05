@@ -9,6 +9,11 @@ from reagent.parameters_seq2slate import LearningMethod, RewardClamp
 from reagent.types import BaseDataClass
 
 
+# For TD3 and SAC: actions are normalized in this range for training and
+# rescaled back to action_space.low/high at serving time.
+CONTINUOUS_TRAINING_ACTION_RANGE = (-1.0, 1.0)
+
+
 @dataclass(frozen=True)
 class RLParameters(BaseDataClass):
     __hash__ = param_hash
@@ -143,31 +148,6 @@ class OptimizerParameters(BaseDataClass):
     optimizer: str = "ADAM"
     learning_rate: float = 0.001
     l2_decay: float = 0.01
-
-
-@dataclass(frozen=True)
-class TD3TrainingParameters(BaseDataClass):
-    minibatch_size: int = 64
-    q_network_optimizer: OptimizerParameters = OptimizerParameters()
-    actor_network_optimizer: OptimizerParameters = OptimizerParameters()
-    use_2_q_functions: bool = True
-    exploration_noise: float = 0.2
-    initial_exploration_ts: int = 1000
-    target_policy_smoothing: float = 0.2
-    noise_clip: float = 0.5
-    delayed_policy_update: int = 2
-    warm_start_model_path: Optional[str] = None
-    minibatches_per_step: int = 1
-
-
-@dataclass(frozen=True)
-class TD3ModelParameters(BaseDataClass):
-    rl: RLParameters
-    training: TD3TrainingParameters
-    q_network: FeedForwardParameters
-    actor_network: FeedForwardParameters
-    state_feature_params: Optional[StateFeatureParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
 
 
 @dataclass(frozen=True)

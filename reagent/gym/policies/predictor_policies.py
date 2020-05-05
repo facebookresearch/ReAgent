@@ -14,6 +14,6 @@ class ActorPredictorPolicy(Policy):
 
     @torch.no_grad()
     def act(self, obs: Any) -> rlt.ActorOutput:
-        greedy_actions = self.predictor(obs).cpu()
-        log_prob = torch.zeros_like(greedy_actions)
-        return rlt.ActorOutput(action=greedy_actions, log_prob=log_prob)
+        action = self.predictor(obs).cpu()
+        # TODO: return log_probs as well
+        return rlt.ActorOutput(action=action)

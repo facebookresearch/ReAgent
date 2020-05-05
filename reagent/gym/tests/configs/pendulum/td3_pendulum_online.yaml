@@ -1,31 +1,25 @@
 env: Pendulum-v0
 model:
-  SoftActorCritic:
+  TD3:
     trainer_param:
       rl:
         gamma: 0.99
         target_update_rate: 0.005
-        softmax_policy: true
-      entropy_temperature: 0.1
       minibatch_size: 256
       q_network_optimizer:
         optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
-      value_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
+        learning_rate: 0.01
         l2_decay: 0
       actor_network_optimizer:
         optimizer: ADAM
-        learning_rate: 0.001
+        learning_rate: 0.005
         l2_decay: 0
-      alpha_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+      noise_variance: 0.2
+      noise_clip: 0.5
+      delayed_policy_update: 2
     actor_net_builder:
-      GaussianFullyConnected:
+      FullyConnected:
+        exploration_variance: 0.01
         sizes:
         - 64
         - 64
@@ -40,20 +34,13 @@ model:
         activations:
         - leaky_relu
         - leaky_relu
-    value_net_builder:
-      FullyConnected:
-        sizes:
-        - 64
-        - 64
-        activations:
-        - leaky_relu
-        - leaky_relu
     eval_parameters:
       calc_cpe_in_training: false
 replay_memory_size: 100000
 train_every_ts: 1
 train_after_ts: 5000
-num_train_episodes: 50
+# burn in for about 5000/200=25 episodes and train on the rest
+num_train_episodes: 60
 num_eval_episodes: 20
 max_steps: 200
 # Though maximal score is 0, we set lower bar to let tests finish in time

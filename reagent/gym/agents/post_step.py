@@ -79,7 +79,7 @@ def train_with_replay_buffer_post_step(
             possible_actions_mask = torch.ones_like(actor_output.action).to(torch.bool)
         possible_actions_mask = possible_actions_mask.numpy()
         replay_buffer.add(
-            obs, action, reward, terminal, possible_actions_mask, log_prob
+            obs, action, reward, terminal, possible_actions_mask, log_prob.item()
         )
 
         if replay_buffer.size >= size_req and _num_steps % training_freq == 0:

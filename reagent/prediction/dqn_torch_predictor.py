@@ -23,9 +23,10 @@ class DiscreteDqnTorchPredictor:
         self.softmax_temperature: Optional[float] = None
 
     def predict(self, state_features: List[Dict[int, float]]) -> List[Dict[str, float]]:
-        dense_state_features, dense_state_feature_exist_mask = self.internal_sparse_to_dense(
-            state_features
-        )
+        (
+            dense_state_features,
+            dense_state_feature_exist_mask,
+        ) = self.internal_sparse_to_dense(state_features)
         action_names, values = self.model(
             (dense_state_features, dense_state_feature_exist_mask)
         )
@@ -114,12 +115,14 @@ class ParametricDqnTorchPredictor:
         state_features: List[Dict[int, float]],
         action_features: List[Dict[int, float]],
     ) -> List[Dict[str, float]]:
-        dense_state_features, dense_state_feature_exist_mask = self.state_internal_sparse_to_dense(
-            state_features
-        )
-        dense_action_features, dense_action_feature_exist_mask = self.action_internal_sparse_to_dense(
-            action_features
-        )
+        (
+            dense_state_features,
+            dense_state_feature_exist_mask,
+        ) = self.state_internal_sparse_to_dense(state_features)
+        (
+            dense_action_features,
+            dense_action_feature_exist_mask,
+        ) = self.action_internal_sparse_to_dense(action_features)
         action_names, values = self.model(
             (dense_state_features, dense_state_feature_exist_mask),
             (dense_action_features, dense_action_feature_exist_mask),
@@ -206,9 +209,10 @@ class ActorTorchPredictor:
         self.action_feature_ids = action_feature_ids
 
     def predict(self, state_features: List[Dict[int, float]]) -> List[Dict[str, float]]:
-        dense_state_features, dense_state_feature_exist_mask = self.internal_sparse_to_dense(
-            state_features
-        )
+        (
+            dense_state_features,
+            dense_state_feature_exist_mask,
+        ) = self.internal_sparse_to_dense(state_features)
         actions = self.model((dense_state_features, dense_state_feature_exist_mask))
         assert actions.shape[1:] == (len(self.action_feature_ids),)
         retval = [

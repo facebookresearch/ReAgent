@@ -137,7 +137,6 @@ class Agent:
         # E.g. SAC requires input actions to be scaled (-1, 1).
         # E.g. DiscreteDQN expects one-hot encoded
         self._actor_output = actor_output.squeeze(0)
-
         return self.action_extractor(actor_output)
 
     def post_step(self, reward: float, terminal: bool):
