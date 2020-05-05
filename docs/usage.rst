@@ -44,7 +44,7 @@ In this example, we will train a DQN model on Offline ``CartPole-v0`` data, wher
     
     export CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
 
-This example workflow is shown in ``reagent/workflow/gym_batch_rl.py``, where Step 1 corresponds to function ``offline_gym``, Step 2 corresponds to function ``timeline_operator`` and Steps 3, 4, 5 correspond to ``train_and_evaluate_gym``. To run these steps, check out ``scripts/ci/run_end_to_end_test.sh``.
+NB: This example workflow is shown in ``reagent/workflow/gym_batch_rl.py``, where Step 1 corresponds to function ``offline_gym``, Step 2 corresponds to function ``timeline_operator`` and Steps 3, 4, 5 correspond to ``train_and_evaluate_gym``. To run these steps, check out ``scripts/ci/run_end_to_end_test.sh``.
 We now proceed to describe our workflow and give some pseudo-code to mock out the main ideas.
 
 
@@ -101,7 +101,7 @@ This is human-readable, but not the most efficient way to store tabular data.  O
 
 Once you have data on this format (or you have generated data using our gym script) you can move on to step 2:
 
-Step 2 - Convert the data to the ``timeline`` format
+Step 2 - Convert the data to the ``Timeline`` format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Models are trained on consecutive pairs of state/action tuples. To assist in creating this table, we have an ``RLTimelineOperator`` spark operator. Let's build and run the timeline operator on the data:
@@ -138,12 +138,10 @@ Now that we are ready, let's run our spark job on our local machine.  This will 
 
 
 
-Note: Steps 3,4,5
-
-Step 3 - Create the normalization parameters
+Step 3 - Determine normalization parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data, which we do in ``reagent/workflow/training.py`` via ``run_feature_identification``.
+Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We do this in ``reagent/workflow/training.py`` via ``run_feature_identification``, where ``input_table_spec`` points to a Spark table with the timeline data.
 
 .. code-block::
 
@@ -167,7 +165,7 @@ An example of this, in JSON format, is
 Step 4 - Train model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To train the model, we first save our Spark table to Parquet format, and use `Petastorm <https://github.com/uber/petastorm>`'s PyTorch DataLoader, which can efficiently read Parquet formatted data. We do this via our ``query_data``, which each ``ModelManager`` in our registry of models must implement. In this step, we also process the rewards, i.e. computing multi-step rewards or computing the reward from columns directly.
+To train the model, we first save our Spark table to Parquet format, and use `Petastorm <https://github.com/uber/petastorm>`_'s PyTorch DataLoader, which can efficiently read Parquet formatted data. We do this via ``ModelManager.query_data``, which each ``ModelManager`` in our registry of models must implement. In this step, we also process the rewards, i.e. computing multi-step rewards or computing the reward from ``metrics`` columns directly.
 
 .. code-block::
     train_dataset = manager.query_data(
