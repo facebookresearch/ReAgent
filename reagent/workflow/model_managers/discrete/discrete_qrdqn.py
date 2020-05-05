@@ -57,7 +57,7 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
         q_network_target = q_network.get_target_network()
 
-        reward_network, q_network_cpe, q_network_cpe_target = None, None, None
+        reward_network, q_network_cpe = None, None
         if self.trainer_param.evaluation.calc_cpe_in_training:
             # Metrics + reward
             num_output_nodes = (len(self.metrics_to_score) + 1) * len(
@@ -76,8 +76,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
                 reward_network.cuda()
                 q_network_cpe.cuda()
 
-            q_network_cpe_target = q_network_cpe.get_target_network()
-
         self._q_network = q_network
         trainer = QRDQNTrainer(
             q_network,
@@ -86,7 +84,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
             self.use_gpu,
             reward_network=reward_network,
             q_network_cpe=q_network_cpe,
-            q_network_cpe_target=q_network_cpe_target,
             metrics_to_score=self.metrics_to_score,
             loss_reporter=NoOpLossReporter(),
         )

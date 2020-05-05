@@ -7,34 +7,35 @@ import tempfile
 import unittest
 
 import numpy as np
-import reagent.types as rlt
 import torch
-from reagent.models.categorical_dqn import CategoricalDQN
-from reagent.models.dqn import FullyConnectedDQN
-from reagent.models.dueling_q_network import DuelingQNetwork
-from reagent.models.dueling_quantile_dqn import DuelingQuantileDQN
-from reagent.models.quantile_dqn import QuantileDQN
-from reagent.parameters import (
+
+import ml.rl.types as rlt
+from ml.rl.models.actor import FullyConnectedActor
+from ml.rl.models.categorical_dqn import CategoricalDQN
+from ml.rl.models.dqn import FullyConnectedDQN
+from ml.rl.models.dueling_q_network import DuelingQNetwork
+from ml.rl.models.dueling_quantile_dqn import DuelingQuantileDQN
+from ml.rl.models.quantile_dqn import QuantileDQN
+from ml.rl.parameters import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
 )
-from reagent.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
-from reagent.prediction.predictor_wrapper import (
+from ml.rl.prediction.dqn_torch_predictor import DiscreteDqnTorchPredictor
+from ml.rl.prediction.predictor_wrapper import (
+    ActorWithPreprocessor,
     DiscreteDqnPredictorWrapper,
-    DiscreteDqnWithPreprocessor,
 )
-from reagent.preprocessing.normalization import get_num_output_features
-from reagent.preprocessing.preprocessor import Preprocessor
-from reagent.test.gridworld.gridworld import Gridworld
-from reagent.test.gridworld.gridworld_base import DISCOUNT, Samples
-from reagent.test.gridworld.gridworld_evaluator import GridworldEvaluator
-from reagent.test.gridworld.gridworld_test_base import GridworldTestBase
-from reagent.torch_utils import export_module_to_buffer
-from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
-from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
-from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
+from ml.rl.preprocessing.normalization import get_num_output_features
+from ml.rl.preprocessing.preprocessor import Preprocessor
+from ml.rl.test.gridworld.gridworld import Gridworld
+from ml.rl.test.gridworld.gridworld_base import DISCOUNT, Samples
+from ml.rl.test.gridworld.gridworld_evaluator import GridworldEvaluator
+from ml.rl.test.gridworld.gridworld_test_base import GridworldTestBase
+from ml.rl.torch_utils import export_module_to_buffer
+from ml.rl.training.c51_trainer import C51Trainer, C51TrainerParameters
+from ml.rl.training.mac_trainer import MACTrainer, MACTrainerParameters
 
 
 class TestGridworld(GridworldTestBase):
@@ -156,7 +157,7 @@ class TestGridworld(GridworldTestBase):
                     activations=parameters.training.activations[:-1],
                 )
 
-        q_network_cpe, q_network_cpe_target, reward_network = None, None, None
+        q_network_cpe, reward_network = None, None
 
         if parameters.evaluation and parameters.evaluation.calc_cpe_in_training:
             q_network_cpe = FullyConnectedDQN(
@@ -165,7 +166,6 @@ class TestGridworld(GridworldTestBase):
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
-            q_network_cpe_target = q_network_cpe.get_target_network()
             reward_network = FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
@@ -173,53 +173,36 @@ class TestGridworld(GridworldTestBase):
                 activations=parameters.training.activations[:-1],
             )
 
+        policy_network = FullyConnectedActor(
+            state_dim=get_num_output_features(environment.normalization),
+            action_dim=len(environment.ACTIONS),
+            sizes=parameters.training.layers[1:-1],
+            activations=parameters.training.activations[:-1],
+            action_activation="leaky_relu",
+        )
+
         if use_gpu:
+            policy_network = policy_network.cuda()
             q_network = q_network.cuda()
             if parameters.evaluation.calc_cpe_in_training:
                 reward_network = reward_network.cuda()
                 q_network_cpe = q_network_cpe.cuda()
-                q_network_cpe_target = q_network_cpe_target.cuda()
             if use_all_avail_gpus and not categorical:
                 q_network = q_network.get_distributed_data_parallel_model()
                 reward_network = reward_network.get_distributed_data_parallel_model()
                 q_network_cpe = q_network_cpe.get_distributed_data_parallel_model()
-                q_network_cpe_target = (
-                    q_network_cpe_target.get_distributed_data_parallel_model()
-                )
 
-        if quantile:
-            parameters = QRDQNTrainerParameters.from_discrete_action_model_parameters(
-                parameters
-            )
-            trainer = QRDQNTrainer(
-                q_network,
-                q_network.get_target_network(),
-                parameters,
-                use_gpu,
-                reward_network=reward_network,
-                q_network_cpe=q_network_cpe,
-                q_network_cpe_target=q_network_cpe_target,
-            )
-        elif categorical:
-            parameters = C51TrainerParameters.from_discrete_action_model_parameters(
-                parameters
-            )
-            trainer = C51Trainer(
-                q_network, q_network.get_target_network(), parameters, use_gpu
-            )
-        else:
-            parameters = DQNTrainerParameters.from_discrete_action_model_parameters(
-                parameters
-            )
-            trainer = DQNTrainer(
-                q_network,
-                q_network.get_target_network(),
-                reward_network,
-                parameters,
-                use_gpu,
-                q_network_cpe=q_network_cpe,
-                q_network_cpe_target=q_network_cpe_target,
-            )
+        parameters = MACTrainerParameters.from_discrete_action_model_parameters(
+            parameters
+        )
+        trainer = MACTrainer(
+            q_network,
+            policy_network,
+            reward_network,
+            parameters,
+            use_gpu,
+            q_network_cpe=q_network_cpe,
+        )
         return trainer
 
     def get_trainer(
@@ -247,9 +230,9 @@ class TestGridworld(GridworldTestBase):
 
     def get_predictor(self, trainer, environment):
         state_preprocessor = Preprocessor(environment.normalization, False)
-        q_network = trainer.q_network
-        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
-            q_network.cpu_model().eval(), state_preprocessor
+        policy_network = trainer.policy_network
+        dqn_with_preprocessor = ActorWithPreprocessor(
+            policy_network.cpu_model().eval(), state_preprocessor
         )
         serving_module = DiscreteDqnPredictorWrapper(
             dqn_with_preprocessor=dqn_with_preprocessor,
@@ -287,34 +270,6 @@ class TestGridworld(GridworldTestBase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_evaluator_ground_truth_no_dueling_gpu_modular(self):
         self._test_evaluator_ground_truth(use_gpu=True)
-
-    def test_evaluator_ground_truth_dueling_modular(self):
-        self._test_evaluator_ground_truth(dueling=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_evaluator_ground_truth_dueling_gpu_modular(self):
-        self._test_evaluator_ground_truth(dueling=True, use_gpu=True)
-
-    def test_evaluator_ground_truth_categorical_modular(self):
-        self._test_evaluator_ground_truth(categorical=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_evaluator_ground_truth_categorical_gpu_modular(self):
-        self._test_evaluator_ground_truth(categorical=True, use_gpu=True)
-
-    def test_evaluator_ground_truth_quantile_modular(self):
-        self._test_evaluator_ground_truth(quantile=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_evaluator_ground_truth_quantile_gpu_modular(self):
-        self._test_evaluator_ground_truth(quantile=True, use_gpu=True)
-
-    def test_evaluator_ground_truth_dueling_quantile_modular(self):
-        self._test_evaluator_ground_truth(dueling=True, quantile=True)
-
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_evaluator_ground_truth_dueling_quantile_gpu_modular(self):
-        self._test_evaluator_ground_truth(dueling=True, quantile=True, use_gpu=True)
 
     def _test_reward_boost(self, use_gpu=False, use_all_avail_gpus=False):
         environment = Gridworld()
@@ -364,12 +319,12 @@ class TestGridworld(GridworldTestBase):
         trainer = self.get_trainer(environment, {}, False, False, False)
         input = rlt.PreprocessedState.from_tensor(tdps[0].states)
 
-        pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
+        pre_export_q_values = trainer.policy_network(input).action.detach().numpy()
 
         preprocessor = Preprocessor(environment.normalization, False)
-        cpu_q_network = trainer.q_network.cpu_model()
-        cpu_q_network.eval()
-        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(cpu_q_network, preprocessor)
+        dqn_with_preprocessor = ActorWithPreprocessor(
+            trainer.policy_network.cpu_model().eval(), preprocessor
+        )
         serving_module = DiscreteDqnPredictorWrapper(
             dqn_with_preprocessor, action_names=environment.ACTIONS
         )

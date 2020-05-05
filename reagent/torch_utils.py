@@ -63,3 +63,17 @@ def masked_softmax(x, mask, temperature):
     # Set NaN values to 0 (NaN happens when a full mask row is passed in)
     out[out != out] = 0
     return out
+
+
+def masked_softmax_no_inplace(x, mask, temperature):
+    """Compute softmax values for each sets of scores in x."""
+    x = x / temperature
+    mask_min_x = x - ((1.0 - mask) * 1e20)
+    mask_min_x = mask_min_x - torch.max(mask_min_x, dim=1, keepdim=True)[0]
+    e_x = torch.exp(mask_min_x)
+    e_x = e_x * mask
+    out = e_x / e_x.sum(dim=1, keepdim=True)
+
+    # Set NaN values to 0 (NaN happens when a full mask row is passed in)
+    out[out != out] = 0
+    return out

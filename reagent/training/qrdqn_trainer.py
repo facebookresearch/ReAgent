@@ -12,7 +12,6 @@ from reagent.core.tracker import observable
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.training_data_page import TrainingDataPage
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -85,7 +84,6 @@ class QRDQNTrainer(DQNTrainerBase):
         metrics_to_score=None,
         reward_network=None,
         q_network_cpe=None,
-        q_network_cpe_target=None,
         loss_reporter=None,
     ) -> None:
         super().__init__(
@@ -118,7 +116,6 @@ class QRDQNTrainer(DQNTrainerBase):
             parameters,
             reward_network,
             q_network_cpe,
-            q_network_cpe_target,
             cpe_optimizer_parameters=parameters.cpe_optimizer,
         )
 
@@ -135,7 +132,6 @@ class QRDQNTrainer(DQNTrainerBase):
                 "reward_network",
                 "reward_network_optimizer",
                 "q_network_cpe",
-                "q_network_cpe_target",
                 "q_network_cpe_optimizer",
             ]
         return components

@@ -88,7 +88,6 @@ class RLTrainer(Trainer):
         parameters,
         reward_network,
         q_network_cpe,
-        q_network_cpe_target,
         cpe_optimizer_parameters: OptimizerParameters,
     ) -> None:
         if self.calc_cpe_in_training:
@@ -102,11 +101,8 @@ class RLTrainer(Trainer):
                 lr=cpe_optimizer_parameters.learning_rate,
                 weight_decay=cpe_optimizer_parameters.l2_decay,
             )
-            assert (
-                q_network_cpe is not None and q_network_cpe_target is not None
-            ), "q_network_cpe and q_network_cpe_target are required for CPE"
+            assert q_network_cpe is not None, "q_network_cpe is required for CPE"
             self.q_network_cpe = q_network_cpe
-            self.q_network_cpe_target = q_network_cpe_target
             self.q_network_cpe_optimizer = optimizer_func(
                 self.q_network_cpe.parameters(),
                 lr=cpe_optimizer_parameters.learning_rate,
@@ -245,7 +241,7 @@ class RLTrainer(Trainer):
                 1, self.reward_idx_offsets + logged_action_idxs
             )
             all_metrics_target_q_values = torch.chunk(
-                self.q_network_cpe_target(next_states).q_values.detach(),
+                self.q_network_cpe(next_states).q_values.detach(),
                 len(self.metrics_to_score),
                 dim=1,
             )
@@ -270,14 +266,6 @@ class RLTrainer(Trainer):
             self._maybe_run_optimizer(
                 self.q_network_cpe_optimizer, self.minibatches_per_step
             )
-
-        # Use the soft update rule to update target network
-        self._maybe_soft_update(
-            self.q_network_cpe,
-            self.q_network_cpe_target,
-            self.tau,
-            self.minibatches_per_step,
-        )
 
         model_propensities = masked_softmax(
             all_action_scores,

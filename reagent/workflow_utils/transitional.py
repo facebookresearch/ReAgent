@@ -86,7 +86,7 @@ def create_dqn_trainer_from_params(
 
     q_network_target = q_network.get_target_network()
 
-    reward_network, q_network_cpe, q_network_cpe_target = None, None, None
+    reward_network, q_network_cpe = None, None
     if model.evaluation.calc_cpe_in_training:
         # Metrics + reward
         num_output_nodes = (len(metrics_to_score) + 1) * len(model.actions)
@@ -108,8 +108,6 @@ def create_dqn_trainer_from_params(
         if use_gpu and torch.cuda.is_available():
             reward_network.cuda()
             q_network_cpe.cuda()
-
-        q_network_cpe_target = q_network_cpe.get_target_network()
 
     if (
         use_all_avail_gpus
@@ -141,7 +139,6 @@ def create_dqn_trainer_from_params(
             metrics_to_score=metrics_to_score,
             reward_network=reward_network,
             q_network_cpe=q_network_cpe,
-            q_network_cpe_target=q_network_cpe_target,
         )
 
     elif model.rainbow.categorical:
@@ -165,7 +162,6 @@ def create_dqn_trainer_from_params(
             parameters,
             use_gpu,
             q_network_cpe=q_network_cpe,
-            q_network_cpe_target=q_network_cpe_target,
             metrics_to_score=metrics_to_score,
         )
 
