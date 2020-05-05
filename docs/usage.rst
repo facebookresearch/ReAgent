@@ -99,7 +99,7 @@ This is human-readable, but not the most efficient way to store tabular data.  O
      - A unique ID for this dataset.
 
 
-Once you have data on this format (or you have generated data using our gym script) you can move on to step 2:
+Once you have data on this format, you can move on to Step 2.
 
 Step 2 - Convert the data to the ``Timeline`` format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,7 +141,7 @@ Now that we are ready, let's run our spark job on our local machine.  This will 
 Step 3 - Determine normalization parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We do this in ``reagent/workflow/training.py`` via ``run_feature_identification``, where ``input_table_spec`` points to a Spark table with the timeline data.
+Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We do this via ``ModelManager.run_feature_identification``, where ``input_table_spec`` points to a Spark table with the timeline data.
 
 .. code-block::
 
@@ -161,6 +161,8 @@ An example of this, in JSON format, is
        "2": "{\"feature_type\":\"CONTINUOUS\",\"mean\":0.028220390900969505,\"stddev\":1.0,\"min_value\":-0.14581388235092163,\"max_value\":0.19483095407485962}",
        "3": "{\"feature_type\":\"CONTINUOUS\",\"mean\":0.02947876788675785,\"stddev\":1.0,\"min_value\":-2.194336175918579,\"max_value\":2.164193868637085}"
    }
+
+NB: ``reagent/workflow/training.py`` is what the pseudo-code in Steps 3 and 4 are trying to depict. Models should subclass ``ModelManager`` and implement all abstract methods (including ``run_feature_identification`` and ``query_data``) to be added to our registry of models.
 
 Step 4 - Train model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -224,7 +226,7 @@ Now that we have trained a new policy on the offline ``CartPole-v0`` data, we ca
         ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
 
 
-Surprisingly, even on completely random data, the DQN was able to learn a policy that gets rewards close to the max score of 200!
+Even on completely random data, DQN was able to learn a policy that can obtain scores close to the maximum possible score of 200.
 
 
 Step 6 - Visualize Results via Tensorboard
