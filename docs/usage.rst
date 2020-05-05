@@ -41,11 +41,18 @@ The main use case of ReAgent is to train RL models in the **batch** setting. In 
 In this example, we will train a DQN model on Offline ``CartPole-v0`` data, where the config should be set to
 
 .. code-block::
-    
+
     export CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
 
-NB: This example workflow is shown in ``reagent/workflow/gym_batch_rl.py``, where Step 1 corresponds to function ``offline_gym``, Step 2 corresponds to function ``timeline_operator`` and Steps 3, 4, 5 correspond to ``train_and_evaluate_gym``. To run these steps, check out ``scripts/ci/run_end_to_end_test.sh``.
-We now proceed to describe our workflow and give some pseudo-code to mock out the main ideas.
+We have set up `Click <https://click.palletsprojects.com/en/7.x/>`_ commands to run our batch RL workflow, where an example usage is shown in ``scripts/ci/run_end_to_end_test.sh``. The basic usage pattern is
+
+.. code-block::
+
+    ./reagent/workflow/cli.py run <module.function> <path/to/config>
+
+where the config should fill out the arguments of the function. As you can see in ``scripts/ci/run_end_to_end_test.sh``, the entry points of each step are located in ``reagent/workflow/gym_batch_rl.py``.
+
+We now proceed to give pseudo-code to sketch out the main ideas of our batch RL workflow. Step 1 corresponds to function ``offline_gym``, Step 2 corresponds to function ``timeline_operator`` and Steps 3-5 correspond to ``train_and_evaluate_gym``.
 
 
 Step 1 - Create training data
@@ -62,7 +69,7 @@ We first generate data from a random policy (chooses random actions) run on the 
     df = dataset.to_pandas_df()
     df.to_pickle(pkl_path)
 
-This should have ran 150 episodes of ``CartPole-v0`` (max steps of 200) and stored the pickled dataframe in ``/tmp/tmp_pickle.pkl``, which you may inspect via ``pd_df = pd.read_pickle(pkl_path)``. 
+This should have ran 150 episodes of ``CartPole-v0`` (max steps of 200) and stored the pickled dataframe in ``/tmp/tmp_pickle.pkl``, which you may inspect via ``pd_df = pd.read_pickle(pkl_path)``.
 
 
 This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data are parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:
@@ -151,7 +158,7 @@ Data from production systems is often sparse, noisy and arbitrarily distributed.
 
 
 The normalization is a Python dictionary where each key is a feature id and each value is NormalizationData.
-An example of this, in JSON format, is 
+An example of this, in JSON format, is
 
 .. code-block::
 
@@ -180,7 +187,7 @@ To train the model, we first save our Spark table to Parquet format, and use `Pe
 Now we are ready to train a model by running:
 
 .. code-block::
-    
+
     # make preprocessor from the normalization parameters of Step 3
     batch_preprocessor = manager.build_batch_preprocessor()
 
