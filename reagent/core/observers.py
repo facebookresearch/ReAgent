@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List
 
 from reagent.core.tracker import Aggregator, Observer
 
@@ -15,7 +15,7 @@ class CompositeObserver(Observer):
     A composite observer which takes care of dispatching values to child observers
     """
 
-    def __init__(self, observers: List[Observer]):
+    def __init__(self, observers: Iterable[Observer]):
         self.observers: Dict[str, List[Observer]] = {}
         for observer in observers:
             observing_keys = observer.get_observing_keys()

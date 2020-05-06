@@ -44,13 +44,8 @@ class ActorCriticReporter(ReporterBase):
                 ]
             ]
         )
-        self.last_epoch_end_num_batches = 0
         epoch_end_observer = EpochEndObserver(self._epoch_end_callback)
         super().__init__(
-            # pyre-fixme[6]: Expected `List[reagent.core.tracker.Observer]` for 1st
-            #  param but got `List[ValueListObserver]`.
-            # pyre-fixme[6]: Expected `List[reagent.core.tracker.Observer]` for 1st
-            #  param but got `List[ValueListObserver]`.
             list(self.value_list_observers.values())
             + list(self.aggregating_observers.values())
             # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
