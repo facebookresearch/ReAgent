@@ -39,7 +39,7 @@ class MemoryNetwork(ModelBase):
             ),
         )
 
-    def forward(self, input):
+    def forward(self, input: rlt.PreprocessedStateAction):
         (
             mus,
             sigmas,

@@ -71,7 +71,10 @@ class DiscreteDQNBase(ModelManager):
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
 
-        from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+        from reagent.gym.policies.samplers.discrete_sampler import (
+            SoftmaxActionSampler,
+            GreedyActionSampler,
+        )
         from reagent.gym.policies.scorers.discrete_scorer import (
             discrete_dqn_scorer,
             discrete_dqn_serving_scorer,
@@ -81,12 +84,14 @@ class DiscreteDQNBase(ModelManager):
         # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
         sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
         if serving:
+            sampler = GreedyActionSampler()
             scorer = discrete_dqn_serving_scorer(
                 DiscreteDqnPredictorUnwrapper(self.build_serving_module())
             )
         else:
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
+            sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             scorer = discrete_dqn_scorer(self.trainer.q_network)
         return Policy(scorer=scorer, sampler=sampler)
 

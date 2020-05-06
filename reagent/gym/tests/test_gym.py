@@ -3,83 +3,68 @@
 import logging
 import os
 import pprint
-import random
 import unittest
 from typing import Optional, Tuple
 
-import gym
 import numpy as np
 import torch
 from parameterized import parameterized
-from reagent.core.configuration import make_config_class
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.runners.gymrunner import run_episode
-from reagent.parameters import NormalizationData, NormalizationKey
+from reagent.gym.tests.utils import build_normalizer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-from reagent.tensorboardX import SummaryWriterContext
-from reagent.test.base.utils import (
-    only_continuous_action_normalizer,
-    only_continuous_normalizer,
-)
+from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
-from ruamel.yaml import YAML
 
 
+# for seeding the environment
+SEED = 0
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+"""
+Put on-policy gym tests here in the format (test name, path to yaml config).
+Format path to be: "configs/<env_name>/<model_name>_<env_name>_online.yaml."
+NOTE: These tests should ideally finish quickly (within 10 minutes) since they are
+unit tests which are run many times.
+"""
+GYM_TESTS = [
+    ("Discrete Dqn Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
+    (
+        "Discrete Dqn Open Gridworld",
+        "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
+    ),
+    ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
+    ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
+]
+
+
 curr_dir = os.path.dirname(__file__)
 
-SEED = 0
 
-
-def build_state_normalizer(env):
-    if isinstance(env.observation_space, gym.spaces.Box):
-        assert (
-            len(env.observation_space.shape) == 1
-        ), f"{env.observation_space.shape} has dim > 1, and is not supported."
-        return NormalizationData(
-            dense_normalization_parameters=only_continuous_normalizer(
-                list(range(env.observation_space.shape[0])),
-                env.observation_space.low,
-                env.observation_space.high,
-            )
+class TestGym(HorizonTestBase):
+    @parameterized.expand(GYM_TESTS)
+    def test_gym_cpu(self, name: str, config_path: str):
+        self.run_from_config(
+            run_test=run_test,
+            config_path=os.path.join(curr_dir, config_path),
+            use_gpu=False,
         )
-    elif isinstance(env.observation_space, gym.spaces.Dict):
-        # assuming env.observation_space is image
-        return None
-    else:
-        raise NotImplementedError(f"{env.observation_space} not supported")
+        logger.info(f"{name} passes!")
 
-
-def build_action_normalizer(env):
-    action_space = env.action_space
-    if isinstance(action_space, gym.spaces.Discrete):
-        return only_continuous_normalizer(
-            list(range(action_space.n)), min_value=0, max_value=1
+    @parameterized.expand(GYM_TESTS)
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_gym_gpu(self, name: str, config_path: str):
+        self.run_from_config(
+            run_test=run_test,
+            config_path=os.path.join(curr_dir, config_path),
+            use_gpu=True,
         )
-    elif isinstance(action_space, gym.spaces.Box):
-        assert action_space.shape == (
-            1,
-        ), f"Box action shape {action_space.shape} not supported."
-
-        return NormalizationData(
-            dense_normalization_parameters=only_continuous_action_normalizer(
-                [0],
-                min_value=action_space.low.item(),
-                max_value=action_space.high.item(),
-            )
-        )
-    else:
-        raise NotImplementedError(f"{action_space} not supported.")
-
-
-def build_normalizer(env):
-    return {
-        NormalizationKey.STATE: build_state_normalizer(env),
-        NormalizationKey.ACTION: build_action_normalizer(env),
-    }
+        logger.info(f"{name} passes!")
 
 
 def run_test(
@@ -160,56 +145,6 @@ def run_test(
 
     logger.info("============Eval rewards==============")
     logger.info(eval_rewards)
-
-
-def run_from_config(path, use_gpu):
-    yaml = YAML(typ="safe")
-    with open(path, "r") as f:
-        config_dict = yaml.load(f.read())
-    config_dict["use_gpu"] = use_gpu
-
-    @make_config_class(run_test)
-    class ConfigClass:
-        pass
-
-    config = ConfigClass(**config_dict)
-    return run_test(**config.asdict())
-
-
-GYM_TESTS = [
-    ("Discrete Dqn Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
-    (
-        "Discrete Dqn Open Gridworld",
-        "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
-    ),
-    ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
-    ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
-]
-
-
-class TestGym(unittest.TestCase):
-    """
-    Environments that require short training time (<=10min) can be tested here.
-    """
-
-    def setUp(self):
-        SummaryWriterContext._reset_globals()
-        logging.basicConfig(level=logging.INFO)
-        logger.setLevel(logging.INFO)
-        np.random.seed(SEED)
-        torch.manual_seed(SEED)
-        random.seed(SEED)
-
-    @parameterized.expand(GYM_TESTS)
-    def test_gym_cpu(self, name: str, config_path: str):
-        run_from_config(os.path.join(curr_dir, config_path), False)
-        logger.info(f"{name} passes!")
-
-    @parameterized.expand(GYM_TESTS)
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_gym_gpu(self, name: str, config_path: str):
-        run_from_config(os.path.join(curr_dir, config_path), True)
-        logger.info(f"{name} passes!")
 
 
 if __name__ == "__main__":

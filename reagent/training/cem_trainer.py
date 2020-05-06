@@ -15,7 +15,7 @@ import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.models.cem_planner import CEMPlannerNetwork
-from reagent.parameters import CEMParameters
+from reagent.parameters import CEMTrainerParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.training_data_page import TrainingDataPage
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
@@ -29,7 +29,7 @@ class CEMTrainer(RLTrainer):
         self,
         cem_planner_network: CEMPlannerNetwork,
         world_model_trainers: List[MDNRNNTrainer],
-        parameters: CEMParameters,
+        parameters: CEMTrainerParameters,
         use_gpu: bool = False,
     ) -> None:
         super().__init__(parameters.rl, use_gpu=use_gpu)
@@ -37,16 +37,12 @@ class CEMTrainer(RLTrainer):
         self.world_model_trainers = world_model_trainers
         self.minibatch_size = parameters.mdnrnn.minibatch_size
 
-    def train(self, training_batch, batch_first=False):
+    def train(self, training_batch):
         if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_cem_training_batch(batch_first)
-        assert (
-            type(training_batch) is rlt.PreprocessedTrainingBatch
-            and type(training_batch.training_input)
-            is rlt.PreprocessedMemoryNetworkInput
-        )
+            training_batch = training_batch.as_cem_training_batch()
+        assert type(training_batch) is rlt.PreprocessedMemoryNetworkInput
         for i, trainer in enumerate(self.world_model_trainers):
-            losses = trainer.train(training_batch, batch_first=batch_first)
+            losses = trainer.train(training_batch)
             logger.info(
                 "{}-th minibatch {}-th model: \n"
                 "loss={}, bce={}, gmm={}, mse={} \n"

@@ -41,8 +41,9 @@ except KeyError:
     pass
 
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.INFO)
 
 logger.info(f"USE_VANILLA_DATACLASS: {USE_VANILLA_DATACLASS}")
 logger.info(f"ARBITRARY_TYPES_ALLOWED: {ARBITRARY_TYPES_ALLOWED}")

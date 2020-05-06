@@ -57,6 +57,41 @@ class RainbowDQNParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
+class MDNRNNTrainerParameters(BaseDataClass):
+    __hash__ = param_hash
+
+    hidden_size: int = 64
+    num_hidden_layers: int = 2
+    minibatch_size: int = 16
+    learning_rate: float = 0.001
+    num_gaussians: int = 5
+    train_data_percentage: float = 60.0
+    validation_data_percentage: float = 20.0
+    test_data_percentage: float = 20.0
+    # weight in calculating world-model loss
+    reward_loss_weight: float = 1.0
+    next_state_loss_weight: float = 1.0
+    not_terminal_loss_weight: float = 1.0
+    fit_only_one_next_step: bool = False
+
+
+@dataclass(frozen=True)
+class CEMTrainerParameters(BaseDataClass):
+    __hash__ = param_hash
+
+    plan_horizon_length: int = 0
+    num_world_models: int = 0
+    cem_population_size: int = 0
+    cem_num_iterations: int = 0
+    ensemble_population_size: int = 0
+    num_elites: int = 0
+    mdnrnn: MDNRNNTrainerParameters = MDNRNNTrainerParameters()
+    rl: RLParameters = RLParameters()
+    alpha: float = 0.25
+    epsilon: float = 0.001
+
+
+@dataclass(frozen=True)
 class CNNParameters(BaseDataClass):
     __hash__ = param_hash
 
@@ -179,38 +214,6 @@ class NormalizationData(BaseDataClass):
     __hash__ = param_hash
 
     dense_normalization_parameters: Optional[Dict[int, NormalizationParameters]]
-
-
-@dataclass(frozen=True)
-class MDNRNNParameters(BaseDataClass):
-    hidden_size: int = 64
-    num_hidden_layers: int = 2
-    minibatch_size: int = 16
-    learning_rate: float = 0.001
-    num_gaussians: int = 5
-    train_data_percentage: float = 60.0
-    validation_data_percentage: float = 20.0
-    test_data_percentage: float = 20.0
-    # weight in calculating world-model loss
-    reward_loss_weight: float = 1.0
-    next_state_loss_weight: float = 1.0
-    not_terminal_loss_weight: float = 1.0
-    fit_only_one_next_step: bool = False
-
-
-@dataclass(frozen=True)
-class CEMParameters(BaseDataClass):
-    plan_horizon_length: int = 0
-    num_world_models: int = 0
-    cem_population_size: int = 0
-    cem_num_iterations: int = 0
-    ensemble_population_size: int = 0
-    num_elites: int = 0
-    mdnrnn: MDNRNNParameters = MDNRNNParameters()
-    rl: RLParameters = RLParameters()
-    evaluation: EvaluationParameters = EvaluationParameters()
-    alpha: float = 0.25
-    epsilon: float = 0.001
 
 
 #################################################

@@ -494,7 +494,41 @@ class PolicyNetworkInput(PreprocessedBaseInput):
 
 @dataclass
 class PreprocessedMemoryNetworkInput(PreprocessedBaseInput):
-    action: Union[torch.Tensor, torch.Tensor]
+    action: torch.Tensor
+
+    @classmethod
+    def from_replay_buffer(cls, batch):
+        # RB's state is (batch_size, state_dim, stack_size) whereas
+        # we want (stack_size, batch_size, state_dim)
+        # for scalar fields like reward and terminal,
+        # RB returns (batch_size, stack_size), where as
+        # we want (stack_size, batch_size)
+        # Also convert action to float
+
+        if len(batch.state.shape) == 2:
+            # this is stack_size = 1 (i.e. we squeezed in RB)
+            state = batch.state.unsqueeze(2)
+            next_state = batch.next_state.unsqueeze(2)
+        else:
+            # shapes should be
+            state = batch.state
+            next_state = batch.next_state
+        # Now shapes should be (batch_size, state_dim, stack_size)
+        # Turn shapes into (stack_size, batch_size, feature_dim) where
+        # feature \in {state, action}; also, make action a float
+        permutation = [2, 0, 1]
+        not_terminal = 1.0 - batch.terminal.transpose(0, 1).float()
+        return cls(
+            state=PreprocessedFeatureVector(float_features=state.permute(permutation)),
+            next_state=PreprocessedFeatureVector(
+                float_features=next_state.permute(permutation)
+            ),
+            action=batch.action.permute(permutation).float(),
+            reward=batch.reward.transpose(0, 1),
+            not_terminal=not_terminal,
+            step=None,
+            time_diff=None,
+        )
 
 
 @dataclass
@@ -579,76 +613,6 @@ class RawParametricDqnInput(RawBaseInput):
             self.possible_next_actions_mask,
             PreprocessedFeatureVector(float_features=tiled_next_state),
         )
-
-
-@dataclass
-class RawMemoryNetworkInput(RawBaseInput):
-    action: Union[FeatureVector, torch.Tensor]
-
-    def preprocess(
-        self,
-        state: PreprocessedFeatureVector,
-        next_state: PreprocessedFeatureVector,
-        action: Optional[torch.Tensor] = None,
-    ) -> PreprocessedMemoryNetworkInput:
-        assert isinstance(state, PreprocessedFeatureVector)
-        assert isinstance(next_state, PreprocessedFeatureVector)
-        if action is not None:
-            assert isinstance(action, torch.Tensor)
-            return PreprocessedMemoryNetworkInput(
-                self.reward,
-                self.time_diff,
-                self.step,
-                self.not_terminal,
-                state,
-                next_state,
-                action,
-            )
-        else:
-            assert isinstance(self.action, torch.Tensor)
-            assert self.action.dtype == torch.uint8
-            return PreprocessedMemoryNetworkInput(
-                self.reward,
-                self.time_diff,
-                self.step,
-                self.not_terminal,
-                state,
-                next_state,
-                self.action.float(),
-            )
-
-    def preprocess_tensors(
-        self,
-        state: torch.Tensor,
-        next_state: torch.Tensor,
-        action: Optional[torch.Tensor] = None,
-    ) -> PreprocessedMemoryNetworkInput:
-        assert isinstance(state, torch.Tensor)
-        assert isinstance(next_state, torch.Tensor)
-
-        if action is not None:
-            assert isinstance(action, torch.Tensor)
-            return PreprocessedMemoryNetworkInput(
-                self.reward,
-                self.time_diff,
-                self.step,
-                self.not_terminal,
-                PreprocessedFeatureVector(float_features=state),
-                PreprocessedFeatureVector(float_features=next_state),
-                action,
-            )
-        else:
-            assert isinstance(self.action, torch.Tensor)
-            assert self.action.dtype == torch.uint8
-            return PreprocessedMemoryNetworkInput(
-                self.reward,
-                self.time_diff,
-                self.step,
-                self.not_terminal,
-                PreprocessedFeatureVector(float_features=state),
-                PreprocessedFeatureVector(float_features=next_state),
-                self.action.float(),
-            )
 
 
 @dataclass

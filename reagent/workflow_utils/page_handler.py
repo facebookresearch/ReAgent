@@ -14,12 +14,7 @@ from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.tensorboardX import SummaryWriterContext
 from reagent.training.sac_trainer import SACTrainer
 from reagent.training.td3_trainer import TD3Trainer
-from reagent.types import (
-    ExtraData,
-    PreprocessedMemoryNetworkInput,
-    PreprocessedTrainingBatch,
-    RawTrainingBatch,
-)
+from reagent.types import PreprocessedMemoryNetworkInput, PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)
@@ -130,44 +125,38 @@ class EvaluationPageHandler(PageHandler):
 
 class WorldModelTrainingPageHandler(PageHandler):
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        losses = self.trainer_or_evaluator.train(tdp, batch_first=True)
+        losses = self.trainer_or_evaluator.train(tdp)
         self.results.append(losses)
 
 
 class WorldModelRandomTrainingPageHandler(PageHandler):
     """ Train a baseline model based on randomly shuffled data """
 
-    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        assert isinstance(tdp.training_input, PreprocessedMemoryNetworkInput)
-        batch_size, _, _ = tdp.training_input.next_state.float_features.size()
+    def handle(self, training_input: PreprocessedMemoryNetworkInput) -> None:
+        _, batch_size, _ = training_input.next_state.float_features.size()
 
-        tdp = PreprocessedTrainingBatch(
-            training_input=PreprocessedMemoryNetworkInput(
-                state=tdp.training_input.state,
-                action=tdp.training_input.action,
-                time_diff=torch.ones_like(
-                    tdp.training_input.reward[torch.randperm(batch_size)]
-                ).float(),
-                # shuffle the data
-                next_state=tdp.training_input.next_state._replace(
-                    float_features=tdp.training_input.next_state.float_features[
-                        torch.randperm(batch_size)
-                    ]
-                ),
-                reward=tdp.training_input.reward[torch.randperm(batch_size)],
-                not_terminal=tdp.training_input.not_terminal[
-                    torch.randperm(batch_size)
-                ],
-                step=None,
+        tdp = PreprocessedMemoryNetworkInput(
+            state=training_input.state,
+            action=training_input.action,
+            time_diff=torch.ones_like(training_input.reward),
+            # shuffle the data
+            next_state=training_input.next_state._replace(
+                float_features=training_input.next_state.float_features[
+                    :, torch.randperm(batch_size), :
+                ]
             ),
-            extras=ExtraData(),
+            reward=training_input.reward[:, torch.randperm(batch_size)],
+            not_terminal=training_input.not_terminal[  # type: ignore
+                :, torch.randperm(batch_size)
+            ],
+            step=None,
         )
-        losses = self.trainer_or_evaluator.train(tdp, batch_first=True)
+        losses = self.trainer_or_evaluator.train(tdp)
         self.results.append(losses)
 
 
 class WorldModelEvaluationPageHandler(PageHandler):
-    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
+    def handle(self, tdp: PreprocessedMemoryNetworkInput) -> None:
         losses = self.trainer_or_evaluator.evaluate(tdp)
         self.results.append(losses)
 

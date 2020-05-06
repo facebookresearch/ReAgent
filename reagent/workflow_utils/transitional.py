@@ -4,7 +4,6 @@
 from typing import Dict
 
 import torch
-from reagent.models.actor import FullyConnectedActor
 from reagent.models.categorical_dqn import CategoricalDQN
 from reagent.models.cem_planner import CEMPlannerNetwork
 from reagent.models.dqn import FullyConnectedDQN
@@ -13,10 +12,10 @@ from reagent.models.parametric_dqn import FullyConnectedParametricDQN
 from reagent.models.quantile_dqn import QuantileDQN
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import (
-    CEMParameters,
+    CEMTrainerParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
-    MDNRNNParameters,
+    MDNRNNTrainerParameters,
     OptimizerParameters,
 )
 from reagent.preprocessing.normalization import (
@@ -24,15 +23,18 @@ from reagent.preprocessing.normalization import (
     get_num_output_features,
 )
 from reagent.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
-from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
-from reagent.training.cem_trainer import CEMTrainer
-from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
-from reagent.training.parametric_dqn_trainer import (
+from reagent.training import (
+    C51Trainer,
+    C51TrainerParameters,
+    CEMTrainer,
+    DQNTrainer,
+    DQNTrainerParameters,
+    MDNRNNTrainer,
     ParametricDQNTrainer,
     ParametricDQNTrainerParameters,
+    QRDQNTrainer,
+    QRDQNTrainerParameters,
 )
-from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
-from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
 def create_dqn_trainer_from_params(
@@ -224,14 +226,14 @@ def create_parametric_dqn_trainer_from_params(
 
 
 def get_cem_trainer(
-    env: OpenAIGymEnvironment, params: CEMParameters, use_gpu: bool
+    env: OpenAIGymEnvironment, params: CEMTrainerParameters, use_gpu: bool
 ) -> CEMTrainer:
     num_world_models = params.num_world_models
     world_model_trainers = [
         create_world_model_trainer(env, params.mdnrnn, use_gpu)
         for _ in range(num_world_models)
     ]
-    world_model_nets = [trainer.mdnrnn for trainer in world_model_trainers]
+    world_model_nets = [trainer.memory_network for trainer in world_model_trainers]
     discrete_action = env.action_type == EnvType.DISCRETE_ACTION
     terminal_effective = params.mdnrnn.not_terminal_loss_weight > 0
     action_upper_bounds, action_lower_bounds = None, None
@@ -263,9 +265,9 @@ def get_cem_trainer(
 
 
 def create_world_model_trainer(
-    env: OpenAIGymEnvironment, mdnrnn_params: MDNRNNParameters, use_gpu: bool
+    env: OpenAIGymEnvironment, mdnrnn_params: MDNRNNTrainerParameters, use_gpu: bool
 ) -> MDNRNNTrainer:
-    mdnrnn_net = MemoryNetwork(
+    memory_network = MemoryNetwork(
         state_dim=env.state_dim,
         action_dim=env.action_dim,
         num_hiddens=mdnrnn_params.hidden_size,
@@ -273,6 +275,6 @@ def create_world_model_trainer(
         num_gaussians=mdnrnn_params.num_gaussians,
     )
     if use_gpu:
-        mdnrnn_net = mdnrnn_net.cuda()
-    mdnrnn_trainer = MDNRNNTrainer(mdnrnn_network=mdnrnn_net, params=mdnrnn_params)
+        memory_network = memory_network.cuda()
+    mdnrnn_trainer = MDNRNNTrainer(memory_network=memory_network, params=mdnrnn_params)
     return mdnrnn_trainer

@@ -1,0 +1,53 @@
+env: StringGame-v0
+
+# for training embedding model
+embedding_model:
+  WorldModel:
+    trainer_param:
+      hidden_size: 20
+      num_hidden_layers: 2
+      learning_rate: 0.001
+      not_terminal_loss_weight: 0
+      next_state_loss_weight: 0
+      reward_loss_weight: 1
+      num_gaussians: 1
+seq_len: 3
+batch_size: 1024
+num_embedding_train_episodes: 4000
+num_embedding_train_epochs: 15
+saved_mdnrnn_path: null
+
+# for training agent
+num_state_embed_episodes: 1000
+train_model:
+  DiscreteDQN:
+    trainer_param:
+      actions:
+        - 0
+        - 1
+      rl:
+        gamma: 0.99
+        target_update_rate: 0.1
+        maxq_learning: true
+        q_network_loss: mse
+      double_q_learning: true
+      minibatch_size: 1024
+      minibatches_per_step: 1
+      optimizer:
+        optimizer: ADAM
+        learning_rate: 0.001
+      evaluation:
+        calc_cpe_in_training: false
+    net_builder:
+      FullyConnected:
+        sizes:
+        - 128
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+num_agent_train_epochs: 100
+num_agent_eval_epochs: 10
+use_gpu: false
+# highest score, which requires history insight, is 10.0
+passing_score_bar: 10.0
