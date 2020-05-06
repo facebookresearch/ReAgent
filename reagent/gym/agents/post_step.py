@@ -2,13 +2,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-import inspect
 import logging
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import gym
+import numpy as np
 import reagent.types as rlt
 import torch
+from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.types import PostStep
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.training.rl_dataset import RLDataset
@@ -18,6 +19,30 @@ from reagent.training.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
+def add_replay_buffer_post_step(replay_buffer: ReplayBuffer):
+    """
+    Simply add transitions to replay_buffer.
+    """
+
+    def post_step(
+        obs: np.ndarray,
+        actor_output: rlt.ActorOutput,
+        reward: float,
+        terminal: bool,
+        possible_actions_mask: Optional[torch.Tensor],
+    ) -> None:
+        action = actor_output.action.numpy()
+        log_prob = actor_output.log_prob.numpy()
+        if possible_actions_mask is None:
+            possible_actions_mask = torch.ones_like(actor_output.action).to(torch.bool)
+        possible_actions_mask = possible_actions_mask.numpy()
+        replay_buffer.add(
+            obs, action, reward, terminal, possible_actions_mask, log_prob.item()
+        )
+
+    return post_step
+
+
 def train_with_replay_buffer_post_step(
     replay_buffer: ReplayBuffer,
     trainer: Trainer,
@@ -25,7 +50,7 @@ def train_with_replay_buffer_post_step(
     batch_size: int,
     replay_burnin: Optional[int] = None,
     trainer_preprocessor=None,
-    device: Optional[Union[str, torch.device]] = None,
+    device: Union[str, torch.device] = "cpu",
 ) -> PostStep:
     """ Called in post_step of agent to train based on replay buffer (RB).
         Args:
@@ -36,7 +61,7 @@ def train_with_replay_buffer_post_step(
             replay_burnin: optional requirement for minimum size of RB before
                 training begins. (i.e. burn in this many frames)
     """
-    if device is not None and isinstance(device, str):
+    if isinstance(device, str):
         device = torch.device(device)
 
     _num_steps = 0
@@ -45,27 +70,10 @@ def train_with_replay_buffer_post_step(
         size_req = max(size_req, replay_burnin)
 
     if trainer_preprocessor is None:
-        sig = inspect.signature(trainer.train)
-        logger.info(f"Deriving trainer_preprocessor from {sig.parameters}")
-        # Assuming training_batch is in the first position (excluding self)
-        assert (
-            list(sig.parameters.keys())[0] == "training_batch"
-        ), f"{sig.parameters} doesn't have training batch in first position."
-        training_batch_type = sig.parameters["training_batch"].annotation
-        assert training_batch_type != inspect.Parameter.empty
-        if not hasattr(training_batch_type, "from_replay_buffer"):
-            raise NotImplementedError(
-                f"{training_batch_type} does not implement from_replay_buffer"
-            )
-
-        def trainer_preprocessor(batch):
-            retval = training_batch_type.from_replay_buffer(batch)
-            if device is not None:
-                retval = retval.to(device)
-            return retval
+        trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device)
 
     def post_step(
-        obs: Any,
+        obs: np.ndarray,
         actor_output: rlt.ActorOutput,
         reward: float,
         terminal: bool,
@@ -99,7 +107,7 @@ def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostSte
     sequence_number = 0
 
     def post_step(
-        obs: Any,
+        obs: np.ndarray,
         actor_output: rlt.ActorOutput,
         reward: float,
         terminal: bool,

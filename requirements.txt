@@ -5,6 +5,7 @@ numpy==1.17.2
 pandas==0.25.0
 pydantic==1.4
 torch
+tqdm==4.46.0
 petastorm==0.9.0
 parameterized==0.7.4
 pyspark==2.4.5

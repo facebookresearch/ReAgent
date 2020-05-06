@@ -80,27 +80,18 @@ class TrainingDataPage(object):
         self.next_propensities = next_propensities
         self.rewards_mask = rewards_mask
 
-    def as_cem_training_batch(self, batch_first=False):
+    def as_cem_training_batch(self):
         """
         Generate one-step samples needed by CEM trainer.
         The samples will be used to train an ensemble of world models used by CEM.
 
-        If batch_first = True:
-            state/next state shape: batch_size x 1 x state_dim
-            action shape: batch_size x 1 x action_dim
-            reward/terminal shape: batch_size x 1
-        else (default):
-             state/next state shape: 1 x batch_size x state_dim
-             action shape: 1 x batch_size x action_dim
-             reward/terminal shape: 1 x batch_size
+        state/next state shape: 1 x batch_size x state_dim
+        action shape: 1 x batch_size x action_dim
+        reward/terminal shape: 1 x batch_size
         """
-        if batch_first:
-            seq_len_dim = 1
-            reward, not_terminal = self.rewards, self.not_terminal
-        else:
-            seq_len_dim = 0
-            reward, not_terminal = transpose(self.rewards, self.not_terminal)
-        training_input = rlt.PreprocessedMemoryNetworkInput(
+        seq_len_dim = 0
+        reward, not_terminal = transpose(self.rewards, self.not_terminal)
+        return rlt.PreprocessedMemoryNetworkInput(
             state=rlt.PreprocessedFeatureVector(
                 float_features=self.states.unsqueeze(seq_len_dim)
             ),
@@ -112,16 +103,6 @@ class TrainingDataPage(object):
             not_terminal=not_terminal,
             step=self.step,
             time_diff=self.time_diffs,
-        )
-        return rlt.PreprocessedTrainingBatch(
-            training_input=training_input,
-            extras=rlt.ExtraData(
-                mdp_id=self.mdp_ids,
-                sequence_number=self.sequence_numbers,
-                action_probability=self.propensities,
-                max_num_actions=self.max_num_actions,
-                metrics=self.metrics,
-            ),
         )
 
     def as_parametric_maxq_training_batch(self):

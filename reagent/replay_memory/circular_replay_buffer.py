@@ -122,6 +122,7 @@ class ReplayBuffer(object):
         stack_size: int,
         replay_capacity: int,
         batch_size: int,
+        return_everything_as_stack: bool = False,
         update_horizon: int = 1,
         gamma: float = 0.99,
         max_sample_attempts: int = 1000,
@@ -139,6 +140,8 @@ class ReplayBuffer(object):
           stack_size: int, number of frames to use in state stack.
           replay_capacity: int, number of transitions to keep in memory.
           batch_size: int.
+          return_everything_as_stack: bool, set True if we want everything,
+             not just states, to be stacked too
           update_horizon: int, length of update ('n' in n-step update).
           gamma: int, the discount factor.
           max_sample_attempts: int, the maximum number of attempts allowed to
@@ -185,6 +188,7 @@ class ReplayBuffer(object):
         self._reward_dtype = reward_dtype
         self._observation_shape = observation_shape
         self._stack_size = stack_size
+        self._return_everything_as_stack = return_everything_as_stack
         self._state_shape = self._observation_shape + (self._stack_size,)
         self._replay_capacity = replay_capacity
         self._batch_size = batch_size
@@ -229,6 +233,7 @@ class ReplayBuffer(object):
         stack_size: int = 1,
         store_possible_actions_mask: bool = True,
         store_log_prob: bool = True,
+        **kwargs,
     ):
         extra_storage_types: List[ReplayElement] = []
         obs_space = env.observation_space
@@ -285,6 +290,7 @@ class ReplayBuffer(object):
             reward_shape=(),
             reward_dtype=np.float32,
             extra_storage_types=extra_storage_types,
+            **kwargs,
         )
 
     @staticmethod
@@ -619,8 +625,9 @@ class ReplayBuffer(object):
         batch = self.sample_transition_batch(batch_size=batch_size, indices=indices)
 
         def _normalize_tensor(k, v):
+            squeeze_set = {"state", "next_state"}
             t = torch.tensor(v)
-            if (k == "state" or k == "next_state") and self._stack_size == 1:
+            if k in squeeze_set and self._stack_size == 1:
                 t = t.squeeze(2)
             elif t.ndim == 1:
                 t = t.unsqueeze(1)
@@ -664,15 +671,18 @@ class ReplayBuffer(object):
 
         transition_elements = self.get_transition_elements(batch_size)
 
-        def get_obs_stack_for_indices(indices):
+        def get_stack_for_indices(key, indices):
             """ Get stack of observations """
             # calculate 2d array of indices with size (batch_size, stack_size)
             # ith row contain indices in the stack of obs at indices[i]
             stack_indices = indices.reshape(-1, 1) + np.arange(-self._stack_size + 1, 1)
             stack_indices %= self._replay_capacity
-            # Reshape to (batch_size, obs_shape, stack_size)
-            perm = [0] + list(range(2, len(self._observation_shape) + 2)) + [1]
-            return self._store["observation"][stack_indices].transpose(perm)
+            retval = self._store[key][stack_indices]
+            if len(retval.shape) > 2:
+                # Reshape to (batch_size, obs_shape, stack_size)
+                perm = [0] + list(range(2, len(self._observation_shape) + 2)) + [1]
+                retval = retval.transpose(perm)
+            return retval
 
         # calculate 2d array of indices with size (batch_size, update_horizon)
         # ith row contain the multistep indices starting at indices[i]
@@ -681,8 +691,8 @@ class ReplayBuffer(object):
 
         def get_traj_lengths():
             """ Calculate trajectory length, defined to be the number of states
-            in this multi_step transition until terminal state or end of
-            multi_step. Dopamine calls multi_step as "update_horizon".
+            in this multi_step transition until terminal state or until
+            end of multi_step (a.k.a. update_horizon).
             """
             terminals = self._store["terminal"][multistep_indices]
             # if trajectory is non-terminal, we'll have traj_length = update_horizon
@@ -705,23 +715,41 @@ class ReplayBuffer(object):
         batch_arrays = []
         for element in transition_elements:
             if element.name == "state":
-                batch = get_obs_stack_for_indices(indices)
+                batch = get_stack_for_indices("observation", indices)
             elif element.name == "next_state":
-                batch = get_obs_stack_for_indices(next_indices)
+                batch = get_stack_for_indices("observation", next_indices)
             elif element.name == "reward":
-                batch = get_multistep_reward_for_indices()
+                if self._return_everything_as_stack:
+                    if self._update_horizon > 1:
+                        raise NotImplementedError(
+                            "Uncertain how to do this without double counting.."
+                        )
+                    batch = get_stack_for_indices("reward", indices)
+                else:
+                    batch = get_multistep_reward_for_indices()
             elif element.name == "terminal":
                 terminal_indices = (next_indices - 1) % self._replay_capacity
-                batch = self._store["terminal"][terminal_indices].astype(np.bool)
+                if self._return_everything_as_stack:
+                    batch = get_stack_for_indices("terminal", terminal_indices)
+                else:
+                    batch = self._store["terminal"][terminal_indices]
+                batch = batch.astype(np.bool)
             elif element.name == "indices":
                 batch = indices
-            elif element.name in ("next_action", "next_reward"):
-                store_name = element.name.lstrip("next_")
-                batch = self._store[store_name][next_indices]
             elif element.name in self._store:
-                batch = self._store[element.name][indices]
-            elif element.name.startswith("next_") and element.name[5:] in self._store:
-                batch = self._store[element.name[5:]][next_indices]
+                if self._return_everything_as_stack:
+                    batch = get_stack_for_indices(element.name, indices)
+                else:
+                    batch = self._store[element.name][indices]
+            elif element.name.startswith("next_"):
+                store_name = element.name[len("next_") :]
+                assert (
+                    store_name in self._store
+                ), f"{store_name} is not in {self._store.keys()}"
+                if self._return_everything_as_stack:
+                    batch = get_stack_for_indices(store_name, next_indices)
+                else:
+                    batch = self._store[store_name][next_indices]
 
             batch = batch.astype(element.type)
             batch_arrays.append(batch)

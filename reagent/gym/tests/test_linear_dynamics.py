@@ -5,9 +5,9 @@ import logging
 import time
 import unittest
 
-import gym
 import numpy as np
 import scipy.linalg as linalg
+from reagent.gym.envs.env_factory import EnvFactory
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ class TestLinearDynamicsEnvironment(unittest.TestCase):
         Test random actions vs. a LQR controller. LQR controller should perform
         much better than random actions in the linear dynamics environment.
         """
-        env = gym.make("LinearDynamics-v0")
+        env = EnvFactory.make("LinearDynamics-v0")
         num_test_episodes = 500
 
         def random_policy(env, state):

@@ -16,7 +16,9 @@ from torch.distributions.normal import Normal
 logger = logging.getLogger(__name__)
 
 
-class _MDNRNNBase(nn.Module):
+class MDNRNN(nn.Module):
+    """ Mixture Density Network - Recurrent Neural Network """
+
     def __init__(
         self, state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
     ):
@@ -25,33 +27,19 @@ class _MDNRNNBase(nn.Module):
         self.action_dim = action_dim
         self.num_hiddens = num_hiddens
         self.num_hidden_layers = num_hidden_layers
-        self.num_gaussians = num_gaussians
+        self.rnn = nn.LSTM(
+            input_size=state_dim + action_dim,
+            hidden_size=num_hiddens,
+            num_layers=num_hidden_layers,
+        )
 
+        self.num_gaussians = num_gaussians
         # outputs:
         # 1. mu, sigma, and pi for each gaussian
         # 2. non-terminal signal
         # 3. reward
         self.gmm_linear = nn.Linear(
             num_hiddens, (2 * state_dim + 1) * num_gaussians + 2
-        )
-
-    def forward(self, *inputs):
-        pass
-
-
-class MDNRNN(_MDNRNNBase):
-    """ Mixture Density Network - Recurrent Neural Network """
-
-    def __init__(
-        self, state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
-    ):
-        super().__init__(
-            state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
-        )
-        self.rnn = nn.LSTM(
-            input_size=state_dim + action_dim,
-            hidden_size=num_hiddens,
-            num_layers=num_hidden_layers,
         )
 
     def forward(self, actions, states, hidden=None):
@@ -139,15 +127,13 @@ class MDNRNNMemoryPool:
             yield s.state, s.action, s.next_state, s.reward, s.not_terminal
 
     def sample_memories(
-        self, batch_size, use_gpu=False, batch_first=False
-    ) -> rlt.PreprocessedTrainingBatch:
+        self, batch_size, use_gpu=False
+    ) -> rlt.PreprocessedMemoryNetworkInput:
         """
         :param batch_size: number of samples to return
         :param use_gpu: whether to put samples on gpu
-        :param batch_first: If True, the first dimension of data is batch_size.
-            If False (default), the first dimension is SEQ_LEN. Therefore,
-            state's shape is SEQ_LEN x BATCH_SIZE x STATE_DIM, for example. By default,
-            MDN-RNN consumes data with SEQ_LEN as the first dimension.
+        State's shape is SEQ_LEN x BATCH_SIZE x STATE_DIM, for example.
+        By default, MDN-RNN consumes data with SEQ_LEN as the first dimension.
         """
         sample_indices = np.random.randint(self.memory_size, size=batch_size)
         device = torch.device("cuda") if use_gpu else torch.device("cpu")
@@ -159,10 +145,10 @@ class MDNRNNMemoryPool:
             zip(*self.deque_sample(sample_indices)),
         )
 
-        if not batch_first:
-            state, action, next_state, reward, not_terminal = transpose(
-                state, action, next_state, reward, not_terminal
-            )
+        # make shapes seq_len x batch_size x feature_dim
+        state, action, next_state, reward, not_terminal = transpose(
+            state, action, next_state, reward, not_terminal
+        )
 
         training_input = rlt.PreprocessedMemoryNetworkInput(
             state=rlt.PreprocessedFeatureVector(float_features=state),
@@ -173,7 +159,7 @@ class MDNRNNMemoryPool:
             not_terminal=not_terminal,
             step=None,
         )
-        return rlt.PreprocessedTrainingBatch(training_input=training_input)
+        return training_input
 
     def insert_into_memory(self, state, action, next_state, reward, not_terminal):
         self.replay_memory.append(

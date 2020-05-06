@@ -8,7 +8,7 @@ from typing import Dict, Optional, Tuple, Union
 
 import gym
 import numpy as np
-import reagent.test.gym.pomdp  # noqa
+import reagent.gym.envs  # noqa
 import torch
 from gym import Env
 from reagent.gym.envs.env_factory import EnvFactory

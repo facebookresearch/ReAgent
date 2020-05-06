@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-import logging
+
+from .world_model import WorldModel
 
 
-logger = logging.getLogger(__name__)
+__all__ = ["WorldModel"]

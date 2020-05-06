@@ -4,14 +4,11 @@ import logging
 from typing import Dict, List
 
 import torch
-from reagent.models.mdn_rnn import transpose
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from reagent.types import (
-    ExtraData,
     PreprocessedFeatureVector,
     PreprocessedMemoryNetworkInput,
     PreprocessedStateAction,
-    PreprocessedTrainingBatch,
 )
 
 
@@ -25,9 +22,9 @@ class LossEvaluator(object):
         self.trainer = trainer
         self.state_dim = state_dim
 
-    def evaluate(self, tdp: PreprocessedTrainingBatch) -> Dict:
-        self.trainer.mdnrnn.mdnrnn.eval()
-        losses = self.trainer.get_loss(tdp, state_dim=self.state_dim, batch_first=True)
+    def evaluate(self, tdp: PreprocessedMemoryNetworkInput) -> Dict[str, float]:
+        self.trainer.memory_network.mdnrnn.eval()
+        losses = self.trainer.get_loss(tdp, state_dim=self.state_dim)
         detached_losses = {
             "loss": losses["loss"].cpu().detach().item(),
             "gmm": losses["gmm"].cpu().detach().item(),
@@ -35,7 +32,7 @@ class LossEvaluator(object):
             "mse": losses["mse"].cpu().detach().item(),
         }
         del losses
-        self.trainer.mdnrnn.mdnrnn.train()
+        self.trainer.memory_network.mdnrnn.train()
         return detached_losses
 
 
@@ -65,22 +62,20 @@ class FeatureImportanceEvaluator(object):
         self.sorted_action_feature_start_indices = sorted_action_feature_start_indices
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
-    def evaluate(self, tdp: PreprocessedTrainingBatch):
+    def evaluate(self, batch: PreprocessedMemoryNetworkInput):
         """ Calculate feature importance: setting each state/action feature to
         the mean value and observe loss increase. """
-        assert isinstance(tdp.training_input, PreprocessedMemoryNetworkInput)
 
-        self.trainer.mdnrnn.mdnrnn.eval()
-
-        state_features = tdp.training_input.state.float_features
-        action_features = tdp.training_input.action
-        batch_size, seq_len, state_dim = state_features.size()
+        self.trainer.memory_network.mdnrnn.eval()
+        state_features = batch.state.float_features
+        action_features = batch.action
+        seq_len, batch_size, state_dim = state_features.size()
         action_dim = action_features.size()[2]
         action_feature_num = self.action_feature_num
         state_feature_num = self.state_feature_num
         feature_importance = torch.zeros(action_feature_num + state_feature_num)
 
-        orig_losses = self.trainer.get_loss(tdp, state_dim=state_dim, batch_first=True)
+        orig_losses = self.trainer.get_loss(batch, state_dim=state_dim)
         orig_loss = orig_losses["loss"].cpu().detach().item()
         del orig_losses
 
@@ -90,7 +85,7 @@ class FeatureImportanceEvaluator(object):
         state_feature_boundaries = self.sorted_state_feature_start_indices + [state_dim]
 
         for i in range(action_feature_num):
-            action_features = tdp.training_input.action.reshape(
+            action_features = batch.action.reshape(
                 (batch_size * seq_len, action_dim)
             ).data.clone()
 
@@ -114,27 +109,22 @@ class FeatureImportanceEvaluator(object):
                     action_features[:, boundary_start:boundary_end]
                 )
 
-            action_features = action_features.reshape((batch_size, seq_len, action_dim))
-            new_tdp = PreprocessedTrainingBatch(
-                training_input=PreprocessedMemoryNetworkInput(
-                    state=tdp.training_input.state,
-                    action=action_features,
-                    next_state=tdp.training_input.next_state,
-                    reward=tdp.training_input.reward,
-                    time_diff=torch.ones_like(tdp.training_input.reward).float(),
-                    not_terminal=tdp.training_input.not_terminal,
-                    step=None,
-                ),
-                extras=ExtraData(),
+            action_features = action_features.reshape((seq_len, batch_size, action_dim))
+            new_batch = PreprocessedMemoryNetworkInput(
+                state=batch.state,
+                action=action_features,
+                next_state=batch.next_state,
+                reward=batch.reward,
+                time_diff=torch.ones_like(batch.reward).float(),
+                not_terminal=batch.not_terminal,
+                step=None,
             )
-            losses = self.trainer.get_loss(
-                new_tdp, state_dim=state_dim, batch_first=True
-            )
+            losses = self.trainer.get_loss(new_batch, state_dim=state_dim)
             feature_importance[i] = losses["loss"].cpu().detach().item() - orig_loss
             del losses
 
         for i in range(state_feature_num):
-            state_features = tdp.training_input.state.float_features.reshape(
+            state_features = batch.state.float_features.reshape(
                 (batch_size * seq_len, state_dim)
             ).data.clone()
             boundary_start, boundary_end = (
@@ -146,28 +136,23 @@ class FeatureImportanceEvaluator(object):
             ] = self.compute_median_feature_value(
                 state_features[:, boundary_start:boundary_end]
             )
-            state_features = state_features.reshape((batch_size, seq_len, state_dim))
-            new_tdp = PreprocessedTrainingBatch(
-                training_input=PreprocessedMemoryNetworkInput(
-                    state=PreprocessedFeatureVector(float_features=state_features),
-                    action=tdp.training_input.action,
-                    next_state=tdp.training_input.next_state,
-                    reward=tdp.training_input.reward,
-                    time_diff=torch.ones_like(tdp.training_input.reward).float(),
-                    not_terminal=tdp.training_input.not_terminal,
-                    step=None,
-                ),
-                extras=ExtraData(),
+            state_features = state_features.reshape((seq_len, batch_size, state_dim))
+            new_batch = PreprocessedMemoryNetworkInput(
+                state=PreprocessedFeatureVector(float_features=state_features),
+                action=batch.action,
+                next_state=batch.next_state,
+                reward=batch.reward,
+                time_diff=torch.ones_like(batch.reward).float(),
+                not_terminal=batch.not_terminal,
+                step=None,
             )
-            losses = self.trainer.get_loss(
-                new_tdp, state_dim=state_dim, batch_first=True
-            )
+            losses = self.trainer.get_loss(new_batch, state_dim=state_dim)
             feature_importance[i + action_feature_num] = (
                 losses["loss"].cpu().detach().item() - orig_loss
             )
             del losses
 
-        self.trainer.mdnrnn.mdnrnn.train()
+        self.trainer.memory_network.mdnrnn.train()
         logger.info(
             "**** Debug tool feature importance ****: {}".format(feature_importance)
         )
@@ -203,46 +188,31 @@ class FeatureSensitivityEvaluator(object):
         self.state_feature_num = state_feature_num
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
-    def evaluate(self, tdp: PreprocessedTrainingBatch):
+    def evaluate(self, batch: PreprocessedMemoryNetworkInput):
         """ Calculate state feature sensitivity due to actions:
         randomly permutating actions and see how much the prediction of next
         state feature deviates. """
-        mdnrnn_training_input = tdp.training_input
-        assert isinstance(mdnrnn_training_input, PreprocessedMemoryNetworkInput)
+        assert isinstance(batch, PreprocessedMemoryNetworkInput)
 
-        self.trainer.mdnrnn.mdnrnn.eval()
+        self.trainer.memory_network.mdnrnn.eval()
 
-        (
-            batch_size,
-            seq_len,
-            state_dim,
-        ) = mdnrnn_training_input.next_state.float_features.size()
+        seq_len, batch_size, state_dim = batch.next_state.float_features.size()
         state_feature_num = self.state_feature_num
         feature_sensitivity = torch.zeros(state_feature_num)
 
-        state, action, next_state, reward, not_terminal = transpose(
-            mdnrnn_training_input.state.float_features,
-            mdnrnn_training_input.action,
-            mdnrnn_training_input.next_state.float_features,
-            mdnrnn_training_input.reward,
-            mdnrnn_training_input.not_terminal,
-        )
-        mdnrnn_input = PreprocessedStateAction(
-            state=PreprocessedFeatureVector(float_features=state),
-            action=PreprocessedFeatureVector(float_features=action),
-        )
-        # the input of mdnrnn has seq-len as the first dimension
-        mdnrnn_output = self.trainer.mdnrnn(mdnrnn_input)
+        state = batch.state.float_features
+        action = batch.action
+        mdnrnn_input = PreprocessedStateAction.from_tensors(state, action)
+
+        # the input of world_model has seq-len as the first dimension
+        mdnrnn_output = self.trainer.memory_network(mdnrnn_input)
         predicted_next_state_means = mdnrnn_output.mus
 
-        shuffled_mdnrnn_input = PreprocessedStateAction(
-            state=PreprocessedFeatureVector(float_features=state),
-            # shuffle the actions
-            action=PreprocessedFeatureVector(
-                float_features=action[:, torch.randperm(batch_size), :]
-            ),
+        # shuffle the actions
+        shuffled_mdnrnn_input = PreprocessedStateAction.from_tensors(
+            state, action[:, torch.randperm(batch_size), :]
         )
-        shuffled_mdnrnn_output = self.trainer.mdnrnn(shuffled_mdnrnn_input)
+        shuffled_mdnrnn_output = self.trainer.memory_network(shuffled_mdnrnn_input)
         shuffled_predicted_next_state_means = shuffled_mdnrnn_output.mus
 
         assert (
@@ -272,7 +242,7 @@ class FeatureSensitivityEvaluator(object):
             )
             feature_sensitivity[i] = abs_diff.cpu().detach().item()
 
-        self.trainer.mdnrnn.mdnrnn.train()
+        self.trainer.memory_network.mdnrnn.train()
         logger.info(
             "**** Debug tool feature sensitivity ****: {}".format(feature_sensitivity)
         )

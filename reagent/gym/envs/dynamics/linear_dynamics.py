@@ -67,8 +67,10 @@ class LinDynaEnv(Env):
         # add the negative sign because we actually want to maximize the rewards, while an LRQ solution minimizes
         # rewards by convention
         reward = -(
-            state.T.dot(self.Q).dot(state) + action.T.dot(self.R).dot(action)
-        ).squeeze()
+            (
+                state.T.dot(self.Q).dot(state) + action.T.dot(self.R).dot(action)
+            ).squeeze()
+        )
         self.step_cnt += 1
         terminal = False
         if self.step_cnt >= self.max_steps:

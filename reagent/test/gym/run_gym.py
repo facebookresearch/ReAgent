@@ -13,12 +13,12 @@ import numpy as np
 import torch
 from reagent.json_serialize import json_to_object
 from reagent.parameters import (
-    CEMParameters,
+    CEMTrainerParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
     EvaluationParameters,
     FeedForwardParameters,
-    MDNRNNParameters,
+    MDNRNNTrainerParameters,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -95,8 +95,8 @@ class OpenAiGymParameters(BaseDataClass):
     sac_value_training: Optional[FeedForwardParameters] = None
     critic_training: Optional[FeedForwardParameters] = None
     actor_training: Optional[FeedForwardParameters] = None
-    cem: Optional[CEMParameters] = None
-    mdnrnn: Optional[MDNRNNParameters] = None
+    cem: Optional[CEMTrainerParameters] = None
+    mdnrnn: Optional[MDNRNNTrainerParameters] = None
     evaluation: EvaluationParameters = EvaluationParameters()
 
 

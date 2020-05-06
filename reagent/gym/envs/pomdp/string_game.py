@@ -3,6 +3,14 @@
 """
 The agent can observe a character at one time. But the
 reward is given based on last n (n>1) steps' observation (a string).
+In this environment, the agent can observe a character ("A", "B") at
+each time step, but the reward it receives actually depends on past 3 steps:
+if the agent observes "ABB" in the past 3 steps, it receives +5 reward; if the
+agent observes "BBB", it receives -5 reward; otherwise, the agent receives 0.
+The action is the next character the agent wants to reveal, and the next state
+is exactly the action just taken (i.e., the transition function only depends on
+the action). Each episode is limited to 6 steps. Therefore, the optimal policy
+is to choose actions "ABBABB" in sequence which results to +10 reward.
 """
 import itertools
 import logging
@@ -27,7 +35,7 @@ class StringGameEnv(Env):
     def __init__(self):
         np.random.seed(123)
         torch.manual_seed(123)
-        self.max_step = MAX_STEP
+        self._max_episode_steps = MAX_STEP
         self.reward_map = {}
         self._init_reward()
         logger.debug(self.reward_map)
