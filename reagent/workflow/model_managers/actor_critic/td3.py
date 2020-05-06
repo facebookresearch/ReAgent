@@ -32,11 +32,15 @@ class TD3(ActorCriticBase):
 
     trainer_param: TD3TrainingParameters = field(default_factory=TD3TrainingParameters)
     actor_net_builder: ContinuousActorNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ContinuousActorNetBuilder__Union(
             FullyConnected=ContinuousFullyConnected()
         )
     )
     critic_net_builder: ParametricDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ParametricDQNNetBuilder__Union(
             FullyConnected=ParametricFullyConnected()
         )
@@ -51,6 +55,8 @@ class TD3(ActorCriticBase):
 
     def build_trainer(self) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
+        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
+        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
             self.get_normalization_data(NormalizationKey.STATE),
             self.get_normalization_data(NormalizationKey.ACTION),
@@ -86,6 +92,8 @@ class TD3(ActorCriticBase):
 
     def build_serving_module(self) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
+        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
+        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,

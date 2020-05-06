@@ -24,6 +24,8 @@ class ReporterBase(CompositeObserver):
             observer.flush()
 
         num_batches = len(self.td_loss.values) - self.last_epoch_end_num_batches
+        # pyre-fixme[16]: `ReporterBase` has no attribute `last_epoch_end_num_batches`.
+        # pyre-fixme[16]: `ReporterBase` has no attribute `last_epoch_end_num_batches`.
         self.last_epoch_end_num_batches = len(self.td_loss.values)
         if self.num_data_points_per_epoch is None:
             self.num_data_points_per_epoch = num_batches

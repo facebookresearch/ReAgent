@@ -29,6 +29,9 @@ from reagent.readers.json_dataset_reader import JSONDatasetReader
 from reagent.tensorboardX import summary_writer_context
 from reagent.torch_utils import export_module_to_buffer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
+
+# pyre-fixme[21]: Could not find `base_workflow`.
+# pyre-fixme[21]: Could not find `base_workflow`.
 from reagent.workflow.base_workflow import BaseWorkflow
 from reagent.workflow.helpers import (
     minibatch_size_multiplier,
@@ -51,6 +54,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
+# pyre-fixme[11]: Annotation `BaseWorkflow` is not defined as a type.
+# pyre-fixme[11]: Annotation `BaseWorkflow` is not defined as a type.
 class ParametricDqnWorkflow(BaseWorkflow):
     def __init__(
         self,
@@ -85,6 +90,8 @@ class ParametricDqnWorkflow(BaseWorkflow):
             metrics_to_score=trainer.metrics_to_score,
         )
 
+        # pyre-fixme[19]: Expected 0 positional arguments.
+        # pyre-fixme[19]: Expected 0 positional arguments.
         super().__init__(
             ParametricDqnBatchPreprocessor(
                 Preprocessor(state_normalization, use_gpu),
@@ -107,6 +114,8 @@ class ParametricDqnWorkflow(BaseWorkflow):
 
         state_preprocessor = Preprocessor(self.state_normalization, False)
         action_preprocessor = Preprocessor(self.action_normalization, False)
+        # pyre-fixme[16]: `ParametricDqnWorkflow` has no attribute `trainer`.
+        # pyre-fixme[16]: `ParametricDqnWorkflow` has no attribute `trainer`.
         q_network = self.trainer.q_network
         dqn_with_preprocessor = ParametricDqnWithPreprocessor(
             q_network.cpu_model().eval(), state_preprocessor, action_preprocessor
@@ -116,6 +125,10 @@ class ParametricDqnWorkflow(BaseWorkflow):
         )
         logger.info("Saving PyTorch trainer to {}".format(pytorch_output_path))
         save_model_to_file(self.trainer, pytorch_output_path)
+        # pyre-fixme[16]: `ParametricDqnWorkflow` has no attribute
+        #  `save_torchscript_model`.
+        # pyre-fixme[16]: `ParametricDqnWorkflow` has no attribute
+        #  `save_torchscript_model`.
         self.save_torchscript_model(serving_module, torchscript_output_path)
 
 

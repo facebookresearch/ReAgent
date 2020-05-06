@@ -227,6 +227,8 @@ class TrainingDataPage(object):
 
     def size(self) -> int:
         if self.states:
+            # pyre-fixme[6]: Expected `Sized` for 1st param but got
+            #  `Optional[torch.Tensor]`.
             return len(self.states)
         raise Exception("Cannot get size of TrainingDataPage missing states.")
 

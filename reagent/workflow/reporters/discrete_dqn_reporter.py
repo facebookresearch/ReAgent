@@ -46,6 +46,14 @@ class DiscreteDQNReporter(ReporterBase):
                 ),
                 ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
             ]
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
+            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
+            #  `List[typing.Tuple[str, agg.TensorBoardActionCountAggregator]]`.
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
+            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
+            #  `List[typing.Tuple[str, agg.TensorBoardActionCountAggregator]]`.
             + [
                 (f"{key}_tb", agg.TensorBoardActionCountAggregator(key, title, actions))
                 for key, title in [
@@ -53,6 +61,14 @@ class DiscreteDQNReporter(ReporterBase):
                     ("model_action_idxs", "model"),
                 ]
             ]
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
+            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
+            #  `List[typing.Tuple[str, agg.TensorBoardHistogramAndMeanAggregator]]`.
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
+            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
+            #  `List[typing.Tuple[str, agg.TensorBoardHistogramAndMeanAggregator]]`.
             + [
                 (f"{key}_tb", agg.TensorBoardHistogramAndMeanAggregator(key, log_key))
                 for key, log_key in [
@@ -62,6 +78,16 @@ class DiscreteDQNReporter(ReporterBase):
                     ("logged_rewards", "reward/logged"),
                 ]
             ]
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
+            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
+            #  `List[typing.Tuple[str,
+            #  agg.TensorBoardActionHistogramAndMeanAggregator]]`.
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
+            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
+            #  `List[typing.Tuple[str,
+            #  agg.TensorBoardActionHistogramAndMeanAggregator]]`.
             + [
                 (
                     f"{key}_tb",
@@ -80,8 +106,16 @@ class DiscreteDQNReporter(ReporterBase):
         self.num_data_points_per_epoch = None
         epoch_end_observer = EpochEndObserver(self._epoch_end_callback)
         super().__init__(
+            # pyre-fixme[6]: Expected `List[reagent.core.tracker.Observer]` for 1st
+            #  param but got `List[ValueListObserver]`.
+            # pyre-fixme[6]: Expected `List[reagent.core.tracker.Observer]` for 1st
+            #  param but got `List[ValueListObserver]`.
             list(self.value_list_observers.values())
             + list(self.aggregating_observers.values())
+            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
+            #  got `List[EpochEndObserver]`.
+            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
+            #  got `List[EpochEndObserver]`.
             + [epoch_end_observer]
         )
         self.target_action_distribution = target_action_distribution

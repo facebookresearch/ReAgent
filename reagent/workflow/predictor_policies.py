@@ -13,6 +13,10 @@ class DiscreteDqnTorchPredictorPolicy(Policy):
     def __init__(self, predictor):
         self.predictor = predictor
 
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
+    # pyre-fixme[15]: `act` overrides method defined in `Policy` inconsistently.
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
+    # pyre-fixme[15]: `act` overrides method defined in `Policy` inconsistently.
     def act(
         self,
         preprocessed_state: rlt.PreprocessedState,
@@ -35,6 +39,10 @@ class ActorTorchPredictorPolicy(Policy):
     def __init__(self, predictor):
         self.predictor = predictor
 
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
+    # pyre-fixme[15]: `act` overrides method defined in `Policy` inconsistently.
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
+    # pyre-fixme[15]: `act` overrides method defined in `Policy` inconsistently.
     def act(
         self,
         preprocessed_state: rlt.PreprocessedState,

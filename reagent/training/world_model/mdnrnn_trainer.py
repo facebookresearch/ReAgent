@@ -49,13 +49,17 @@ class MDNRNNTrainer:
 
         self.minibatch += 1
         if batch_first:
-            batch_size, seq_len, state_dim = (
-                training_batch.training_input.state.float_features.shape
-            )
+            (
+                batch_size,
+                seq_len,
+                state_dim,
+            ) = training_batch.training_input.state.float_features.shape
         else:
-            seq_len, batch_size, state_dim = (
-                training_batch.training_input.state.float_features.shape
-            )
+            (
+                seq_len,
+                batch_size,
+                state_dim,
+            ) = training_batch.training_input.state.float_features.shape
 
         self.mdnrnn.mdnrnn.train()
         self.optimizer.zero_grad()
@@ -122,9 +126,9 @@ class MDNRNNTrainer:
                 learning_input.action,
                 learning_input.next_state.float_features,
                 learning_input.reward,
-                learning_input.not_terminal,  # type: ignore
+                learning_input.not_terminal,
             )
-            learning_input = rlt.PreprocessedMemoryNetworkInput(  # type: ignore
+            learning_input = rlt.PreprocessedMemoryNetworkInput(
                 state=rlt.PreprocessedFeatureVector(float_features=state),
                 reward=reward,
                 time_diff=torch.ones_like(reward).float(),
@@ -135,10 +139,8 @@ class MDNRNNTrainer:
             )
 
         mdnrnn_input = rlt.PreprocessedStateAction(
-            state=learning_input.state,  # type: ignore
-            action=rlt.PreprocessedFeatureVector(
-                float_features=learning_input.action
-            ),  # type: ignore
+            state=learning_input.state,
+            action=rlt.PreprocessedFeatureVector(float_features=learning_input.action),
         )
         mdnrnn_output = self.mdnrnn(mdnrnn_input)
         mus, sigmas, logpi, rs, nts = (
@@ -150,7 +152,7 @@ class MDNRNNTrainer:
         )
 
         next_state = learning_input.next_state.float_features
-        not_terminal = learning_input.not_terminal  # type: ignore
+        not_terminal = learning_input.not_terminal
         reward = learning_input.reward
         if self.params.fit_only_one_next_step:
             next_state, not_terminal, reward, mus, sigmas, logpi, nts, rs = tuple(

@@ -28,11 +28,15 @@ class DiscreteQRDQN(DiscreteDQNBase):
         default_factory=QRDQNTrainerParameters
     )
     net_builder: QRDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `DuelingQuantile`.
+        # pyre-fixme[28]: Unexpected keyword argument `DuelingQuantile`.
         default_factory=lambda: QRDQNNetBuilder__Union(
             DuelingQuantile=DuelingQuantile()
         )
     )
     cpe_net_builder: QRDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `Quantile`.
+        # pyre-fixme[28]: Unexpected keyword argument `Quantile`.
         default_factory=lambda: QRDQNNetBuilder__Union(Quantile=Quantile())
     )
 
@@ -49,7 +53,10 @@ class DiscreteQRDQN(DiscreteDQNBase):
     def build_trainer(self) -> QRDQNTrainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
-            self.state_normalization_parameters, len(self.action_names)
+            self.state_normalization_parameters,
+            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
+            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
+            len(self.action_names),
         )
 
         if self.use_gpu:
@@ -78,6 +85,8 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
             q_network_cpe_target = q_network_cpe.get_target_network()
 
+        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
+        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
         self._q_network = q_network
         trainer = QRDQNTrainer(
             q_network,
@@ -96,11 +105,15 @@ class DiscreteQRDQN(DiscreteDQNBase):
         """
         Returns a TorchScript predictor module
         """
+        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
+        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
         assert self._q_network is not None, "_q_network was not initialized"
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
             self.state_normalization_parameters,
+            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
+            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

@@ -36,6 +36,7 @@ class DiscreteRandomPolicy(Policy):
         possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
+        # pyre-fixme[9]: obs has type `PreprocessedState`; used as `Tensor`.
         obs = obs.state.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.shape[0]
@@ -76,8 +77,10 @@ class ContinuousRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
     def act(self, obs: rlt.PreprocessedState) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
+        # pyre-fixme[9]: obs has type `PreprocessedState`; used as `Tensor`.
         obs = obs.state.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.size(0)

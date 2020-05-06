@@ -132,6 +132,7 @@ class DoublyRobustEstimator:
         if edp.contexts is None:
             raise ValueError("contexts not provided in input")
         contexts_dict = {
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             "train": edp.contexts[idx_train],
             "valid": edp.contexts[idx_valid],
             "eval": edp.contexts[idx_eval],
@@ -361,12 +362,15 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
             edp.contexts is not None
         ), "edp.contexts have to be specified when using the estimation-based methods"
         num_actions = edp.model_propensities.shape[1]
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `frac_train`.
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `frac_valid`.
         tved = self._split_data(edp, self.frac_train, self.frac_valid)
 
         actions_target_dict = {}
         contexts_actions_target_dict = {}
         weights_target_dict = {}
         policy_indicators_target_dict = {}
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `mode`.
         if self.mode == "bope_sampling":
             for d in ["train", "valid"]:
                 # model_propensities is N*N_actions tensor of propensity scores
@@ -374,6 +378,8 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
                 actions_target_dict[d] = (
                     torch.multinomial(
                         tved.model_propensities_dict[d],
+                        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no
+                        #  attribute `num_samples`.
                         self.num_samples,
                         replacement=True,
                     )
@@ -548,6 +554,8 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
     def _estimate_xgboost_model(
         self,
         ed: EstimationData,
+        # pyre-fixme[9]: xgb_params has type `Dict[str, Union[float, int, str]]`;
+        #  used as `None`.
         xgb_params: Dict[str, Union[str, float, int]] = None,
         nthread: int = 8,
     ) -> xgb.Booster:
@@ -576,7 +584,11 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
         return classifier
 
     def _get_importance_sampling_inputs(
-        self, ed: EstimationData, xgb_params: Dict[str, Union[str, float, int]] = None
+        self,
+        ed: EstimationData,
+        # pyre-fixme[9]: xgb_params has type `Dict[str, Union[float, int, str]]`;
+        #  used as `None`.
+        xgb_params: Dict[str, Union[str, float, int]] = None,
     ) -> ImportanceSamplingData:
         classifier = self._estimate_xgboost_model(ed, xgb_params)
 
@@ -584,7 +596,10 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
         # overfitting
         predictions = classifier.predict(xgb.DMatrix(ed.contexts_actions_eval))
 
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `mode`.
         if self.mode == "bope_sampling":
+            # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute
+            #  `num_samples`.
             bope_weight_normalization_factor = 1.0 / self.num_samples
         else:
             bope_weight_normalization_factor = 1.0
@@ -596,6 +611,7 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
             * bope_weight_normalization_factor
         )
         return ImportanceSamplingData(
+            # pyre-fixme[6]: Expected `Tensor` for 1st param but got `float`.
             importance_weight=importance_weights,
             logged_rewards=ed.logged_rewards_eval,
             model_rewards=ed.model_rewards_eval,
@@ -610,13 +626,17 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
             raise ValueError("Hyperparameters have to be provided for BOP-E")
         if hp.bope_mode is None:
             raise ValueError("bope_mode has to be specified in hyperparameters")
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `mode`.
         self.mode = hp.bope_mode
         if (self.mode == "bope_sampling") and (hp.bope_num_samples is None):
             raise ValueError(
                 "Number of samples has to be specified for mode 'bope_sampling'"
             )
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `num_samples`.
         self.num_samples = 0 if hp.bope_num_samples is None else hp.bope_num_samples
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `frac_train`.
         self.frac_train = hp.frac_train
+        # pyre-fixme[16]: `DoublyRobustEstimatorBOPE` has no attribute `frac_valid`.
         self.frac_valid = hp.frac_train
         xgb_params: Dict[str, Union[str, float, int]] = hp.xgb_params or {}
         ed = self._prepare_data(edp)
@@ -629,7 +649,10 @@ class DoublyRobustEstimatorEstProp(DoublyRobustEstimator):
         assert (
             edp.contexts is not None
         ), "edp.contexts have to be specified when using the estimation-based methods"
+        # pyre-fixme[16]: `DoublyRobustEstimatorEstProp` has no attribute `num_actions`.
         self.num_actions = edp.model_propensities.shape[1]
+        # pyre-fixme[16]: `DoublyRobustEstimatorEstProp` has no attribute `frac_train`.
+        # pyre-fixme[16]: `DoublyRobustEstimatorEstProp` has no attribute `frac_valid`.
         tved = self._split_data(edp, self.frac_train, self.frac_valid)
 
         return EstimationData(
@@ -660,6 +683,8 @@ class DoublyRobustEstimatorEstProp(DoublyRobustEstimator):
         self,
         ed: EstimationData,
         num_classes: int,
+        # pyre-fixme[9]: xgb_params has type `Dict[str, Union[float, int, str]]`;
+        #  used as `None`.
         xgb_params: Dict[str, Union[str, float, int]] = None,
         nthread: int = 8,
     ) -> xgb.Booster:
@@ -684,8 +709,13 @@ class DoublyRobustEstimatorEstProp(DoublyRobustEstimator):
         return classifier
 
     def _get_importance_sampling_inputs(
-        self, ed: EstimationData, xgb_params: Dict[str, Union[str, float, int]] = None
+        self,
+        ed: EstimationData,
+        # pyre-fixme[9]: xgb_params has type `Dict[str, Union[float, int, str]]`;
+        #  used as `None`.
+        xgb_params: Dict[str, Union[str, float, int]] = None,
     ):
+        # pyre-fixme[16]: `DoublyRobustEstimatorEstProp` has no attribute `num_actions`.
         classifier = self._estimate_xgboost_model(ed, self.num_actions, xgb_params)
         # predictions are made only for the eval set to prevent classifier
         # overfitting
@@ -695,7 +725,9 @@ class DoublyRobustEstimatorEstProp(DoublyRobustEstimator):
         if ed.actions_logged_eval is None:
             raise ValueError("ed.actions_logged_eval has to be non-None")
         ret = predicted_logged_propensities_all_actions.gather(
-            1, ed.actions_logged_eval.long()
+            1,
+            # pyre-fixme[16]: `Optional` has no attribute `long`.
+            ed.actions_logged_eval.long(),
         )
         predicted_logged_policy_propensities_logged_actions = ret
 
@@ -719,7 +751,9 @@ class DoublyRobustEstimatorEstProp(DoublyRobustEstimator):
         self, edp: EvaluationDataPage, hp: Optional[DoublyRobustHP] = None
     ) -> Tuple[CpeEstimate, CpeEstimate, CpeEstimate]:
         hp = hp or DoublyRobustHP()
+        # pyre-fixme[16]: `DoublyRobustEstimatorEstProp` has no attribute `frac_train`.
         self.frac_train = hp.frac_train
+        # pyre-fixme[16]: `DoublyRobustEstimatorEstProp` has no attribute `frac_valid`.
         self.frac_valid = hp.frac_valid
         xgb_params = hp.xgb_params or {}
         ed = self._prepare_data(edp)

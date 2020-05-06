@@ -81,6 +81,8 @@ class Seq2SlateSimulationTrainer(Trainer):
         self.permutation_index = torch.tensor(
             list(
                 permutations(
+                    # pyre-fixme[6]: Expected `Iterable[Variable[itertools._T]]` for
+                    #  1st param but got `Tensor`.
                     torch.arange(seq2slate_net.max_src_seq_len),
                     seq2slate_net.max_tgt_seq_len,
                 )
@@ -89,6 +91,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         ).long()
 
         if self.parameters.simulation_distance_penalty is not None:
+            # pyre-fixme[16]: `Optional` has no attribute `__gt__`.
             assert self.parameters.simulation_distance_penalty > 0
             self.permutation_distance = (
                 torch.tensor(
@@ -114,9 +117,11 @@ class Seq2SlateSimulationTrainer(Trainer):
         self, training_input, sim_tgt_out_idx, sim_distance, device
     ):
         batch_size, max_tgt_seq_len = sim_tgt_out_idx.shape
-        _, max_src_seq_len, candidate_feat_dim = (
-            training_input.src_seq.float_features.shape
-        )
+        (
+            _,
+            max_src_seq_len,
+            candidate_feat_dim,
+        ) = training_input.src_seq.float_features.shape
 
         # candidates + padding_symbol + decoder_start_symbol
         candidate_size = max_src_seq_len + 2
@@ -131,9 +136,7 @@ class Seq2SlateSimulationTrainer(Trainer):
 
         sim_tgt_in_seq = rlt.PreprocessedFeatureVector(
             float_features=src_seq_augment[
-                torch.arange(
-                    batch_size, device=device
-                ).repeat_interleave(  # type: ignore
+                torch.arange(batch_size, device=device).repeat_interleave(
                     max_tgt_seq_len
                 ),
                 sim_tgt_in_idx.flatten(),
@@ -141,9 +144,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         )
         sim_tgt_out_seq = rlt.PreprocessedFeatureVector(
             float_features=src_seq_augment[
-                torch.arange(
-                    batch_size, device=device
-                ).repeat_interleave(  # type: ignore
+                torch.arange(batch_size, device=device).repeat_interleave(
                     max_tgt_seq_len
                 ),
                 sim_tgt_out_idx.flatten(),

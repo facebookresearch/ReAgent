@@ -45,8 +45,11 @@ def box_obs_preprocessor(obs: torch.Tensor) -> rlt.PreprocessedState:
 def discrete_action_extractor(actor_output: rlt.ActorOutput):
     action = actor_output.action
     assert (
-        action.ndim == 2 and action.shape[0] == 1
+        # pyre-fixme[16]: `Tensor` has no attribute `ndim`.
+        action.ndim == 2
+        and action.shape[0] == 1
     ), f"{action} is not a single batch of results!"
+    # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
     return action.squeeze(0).argmax().cpu().numpy()
 
 
@@ -58,6 +61,7 @@ def rescale_actions(
     prev_max: float,
 ):
     """ Scale from [prev_min, prev_max] to [new_min, new_max] """
+    # pyre-fixme[6]: Expected `float` for 1st param but got `ndarray`.
     assert np.all(prev_min <= actions) and np.all(
         actions <= prev_max
     ), f"{actions} has values outside of [{prev_min}, {prev_max}]."
@@ -78,7 +82,9 @@ def make_box_action_extractor(action_space: spaces.Box):
     def box_action_extractor(actor_output: rlt.ActorOutput):
         action = actor_output.action
         assert (
-            action.ndim == 2 and action.shape[0] == 1
+            # pyre-fixme[16]: `Tensor` has no attribute `ndim`.
+            action.ndim == 2
+            and action.shape[0] == 1
         ), f"{action} is not a single batch of results!"
         return rescale_actions(
             action.squeeze(0).cpu().numpy(),

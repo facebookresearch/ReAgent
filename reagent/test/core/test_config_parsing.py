@@ -55,9 +55,8 @@ class FooUnion(TaggedUnion):
 @dataclass
 class Config:
     union: FooUnion = field(
-        default_factory=lambda: FooUnion(  # type: ignore
-            Foo=Foo()
-        )
+        # pyre-fixme[28]: Unexpected keyword argument `Foo`.
+        default_factory=lambda: FooUnion(Foo=Foo())
     )
 
 

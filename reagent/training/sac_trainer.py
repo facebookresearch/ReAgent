@@ -117,10 +117,13 @@ class SACTrainer(RLTrainer):
                 [np.log(self.entropy_temperature)], requires_grad=True, device=device
             )
             self.alpha_optimizer = self._get_optimizer_func(
+                # pyre-fixme[16]: `Optional` has no attribute `optimizer`.
                 parameters.alpha_optimizer.optimizer
             )(
                 [self.log_alpha],
+                # pyre-fixme[16]: `Optional` has no attribute `learning_rate`.
                 lr=parameters.alpha_optimizer.learning_rate,
+                # pyre-fixme[16]: `Optional` has no attribute `l2_decay`.
                 weight_decay=parameters.alpha_optimizer.l2_decay,
             )
 
@@ -159,7 +162,8 @@ class SACTrainer(RLTrainer):
                 components += ["q2_network_target"]
         return components
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.PolicyNetworkInput) -> None:
         """
         IMPORTANT: the input action here is assumed to match the
@@ -259,6 +263,7 @@ class SACTrainer(RLTrainer):
                 self.q1_network_optimizer, self.minibatches_per_step
             )
             if self.q2_network:
+                # pyre-fixme[18]: Global name `q2_value` is undefined.
                 q2_loss = F.mse_loss(q2_value, target_q_value)
                 q2_loss.backward()
                 self._maybe_run_optimizer(
@@ -296,6 +301,7 @@ class SACTrainer(RLTrainer):
                     action_batch_v = torch.var(actor_output.action, axis=0)
                 kld = (
                     0.5
+                    # pyre-fixme[16]: `int` has no attribute `sum`.
                     * (
                         (action_batch_v + (action_batch_m - self.action_emb_mean) ** 2)
                         / self.action_emb_variance
@@ -369,6 +375,7 @@ class SACTrainer(RLTrainer):
             if self.q2_network:
                 SummaryWriterContext.add_histogram("q2/logged_state_value", q2_value)
 
+            # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
             SummaryWriterContext.add_scalar(
                 "entropy_temperature", self.entropy_temperature
             )

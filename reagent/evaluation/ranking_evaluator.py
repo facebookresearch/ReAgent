@@ -59,12 +59,17 @@ class RankingEvaluator:
 
         if self.trainer.baseline_net:
             baseline_net = self.trainer.baseline_net
+            # pyre-fixme[16]: `Optional` has no attribute `training`.
             baseline_net_prev_mode = baseline_net.training
+            # pyre-fixme[16]: `Optional` has no attribute `eval`.
             baseline_net.eval()
+            # pyre-fixme[29]: `Optional[reagent.models.seq2slate.BaselineNet]` is
+            #  not a function.
             b = baseline_net(eval_tdp.training_input).detach()
             self.baseline_loss.append(
                 F.mse_loss(b, eval_tdp.training_input.slate_reward).item()
             )
+            # pyre-fixme[16]: `Optional` has no attribute `train`.
             baseline_net.train(baseline_net_prev_mode)
         else:
             b = torch.zeros_like(eval_tdp.training_input.slate_reward)
@@ -98,6 +103,8 @@ class RankingEvaluator:
 
         edp_g = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
+            # pyre-fixme[6]: Expected `Module` for 2nd param but got
+            #  `Optional[nn.Module]`.
             self.reward_network,
             eval_tdp.training_input,
             eval_greedy=True,
@@ -105,10 +112,13 @@ class RankingEvaluator:
         if self.eval_data_pages_g is None:
             self.eval_data_pages_g = edp_g
         else:
+            # pyre-fixme[16]: `Optional` has no attribute `append`.
             self.eval_data_pages_g = self.eval_data_pages_g.append(edp_g)
 
         edp_ng = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
+            # pyre-fixme[6]: Expected `Module` for 2nd param but got
+            #  `Optional[nn.Module]`.
             self.reward_network,
             eval_tdp.training_input,
             eval_greedy=False,
@@ -143,9 +153,11 @@ class RankingEvaluator:
             )
 
             doubly_robust_estimator = DoublyRobustEstimator()
-            direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
-                self.eval_data_pages_g
-            )
+            (
+                direct_method,
+                inverse_propensity,
+                doubly_robust,
+            ) = doubly_robust_estimator.estimate(self.eval_data_pages_g)
             eval_res["cpe_dm_raw"] = direct_method.raw
             eval_res["cpe_dm_normalized"] = direct_method.normalized
             eval_res["cpe_ips_raw_greedy"] = inverse_propensity.raw

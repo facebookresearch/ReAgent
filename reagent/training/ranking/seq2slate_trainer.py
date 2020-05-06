@@ -37,7 +37,9 @@ class Seq2SlateTrainer(Trainer):
         if self.baseline_net:
             assert self.parameters.baseline
             self.baseline_opt = torch.optim.Adam(
+                # pyre-fixme[16]: `Optional` has no attribute `parameters`.
                 self.baseline_net.parameters(),
+                # pyre-fixme[16]: `Optional` has no attribute `learning_rate`.
                 lr=self.parameters.baseline.learning_rate,
                 amsgrad=True,
             )
@@ -79,6 +81,7 @@ class Seq2SlateTrainer(Trainer):
 
         if self.baseline_net:
             # Train baseline
+            # pyre-fixme[29]: `Optional[BaselineNet]` is not a function.
             b = self.baseline_net(training_input)
             baseline_loss = 1.0 / batch_size * torch.sum((b - reward) ** 2)
             self.baseline_opt.zero_grad()
@@ -125,6 +128,7 @@ class Seq2SlateTrainer(Trainer):
 
         if (
             self.parameters.baseline is None
+            # pyre-fixme[16]: `Optional` has no attribute `warmup_num_batches`.
             or self.minibatch >= self.parameters.baseline.warmup_num_batches
         ):
             self.rl_opt.zero_grad()

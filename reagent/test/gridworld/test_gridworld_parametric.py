@@ -34,7 +34,8 @@ class TestGridworldParametric(GridworldTestBase):
         super().setUp()
 
     def get_sarsa_parameters(self) -> ParametricDQNTrainerParameters:
-        return ParametricDQNTrainerParameters(  # type: ignore
+        # pyre-fixme[28]: Unexpected keyword argument `rl`.
+        return ParametricDQNTrainerParameters(
             rl=RLParameters(
                 gamma=DISCOUNT, target_update_rate=1.0, maxq_learning=False
             ),
@@ -69,7 +70,7 @@ class TestGridworldParametric(GridworldTestBase):
                 reward_network = reward_network.get_distributed_data_parallel_model()
 
         q_network_target = q_network.get_target_network()
-        param_dict = parameters.asdict()  # type: ignore
+        param_dict = parameters.asdict()
         trainer = ParametricDQNTrainer(
             q_network, q_network_target, reward_network, **param_dict
         )

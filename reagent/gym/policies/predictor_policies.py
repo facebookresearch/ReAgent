@@ -13,6 +13,7 @@ class ActorPredictorPolicy(Policy):
         self.predictor = predictor
 
     @torch.no_grad()
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
     def act(self, obs: Any) -> rlt.ActorOutput:
         action = self.predictor(obs).cpu()
         # TODO: return log_probs as well

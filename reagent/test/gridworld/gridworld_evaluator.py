@@ -61,7 +61,7 @@ class GridworldEvaluator(Evaluator):
         self.estimated_ltv_values = np.zeros(
             [len(self.logged_states), len(self._env.ACTIONS)], dtype=np.float32
         )
-        for action in range(len(self._env.ACTIONS)):  # type: ignore
+        for action in range(len(self._env.ACTIONS)):
             self.estimated_ltv_values[:, action] = self._env.true_values_for_sample(
                 self.logged_states,
                 [self._env.index_to_action(action)] * len(self.logged_states),
@@ -71,7 +71,7 @@ class GridworldEvaluator(Evaluator):
         self.estimated_reward_values = np.zeros(
             [len(self.logged_states), len(self._env.ACTIONS)], dtype=np.float32
         )
-        for action in range(len(self._env.ACTIONS)):  # type: ignore
+        for action in range(len(self._env.ACTIONS)):
             self.estimated_reward_values[:, action] = self._env.true_rewards_for_sample(
                 self.logged_states,
                 [self._env.index_to_action(action)] * len(self.logged_states),

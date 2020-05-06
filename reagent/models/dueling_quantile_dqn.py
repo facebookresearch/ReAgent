@@ -52,14 +52,14 @@ class DuelingQuantileDQN(ModelBase):
             init.constant_(self.layers[i].bias, 0)
 
         # Split last layer into a value & advantage stream
-        self.advantage = nn.Sequential(  # type: ignore
+        self.advantage = nn.Sequential(
             nn.Linear(int(layers[-2]), int(layers[-2] / 2)),
-            nn.ReLU(),  # type: ignore
+            nn.ReLU(),
             nn.Linear(int(layers[-2] / 2), layers[-1] * self.num_atoms),
         )
-        self.value = nn.Sequential(  # type: ignore
+        self.value = nn.Sequential(
             nn.Linear(int(layers[-2]), int(layers[-2] / 2)),
-            nn.ReLU(),  # type: ignore
+            nn.ReLU(),
             nn.Linear(int(layers[-2] / 2), self.num_atoms),
         )
         self._name = "unnamed"
@@ -99,6 +99,7 @@ class DuelingQuantileDQN(ModelBase):
                 "dueling_network/{}/value".format(self._name),
                 value.detach().mean(dim=2).cpu(),
             )
+            # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
             SummaryWriterContext.add_scalar(
                 "dueling_network/{}/mean_value".format(self._name),
                 value.detach().mean().cpu(),

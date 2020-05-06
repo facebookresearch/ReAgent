@@ -10,7 +10,7 @@ from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.tensorboardX import SummaryWriterContext
-from torch.distributions import Dirichlet  # type: ignore
+from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 
 
@@ -106,8 +106,8 @@ class GaussianFullyConnectedActor(ModelBase):
         )
         self.use_layer_norm = use_layer_norm
         if self.use_layer_norm:
-            self.loc_layer_norm = torch.nn.LayerNorm(action_dim)  # type: ignore
-            self.scale_layer_norm = torch.nn.LayerNorm(action_dim)  # type: ignore
+            self.loc_layer_norm = torch.nn.LayerNorm(action_dim)
+            self.scale_layer_norm = torch.nn.LayerNorm(action_dim)
 
         # used to calculate log-prob
         self.const = math.log(math.sqrt(2 * math.pi))
@@ -184,7 +184,7 @@ class GaussianFullyConnectedActor(ModelBase):
         """
         return ((1 + x).log() - (1 - x).log()) / 2
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def get_log_prob(self, state, squashed_action):
         """
         Action is expected to be squashed with tanh
@@ -251,7 +251,7 @@ class DirichletFullyConnectedActor(ModelBase):
         """
         return self.fc(state.float_features).exp() + self.EPSILON
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def get_log_prob(self, state, action):
         concentration = self._get_concentration(state)
         log_prob = Dirichlet(concentration).log_prob(action)

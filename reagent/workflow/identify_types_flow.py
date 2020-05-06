@@ -3,6 +3,8 @@
 
 from typing import Dict, List, Optional
 
+# pyre-fixme[21]: Could not find `pyspark`.
+# pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, collect_list, explode
 from reagent.preprocessing.normalization import (
     NormalizationParameters,
@@ -34,11 +36,13 @@ def normalization_helper(
         "skip_quantiles": skip_quantiles,
         "feature_overrides": feature_overrides,
     }
+    # pyre-fixme[9]: whitelist_features has type `Optional[List[int]]`; used as
+    #  `Set[int]`.
+    # pyre-fixme[9]: whitelist_features has type `Optional[List[int]]`; used as
+    #  `Set[int]`.
     whitelist_features = set(whitelist_features or [])
 
-    def validate_whitelist_features(
-        params: Dict[int, NormalizationParameters],
-    ) -> None:
+    def validate_whitelist_features(params: Dict[int, NormalizationParameters]) -> None:
         if not whitelist_features:
             return
         whitelist_feature_set = {int(fid) for fid in whitelist_features}

@@ -202,6 +202,7 @@ def train(
             score_bar,
             run_details.max_steps,
             run_details.avg_over_num_episodes,
+            # pyre-fixme[6]: Expected `int` for 10th param but got `Optional[int]`.
             run_details.offline_train_epochs,
             run_details.offline_num_batches_per_epoch,
             bcq_imitator_hyperparams,
@@ -344,7 +345,8 @@ def train_gym_offline_rl(
                 train_score, test_score
             )
         )
-        trainer.bcq_imitator = gbdt.predict_proba  # type: ignore
+        # pyre-fixme[16]: `RLTrainer` has no attribute `bcq_imitator`.
+        trainer.bcq_imitator = gbdt.predict_proba
 
     # Offline training
     for i_epoch in range(offline_train_epochs):
@@ -791,12 +793,15 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
         assert params.training is not None
         training_parameters = params.training
         assert params.rainbow is not None
+        # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `img`.
         if env.img:
             assert (
                 training_parameters.cnn_parameters is not None
             ), "Missing CNN parameters for image input"
+            # pyre-fixme[16]: `Optional` has no attribute `conv_dims`.
             training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
             training_parameters._replace(
+                # pyre-fixme[16]: `Optional` has no attribute `_replace`.
                 cnn_parameters=training_parameters.cnn_parameters._replace(
                     input_height=env.height,
                     input_width=env.width,

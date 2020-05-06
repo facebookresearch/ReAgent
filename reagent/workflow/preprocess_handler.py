@@ -14,12 +14,14 @@ class PreprocessHandler:
         self.sparse_to_dense_processor = sparse_to_dense_processor
 
     def preprocess(self, batch) -> rlt.RawTrainingBatch:
-        state_features_dense, state_features_dense_presence = self.sparse_to_dense_processor(
-            batch["state_features"]
-        )
-        next_state_features_dense, next_state_features_dense_presence = self.sparse_to_dense_processor(
-            batch["next_state_features"]
-        )
+        (
+            state_features_dense,
+            state_features_dense_presence,
+        ) = self.sparse_to_dense_processor(batch["state_features"])
+        (
+            next_state_features_dense,
+            next_state_features_dense_presence,
+        ) = self.sparse_to_dense_processor(batch["next_state_features"])
 
         mdp_ids = np.array(batch["mdp_id"]).reshape(-1, 1)
         sequence_numbers = torch.tensor(
@@ -35,7 +37,7 @@ class PreprocessHandler:
             propensities = torch.ones(rewards.shape, dtype=torch.float32)
 
         return rlt.RawTrainingBatch(
-            training_input=rlt.RawBaseInput(  # type: ignore
+            training_input=rlt.RawBaseInput(
                 state=rlt.FeatureVector(
                     float_features=rlt.ValuePresence(
                         value=state_features_dense,

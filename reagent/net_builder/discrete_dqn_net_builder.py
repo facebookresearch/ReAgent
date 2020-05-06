@@ -22,7 +22,7 @@ try:
         FbDiscreteDqnPredictorWrapperWithIdList as DiscreteDqnPredictorWrapperWithIdList,
     )
 except ImportError:
-    from reagent.prediction.predictor_wrapper import (  # type: ignore
+    from reagent.prediction.predictor_wrapper import (
         DiscreteDqnPredictorWrapper,
         DiscreteDqnPredictorWrapperWithIdList,
     )

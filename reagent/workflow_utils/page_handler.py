@@ -76,7 +76,8 @@ class TrainingPageHandler(PageHandler):
         self.trainer_or_evaluator.train(tdp)
 
     def finish(self) -> None:
-        self.notify_observers(epoch_end=self.epoch)  # type: ignore
+        # pyre-fixme[16]: `TrainingPageHandler` has no attribute `notify_observers`.
+        self.notify_observers(epoch_end=self.epoch)
         self.trainer_or_evaluator.loss_reporter.flush()
         self.epoch += 1
 
@@ -101,17 +102,19 @@ class EvaluationPageHandler(PageHandler):
         if self.evaluation_data is None:
             self.evaluation_data = edp
         else:
+            # pyre-fixme[16]: `Optional` has no attribute `append`.
             self.evaluation_data = self.evaluation_data.append(edp)
 
     def finish(self) -> None:
         if self.evaluation_data is None:
             return
         # Making sure the data is sorted for CPE
+        # pyre-fixme[16]: `Optional` has no attribute `sort`.
         self.evaluation_data = self.evaluation_data.sort()
-        self.evaluation_data = self.evaluation_data.compute_values(  # type: ignore
-            self.trainer.gamma
-        )  # type: ignore
-        self.evaluation_data.validate()  # type: ignore
+        # pyre-fixme[16]: `Optional` has no attribute `compute_values`.
+        self.evaluation_data = self.evaluation_data.compute_values(self.trainer.gamma)
+        # pyre-fixme[16]: `Optional` has no attribute `validate`.
+        self.evaluation_data.validate()
         start_time = time.time()
         evaluation_details = self.evaluator.evaluate_post_training(self.evaluation_data)
         self.reporter.report(evaluation_details)
@@ -141,7 +144,7 @@ class WorldModelRandomTrainingPageHandler(PageHandler):
         tdp = PreprocessedTrainingBatch(
             training_input=PreprocessedMemoryNetworkInput(
                 state=tdp.training_input.state,
-                action=tdp.training_input.action,  # type: ignore
+                action=tdp.training_input.action,
                 time_diff=torch.ones_like(
                     tdp.training_input.reward[torch.randperm(batch_size)]
                 ).float(),
@@ -152,7 +155,7 @@ class WorldModelRandomTrainingPageHandler(PageHandler):
                     ]
                 ),
                 reward=tdp.training_input.reward[torch.randperm(batch_size)],
-                not_terminal=tdp.training_input.not_terminal[  # type: ignore
+                not_terminal=tdp.training_input.not_terminal[
                     torch.randperm(batch_size)
                 ],
                 step=None,

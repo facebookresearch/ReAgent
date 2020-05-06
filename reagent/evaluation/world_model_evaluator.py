@@ -73,9 +73,9 @@ class FeatureImportanceEvaluator(object):
         self.trainer.mdnrnn.mdnrnn.eval()
 
         state_features = tdp.training_input.state.float_features
-        action_features = tdp.training_input.action  # type: ignore
-        batch_size, seq_len, state_dim = state_features.size()  # type: ignore
-        action_dim = action_features.size()[2]  # type: ignore
+        action_features = tdp.training_input.action
+        batch_size, seq_len, state_dim = state_features.size()
+        action_dim = action_features.size()[2]
         action_feature_num = self.action_feature_num
         state_feature_num = self.state_feature_num
         feature_importance = torch.zeros(action_feature_num + state_feature_num)
@@ -90,7 +90,7 @@ class FeatureImportanceEvaluator(object):
         state_feature_boundaries = self.sorted_state_feature_start_indices + [state_dim]
 
         for i in range(action_feature_num):
-            action_features = tdp.training_input.action.reshape(  # type: ignore
+            action_features = tdp.training_input.action.reshape(
                 (batch_size * seq_len, action_dim)
             ).data.clone()
 
@@ -100,7 +100,7 @@ class FeatureImportanceEvaluator(object):
                 assert action_dim == action_feature_num
                 action_vec = torch.zeros(action_dim)
                 action_vec[i] = 1
-                action_features[:] = action_vec  # type: ignore
+                action_features[:] = action_vec
             # if actions are continuous, an action's feature importance is the loss
             # increase due to masking this action feature to its mean value
             else:
@@ -108,23 +108,21 @@ class FeatureImportanceEvaluator(object):
                     action_feature_boundaries[i],
                     action_feature_boundaries[i + 1],
                 )
-                action_features[  # type: ignore
+                action_features[
                     :, boundary_start:boundary_end
-                ] = self.compute_median_feature_value(  # type: ignore
-                    action_features[:, boundary_start:boundary_end]  # type: ignore
+                ] = self.compute_median_feature_value(
+                    action_features[:, boundary_start:boundary_end]
                 )
 
-            action_features = action_features.reshape(  # type: ignore
-                (batch_size, seq_len, action_dim)
-            )  # type: ignore
+            action_features = action_features.reshape((batch_size, seq_len, action_dim))
             new_tdp = PreprocessedTrainingBatch(
-                training_input=PreprocessedMemoryNetworkInput(  # type: ignore
+                training_input=PreprocessedMemoryNetworkInput(
                     state=tdp.training_input.state,
                     action=action_features,
                     next_state=tdp.training_input.next_state,
                     reward=tdp.training_input.reward,
                     time_diff=torch.ones_like(tdp.training_input.reward).float(),
-                    not_terminal=tdp.training_input.not_terminal,  # type: ignore
+                    not_terminal=tdp.training_input.not_terminal,
                     step=None,
                 ),
                 extras=ExtraData(),
@@ -136,29 +134,27 @@ class FeatureImportanceEvaluator(object):
             del losses
 
         for i in range(state_feature_num):
-            state_features = tdp.training_input.state.float_features.reshape(  # type: ignore
+            state_features = tdp.training_input.state.float_features.reshape(
                 (batch_size * seq_len, state_dim)
             ).data.clone()
             boundary_start, boundary_end = (
                 state_feature_boundaries[i],
                 state_feature_boundaries[i + 1],
             )
-            state_features[  # type: ignore
+            state_features[
                 :, boundary_start:boundary_end
             ] = self.compute_median_feature_value(
-                state_features[:, boundary_start:boundary_end]  # type: ignore
+                state_features[:, boundary_start:boundary_end]
             )
-            state_features = state_features.reshape(  # type: ignore
-                (batch_size, seq_len, state_dim)
-            )  # type: ignore
+            state_features = state_features.reshape((batch_size, seq_len, state_dim))
             new_tdp = PreprocessedTrainingBatch(
-                training_input=PreprocessedMemoryNetworkInput(  # type: ignore
+                training_input=PreprocessedMemoryNetworkInput(
                     state=PreprocessedFeatureVector(float_features=state_features),
-                    action=tdp.training_input.action,  # type: ignore
+                    action=tdp.training_input.action,
                     next_state=tdp.training_input.next_state,
                     reward=tdp.training_input.reward,
                     time_diff=torch.ones_like(tdp.training_input.reward).float(),
-                    not_terminal=tdp.training_input.not_terminal,  # type: ignore
+                    not_terminal=tdp.training_input.not_terminal,
                     step=None,
                 ),
                 extras=ExtraData(),
@@ -216,9 +212,11 @@ class FeatureSensitivityEvaluator(object):
 
         self.trainer.mdnrnn.mdnrnn.eval()
 
-        batch_size, seq_len, state_dim = (
-            mdnrnn_training_input.next_state.float_features.size()
-        )
+        (
+            batch_size,
+            seq_len,
+            state_dim,
+        ) = mdnrnn_training_input.next_state.float_features.size()
         state_feature_num = self.state_feature_num
         feature_sensitivity = torch.zeros(state_feature_num)
 

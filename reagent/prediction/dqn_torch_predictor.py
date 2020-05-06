@@ -72,7 +72,7 @@ class DiscreteDqnTorchPredictor:
         assert possible_actions_presence.shape == q_scores.shape
 
         # set impossible actions so low that they can't be picked
-        q_scores -= (1.0 - possible_actions_presence) * 1e10  # type: ignore
+        q_scores -= (1.0 - possible_actions_presence) * 1e10
 
         q_scores_softmax = (
             masked_softmax(q_scores, possible_actions_presence, softmax_temperature)

@@ -118,9 +118,10 @@ class GridworldContinuous(GridworldBase):
         action_matrix, action_matrix_presence = action_sparse_to_dense_processor(
             samples.actions
         )
-        next_action_matrix, next_action_matrix_presence = action_sparse_to_dense_processor(
-            samples.next_actions
-        )
+        (
+            next_action_matrix,
+            next_action_matrix_presence,
+        ) = action_sparse_to_dense_processor(samples.next_actions)
         action_probabilities = torch.tensor(
             samples.action_probabilities, dtype=torch.float32
         ).reshape(-1, 1)
@@ -132,14 +133,15 @@ class GridworldContinuous(GridworldBase):
         pnas_flat: List[Dict[str, float]] = []
         for pnas in samples.possible_next_actions:
             pnas_mask_list.append([1] * len(pnas) + [0] * (max_action_size - len(pnas)))
-            pnas_flat.extend(pnas)  # type: ignore
+            pnas_flat.extend(pnas)
             for _ in range(max_action_size - len(pnas)):
                 pnas_flat.append({})  # Filler
         pnas_mask = torch.Tensor(pnas_mask_list)
 
-        possible_next_actions_matrix, possible_next_actions_matrix_presence = action_sparse_to_dense_processor(
-            pnas_flat
-        )
+        (
+            possible_next_actions_matrix,
+            possible_next_actions_matrix_presence,
+        ) = action_sparse_to_dense_processor(pnas_flat)
 
         logger.info("Preprocessing...")
         state_preprocessor = Preprocessor(self.normalization, False)
@@ -210,9 +212,7 @@ class GridworldContinuous(GridworldBase):
                 ],
             )
             pnas_start = pnas_end
-            tdp.set_type(
-                torch.cuda.FloatTensor if use_gpu else torch.FloatTensor  # type: ignore
-            )
+            tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
             tdps.append(tdp)
         return tdps
 

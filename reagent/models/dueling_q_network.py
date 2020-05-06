@@ -59,14 +59,14 @@ class DuelingQNetwork(ModelBase):
 
         self.parametric_action = action_dim > 0
         # Split last layer into a value & advantage stream
-        self.advantage = nn.Sequential(  # type: ignore
+        self.advantage = nn.Sequential(
             nn.Linear(int(layers[-2] + action_dim), int(layers[-2] / 2)),
-            nn.ReLU(),  # type: ignore
+            nn.ReLU(),
             nn.Linear(int(layers[-2] / 2), layers[-1]),
         )
-        self.value = nn.Sequential(  # type: ignore
+        self.value = nn.Sequential(
             nn.Linear(int(layers[-2]), int(layers[-2] / 2)),
-            nn.ReLU(),  # type: ignore
+            nn.ReLU(),
             nn.Linear(int(layers[-2] / 2), 1),
         )
         self._name = "unnamed"
@@ -80,7 +80,7 @@ class DuelingQNetwork(ModelBase):
         else:
             return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
 
-    def forward(self, input) -> Union[NamedTuple, torch.FloatTensor]:  # type: ignore
+    def forward(self, input) -> Union[NamedTuple, torch.FloatTensor]:
         output_tensor = False
         if self.parametric_action:
             state = input.state.float_features
@@ -118,6 +118,7 @@ class DuelingQNetwork(ModelBase):
             SummaryWriterContext.add_histogram(
                 "dueling_network/{}/value".format(self._name), value.detach().cpu()
             )
+            # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
             SummaryWriterContext.add_scalar(
                 "dueling_network/{}/mean_value".format(self._name),
                 value.detach().mean().cpu(),
@@ -150,8 +151,12 @@ class DuelingQNetwork(ModelBase):
                     )
 
         if output_tensor:
-            return q_value  # type: ignore
+            return q_value
         elif self.parametric_action:
-            return rlt.SingleQValue(q_value=q_value)  # type: ignore
+            # pyre-fixme[7]: Expected `Union[NamedTuple, torch.FloatTensor]` but got
+            #  `SingleQValue`.
+            return rlt.SingleQValue(q_value=q_value)
         else:
-            return rlt.AllActionQValues(q_values=q_value)  # type: ignore
+            # pyre-fixme[7]: Expected `Union[NamedTuple, torch.FloatTensor]` but got
+            #  `AllActionQValues`.
+            return rlt.AllActionQValues(q_values=q_value)

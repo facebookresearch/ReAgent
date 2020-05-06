@@ -26,6 +26,14 @@ class ActorCriticReporter(ReporterBase):
                 ("reward_loss", agg.MeanAggregator("reward_loss")),
                 ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
             ]
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st
+            #  param but got `List[typing.Tuple[str,
+            #  agg.TensorBoardHistogramAndMeanAggregator]]`.
+            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
+            #  typing.Union[agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st
+            #  param but got `List[typing.Tuple[str,
+            #  agg.TensorBoardHistogramAndMeanAggregator]]`.
             + [
                 (f"{key}_tb", agg.TensorBoardHistogramAndMeanAggregator(key, log_key))
                 for key, log_key in [
@@ -39,8 +47,16 @@ class ActorCriticReporter(ReporterBase):
         self.last_epoch_end_num_batches = 0
         epoch_end_observer = EpochEndObserver(self._epoch_end_callback)
         super().__init__(
+            # pyre-fixme[6]: Expected `List[reagent.core.tracker.Observer]` for 1st
+            #  param but got `List[ValueListObserver]`.
+            # pyre-fixme[6]: Expected `List[reagent.core.tracker.Observer]` for 1st
+            #  param but got `List[ValueListObserver]`.
             list(self.value_list_observers.values())
             + list(self.aggregating_observers.values())
+            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
+            #  got `List[EpochEndObserver]`.
+            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
+            #  got `List[EpochEndObserver]`.
             + [epoch_end_observer]
         )
         self.recent_window_size = recent_window_size

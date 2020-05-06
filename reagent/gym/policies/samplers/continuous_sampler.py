@@ -12,6 +12,7 @@ class GaussianSampler(Sampler):
 
     def _sample_action(self, loc: torch.Tensor, scale_log: torch.Tensor):
         r = torch.randn_like(scale_log, device=scale_log.device)
+        # pyre-fixme[16]: `Tensor` has no attribute `exp`.
         action = torch.tanh(loc + r * scale_log.exp())
         # Since each dim are independent, log-prob is simply sum
         log_prob = self.actor_network._log_prob(r, scale_log)
@@ -20,6 +21,8 @@ class GaussianSampler(Sampler):
         return action, log_prob
 
     @torch.no_grad()
+    # pyre-fixme[14]: `sample_action` overrides method defined in `Sampler`
+    #  inconsistently.
     def sample_action(self, scores: GaussianSamplerScore) -> rlt.ActorOutput:
         self.actor_network.eval()
         unscaled_actions, log_prob = self._sample_action(scores.loc, scores.scale_log)
@@ -31,6 +34,7 @@ class GaussianSampler(Sampler):
         self, loc: torch.Tensor, scale_log: torch.Tensor, squashed_action: torch.Tensor
     ):
         # This is not getting exported; we can use it
+        # pyre-fixme[16]: `Tensor` has no attribute `exp`.
         n = torch.distributions.Normal(loc, scale_log.exp())
         raw_action = self.actor_network._atanh(squashed_action)
         log_prob = n.log_prob(raw_action)
@@ -39,10 +43,12 @@ class GaussianSampler(Sampler):
         return log_prob
 
     @torch.no_grad()
+    # pyre-fixme[14]: `log_prob` overrides method defined in `Sampler` inconsistently.
     def log_prob(
         self, scores: GaussianSamplerScore, squashed_action: torch.Tensor
     ) -> torch.Tensor:
         self.actor_network.eval()
+        # pyre-fixme[20]: Argument `squashed_action` expected.
         log_prob = self._log_prob(scores.loc, scores.scale_log)
         self.actor_network.train()
         return log_prob

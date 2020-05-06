@@ -35,9 +35,9 @@ class FullyConnectedDQNWithEmbedding(ModelBase):
             len(sizes), len(activations)
         )
 
-        self.embedding_bags = torch.nn.ModuleDict(  # type: ignore
+        self.embedding_bags = torch.nn.ModuleDict(
             {
-                id_list_feature.name: torch.nn.EmbeddingBag(  # type: ignore
+                id_list_feature.name: torch.nn.EmbeddingBag(
                     len(
                         model_feature_config.id_mapping_config[
                             id_list_feature.id_mapping_name

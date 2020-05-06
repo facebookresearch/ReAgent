@@ -15,9 +15,7 @@ try:
         FbParametricDqnPredictorWrapper as ParametricDqnPredictorWrapper,
     )
 except ImportError:
-    from reagent.prediction.predictor_wrapper import (  # type: ignore
-        ParametricDqnPredictorWrapper,
-    )
+    from reagent.prediction.predictor_wrapper import ParametricDqnPredictorWrapper
 
 
 class TestParametricDQNNetBuilder(unittest.TestCase):

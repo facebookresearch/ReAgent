@@ -54,6 +54,8 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         assert log_probs.requires_grad
 
         assert training_input.optim_tgt_out_idx is not None
+        # pyre-fixme[6]: Expected `Tensor` for 1st param but got
+        #  `Optional[torch.Tensor]`.
         labels = self._transform_label(training_input.optim_tgt_out_idx)
         assert not labels.requires_grad
         loss = self.kl_div_loss(log_probs, labels)

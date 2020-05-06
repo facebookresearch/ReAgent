@@ -34,16 +34,22 @@ class SoftActorCritic(ActorCriticBase):
 
     trainer_param: SACTrainerParameters = field(default_factory=SACTrainerParameters)
     actor_net_builder: ContinuousActorNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `GaussianFullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `GaussianFullyConnected`.
         default_factory=lambda: ContinuousActorNetBuilder__Union(
             GaussianFullyConnected=GaussianFullyConnected()
         )
     )
     critic_net_builder: ParametricDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ParametricDQNNetBuilder__Union(
             FullyConnected=FullyConnected()
         )
     )
     value_net_builder: Optional[ValueNetBuilder__Union] = field(
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ValueNetBuilder__Union(
             FullyConnected=ValueFullyConnected()
         )
@@ -58,6 +64,8 @@ class SoftActorCritic(ActorCriticBase):
 
     def build_trainer(self) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
+        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
+        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
             self.get_normalization_data(NormalizationKey.STATE),
             self.get_normalization_data(NormalizationKey.ACTION),
@@ -78,6 +86,8 @@ class SoftActorCritic(ActorCriticBase):
 
         value_network = None
         if self.value_net_builder:
+            # pyre-fixme[16]: `Optional` has no attribute `value`.
+            # pyre-fixme[16]: `Optional` has no attribute `value`.
             value_net_builder = self.value_net_builder.value
             value_network = value_net_builder.build_value_network(
                 self.get_normalization_data(NormalizationKey.STATE)
@@ -103,6 +113,8 @@ class SoftActorCritic(ActorCriticBase):
 
     def build_serving_module(self) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
+        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
+        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,

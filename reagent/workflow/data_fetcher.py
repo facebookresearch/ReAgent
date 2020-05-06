@@ -2,6 +2,8 @@
 import logging
 from typing import List, Optional, Tuple
 
+# pyre-fixme[21]: Could not find `pyspark`.
+# pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, crc32, explode, map_keys, udf
 from pyspark.sql.types import (
     ArrayType,
@@ -392,6 +394,8 @@ def upload_as_parquet(df) -> Dataset:
         raise Exception(f"Failed to find name after {MAX_UPLOAD_PARQUET_TRIES} tries.")
 
     # perform the write
+    # pyre-fixme[18]: Global name `rand_name` is undefined.
+    # pyre-fixme[18]: Global name `rand_name` is undefined.
     df.write.mode("errorifexists").format("parquet").saveAsTable(rand_name)
     parquet_url = get_table_url(rand_name)
     logger.info(f"Saved parquet to {parquet_url}")

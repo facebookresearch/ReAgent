@@ -131,7 +131,7 @@ class TestEvaluationDataPage(unittest.TestCase):
         src_seq = torch.eye(candidate_dim).repeat(batch_size, 1, 1)
         tgt_out_idx = torch.LongTensor([[3, 2], [3, 2], [3, 2]])
         tgt_out_seq = src_seq[
-            torch.arange(batch_size).repeat_interleave(tgt_seq_len),  # type: ignore
+            torch.arange(batch_size).repeat_interleave(tgt_seq_len),
             tgt_out_idx.flatten() - 2,
         ].reshape(batch_size, tgt_seq_len, candidate_dim)
 
@@ -158,9 +158,11 @@ class TestEvaluationDataPage(unittest.TestCase):
         )
         logger.info("---------- Start evaluating eval_greedy=True -----------------")
         doubly_robust_estimator = DoublyRobustEstimator()
-        direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
-            edp
-        )
+        (
+            direct_method,
+            inverse_propensity,
+            doubly_robust,
+        ) = doubly_robust_estimator.estimate(edp)
         logger.info(f"{direct_method}, {inverse_propensity}, {doubly_robust}")
 
         avg_logged_reward = (4 + 5 + 7) / 3

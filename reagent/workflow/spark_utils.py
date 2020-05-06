@@ -7,6 +7,9 @@ from os.path import abspath, dirname, join
 from typing import Dict, Optional
 
 import reagent
+
+# pyre-fixme[21]: Could not find `pyspark`.
+# pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 

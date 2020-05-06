@@ -102,11 +102,14 @@ class C51Trainer(RLTrainer):
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
+            # pyre-fixme[16]: Optional type has no attribute `keys`.
             for k in parameters.rl.reward_boost.keys():
                 i = self._actions.index(k)
+                # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
@@ -154,7 +157,9 @@ class C51Trainer(RLTrainer):
         target_Q = target_Q.clamp(self.qmin, self.qmax)
         # rescale to indicies
         b = (target_Q - self.qmin) / (self.qmax - self.qmin) * (self.num_atoms - 1.0)
+        # pyre-fixme[16]: `Tensor` has no attribute `floor`.
         lower = b.floor()
+        # pyre-fixme[16]: `Tensor` has no attribute `ceil`.
         upper = b.ceil()
 
         # Since index_add_ doesn't work with multiple dimensions
@@ -164,12 +169,13 @@ class C51Trainer(RLTrainer):
         ).reshape(-1, 1).repeat(1, self.num_atoms)
 
         m = torch.zeros_like(next_dist)
-        m.reshape(-1).index_add_(  # type: ignore
+        # pyre-fixme[16]: `Tensor` has no attribute `index_add_`.
+        m.reshape(-1).index_add_(
             0,
             (lower.long() + offset).reshape(-1),
             (next_dist * (upper - b)).reshape(-1),
         )
-        m.reshape(-1).index_add_(  # type: ignore
+        m.reshape(-1).index_add_(
             0,
             (upper.long() + offset).reshape(-1),
             (next_dist * (b - lower)).reshape(-1),
@@ -199,7 +205,8 @@ class C51Trainer(RLTrainer):
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )
 
-        self.notify_observers(  # type: ignore
+        # pyre-fixme[16]: `C51Trainer` has no attribute `notify_observers`.
+        self.notify_observers(
             td_loss=loss,
             logged_actions=torch.argmax(training_batch.action, dim=1, keepdim=True),
             logged_propensities=training_batch.extras.action_probability,
@@ -217,7 +224,7 @@ class C51Trainer(RLTrainer):
             model_action_idxs=model_action_idxs,
         )
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_prediction(self, input):
         """
         Only used by Gym
@@ -229,15 +236,13 @@ class C51Trainer(RLTrainer):
 
         return q_values
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor
     ) -> torch.Tensor:
         # Apply reward boost if specified
         reward_boosts = torch.sum(
-            actions.float() * self.reward_boosts,  # type: ignore
-            dim=1,
-            keepdim=True,
+            actions.float() * self.reward_boosts, dim=1, keepdim=True
         )
         return rewards + reward_boosts
 

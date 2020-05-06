@@ -38,7 +38,7 @@ class Postprocessor(nn.Module):
             DO_NOT_PREPROCESS,
         }, f"{self.feature_type} is not CONTINUOUS_ACTION & DO_NOT_PREPROCESS"
 
-        self.device = torch.device("cuda" if use_gpu else "cpu")  # type: ignore
+        self.device = torch.device("cuda" if use_gpu else "cpu")
 
         if self.feature_type == CONTINUOUS_ACTION:
             sorted_features = sorted(normalization_parameters.keys())
@@ -49,8 +49,9 @@ class Postprocessor(nn.Module):
             self.scaling_factor = torch.tensor(
                 [
                     (
-                        normalization_parameters[f].max_value  # type: ignore
-                        - normalization_parameters[f].min_value  # type: ignore
+                        # pyre-fixme[16]: Optional type has no attribute `__sub__`.
+                        normalization_parameters[f].max_value
+                        - normalization_parameters[f].min_value
                     )
                     / (2 * (1 - EPS))
                     for f in sorted_features
@@ -63,7 +64,8 @@ class Postprocessor(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.feature_type == CONTINUOUS_ACTION:
-            return (  # type: ignore
+            # pyre-fixme[7]: Expected `Tensor` but got `float`.
+            return (
                 torch.clamp(input, -1 + EPS, 1 - EPS) + 1 - EPS
             ) * self.scaling_factor + self.min_serving_value
         return input

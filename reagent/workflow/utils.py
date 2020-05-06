@@ -4,6 +4,8 @@
 import logging
 from typing import Dict, List, Optional
 
+# pyre-fixme[21]: Could not find `petastorm`.
+# pyre-fixme[21]: Could not find `petastorm`.
 from petastorm import make_batch_reader
 from petastorm.pytorch import DataLoader, decimal_friendly_collate
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor

@@ -54,7 +54,7 @@ def create_dqn_trainer_from_params(
             dropout_ratio=model.training.dropout_ratio,
         )
     elif model.rainbow.categorical:
-        q_network = CategoricalDQN(  # type: ignore
+        q_network = CategoricalDQN(
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             num_atoms=model.rainbow.num_atoms,
@@ -66,14 +66,14 @@ def create_dqn_trainer_from_params(
             use_gpu=use_gpu,
         )
     elif model.rainbow.dueling_architecture:
-        q_network = DuelingQNetwork(  # type: ignore
+        q_network = DuelingQNetwork(
             layers=[get_num_output_features(normalization_parameters)]
             + model.training.layers[1:-1]
             + [len(model.actions)],
             activations=model.training.activations,
         )
     else:
-        q_network = FullyConnectedDQN(  # type: ignore
+        q_network = FullyConnectedDQN(
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             sizes=model.training.layers[1:-1],
@@ -201,7 +201,8 @@ def create_parametric_dqn_trainer_from_params(
         q_network_target = q_network_target.get_distributed_data_parallel_model()
         reward_network = reward_network.get_distributed_data_parallel_model()
 
-    trainer_parameters = ParametricDQNTrainerParameters(  # type: ignore
+    # pyre-fixme[28]: Unexpected keyword argument `rl`.
+    trainer_parameters = ParametricDQNTrainerParameters(
         rl=model.rl,
         double_q_learning=model.rainbow.double_q_learning,
         minibatch_size=model.training.minibatch_size,
@@ -217,7 +218,8 @@ def create_parametric_dqn_trainer_from_params(
         q_network_target,
         reward_network,
         use_gpu=use_gpu,
-        **trainer_parameters.asdict()  # type: ignore
+        # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute `asdict`.
+        **trainer_parameters.asdict()
     )
 
 
@@ -235,8 +237,8 @@ def get_cem_trainer(
     action_upper_bounds, action_lower_bounds = None, None
     if not discrete_action:
         action_upper_bounds, action_lower_bounds = (
-            env.action_space.high,  # type: ignore
-            env.action_space.low,  # type: ignore
+            env.action_space.high,
+            env.action_space.low,
         )
 
     cem_planner_network = CEMPlannerNetwork(

@@ -64,14 +64,24 @@ def offline_gym(
     saves results in a pandas df parquet.
     """
     initialize_seed(seed)
+    # pyre-fixme[9]: env has type `str`; used as `Env`.
+    # pyre-fixme[9]: env has type `str`; used as `Env`.
     env = EnvFactory.make(env)
+    # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+    # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
     policy = make_random_policy_for_env(env)
 
     dataset = RLDataset()
     for i in range(num_episodes_for_data_batch):
         logger.info(f"Starting episode {i}")
+        # pyre-fixme[6]: Expected `Env` for 3rd param but got `str`.
+        # pyre-fixme[6]: Expected `Env` for 3rd param but got `str`.
         post_step = log_data_post_step(dataset=dataset, mdp_id=str(i), env=env)
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         agent = Agent.create_for_env(env, policy, post_transition_callback=post_step)
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         run_episode(env=env, agent=agent, max_steps=max_steps)
 
     logger.info(f"Saving dataset with {len(dataset)} samples to {pkl_path}")
@@ -134,18 +144,30 @@ def evaluate_gym(
     passing_score_bar: float,
     max_steps: Optional[int] = None,
 ):
+    # pyre-fixme[9]: env has type `str`; used as `Env`.
+    # pyre-fixme[9]: env has type `str`; used as `Env`.
     env = EnvFactory.make(env)
     policy = create_predictor_policy_from_model(
-        env, model, eval_temperature=eval_temperature
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+        env,
+        model,
+        eval_temperature=eval_temperature,
     )
 
     # since we already return softmax action, override action_extractor
     agent = Agent.create_for_env(
-        env, policy=policy, action_extractor=policy.get_action_extractor()
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+        env,
+        policy=policy,
+        action_extractor=policy.get_action_extractor(),
     )
 
     rewards = []
     for _ in range(num_eval_episodes):
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
         rewards.append(ep_reward)
 
@@ -171,9 +193,17 @@ def train_and_evaluate_gym(
     publisher: Optional[ModelPublisher__Union] = None,
     seed: Optional[int] = None,
     # for eval
+    # pyre-fixme[9]: env has type `str`; used as `None`.
+    # pyre-fixme[9]: env has type `str`; used as `None`.
     env: str = None,
+    # pyre-fixme[9]: eval_temperature has type `float`; used as `None`.
+    # pyre-fixme[9]: eval_temperature has type `float`; used as `None`.
     eval_temperature: float = None,
+    # pyre-fixme[9]: num_eval_episodes has type `int`; used as `None`.
+    # pyre-fixme[9]: num_eval_episodes has type `int`; used as `None`.
     num_eval_episodes: int = None,
+    # pyre-fixme[9]: passing_score_bar has type `float`; used as `None`.
+    # pyre-fixme[9]: passing_score_bar has type `float`; used as `None`.
     passing_score_bar: float = None,
     max_steps: Optional[int] = None,
 ):

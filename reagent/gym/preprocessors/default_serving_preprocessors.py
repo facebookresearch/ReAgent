@@ -13,6 +13,7 @@ from reagent.gym.preprocessors.default_preprocessors import discrete_action_extr
 
 
 def make_default_serving_obs_preprocessor(env: Env):
+    # pyre-fixme[11]: Annotation `array` is not defined as a type.
     def gym_to_reagent_serving(obs: np.array) -> Tuple[torch.Tensor, torch.Tensor]:
         obs_tensor = torch.tensor(obs).float().unsqueeze(0)
         presence_tensor = torch.ones_like(obs_tensor)

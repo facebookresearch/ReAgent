@@ -22,9 +22,13 @@ class DiscreteDQN(DiscreteDQNBase):
 
     trainer_param: DQNTrainerParameters = field(default_factory=DQNTrainerParameters)
     net_builder: DiscreteDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `Dueling`.
+        # pyre-fixme[28]: Unexpected keyword argument `Dueling`.
         default_factory=lambda: DiscreteDQNNetBuilder__Union(Dueling=Dueling())
     )
     cpe_net_builder: DiscreteDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: DiscreteDQNNetBuilder__Union(
             FullyConnected=FullyConnected()
         )
@@ -33,7 +37,7 @@ class DiscreteDQN(DiscreteDQNBase):
     # note that only DiscreteDQN and QRDQN call RLTrainer._initialize_cpe,
     # so maybe can be removed from the RLTrainer class.
 
-    def __post_init_post_parse__(self,):
+    def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
         self.rl_parameters = self.trainer_param.rl
         self.eval_parameters = self.trainer_param.evaluation
@@ -48,6 +52,8 @@ class DiscreteDQN(DiscreteDQNBase):
         q_network = net_builder.build_q_network(
             self.state_feature_config,
             self.state_normalization_parameters,
+            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
+            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
             len(self.action_names),
         )
 
@@ -81,6 +87,8 @@ class DiscreteDQN(DiscreteDQNBase):
 
             q_network_cpe_target = q_network_cpe.get_target_network()
 
+        # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
+        # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
         self._q_network = q_network
         trainer = DQNTrainer(
             q_network,
@@ -99,12 +107,16 @@ class DiscreteDQN(DiscreteDQNBase):
         """
         Returns a TorchScript predictor module
         """
+        # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
+        # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
         assert self._q_network is not None, "_q_network was not initialized"
 
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
             self.state_normalization_parameters,
+            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
+            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

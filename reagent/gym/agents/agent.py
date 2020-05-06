@@ -114,6 +114,8 @@ class Agent:
         self._possible_actions_mask = possible_actions_mask
 
         # preprocess and convert to batch data
+        # pyre-fixme[6]: Expected `device` for 2nd param but got `Union[str,
+        #  torch.device]`.
         device_obs = to_device(obs, self.device)
         preprocessed_obs = self.obs_preprocessor(device_obs)
 
@@ -122,6 +124,7 @@ class Agent:
             # if possible_actions_mask is given, convert to batch of one
             # NOTE: it's still possible that possible_actions_mask is None
             if possible_actions_mask is not None:
+                # pyre-fixme[16]: `Tensor` has no attribute `ndim`.
                 assert possible_actions_mask.ndim() == 1
                 possible_actions_mask = possible_actions_mask.unsqueeze(0).to(
                     self.device, non_blocking=True
@@ -144,6 +147,9 @@ class Agent:
         assert self._obs is not None
         assert self._actor_output is not None
         if self.post_transition_callback is not None:
+            # pyre-fixme[29]: `Optional[typing.Callable[[typing.Any,
+            #  reagent.types.ActorOutput, float, bool, Optional[torch.Tensor]], None]]`
+            #  is not a function.
             self.post_transition_callback(
                 self._obs,
                 self._actor_output,

@@ -71,12 +71,16 @@ def multi_step_sample_generator(
     )
 
     for j in range(num_transitions):
-        sample_steps = len(samples.terminals[j])  # type: ignore
+        # pyre-fixme[6]: Expected `Sized` for 1st param but got
+        #  `Union[typing.List[bool], bool]`.
+        sample_steps = len(samples.terminals[j])
         state = dict_to_np(samples.states[j], np_size=gym_env.state_dim, key_offset=0)
         action = dict_to_np(
             samples.actions[j], np_size=gym_env.action_dim, key_offset=gym_env.state_dim
         )
-        next_actions = np.float32(  # type: ignore
+        next_actions = np.float32(
+            # pyre-fixme[6]: Expected `Union[typing.SupportsFloat,
+            #  typing.SupportsInt]` for 1st param but got `List[typing.Any]`.
             [
                 dict_to_np(
                     samples.next_actions[j][k],
@@ -86,7 +90,9 @@ def multi_step_sample_generator(
                 for k in range(sample_steps)
             ]
         )
-        next_states = np.float32(  # type: ignore
+        next_states = np.float32(
+            # pyre-fixme[6]: Expected `Union[typing.SupportsFloat,
+            #  typing.SupportsInt]` for 1st param but got `List[typing.Any]`.
             [
                 dict_to_np(
                     samples.next_states[j][k], np_size=gym_env.state_dim, key_offset=0
@@ -94,8 +100,12 @@ def multi_step_sample_generator(
                 for k in range(sample_steps)
             ]
         )
-        rewards = np.float32(samples.rewards[j])  # type: ignore
-        terminals = np.float32(samples.terminals[j])  # type: ignore
+        # pyre-fixme[6]: Expected `Union[typing.SupportsFloat, typing.SupportsInt]`
+        #  for 1st param but got `Union[typing.List[float], float]`.
+        rewards = np.float32(samples.rewards[j])
+        # pyre-fixme[6]: Expected `Union[typing.SupportsFloat, typing.SupportsInt]`
+        #  for 1st param but got `Union[typing.List[bool], bool]`.
+        terminals = np.float32(samples.terminals[j])
         not_terminals = np.logical_not(terminals)
         ordered_states = np.vstack((state, next_states))
         ordered_actions = np.vstack((action, next_actions))
@@ -355,7 +365,7 @@ def create_embed_rl_dataset(
     old_mdnrnn_mode = trainer.mdnrnn.mdnrnn.training
     trainer.mdnrnn.mdnrnn.eval()
     num_transitions = run_details.num_state_embed_episodes * run_details.max_steps
-    device = torch.device("cuda") if use_gpu else torch.device("cpu")  # type: ignore
+    device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
     (
         state_batch,
@@ -412,8 +422,8 @@ def create_embed_rl_dataset(
     for i in range(len(state_batch)):
         # Embed the state as the hidden layer's output
         # until the previous step + current state
-        hidden_idx = 0 if step_batch[i] == 1 else step_batch[i] - 2  # type: ignore
-        next_hidden_idx = next_step_batch[i] - 2  # type: ignore
+        hidden_idx = 0 if step_batch[i] == 1 else step_batch[i] - 2
+        next_hidden_idx = next_step_batch[i] - 2
         hidden_embed = (
             mdnrnn_output.all_steps_lstm_hidden[hidden_idx, i, :]
             .squeeze()
@@ -421,7 +431,7 @@ def create_embed_rl_dataset(
             .cpu()
         )
         state_embed = torch.cat(
-            (hidden_embed, torch.tensor(state_batch[i][hidden_idx + 1]))  # type: ignore
+            (hidden_embed, torch.tensor(state_batch[i][hidden_idx + 1]))
         )
         next_hidden_embed = (
             next_mdnrnn_output.all_steps_lstm_hidden[next_hidden_idx, i, :]
@@ -430,25 +440,22 @@ def create_embed_rl_dataset(
             .cpu()
         )
         next_state_embed = torch.cat(
-            (
-                next_hidden_embed,
-                torch.tensor(next_state_batch[i][next_hidden_idx + 1]),  # type: ignore
-            )
+            (next_hidden_embed, torch.tensor(next_state_batch[i][next_hidden_idx + 1]))
         )
 
         logger.debug(
             "create_embed_rl_dataset:\nstate batch\n{}\naction batch\n{}\nlast "
             "action: {},reward: {}\nstate embed {}\nnext state embed {}\n".format(
-                state_batch[i][: hidden_idx + 1],  # type: ignore
-                action_batch[i][: hidden_idx + 1],  # type: ignore
-                action_batch[i][hidden_idx + 1],  # type: ignore
-                reward_batch[i][hidden_idx + 1],  # type: ignore
+                state_batch[i][: hidden_idx + 1],
+                action_batch[i][: hidden_idx + 1],
+                action_batch[i][hidden_idx + 1],
+                reward_batch[i][hidden_idx + 1],
                 state_embed,
                 next_state_embed,
             )
         )
 
-        terminal = 1 - not_terminal_batch[i][hidden_idx + 1]  # type: ignore
+        terminal = 1 - not_terminal_batch[i][hidden_idx + 1]
         possible_actions, possible_actions_mask = get_possible_actions(
             gym_env, ModelType.PYTORCH_PARAMETRIC_DQN.value, False
         )
@@ -457,12 +464,10 @@ def create_embed_rl_dataset(
         )
         dataset.insert(
             state=state_embed,
-            action=torch.tensor(action_batch[i][hidden_idx + 1]),  # type: ignore
-            reward=float(reward_batch[i][hidden_idx + 1]),  # type: ignore
+            action=torch.tensor(action_batch[i][hidden_idx + 1]),
+            reward=float(reward_batch[i][hidden_idx + 1]),
             next_state=next_state_embed,
-            next_action=torch.tensor(
-                next_action_batch[i][next_hidden_idx + 1]  # type: ignore
-            ),
+            next_action=torch.tensor(next_action_batch[i][next_hidden_idx + 1]),
             terminal=torch.tensor(terminal),
             possible_next_actions=possible_next_actions,
             possible_next_actions_mask=possible_next_actions_mask,

@@ -46,9 +46,7 @@ try:
         FbActorPredictorUnwrapper as ActorPredictorUnwrapper,
     )
 except ImportError:
-    from reagent.prediction.predictor_wrapper import (  # type: ignore
-        ActorPredictorUnwrapper,
-    )
+    from reagent.prediction.predictor_wrapper import ActorPredictorUnwrapper
 
 
 logger = logging.getLogger(__name__)
@@ -73,6 +71,8 @@ class ActorPolicyWrapper(Policy):
         self.actor_network = actor_network
 
     @torch.no_grad()
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
     def act(self, obs: rlt.PreprocessedState) -> rlt.ActorOutput:
         self.actor_network.eval()
         output = self.actor_network(obs)
@@ -115,6 +115,8 @@ class ActorCriticBase(ModelManager):
 
     @property
     def should_generate_eval_dataset(self) -> bool:
+        # pyre-fixme[16]: `ActorCriticBase` has no attribute `eval_parameters`.
+        # pyre-fixme[16]: `ActorCriticBase` has no attribute `eval_parameters`.
         return self.eval_parameters.calc_cpe_in_training
 
     def create_policy(self, serving: bool) -> Policy:
@@ -127,11 +129,15 @@ class ActorCriticBase(ModelManager):
                 ActorPredictorUnwrapper(self.build_serving_module())
             )
         else:
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute `_actor_network`.
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute `_actor_network`.
             return ActorPolicyWrapper(self._actor_network)
 
     @property
     def metrics_to_score(self) -> List[str]:
         assert self._reward_options is not None
+        # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
+        # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
                 self._reward_options.metric_reward_values
@@ -152,7 +158,12 @@ class ActorCriticBase(ModelManager):
     ) -> Dict[str, NormalizationData]:
         # Run state feature identification
         state_preprocessing_options = (
-            self._state_preprocessing_options or PreprocessingOptions()
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute
+            #  `_state_preprocessing_options`.
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute
+            #  `_state_preprocessing_options`.
+            self._state_preprocessing_options
+            or PreprocessingOptions()
         )
         state_features = [
             ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
@@ -168,13 +179,20 @@ class ActorCriticBase(ModelManager):
 
         # Run action feature identification
         action_preprocessing_options = (
-            self._action_preprocessing_options or PreprocessingOptions()
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute
+            #  `_action_preprocessing_options`.
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute
+            #  `_action_preprocessing_options`.
+            self._action_preprocessing_options
+            or PreprocessingOptions()
         )
         action_features = [
             ffi.feature_id for ffi in self.action_feature_config.float_feature_infos
         ]
         logger.info(f"action whitelist_features: {action_features}")
 
+        # pyre-fixme[16]: `ActorCriticBase` has no attribute `actor_net_builder`.
+        # pyre-fixme[16]: `ActorCriticBase` has no attribute `actor_net_builder`.
         actor_net_builder = self.actor_net_builder.value
         action_feature_override = actor_net_builder.default_action_preprocessing
         logger.info(f"Default action_feature_override is {action_feature_override}")
@@ -257,14 +275,20 @@ class ActorCriticBase(ModelManager):
         reporter = ActorCriticReporter()
 
         training_page_handler = TrainingPageHandler(self.trainer)
+        # pyre-fixme[16]: `TrainingPageHandler` has no attribute `add_observer`.
+        # pyre-fixme[16]: `TrainingPageHandler` has no attribute `add_observer`.
         training_page_handler.add_observer(reporter)
 
         evaluator = Evaluator(
             action_names=actions,
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute `rl_parameters`.
+            # pyre-fixme[16]: `ActorCriticBase` has no attribute `rl_parameters`.
             gamma=self.rl_parameters.gamma,
             model=self.trainer,
             metrics_to_score=self.metrics_to_score,
         )
+        # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
+        # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         evaluator.add_observer(reporter)
         evaluation_page_handler = EvaluationPageHandler(
             self.trainer, evaluator, reporter
@@ -282,6 +306,8 @@ class ActorCriticBase(ModelManager):
             eval_page_handler=evaluation_page_handler,
             reader_options=self.reader_options,
         )
+        # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
+        # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         training_report = RLTrainingReport.make_union_instance(
             reporter.generate_training_report()
         )

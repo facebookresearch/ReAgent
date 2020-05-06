@@ -47,7 +47,7 @@ class FullyConnectedNetwork(nn.Module):
                 self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
             if self.use_layer_norm and i < len(layers) - 2:
                 # LayerNorm is applied to the output of linear
-                self.layer_norm_ops.append(nn.LayerNorm(layer))  # type: ignore
+                self.layer_norm_ops.append(nn.LayerNorm(layer))
             if self.use_dropout and i < len(layers[1:]) - 1:
                 # applying dropout to all layers except
                 # the input and the last output layer

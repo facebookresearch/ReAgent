@@ -99,6 +99,7 @@ class DQNTrainer(DQNTrainerBase):
         self.q_network = q_network
         self.q_network_target = q_network_target
         self._set_optimizer(parameters.optimizer.optimizer)
+        # pyre-fixme[16]: `DQNTrainer` has no attribute `optimizer_func`.
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(),
             lr=parameters.optimizer.learning_rate,
@@ -113,16 +114,21 @@ class DQNTrainer(DQNTrainerBase):
             cpe_optimizer_parameters=parameters.optimizer,
         )
 
+        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
+            # pyre-fixme[16]: `Optional` has no attribute `keys`.
             for k in parameters.rl.reward_boost.keys():
+                # pyre-fixme[16]: `Optional` has no attribute `index`.
                 i = self._actions.index(k)
+                # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
         # Batch constrained q-learning
         self.bcq = parameters.bcq is not None
         if self.bcq:
             assert parameters.bcq is not None
+            # pyre-fixme[16]: `Optional` has no attribute `drop_threshold`.
             self.bcq_drop_threshold = parameters.bcq.drop_threshold
             self.bcq_imitator = imitator
 
@@ -138,7 +144,7 @@ class DQNTrainer(DQNTrainerBase):
             ]
         return components
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def get_detached_q_values(
         self, state
     ) -> Tuple[rlt.AllActionQValues, Optional[rlt.AllActionQValues]]:
@@ -148,7 +154,8 @@ class DQNTrainer(DQNTrainerBase):
         q_values_target = self.q_network_target(input).q_values
         return q_values, q_values_target
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
@@ -168,6 +175,7 @@ class DQNTrainer(DQNTrainerBase):
             discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
             assert training_batch.step is not None
+            # pyre-fixme[16]: `Optional` has no attribute `float`.
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
@@ -203,10 +211,12 @@ class DQNTrainer(DQNTrainerBase):
             # Get Q-value of action taken
             current_state = rlt.PreprocessedState(state=training_batch.state)
             all_q_values = self.q_network(current_state).q_values
+            # pyre-fixme[16]: `DQNTrainer` has no attribute `all_action_scores`.
             self.all_action_scores = all_q_values.detach()
             q_values = torch.sum(all_q_values * training_batch.action, 1, keepdim=True)
 
             loss = self.q_network_loss(q_values, target_q_values)
+            # pyre-fixme[16]: `DQNTrainer` has no attribute `loss`.
             self.loss = loss.detach()
 
             loss.backward()
@@ -242,6 +252,7 @@ class DQNTrainer(DQNTrainerBase):
             action_on_policy = get_valid_actions_from_imitator(
                 self.bcq_imitator, training_batch.state, self.bcq_drop_threshold
             )
+            # pyre-fixme[18]: Global name `possible_actions_mask` is undefined.
             possible_actions_mask *= action_on_policy
 
         model_action_idxs = self.get_max_q_values(
@@ -249,7 +260,8 @@ class DQNTrainer(DQNTrainerBase):
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )[1]
 
-        self.notify_observers(  # type: ignore
+        # pyre-fixme[16]: `DQNTrainer` has no attribute `notify_observers`.
+        self.notify_observers(
             td_loss=self.loss,
             reward_loss=reward_loss,
             logged_actions=logged_action_idxs,
@@ -275,7 +287,7 @@ class DQNTrainer(DQNTrainerBase):
             model_action_idxs=model_action_idxs,
         )
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_prediction(self, input):
         """
         Only used by Gym
@@ -294,7 +306,7 @@ class DQNTrainer(DQNTrainerBase):
 
         return q_values
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_reward_estimation(self, input):
         """
         Only used by Gym

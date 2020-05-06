@@ -42,6 +42,7 @@ class SlateQTrainer(DQNTrainerBase):
         self.q_network = q_network
         self.q_network_target = q_network_target
         self._set_optimizer(parameters.optimizer)
+        # pyre-fixme[16]: `SlateQTrainer` has no attribute `optimizer_func`.
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(),
             lr=parameters.learning_rate,
@@ -78,7 +79,8 @@ class SlateQTrainer(DQNTrainerBase):
         )
         return q_network(input).q_value.view(batch_size, slate_size)
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.PreprocessedSlateQInput):
         assert isinstance(
             training_batch, rlt.PreprocessedSlateQInput

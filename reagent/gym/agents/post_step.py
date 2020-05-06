@@ -74,6 +74,7 @@ def train_with_replay_buffer_post_step(
         nonlocal _num_steps
 
         action = actor_output.action.numpy()
+        # pyre-fixme[16]: `Optional` has no attribute `numpy`.
         log_prob = actor_output.log_prob.numpy()
         if possible_actions_mask is None:
             possible_actions_mask = torch.ones_like(actor_output.action).to(torch.bool)
@@ -110,6 +111,7 @@ def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostSte
         # actor_output = actor_output.squeeze(0)
         if isinstance(env.action_space, gym.spaces.Discrete):
             # TimelineOperator expects str for discrete action
+            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
             action = str(actor_output.action.argmax().item())
             if possible_actions_mask is None:
                 possible_actions_mask = torch.ones_like(actor_output.action).to(
@@ -132,6 +134,7 @@ def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostSte
         # TODO: make output of policy the desired type already (which means
         # altering RB logic to store scalar types) What to do about continuous?
 
+        # pyre-fixme[16]: `Optional` has no attribute `exp`.
         action_prob = actor_output.log_prob.exp().item()
         possible_actions = None  # TODO: this shouldn't be none if env passes it
         time_diff = 1  # TODO: should this be hardcoded?

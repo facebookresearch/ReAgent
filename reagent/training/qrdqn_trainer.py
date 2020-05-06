@@ -124,8 +124,10 @@ class QRDQNTrainer(DQNTrainerBase):
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
+            # pyre-fixme[16]: Optional type has no attribute `keys`.
             for k in parameters.rl.reward_boost.keys():
                 i = self._actions.index(k)
+                # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
                 self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
 
     def warm_start_components(self):
@@ -140,7 +142,8 @@ class QRDQNTrainer(DQNTrainerBase):
             ]
         return components
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
@@ -192,7 +195,9 @@ class QRDQNTrainer(DQNTrainerBase):
             # (batch, atoms) -> (atoms, batch, 1) -> (atoms, batch, atoms)
             td = target_Q.t().unsqueeze(-1) - current_qf
             loss = (
-                self.huber(td) * (self.quantiles - (td.detach() < 0).float()).abs()
+                self.huber(td)
+                # pyre-fixme[16]: `FloatTensor` has no attribute `abs`.
+                * (self.quantiles - (td.detach() < 0).float()).abs()
             ).mean()
 
             loss.backward()
@@ -225,7 +230,8 @@ class QRDQNTrainer(DQNTrainerBase):
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )
 
-        self.notify_observers(  # type: ignore
+        # pyre-fixme[16]: `QRDQNTrainer` has no attribute `notify_observers`.
+        self.notify_observers(
             td_loss=loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,
@@ -249,7 +255,7 @@ class QRDQNTrainer(DQNTrainerBase):
             model_action_idxs=model_action_idxs,
         )
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_prediction(self, input):
         """
         Only used by Gym
@@ -261,15 +267,13 @@ class QRDQNTrainer(DQNTrainerBase):
 
         return q_values
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor
     ) -> torch.Tensor:
         # Apply reward boost if specified
         reward_boosts = torch.sum(
-            actions.float() * self.reward_boosts,  # type: ignore
-            dim=1,
-            keepdim=True,
+            actions.float() * self.reward_boosts, dim=1, keepdim=True
         )
         return rewards + reward_boosts
 
@@ -283,7 +287,7 @@ class QRDQNTrainer(DQNTrainerBase):
     def huber(self, x):
         return torch.where(x.abs() < 1, 0.5 * x.pow(2), x.abs() - 0.5)
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def get_detached_q_values(self, state):
         """ Gets the q values from the model and target networks """
         input = rlt.PreprocessedState(state=state)

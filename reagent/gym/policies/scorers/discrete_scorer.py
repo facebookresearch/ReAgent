@@ -34,6 +34,8 @@ def parametric_dqn_scorer(num_actions: int, q_network: ModelBase) -> Scorer:
         tiled_state = preprocessed_obs.repeat_interleave(repeats=num_actions, axis=0)
 
         actions = rlt.PreprocessedFeatureVector(float_features=torch.eye(num_actions))
+        # pyre-fixme[9]: preprocessed_obs has type `PreprocessedState`; used as
+        #  `PreprocessedStateAction`.
         preprocessed_obs = rlt.PreprocessedStateAction(tiled_state.state, actions)
 
         q_network.eval()

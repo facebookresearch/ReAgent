@@ -66,7 +66,9 @@ class CEMTrainer(RLTrainer):
         self.minibatch += 1
         logger.info("")
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
+    # pyre-fixme[14]: `internal_prediction` overrides method defined in `RLTrainer`
+    #  inconsistently.
     def internal_prediction(
         self, state: torch.Tensor
     ) -> Union[rlt.SacPolicyActionSet, rlt.DqnPolicyActionSet]:
@@ -81,7 +83,7 @@ class CEMTrainer(RLTrainer):
             return rlt.SacPolicyActionSet(greedy=output, greedy_propensity=1.0)
         return rlt.DqnPolicyActionSet(greedy=output[0])
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_reward_estimation(self, input):
         """
         Only used by Gym

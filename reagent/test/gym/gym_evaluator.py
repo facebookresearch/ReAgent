@@ -159,10 +159,8 @@ class GymEvaluator(Evaluator):
         if self._env.action_type == EnvType.CONTINUOUS_ACTION:
             raise NotImplementedError()
         # test only float features
-        if predictor.discrete_action():  # type: ignore
-            predictions = predictor.predict(  # type: ignore
-                self.logged_states
-            )
+        if predictor.discrete_action():
+            predictions = predictor.predict(self.logged_states)
             estimated_reward_values = predictor.estimate_reward(self.logged_states)
         else:
             num_states = self.logged_states.size()[0]
@@ -173,9 +171,9 @@ class GymEvaluator(Evaluator):
                 torch.eye(self._env.action_dim), repeats=num_states, axis=0
             )
 
-            predictions = predictor.predict(  # type: ignore
-                states_tiled, action_tiled
-            ).reshape([-1, self._env.action_dim])
+            predictions = predictor.predict(states_tiled, action_tiled).reshape(
+                [-1, self._env.action_dim]
+            )
             estimated_reward_values = predictor.estimate_reward(
                 states_tiled, action_tiled
             ).reshape([-1, self._env.action_dim])

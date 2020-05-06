@@ -93,6 +93,7 @@ class DiscreteDqnWithPreprocessorWithIdList(ModelBase):
     @property
     def id_list_feature_configs(self) -> List[rlt.IdListFeatureConfig]:
         if self.state_feature_config:
+            # pyre-fixme[16]: `Optional` has no attribute `id_list_feature_configs`.
             return self.state_feature_config.id_list_feature_configs
         return []
 
@@ -322,6 +323,7 @@ class ActorWithPreprocessor(ModelBase):
         # TODO: include log_prob in the output
         action = self.model(state_feature_vector).action
         if self.action_postprocessor:
+            # pyre-fixme[29]: `Optional[Postprocessor]` is not a function.
             action = self.action_postprocessor(action)
         return action
 

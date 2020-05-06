@@ -224,9 +224,7 @@ def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
     parameters = {}
     for feature, feature_parameters in six.iteritems(parameters_json):
         # Note: This is OK since NormalizationParameters is flat.
-        params = NormalizationParameters(
-            **json.loads(feature_parameters)
-        )  # type: ignore
+        params = NormalizationParameters(**json.loads(feature_parameters))
         # Check for negative enum IDs
         if params.feature_type == identify_types.ENUM:
             assert params.possible_values is not None

@@ -529,6 +529,7 @@ class Seq2SlateTransformerModel(nn.Module):
             return self._log_probs(
                 state=input.state.float_features,
                 src_seq=input.src_seq.float_features,
+                # pyre-fixme[16]: `Optional` has no attribute `float_features`.
                 tgt_in_seq=input.tgt_in_seq.float_features,
                 src_src_mask=input.src_src_mask,
                 tgt_tgt_mask=input.tgt_tgt_mask,
@@ -867,7 +868,7 @@ class _DistributedSeq2SlateTransformerNet(ModelBase):
         self.max_tgt_seq_len = seq2slate_transformer_net.max_tgt_seq_len
         self.encoder_only = seq2slate_transformer_net.encoder_only
 
-        current_device = torch.cuda.current_device()  # type: ignore
+        current_device = torch.cuda.current_device()
         self.data_parallel = DistributedDataParallel(
             seq2slate_transformer_net.seq2slate_transformer,
             device_ids=[current_device],

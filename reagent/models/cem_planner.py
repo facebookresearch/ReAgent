@@ -99,14 +99,14 @@ class CEMPlannerNetwork(nn.Module):
                 action_lower_bounds, self.plan_horizon_length
             )
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def forward(self, input: rlt.PreprocessedState):
         assert input.state.float_features.shape == (1, self.state_dim)
         if self.discrete_action:
             return self.discrete_planning(input)
         return self.continuous_planning(input)
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def acc_rewards_of_one_solution(
         self, init_state: torch.Tensor, solution: torch.Tensor, solution_idx: int
     ):
@@ -137,7 +137,12 @@ class CEMPlannerNetwork(nn.Module):
                         float_features=solution[j, :].reshape((1, 1, self.action_dim))
                     ),
                 )
-                reward, next_state, not_terminal, not_terminal_prob = self.sample_reward_next_state_terminal(
+                (
+                    reward,
+                    next_state,
+                    not_terminal,
+                    not_terminal_prob,
+                ) = self.sample_reward_next_state_terminal(
                     world_model_input, self.mem_net_list[mem_net_idx]
                 )
                 reward_matrix[i, j] = reward * (self.gamma ** j)
@@ -155,7 +160,7 @@ class CEMPlannerNetwork(nn.Module):
 
         return np.sum(reward_matrix, axis=1)
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def acc_rewards_of_all_solutions(
         self, input: rlt.PreprocessedState, solutions: torch.Tensor
     ) -> float:
@@ -176,7 +181,7 @@ class CEMPlannerNetwork(nn.Module):
             )
         return acc_reward_vec
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def sample_reward_next_state_terminal(
         self, world_model_input: rlt.PreprocessedStateAction, mem_net: MemoryNetwork
     ):
@@ -208,12 +213,13 @@ class CEMPlannerNetwork(nn.Module):
         )
         return np.minimum(np.minimum((lb_dist / 2) ** 2, (ub_dist / 2) ** 2), var)
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def continuous_planning(self, input: rlt.PreprocessedState) -> np.ndarray:
         # TODO: Warmstarts means and vars using previous solutions (T48841404)
         mean = (self.action_upper_bounds + self.action_lower_bounds) / 2
         var = (self.action_upper_bounds - self.action_lower_bounds) ** 2 / 16
-        normal_sampler = stats.truncnorm(  # type: ignore
+        # pyre-fixme[29]: `truncnorm_gen` is not a function.
+        normal_sampler = stats.truncnorm(
             -2, 2, loc=np.zeros_like(mean), scale=np.ones_like(mean)
         )
 
@@ -228,11 +234,13 @@ class CEMPlannerNetwork(nn.Module):
                 + mean
             )
             action_solutions = torch.from_numpy(
+                # pyre-fixme[16]: `float` has no attribute `reshape`.
                 solutions.reshape(
                     (self.cem_pop_size, self.plan_horizon_length, self.action_dim)
                 )
             ).float()
             acc_rewards = self.acc_rewards_of_all_solutions(input, action_solutions)
+            # pyre-fixme[16]: `float` has no attribute `__getitem__`.
             elites = solutions[np.argsort(acc_rewards)][-self.num_elites :]
             new_mean = np.mean(elites, axis=0)
             new_var = np.var(elites, axis=0)
@@ -246,7 +254,7 @@ class CEMPlannerNetwork(nn.Module):
         solution = mean[: self.action_dim]
         return torch.tensor(solution.reshape((1, -1)))
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def discrete_planning(self, input: rlt.PreprocessedState) -> Tuple[int, np.ndarray]:
         # For discrete actions, we use random shoots to get the best next action
         random_action_seqs = list(
@@ -263,6 +271,8 @@ class CEMPlannerNetwork(nn.Module):
 
         first_action_tally = np.zeros(self.action_dim)
         reward_tally = np.zeros(self.action_dim)
+        # pyre-fixme[6]: Expected `Iterable[Variable[_T2]]` for 2nd param but got
+        #  `float`.
         for action_seq, acc_reward in zip(random_action_seqs, acc_rewards):
             first_action = action_seq[0]
             first_action_tally[first_action] += 1
@@ -319,7 +329,7 @@ class _DistributedDataParallelCEMPlanner(ModelBase):
         self.action_dim = cem_planner.action_dim
         self.discrete_action = cem_planner.discrete_action
 
-        current_device = torch.cuda.current_device()  # type: ignore
+        current_device = torch.cuda.current_device()
         self.data_parallel = DistributedDataParallel(
             cem_planner.cem_planner_network,
             device_ids=[current_device],

@@ -150,9 +150,7 @@ class MDNRNNMemoryPool:
             MDN-RNN consumes data with SEQ_LEN as the first dimension.
         """
         sample_indices = np.random.randint(self.memory_size, size=batch_size)
-        device = (
-            torch.device("cuda") if use_gpu else torch.device("cpu")  # type: ignore
-        )
+        device = torch.device("cuda") if use_gpu else torch.device("cpu")
         # state/next state shape: batch_size x seq_len x state_dim
         # action shape: batch_size x seq_len x action_dim
         # reward/not_terminal shape: batch_size x seq_len
@@ -245,5 +243,5 @@ def gmm_loss(batch, mus, sigmas, logpi, reduce=True):
 
     log_prob = max_log_probs.squeeze() + torch.log(probs)
     if reduce:
-        return -torch.mean(log_prob)
+        return -(torch.mean(log_prob))
     return -log_prob
