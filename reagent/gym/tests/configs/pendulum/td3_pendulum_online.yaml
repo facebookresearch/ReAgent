@@ -1,4 +1,4 @@
-env: Pendulum-v0
+env_name: Pendulum-v0
 model:
   TD3:
     trainer_param:
