@@ -10,16 +10,23 @@ batches, we use *off-policy* algorithms.  To test a new policy without deploying
 *counter-factual policy evaluation (CPE)*\ , a set of techniques for estimating a policy based on the
 actions of another policy.
 
+We have set up `Click <https://click.palletsprojects.com/en/7.x/>`_ commands to run our RL workflow. The basic usage pattern is
+
+.. code-block::
+
+    ./reagent/workflow/cli.py run <module.function> <path/to/config>
+
+
 Before we get started using ReAgent as it is intended, let's begin with a traditional RL setup with a simulator where we can trivially evaluate new policies:
 
 1 - On-Policy RL Training
 -------------------------
 
-OpenAI Gym is a set of environments: simulators that can run policies for a given task and generate rewards.  If a simulator is accessible, on-policy training (where the latest version of the policy makes new decisions in real-time) can give better results. We have a suite of benchmarks on OpenAI Gym, which is listed in ``reagent/gym/tests/test_gym.py``'s ``GYM_TESTS``. To train a model on OpenAI Gym, simply run:
+OpenAI Gym is a set of environments: simulators that can run policies for a given task and generate rewards.  If a simulator is accessible, on-policy training (where the latest version of the policy makes new decisions in real-time) can give better results. We have a suite of benchmarks on OpenAI Gym, which is listed in ``reagent/gym/tests/test_gym.py``'s ``GYM_TESTS``. To train a model on OpenAI Gym, simply run the Click command:
 
 .. code-block::
 
-   python reagent/gym/tests/test_gym.py TestGym.test_gym_cpu_0_Discrete_Dqn_Cartpole
+   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
 
 Configs for different environments and algorithms can be found in ``reagent/gym/tests/configs/<env_name>/<algorithm>_<env_name>_online.yaml``.
 
@@ -38,27 +45,27 @@ For these reasons, ReAgent is designed to support batch, off-policy RL.  Let's n
 
 The main use case of ReAgent is to train RL models in the **batch** setting. In batch reinforcement learning the data collection and policy learning steps are decoupled. Specifically, we try to learn the best possible policy given the input data. In batch RL, being able to handle thousands of varying feature types and distributions and algorithm performance estimates before deployment are of key importance.
 
-In this example, we will train a DQN model on Offline ``CartPole-v0`` data, where the config should be set to
+In this example, we will train a DQN model on Offline ``CartPole-v0`` data, where Click command config should be set to
 
 .. code-block::
 
     export CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
 
-We have set up `Click <https://click.palletsprojects.com/en/7.x/>`_ commands to run our batch RL workflow, where an example usage is shown in ``scripts/ci/run_end_to_end_test.sh``. The basic usage pattern is
 
-.. code-block::
-
-    ./reagent/workflow/cli.py run <module.function> <path/to/config>
-
-where the config should fill out the arguments of the function. As you can see in ``scripts/ci/run_end_to_end_test.sh``, the entry points of each step are located in ``reagent/workflow/gym_batch_rl.py``.
-
-We now proceed to give pseudo-code to sketch out the main ideas of our batch RL workflow. Step 1 corresponds to function ``offline_gym``, Step 2 corresponds to function ``timeline_operator`` and Steps 3-5 correspond to ``train_and_evaluate_gym``.
+We now proceed to give pseudo-code to sketch out the main ideas of our batch RL workflow.
 
 
 Step 1 - Create training data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We first generate data from a random policy (chooses random actions) run on the ``CartPole-v0`` environment. In practice, end users would generate a dataset in a similar format from their production system. For this example, the data is stored as a pickled Pandas dataframe.
+We first generate data from a random policy (chooses random actions) run on the ``CartPole-v0`` environment. 
+In particular, the following Click command runs 150 episodes of ``CartPole-v0`` (max steps of 200) and stored the pickled dataframe in ``/tmp/tmp_pickle.pkl``, which you may inspect via ``pd_df = pd.read_pickle(pkl_path)``.
+
+.. code-block::
+
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
+
+The command essentially performs the following pseudo-code:
 
 .. code-block::
 
@@ -69,8 +76,7 @@ We first generate data from a random policy (chooses random actions) run on the 
     df = dataset.to_pandas_df()
     df.to_pickle(pkl_path)
 
-This should have ran 150 episodes of ``CartPole-v0`` (max steps of 200) and stored the pickled dataframe in ``/tmp/tmp_pickle.pkl``, which you may inspect via ``pd_df = pd.read_pickle(pkl_path)``.
-
+In practice, end users would generate a dataset in a similar format from their production system. For this example, the data is stored as a pickled Pandas dataframe. 
 
 This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data are parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:
 
@@ -127,8 +133,14 @@ When running spark locally, spark creates a fake "cluster" where it stores all o
    # Clear last run's spark data (in case of interruption)
    rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log
 
-Now that we are ready, let's run our spark job on our local machine.  This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated.
+Now that we are ready, let's run our spark job on our local machine. This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated. To do so, run the following Click command:
 
+.. code-block::
+    
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
+
+
+The command essentially performs the following pseudo-code:
 
 .. code-block::
 
@@ -143,6 +155,15 @@ Now that we are ready, let's run our spark job on our local machine.  This will 
    json_params = make_input_to_timeline_operator()
    spark._jvm.com.facebook.spark.rl.Timeline.main(json_params)
 
+
+Now that our data is a Spark table in Hive storage, we're ready to run the training workflow (Steps 3-5). These steps are altogether accomplished with the following Click command:
+
+.. code-block::
+
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym $CONFIG
+
+
+We now proceed to describing this command and present some pseudo-code.
 
 
 Step 3 - Determine normalization parameters
