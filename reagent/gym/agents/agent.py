@@ -11,6 +11,8 @@ from reagent.gym.policies.policy import Policy
 from reagent.gym.preprocessors import (
     make_default_action_extractor,
     make_default_obs_preprocessor,
+    make_default_serving_action_extractor,
+    make_default_serving_obs_preprocessor,
 )
 from reagent.gym.types import PostStep
 
@@ -101,6 +103,17 @@ class Agent:
             obs_preprocessor=obs_preprocessor,
             action_extractor=action_extractor,
             device=device,
+            **kwargs,
+        )
+
+    @classmethod
+    def create_from_serving_policy(cls, serving_policy, env: Env, **kwargs):
+        obs_preprocessor = make_default_serving_obs_preprocessor(env)
+        action_extractor = make_default_serving_action_extractor(env)
+        return cls(
+            serving_policy,
+            obs_preprocessor=obs_preprocessor,
+            action_extractor=action_extractor,
             **kwargs,
         )
 

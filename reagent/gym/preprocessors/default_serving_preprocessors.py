@@ -13,8 +13,10 @@ from reagent.gym.preprocessors.default_preprocessors import discrete_action_extr
 
 
 def make_default_serving_obs_preprocessor(env: Env):
-    # pyre-fixme[11]: Annotation `array` is not defined as a type.
-    def gym_to_reagent_serving(obs: np.array) -> Tuple[torch.Tensor, torch.Tensor]:
+    if not isinstance(env.observation_space, spaces.Box):
+        raise NotImplementedError
+
+    def gym_to_reagent_serving(obs: np.ndarray) -> Tuple[torch.Tensor, torch.Tensor]:
         obs_tensor = torch.tensor(obs).float().unsqueeze(0)
         presence_tensor = torch.ones_like(obs_tensor)
         return (obs_tensor, presence_tensor)
@@ -28,6 +30,8 @@ def make_default_serving_action_extractor(env: Env):
     elif isinstance(env.action_space, spaces.Box):
         assert env.action_space.shape == (1,)
         return continuous_predictor_action_extractor
+    else:
+        raise NotImplementedError
 
 
 def continuous_predictor_action_extractor(output: rlt.ActorOutput):

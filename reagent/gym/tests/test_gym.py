@@ -15,10 +15,6 @@ from reagent.core.configuration import make_config_class
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.envs.env_factory import EnvFactory
-from reagent.gym.preprocessors import (
-    make_default_serving_action_extractor,
-    make_default_serving_obs_preprocessor,
-)
 from reagent.gym.runners.gymrunner import run_episode
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
@@ -147,14 +143,8 @@ def run_test(
     logger.info("============Train rewards=============")
     logger.info(train_rewards)
 
-    serving_obs_preprocessor = make_default_serving_obs_preprocessor(env)
-    serving_action_extractor = make_default_serving_action_extractor(env)
     serving_policy = manager.create_policy(serving=True)
-    agent = Agent(
-        policy=serving_policy,
-        obs_preprocessor=serving_obs_preprocessor,
-        action_extractor=serving_action_extractor,
-    )
+    agent = Agent.create_from_serving_policy(serving_policy, env)
 
     eval_rewards = []
     for i in range(num_eval_episodes):
