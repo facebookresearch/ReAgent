@@ -60,7 +60,7 @@ class Agent:
 
         if isinstance(device, str):
             device = torch.device(device)
-        self.device = device
+        self.device: torch.device = device
 
         # check if policy.act needs possible_actions_mask (continuous policies don't)
         sig = inspect.signature(policy.act)
@@ -127,8 +127,6 @@ class Agent:
         self._possible_actions_mask = possible_actions_mask
 
         # preprocess and convert to batch data
-        # pyre-fixme[6]: Expected `device` for 2nd param but got `Union[str,
-        #  torch.device]`.
         device_obs = to_device(obs, self.device)
         preprocessed_obs = self.obs_preprocessor(device_obs)
 

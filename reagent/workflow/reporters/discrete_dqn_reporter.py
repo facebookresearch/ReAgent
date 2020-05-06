@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import itertools
 import logging
 from collections import OrderedDict
 from typing import List, Optional
@@ -30,88 +31,73 @@ class DiscreteDQNReporter(ReporterBase):
         self.value_list_observers = {"cpe_results": ValueListObserver("cpe_details")}
         self.aggregating_observers = OrderedDict(
             (name, IntervalAggregatingObserver(report_interval, aggregator))
-            for name, aggregator in [
-                ("td_loss", agg.MeanAggregator("td_loss")),
-                ("reward_loss", agg.MeanAggregator("reward_loss")),
-                (
-                    "model_values",
-                    agg.FunctionsByActionAggregator(
-                        "model_values", actions, {"mean": torch.mean, "std": torch.std}
+            for name, aggregator in itertools.chain(
+                [
+                    ("td_loss", agg.MeanAggregator("td_loss")),
+                    ("reward_loss", agg.MeanAggregator("reward_loss")),
+                    (
+                        "model_values",
+                        agg.FunctionsByActionAggregator(
+                            "model_values",
+                            actions,
+                            {"mean": torch.mean, "std": torch.std},
+                        ),
                     ),
-                ),
-                ("logged_action", agg.ActionCountAggregator("logged_actions", actions)),
-                (
-                    "model_action",
-                    agg.ActionCountAggregator("model_action_idxs", actions),
-                ),
-                ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
-            ]
-            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
-            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
-            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
-            #  `List[typing.Tuple[str, agg.TensorBoardActionCountAggregator]]`.
-            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
-            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
-            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
-            #  `List[typing.Tuple[str, agg.TensorBoardActionCountAggregator]]`.
-            + [
-                (f"{key}_tb", agg.TensorBoardActionCountAggregator(key, title, actions))
-                for key, title in [
-                    ("logged_actions", "logged"),
-                    ("model_action_idxs", "model"),
-                ]
-            ]
-            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
-            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
-            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
-            #  `List[typing.Tuple[str, agg.TensorBoardHistogramAndMeanAggregator]]`.
-            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
-            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
-            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
-            #  `List[typing.Tuple[str, agg.TensorBoardHistogramAndMeanAggregator]]`.
-            + [
-                (f"{key}_tb", agg.TensorBoardHistogramAndMeanAggregator(key, log_key))
-                for key, log_key in [
-                    ("td_loss", "td_loss"),
-                    ("reward_loss", "reward_loss"),
-                    ("logged_propensities", "propensities/logged"),
-                    ("logged_rewards", "reward/logged"),
-                ]
-            ]
-            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
-            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
-            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
-            #  `List[typing.Tuple[str,
-            #  agg.TensorBoardActionHistogramAndMeanAggregator]]`.
-            # pyre-fixme[6]: Expected `List[typing.Tuple[str,
-            #  typing.Union[agg.ActionCountAggregator, agg.FunctionsByActionAggregator,
-            #  agg.MeanAggregator, agg.RecentValuesAggregator]]]` for 1st param but got
-            #  `List[typing.Tuple[str,
-            #  agg.TensorBoardActionHistogramAndMeanAggregator]]`.
-            + [
-                (
-                    f"{key}_tb",
-                    agg.TensorBoardActionHistogramAndMeanAggregator(
-                        key, category, title, actions
+                    (
+                        "logged_action",
+                        agg.ActionCountAggregator("logged_actions", actions),
                     ),
-                )
-                for key, category, title in [
-                    ("model_propensities", "propensities", "model"),
-                    ("model_rewards", "reward", "model"),
-                    ("model_values", "value", "model"),
-                ]
-            ]
+                    (
+                        "model_action",
+                        agg.ActionCountAggregator("model_action_idxs", actions),
+                    ),
+                    ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
+                ],
+                [
+                    (
+                        f"{key}_tb",
+                        agg.TensorBoardActionCountAggregator(key, title, actions),
+                    )
+                    for key, title in [
+                        ("logged_actions", "logged"),
+                        ("model_action_idxs", "model"),
+                    ]
+                ],
+                [
+                    (
+                        f"{key}_tb",
+                        agg.TensorBoardHistogramAndMeanAggregator(key, log_key),
+                    )
+                    for key, log_key in [
+                        ("td_loss", "td_loss"),
+                        ("reward_loss", "reward_loss"),
+                        ("logged_propensities", "propensities/logged"),
+                        ("logged_rewards", "reward/logged"),
+                    ]
+                ],
+                [
+                    (
+                        f"{key}_tb",
+                        agg.TensorBoardActionHistogramAndMeanAggregator(
+                            key, category, title, actions
+                        ),
+                    )
+                    for key, category, title in [
+                        ("model_propensities", "propensities", "model"),
+                        ("model_rewards", "reward", "model"),
+                        ("model_values", "value", "model"),
+                    ]
+                ],
+            )
         )
         self.num_data_points_per_epoch = None
         epoch_end_observer = EpochEndObserver(self._epoch_end_callback)
         super().__init__(
-            list(self.value_list_observers.values())
-            + list(self.aggregating_observers.values())
-            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
-            #  got `List[EpochEndObserver]`.
-            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
-            #  got `List[EpochEndObserver]`.
-            + [epoch_end_observer]
+            itertools.chain(
+                self.value_list_observers.values(),
+                self.aggregating_observers.values(),
+                [epoch_end_observer],
+            )
         )
         self.target_action_distribution = target_action_distribution
         self.recent_window_size = recent_window_size

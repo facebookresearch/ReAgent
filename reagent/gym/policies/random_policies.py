@@ -42,8 +42,7 @@ class DiscreteRandomPolicy(Policy):
         possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
-        # pyre-fixme[9]: obs has type `PreprocessedState`; used as `Tensor`.
-        obs = obs.state.float_features
+        obs: torch.Tensor = obs.state.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.shape[0]
         weights = torch.ones((batch_size, self.num_actions))
@@ -86,10 +85,11 @@ class ContinuousRandomPolicy(Policy):
     # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
     def act(self, obs: rlt.PreprocessedState) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
-        # pyre-fixme[9]: obs has type `PreprocessedState`; used as `Tensor`.
-        obs = obs.state.float_features
+        obs: torch.Tensor = obs.state.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.size(0)
+        # pyre-fixme[6]: Expected `Union[torch.Size, torch.Tensor]` for 1st param
+        #  but got `Tuple[int]`.
         action = self.dist.sample((batch_size,))
         log_prob = self.dist.log_prob(action)
         return rlt.ActorOutput(action=action, log_prob=log_prob)
