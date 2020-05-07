@@ -21,18 +21,6 @@ def _id(x):
     return x
 
 
-def to_device(obs: Any, device: torch.device):
-    if isinstance(obs, np.ndarray):
-        return torch.tensor(obs).to(device, non_blocking=True)
-    elif isinstance(obs, dict):
-        out = {}
-        for k in obs:
-            out[k] = obs[k].to(device, non_blocking=True)
-        return out
-    else:
-        raise NotImplementedError(f"obs of type {type(obs)} not supported.")
-
-
 class Agent:
     def __init__(
         self,
@@ -93,7 +81,7 @@ class Agent:
             device = torch.device(device)
 
         if obs_preprocessor is None:
-            obs_preprocessor = make_default_obs_preprocessor(env)
+            obs_preprocessor = make_default_obs_preprocessor(env, device=device)
 
         if action_extractor is None:
             action_extractor = make_default_action_extractor(env)
@@ -127,8 +115,7 @@ class Agent:
         self._possible_actions_mask = possible_actions_mask
 
         # preprocess and convert to batch data
-        device_obs = to_device(obs, self.device)
-        preprocessed_obs = self.obs_preprocessor(device_obs)
+        preprocessed_obs = self.obs_preprocessor(obs)
 
         # optionally feed possible_actions_mask
         if self.pass_in_possible_actions_mask:

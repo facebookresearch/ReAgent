@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import dataclasses
+import logging
 
 # The dataclasses in this file should be vanilla dataclass to have minimal overhead
 from dataclasses import dataclass, field
@@ -9,6 +10,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import torch
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
+
+
+logger = logging.getLogger(__name__)
 
 
 """
@@ -128,10 +132,32 @@ class ActorOutput(TensorDataClass):
 class FeatureData(TensorDataClass):
     float_features: torch.Tensor
     id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
+    # For ranking algos,
+    # the shape is (batch_size, num_candidates, num_document_features)
+    candidate_doc_float_features: Optional[torch.Tensor] = None
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
     time_since_first: Optional[torch.Tensor] = None
+
+    def __post_init__(self):
+        if self.float_features.ndim == 3:
+            logger.warning(
+                "float_features should be 2D; for document features, "
+                "use `candidate_doc_float_features` instead"
+            )
+        elif self.float_features.ndim != 2:
+            raise ValueError(
+                f"float_features should be 2D; got {self.float_features.shape}"
+            )
+        if (
+            self.candidate_doc_float_features is not None
+            and self.candidate_doc_float_features.ndim != 3
+        ):
+            raise ValueError(
+                "candidate_doc_float_features should be 3D; "
+                f"got {self.candidate_doc_float_features.shape}"
+            )
 
     @classmethod
     def from_raw_feature_data(cls, feature_vector: RawFeatureData, preprocessor):
@@ -151,7 +177,11 @@ class FeatureData(TensorDataClass):
 
     @property
     def has_float_features_only(self) -> bool:
-        return not self.id_list_features and self.time_since_first is None
+        return (
+            not self.id_list_features
+            and self.time_since_first is None
+            and self.candidate_doc_float_features is None
+        )
 
 
 class TensorFeatureData(torch.nn.Module):
