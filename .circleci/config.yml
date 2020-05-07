@@ -123,7 +123,7 @@ jobs:
       - run:
           name: Run unittests
           command: |
-            tox -e circleci
+            tox -e circleci_unittest
             bash <(curl -s https://codecov.io/bash)
       - run: python setup.py bdist_wheel
       - store_artifacts:
@@ -131,6 +131,31 @@ jobs:
           destination: reagent-0.1-py3-none-any.whl
       - store_test_results:
           path: .tox/py37/log/
+
+  gym_unittest:
+    machine:
+      image: ubuntu-1604-cuda-10.1:201909-23
+    resource_class: gpu.medium
+    steps:
+      - checkout_merge
+      - run:
+          name: Switch to python 3.7
+          command: |
+            pyenv global 3.7.0
+            pip install --upgrade pip
+            pip install --upgrade tox wheel setuptools
+      - run:
+          name: Run unittests
+          command: |
+            tox -e circleci_gym_unittest
+            bash <(curl -s https://codecov.io/bash)
+      - run: python setup.py bdist_wheel
+      - store_artifacts:
+          path: dist/reagent-0.1-py3-none-any.whl
+          destination: reagent-0.1-py3-none-any.whl
+      - store_test_results:
+          path: .tox/py37/log/
+
 
   dqn_cartpole_e2e:
     docker:
@@ -225,5 +250,6 @@ workflows:
       - sac_pendulum_e2e
       - sac_pendulum_e2e_gpu
       - gpu_unittest
+      - gym_unittest
       - rasp_test_linux
       - rasp_test_mac
