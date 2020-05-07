@@ -64,6 +64,8 @@ class PageHandler:
         self.epoch = epoch
 
 
+# TODO: remove.
+# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
 @observable(epoch_end=int)
 class TrainingPageHandler(PageHandler):
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
@@ -77,6 +79,8 @@ class TrainingPageHandler(PageHandler):
         self.epoch += 1
 
 
+# TODO: remove.
+# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
 class EvaluationPageHandler(PageHandler):
     def __init__(self, trainer, evaluator, reporter):
         self.trainer = trainer
@@ -161,16 +165,6 @@ class WorldModelEvaluationPageHandler(PageHandler):
         self.results.append(losses)
 
 
-class ImitatorPageHandler(PageHandler):
-    def __init__(self, trainer, train=True):
-        super().__init__(trainer)
-        self.train = train
-
-    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        losses = self.trainer_or_evaluator.train(tdp, train=self.train)
-        self.results.append(losses)
-
-
 class RankingTrainingPageHandler(PageHandler):
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
@@ -221,6 +215,8 @@ class RewardNetTrainingPageHandler(PageHandler):
         self.refresh_results()
 
 
+# TODO: remove.
+# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
 def get_actual_minibatch_size(batch, minibatch_size_preset):
     try:
         return batch.batch_size()
@@ -234,6 +230,8 @@ def get_actual_minibatch_size(batch, minibatch_size_preset):
     return batch_size
 
 
+# TODO: remove.
+# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
 def feed_pages(
     data_loader,
     dataset_num_rows,

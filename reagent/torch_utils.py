@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 from io import BytesIO
+from typing import Dict
 
+import numpy as np
 import torch
+
+
+def dict_to_tensor(batch: Dict[str, np.ndarray], device: str = "cpu"):
+    return {k: torch.tensor(v).to(device) for k, v in batch.items()}
 
 
 def rescale_torch_tensor(

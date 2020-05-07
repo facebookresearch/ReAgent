@@ -75,12 +75,14 @@ def observable(cls=None, **kwargs):
             for k in observing_keys:
                 if k in self._observers and observer not in self._observers[k]:
                     self._observers[k].append(observer)
+            return self
 
         cls.add_observer = add_observer
 
         def add_observers(self, observers: List[Observer]) -> None:
             for observer in observers:
                 self.add_observer(observer)
+            return self
 
         cls.add_observers = add_observers
 

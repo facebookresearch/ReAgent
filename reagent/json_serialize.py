@@ -34,10 +34,6 @@ def json_to_object(j: str, to_type: Type) -> Any:
     return from_json(j_obj, to_type)
 
 
-def isinstance_namedtuple(x):
-    return isinstance(x, tuple) and getattr(type(x), "_field_types", None) is not None
-
-
 def from_json(j_obj: Any, to_type: Type) -> Any:
     if j_obj is None:
         return None

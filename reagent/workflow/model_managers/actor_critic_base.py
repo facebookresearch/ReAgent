@@ -265,22 +265,16 @@ class ActorCriticBase(ModelManager):
             use_gpu=self.use_gpu,
         )
 
+    # TODO: deprecate, once we deprecate internal page handlers
     def train(
         self, train_dataset: Dataset, eval_dataset: Optional[Dataset], num_epochs: int
     ) -> RLTrainingOutput:
-        # cts action space
-        actions = None
 
-        logger.info("Creating reporter")
         reporter = ActorCriticReporter()
-
-        training_page_handler = TrainingPageHandler(self.trainer)
-        # pyre-fixme[16]: `TrainingPageHandler` has no attribute `add_observer`.
-        # pyre-fixme[16]: `TrainingPageHandler` has no attribute `add_observer`.
-        training_page_handler.add_observer(reporter)
+        self.trainer.add_observer(reporter)
 
         evaluator = Evaluator(
-            action_names=actions,
+            action_names=None,
             # pyre-fixme[16]: `ActorCriticBase` has no attribute `rl_parameters`.
             # pyre-fixme[16]: `ActorCriticBase` has no attribute `rl_parameters`.
             gamma=self.rl_parameters.gamma,
@@ -290,9 +284,6 @@ class ActorCriticBase(ModelManager):
         # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         evaluator.add_observer(reporter)
-        evaluation_page_handler = EvaluationPageHandler(
-            self.trainer, evaluator, reporter
-        )
 
         batch_preprocessor = self.build_batch_preprocessor()
         train_and_evaluate_generic(
@@ -302,8 +293,8 @@ class ActorCriticBase(ModelManager):
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
             batch_preprocessor=batch_preprocessor,
-            train_page_handler=training_page_handler,
-            eval_page_handler=evaluation_page_handler,
+            reporter=reporter,
+            evaluator=evaluator,
             reader_options=self.reader_options,
         )
         # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.

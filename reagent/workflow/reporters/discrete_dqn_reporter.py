@@ -7,11 +7,7 @@ from typing import List, Optional
 
 import torch
 from reagent.core import aggregators as agg
-from reagent.core.observers import (
-    EpochEndObserver,
-    IntervalAggregatingObserver,
-    ValueListObserver,
-)
+from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
 from reagent.workflow.reporters.reporter_base import ReporterBase
 from reagent.workflow.training_reports import DQNTrainingReport
 
@@ -19,7 +15,6 @@ from reagent.workflow.training_reports import DQNTrainingReport
 logger = logging.getLogger(__name__)
 
 
-# TODO(T64634239): Create OSS version of DiscreteDQNReporter
 class DiscreteDQNReporter(ReporterBase):
     def __init__(
         self,
@@ -90,42 +85,11 @@ class DiscreteDQNReporter(ReporterBase):
                 ],
             )
         )
-        self.num_data_points_per_epoch = None
-        epoch_end_observer = EpochEndObserver(self._epoch_end_callback)
-        super().__init__(
-            itertools.chain(
-                self.value_list_observers.values(),
-                self.aggregating_observers.values(),
-                [epoch_end_observer],
-            )
-        )
+        super().__init__(self.value_list_observers, self.aggregating_observers)
         self.target_action_distribution = target_action_distribution
         self.recent_window_size = recent_window_size
 
-    def _epoch_end_callback(self, epoch: int):
-        logger.info(f"Epoch {epoch} ended")
-
-        for observer in self.aggregating_observers.values():
-            observer.flush()
-
-        num_batches = len(self.td_loss.values) - self.last_epoch_end_num_batches
-        self.last_epoch_end_num_batches = len(self.td_loss.values)
-        if self.num_data_points_per_epoch is None:
-            self.num_data_points_per_epoch = num_batches
-        else:
-            assert self.num_data_points_per_epoch == num_batches
-        logger.info(f"Epoch {epoch} contains {num_batches} aggregated data points")
-
-    def __getattr__(self, key: str):
-        if key in self.value_list_observers:
-            return self.value_list_observers[key]
-        return self.aggregating_observers[key].aggregator
-
     # TODO: write this for OSS
     def generate_training_report(self) -> DQNTrainingReport:
+        cpe_results = self.value_list_observers["cpe_results"].values  # noqa
         return DQNTrainingReport()
-
-    # TODO: Delete this method once we don't use EvaluationPageHandler in
-    # discrete DQN
-    def report(self, evaluation_details):
-        evaluation_details.log_to_tensorboard()

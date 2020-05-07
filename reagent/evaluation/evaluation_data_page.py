@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class EvaluationDataPage(NamedTuple):
-    mdp_id: Optional[np.ndarray]
+    mdp_id: Optional[torch.Tensor]
     sequence_number: Optional[torch.Tensor]
     logged_propensities: torch.Tensor
     logged_rewards: torch.Tensor
@@ -99,7 +99,7 @@ class EvaluationDataPage(NamedTuple):
         reward_network: nn.Module,
         training_input: rlt.PreprocessedRankingInput,
         eval_greedy: bool,
-        mdp_ids: Optional[np.ndarray] = None,
+        mdp_ids: Optional[torch.Tensor] = None,
         sequence_numbers: Optional[torch.Tensor] = None,
     ):
         """
@@ -188,7 +188,7 @@ class EvaluationDataPage(NamedTuple):
     def create_from_tensors_parametric_dqn(
         cls,
         trainer: ParametricDQNTrainer,
-        mdp_ids: np.ndarray,
+        mdp_ids: torch.Tensor,
         sequence_numbers: torch.Tensor,
         states: rlt.PreprocessedFeatureVector,
         actions: rlt.PreprocessedFeatureVector,
@@ -315,7 +315,7 @@ class EvaluationDataPage(NamedTuple):
     def create_from_tensors_dqn(
         cls,
         trainer: DQNTrainer,
-        mdp_ids: np.ndarray,
+        mdp_ids: torch.Tensor,
         sequence_numbers: torch.Tensor,
         states: rlt.PreprocessedFeatureVector,
         actions: rlt.PreprocessedFeatureVector,
@@ -524,7 +524,7 @@ class EvaluationDataPage(NamedTuple):
     @staticmethod
     def compute_values_for_mdps(
         rewards: torch.Tensor,
-        mdp_ids: np.ndarray,
+        mdp_ids: torch.Tensor,
         sequence_numbers: torch.Tensor,
         gamma: float,
     ) -> torch.Tensor:
