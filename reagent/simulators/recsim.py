@@ -369,7 +369,7 @@ def top_k_policy(
     q_network_input = rlt.PreprocessedStateAction.from_tensors(
         state=tiled_user_features, action=flatten_candidate_features
     )
-    q_values = q_network(q_network_input).q_value.view(-1, recsim.m)
+    q_values = q_network(q_network_input).view(-1, recsim.m)
 
     values = q_values * propensity
 

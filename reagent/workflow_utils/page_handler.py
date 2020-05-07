@@ -132,6 +132,7 @@ class WorldModelTrainingPageHandler(PageHandler):
 class WorldModelRandomTrainingPageHandler(PageHandler):
     """ Train a baseline model based on randomly shuffled data """
 
+    # pyre-fixme[14]: `handle` overrides method defined in `PageHandler` inconsistently.
     def handle(self, training_input: PreprocessedMemoryNetworkInput) -> None:
         _, batch_size, _ = training_input.next_state.float_features.size()
 
@@ -156,6 +157,7 @@ class WorldModelRandomTrainingPageHandler(PageHandler):
 
 
 class WorldModelEvaluationPageHandler(PageHandler):
+    # pyre-fixme[14]: `handle` overrides method defined in `PageHandler` inconsistently.
     def handle(self, tdp: PreprocessedMemoryNetworkInput) -> None:
         losses = self.trainer_or_evaluator.evaluate(tdp)
         self.results.append(losses)

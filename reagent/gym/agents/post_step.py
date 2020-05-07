@@ -32,6 +32,7 @@ def add_replay_buffer_post_step(replay_buffer: ReplayBuffer):
         possible_actions_mask: Optional[torch.Tensor],
     ) -> None:
         action = actor_output.action.numpy()
+        # pyre-fixme[16]: `Optional` has no attribute `numpy`.
         log_prob = actor_output.log_prob.numpy()
         if possible_actions_mask is None:
             possible_actions_mask = torch.ones_like(actor_output.action).to(torch.bool)

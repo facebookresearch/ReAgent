@@ -113,10 +113,12 @@ class EvaluationDataPage(NamedTuple):
             and training_input.tgt_out_idx is not None
             and training_input.tgt_out_seq is not None
         )
-        batch_size, tgt_seq_len, candidate_dim = (
+        (
+            batch_size,
+            tgt_seq_len,
+            candidate_dim,
             # pyre-fixme[16]: `Optional` has no attribute `float_features`.
-            training_input.tgt_out_seq.float_features.shape
-        )
+        ) = training_input.tgt_out_seq.float_features.shape
         device = training_input.state.float_features.device
 
         rank_output = seq2slate_net(
@@ -218,7 +220,7 @@ class EvaluationDataPage(NamedTuple):
         # FIXME: model_values, model_values_for_logged_action, and model_metrics_values
         # should be calculated using q_network_cpe (as in discrete dqn).
         # q_network_cpe has not been added in parametric dqn yet.
-        model_values = trainer.q_network(possible_actions_state_concat).q_value
+        model_values = trainer.q_network(possible_actions_state_concat)
         optimal_q_values, _ = trainer.get_detached_q_values(
             possible_actions_state_concat.state, possible_actions_state_concat.action
         )
@@ -242,7 +244,7 @@ class EvaluationDataPage(NamedTuple):
 
         rewards_and_metric_rewards = trainer.reward_network(
             possible_actions_state_concat
-        ).q_value
+        )
         model_rewards = rewards_and_metric_rewards[:, :1]
         assert (
             model_rewards.shape[0] * model_rewards.shape[1]
@@ -258,10 +260,10 @@ class EvaluationDataPage(NamedTuple):
         model_metrics = rewards_and_metric_rewards[:, 1:]
         model_metrics = model_metrics.reshape(possible_actions_mask.shape[0], -1)
 
-        model_values_for_logged_action = trainer.q_network(state_action_pairs).q_value
+        model_values_for_logged_action = trainer.q_network(state_action_pairs)
         model_rewards_and_metrics_for_logged_action = trainer.reward_network(
             state_action_pairs
-        ).q_value
+        )
         model_rewards_for_logged_action = model_rewards_and_metrics_for_logged_action[
             :, :1
         ]
@@ -339,9 +341,9 @@ class EvaluationDataPage(NamedTuple):
         # pyre-fixme[6]: Expected `Tensor` for 2nd param but got
         #  `PreprocessedFeatureVector`.
         rewards = trainer.boost_rewards(rewards, actions)
-        model_values = trainer.q_network_cpe(
-            rlt.PreprocessedState(state=states)
-        ).q_values[:, 0:num_actions]
+        model_values = trainer.q_network_cpe(rlt.PreprocessedState(state=states))[
+            :, 0:num_actions
+        ]
         optimal_q_values, _ = trainer.get_detached_q_values(states)
         eval_action_idxs = trainer.get_max_q_values(
             optimal_q_values, possible_actions_mask
@@ -368,7 +370,7 @@ class EvaluationDataPage(NamedTuple):
 
         # In case we reuse the modular for Q-network
         if hasattr(rewards_and_metric_rewards, "q_values"):
-            rewards_and_metric_rewards = rewards_and_metric_rewards.q_values
+            rewards_and_metric_rewards = rewards_and_metric_rewards
 
         model_rewards = rewards_and_metric_rewards[:, 0:num_actions]
         assert model_rewards.shape == actions.shape, (
@@ -398,7 +400,7 @@ class EvaluationDataPage(NamedTuple):
             )
             # Backward compatility
             if hasattr(model_metrics_values, "q_values"):
-                model_metrics_values = model_metrics_values.q_values
+                model_metrics_values = model_metrics_values
             model_metrics_values = model_metrics_values[:, num_actions:]
             assert model_metrics_values.shape[1] == num_actions * num_metrics, (
                 "Invalid shape: "

@@ -53,7 +53,7 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
             state_feature_config, state_norm_params, len(action_names)
         )
         x = q_network.input_prototype()
-        y = q_network(x).q_values
+        y = q_network(x)
         self.assertEqual(y.shape, (1, 2))
         serving_module = builder.build_serving_module(
             q_network, state_norm_params, action_names, state_feature_config

@@ -165,15 +165,13 @@ class QRDQNTrainer(DQNTrainerBase):
             assert training_batch.step is not None
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
-        next_qf = self.q_network_target.dist(next_state)
+        next_qf = self.q_network_target(next_state)
 
         if self.maxq_learning:
             # Select distribution corresponding to max valued action
             next_q_values = (
-                self.q_network(next_state).q_values
-                if self.double_q_learning
-                else next_qf.mean(dim=2)
-            )
+                self.q_network(next_state) if self.double_q_learning else next_qf
+            ).mean(dim=2)
             next_action = self.argmax_with_mask(
                 next_q_values, possible_next_actions_mask
             )
@@ -185,7 +183,7 @@ class QRDQNTrainer(DQNTrainerBase):
         target_Q = rewards + discount_tensor * not_done_mask * next_qf
 
         with torch.enable_grad():
-            current_qf = self.q_network.dist(state)
+            current_qf = self.q_network(state)
 
             # for reporting only
             all_q_values = current_qf.mean(2).detach()
@@ -211,7 +209,7 @@ class QRDQNTrainer(DQNTrainerBase):
         )
 
         # Get Q-values of next states, used in computing cpe
-        all_next_action_scores = self.q_network(next_state).q_values.detach()
+        all_next_action_scores = self.q_network(next_state).detach().mean(dim=2)
 
         logged_action_idxs = torch.argmax(training_batch.action, dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self._calculate_cpes(
@@ -261,8 +259,8 @@ class QRDQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.q_network.eval()
-        q_values = self.q_network(rlt.PreprocessedState.from_tensor(input))
-        q_values = q_values.q_values.cpu()
+        q_values = self.q_network(rlt.PreprocessedState.from_tensor(input)).mean(dim=2)
+        q_values = q_values.cpu()
         self.q_network.train()
 
         return q_values
@@ -291,6 +289,6 @@ class QRDQNTrainer(DQNTrainerBase):
     def get_detached_q_values(self, state):
         """ Gets the q values from the model and target networks """
         input = rlt.PreprocessedState(state=state)
-        q_values = self.q_network(input).q_values
-        q_values_target = self.q_network_target(input).q_values
+        q_values = self.q_network(input).mean(dim=2)
+        q_values_target = self.q_network_target(input).mean(dim=2)
         return q_values, q_values_target

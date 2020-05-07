@@ -7,13 +7,9 @@ import tempfile
 import unittest
 
 import numpy as np
+import reagent.models as models
 import reagent.types as rlt
 import torch
-from reagent.models.categorical_dqn import CategoricalDQN
-from reagent.models.dqn import FullyConnectedDQN
-from reagent.models.dueling_q_network import DuelingQNetwork
-from reagent.models.dueling_quantile_dqn import DuelingQuantileDQN
-from reagent.models.quantile_dqn import QuantileDQN
 from reagent.parameters import (
     DiscreteActionModelParameters,
     RainbowDQNParameters,
@@ -112,17 +108,21 @@ class TestGridworld(GridworldTestBase):
             environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
         )
 
+        def make_dueling_dqn(num_atoms=None):
+            return models.DuelingQNetwork.make_fully_connected(
+                state_dim=get_num_output_features(environment.normalization),
+                action_dim=len(environment.ACTIONS),
+                layers=parameters.training.layers[1:-1],
+                activations=parameters.training.activations[:-1],
+                num_atoms=num_atoms,
+            )
+
         if quantile:
             if dueling:
-                q_network = DuelingQuantileDQN(
-                    layers=[get_num_output_features(environment.normalization)]
-                    + parameters.training.layers[1:-1]
-                    + [len(environment.ACTIONS)],
-                    activations=parameters.training.activations,
-                    num_atoms=parameters.rainbow.num_atoms,
-                )
+                q_network = make_dueling_dqn(num_atoms=parameters.rainbow.num_atoms)
+
             else:
-                q_network = QuantileDQN(
+                q_network = models.FullyConnectedDQN(
                     state_dim=get_num_output_features(environment.normalization),
                     action_dim=len(environment.ACTIONS),
                     num_atoms=parameters.rainbow.num_atoms,
@@ -131,25 +131,24 @@ class TestGridworld(GridworldTestBase):
                 )
         elif categorical:
             assert not dueling
-            q_network = CategoricalDQN(
+            distributional_network = models.FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
                 num_atoms=parameters.rainbow.num_atoms,
-                qmin=-100,
-                qmax=200,
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
+            q_network = models.CategoricalDQN(
+                distributional_network,
+                qmin=-100,
+                qmax=200,
+                num_atoms=parameters.rainbow.num_atoms,
+            )
         else:
             if dueling:
-                q_network = DuelingQNetwork(
-                    layers=[get_num_output_features(environment.normalization)]
-                    + parameters.training.layers[1:-1]
-                    + [len(environment.ACTIONS)],
-                    activations=parameters.training.activations,
-                )
+                q_network = make_dueling_dqn()
             else:
-                q_network = FullyConnectedDQN(
+                q_network = models.FullyConnectedDQN(
                     state_dim=get_num_output_features(environment.normalization),
                     action_dim=len(environment.ACTIONS),
                     sizes=parameters.training.layers[1:-1],
@@ -159,14 +158,14 @@ class TestGridworld(GridworldTestBase):
         q_network_cpe, q_network_cpe_target, reward_network = None, None, None
 
         if parameters.evaluation and parameters.evaluation.calc_cpe_in_training:
-            q_network_cpe = FullyConnectedDQN(
+            q_network_cpe = models.FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
             q_network_cpe_target = q_network_cpe.get_target_network()
-            reward_network = FullyConnectedDQN(
+            reward_network = models.FullyConnectedDQN(
                 state_dim=get_num_output_features(environment.normalization),
                 action_dim=len(environment.ACTIONS),
                 sizes=parameters.training.layers[1:-1],
@@ -248,6 +247,15 @@ class TestGridworld(GridworldTestBase):
     def get_predictor(self, trainer, environment):
         state_preprocessor = Preprocessor(environment.normalization, False)
         q_network = trainer.q_network
+        if isinstance(trainer, QRDQNTrainer):
+
+            class _Mean(torch.nn.Module):
+                def forward(self, input):
+                    assert input.ndim == 3
+                    return input.mean(dim=2)
+
+            q_network = models.Sequential(q_network, _Mean())
+
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
             q_network.cpu_model().eval(), state_preprocessor
         )
@@ -364,7 +372,7 @@ class TestGridworld(GridworldTestBase):
         trainer = self.get_trainer(environment, {}, False, False, False)
         input = rlt.PreprocessedState.from_tensor(tdps[0].states)
 
-        pre_export_q_values = trainer.q_network(input).q_values.detach().numpy()
+        pre_export_q_values = trainer.q_network(input).detach().numpy()
 
         preprocessor = Preprocessor(environment.normalization, False)
         cpu_q_network = trainer.q_network.cpu_model()

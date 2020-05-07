@@ -8,7 +8,7 @@ import numpy as np
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.models.critic import FullyConnectedCritic
 from reagent.simulators.recsim import RecSim, random_policy, top_k_policy
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.test.gym.open_ai_gym_environment import ModelType
@@ -30,7 +30,7 @@ class TestSlateQTrainer(HorizonTestBase):
         random_reward = recsim.rollout_policy(random_policy, memory_pool)
 
         # Train a model
-        q_network = FullyConnectedParametricDQN(
+        q_network = FullyConnectedCritic(
             state_dim=memory_pool.state_dim,
             action_dim=memory_pool.action_dim,
             sizes=[64, 32],

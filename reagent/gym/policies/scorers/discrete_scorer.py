@@ -12,7 +12,7 @@ def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
     @torch.no_grad()
     def score(preprocessed_obs: rlt.PreprocessedState) -> torch.Tensor:
         q_network.eval()
-        scores = q_network(preprocessed_obs).q_values
+        scores = q_network(preprocessed_obs)
         q_network.train()
         return scores
 
@@ -39,7 +39,7 @@ def parametric_dqn_scorer(num_actions: int, q_network: ModelBase) -> Scorer:
         preprocessed_obs = rlt.PreprocessedStateAction(tiled_state.state, actions)
 
         q_network.eval()
-        scores = q_network(preprocessed_obs).q_value.view(-1, num_actions)
+        scores = q_network(preprocessed_obs).view(-1, num_actions)
         assert (
             scores.size(1) == num_actions
         ), f"scores size is {scores.size(0)}, num_actions is {num_actions}"

@@ -149,6 +149,19 @@ class PreprocessedFeatureVector(TensorDataClass):
         # TODO: Looks for id_list_features
         return cls(float_features=d[name])
 
+    @property
+    def has_float_features_only(self) -> bool:
+        return not self.id_list_features and self.time_since_first is None
+
+
+class PreprocessedStateFromTensor(torch.nn.Module):
+    """
+    Primarily for using in nn.Sequential
+    """
+
+    def forward(self, input: torch.Tensor):
+        return PreprocessedState.from_tensor(input)
+
 
 @dataclass
 class PreprocessedState(TensorDataClass):
@@ -190,6 +203,9 @@ class PreprocessedStateAction(TensorDataClass):
             raise ValueError(f"Use from_tensors() {type(state)} {type(action)}")
         self.state = state
         self.action = action
+
+    def get_preprocessed_state(self) -> PreprocessedState:
+        return PreprocessedState(state=self.state)
 
 
 @dataclass
@@ -647,16 +663,6 @@ class RawTrainingBatch(TensorDataClass):
         return PreprocessedTrainingBatch(
             training_input=training_input, extras=self.extras
         )
-
-
-@dataclass
-class SingleQValue(TensorDataClass):
-    q_value: torch.Tensor
-
-
-@dataclass
-class AllActionQValues(TensorDataClass):
-    q_values: torch.Tensor
 
 
 @dataclass

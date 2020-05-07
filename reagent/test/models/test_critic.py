@@ -4,18 +4,18 @@
 import logging
 import unittest
 
-from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.models.critic import FullyConnectedCritic
 from reagent.test.models.test_utils import check_save_load
 
 
 logger = logging.getLogger(__name__)
 
 
-class TestFullyConnectedParametricDQN(unittest.TestCase):
+class TestFullyConnectedCritic(unittest.TestCase):
     def test_basic(self):
         state_dim = 8
         action_dim = 4
-        model = FullyConnectedParametricDQN(
+        model = FullyConnectedCritic(
             state_dim,
             action_dim,
             sizes=[8, 4],
@@ -28,12 +28,12 @@ class TestFullyConnectedParametricDQN(unittest.TestCase):
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         single_q_value = model(input)
-        self.assertEqual((1, 1), single_q_value.q_value.shape)
+        self.assertEqual((1, 1), single_q_value.shape)
 
     def test_save_load(self):
         state_dim = 8
         action_dim = 4
-        model = FullyConnectedParametricDQN(
+        model = FullyConnectedCritic(
             state_dim,
             action_dim,
             sizes=[8, 4],
@@ -48,7 +48,7 @@ class TestFullyConnectedParametricDQN(unittest.TestCase):
     def test_save_load_batch_norm(self):
         state_dim = 8
         action_dim = 4
-        model = FullyConnectedParametricDQN(
+        model = FullyConnectedCritic(
             state_dim,
             action_dim,
             sizes=[8, 4],

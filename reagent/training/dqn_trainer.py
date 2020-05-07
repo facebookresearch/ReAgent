@@ -147,11 +147,11 @@ class DQNTrainer(DQNTrainerBase):
     @torch.no_grad()
     def get_detached_q_values(
         self, state
-    ) -> Tuple[rlt.AllActionQValues, Optional[rlt.AllActionQValues]]:
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """ Gets the q values from the model and target networks """
         input = rlt.PreprocessedState(state=state)
-        q_values = self.q_network(input).q_values
-        q_values_target = self.q_network_target(input).q_values
+        q_values = self.q_network(input)
+        q_values_target = self.q_network_target(input)
         return q_values, q_values_target
 
     @torch.no_grad()
@@ -210,7 +210,7 @@ class DQNTrainer(DQNTrainerBase):
         with torch.enable_grad():
             # Get Q-value of action taken
             current_state = rlt.PreprocessedState(state=training_batch.state)
-            all_q_values = self.q_network(current_state).q_values
+            all_q_values = self.q_network(current_state)
             # pyre-fixme[16]: `DQNTrainer` has no attribute `all_action_scores`.
             self.all_action_scores = all_q_values.detach()
             q_values = torch.sum(all_q_values * training_batch.action, 1, keepdim=True)
@@ -231,7 +231,7 @@ class DQNTrainer(DQNTrainerBase):
 
         # Get Q-values of next states, used in computing cpe
         next_state = rlt.PreprocessedState(state=training_batch.next_state)
-        all_next_action_scores = self.q_network(next_state).q_values.detach()
+        all_next_action_scores = self.q_network(next_state).detach()
 
         logged_action_idxs = torch.argmax(training_batch.action, dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self._calculate_cpes(
@@ -294,7 +294,7 @@ class DQNTrainer(DQNTrainerBase):
         """
         self.q_network.eval()
         q_values = self.q_network(rlt.PreprocessedState.from_tensor(input))
-        q_values = q_values.q_values.cpu()
+        q_values = q_values.cpu()
         self.q_network.train()
 
         if self.bcq:
@@ -314,4 +314,4 @@ class DQNTrainer(DQNTrainerBase):
         self.reward_network.eval()
         reward_estimates = self.reward_network(rlt.PreprocessedState.from_tensor(input))
         self.reward_network.train()
-        return reward_estimates.q_values.cpu()
+        return reward_estimates.cpu()

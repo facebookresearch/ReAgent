@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Type
+from typing import Dict, List
 
+import reagent.models as models
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
-from reagent.models.base import ModelBase
-from reagent.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
 from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNWithIdListNetBuilder
 from reagent.parameters import NormalizationParameters, param_hash
 
@@ -31,14 +30,21 @@ class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
         state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         output_dim: int,
-    ) -> ModelBase:
+    ) -> models.ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
-        return FullyConnectedDQNWithEmbedding(
+        embedding_concat = models.EmbeddingBagConcat(
             state_dim=state_dim,
-            action_dim=output_dim,
-            sizes=self.sizes,
-            activations=self.activations,
             model_feature_config=state_feature_config,
             embedding_dim=self.embedding_dim,
-            dropout_ratio=self.dropout_ratio,
+        )
+        return models.Sequential(  # type: ignore
+            embedding_concat,
+            rlt.PreprocessedStateFromTensor(),
+            models.FullyConnectedDQN(
+                embedding_concat.output_dim,
+                action_dim=output_dim,
+                sizes=self.sizes,
+                activations=self.activations,
+                dropout_ratio=self.dropout_ratio,
+            ),
         )

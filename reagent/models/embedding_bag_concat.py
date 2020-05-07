@@ -4,10 +4,9 @@
 import torch
 from reagent import types as rlt
 from reagent.models.base import ModelBase
-from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
-class FullyConnectedDQNWithEmbedding(ModelBase):
+class EmbeddingBagConcat(ModelBase):
     """
     Concatenating embedding with float features before passing the input
     to DQN
@@ -15,25 +14,13 @@ class FullyConnectedDQNWithEmbedding(ModelBase):
 
     def __init__(
         self,
-        state_dim,
-        action_dim,
-        sizes,
-        activations,
+        state_dim: int,
         model_feature_config: rlt.ModelFeatureConfig,
         embedding_dim: int,
-        use_batch_norm=False,
-        dropout_ratio=0.0,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
-        assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim
-        self.action_dim = action_dim
-        assert len(sizes) == len(
-            activations
-        ), "The numbers of sizes and activations must match; got {} vs {}".format(
-            len(sizes), len(activations)
-        )
 
         self.embedding_bags = torch.nn.ModuleDict(
             {
@@ -49,17 +36,14 @@ class FullyConnectedDQNWithEmbedding(ModelBase):
             }
         )
 
-        fc_input_dim = (
+        self._output_dim = (
             state_dim
             + len(model_feature_config.id_list_feature_configs) * embedding_dim
         )
 
-        self.fc = FullyConnectedNetwork(
-            [fc_input_dim] + sizes + [action_dim],
-            activations + ["linear"],
-            use_batch_norm=use_batch_norm,
-            dropout_ratio=dropout_ratio,
-        )
+    @property
+    def output_dim(self) -> int:
+        return self._output_dim
 
     def input_prototype(self):
         return rlt.PreprocessedState(
@@ -83,6 +67,4 @@ class FullyConnectedDQNWithEmbedding(ModelBase):
             )
             for name, m in self.embedding_bags.items()
         ]
-        fc_input = torch.cat(embeddings + [input.state.float_features], dim=1)
-        q_values = self.fc(fc_input)
-        return rlt.AllActionQValues(q_values=q_values)
+        return torch.cat(embeddings + [input.state.float_features], dim=1)

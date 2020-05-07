@@ -4,7 +4,7 @@ from typing import Dict, List, Type
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
-from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.models.critic import FullyConnectedCritic
 from reagent.net_builder.parametric_dqn_net_builder import ParametricDQNNetBuilder
 from reagent.parameters import NormalizationParameters, param_hash
 from reagent.preprocessing.normalization import get_num_output_features
@@ -34,7 +34,7 @@ class FullyConnected(ParametricDQNNetBuilder):
     ) -> ModelBase:
         state_dim = get_num_output_features(state_normalization_parameters)
         action_dim = get_num_output_features(action_normalization_parameters)
-        return FullyConnectedParametricDQN(
+        return FullyConnectedCritic(
             state_dim=state_dim,
             action_dim=action_dim,
             sizes=self.sizes,

@@ -6,10 +6,9 @@ from typing import Dict
 import torch
 from reagent.models.categorical_dqn import CategoricalDQN
 from reagent.models.cem_planner import CEMPlannerNetwork
+from reagent.models.critic import FullyConnectedCritic
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.dueling_q_network import DuelingQNetwork
-from reagent.models.parametric_dqn import FullyConnectedParametricDQN
-from reagent.models.quantile_dqn import QuantileDQN
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import (
     CEMTrainerParameters,
@@ -47,7 +46,7 @@ def create_dqn_trainer_from_params(
     metrics_to_score = metrics_to_score or []
 
     if model.rainbow.quantile:
-        q_network = QuantileDQN(
+        q_network = FullyConnectedDQN(
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             num_atoms=model.rainbow.num_atoms,
@@ -56,23 +55,26 @@ def create_dqn_trainer_from_params(
             dropout_ratio=model.training.dropout_ratio,
         )
     elif model.rainbow.categorical:
-        q_network = CategoricalDQN(
+        distributional_network = FullyConnectedDQN(
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             num_atoms=model.rainbow.num_atoms,
-            qmin=model.rainbow.qmin,
-            qmax=model.rainbow.qmax,
             sizes=model.training.layers[1:-1],
             activations=model.training.activations[:-1],
             dropout_ratio=model.training.dropout_ratio,
-            use_gpu=use_gpu,
+        )
+        q_network = CategoricalDQN(  # type: ignore
+            distributional_network,
+            qmin=model.rainbow.qmin,
+            qmax=model.rainbow.qmax,
+            num_atoms=model.rainbow.num_atoms,
         )
     elif model.rainbow.dueling_architecture:
-        q_network = DuelingQNetwork(
-            layers=[get_num_output_features(normalization_parameters)]
-            + model.training.layers[1:-1]
-            + [len(model.actions)],
-            activations=model.training.activations,
+        q_network = DuelingQNetwork.make_fully_connected(
+            state_dim=get_num_output_features(normalization_parameters),
+            action_dim=len(model.actions),
+            layers=model.training.layers[1:-1],
+            activations=model.training.activations[:-1],
         )
     else:
         q_network = FullyConnectedDQN(
@@ -179,13 +181,13 @@ def create_parametric_dqn_trainer_from_params(
     use_gpu: bool = False,
     use_all_avail_gpus: bool = False,
 ):
-    q_network = FullyConnectedParametricDQN(
+    q_network = FullyConnectedCritic(
         state_dim=get_num_output_features(state_normalization_parameters),
         action_dim=get_num_output_features(action_normalization_parameters),
         sizes=model.training.layers[1:-1],
         activations=model.training.activations[:-1],
     )
-    reward_network = FullyConnectedParametricDQN(
+    reward_network = FullyConnectedCritic(
         state_dim=get_num_output_features(state_normalization_parameters),
         action_dim=get_num_output_features(action_normalization_parameters),
         sizes=model.training.layers[1:-1],

@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import abc
-import dataclasses
-from collections import OrderedDict
 from copy import deepcopy
-from io import BytesIO
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 
-import torch
 import torch.nn as nn
 from reagent import types as rlt
 

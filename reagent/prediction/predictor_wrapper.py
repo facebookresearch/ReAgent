@@ -37,7 +37,7 @@ class DiscreteDqnWithPreprocessor(ModelBase):
             state_with_presence[0], state_with_presence[1]
         )
         state_feature_vector = rlt.PreprocessedState.from_tensor(preprocessed_state)
-        q_values = self.model(state_feature_vector).q_values
+        q_values = self.model(state_feature_vector)
         return q_values
 
     def input_prototype(self):
@@ -87,7 +87,7 @@ class DiscreteDqnWithPreprocessorWithIdList(ModelBase):
                 float_features=preprocessed_state, id_list_features=id_list_features
             )
         )
-        q_values = self.model(state_feature_vector).q_values
+        q_values = self.model(state_feature_vector)
         return q_values
 
     @property
@@ -250,7 +250,7 @@ class ParametricDqnWithPreprocessor(ModelBase):
         state_feature_vector = rlt.PreprocessedStateAction.from_tensors(
             state=preprocessed_state, action=preprocessed_action
         )
-        q_value = self.model(state_feature_vector).q_value
+        q_value = self.model(state_feature_vector)
         return q_value
 
     def input_prototype(self):

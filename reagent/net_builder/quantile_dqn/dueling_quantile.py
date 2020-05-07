@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Type
+from typing import Dict, List
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
-from reagent.models.dueling_quantile_dqn import DuelingQuantileDQN
+from reagent.models.dueling_q_network import DuelingQNetwork
 from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
 from reagent.parameters import NormalizationParameters, param_hash
 
@@ -18,7 +18,6 @@ class DuelingQuantile(QRDQNNetBuilder):
     num_atoms: int = 51
 
     def __post_init_post_parse__(self):
-        super().__init__()
         assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "
             f"{self.sizes}, {self.activations}"
@@ -30,8 +29,10 @@ class DuelingQuantile(QRDQNNetBuilder):
         output_dim: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
-        return DuelingQuantileDQN(
-            layers=[state_dim] + self.sizes + [output_dim],
-            activations=self.activations + ["linear"],
+        return DuelingQNetwork.make_fully_connected(
+            state_dim,
+            output_dim,
+            layers=self.sizes,
+            activations=self.activations,
             num_atoms=self.num_atoms,
         )

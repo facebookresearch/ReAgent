@@ -77,7 +77,7 @@ class SlateQTrainer(DQNTrainerBase):
             state=state.repeat_interleave(slate_size, dim=0),
             action=action.as_preprocessed_feature_vector(),
         )
-        return q_network(input).q_value.view(batch_size, slate_size)
+        return q_network(input).view(batch_size, slate_size)
 
     @torch.no_grad()
     # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.

@@ -81,7 +81,6 @@ class DiscreteDQNBase(ModelManager):
         )
 
         # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
-        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
         sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
         if serving:
             sampler = GreedyActionSampler()
@@ -89,16 +88,14 @@ class DiscreteDQNBase(ModelManager):
                 DiscreteDqnPredictorUnwrapper(self.build_serving_module())
             )
         else:
-            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
-            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
+            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
         return Policy(scorer=scorer, sampler=sampler)
 
     @property
     def metrics_to_score(self) -> List[str]:
         assert self._reward_options is not None
-        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_metrics_to_score`.
         # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_metrics_to_score`.
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
@@ -108,7 +105,6 @@ class DiscreteDQNBase(ModelManager):
 
     @property
     def should_generate_eval_dataset(self) -> bool:
-        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `eval_parameters`.
         # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `eval_parameters`.
         return self.eval_parameters.calc_cpe_in_training
 
@@ -121,9 +117,6 @@ class DiscreteDQNBase(ModelManager):
         state_norm_data = normalization_data_map.get(self.normalization_key(), None)
         assert state_norm_data is not None
         assert state_norm_data.dense_normalization_parameters is not None
-        # pyre-fixme[8]: Attribute has type `Dict[int,
-        #  reagent.parameters.NormalizationParameters]`; used as `Optional[Dict[int,
-        #  reagent.parameters.NormalizationParameters]]`.
         # pyre-fixme[8]: Attribute has type `Dict[int,
         #  reagent.parameters.NormalizationParameters]`; used as `Optional[Dict[int,
         #  reagent.parameters.NormalizationParameters]]`.
@@ -162,13 +155,11 @@ class DiscreteDQNBase(ModelManager):
             input_table_spec=input_table_spec,
             discrete_action=True,
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             actions=self.action_names,
             include_possible_actions=True,
             sample_range=sample_range,
             custom_reward_expression=reward_options.custom_reward_expression,
             multi_steps=self.multi_steps,
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             gamma=self.rl_parameters.gamma,
         )
@@ -176,12 +167,10 @@ class DiscreteDQNBase(ModelManager):
     @property
     def multi_steps(self) -> Optional[int]:
         # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
-        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
         return self.rl_parameters.multi_steps
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         return DiscreteDqnBatchPreprocessor(
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             num_actions=len(self.action_names),
             state_preprocessor=Preprocessor(
@@ -207,31 +196,25 @@ class DiscreteDQNBase(ModelManager):
         logger.info("Creating reporter")
         reporter = DiscreteDQNReporter(
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `trainer_param`.
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `trainer_param`.
             self.trainer_param.actions,
             target_action_distribution=self.target_action_distribution,
         )
         logger.info("Adding reporter to trainer")
         # pyre-fixme[16]: `RLTrainer` has no attribute `add_observer`.
-        # pyre-fixme[16]: `RLTrainer` has no attribute `add_observer`.
         self.trainer.add_observer(reporter)
 
         training_page_handler = TrainingPageHandler(self.trainer)
         # pyre-fixme[16]: `TrainingPageHandler` has no attribute `add_observer`.
-        # pyre-fixme[16]: `TrainingPageHandler` has no attribute `add_observer`.
         training_page_handler.add_observer(reporter)
         evaluator = Evaluator(
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             self.action_names,
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             self.rl_parameters.gamma,
             self.trainer,
             metrics_to_score=self.metrics_to_score,
         )
         logger.info("Adding reporter to evaluator")
-        # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         evaluator.add_observer(reporter)
         evaluation_page_handler = EvaluationPageHandler(
@@ -250,7 +233,6 @@ class DiscreteDQNBase(ModelManager):
             evaluation_page_handler,
             reader_options=self.reader_options,
         )
-        # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         training_report = RLTrainingReport.make_union_instance(
             reporter.generate_training_report()

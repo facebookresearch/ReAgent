@@ -35,7 +35,7 @@ class TestParametricDQNNetBuilder(unittest.TestCase):
         }
         q_network = builder.build_q_network(state_norm_params, action_norm_params)
         x = q_network.input_prototype()
-        y = q_network(x).q_value
+        y = q_network(x)
         self.assertEqual(y.shape, (1, 1))
         serving_module = builder.build_serving_module(
             q_network, state_norm_params, action_norm_params

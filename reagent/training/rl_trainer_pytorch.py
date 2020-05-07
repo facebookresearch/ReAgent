@@ -233,9 +233,7 @@ class RLTrainer(Trainer):
 
         with torch.enable_grad():
             ######### Train separate reward network for CPE evaluation #############
-            # FIXME: the reward network should be outputting a tensor,
-            # not a q-value object
-            reward_estimates = self.reward_network(states).q_values
+            reward_estimates = self.reward_network(states)
             reward_estimates_for_logged_actions = reward_estimates.gather(
                 1, self.reward_idx_offsets + logged_action_idxs
             )
@@ -248,11 +246,11 @@ class RLTrainer(Trainer):
             )
 
             ######### Train separate q-network for CPE evaluation #############
-            metric_q_values = self.q_network_cpe(states).q_values.gather(
+            metric_q_values = self.q_network_cpe(states).gather(
                 1, self.reward_idx_offsets + logged_action_idxs
             )
             all_metrics_target_q_values = torch.chunk(
-                self.q_network_cpe_target(next_states).q_values.detach(),
+                self.q_network_cpe_target(next_states).detach(),
                 len(self.metrics_to_score),
                 dim=1,
             )

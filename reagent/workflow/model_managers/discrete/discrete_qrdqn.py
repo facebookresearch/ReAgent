@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
-import copy
 import logging
-from typing import List, Optional
 
 import torch  # @manual
-from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
+from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
-from reagent.net_builder.quantile_dqn.quantile import Quantile
-from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
-from reagent.net_builder.unions import QRDQNNetBuilder__Union
+from reagent.net_builder.unions import (
+    DiscreteDQNNetBuilder__Union,
+    QRDQNNetBuilder__Union,
+)
 from reagent.parameters import param_hash
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
@@ -29,15 +28,15 @@ class DiscreteQRDQN(DiscreteDQNBase):
     )
     net_builder: QRDQNNetBuilder__Union = field(
         # pyre-fixme[28]: Unexpected keyword argument `DuelingQuantile`.
-        # pyre-fixme[28]: Unexpected keyword argument `DuelingQuantile`.
         default_factory=lambda: QRDQNNetBuilder__Union(
             DuelingQuantile=DuelingQuantile()
         )
     )
-    cpe_net_builder: QRDQNNetBuilder__Union = field(
-        # pyre-fixme[28]: Unexpected keyword argument `Quantile`.
-        # pyre-fixme[28]: Unexpected keyword argument `Quantile`.
-        default_factory=lambda: QRDQNNetBuilder__Union(Quantile=Quantile())
+    cpe_net_builder: DiscreteDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`
+        default_factory=lambda: DiscreteDQNNetBuilder__Union(
+            FullyConnected=FullyConnected()
+        )
     )
 
     def __post_init_post_parse__(self):
@@ -54,7 +53,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
             self.state_normalization_parameters,
-            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             len(self.action_names),
         )
@@ -73,10 +71,14 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
             cpe_net_builder = self.cpe_net_builder.value
             reward_network = cpe_net_builder.build_q_network(
-                self.state_normalization_parameters, num_output_nodes
+                self.state_feature_config,
+                self.state_normalization_parameters,
+                num_output_nodes,
             )
             q_network_cpe = cpe_net_builder.build_q_network(
-                self.state_normalization_parameters, num_output_nodes
+                self.state_feature_config,
+                self.state_normalization_parameters,
+                num_output_nodes,
             )
 
             if self.use_gpu:
@@ -85,7 +87,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
             q_network_cpe_target = q_network_cpe.get_target_network()
 
-        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
         # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
         self._q_network = q_network
         trainer = QRDQNTrainer(
@@ -106,13 +107,11 @@ class DiscreteQRDQN(DiscreteDQNBase):
         Returns a TorchScript predictor module
         """
         # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
-        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
         assert self._q_network is not None, "_q_network was not initialized"
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
             self.state_normalization_parameters,
-            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,

@@ -231,7 +231,7 @@ class C51Trainer(RLTrainer):
         """
         self.q_network.eval()
         q_values = self.q_network(rlt.PreprocessedState.from_tensor(input))
-        q_values = q_values.q_values.cpu()
+        q_values = q_values.cpu()
         self.q_network.train()
 
         return q_values

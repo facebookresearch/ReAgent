@@ -7,16 +7,16 @@ from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
-class QuantileDQN(ModelBase):
+class FullyConnectedCritic(ModelBase):
     def __init__(
         self,
         state_dim,
         action_dim,
         sizes,
         activations,
-        num_atoms=50,
         use_batch_norm=False,
-        dropout_ratio=0.0,
+        use_layer_norm=False,
+        output_dim=1,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -29,23 +29,19 @@ class QuantileDQN(ModelBase):
             len(sizes), len(activations)
         )
         self.fc = FullyConnectedNetwork(
-            [state_dim] + sizes + [action_dim * num_atoms],
+            [state_dim + action_dim] + sizes + [output_dim],
             activations + ["linear"],
             use_batch_norm=use_batch_norm,
-            dropout_ratio=dropout_ratio,
+            use_layer_norm=use_layer_norm,
         )
-
-        self.num_atoms = num_atoms
-        self.action_dim = action_dim
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
-
-    def forward(self, input: rlt.PreprocessedState):
-        q_values = self.dist(input).mean(dim=2)
-        return rlt.AllActionQValues(q_values=q_values)
-
-    def dist(self, input: rlt.PreprocessedState):
-        return self.fc(input.state.float_features).reshape(
-            -1, self.action_dim, self.num_atoms
+        return rlt.PreprocessedStateAction.from_tensors(
+            state=torch.randn(1, self.state_dim), action=torch.randn(1, self.action_dim)
         )
+
+    def forward(self, input: rlt.PreprocessedStateAction):
+        cat_input = torch.cat(
+            (input.state.float_features, input.action.float_features), dim=1
+        )
+        return self.fc(cat_input)

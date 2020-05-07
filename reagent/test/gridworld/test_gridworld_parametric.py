@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 import torch
-from reagent.models.parametric_dqn import FullyConnectedParametricDQN
+from reagent.models.critic import FullyConnectedCritic
 from reagent.parameters import OptimizerParameters, RLParameters
 from reagent.prediction.dqn_torch_predictor import ParametricDqnTorchPredictor
 from reagent.prediction.predictor_wrapper import (
@@ -50,13 +50,13 @@ class TestGridworldParametric(GridworldTestBase):
         layers = [256, 128]
         activations = ["relu", "relu"]
         parameters = parameters or self.get_sarsa_parameters()
-        q_network = FullyConnectedParametricDQN(
+        q_network = FullyConnectedCritic(
             state_dim=get_num_output_features(environment.normalization),
             action_dim=get_num_output_features(environment.normalization_action),
             sizes=layers,
             activations=activations,
         )
-        reward_network = FullyConnectedParametricDQN(
+        reward_network = FullyConnectedCritic(
             state_dim=get_num_output_features(environment.normalization),
             action_dim=get_num_output_features(environment.normalization_action),
             sizes=layers,

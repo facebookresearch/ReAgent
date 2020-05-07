@@ -66,14 +66,12 @@ class ParametricDQNTrainer(DQNTrainerBase):
         ]
 
     @torch.no_grad()
-    def get_detached_q_values(
-        self, state, action
-    ) -> Tuple[rlt.SingleQValue, rlt.SingleQValue]:
+    def get_detached_q_values(self, state, action) -> Tuple[torch.Tensor, torch.Tensor]:
         """ Gets the q values from the model and target networks """
         input = rlt.PreprocessedStateAction(state=state, action=action)
         q_values = self.q_network(input)
         q_values_target = self.q_network_target(input)
-        return q_values.q_value, q_values_target.q_value
+        return q_values, q_values_target
 
     @torch.no_grad()
     def train(self, training_batch) -> None:
@@ -118,7 +116,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
             current_state_action = rlt.PreprocessedStateAction(
                 state=learning_input.state, action=learning_input.action
             )
-            q_values = self.q_network(current_state_action).q_value
+            q_values = self.q_network(current_state_action)
             # pyre-fixme[16]: `ParametricDQNTrainer` has no attribute
             #  `all_action_scores`.
             self.all_action_scores = q_values.detach()
@@ -144,7 +142,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
             else:
                 metrics_reward_concat_real_vals = reward
             # get reward estimates
-            reward_estimates = self.reward_network(current_state_action).q_value
+            reward_estimates = self.reward_network(current_state_action)
             reward_loss = F.mse_loss(reward_estimates, metrics_reward_concat_real_vals)
             reward_loss.backward()
             self._maybe_run_optimizer(
@@ -168,7 +166,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
             rlt.PreprocessedStateAction.from_tensors(state=state, action=action)
         )
         self.q_network.train()
-        return q_values.q_value.cpu()
+        return q_values.cpu()
 
     @torch.no_grad()
     def internal_reward_estimation(self, state, action):
@@ -180,7 +178,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
             rlt.PreprocessedStateAction.from_tensors(state=state, action=action)
         )
         self.reward_network.train()
-        return reward_estimates.q_value.cpu()
+        return reward_estimates.cpu()
 
 
 @make_config_class(ParametricDQNTrainer.__init__, blacklist=["use_gpu"])

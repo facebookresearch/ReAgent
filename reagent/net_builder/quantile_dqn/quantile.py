@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Type
+from typing import Dict, List
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
-from reagent.models.quantile_dqn import QuantileDQN
+from reagent.models.dqn import FullyConnectedDQN
 from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
 from reagent.parameters import NormalizationParameters, param_hash
 
@@ -31,7 +31,7 @@ class Quantile(QRDQNNetBuilder):
         output_dim: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
-        return QuantileDQN(
+        return FullyConnectedDQN(
             state_dim=state_dim,
             action_dim=output_dim,
             sizes=self.sizes,

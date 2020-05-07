@@ -146,7 +146,11 @@ def train_mdnrnn(
     test_replay_buffer=None,
 ):
     train_replay_buffer = create_rb(
-        env, batch_size, seq_len, num_train_episodes * env._max_episode_steps
+        env,
+        batch_size,
+        seq_len,
+        # pyre-fixme[16]: `Env` has no attribute `_max_episode_steps`.
+        num_train_episodes * env._max_episode_steps,
     )
     num_batch_per_epoch = train_replay_buffer.size // batch_size
     logger.info("Made RBs, starting to train now!")
@@ -182,10 +186,11 @@ def train_mdnrnn_and_compute_feature_stats(
     batch_size: int,
     num_train_epochs: int,
     use_gpu: bool,
+    # pyre-fixme[9]: saved_mdnrnn_path has type `str`; used as `None`.
     saved_mdnrnn_path: str = None,
 ):
     """ Train MDNRNN Memory Network and compute feature importance/sensitivity. """
-    env = EnvFactory.make(env)
+    env: gym.Env = EnvFactory.make(env)
     env.seed(SEED)
 
     manager = model.value
@@ -198,7 +203,11 @@ def train_mdnrnn_and_compute_feature_stats(
     device = "cuda" if use_gpu else "cpu"
     trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device)
     test_replay_buffer = create_rb(
-        env, batch_size, seq_len, num_test_episodes * env._max_episode_steps
+        env,
+        batch_size,
+        seq_len,
+        # pyre-fixme[16]: `Env` has no attribute `_max_episode_steps`.
+        num_test_episodes * env._max_episode_steps,
     )
 
     if saved_mdnrnn_path is None:
@@ -264,6 +273,7 @@ def create_embed_rl_dataset(
     )
     # now create a filled replay buffer of embeddings
     # new obs shape dim = state_dim + hidden_dim
+    # pyre-fixme[16]: `Env` has no attribute `_max_episode_steps`.
     embed_rb_capacity = num_state_embed_episodes * env._max_episode_steps
 
     embed_rb = ReplayBuffer.create_from_env(
@@ -309,10 +319,13 @@ def train_mdnrnn_and_train_on_embedded_env(
     num_agent_eval_epochs: int,
     use_gpu: bool,
     passing_score_bar: float,
+    # pyre-fixme[9]: saved_mdnrnn_path has type `str`; used as `None`.
     saved_mdnrnn_path: str = None,
 ):
     """ Train an agent on embedded states by the MDNRNN. """
+    # pyre-fixme[9]: env has type `str`; used as `Env`.
     env = EnvFactory.make(env)
+    # pyre-fixme[16]: `str` has no attribute `seed`.
     env.seed(SEED)
 
     embedding_manager = embedding_model.value
@@ -329,6 +342,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     if saved_mdnrnn_path is None:
         # train from scratch
         embedding_trainer = train_mdnrnn(
+            # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
             env=env,
             trainer=embedding_trainer,
             trainer_preprocessor=embedding_trainer_preprocessor,
@@ -345,6 +359,7 @@ def train_mdnrnn_and_train_on_embedded_env(
 
     # create embedding dataset
     embed_rb, state_min, state_max = create_embed_rl_dataset(
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         env=env,
         memory_network=embedding_trainer.memory_network,
         num_state_embed_episodes=num_state_embed_episodes,
@@ -354,6 +369,7 @@ def train_mdnrnn_and_train_on_embedded_env(
         use_gpu=use_gpu,
     )
     embed_env = StateEmbedEnvironment(
+        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         gym_env=env,
         mdnrnn=embedding_trainer.memory_network,
         max_embed_seq_len=seq_len,
