@@ -68,7 +68,7 @@ class TestGym(HorizonTestBase):
 
 
 def run_test(
-    env: str,
+    env_name: str,
     model: ModelManager__Union,
     replay_memory_size: int,
     train_every_ts: int,
@@ -79,7 +79,7 @@ def run_test(
     num_eval_episodes: int,
     use_gpu: bool,
 ):
-    env = EnvFactory.make(env)
+    env = EnvFactory.make(env_name)
     env.seed(SEED)
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)

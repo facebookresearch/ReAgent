@@ -42,7 +42,7 @@ def initialize_seed(seed: Optional[int] = None):
 
 
 def offline_gym(
-    env: str,
+    env_name: str,
     pkl_path: str,
     num_episodes_for_data_batch: int,
     max_steps: Optional[int],
@@ -53,7 +53,7 @@ def offline_gym(
     saves results in a pandas df parquet.
     """
     initialize_seed(seed)
-    env: gym.Env = EnvFactory.make(env)
+    env: gym.Env = EnvFactory.make(env_name)
     policy = make_random_policy_for_env(env)
 
     dataset = RLDataset()
@@ -116,14 +116,14 @@ def create_predictor_policy_from_model(env: gym.Env, model: torch.nn.Module, **k
 
 
 def evaluate_gym(
-    env: str,
+    env_name: str,
     model: torch.nn.Module,
     eval_temperature: float,
     num_eval_episodes: int,
     passing_score_bar: float,
     max_steps: Optional[int] = None,
 ):
-    env: gym.Env = EnvFactory.make(env)
+    env: gym.Env = EnvFactory.make(env_name)
     policy = create_predictor_policy_from_model(
         env, model, eval_temperature=eval_temperature
     )
@@ -149,7 +149,10 @@ def evaluate_gym(
 
 
 def train_and_evaluate_gym(
-    # for train
+    env_name: str,
+    eval_temperature: float,
+    num_eval_episodes: int,
+    passing_score_bar: float,
     input_table_spec: TableSpec,
     model: ModelManager__Union,
     num_train_epochs: int,
@@ -159,19 +162,6 @@ def train_and_evaluate_gym(
     validator: Optional[ModelValidator__Union] = None,
     publisher: Optional[ModelPublisher__Union] = None,
     seed: Optional[int] = None,
-    # for eval
-    # pyre-fixme[9]: env has type `str`; used as `None`.
-    # pyre-fixme[9]: env has type `str`; used as `None`.
-    env: str = None,
-    # pyre-fixme[9]: eval_temperature has type `float`; used as `None`.
-    # pyre-fixme[9]: eval_temperature has type `float`; used as `None`.
-    eval_temperature: float = None,
-    # pyre-fixme[9]: num_eval_episodes has type `int`; used as `None`.
-    # pyre-fixme[9]: num_eval_episodes has type `int`; used as `None`.
-    num_eval_episodes: int = None,
-    # pyre-fixme[9]: passing_score_bar has type `float`; used as `None`.
-    # pyre-fixme[9]: passing_score_bar has type `float`; used as `None`.
-    passing_score_bar: float = None,
     max_steps: Optional[int] = None,
 ):
     initialize_seed(seed)
@@ -188,7 +178,7 @@ def train_and_evaluate_gym(
 
     jit_model = torch.jit.load(training_output.output_path)
     evaluate_gym(
-        env=env,
+        env_name=env_name,
         model=jit_model,
         eval_temperature=eval_temperature,
         num_eval_episodes=num_eval_episodes,

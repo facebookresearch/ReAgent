@@ -1,4 +1,4 @@
-env: CartPole-v0
+env_name: CartPole-v0
 model:
   DiscreteDQN:
     trainer_param:
