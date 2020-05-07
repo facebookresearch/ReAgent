@@ -4,7 +4,6 @@
 import inspect
 from typing import Any, Optional, Union
 
-import numpy as np
 import torch
 from gym import Env
 from reagent.gym.policies.policy import Policy

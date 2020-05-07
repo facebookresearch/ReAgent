@@ -315,15 +315,23 @@ class ReplayBuffer(object):
         # Assume that all docs are in the same space
 
         replay_elements: List[ReplayElement] = []
-        for k, v in doc_obs_space["0"].spaces.items():
-            if isinstance(v, (spaces.Discrete, spaces.Box)):
-                shape = (num_docs, *v.shape)
-                replay_elements.append(ReplayElement(f"doc_{k}", shape, v.dtype))
-            else:
-                raise NotImplementedError(
-                    f"Doc feature {k} with the observation space of {type(v)}"
-                    " is not supported"
-                )
+
+        doc_0_space = doc_obs_space["0"]
+        if isinstance(doc_0_space, spaces.Dict):
+            for k, v in doc_obs_space["0"].spaces.items():
+                if isinstance(v, (spaces.Discrete, spaces.Box)):
+                    shape = (num_docs, *v.shape)
+                    replay_elements.append(ReplayElement(f"doc_{k}", shape, v.dtype))
+                else:
+                    raise NotImplementedError(
+                        f"Doc feature {k} with the observation space of {type(v)}"
+                        " is not supported"
+                    )
+        elif isinstance(doc_0_space, spaces.Box):
+            shape = (num_docs, *doc_0_space.shape)
+            replay_elements.append(ReplayElement("doc", shape, doc_0_space.dtype))
+        else:
+            raise NotImplementedError(f"Unknown space: {doc_0_space}")
 
         response_space = obs_space["response"]
         assert isinstance(response_space, spaces.Tuple)
