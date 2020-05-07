@@ -42,7 +42,7 @@ class MDNRNN(nn.Module):
             num_hiddens, (2 * state_dim + 1) * num_gaussians + 2
         )
 
-    def forward(self, actions, states, hidden=None):
+    def forward(self, actions: torch.Tensor, states: torch.Tensor, hidden=None):
         """ Forward pass of MDN-RNN
 
         :param actions: (SEQ_LEN, BATCH_SIZE, ACTION_DIM) torch tensor
@@ -151,11 +151,11 @@ class MDNRNNMemoryPool:
         )
 
         training_input = rlt.PreprocessedMemoryNetworkInput(
-            state=rlt.PreprocessedFeatureVector(float_features=state),
+            state=rlt.FeatureData(float_features=state),
             reward=reward,
             time_diff=torch.ones_like(reward).float(),
             action=action,
-            next_state=rlt.PreprocessedFeatureVector(float_features=next_state),
+            next_state=rlt.FeatureData(float_features=next_state),
             not_terminal=not_terminal,
             step=None,
         )

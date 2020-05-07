@@ -111,46 +111,41 @@ class TD3Trainer(RLTrainer):
 
         self.minibatch += 1
 
-        state = training_batch.state.float_features
-        action = training_batch.action.float_features
-        next_state = training_batch.next_state.float_features
+        state = training_batch.state
+        action = training_batch.action
+        next_state = training_batch.next_state
         reward = training_batch.reward
         not_terminal = training_batch.not_terminal
 
         # Generate target = r + y * min (Q1(s',pi(s')), Q2(s',pi(s')))
         with torch.no_grad():
-            next_actor = self.actor_network_target(
-                rlt.PreprocessedState.from_tensor(next_state)
-            ).action
+            next_actor = self.actor_network_target(next_state).action
             noise = torch.randn_like(next_actor) * self.noise_variance
             next_actor = (next_actor + noise.clamp(*self.noise_clip_range)).clamp(
                 *CONTINUOUS_TRAINING_ACTION_RANGE
             )
-            next_state_actor = rlt.PreprocessedStateAction.from_tensors(
-                next_state, next_actor
-            )
-            next_q_value = self.q1_network_target(next_state_actor)
+            next_state_actor = (next_state, rlt.FeatureData(next_actor))
+            next_q_value = self.q1_network_target(*next_state_actor)
 
             if self.q2_network is not None:
                 next_q_value = torch.min(
-                    next_q_value, self.q2_network_target(next_state_actor)
+                    next_q_value, self.q2_network_target(*next_state_actor)
                 )
 
             target_q_value = reward + self.gamma * next_q_value * not_terminal.float()
 
         # Optimize Q1 and Q2
-        current_state_action = rlt.PreprocessedStateAction.from_tensors(state, action)
         # NOTE: important to zero here (instead of using _maybe_update)
         # since q1 may have accumulated gradients from actor network update
         self.q1_network_optimizer.zero_grad()
-        q1_value = self.q1_network(current_state_action)
+        q1_value = self.q1_network(state, action)
         q1_loss = self.q_network_loss(q1_value, target_q_value)
         q1_loss.backward()
         self.q1_network_optimizer.step()
 
         if self.q2_network:
             self.q2_network_optimizer.zero_grad()
-            q2_value = self.q2_network(current_state_action)
+            q2_value = self.q2_network(state, action)
             q2_loss = self.q_network_loss(q2_value, target_q_value)
             q2_loss.backward()
             self.q2_network_optimizer.step()
@@ -158,12 +153,8 @@ class TD3Trainer(RLTrainer):
         # Only update actor and target networks after a fixed number of Q updates
         if self.minibatch % self.delayed_policy_update == 0:
             self.actor_network_optimizer.zero_grad()
-            policy_state = rlt.PreprocessedState.from_tensor(state)
-            actor_action = self.actor_network(policy_state).action
-            policy_state_action = rlt.PreprocessedStateAction.from_tensors(
-                state, actor_action
-            )
-            actor_q1_value = self.q1_network(policy_state_action)
+            actor_action = self.actor_network(state).action
+            actor_q1_value = self.q1_network(state, rlt.FeatureData(actor_action))
             actor_loss = -(actor_q1_value.mean())
             actor_loss.backward()
             self.actor_network_optimizer.step()

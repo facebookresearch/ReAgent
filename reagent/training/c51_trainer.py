@@ -114,8 +114,6 @@ class C51Trainer(RLTrainer):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
 
-        state = rlt.PreprocessedState(state=training_batch.state)
-        next_state = rlt.PreprocessedState(state=training_batch.next_state)
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
         possible_next_actions_mask = training_batch.possible_next_actions_mask.float()
@@ -131,13 +129,14 @@ class C51Trainer(RLTrainer):
             assert training_batch.step is not None
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
-        next_dist = self.q_network_target.log_dist(next_state).exp()
+        next_dist = self.q_network_target.log_dist(training_batch.next_state).exp()
 
         if self.maxq_learning:
             # Select distribution corresponding to max valued action
             if self.double_q_learning:
                 next_q_values = (
-                    self.q_network.log_dist(next_state).exp() * self.support
+                    self.q_network.log_dist(training_batch.next_state).exp()
+                    * self.support
                 ).sum(2)
             else:
                 next_q_values = (next_dist * self.support).sum(2)
@@ -182,7 +181,7 @@ class C51Trainer(RLTrainer):
         )
 
         with torch.enable_grad():
-            log_dist = self.q_network.log_dist(state)
+            log_dist = self.q_network.log_dist(training_batch.state)
 
             # for reporting only
             all_q_values = (log_dist.exp() * self.support).sum(2).detach()
@@ -230,7 +229,7 @@ class C51Trainer(RLTrainer):
         Only used by Gym
         """
         self.q_network.eval()
-        q_values = self.q_network(rlt.PreprocessedState.from_tensor(input))
+        q_values = self.q_network(rlt.FeatureData(input))
         q_values = q_values.cpu()
         self.q_network.train()
 

@@ -134,7 +134,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         sim_tgt_in_idx[:, 0] = DECODER_START_SYMBOL
         sim_tgt_in_idx[:, 1:] = sim_tgt_out_idx[:, :-1]
 
-        sim_tgt_in_seq = rlt.PreprocessedFeatureVector(
+        sim_tgt_in_seq = rlt.FeatureData(
             float_features=src_seq_augment[
                 torch.arange(batch_size, device=device).repeat_interleave(
                     max_tgt_seq_len
@@ -142,7 +142,7 @@ class Seq2SlateSimulationTrainer(Trainer):
                 sim_tgt_in_idx.flatten(),
             ].view(batch_size, max_tgt_seq_len, candidate_feat_dim)
         )
-        sim_tgt_out_seq = rlt.PreprocessedFeatureVector(
+        sim_tgt_out_seq = rlt.FeatureData(
             float_features=src_seq_augment[
                 torch.arange(batch_size, device=device).repeat_interleave(
                     max_tgt_seq_len

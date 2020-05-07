@@ -137,11 +137,9 @@ class TestEvaluationDataPage(unittest.TestCase):
 
         ptb = rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedRankingInput(
-                state=rlt.PreprocessedFeatureVector(
-                    float_features=torch.eye(state_dim)
-                ),
-                src_seq=rlt.PreprocessedFeatureVector(float_features=src_seq),
-                tgt_out_seq=rlt.PreprocessedFeatureVector(float_features=tgt_out_seq),
+                state=rlt.FeatureData(float_features=torch.eye(state_dim)),
+                src_seq=rlt.FeatureData(float_features=src_seq),
+                tgt_out_seq=rlt.FeatureData(float_features=tgt_out_seq),
                 src_src_mask=torch.ones(batch_size, src_seq_len, src_seq_len),
                 tgt_out_idx=tgt_out_idx,
                 tgt_out_probs=torch.tensor([0.2, 0.5, 0.4]),

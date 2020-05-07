@@ -54,9 +54,7 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(action_names, output_action_names)
         self.assertEqual(q_values.shape, (1, 2))
 
-        expected_output = dqn(
-            rlt.PreprocessedState.from_tensor(state_preprocessor(*input_prototype[0]))
-        )
+        expected_output = dqn(rlt.FeatureData(state_preprocessor(*input_prototype[0])))
         self.assertTrue((expected_output == q_values).all())
 
     def test_discrete_wrapper_with_id_list_none(self):
@@ -81,9 +79,7 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(action_names, output_action_names)
         self.assertEqual(q_values.shape, (1, 2))
 
-        expected_output = dqn(
-            rlt.PreprocessedState.from_tensor(state_preprocessor(*input_prototype[0]))
-        )
+        expected_output = dqn(rlt.FeatureData(state_preprocessor(*input_prototype[0])))
         self.assertTrue((expected_output == q_values).all())
 
     def test_discrete_wrapper_with_id_list(self):
@@ -108,7 +104,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         dqn = models.Sequential(
             embedding_concat,
-            rlt.PreprocessedStateFromTensor(),
+            rlt.TensorFeatureData(),
             models.FullyConnectedDQN(
                 embedding_concat.output_dim,
                 action_dim=action_dim,
@@ -137,11 +133,9 @@ class TestPredictorWrapper(unittest.TestCase):
             feature_id_to_name[k]: v for k, v in input_prototype[1].items()
         }
         expected_output = dqn(
-            rlt.PreprocessedState(
-                state=rlt.PreprocessedFeatureVector(
-                    float_features=state_preprocessor(*input_prototype[0]),
-                    id_list_features=state_id_list_features,
-                )
+            rlt.FeatureData(
+                float_features=state_preprocessor(*input_prototype[0]),
+                id_list_features=state_id_list_features,
             )
         )
         self.assertTrue((expected_output == q_values).all())
@@ -170,10 +164,8 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(q_value.shape, (1, 1))
 
         expected_output = dqn(
-            rlt.PreprocessedStateAction.from_tensors(
-                state=state_preprocessor(*input_prototype[0]),
-                action=action_preprocessor(*input_prototype[1]),
-            )
+            rlt.FeatureData(state_preprocessor(*input_prototype[0])),
+            rlt.FeatureData(action_preprocessor(*input_prototype[1])),
         )
         self.assertTrue((expected_output == q_value).all())
 
@@ -201,11 +193,7 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(action.shape, (1, len(action_normalization_parameters)))
 
         expected_output = postprocessor(
-            actor(
-                rlt.PreprocessedState.from_tensor(
-                    state_preprocessor(*input_prototype[0])
-                )
-            ).action
+            actor(rlt.FeatureData(state_preprocessor(*input_prototype[0]))).action
         )
         self.assertTrue((expected_output == action).all())
 

@@ -39,7 +39,7 @@ class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
         )
         return models.Sequential(  # type: ignore
             embedding_concat,
-            rlt.PreprocessedStateFromTensor(),
+            rlt.TensorFeatureData(),
             models.FullyConnectedDQN(
                 embedding_concat.output_dim,
                 action_dim=output_dim,

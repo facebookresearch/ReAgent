@@ -7,11 +7,11 @@ import unittest
 import numpy.testing as npt
 import torch
 import torch.nn.init as init
+from reagent import types as rlt
 from reagent.models.bcq import BatchConstrainedDQN
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.test.models.test_utils import check_save_load
-from reagent.types import PreprocessedState
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class TestBCQ(unittest.TestCase):
         )
 
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.state.float_features.shape)
+        self.assertEqual((1, state_dim), input.float_features.shape)
         q_values = model(input)
         self.assertEqual((1, action_dim), q_values.shape)
 
@@ -64,7 +64,7 @@ class TestBCQ(unittest.TestCase):
         torch.manual_seed(123)
         state_dim = 1
         action_dim = 2
-        input = PreprocessedState.from_tensor(state=torch.tensor([[2.0]]))
+        state = rlt.FeatureData(torch.tensor([[2.0]]))
         bcq_drop_threshold = 0.20
 
         q_network = FullyConnectedDQN(
@@ -76,7 +76,7 @@ class TestBCQ(unittest.TestCase):
         )
 
         imitator_probs = torch.nn.functional.softmax(
-            imitator_network(input.state.float_features), dim=1
+            imitator_network(state.float_features), dim=1
         )
         bcq_mask = imitator_probs < bcq_drop_threshold
         npt.assert_array_equal(bcq_mask.detach(), [[True, False]])
@@ -87,5 +87,5 @@ class TestBCQ(unittest.TestCase):
             imitator_network=imitator_network,
             bcq_drop_threshold=bcq_drop_threshold,
         )
-        final_q_values = model(input)
+        final_q_values = model(state)
         npt.assert_array_equal(final_q_values.detach(), [[-1e10, 3.0]])

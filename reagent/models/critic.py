@@ -36,12 +36,11 @@ class FullyConnectedCritic(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.PreprocessedStateAction.from_tensors(
-            state=torch.randn(1, self.state_dim), action=torch.randn(1, self.action_dim)
+        return (
+            rlt.FeatureData(torch.randn(1, self.state_dim)),
+            rlt.FeatureData(torch.randn(1, self.action_dim)),
         )
 
-    def forward(self, input: rlt.PreprocessedStateAction):
-        cat_input = torch.cat(
-            (input.state.float_features, input.action.float_features), dim=1
-        )
+    def forward(self, state: rlt.FeatureData, action: rlt.FeatureData):
+        cat_input = torch.cat((state.float_features, action.float_features), dim=1)
         return self.fc(cat_input)

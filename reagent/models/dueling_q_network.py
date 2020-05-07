@@ -30,8 +30,8 @@ class DuelingQNetwork(ModelBase):
         self.shared_network = shared_network
         input_prototype = shared_network.input_prototype()
         assert isinstance(
-            input_prototype, rlt.PreprocessedState
-        ), f"shared_network should expect PreprocessedState as input"
+            input_prototype, rlt.FeatureData
+        ), f"shared_network should expect FeatureData as input"
         self.advantage_network = advantage_network
         self.value_network = value_network
 
@@ -84,18 +84,18 @@ class DuelingQNetwork(ModelBase):
         return self.shared_network.input_prototype()
 
     def _get_values(
-        self, input: rlt.PreprocessedState
+        self, state: rlt.FeatureData
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        state = rlt.PreprocessedState.from_tensor(self.shared_network(input))
-        value = self.value_network(state)
-        raw_advantage = self.advantage_network(state)
+        shared_state = rlt.FeatureData(self.shared_network(state))
+        value = self.value_network(shared_state)
+        raw_advantage = self.advantage_network(shared_state)
         advantage = raw_advantage - raw_advantage.mean(dim=-1, keepdim=True)
 
         q_value = value + advantage
         return value, raw_advantage, advantage, q_value
 
-    def forward(self, input: rlt.PreprocessedState) -> torch.Tensor:
-        value, raw_advantage, advantage, q_value = self._get_values(input)
+    def forward(self, state: rlt.FeatureData) -> torch.Tensor:
+        value, raw_advantage, advantage, q_value = self._get_values(state)
 
         # TODO: export these as observable values
         if SummaryWriterContext._global_step % 1000 == 0:
@@ -123,8 +123,11 @@ class ParametricDuelingQNetwork(ModelBase):
         """
         super().__init__()
         advantage_network_input = advantage_network.input_prototype()
-        assert isinstance(advantage_network_input, rlt.PreprocessedStateAction)
-        assert advantage_network_input.state.has_float_features_only
+        assert (
+            isinstance(advantage_network_input, tuple)
+            and len(advantage_network_input) == 2
+        )
+        assert advantage_network_input[0].has_float_features_only
 
         self.shared_network = shared_network
         self.advantage_network = advantage_network
@@ -170,29 +173,23 @@ class ParametricDuelingQNetwork(ModelBase):
 
     def input_prototype(self):
         shared_network_input = self.shared_network.input_prototype()
-        assert isinstance(shared_network_input, rlt.PreprocessedState)
-        advantage_network_input = self.advantage_network.input_prototype()
-        assert isinstance(advantage_network_input, rlt.PreprocessedStateAction)
-        return rlt.PreprocessedStateAction(
-            state=shared_network_input.state, action=advantage_network_input.action
-        )
+        assert isinstance(shared_network_input, rlt.FeatureData)
+        _state, action = self.advantage_network.input_prototype()
+        return (shared_network_input, action)
 
     def _get_values(
-        self, input: rlt.PreprocessedStateAction
+        self, state_action: Tuple[rlt.FeatureData, rlt.FeatureData]
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        state = rlt.PreprocessedState.from_tensor(
-            self.shared_network(input.get_preprocessed_state())
-        )
+        state, action = state_action
+        shared_state = rlt.FeatureData(self.shared_network(state))
 
-        value = self.value_network(state)
-        advantage = self.advantage_network(
-            rlt.PreprocessedStateAction(state=state.state, action=input.action)
-        )
+        value = self.value_network(shared_state)
+        advantage = self.advantage_network(shared_state, action)
         q_value = value + advantage
         return advantage, value, q_value
 
-    def forward(self, input: rlt.PreprocessedStateAction) -> torch.Tensor:
-        advantage, value, q_value = self._get_values(input)
+    def forward(self, state: rlt.FeatureData, action: rlt.FeatureData) -> torch.Tensor:
+        advantage, value, q_value = self._get_values((state, action))
 
         # TODO: export these as observable values
         if SummaryWriterContext._global_step % 1000 == 0:

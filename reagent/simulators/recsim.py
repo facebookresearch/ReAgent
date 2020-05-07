@@ -366,10 +366,11 @@ def top_k_policy(
     action_dim = candidate_feature_vector.shape[2]
     flatten_candidate_features = candidate_feature_vector.view(-1, action_dim)
 
-    q_network_input = rlt.PreprocessedStateAction.from_tensors(
-        state=tiled_user_features, action=flatten_candidate_features
+    q_network_input = (
+        rlt.FeatureData(tiled_user_features),
+        rlt.FeatureData(flatten_candidate_features),
     )
-    q_values = q_network(q_network_input).view(-1, recsim.m)
+    q_values = q_network(*q_network_input).view(-1, recsim.m)
 
     values = q_values * propensity
 

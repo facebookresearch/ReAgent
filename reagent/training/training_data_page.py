@@ -92,11 +92,9 @@ class TrainingDataPage(object):
         seq_len_dim = 0
         reward, not_terminal = transpose(self.rewards, self.not_terminal)
         return rlt.PreprocessedMemoryNetworkInput(
-            state=rlt.PreprocessedFeatureVector(
-                float_features=self.states.unsqueeze(seq_len_dim)
-            ),
+            state=rlt.FeatureData(self.states.unsqueeze(seq_len_dim)),
             action=self.actions.unsqueeze(seq_len_dim),
-            next_state=rlt.PreprocessedFeatureVector(
+            next_state=rlt.FeatureData(
                 float_features=self.next_states.unsqueeze(seq_len_dim)
             ),
             reward=reward,
@@ -109,22 +107,18 @@ class TrainingDataPage(object):
         state_dim = self.states.shape[1]
         return rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedParametricDqnInput(
-                state=rlt.PreprocessedFeatureVector(float_features=self.states),
-                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
-                next_state=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_states
-                ),
-                next_action=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_actions
-                ),
-                tiled_next_state=rlt.PreprocessedFeatureVector(
+                state=rlt.FeatureData(float_features=self.states),
+                action=rlt.FeatureData(float_features=self.actions),
+                next_state=rlt.FeatureData(float_features=self.next_states),
+                next_action=rlt.FeatureData(float_features=self.next_actions),
+                tiled_next_state=rlt.FeatureData(
                     float_features=self.possible_next_actions_state_concat[
                         :, :state_dim
                     ]
                 ),
                 possible_actions=None,
                 possible_actions_mask=self.possible_actions_mask,
-                possible_next_actions=rlt.PreprocessedFeatureVector(
+                possible_next_actions=rlt.FeatureData(
                     float_features=self.possible_next_actions_state_concat[
                         :, state_dim:
                     ]
@@ -140,10 +134,10 @@ class TrainingDataPage(object):
 
     def as_policy_network_training_batch(self):
         return rlt.PolicyNetworkInput(
-            state=rlt.PreprocessedFeatureVector(float_features=self.states),
-            action=rlt.PreprocessedFeatureVector(float_features=self.actions),
-            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
-            next_action=rlt.PreprocessedFeatureVector(float_features=self.next_actions),
+            state=rlt.FeatureData(float_features=self.states),
+            action=rlt.FeatureData(float_features=self.actions),
+            next_state=rlt.FeatureData(float_features=self.next_states),
+            next_action=rlt.FeatureData(float_features=self.next_actions),
             reward=self.rewards,
             not_terminal=self.not_terminal,
             step=self.step,
@@ -153,9 +147,9 @@ class TrainingDataPage(object):
 
     def as_discrete_maxq_training_batch(self):
         return rlt.DiscreteDqnInput(
-            state=rlt.PreprocessedFeatureVector(float_features=self.states),
+            state=rlt.FeatureData(float_features=self.states),
             action=self.actions,
-            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
+            next_state=rlt.FeatureData(float_features=self.next_states),
             next_action=self.next_actions,
             possible_actions_mask=self.possible_actions_mask,
             possible_next_actions_mask=self.possible_next_actions_mask,
@@ -176,8 +170,8 @@ class TrainingDataPage(object):
         batch_size, state_dim = self.states.shape
         action_dim = self.actions.shape[1]
         return rlt.PreprocessedSlateQInput(
-            state=rlt.PreprocessedFeatureVector(float_features=self.states),
-            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
+            state=rlt.FeatureData(float_features=self.states),
+            next_state=rlt.FeatureData(float_features=self.next_states),
             action=rlt.PreprocessedSlateFeatureVector(
                 float_features=self.possible_actions_state_concat[:, state_dim:].view(
                     batch_size, -1, action_dim

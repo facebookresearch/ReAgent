@@ -197,13 +197,10 @@ class SACTrainer(RLTrainer):
             # Q(s, a) & r + discount * V'(next_s)
             #
 
-            current_state_action = rlt.PreprocessedStateAction(
-                state=state, action=action
-            )
-            q1_value = self.q1_network(current_state_action)
+            q1_value = self.q1_network(state, action)
             if self.q2_network:
-                q2_value = self.q2_network(current_state_action)
-            actor_output = self.actor_network(rlt.PreprocessedState(state=state))
+                q2_value = self.q2_network(state, action)
+            actor_output = self.actor_network(state)
 
             # Optimize Alpha
             if self.alpha_optimizer is not None:
@@ -225,19 +222,17 @@ class SACTrainer(RLTrainer):
                     )
                 else:
                     next_state_actor_output = self.actor_network(
-                        rlt.PreprocessedState(state=training_batch.next_state)
+                        training_batch.next_state
                     )
-                    next_state_actor_action = rlt.PreprocessedStateAction(
-                        state=training_batch.next_state,
-                        action=rlt.PreprocessedFeatureVector(
-                            float_features=next_state_actor_output.action
-                        ),
+                    next_state_actor_action = (
+                        training_batch.next_state,
+                        rlt.FeatureData(next_state_actor_output.action),
                     )
-                    next_state_value = self.q1_network_target(next_state_actor_action)
+                    next_state_value = self.q1_network_target(*next_state_actor_action)
 
                     if self.q2_network is not None:
                         target_q2_value = self.q2_network_target(
-                            next_state_actor_action
+                            *next_state_actor_action
                         )
                         next_state_value = torch.min(next_state_value, target_q2_value)
 
@@ -272,16 +267,11 @@ class SACTrainer(RLTrainer):
             # propensity & softmax of value.  Due to reparameterization trick,
             # it ends up being log_prob(actor_action) - Q(s, actor_action)
 
-            state_actor_action = rlt.PreprocessedStateAction(
-                state=state,
-                action=rlt.PreprocessedFeatureVector(
-                    float_features=actor_output.action
-                ),
-            )
-            q1_actor_value = self.q1_network(state_actor_action)
+            state_actor_action = (state, rlt.FeatureData(actor_output.action))
+            q1_actor_value = self.q1_network(*state_actor_action)
             min_q_actor_value = q1_actor_value
             if self.q2_network:
-                q2_actor_value = self.q2_network(state_actor_action)
+                q2_actor_value = self.q2_network(*state_actor_action)
                 min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
 
             actor_loss = (

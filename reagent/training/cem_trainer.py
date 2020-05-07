@@ -71,10 +71,7 @@ class CEMTrainer(RLTrainer):
         """
         Only used by Gym. Return the predicted next action
         """
-        input = rlt.PreprocessedState(
-            state=rlt.PreprocessedFeatureVector(float_features=state)
-        )
-        output = self.cem_planner_network(input)
+        output = self.cem_planner_network(rlt.FeatureData(state))
         if not self.cem_planner_network.discrete_action:
             return rlt.SacPolicyActionSet(greedy=output, greedy_propensity=1.0)
         return rlt.DqnPolicyActionSet(greedy=output[0])

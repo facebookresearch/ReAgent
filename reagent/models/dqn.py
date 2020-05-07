@@ -42,10 +42,10 @@ class FullyConnectedDQN(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(self.fc.input_prototype())
+        return rlt.FeatureData(self.fc.input_prototype())
 
-    def forward(self, input: rlt.PreprocessedState) -> torch.Tensor:
-        float_features = input.state.float_features
+    def forward(self, state: rlt.FeatureData) -> torch.Tensor:
+        float_features = state.float_features
         x = self.fc(float_features)
         if self.num_atoms is not None:
             x = x.view(float_features.shape[0], self.action_dim, self.num_atoms)

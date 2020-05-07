@@ -192,12 +192,12 @@ class EvaluationDataPage(NamedTuple):
         trainer: ParametricDQNTrainer,
         mdp_ids: np.ndarray,
         sequence_numbers: torch.Tensor,
-        states: rlt.PreprocessedFeatureVector,
-        actions: rlt.PreprocessedFeatureVector,
+        states: rlt.FeatureData,
+        actions: rlt.FeatureData,
         propensities: torch.Tensor,
         rewards: torch.Tensor,
         possible_actions_mask: torch.Tensor,
-        possible_actions: rlt.PreprocessedFeatureVector,
+        possible_actions: rlt.FeatureData,
         max_num_actions: int,
         metrics: Optional[torch.Tensor] = None,
     ):
@@ -206,23 +206,19 @@ class EvaluationDataPage(NamedTuple):
         trainer.q_network.train(False)
         trainer.reward_network.train(False)
 
-        state_action_pairs = rlt.PreprocessedStateAction(state=states, action=actions)
         tiled_state = states.float_features.repeat(1, max_num_actions).reshape(
             -1, states.float_features.shape[1]
         )
         assert possible_actions is not None
         # Get Q-value of action taken
-        possible_actions_state_concat = rlt.PreprocessedStateAction(
-            state=rlt.PreprocessedFeatureVector(float_features=tiled_state),
-            action=possible_actions,
-        )
+        possible_actions_state_concat = (rlt.FeatureData(tiled_state), possible_actions)
 
         # FIXME: model_values, model_values_for_logged_action, and model_metrics_values
         # should be calculated using q_network_cpe (as in discrete dqn).
         # q_network_cpe has not been added in parametric dqn yet.
-        model_values = trainer.q_network(possible_actions_state_concat)
+        model_values = trainer.q_network(*possible_actions_state_concat)
         optimal_q_values, _ = trainer.get_detached_q_values(
-            possible_actions_state_concat.state, possible_actions_state_concat.action
+            *possible_actions_state_concat
         )
         eval_action_idxs = None
 
@@ -243,7 +239,7 @@ class EvaluationDataPage(NamedTuple):
         )
 
         rewards_and_metric_rewards = trainer.reward_network(
-            possible_actions_state_concat
+            *possible_actions_state_concat
         )
         model_rewards = rewards_and_metric_rewards[:, :1]
         assert (
@@ -260,9 +256,9 @@ class EvaluationDataPage(NamedTuple):
         model_metrics = rewards_and_metric_rewards[:, 1:]
         model_metrics = model_metrics.reshape(possible_actions_mask.shape[0], -1)
 
-        model_values_for_logged_action = trainer.q_network(state_action_pairs)
+        model_values_for_logged_action = trainer.q_network(states, actions)
         model_rewards_and_metrics_for_logged_action = trainer.reward_network(
-            state_action_pairs
+            states, actions
         )
         model_rewards_for_logged_action = model_rewards_and_metrics_for_logged_action[
             :, :1
@@ -319,8 +315,8 @@ class EvaluationDataPage(NamedTuple):
         trainer: DQNTrainer,
         mdp_ids: np.ndarray,
         sequence_numbers: torch.Tensor,
-        states: rlt.PreprocessedFeatureVector,
-        actions: rlt.PreprocessedFeatureVector,
+        states: rlt.FeatureData,
+        actions: rlt.FeatureData,
         propensities: torch.Tensor,
         rewards: torch.Tensor,
         possible_actions_mask: torch.Tensor,
@@ -338,12 +334,9 @@ class EvaluationDataPage(NamedTuple):
         num_actions = trainer.num_actions
         action_mask = actions.float()
 
-        # pyre-fixme[6]: Expected `Tensor` for 2nd param but got
-        #  `PreprocessedFeatureVector`.
+        # pyre-fixme[6]: Expected `torch.Tensor` for 2nd positional only parameter
         rewards = trainer.boost_rewards(rewards, actions)
-        model_values = trainer.q_network_cpe(rlt.PreprocessedState(state=states))[
-            :, 0:num_actions
-        ]
+        model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
         optimal_q_values, _ = trainer.get_detached_q_values(states)
         eval_action_idxs = trainer.get_max_q_values(
             optimal_q_values, possible_actions_mask
@@ -364,9 +357,7 @@ class EvaluationDataPage(NamedTuple):
             model_values * action_mask, dim=1, keepdim=True
         )
 
-        rewards_and_metric_rewards = trainer.reward_network(
-            rlt.PreprocessedState(state=states)
-        )
+        rewards_and_metric_rewards = trainer.reward_network(states)
 
         # In case we reuse the modular for Q-network
         if hasattr(rewards_and_metric_rewards, "q_values"):
@@ -395,9 +386,7 @@ class EvaluationDataPage(NamedTuple):
             model_metrics_for_logged_action = None
             model_metrics_values_for_logged_action = None
         else:
-            model_metrics_values = trainer.q_network_cpe(
-                rlt.PreprocessedState(state=states)
-            )
+            model_metrics_values = trainer.q_network_cpe(states)
             # Backward compatility
             if hasattr(model_metrics_values, "q_values"):
                 model_metrics_values = model_metrics_values

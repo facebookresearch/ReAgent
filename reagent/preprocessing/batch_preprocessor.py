@@ -79,8 +79,8 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
             batch["next_action"].to(torch.int64), self.num_actions + 1
         )[:, : self.num_actions]
         return rlt.DiscreteDqnInput(
-            state=rlt.PreprocessedFeatureVector(preprocessed_state),
-            next_state=rlt.PreprocessedFeatureVector(preprocessed_next_state),
+            state=rlt.FeatureData(preprocessed_state),
+            next_state=rlt.FeatureData(preprocessed_next_state),
             action=action,
             next_action=next_action,
             reward=batch["reward"].unsqueeze(1),
@@ -117,7 +117,7 @@ class ParametricDqnBatchPreprocessor(BatchPreprocessor):
             training_input.next_state.float_features.value,
             training_input.next_state.float_features.presence,
         )
-        assert isinstance(training_input.action, rlt.FeatureVector)
+        assert isinstance(training_input.action, rlt.RawFeatureData)
         preprocessed_action = self.action_preprocessor(
             training_input.action.float_features.value,
             training_input.action.float_features.presence,
@@ -180,10 +180,10 @@ class PolicyNetworkBatchPreprocessor(BatchPreprocessor):
             batch["next_action"], batch["next_action_presence"]
         )
         return rlt.PolicyNetworkInput(
-            state=rlt.PreprocessedFeatureVector(preprocessed_state),
-            next_state=rlt.PreprocessedFeatureVector(preprocessed_next_state),
-            action=rlt.PreprocessedFeatureVector(preprocessed_action),
-            next_action=rlt.PreprocessedFeatureVector(preprocessed_next_action),
+            state=rlt.FeatureData(preprocessed_state),
+            next_state=rlt.FeatureData(preprocessed_next_state),
+            action=rlt.FeatureData(preprocessed_action),
+            next_action=rlt.FeatureData(preprocessed_next_action),
             reward=batch["reward"].unsqueeze(1),
             time_diff=batch["time_diff"].unsqueeze(1),
             step=batch["step"].unsqueeze(1),

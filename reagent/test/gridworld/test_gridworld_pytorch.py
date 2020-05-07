@@ -370,7 +370,7 @@ class TestGridworld(GridworldTestBase):
         assert len(tdps) == 1, "Invalid number of data pages"
 
         trainer = self.get_trainer(environment, {}, False, False, False)
-        input = rlt.PreprocessedState.from_tensor(tdps[0].states)
+        input = rlt.FeatureData(tdps[0].states)
 
         pre_export_q_values = trainer.q_network(input).detach().numpy()
 

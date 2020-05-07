@@ -243,9 +243,9 @@ class Seq2SlateRewardNetJITWrapper(ModelBase):
     ) -> torch.Tensor:
         return self.model(
             rlt.PreprocessedRankingInput(
-                state=rlt.PreprocessedFeatureVector(float_features=state),
-                src_seq=rlt.PreprocessedFeatureVector(float_features=src_seq),
-                tgt_out_seq=rlt.PreprocessedFeatureVector(float_features=tgt_out_seq),
+                state=rlt.FeatureData(float_features=state),
+                src_seq=rlt.FeatureData(float_features=src_seq),
+                tgt_out_seq=rlt.FeatureData(float_features=tgt_out_seq),
                 src_src_mask=src_src_mask,
                 tgt_out_idx=tgt_out_idx,
             )

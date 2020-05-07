@@ -34,8 +34,8 @@ def make_default_action_extractor(env: Env):
 ### Default obs preprocessors.
 ### These should operate on single obs.
 #######################################
-def box_obs_preprocessor(obs: torch.Tensor) -> rlt.PreprocessedState:
-    return rlt.PreprocessedState.from_tensor(obs.float()).unsqueeze(0)
+def box_obs_preprocessor(obs: torch.Tensor) -> rlt.FeatureData:
+    return rlt.FeatureData(obs.float()).unsqueeze(0)
 
 
 ############################################

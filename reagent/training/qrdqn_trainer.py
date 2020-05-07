@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List
+from typing import List, Tuple
 
 import reagent.parameters as rlp
 import reagent.types as rlt
@@ -148,8 +148,6 @@ class QRDQNTrainer(DQNTrainerBase):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
 
-        state = rlt.PreprocessedState(state=training_batch.state)
-        next_state = rlt.PreprocessedState(state=training_batch.next_state)
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
         possible_next_actions_mask = training_batch.possible_next_actions_mask.float()
@@ -165,12 +163,14 @@ class QRDQNTrainer(DQNTrainerBase):
             assert training_batch.step is not None
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
-        next_qf = self.q_network_target(next_state)
+        next_qf = self.q_network_target(training_batch.next_state)
 
         if self.maxq_learning:
             # Select distribution corresponding to max valued action
             next_q_values = (
-                self.q_network(next_state) if self.double_q_learning else next_qf
+                self.q_network(training_batch.next_state)
+                if self.double_q_learning
+                else next_qf
             ).mean(dim=2)
             next_action = self.argmax_with_mask(
                 next_q_values, possible_next_actions_mask
@@ -183,7 +183,7 @@ class QRDQNTrainer(DQNTrainerBase):
         target_Q = rewards + discount_tensor * not_done_mask * next_qf
 
         with torch.enable_grad():
-            current_qf = self.q_network(state)
+            current_qf = self.q_network(training_batch.state)
 
             # for reporting only
             all_q_values = current_qf.mean(2).detach()
@@ -209,13 +209,15 @@ class QRDQNTrainer(DQNTrainerBase):
         )
 
         # Get Q-values of next states, used in computing cpe
-        all_next_action_scores = self.q_network(next_state).detach().mean(dim=2)
+        all_next_action_scores = (
+            self.q_network(training_batch.next_state).detach().mean(dim=2)
+        )
 
         logged_action_idxs = torch.argmax(training_batch.action, dim=1, keepdim=True)
         reward_loss, model_rewards, model_propensities = self._calculate_cpes(
             training_batch,
-            state,
-            next_state,
+            training_batch.state,
+            training_batch.next_state,
             all_q_values,
             all_next_action_scores,
             logged_action_idxs,
@@ -259,7 +261,7 @@ class QRDQNTrainer(DQNTrainerBase):
         Only used by Gym
         """
         self.q_network.eval()
-        q_values = self.q_network(rlt.PreprocessedState.from_tensor(input)).mean(dim=2)
+        q_values = self.q_network(rlt.FeatureData(input)).mean(dim=2)
         q_values = q_values.cpu()
         self.q_network.train()
 
@@ -286,9 +288,10 @@ class QRDQNTrainer(DQNTrainerBase):
         return torch.where(x.abs() < 1, 0.5 * x.pow(2), x.abs() - 0.5)
 
     @torch.no_grad()
-    def get_detached_q_values(self, state):
+    def get_detached_q_values(
+        self, state: rlt.FeatureData
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """ Gets the q values from the model and target networks """
-        input = rlt.PreprocessedState(state=state)
-        q_values = self.q_network(input).mean(dim=2)
-        q_values_target = self.q_network_target(input).mean(dim=2)
+        q_values = self.q_network(state).mean(dim=2)
+        q_values_target = self.q_network_target(state).mean(dim=2)
         return q_values, q_values_target

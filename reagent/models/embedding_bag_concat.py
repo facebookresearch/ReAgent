@@ -46,25 +46,17 @@ class EmbeddingBagConcat(ModelBase):
         return self._output_dim
 
     def input_prototype(self):
-        return rlt.PreprocessedState(
-            state=rlt.PreprocessedFeatureVector(
-                float_features=torch.randn(1, self.state_dim),
-                id_list_features={
-                    k: (
-                        torch.zeros(1, dtype=torch.long),
-                        torch.ones(1, dtype=torch.long),
-                    )
-                    for k in self.embedding_bags
-                },
-            )
+        return rlt.FeatureData(
+            float_features=torch.randn(1, self.state_dim),
+            id_list_features={
+                k: (torch.zeros(1, dtype=torch.long), torch.ones(1, dtype=torch.long))
+                for k in self.embedding_bags
+            },
         )
 
-    def forward(self, input: rlt.PreprocessedState):
+    def forward(self, state: rlt.FeatureData):
         embeddings = [
-            m(
-                input.state.id_list_features[name][1],
-                input.state.id_list_features[name][0],
-            )
+            m(state.id_list_features[name][1], state.id_list_features[name][0])
             for name, m in self.embedding_bags.items()
         ]
-        return torch.cat(embeddings + [input.state.float_features], dim=1)
+        return torch.cat(embeddings + [state.float_features], dim=1)

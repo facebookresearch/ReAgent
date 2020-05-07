@@ -23,7 +23,7 @@ class TestFullyConnectedDQN(unittest.TestCase):
             use_batch_norm=True,
         )
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.state.float_features.shape)
+        self.assertEqual((1, state_dim), input.float_features.shape)
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         q_values = model(input)

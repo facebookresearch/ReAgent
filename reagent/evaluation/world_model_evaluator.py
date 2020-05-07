@@ -5,11 +5,7 @@ from typing import Dict, List
 
 import torch
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-from reagent.types import (
-    PreprocessedFeatureVector,
-    PreprocessedMemoryNetworkInput,
-    PreprocessedStateAction,
-)
+from reagent.types import FeatureData, PreprocessedMemoryNetworkInput
 
 
 logger = logging.getLogger(__name__)
@@ -138,7 +134,7 @@ class FeatureImportanceEvaluator(object):
             )
             state_features = state_features.reshape((seq_len, batch_size, state_dim))
             new_batch = PreprocessedMemoryNetworkInput(
-                state=PreprocessedFeatureVector(float_features=state_features),
+                state=FeatureData(float_features=state_features),
                 action=batch.action,
                 next_state=batch.next_state,
                 reward=batch.reward,
@@ -200,19 +196,17 @@ class FeatureSensitivityEvaluator(object):
         state_feature_num = self.state_feature_num
         feature_sensitivity = torch.zeros(state_feature_num)
 
-        state = batch.state.float_features
-        action = batch.action
-        mdnrnn_input = PreprocessedStateAction.from_tensors(state, action)
-
         # the input of world_model has seq-len as the first dimension
-        mdnrnn_output = self.trainer.memory_network(mdnrnn_input)
+        mdnrnn_output = self.trainer.memory_network(
+            batch.state, FeatureData(batch.action)
+        )
         predicted_next_state_means = mdnrnn_output.mus
 
-        # shuffle the actions
-        shuffled_mdnrnn_input = PreprocessedStateAction.from_tensors(
-            state, action[:, torch.randperm(batch_size), :]
+        shuffled_mdnrnn_output = self.trainer.memory_network(
+            batch.state,
+            # shuffle the actions
+            FeatureData(batch.action[:, torch.randperm(batch_size), :]),
         )
-        shuffled_mdnrnn_output = self.trainer.memory_network(shuffled_mdnrnn_input)
         shuffled_predicted_next_state_means = shuffled_mdnrnn_output.mus
 
         assert (

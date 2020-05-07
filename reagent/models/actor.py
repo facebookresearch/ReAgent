@@ -51,10 +51,10 @@ class FullyConnectedActor(ModelBase):
             self.noise_dist = Normal(loc=loc, scale=scale)
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return rlt.FeatureData(torch.randn(1, self.state_dim))
 
-    def forward(self, input: rlt.PreprocessedState):
-        action = self.fc(input.state.float_features)
+    def forward(self, state: rlt.FeatureData):
+        action = self.fc(state.float_features)
         batch_size = action.shape[0]
         assert action.shape == (
             batch_size,
@@ -115,7 +115,7 @@ class GaussianFullyConnectedActor(ModelBase):
         self._log_min_max = (-20.0, 2.0)
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return rlt.FeatureData(torch.randn(1, self.state_dim))
 
     def _log_prob(self, r, scale_log):
         """
@@ -153,8 +153,8 @@ class GaussianFullyConnectedActor(ModelBase):
         scale_log = scale_log.clamp(*self._log_min_max)
         return loc, scale_log
 
-    def forward(self, input: rlt.PreprocessedState):
-        loc, scale_log = self._get_loc_and_scale_log(input.state)
+    def forward(self, state: rlt.FeatureData):
+        loc, scale_log = self._get_loc_and_scale_log(state)
         r = torch.randn_like(scale_log, device=scale_log.device)
         action = torch.tanh(loc + r * scale_log.exp())
 
@@ -242,7 +242,7 @@ class DirichletFullyConnectedActor(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return rlt.FeatureData(torch.randn(1, self.state_dim))
 
     def _get_concentration(self, state):
         """
@@ -257,8 +257,8 @@ class DirichletFullyConnectedActor(ModelBase):
         log_prob = Dirichlet(concentration).log_prob(action)
         return log_prob.unsqueeze(dim=1)
 
-    def forward(self, input):
-        concentration = self._get_concentration(input.state)
+    def forward(self, state):
+        concentration = self._get_concentration(state)
         if self.training:
             # PyTorch can't backwards pass _sample_dirichlet
             action = Dirichlet(concentration).rsample()

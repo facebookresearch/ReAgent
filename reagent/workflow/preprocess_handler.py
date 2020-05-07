@@ -38,13 +38,13 @@ class PreprocessHandler:
 
         return rlt.RawTrainingBatch(
             training_input=rlt.RawBaseInput(
-                state=rlt.FeatureVector(
+                state=rlt.RawFeatureData(
                     float_features=rlt.ValuePresence(
                         value=state_features_dense,
                         presence=state_features_dense_presence,
                     )
                 ),
-                next_state=rlt.FeatureVector(
+                next_state=rlt.RawFeatureData(
                     float_features=rlt.ValuePresence(
                         value=next_state_features_dense,
                         presence=next_state_features_dense_presence,
@@ -124,28 +124,28 @@ class ParametricDqnPreprocessHandler(PreprocessHandler):
                 state=base_input.state,
                 reward=base_input.reward,
                 time_diff=base_input.time_diff,
-                action=rlt.FeatureVector(
+                action=rlt.RawFeatureData(
                     float_features=rlt.ValuePresence(
                         value=actions, presence=actions_presence
                     )
                 ),
-                next_action=rlt.FeatureVector(
+                next_action=rlt.RawFeatureData(
                     float_features=rlt.ValuePresence(
                         value=next_actions, presence=next_actions_presence
                     )
                 ),
                 not_terminal=not_terminal,
                 next_state=base_input.next_state,
-                tiled_next_state=rlt.FeatureVector(
+                tiled_next_state=rlt.RawFeatureData(
                     float_features=rlt.ValuePresence(
                         value=tiled_next_state, presence=tiled_next_state_presence
                     )
                 ),
-                possible_actions=rlt.FeatureVector(
+                possible_actions=rlt.RawFeatureData(
                     float_features=rlt.ValuePresence(value=pas, presence=pas_presence)
                 ),
                 possible_actions_mask=pas_mask,
-                possible_next_actions=rlt.FeatureVector(
+                possible_next_actions=rlt.RawFeatureData(
                     float_features=rlt.ValuePresence(value=pnas, presence=pnas_presence)
                 ),
                 possible_next_actions_mask=pnas_mask,

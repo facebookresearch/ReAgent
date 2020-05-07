@@ -89,10 +89,9 @@ class MDNRNNTrainer:
         assert isinstance(training_batch, rlt.PreprocessedMemoryNetworkInput)
         # mdnrnn's input should have seq_len as the first dimension
 
-        mdnrnn_input = rlt.PreprocessedStateAction.from_tensors(
-            training_batch.state.float_features, training_batch.action
+        mdnrnn_output = self.memory_network(
+            training_batch.state, rlt.FeatureData(training_batch.action)
         )
-        mdnrnn_output = self.memory_network(mdnrnn_input)
         # mus, sigmas: [seq_len, batch_size, num_gaussian, state_dim]
         mus, sigmas, logpi, rs, nts = (
             mdnrnn_output.mus,

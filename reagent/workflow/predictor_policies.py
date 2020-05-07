@@ -19,10 +19,11 @@ class DiscreteDqnTorchPredictorPolicy(Policy):
     # pyre-fixme[15]: `act` overrides method defined in `Policy` inconsistently.
     def act(
         self,
-        preprocessed_state: rlt.PreprocessedState,
+        preprocessed_state: rlt.FeatureData,
         possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> int:
-        state = preprocessed_state.state.float_features
+        # TODO: Why doesn't predictor take the whole preprocessed_state?
+        state = preprocessed_state.float_features
         action = self.predictor.policy(
             state=state, possible_actions_presence=possible_actions_mask
         ).softmax
@@ -45,10 +46,11 @@ class ActorTorchPredictorPolicy(Policy):
     # pyre-fixme[15]: `act` overrides method defined in `Policy` inconsistently.
     def act(
         self,
-        preprocessed_state: rlt.PreprocessedState,
+        preprocessed_state: rlt.FeatureData,
         possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> int:
-        state = preprocessed_state.state.float_features
+        # TODO: Why doesn't predictor take the whole preprocessed_state?
+        state = preprocessed_state.float_features
         actions = self.predictor.policy(states=state).greedy
         return actions
 

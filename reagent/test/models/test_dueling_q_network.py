@@ -23,7 +23,7 @@ class TestDuelingQNetwork(unittest.TestCase):
             use_batch_norm=True,
         )
         input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.state.float_features.shape)
+        self.assertEqual((1, state_dim), input.float_features.shape)
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
         q_values = model(input)
@@ -35,12 +35,12 @@ class TestDuelingQNetwork(unittest.TestCase):
         model = ParametricDuelingQNetwork.make_fully_connected(
             state_dim, action_dim, [8, 4], ["relu", "relu"], use_batch_norm=True
         )
-        input = model.input_prototype()
-        self.assertEqual((1, state_dim), input.state.float_features.shape)
-        self.assertEqual((1, action_dim), input.action.float_features.shape)
+        state, action = model.input_prototype()
+        self.assertEqual((1, state_dim), state.float_features.shape)
+        self.assertEqual((1, action_dim), action.float_features.shape)
         # Using batch norm requires more than 1 example in training, avoid that
         model.eval()
-        q_values = model(input)
+        q_values = model(state, action)
         self.assertEqual((1, 1), q_values.shape)
 
     def test_save_load_discrete_action(self):

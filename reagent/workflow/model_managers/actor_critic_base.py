@@ -73,7 +73,7 @@ class ActorPolicyWrapper(Policy):
     @torch.no_grad()
     # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
     # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
-    def act(self, obs: rlt.PreprocessedState) -> rlt.ActorOutput:
+    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
         self.actor_network.eval()
         output = self.actor_network(obs)
         self.actor_network.train()

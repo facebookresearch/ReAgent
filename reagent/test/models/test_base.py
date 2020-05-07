@@ -3,21 +3,14 @@
 
 import dataclasses
 import logging
-import os
-import tempfile
 import unittest
-from io import BytesIO
-from typing import Any, NamedTuple
+from typing import Any
 
-import numpy as np
-import numpy.testing as npt
 import torch
 import torch.nn as nn
+from reagent import types as rlt
 from reagent.models.base import ModelBase
-from reagent.preprocessing.identify_types import CONTINUOUS
-from reagent.preprocessing.normalization import NormalizationParameters
 from reagent.test.models.test_utils import check_save_load
-from reagent.types import FeatureVector, PreprocessedStateAction
 
 
 logger = logging.getLogger(__name__)
@@ -38,13 +31,14 @@ class Model(ModelBase):
         self.linear = nn.Linear(4, 1)
 
     def input_prototype(self):
-        return PreprocessedStateAction.from_tensors(
-            state=torch.randn([1, 4]), action=torch.randn([1, 4])
+        return (
+            rlt.FeatureData(torch.randn([1, 4])),
+            rlt.FeatureData(torch.randn([1, 4])),
         )
 
-    def forward(self, sa):
-        state = sa.state.float_features
-        action = sa.action.float_features
+    def forward(self, state, action):
+        state = state.float_features
+        action = action.float_features
 
         return ModelOutput(
             state + action, state * action, state + 1, self.linear(state)

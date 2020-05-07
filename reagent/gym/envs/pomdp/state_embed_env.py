@@ -84,10 +84,9 @@ class StateEmbedEnvironment(Env):
 
         mdnrnn_state = torch.tensor(mdnrnn_state, dtype=torch.float).unsqueeze(1)
         mdnrnn_action = torch.tensor(mdnrnn_action, dtype=torch.float).unsqueeze(1)
-        mdnrnn_input = rlt.PreprocessedStateAction.from_tensors(
-            state=mdnrnn_state, action=mdnrnn_action
+        mdnrnn_output = self.mdnrnn(
+            rlt.FeatureData(mdnrnn_state), rlt.FeatureData(mdnrnn_action)
         )
-        mdnrnn_output = self.mdnrnn(mdnrnn_input)
         hidden_embed = (
             mdnrnn_output.all_steps_lstm_hidden[-1].squeeze().detach().cpu().numpy()
         )

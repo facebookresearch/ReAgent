@@ -36,7 +36,7 @@ class DiscreteDqnWithPreprocessor(ModelBase):
         preprocessed_state = self.state_preprocessor(
             state_with_presence[0], state_with_presence[1]
         )
-        state_feature_vector = rlt.PreprocessedState.from_tensor(preprocessed_state)
+        state_feature_vector = rlt.FeatureData(preprocessed_state)
         q_values = self.model(state_feature_vector)
         return q_values
 
@@ -82,10 +82,8 @@ class DiscreteDqnWithPreprocessorWithIdList(ModelBase):
             ]
             for id_list_feature_config in self.id_list_feature_configs
         }
-        state_feature_vector = rlt.PreprocessedState(
-            state=rlt.PreprocessedFeatureVector(
-                float_features=preprocessed_state, id_list_features=id_list_features
-            )
+        state_feature_vector = rlt.FeatureData(
+            float_features=preprocessed_state, id_list_features=id_list_features
         )
         q_values = self.model(state_feature_vector)
         return q_values
@@ -103,7 +101,7 @@ class DiscreteDqnWithPreprocessorWithIdList(ModelBase):
         }
         state_id_list_features = {
             feature_name_to_id[k]: v
-            for k, v in self.model.input_prototype().state.id_list_features.items()
+            for k, v in self.model.input_prototype().id_list_features.items()
         }
         # Terrible hack to make JIT tracing works. Python dict doesn't have type
         # so we need to insert something so JIT tracer can infer the type.
@@ -247,10 +245,9 @@ class ParametricDqnWithPreprocessor(ModelBase):
         preprocessed_action = self.action_preprocessor(
             action_with_presence[0], action_with_presence[1]
         )
-        state_feature_vector = rlt.PreprocessedStateAction.from_tensors(
-            state=preprocessed_state, action=preprocessed_action
-        )
-        q_value = self.model(state_feature_vector)
+        state = rlt.FeatureData(preprocessed_state)
+        action = rlt.FeatureData(preprocessed_action)
+        q_value = self.model(state, action)
         return q_value
 
     def input_prototype(self):
@@ -319,7 +316,7 @@ class ActorWithPreprocessor(ModelBase):
         preprocessed_state = self.state_preprocessor(
             state_with_presence[0], state_with_presence[1]
         )
-        state_feature_vector = rlt.PreprocessedState.from_tensor(preprocessed_state)
+        state_feature_vector = rlt.FeatureData(preprocessed_state)
         # TODO: include log_prob in the output
         action = self.model(state_feature_vector).action
         if self.action_postprocessor:
