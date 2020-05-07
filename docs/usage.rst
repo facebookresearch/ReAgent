@@ -20,11 +20,14 @@ We have set up `Click <https://click.palletsprojects.com/en/7.x/>`_ commands to 
     ./reagent/workflow/cli.py run <module.function> <path/to/config>
 
 
-To train a model on OpenAI Gym, simply run the Click command:
+To train a model online with OpenAI Gym, simply run the Click command:
 
 .. code-block::
 
-   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
+    # set the config
+    export CONFIG=reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
+    # train and evaluate model on gym environment
+   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test $CONFIG
 
 
 To train a batch RL model, run the following commands:
