@@ -10,6 +10,9 @@ batches, we use *off-policy* algorithms.  To test a new policy without deploying
 *counter-factual policy evaluation (CPE)*\ , a set of techniques for estimating a policy based on the
 actions of another policy.
 
+Quick Start
+-----------
+
 We have set up `Click <https://click.palletsprojects.com/en/7.x/>`_ commands to run our RL workflow. The basic usage pattern is
 
 .. code-block::
@@ -17,7 +20,28 @@ We have set up `Click <https://click.palletsprojects.com/en/7.x/>`_ commands to 
     ./reagent/workflow/cli.py run <module.function> <path/to/config>
 
 
-Before we get started using ReAgent as it is intended, let's begin with a traditional RL setup with a simulator where we can trivially evaluate new policies:
+To train a model on OpenAI Gym, simply run the Click command:
+
+.. code-block::
+
+   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
+
+
+To train a batch RL model, run the following commands:
+
+.. code-block::
+
+    # set the config
+    export CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
+    # gather some random transitions (can replace with your own)
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
+    # convert data to timeline format
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
+    # train model based on timeline data, and evaluate
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym $CONFIG
+
+
+Now we will describe how the above commands work, starting with a traditional RL setup with a simulator where we can trivially evaluate new policies:
 
 1 - On-Policy RL Training
 -------------------------
