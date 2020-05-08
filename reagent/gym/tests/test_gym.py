@@ -70,7 +70,7 @@ class TestGym(HorizonTestBase):
 
 
 def run_test(
-    env: str,
+    env_name: str,
     model: ModelManager__Union,
     replay_memory_size: int,
     train_every_ts: int,
@@ -81,11 +81,8 @@ def run_test(
     num_eval_episodes: int,
     use_gpu: bool,
 ):
-    # pyre-fixme[9]: env has type `str`; used as `Env`.
-    env = EnvFactory.make(env)
-    # pyre-fixme[16]: `str` has no attribute `seed`.
+    env = EnvFactory.make(env_name)
     env.seed(SEED)
-    # pyre-fixme[16]: `str` has no attribute `action_space`.
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
@@ -98,7 +95,6 @@ def run_test(
     )
 
     replay_buffer = ReplayBuffer.create_from_env(
-        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         env=env,
         replay_memory_size=replay_memory_size,
         batch_size=trainer.minibatch_size,
@@ -116,16 +112,11 @@ def run_test(
 
     training_policy = manager.create_policy(serving=False)
     agent = Agent.create_for_env(
-        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
-        env,
-        policy=training_policy,
-        post_transition_callback=post_step,
-        device=device,
+        env, policy=training_policy, post_transition_callback=post_step, device=device
     )
 
     train_rewards = []
     for i in range(num_train_episodes):
-        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
         train_rewards.append(ep_reward)
         logger.info(f"Finished training episode {i} with reward {ep_reward}.")
@@ -140,12 +131,10 @@ def run_test(
     logger.info(train_rewards)
 
     serving_policy = manager.create_policy(serving=True)
-    # pyre-fixme[6]: Expected `Env` for 2nd param but got `str`.
     agent = Agent.create_from_serving_policy(serving_policy, env)
 
     eval_rewards = []
     for i in range(num_eval_episodes):
-        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
         eval_rewards.append(ep_reward)
         logger.info(f"Finished eval episode {i} with reward {ep_reward}.")

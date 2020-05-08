@@ -70,44 +70,9 @@ commands:
           command: |
             serving/build/RaspTest
 
-jobs:
-  gpu_unittest:
-    machine:
-      image: ubuntu-1604-cuda-10.1:201909-23
-    resource_class: gpu.medium
-    steps:
-      - checkout_merge
-      - run:
-          name: Switch to python 3.7
-          command: |
-            pyenv global 3.7.0
-            pip install --upgrade pip
-            pip install --upgrade tox wheel setuptools
-      - run:
-          name: Run unittests
-          command: |
-            tox -e circleci
-            bash <(curl -s https://codecov.io/bash)
-      - run: python setup.py bdist_wheel
-      - store_artifacts:
-          path: dist/reagent-0.1-py3-none-any.whl
-          destination: reagent-0.1-py3-none-any.whl
-      - store_test_results:
-          path: .tox/py37/log/
-
   end_to_end_test:
-    docker:
-      - image: circleci/python:3.7
-    resource_class: large
-    environment:
-      - BASH_ENV: ~/.bashrc
+    description: Set-up for end-to-end tests
     steps:
-      - checkout_merge
-      - run:
-          name: Pip install
-          command: |
-            pip install --upgrade pip
-            sudo pip install -e .[gym]
       - run:
           name: Installing SDKs
           command: |
@@ -141,6 +106,82 @@ jobs:
       - store_artifacts:
           path: preprocessing/target/rl-preprocessing-1.1.jar
           destination: rl-preprocessing-1.1.jar
+
+jobs:
+  gpu_unittest:
+    machine:
+      image: ubuntu-1604-cuda-10.1:201909-23
+    resource_class: gpu.medium
+    steps:
+      - checkout_merge
+      - run:
+          name: Switch to python 3.7
+          command: |
+            pyenv global 3.7.0
+            pip install --upgrade pip
+            pip install --upgrade tox wheel setuptools
+      - run:
+          name: Run unittests
+          command: |
+            tox -e circleci
+            bash <(curl -s https://codecov.io/bash)
+      - run: python setup.py bdist_wheel
+      - store_artifacts:
+          path: dist/reagent-0.1-py3-none-any.whl
+          destination: reagent-0.1-py3-none-any.whl
+      - store_test_results:
+          path: .tox/py37/log/
+
+  dqn_cartpole_e2e:
+    docker:
+      - image: circleci/python:3.7
+    resource_class: large
+    environment:
+      - BASH_ENV: ~/.bashrc
+      - E2E_CONFIG: reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
+    steps:
+      - checkout_merge
+      - run:
+          name: Pip install
+          command: |
+            pip install --upgrade pip
+            sudo pip install -e .[gym]
+      - end_to_end_test
+
+  sac_pendulum_e2e:
+    docker:
+      - image: circleci/python:3.7
+    resource_class: large
+    environment:
+      - BASH_ENV: ~/.bashrc
+      - E2E_CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline.yaml
+    steps:
+      - checkout_merge
+      - run:
+          name: Pip install
+          command: |
+            pip install --upgrade pip
+            sudo pip install -e .[gym]
+      - end_to_end_test
+
+  sac_pendulum_e2e_gpu:
+    machine:
+      image: ubuntu-1604-cuda-10.1:201909-23
+    resource_class: gpu.medium
+    environment:
+      - E2E_CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline_gpu.yaml
+    steps:
+      - checkout_merge
+      - run:
+          name: Switch to python 3.7 and install torch
+          command: |
+            pyenv global 3.7.0
+            pip install --upgrade pip
+            pip install --upgrade tox wheel setuptools
+            pip install -e .[gym]
+            pip install torch==1.5.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+      - end_to_end_test
+
 
   rasp_test_linux:
     docker:
@@ -180,7 +221,9 @@ jobs:
 workflows:
   build:
     jobs:
-      - end_to_end_test
+      - dqn_cartpole_e2e
+      - sac_pendulum_e2e
+      - sac_pendulum_e2e_gpu
       - gpu_unittest
       - rasp_test_linux
       - rasp_test_mac

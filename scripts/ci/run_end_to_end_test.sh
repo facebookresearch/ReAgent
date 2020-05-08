@@ -4,15 +4,24 @@
 
 set -ex
 
-CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
+if [[ -z "${CONFIG}" ]]
+then
+    echo "Config path is not defined!"
+    exit 1
+else
+    echo "Using config path: "
+    echo "$CONFIG"
+fi
+
 
 # gather data and store as pickle
-./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym "$CONFIG"
 
 # run through timeline operator
-./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator "$CONFIG"
 
 # train and evaluate
-./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym $CONFIG
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym "$CONFIG"
 
-echo "End-to-end test passed!"
+echo "End-to-end test passed for config: "
+echo "$CONFIG"

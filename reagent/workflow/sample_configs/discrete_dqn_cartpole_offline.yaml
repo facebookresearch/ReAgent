@@ -1,4 +1,4 @@
-env: CartPole-v0
+env_name: CartPole-v0
 model_path: "cartpole_batch_rl_model.torchscript"
 pkl_path: "/tmp/tmp_pickle.pkl"
 input_table_spec:

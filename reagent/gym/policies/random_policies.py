@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Any, Optional
+from typing import Optional
 
 import gym
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.gym.policies.policy import Policy
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 
 
 def make_random_policy_for_env(env: gym.Env):
@@ -74,9 +75,9 @@ class ContinuousRandomPolicy(Policy):
                 f"Action space is discrete. Try using DiscreteRandomPolicy instead."
             )
         elif isinstance(action_space, gym.spaces.Box):
-            low = torch.tensor(action_space.low).float()
-            high = torch.tensor(action_space.high).float()
-            return cls(low=low, high=high)
+            assert action_space.shape == (1,), "Only support float scalar output."
+            low, high = CONTINUOUS_TRAINING_ACTION_RANGE
+            return cls(low=torch.tensor([low]), high=torch.tensor([high]))
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
