@@ -15,6 +15,10 @@ from reagent.core.dataclasses import dataclass as pydantic_dataclass
 logger = logging.getLogger(__name__)
 
 
+def isinstance_namedtuple(x):
+    return isinstance(x, tuple) and hasattr(x, "_fields")
+
+
 """
 We should revisit this at some point. Config classes shouldn't subclass from this.
 """

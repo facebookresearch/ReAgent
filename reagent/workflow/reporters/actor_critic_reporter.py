@@ -5,11 +5,7 @@ import logging
 from collections import OrderedDict
 
 from reagent.core import aggregators as agg
-from reagent.core.observers import (
-    EpochEndObserver,
-    IntervalAggregatingObserver,
-    ValueListObserver,
-)
+from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
 from reagent.workflow.reporters.reporter_base import ReporterBase
 from reagent.workflow.training_reports import ActorCriticTrainingReport
 
@@ -18,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class ActorCriticReporter(ReporterBase):
-    def __init__(self, report_interval: int = 100, recent_window_size: int = 100):
+    def __init__(self, report_interval: int = 100):
         self.value_list_observers = {"cpe_results": ValueListObserver("cpe_details")}
         self.aggregating_observers = OrderedDict(
             (name, IntervalAggregatingObserver(report_interval, aggregator))
@@ -42,20 +38,8 @@ class ActorCriticReporter(ReporterBase):
                 ],
             )
         )
-        epoch_end_observer = EpochEndObserver(self._epoch_end_callback)
-        super().__init__(
-            itertools.chain(
-                self.value_list_observers.values(),
-                self.aggregating_observers.values(),
-                [epoch_end_observer],
-            )
-        )
-        self.recent_window_size = recent_window_size
+        super().__init__(self.value_list_observers, self.aggregating_observers)
 
     # TODO: write this for OSS
     def generate_training_report(self) -> ActorCriticTrainingReport:
         return ActorCriticTrainingReport()
-
-    # TODO: Delete this method once we don't use EvaluationPageHandler in SAC
-    def report(self, evaluation_details):
-        evaluation_details.log_to_tensorboard()

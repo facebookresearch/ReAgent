@@ -9,6 +9,7 @@ import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.tracker import observable
 from reagent.parameters import OptimizerParameters, RLParameters, param_hash
 from reagent.tensorboardX import SummaryWriterContext
 from reagent.training.rl_trainer_pytorch import RLTrainer
@@ -47,6 +48,17 @@ class SACTrainerParameters:
     action_embedding_variance: Optional[List[float]] = None
 
 
+@observable(
+    td_loss=torch.Tensor,
+    reward_loss=torch.Tensor,
+    logged_actions=torch.Tensor,
+    logged_propensities=torch.Tensor,
+    logged_rewards=torch.Tensor,
+    model_propensities=torch.Tensor,
+    model_rewards=torch.Tensor,
+    model_values=torch.Tensor,
+    model_action_idxs=torch.Tensor,
+)
 class SACTrainer(RLTrainer):
     """
     Soft Actor-Critic trainer as described in https://arxiv.org/pdf/1801.01290

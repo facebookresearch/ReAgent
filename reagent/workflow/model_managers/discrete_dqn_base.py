@@ -29,10 +29,6 @@ from reagent.workflow.types import (
     TableSpec,
 )
 from reagent.workflow.utils import train_and_evaluate_generic
-from reagent.workflow_utils.page_handler import (
-    EvaluationPageHandler,
-    TrainingPageHandler,
-)
 
 
 try:
@@ -186,26 +182,18 @@ class DiscreteDQNBase(ModelManager):
         """
         Train the model
 
-        Returns partially filled RLTrainingOutput. The field that should not be filled
-        are:
+        Returns partially filled RLTrainingOutput.
+        The field that should not be filled are:
         - output_path
-        - warmstart_output_path
-        - vis_metrics
-        - validation_output
         """
-        logger.info("Creating reporter")
         reporter = DiscreteDQNReporter(
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `trainer_param`.
             self.trainer_param.actions,
             target_action_distribution=self.target_action_distribution,
         )
-        logger.info("Adding reporter to trainer")
         # pyre-fixme[16]: `RLTrainer` has no attribute `add_observer`.
         self.trainer.add_observer(reporter)
 
-        training_page_handler = TrainingPageHandler(self.trainer)
-        # pyre-fixme[16]: `TrainingPageHandler` has no attribute `add_observer`.
-        training_page_handler.add_observer(reporter)
         evaluator = Evaluator(
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             self.action_names,
@@ -214,12 +202,8 @@ class DiscreteDQNBase(ModelManager):
             self.trainer,
             metrics_to_score=self.metrics_to_score,
         )
-        logger.info("Adding reporter to evaluator")
         # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         evaluator.add_observer(reporter)
-        evaluation_page_handler = EvaluationPageHandler(
-            self.trainer, evaluator, reporter
-        )
 
         batch_preprocessor = self.build_batch_preprocessor()
         train_and_evaluate_generic(
@@ -229,8 +213,8 @@ class DiscreteDQNBase(ModelManager):
             num_epochs,
             self.use_gpu,
             batch_preprocessor,
-            training_page_handler,
-            evaluation_page_handler,
+            reporter,
+            evaluator,
             reader_options=self.reader_options,
         )
         # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.

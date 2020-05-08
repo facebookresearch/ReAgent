@@ -2,10 +2,14 @@
 
 import abc
 import logging
-from typing import Iterable
+from typing import Dict
 
-from reagent.core.observers import CompositeObserver
-from reagent.core.tracker import Observer
+from reagent.core.observers import (
+    CompositeObserver,
+    EpochEndObserver,
+    IntervalAggregatingObserver,
+    ValueListObserver,
+)
 from reagent.workflow.result_registries import TrainingReport
 
 
@@ -13,10 +17,23 @@ logger = logging.getLogger(__name__)
 
 
 class ReporterBase(CompositeObserver):
-    def __init__(self, observers: Iterable[Observer]):
-        super().__init__(observers)
-        self.num_data_points_per_epoch = None
+    def __init__(
+        self,
+        value_list_observers: Dict[str, ValueListObserver],
+        aggregating_observers: Dict[str, IntervalAggregatingObserver],
+    ):
+        epoch_end_observer = EpochEndObserver(self._epoch_end_callback)
         self.last_epoch_end_num_batches: int = 0
+        self.num_data_points_per_epoch = None
+        super().__init__(
+            list(value_list_observers.values())
+            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
+            #  got `List[IntervalAggregatingObserver]`.
+            + list(aggregating_observers.values())
+            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
+            #  got `List[EpochEndObserver]`.
+            + [epoch_end_observer]
+        )
 
     def _epoch_end_callback(self, epoch: int):
         logger.info(f"Epoch {epoch} ended")
