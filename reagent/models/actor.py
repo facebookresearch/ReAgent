@@ -53,7 +53,7 @@ class FullyConnectedActor(ModelBase):
     def input_prototype(self):
         return rlt.FeatureData(torch.randn(1, self.state_dim))
 
-    def forward(self, state: rlt.FeatureData):
+    def forward(self, state: rlt.FeatureData) -> rlt.ActorOutput:
         action = self.fc(state.float_features)
         batch_size = action.shape[0]
         assert action.shape == (

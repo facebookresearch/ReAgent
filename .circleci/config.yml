@@ -138,7 +138,7 @@ jobs:
     resource_class: large
     environment:
       - BASH_ENV: ~/.bashrc
-      - E2E_CONFIG: reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
+      - CONFIG: reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
     steps:
       - checkout_merge
       - run:
@@ -154,7 +154,7 @@ jobs:
     resource_class: large
     environment:
       - BASH_ENV: ~/.bashrc
-      - E2E_CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline.yaml
+      - CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline.yaml
     steps:
       - checkout_merge
       - run:
@@ -169,7 +169,7 @@ jobs:
       image: ubuntu-1604-cuda-10.1:201909-23
     resource_class: gpu.medium
     environment:
-      - E2E_CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline_gpu.yaml
+      - CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline_gpu.yaml
     steps:
       - checkout_merge
       - run:
