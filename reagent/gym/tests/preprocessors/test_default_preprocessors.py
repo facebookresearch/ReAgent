@@ -42,7 +42,9 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         self.assertTrue(state.has_float_features_only)
         self.assertEqual(state.float_features.shape, (1, obs.shape[0]))
         self.assertEqual(state.float_features.dtype, torch.float32)
-        self.assertEqual(state.float_features.device, device)
+        # `device` doesn't have index. So we need this.
+        x = torch.zeros(1, device=device)
+        self.assertEqual(state.float_features.device, x.device)
         npt.assert_array_almost_equal(obs, state.float_features.cpu().squeeze(0))
 
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
