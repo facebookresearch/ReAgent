@@ -514,7 +514,6 @@ class Seq2SlateTransformerModel(nn.Module):
             when decoding. Only used in rank mode
         """
         if mode == self._RANK_MODE:
-            assert greedy is not None
             if tgt_seq_len is None:
                 tgt_seq_len = self.max_tgt_seq_len
             return self._rank(
@@ -567,7 +566,7 @@ class Seq2SlateTransformerModel(nn.Module):
 
         if self.encoder_only:
             # encoder_scores shape: batch_size, tgt_seq_len
-            encoder_scores = self.encoder_scorer(memory).squeeze()
+            encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
             tgt_out_idx = torch.argsort(encoder_scores, dim=1, descending=True)[
                 :, :tgt_seq_len
             ]
@@ -591,7 +590,7 @@ class Seq2SlateTransformerModel(nn.Module):
         tgt_out_probs = torch.zeros(
             batch_size, tgt_seq_len, candidate_size, device=device
         )
-
+        assert greedy is not None
         for l in range(tgt_seq_len):
             tgt_in_seq = (
                 candidate_features[

@@ -20,8 +20,8 @@ from reagent.types import PreprocessedTrainingBatch
 logger = logging.getLogger(__name__)
 
 
-class RankingEvaluator:
-    """ Evaluate ranking models """
+class RankingPolicyGradientEvaluator:
+    """ Evaluate ranking models that are learned through policy gradient """
 
     def __init__(
         self,

@@ -194,11 +194,13 @@ class RankingTrainingPageHandler(PageHandler):
         self.refresh_results()
 
 
+@observable(epoch_end=int)
 class RankingEvaluationPageHandler(PageHandler):
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
         self.trainer_or_evaluator.evaluate(tdp)
 
     def finish(self):
+        self.notify_observers(epoch_end=self.epoch)  # type: ignore
         eval_res = self.trainer_or_evaluator.evaluate_post_training()
         self.results.append(eval_res)
 

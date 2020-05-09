@@ -12,7 +12,18 @@ import torch
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 
 
-logger = logging.getLogger(__name__)
+class NoDuplicatedWarningLogger:
+    def __init__(self, logger):
+        self.logger = logger
+        self.msg = set([])
+
+    def warning(self, msg):
+        if msg not in self.msg:
+            self.logger.warning(msg)
+            self.msg.add(msg)
+
+
+logger = NoDuplicatedWarningLogger(logging.getLogger(__name__))
 
 
 def isinstance_namedtuple(x):
