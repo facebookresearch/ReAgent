@@ -22,6 +22,7 @@ class ImitatorTrainer(RLTrainer):
         self.minibatch_size = parameters.training.minibatch_size
         self.minibatches_per_step = parameters.training.minibatches_per_step or 1
         self.imitator = imitator
+        # pyre-fixme[16]: `ImitatorTrainer` has no attribute `optimizer_func`.
         self.imitator_optimizer = self.optimizer_func(
             imitator.parameters(),
             lr=parameters.training.learning_rate,
@@ -33,7 +34,7 @@ class ImitatorTrainer(RLTrainer):
         matches = int(match_tensor.sum())
         return round(matches / len(predictions), 3)
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def train(self, training_batch, train=True):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()

@@ -111,7 +111,7 @@ ml.rl.models.no\_soft\_update\_embedding module
 ml.rl.models.parametric\_dqn module
 -----------------------------------
 
-.. automodule:: ml.rl.models.parametric_dqn
+.. automodule:: ml.rl.models.critic
    :members:
    :undoc-members:
    :show-inheritance:

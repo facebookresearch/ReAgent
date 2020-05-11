@@ -9,10 +9,11 @@ import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.tracker import observable
 from reagent.parameters import OptimizerParameters, RLParameters, param_hash
 from reagent.tensorboardX import SummaryWriterContext
-from reagent.torch_utils import rescale_torch_tensor
 from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,17 @@ class SACTrainerParameters:
     action_embedding_variance: Optional[List[float]] = None
 
 
+@observable(
+    td_loss=torch.Tensor,
+    reward_loss=torch.Tensor,
+    logged_actions=torch.Tensor,
+    logged_propensities=torch.Tensor,
+    logged_rewards=torch.Tensor,
+    model_propensities=torch.Tensor,
+    model_rewards=torch.Tensor,
+    model_values=torch.Tensor,
+    model_action_idxs=torch.Tensor,
+)
 class SACTrainer(RLTrainer):
     """
     Soft Actor-Critic trainer as described in https://arxiv.org/pdf/1801.01290
@@ -59,22 +71,14 @@ class SACTrainer(RLTrainer):
         q1_network,
         actor_network,
         parameters: SACTrainerParameters,
-        use_gpu=False,
+        use_gpu: bool = False,
         value_network=None,
         q2_network=None,
-        min_action_range_tensor_training=None,
-        max_action_range_tensor_training=None,
-        min_action_range_tensor_serving=None,
-        max_action_range_tensor_serving=None,
     ) -> None:
         """
         Args:
             The four args below are provided for integration with other
             environments (e.g., Gym):
-            min_action_range_tensor_training / max_action_range_tensor_training:
-                min / max value of actions at training time
-            min_action_range_tensor_serving / max_action_range_tensor_serving:
-                min / max value of actions at serving time
         """
         super().__init__(parameters.rl, use_gpu=use_gpu)
 
@@ -118,10 +122,6 @@ class SACTrainer(RLTrainer):
         if parameters.alpha_optimizer is not None:
             if parameters.target_entropy is not None:
                 self.target_entropy = parameters.target_entropy
-            elif min_action_range_tensor_training is not None:
-                self.target_entropy = -np.prod(
-                    min_action_range_tensor_training.cpu().data.numpy().shape
-                ).item()
             else:
                 self.target_entropy = -1
 
@@ -129,10 +129,13 @@ class SACTrainer(RLTrainer):
                 [np.log(self.entropy_temperature)], requires_grad=True, device=device
             )
             self.alpha_optimizer = self._get_optimizer_func(
+                # pyre-fixme[16]: `Optional` has no attribute `optimizer`.
                 parameters.alpha_optimizer.optimizer
             )(
                 [self.log_alpha],
+                # pyre-fixme[16]: `Optional` has no attribute `learning_rate`.
                 lr=parameters.alpha_optimizer.learning_rate,
+                # pyre-fixme[16]: `Optional` has no attribute `l2_decay`.
                 weight_decay=parameters.alpha_optimizer.l2_decay,
             )
 
@@ -149,12 +152,6 @@ class SACTrainer(RLTrainer):
             self.action_emb_variance = torch.tensor(
                 parameters.action_embedding_variance, device=device
             )
-
-        # These ranges are only for Gym tests
-        self.min_action_range_tensor_training = min_action_range_tensor_training
-        self.max_action_range_tensor_training = max_action_range_tensor_training
-        self.min_action_range_tensor_serving = min_action_range_tensor_serving
-        self.max_action_range_tensor_serving = max_action_range_tensor_serving
 
     def warm_start_components(self):
         components = [
@@ -177,34 +174,25 @@ class SACTrainer(RLTrainer):
                 components += ["q2_network_target"]
         return components
 
-    @torch.no_grad()  # type: ignore
-    def train(self, training_batch) -> None:
+    @torch.no_grad()
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
+    def train(self, training_batch: rlt.PolicyNetworkInput) -> None:
         """
-        IMPORTANT: the input action here is assumed to be preprocessed to match the
+        IMPORTANT: the input action here is assumed to match the
         range of the output of the actor.
         """
-        if hasattr(training_batch, "as_policy_network_training_batch"):
+        if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_policy_network_training_batch()
 
-        learning_input = training_batch.training_input
+        assert isinstance(training_batch, rlt.PolicyNetworkInput)
+
         self.minibatch += 1
 
-        state = learning_input.state
-        action = learning_input.action
-        reward = learning_input.reward
+        state = training_batch.state
+        action = training_batch.action
+        reward = training_batch.reward
         discount = torch.full_like(reward, self.gamma)
-        not_done_mask = learning_input.not_terminal
-
-        if self._should_scale_action_in_train():
-            action = action._replace(
-                float_features=rescale_torch_tensor(
-                    action.float_features,
-                    new_min=self.min_action_range_tensor_training,
-                    new_max=self.max_action_range_tensor_training,
-                    prev_min=self.min_action_range_tensor_serving,
-                    prev_max=self.max_action_range_tensor_serving,
-                )
-            )
+        not_done_mask = training_batch.not_terminal
 
         # We need to zero out grad here because gradient from actor update
         # should not be used in Q-network update
@@ -221,20 +209,19 @@ class SACTrainer(RLTrainer):
             # Q(s, a) & r + discount * V'(next_s)
             #
 
-            current_state_action = rlt.PreprocessedStateAction(
-                state=state, action=action
-            )
-            q1_value = self.q1_network(current_state_action).q_value
+            q1_value = self.q1_network(state, action)
             if self.q2_network:
-                q2_value = self.q2_network(current_state_action).q_value
-            actor_output = self.actor_network(rlt.PreprocessedState(state=state))
+                q2_value = self.q2_network(state, action)
+            actor_output = self.actor_network(state)
 
             # Optimize Alpha
             if self.alpha_optimizer is not None:
                 alpha_loss = -(
-                    self.log_alpha
-                    * (actor_output.log_prob + self.target_entropy).detach()
-                ).mean()
+                    (
+                        self.log_alpha
+                        * (actor_output.log_prob + self.target_entropy).detach()
+                    ).mean()
+                )
                 self.alpha_optimizer.zero_grad()
                 alpha_loss.backward()
                 self.alpha_optimizer.step()
@@ -243,30 +230,26 @@ class SACTrainer(RLTrainer):
             with torch.no_grad():
                 if self.value_network is not None:
                     next_state_value = self.value_network_target(
-                        learning_input.next_state.float_features
+                        training_batch.next_state.float_features
                     )
                 else:
                     next_state_actor_output = self.actor_network(
-                        rlt.PreprocessedState(state=learning_input.next_state)
+                        training_batch.next_state
                     )
-                    next_state_actor_action = rlt.PreprocessedStateAction(
-                        state=learning_input.next_state,
-                        action=rlt.PreprocessedFeatureVector(
-                            float_features=next_state_actor_output.action
-                        ),
+                    next_state_actor_action = (
+                        training_batch.next_state,
+                        rlt.FeatureData(next_state_actor_output.action),
                     )
-                    next_state_value = self.q1_network_target(
-                        next_state_actor_action
-                    ).q_value
+                    next_state_value = self.q1_network_target(*next_state_actor_action)
 
                     if self.q2_network is not None:
                         target_q2_value = self.q2_network_target(
-                            next_state_actor_action
-                        ).q_value
+                            *next_state_actor_action
+                        )
                         next_state_value = torch.min(next_state_value, target_q2_value)
 
                     log_prob_a = self.actor_network.get_log_prob(
-                        learning_input.next_state, next_state_actor_output.action
+                        training_batch.next_state, next_state_actor_output.action
                     )
                     log_prob_a = log_prob_a.clamp(-20.0, 20.0)
                     next_state_value -= self.entropy_temperature * log_prob_a
@@ -285,28 +268,22 @@ class SACTrainer(RLTrainer):
                 self.q1_network_optimizer, self.minibatches_per_step
             )
             if self.q2_network:
+                # pyre-fixme[18]: Global name `q2_value` is undefined.
                 q2_loss = F.mse_loss(q2_value, target_q_value)
                 q2_loss.backward()
                 self._maybe_run_optimizer(
                     self.q2_network_optimizer, self.minibatches_per_step
                 )
 
-            #
-            # Second, optimize the actor; minimizing KL-divergence between action propensity
-            # & softmax of value. Due to reparameterization trick, it ends up being
-            # log_prob(actor_action) - Q(s, actor_action)
-            #
+            # Second, optimize the actor; minimizing KL-divergence between
+            # propensity & softmax of value.  Due to reparameterization trick,
+            # it ends up being log_prob(actor_action) - Q(s, actor_action)
 
-            state_actor_action = rlt.PreprocessedStateAction(
-                state=state,
-                action=rlt.PreprocessedFeatureVector(
-                    float_features=actor_output.action
-                ),
-            )
-            q1_actor_value = self.q1_network(state_actor_action).q_value
+            state_actor_action = (state, rlt.FeatureData(actor_output.action))
+            q1_actor_value = self.q1_network(*state_actor_action)
             min_q_actor_value = q1_actor_value
             if self.q2_network:
-                q2_actor_value = self.q2_network(state_actor_action).q_value
+                q2_actor_value = self.q2_network(*state_actor_action)
                 min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
 
             actor_loss = (
@@ -324,6 +301,7 @@ class SACTrainer(RLTrainer):
                     action_batch_v = torch.var(actor_output.action, axis=0)
                 kld = (
                     0.5
+                    # pyre-fixme[16]: `int` has no attribute `sum`.
                     * (
                         (action_batch_v + (action_batch_m - self.action_emb_mean) ** 2)
                         / self.action_emb_variance
@@ -397,6 +375,7 @@ class SACTrainer(RLTrainer):
             if self.q2_network:
                 SummaryWriterContext.add_histogram("q2/logged_state_value", q2_value)
 
+            # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
             SummaryWriterContext.add_scalar(
                 "entropy_temperature", self.entropy_temperature
             )
@@ -430,36 +409,3 @@ class SACTrainer(RLTrainer):
             model_propensities=actor_output.log_prob.exp(),
             model_values=min_q_actor_value,
         )
-
-    def _should_scale_action_in_train(self):
-        if (
-            self.min_action_range_tensor_training is not None
-            and self.max_action_range_tensor_training is not None
-            and self.min_action_range_tensor_serving is not None
-            and self.max_action_range_tensor_serving is not None
-        ):
-            return True
-        return False
-
-    def internal_prediction(self, states, test=False):
-        """ Returns list of actions output from actor network
-        :param states states as list of states to produce actions for
-        """
-        self.actor_network.eval()
-        with torch.no_grad():
-            actions = self.actor_network(rlt.PreprocessedState.from_tensor(states))
-        # clamp actions to make sure actions are in the range
-        clamped_actions = torch.max(
-            torch.min(actions.action, self.max_action_range_tensor_training),
-            self.min_action_range_tensor_training,
-        )
-        rescaled_actions = rescale_torch_tensor(
-            clamped_actions,
-            new_min=self.min_action_range_tensor_serving,
-            new_max=self.max_action_range_tensor_serving,
-            prev_min=self.min_action_range_tensor_training,
-            prev_max=self.max_action_range_tensor_training,
-        )
-
-        self.actor_network.train()
-        return rescaled_actions

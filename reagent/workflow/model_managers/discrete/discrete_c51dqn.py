@@ -25,11 +25,15 @@ class DiscreteC51DQN(DiscreteDQNBase):
 
     trainer_param: C51TrainerParameters = field(default_factory=C51TrainerParameters)
     net_builder: CategoricalDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `Categorical`.
+        # pyre-fixme[28]: Unexpected keyword argument `Categorical`.
         default_factory=lambda: CategoricalDQNNetBuilder__Union(
             Categorical=Categorical()
         )
     )
     cpe_net_builder: CategoricalDQNNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `Categorical`.
+        # pyre-fixme[28]: Unexpected keyword argument `Categorical`.
         default_factory=lambda: CategoricalDQNNetBuilder__Union(
             Categorical=Categorical()
         )
@@ -48,7 +52,10 @@ class DiscreteC51DQN(DiscreteDQNBase):
     def build_trainer(self) -> C51Trainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
-            self.state_normalization_parameters, len(self.action_names)
+            self.state_normalization_parameters,
+            # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
+            # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
+            len(self.action_names),
         )
 
         if self.use_gpu:
@@ -56,6 +63,8 @@ class DiscreteC51DQN(DiscreteDQNBase):
 
         q_network_target = q_network.get_target_network()
 
+        # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `_q_network`.
+        # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `_q_network`.
         self._q_network = q_network
 
         return C51Trainer(
@@ -71,11 +80,15 @@ class DiscreteC51DQN(DiscreteDQNBase):
         """
         Returns a TorchScript predictor module
         """
+        # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `_q_network`.
+        # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `_q_network`.
         assert self._q_network is not None, "_q_network was not initialized"
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
             self.state_normalization_parameters,
+            # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
+            # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

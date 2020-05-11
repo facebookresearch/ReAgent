@@ -31,6 +31,10 @@ class ModelValidator(metaclass=RegistryMeta):
         # FBL
         result_type = inspect.signature(self.do_validate).return_annotation
         assert result_type != inspect.Signature.empty
+        # pyre-fixme[16]: `ValidationResult__Union` has no attribute
+        #  `make_union_instance`.
+        # pyre-fixme[16]: `ValidationResult__Union` has no attribute
+        #  `make_union_instance`.
         return ValidationResult__Union.make_union_instance(result, result_type)
 
     @abc.abstractmethod

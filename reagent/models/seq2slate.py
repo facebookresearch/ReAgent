@@ -514,7 +514,6 @@ class Seq2SlateTransformerModel(nn.Module):
             when decoding. Only used in rank mode
         """
         if mode == self._RANK_MODE:
-            assert greedy is not None
             if tgt_seq_len is None:
                 tgt_seq_len = self.max_tgt_seq_len
             return self._rank(
@@ -529,6 +528,7 @@ class Seq2SlateTransformerModel(nn.Module):
             return self._log_probs(
                 state=input.state.float_features,
                 src_seq=input.src_seq.float_features,
+                # pyre-fixme[16]: `Optional` has no attribute `float_features`.
                 tgt_in_seq=input.tgt_in_seq.float_features,
                 src_src_mask=input.src_src_mask,
                 tgt_tgt_mask=input.tgt_tgt_mask,
@@ -566,7 +566,7 @@ class Seq2SlateTransformerModel(nn.Module):
 
         if self.encoder_only:
             # encoder_scores shape: batch_size, tgt_seq_len
-            encoder_scores = self.encoder_scorer(memory).squeeze()
+            encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
             tgt_out_idx = torch.argsort(encoder_scores, dim=1, descending=True)[
                 :, :tgt_seq_len
             ]
@@ -590,7 +590,7 @@ class Seq2SlateTransformerModel(nn.Module):
         tgt_out_probs = torch.zeros(
             batch_size, tgt_seq_len, candidate_size, device=device
         )
-
+        assert greedy is not None
         for l in range(tgt_seq_len):
             tgt_in_seq = (
                 candidate_features[
@@ -867,7 +867,7 @@ class _DistributedSeq2SlateTransformerNet(ModelBase):
         self.max_tgt_seq_len = seq2slate_transformer_net.max_tgt_seq_len
         self.encoder_only = seq2slate_transformer_net.encoder_only
 
-        current_device = torch.cuda.current_device()  # type: ignore
+        current_device = torch.cuda.current_device()
         self.data_parallel = DistributedDataParallel(
             seq2slate_transformer_net.seq2slate_transformer,
             device_ids=[current_device],

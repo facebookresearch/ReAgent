@@ -80,32 +80,21 @@ class TrainingDataPage(object):
         self.next_propensities = next_propensities
         self.rewards_mask = rewards_mask
 
-    def as_cem_training_batch(self, batch_first=False):
+    def as_cem_training_batch(self):
         """
         Generate one-step samples needed by CEM trainer.
         The samples will be used to train an ensemble of world models used by CEM.
 
-        If batch_first = True:
-            state/next state shape: batch_size x 1 x state_dim
-            action shape: batch_size x 1 x action_dim
-            reward/terminal shape: batch_size x 1
-        else (default):
-             state/next state shape: 1 x batch_size x state_dim
-             action shape: 1 x batch_size x action_dim
-             reward/terminal shape: 1 x batch_size
+        state/next state shape: 1 x batch_size x state_dim
+        action shape: 1 x batch_size x action_dim
+        reward/terminal shape: 1 x batch_size
         """
-        if batch_first:
-            seq_len_dim = 1
-            reward, not_terminal = self.rewards, self.not_terminal
-        else:
-            seq_len_dim = 0
-            reward, not_terminal = transpose(self.rewards, self.not_terminal)
-        training_input = rlt.PreprocessedMemoryNetworkInput(
-            state=rlt.PreprocessedFeatureVector(
-                float_features=self.states.unsqueeze(seq_len_dim)
-            ),
+        seq_len_dim = 0
+        reward, not_terminal = transpose(self.rewards, self.not_terminal)
+        return rlt.PreprocessedMemoryNetworkInput(
+            state=rlt.FeatureData(self.states.unsqueeze(seq_len_dim)),
             action=self.actions.unsqueeze(seq_len_dim),
-            next_state=rlt.PreprocessedFeatureVector(
+            next_state=rlt.FeatureData(
                 float_features=self.next_states.unsqueeze(seq_len_dim)
             ),
             reward=reward,
@@ -113,37 +102,23 @@ class TrainingDataPage(object):
             step=self.step,
             time_diff=self.time_diffs,
         )
-        return rlt.PreprocessedTrainingBatch(
-            training_input=training_input,
-            extras=rlt.ExtraData(
-                mdp_id=self.mdp_ids,
-                sequence_number=self.sequence_numbers,
-                action_probability=self.propensities,
-                max_num_actions=self.max_num_actions,
-                metrics=self.metrics,
-            ),
-        )
 
     def as_parametric_maxq_training_batch(self):
         state_dim = self.states.shape[1]
         return rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedParametricDqnInput(
-                state=rlt.PreprocessedFeatureVector(float_features=self.states),
-                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
-                next_state=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_states
-                ),
-                next_action=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_actions
-                ),
-                tiled_next_state=rlt.PreprocessedFeatureVector(
+                state=rlt.FeatureData(float_features=self.states),
+                action=rlt.FeatureData(float_features=self.actions),
+                next_state=rlt.FeatureData(float_features=self.next_states),
+                next_action=rlt.FeatureData(float_features=self.next_actions),
+                tiled_next_state=rlt.FeatureData(
                     float_features=self.possible_next_actions_state_concat[
                         :, :state_dim
                     ]
                 ),
                 possible_actions=None,
                 possible_actions_mask=self.possible_actions_mask,
-                possible_next_actions=rlt.PreprocessedFeatureVector(
+                possible_next_actions=rlt.FeatureData(
                     float_features=self.possible_next_actions_state_concat[
                         :, state_dim:
                     ]
@@ -158,29 +133,23 @@ class TrainingDataPage(object):
         )
 
     def as_policy_network_training_batch(self):
-        return rlt.PreprocessedTrainingBatch(
-            training_input=rlt.PreprocessedPolicyNetworkInput(
-                state=rlt.PreprocessedFeatureVector(float_features=self.states),
-                action=rlt.PreprocessedFeatureVector(float_features=self.actions),
-                next_state=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_states
-                ),
-                next_action=rlt.PreprocessedFeatureVector(
-                    float_features=self.next_actions
-                ),
-                reward=self.rewards,
-                not_terminal=self.not_terminal,
-                step=self.step,
-                time_diff=self.time_diffs,
-            ),
+        return rlt.PolicyNetworkInput(
+            state=rlt.FeatureData(float_features=self.states),
+            action=rlt.FeatureData(float_features=self.actions),
+            next_state=rlt.FeatureData(float_features=self.next_states),
+            next_action=rlt.FeatureData(float_features=self.next_actions),
+            reward=self.rewards,
+            not_terminal=self.not_terminal,
+            step=self.step,
+            time_diff=self.time_diffs,
             extras=rlt.ExtraData(),
         )
 
     def as_discrete_maxq_training_batch(self):
         return rlt.DiscreteDqnInput(
-            state=rlt.PreprocessedFeatureVector(float_features=self.states),
+            state=rlt.FeatureData(float_features=self.states),
             action=self.actions,
-            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
+            next_state=rlt.FeatureData(float_features=self.next_states),
             next_action=self.next_actions,
             possible_actions_mask=self.possible_actions_mask,
             possible_next_actions_mask=self.possible_next_actions_mask,
@@ -201,8 +170,8 @@ class TrainingDataPage(object):
         batch_size, state_dim = self.states.shape
         action_dim = self.actions.shape[1]
         return rlt.PreprocessedSlateQInput(
-            state=rlt.PreprocessedFeatureVector(float_features=self.states),
-            next_state=rlt.PreprocessedFeatureVector(float_features=self.next_states),
+            state=rlt.FeatureData(float_features=self.states),
+            next_state=rlt.FeatureData(float_features=self.next_states),
             action=rlt.PreprocessedSlateFeatureVector(
                 float_features=self.possible_actions_state_concat[:, state_dim:].view(
                     batch_size, -1, action_dim
@@ -233,6 +202,8 @@ class TrainingDataPage(object):
 
     def size(self) -> int:
         if self.states:
+            # pyre-fixme[6]: Expected `Sized` for 1st param but got
+            #  `Optional[torch.Tensor]`.
             return len(self.states)
         raise Exception("Cannot get size of TrainingDataPage missing states.")
 

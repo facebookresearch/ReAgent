@@ -34,7 +34,7 @@ class MemoryBuffer:
     next_propensity: Optional[torch.Tensor]
     reward_mask: Optional[torch.Tensor]
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def slice(self, indices):
         return MemoryBuffer(
             state=self.state[indices],
@@ -68,7 +68,7 @@ class MemoryBuffer:
             else None,
         )
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def insert_at(
         self,
         idx: int,
@@ -92,6 +92,7 @@ class MemoryBuffer:
         self.action[idx] = action
         self.reward[idx] = reward
         if self.reward_mask is not None:
+            # pyre-fixme[16]: `Optional` has no attribute `__setitem__`.
             self.reward_mask[idx] = reward_mask
         self.next_state[idx] = next_state
         self.next_action[idx] = next_action
@@ -353,9 +354,10 @@ class OpenAIGymMemoryPool:
         else:
             rand_idx = torch.randint(0, self.memory_num, size=(1,)).item()
             if rand_idx < self.max_replay_memory_size:
-                insert_idx = rand_idx  # type: ignore
+                insert_idx = rand_idx
 
         if insert_idx is not None:
+            # pyre-fixme[16]: `Optional` has no attribute `insert_at`.
             self.memory_buffer.insert_at(
                 insert_idx,
                 state,

@@ -34,6 +34,7 @@ class Policy:
         scores = self.scorer(obs)
         if possible_actions_mask is None:
             # samplers that don't expect this mask will go here
+            # pyre-fixme[20]: Argument `possible_action_mask` expected.
             actor_output = self.sampler.sample_action(scores)
         else:
             actor_output = self.sampler.sample_action(scores, possible_actions_mask)

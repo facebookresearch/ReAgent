@@ -8,7 +8,7 @@ from typing import Dict, Optional, Tuple, Union
 
 import gym
 import numpy as np
-import reagent.test.gym.pomdp  # noqa
+import reagent.gym.envs  # noqa
 import torch
 from gym import Env
 from reagent.gym.envs.env_factory import EnvFactory
@@ -73,6 +73,7 @@ class OpenAIGymEnvironment(Environment):
         # allow only one type of exploration, softmax or epsilon-greedy
         assert not softmax_policy or epsilon == 0
 
+        # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `img`.
         if not self.img:
             assert self.state_dim > 0
             self.state_features = [str(sf) for sf in range(self.state_dim)]
@@ -95,7 +96,9 @@ class OpenAIGymEnvironment(Environment):
             object itself.
         """
         if isinstance(gymenv, Env):
+            # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `env`.
             self.env = gymenv
+            # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `env_name`.
             self.env_name = gymenv.unwrapped.spec.id
         else:
             if gymenv not in [e.id for e in gym.envs.registry.all()]:
@@ -104,7 +107,7 @@ class OpenAIGymEnvironment(Environment):
             self.env_name = gymenv
             if random_seed is not None:
                 self.env.seed(random_seed)
-                self.env.action_space.seed(random_seed)  # type: ignore
+                self.env.action_space.seed(random_seed)
 
         supports_state = isinstance(self.env.observation_space, gym.spaces.Box) and len(
             self.env.observation_space.shape
@@ -127,15 +130,22 @@ class OpenAIGymEnvironment(Environment):
             self.action_dim = self.env.action_space.n
         elif isinstance(self.env.action_space, gym.spaces.Box):
             self.action_type = EnvType.CONTINUOUS_ACTION
-            self.action_dim = self.env.action_space.shape[0]  # type: ignore
+            self.action_dim = self.env.action_space.shape[0]
 
-        if len(self.env.observation_space.shape) == 1:  # type: ignore
-            self.state_dim = self.env.observation_space.shape[0]  # type: ignore
+        if len(self.env.observation_space.shape) == 1:
+            self.state_dim = self.env.observation_space.shape[0]
+            # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `img`.
             self.img = False
-        elif len(self.env.observation_space.shape) == 3:  # type: ignore
-            self.height, self.width, self.num_input_channels = (
-                self.env.observation_space.shape  # type: ignore
-            )
+        elif len(self.env.observation_space.shape) == 3:
+            (
+                # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `height`.
+                self.height,
+                # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `width`.
+                self.width,
+                # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute
+                #  `num_input_channels`.
+                self.num_input_channels,
+            ) = self.env.observation_space.shape
             self.img = True
 
     @property
@@ -210,10 +220,11 @@ class OpenAIGymEnvironment(Environment):
 
         action = torch.zeros([self.action_dim])
 
-        if predictor.policy_net():  # type: ignore
+        if predictor.policy_net():
             # continuous action space, policy network
             assert self.action_type == EnvType.CONTINUOUS_ACTION
-            action_set = predictor.policy(state)  # type: ignore
+            # pyre-fixme[16]: `OnPolicyPredictor` has no attribute `policy`.
+            action_set = predictor.policy(state)
             action, action_probability = action_set.greedy, action_set.greedy_propensity
             action = action[0, :]
             return action, action_probability
@@ -221,9 +232,9 @@ class OpenAIGymEnvironment(Environment):
         # Discrete action space
         assert self.action_type == EnvType.DISCRETE_ACTION
 
-        if predictor.discrete_action():  # type: ignore
+        if predictor.discrete_action():
             # DQN
-            policy_action_set = predictor.policy(  # type: ignore
+            policy_action_set = predictor.policy(
                 state, possible_actions_presence=torch.ones([1, self.action_dim])
             )
         else:
@@ -231,7 +242,7 @@ class OpenAIGymEnvironment(Environment):
             states_tiled = torch.repeat_interleave(
                 state, repeats=self.action_dim, axis=0
             )
-            policy_action_set = predictor.policy(  # type: ignore
+            policy_action_set = predictor.policy(
                 states_tiled,
                 (
                     torch.eye(self.action_dim),
@@ -297,6 +308,7 @@ class OpenAIGymEnvironment(Environment):
 
     def transform_state(self, state: np.ndarray) -> torch.Tensor:
         torch_state = torch.from_numpy(state).float()
+        # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `img`.
         if self.img:
             # Convert from Height-Width-Channel into Channel-Height-Width
             torch_state = torch.transpose(torch_state, axes=[2, 0, 1])
@@ -333,6 +345,7 @@ class OpenAIGymEnvironment(Environment):
             )
             action = next_action
             if render:
+                # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `env`.
                 self.env.render()
 
             if self.action_type == EnvType.DISCRETE_ACTION:
@@ -359,6 +372,8 @@ class OpenAIGymEnvironment(Environment):
         self.reset()
         return reward_sum, discounted_reward_sum
 
+    # pyre-fixme[14]: `_process_state` overrides method defined in `Environment`
+    #  inconsistently.
     def _process_state(self, raw_state: np.ndarray) -> Dict:
         processed_state = {}
         for i in range(self.state_dim):
@@ -374,7 +389,8 @@ class OpenAIGymEnvironment(Environment):
         # TODO: support epsilon greedy
         assert epsilon == 1.0
 
-        raw_action = self.env.action_space.sample()  # type: ignore
+        # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `env`.
+        raw_action = self.env.action_space.sample()
 
         if self.action_type == EnvType.DISCRETE_ACTION:
             action_probability = 1.0 / self.action_dim
@@ -387,8 +403,7 @@ class OpenAIGymEnvironment(Environment):
             # action_probability is the probability density of multi-variate
             # uniform distribution
             range_each_dim = (
-                self.env.observation_space.high  # type: ignore
-                - self.env.observation_space.low  # type: ignore
+                self.env.observation_space.high - self.env.observation_space.low
             )
             action_probability = 1.0 / reduce((lambda x, y: x * y), range_each_dim)
             action_vec = {}

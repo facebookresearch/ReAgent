@@ -1,25 +1,31 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Any, Optional
+from typing import Optional
 
 import gym
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.gym.policies.policy import Policy
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 
 
-"""
-TODO: remove explicit argument of possible_actions_mask since cts doesn't have.
-"""
+def make_random_policy_for_env(env: gym.Env):
+    if isinstance(env.action_space, gym.spaces.Discrete):
+        # discrete action space
+        return DiscreteRandomPolicy.create_for_env(env)
+    elif isinstance(env.action_space, gym.spaces.Box):
+        # continuous action space
+        return ContinuousRandomPolicy.create_for_env(env)
+    else:
+        raise NotImplementedError(f"{env.action_space} not supported")
 
 
 class DiscreteRandomPolicy(Policy):
     def __init__(self, num_actions: int):
         """ Random actor for accumulating random offline data. """
         self.num_actions = num_actions
-        self.default_weights = torch.ones(num_actions)
 
     @classmethod
     def create_for_env(cls, env: gym.Env):
@@ -32,12 +38,16 @@ class DiscreteRandomPolicy(Policy):
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
     def act(
-        self, obs: Any, possible_actions_mask: Optional[torch.Tensor] = None
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
-        weights = self.default_weights
+        obs: torch.Tensor = obs.float_features
+        assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
+        batch_size = obs.shape[0]
+        weights = torch.ones((batch_size, self.num_actions))
         if possible_actions_mask:
-            assert possible_actions_mask.shape == self.default_weights.shape
+            assert possible_actions_mask.shape == (batch_size, self.num_actions)
+            # element-wise multiplication
             weights = weights * possible_actions_mask
 
         # sample a random action
@@ -52,6 +62,9 @@ class ContinuousRandomPolicy(Policy):
     def __init__(self, low: torch.Tensor, high: torch.Tensor):
         self.low = low
         self.high = high
+        assert (
+            low.shape == high.shape
+        ), f"low.shape = {low.shape}, high.shape = {high.shape}"
         self.dist = torch.distributions.uniform.Uniform(self.low, self.high)
 
     @classmethod
@@ -62,13 +75,20 @@ class ContinuousRandomPolicy(Policy):
                 f"Action space is discrete. Try using DiscreteRandomPolicy instead."
             )
         elif isinstance(action_space, gym.spaces.Box):
-            low = torch.tensor(action_space.low).float()
-            high = torch.tensor(action_space.high).float()
-            return cls(low=low, high=high)
+            assert action_space.shape == (1,), "Only support float scalar output."
+            low, high = CONTINUOUS_TRAINING_ACTION_RANGE
+            return cls(low=torch.tensor([low]), high=torch.tensor([high]))
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    def act(self, obs: Any, possible_actions_mask=None) -> rlt.ActorOutput:
-        action = self.dist.sample()
+    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
+    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+        """ Act randomly regardless of the observation. """
+        obs: torch.Tensor = obs.float_features
+        assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
+        batch_size = obs.size(0)
+        # pyre-fixme[6]: Expected `Union[torch.Size, torch.Tensor]` for 1st param
+        #  but got `Tuple[int]`.
+        action = self.dist.sample((batch_size,))
         log_prob = self.dist.log_prob(action)
         return rlt.ActorOutput(action=action, log_prob=log_prob)

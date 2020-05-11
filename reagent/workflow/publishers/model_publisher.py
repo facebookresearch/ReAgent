@@ -44,6 +44,10 @@ class ModelPublisher(metaclass=RegistryMeta):
         # FBL
         result_type = inspect.signature(self.do_publish).return_annotation
         assert result_type != inspect.Signature.empty
+        # pyre-fixme[16]: `PublishingResult__Union` has no attribute
+        #  `make_union_instance`.
+        # pyre-fixme[16]: `PublishingResult__Union` has no attribute
+        #  `make_union_instance`.
         return PublishingResult__Union.make_union_instance(result, result_type)
 
     @abc.abstractmethod

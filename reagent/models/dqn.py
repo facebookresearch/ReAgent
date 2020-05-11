@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+from typing import Optional
+
 import torch
 from reagent import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
-from torch.nn.parallel.distributed import DistributedDataParallel
 
 
 class FullyConnectedDQN(ModelBase):
@@ -15,8 +16,11 @@ class FullyConnectedDQN(ModelBase):
         action_dim,
         sizes,
         activations,
+        *,
+        num_atoms: Optional[int] = None,
         use_batch_norm=False,
         dropout_ratio=0.0,
+        normalized_output=False,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -28,41 +32,21 @@ class FullyConnectedDQN(ModelBase):
         ), "The numbers of sizes and activations must match; got {} vs {}".format(
             len(sizes), len(activations)
         )
+        self.num_atoms = num_atoms
         self.fc = FullyConnectedNetwork(
-            [state_dim] + sizes + [action_dim],
+            [state_dim] + sizes + [action_dim * (num_atoms or 1)],
             activations + ["linear"],
             use_batch_norm=use_batch_norm,
             dropout_ratio=dropout_ratio,
+            normalize_output=normalized_output,
         )
 
-    def get_distributed_data_parallel_model(self):
-        return _DistributedDataParallelFullyConnectedDQN(self)
-
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return rlt.FeatureData(self.fc.input_prototype())
 
-    def forward(self, input: rlt.PreprocessedState):
-        q_values = self.fc(input.state.float_features)
-        return rlt.AllActionQValues(q_values=q_values)
-
-
-class _DistributedDataParallelFullyConnectedDQN(ModelBase):
-    def __init__(self, fc_dqn):
-        super().__init__()
-        self.state_dim = fc_dqn.state_dim
-        self.action_dim = fc_dqn.action_dim
-        current_device = torch.cuda.current_device()
-        self.data_parallel = DistributedDataParallel(
-            fc_dqn.fc, device_ids=[current_device], output_device=current_device
-        )
-        self.fc_dqn = fc_dqn
-
-    def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
-
-    def cpu_model(self):
-        return self.fc_dqn.cpu_model()
-
-    def forward(self, input):
-        q_values = self.data_parallel(input.state.float_features)
-        return rlt.AllActionQValues(q_values=q_values)
+    def forward(self, state: rlt.FeatureData) -> torch.Tensor:
+        float_features = state.float_features
+        x = self.fc(float_features)
+        if self.num_atoms is not None:
+            x = x.view(float_features.shape[0], self.action_dim, self.num_atoms)
+        return x

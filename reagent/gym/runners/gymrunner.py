@@ -5,6 +5,7 @@ from typing import Optional
 
 from gym import Env
 from reagent.gym.agents.agent import Agent
+from reagent.tensorboardX import SummaryWriterContext
 
 
 def run_episode(env: Env, agent: Agent, max_steps: Optional[int] = None) -> float:
@@ -25,4 +26,5 @@ def run_episode(env: Env, agent: Agent, max_steps: Optional[int] = None) -> floa
             terminal = True
 
         agent.post_step(reward, terminal)
+        SummaryWriterContext.increase_global_step()
     return ep_reward

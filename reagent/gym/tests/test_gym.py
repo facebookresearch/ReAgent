@@ -1,62 +1,76 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-"""
-Environments that require short training and evaluation time (<=10min)
-can be tested in this file.
-"""
 import logging
 import os
-import random
+import pprint
 import unittest
 from typing import Optional, Tuple
 
-import gym
 import numpy as np
 import torch
 from parameterized import parameterized
-from reagent.core.configuration import make_config_class
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.runners.gymrunner import run_episode
-from reagent.parameters import NormalizationData
+from reagent.gym.tests.utils import build_normalizer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-from reagent.tensorboardX import SummaryWriterContext
-from reagent.test.base.utils import only_continuous_normalizer
+from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
-from ruamel.yaml import YAML
 
 
+# for seeding the environment
+SEED = 0
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+"""
+Put on-policy gym tests here in the format (test name, path to yaml config).
+Format path to be: "configs/<env_name>/<model_name>_<env_name>_online.yaml."
+NOTE: These tests should ideally finish quickly (within 10 minutes) since they are
+unit tests which are run many times.
+"""
+GYM_TESTS = [
+    ("Discrete Dqn Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
+    (
+        "Discrete Dqn Open Gridworld",
+        "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
+    ),
+    ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
+    ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
+]
+
+
 curr_dir = os.path.dirname(__file__)
 
-SEED = 0
 
+class TestGym(HorizonTestBase):
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
+    @parameterized.expand(GYM_TESTS)
+    def test_gym_cpu(self, name: str, config_path: str):
+        self.run_from_config(
+            run_test=run_test,
+            config_path=os.path.join(curr_dir, config_path),
+            use_gpu=False,
+        )
+        logger.info(f"{name} passes!")
 
-def build_normalizer(env):
-    if isinstance(env.observation_space, gym.spaces.Box):
-        assert (
-            len(env.observation_space.shape) == 1
-        ), f"{env.observation_space} not supported."
-        return {
-            "state": NormalizationData(
-                dense_normalization_parameters=only_continuous_normalizer(
-                    list(range(env.observation_space.shape[0])),
-                    env.observation_space.low,
-                    env.observation_space.high,
-                )
-            )
-        }
-    elif isinstance(env.observation_space, gym.spaces.Dict):
-        # assuming env.observation_space is image
-        return None
-    else:
-        raise NotImplementedError(f"{env.observation_space} not supported")
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
+    @parameterized.expand(GYM_TESTS)
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_gym_gpu(self, name: str, config_path: str):
+        self.run_from_config(
+            run_test=run_test,
+            config_path=os.path.join(curr_dir, config_path),
+            use_gpu=True,
+        )
+        logger.info(f"{name} passes!")
 
 
 def run_test(
-    env: str,
+    env_name: str,
     model: ModelManager__Union,
     replay_memory_size: int,
     train_every_ts: int,
@@ -67,11 +81,11 @@ def run_test(
     num_eval_episodes: int,
     use_gpu: bool,
 ):
-    env = EnvFactory.make(env)
+    env = EnvFactory.make(env_name)
     env.seed(SEED)
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)
-    logger.info(f"Normalization is {normalization}")
+    logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
     manager = model.value
     trainer = manager.initialize_trainer(
@@ -116,15 +130,8 @@ def run_test(
     logger.info("============Train rewards=============")
     logger.info(train_rewards)
 
-    def gym_to_reagent_serving(obs: np.array) -> Tuple[torch.Tensor, torch.Tensor]:
-        obs_tensor = torch.tensor(obs).float().unsqueeze(0)
-        presence_tensor = torch.ones_like(obs_tensor)
-        return (obs_tensor, presence_tensor)
-
     serving_policy = manager.create_policy(serving=True)
-    agent = Agent.create_for_env(
-        env, policy=serving_policy, obs_preprocessor=gym_to_reagent_serving
-    )
+    agent = Agent.create_from_serving_policy(serving_policy, env)
 
     eval_rewards = []
     for i in range(num_eval_episodes):
@@ -140,49 +147,6 @@ def run_test(
 
     logger.info("============Eval rewards==============")
     logger.info(eval_rewards)
-
-
-def run_from_config(path, use_gpu):
-    yaml = YAML(typ="safe")
-    with open(path, "r") as f:
-        config_dict = yaml.load(f.read())
-    config_dict["use_gpu"] = use_gpu
-
-    @make_config_class(run_test)
-    class ConfigClass:
-        pass
-
-    config = ConfigClass(**config_dict)
-    return run_test(**config.asdict())
-
-
-GYM_TESTS = [
-    ("Discrete Dqn Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
-    (
-        "Discrete Dqn Open Gridworld",
-        "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
-    ),
-]
-
-
-class TestGym(unittest.TestCase):
-    def setUp(self):
-        SummaryWriterContext._reset_globals()
-        logging.basicConfig(level=logging.INFO)
-        np.random.seed(SEED)
-        torch.manual_seed(SEED)
-        random.seed(SEED)
-
-    @parameterized.expand(GYM_TESTS)
-    def test_gym_cpu(self, name: str, config_path: str):
-        run_from_config(os.path.join(curr_dir, config_path), False)
-        logger.info(f"{name} passes!")
-
-    @parameterized.expand(GYM_TESTS)
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_gym_gpu(self, name: str, config_path: str):
-        run_from_config(os.path.join(curr_dir, config_path), True)
-        logger.info(f"{name} passes!")
 
 
 if __name__ == "__main__":

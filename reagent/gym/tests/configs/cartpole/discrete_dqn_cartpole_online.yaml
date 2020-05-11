@@ -1,4 +1,4 @@
-env: CartPole-v0
+env_name: CartPole-v0
 model:
   DiscreteDQN:
     trainer_param:
@@ -36,3 +36,4 @@ num_train_episodes: 60
 num_eval_episodes: 20
 max_steps: 200
 passing_score_bar: 100.0
+use_gpu: false

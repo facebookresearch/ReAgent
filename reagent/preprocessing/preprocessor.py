@@ -27,9 +27,11 @@ class Preprocessor(Module):
     ) -> None:
         super().__init__()
         self.normalization_parameters = normalization_parameters
-        self.feature_id_to_index, self.sorted_features, self.sorted_feature_boundaries = (
-            self._sort_features_by_normalization()
-        )
+        (
+            self.feature_id_to_index,
+            self.sorted_features,
+            self.sorted_feature_boundaries,
+        ) = self._sort_features_by_normalization()
 
         cuda_available = torch.cuda.is_available()
         logger.info("CUDA availability: {}".format(cuda_available))
@@ -177,7 +179,7 @@ class Preprocessor(Module):
     ) -> torch.Tensor:
         feature_type = norm_params.feature_type
         func = getattr(self, "_preprocess_" + feature_type)
-        return func(begin_index, input, norm_params)  # type: ignore
+        return func(begin_index, input, norm_params)
 
     def _preprocess_feature_multi_column(
         self,
@@ -187,7 +189,7 @@ class Preprocessor(Module):
     ) -> torch.Tensor:
         feature_type = norm_params[0].feature_type
         func = getattr(self, "_preprocess_" + feature_type)
-        return func(begin_index, input, norm_params)  # type: ignore
+        return func(begin_index, input, norm_params)
 
     def _create_parameters_DO_NOT_PREPROCESS(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -228,8 +230,8 @@ class Preprocessor(Module):
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
         clamped_input = torch.clamp(input, 0.01, 0.99)
-        return self.negative_one_tensor * (  # type: ignore
-            ((self.one_tensor / clamped_input) - self.one_tensor).log()  # type: ignore
+        return self.negative_one_tensor * (
+            ((self.one_tensor / clamped_input) - self.one_tensor).log()
         )
 
     def _create_parameters_CONTINUOUS_ACTION(
@@ -243,15 +245,18 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "min_training_value",
+            # pyre-fixme[6]: Expected `Tensor` for 3rd param but got `float`.
             torch.ones(len(norm_params), device=self.device) * -1 + EPS,
         )
         self._create_parameter(
             begin_index,
             "scaling_factor",
+            # pyre-fixme[6]: Expected `Tensor` for 3rd param but got `float`.
             (torch.ones(len(norm_params), device=self.device) - EPS)
             * 2
             / torch.tensor(
-                [p.max_value - p.min_value for p in norm_params],  # type: ignore
+                # pyre-fixme[16]: `Optional` has no attribute `__sub__`.
+                [p.max_value - p.min_value for p in norm_params],
                 device=self.device,
             ),
         )
@@ -268,7 +273,7 @@ class Preprocessor(Module):
         continuous_action = (
             input - min_serving_value
         ) * scaling_factor + min_training_value
-        return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)  # type: ignore
+        return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)
 
     def _create_parameters_CONTINUOUS(
         self, begin_index: int, norm_params: List[NormalizationParameters]
@@ -305,7 +310,9 @@ class Preprocessor(Module):
         )
         for p in norm_params:
             assert (
-                abs(p.boxcox_lambda) > 1e-6  # type: ignore
+                # pyre-fixme[16]: `Optional` has no attribute `__abs__`.
+                abs(p.boxcox_lambda)
+                > 1e-6
             ), "Invalid value for boxcox lambda: " + str(p.boxcox_lambda)
         self._create_parameter(
             begin_index,
@@ -340,15 +347,19 @@ class Preprocessor(Module):
         F = len(norm_params)
 
         num_quantiles = torch.tensor(
-            [[float(len(p.quantiles)) - 1 for p in norm_params]],  # type: ignore
+            # pyre-fixme[6]: Expected `Sized` for 1st param but got
+            #  `Optional[List[float]]`.
+            [[float(len(p.quantiles)) - 1 for p in norm_params]],
             device=self.device,
         )
         self._create_parameter(begin_index, "num_quantiles", num_quantiles)
 
         max_num_quantile_boundaries = int(
             torch.max(
-                torch.tensor([len(p.quantiles) for p in norm_params])  # type: ignore
-            ).item()  # type: ignore
+                # pyre-fixme[6]: Expected `Sized` for 1st param but got
+                #  `Optional[List[float]]`.
+                torch.tensor([len(p.quantiles) for p in norm_params])
+            ).item()
         )
         B = max_num_quantile_boundaries
 
@@ -365,14 +376,21 @@ class Preprocessor(Module):
         max_quantile_boundaries = torch.zeros([1, len(norm_params)], device=self.device)
         min_quantile_boundaries = torch.zeros([1, len(norm_params)], device=self.device)
         for i, p in enumerate(norm_params):
-            quantile_boundaries[0, i, :] = p.quantiles[-1]  # type: ignore
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
+            quantile_boundaries[0, i, :] = p.quantiles[-1]
             quantile_boundaries[
-                0, i, 0 : len(p.quantiles)  # type: ignore
-            ] = torch.tensor(  # type: ignore
-                p.quantiles, device=self.device
-            )
-            max_quantile_boundaries[0, i] = max(p.quantiles)  # type: ignore
-            min_quantile_boundaries[0, i] = min(p.quantiles)  # type: ignore
+                0,
+                i,
+                # pyre-fixme[6]: Expected `Sized` for 1st param but got
+                #  `Optional[List[float]]`.
+                0 : len(p.quantiles),
+            ] = torch.tensor(p.quantiles, device=self.device)
+            # pyre-fixme[6]: Expected `Iterable[Variable[_T]]` for 1st param but got
+            #  `Optional[List[float]]`.
+            max_quantile_boundaries[0, i] = max(p.quantiles)
+            # pyre-fixme[6]: Expected `Iterable[Variable[_T]]` for 1st param but got
+            #  `Optional[List[float]]`.
+            min_quantile_boundaries[0, i] = min(p.quantiles)
 
         quantile_boundaries = quantile_boundaries.to(self.device)
         max_quantile_boundaries = max_quantile_boundaries.to(self.device)

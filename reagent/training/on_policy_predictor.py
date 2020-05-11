@@ -68,7 +68,7 @@ class DiscreteDQNOnPolicyPredictor(OnPolicyPredictor):
         assert q_scores.shape[0] == 1
 
         # set impossible actions so low that they can't be picked
-        q_scores -= (1.0 - possible_actions_presence) * 1e10  # type: ignore
+        q_scores -= (1.0 - possible_actions_presence) * 1e10
 
         q_scores_softmax = masked_softmax(
             q_scores, possible_actions_presence, self.trainer.rl_temperature
@@ -114,9 +114,7 @@ class ParametricDQNOnPolicyPredictor(OnPolicyPredictor):
         possible_actions_presence = (possible_actions_presence.sum(dim=1) > 0).float()
 
         # set impossible actions so low that they can't be picked
-        q_scores -= (
-            1.0 - possible_actions_presence.reshape(1, self.action_dim)  # type: ignore
-        ) * 1e10
+        q_scores -= (1.0 - possible_actions_presence.reshape(1, self.action_dim)) * 1e10
 
         q_scores_softmax_numpy = masked_softmax(
             q_scores.reshape(1, -1),

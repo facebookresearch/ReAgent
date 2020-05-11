@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Type
+from typing import Dict, List
 
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
@@ -30,7 +30,6 @@ class Dueling(DiscreteDQNNetBuilder):
         output_dim: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
-        return DuelingQNetwork(
-            layers=[state_dim] + self.sizes + [output_dim],
-            activations=self.activations + ["linear"],
+        return DuelingQNetwork.make_fully_connected(
+            state_dim, output_dim, self.sizes, self.activations
         )

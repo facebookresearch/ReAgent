@@ -15,9 +15,7 @@ try:
         FbActorPredictorWrapper as ActorPredictorWrapper,
     )
 except ImportError:
-    from reagent.prediction.predictor_wrapper import (  # type: ignore
-        ActorPredictorWrapper,
-    )
+    from reagent.prediction.predictor_wrapper import ActorPredictorWrapper
 
 
 class TestContinuousActorNetBuilder(unittest.TestCase):

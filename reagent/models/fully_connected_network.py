@@ -3,11 +3,12 @@
 
 import logging
 import math
+from typing import List
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.nn.init as init
+from reagent.models.base import ModelBase
 
 
 logger = logging.getLogger(__name__)
@@ -19,62 +20,68 @@ def gaussian_fill_w_gain(tensor, activation, dim_in, min_std=0.0) -> None:
     init.normal_(tensor, mean=0, std=max(gain * math.sqrt(1 / dim_in), min_std))
 
 
-class FullyConnectedNetwork(nn.Module):
+ACTIVATION_MAP = {
+    "tanh": nn.Tanh,
+    "relu": nn.ReLU,
+    "leaky_relu": nn.LeakyReLU,
+    "linear": nn.Identity,
+}
+
+
+class FullyConnectedNetwork(ModelBase):
     def __init__(
         self,
         layers,
         activations,
+        *,
         use_batch_norm=False,
         min_std=0.0,
         dropout_ratio=0.0,
         use_layer_norm=False,
+        normalize_output=False,
     ) -> None:
         super().__init__()
-        self.layers: nn.ModuleList = nn.ModuleList()
-        self.batch_norm_ops: nn.ModuleList = nn.ModuleList()
-        self.activations = activations
-        self.use_batch_norm = use_batch_norm
-        self.dropout_layers: nn.ModuleList = nn.ModuleList()
-        self.use_dropout = dropout_ratio > 0.0
-        self.layer_norm_ops: nn.ModuleList = nn.ModuleList()
-        self.use_layer_norm = use_layer_norm
 
-        assert len(layers) >= 2, "Invalid layer schema {} for network".format(layers)
+        self.input_dim = layers[0]
 
-        for i, layer in enumerate(layers[1:]):
-            self.layers.append(nn.Linear(layers[i], layer))
-            if self.use_batch_norm:
-                self.batch_norm_ops.append(nn.BatchNorm1d(layers[i]))
-            if self.use_layer_norm and i < len(layers) - 2:
-                # LayerNorm is applied to the output of linear
-                self.layer_norm_ops.append(nn.LayerNorm(layer))  # type: ignore
-            if self.use_dropout and i < len(layers[1:]) - 1:
-                # applying dropout to all layers except
-                # the input and the last output layer
-                self.dropout_layers.append(nn.Dropout(p=dropout_ratio))
-            gaussian_fill_w_gain(
-                self.layers[i].weight, self.activations[i], layers[i], min_std
-            )
-            init.constant_(self.layers[i].bias, 0)
+        modules: List[nn.Module] = []
+
+        assert len(layers) == len(activations) + 1
+
+        for i, ((in_dim, out_dim), activation) in enumerate(
+            zip(zip(layers, layers[1:]), activations)
+        ):
+            # Add BatchNorm1d
+            if use_batch_norm:
+                modules.append(nn.BatchNorm1d(in_dim))
+            # Add Linear
+            linear = nn.Linear(in_dim, out_dim)
+            gaussian_fill_w_gain(linear.weight, activation, in_dim, min_std=min_std)
+            init.constant_(linear.bias, 0)  # type: ignore
+            modules.append(linear)
+            # Add LayerNorm
+            if use_layer_norm and (normalize_output or i < len(activations) - 1):
+                modules.append(
+                    nn.LayerNorm(out_dim)  # type: ignore
+                )
+            # Add activation
+            if activation in ACTIVATION_MAP:
+                modules.append(ACTIVATION_MAP[activation]())
+            else:
+                # See if it matches any of the nn modules
+                modules.append(getattr(nn, activation)())
+            # Add Dropout
+            if dropout_ratio > 0.0 and (normalize_output or i < len(activations) - 1):
+                modules.append(nn.Dropout(p=dropout_ratio))
+
+        self.dnn = nn.Sequential(*modules)  # type: ignore
+
+    def input_prototype(self):
+        return torch.randn(1, self.input_dim)
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         """ Forward pass for generic feed-forward DNNs. Assumes activation names
         are valid pytorch activation names.
         :param input tensor
         """
-        x = input
-        for i, activation in enumerate(self.activations):
-            if self.use_batch_norm:
-                x = self.batch_norm_ops[i](x)
-            x = self.layers[i](x)
-            if self.use_layer_norm and i < len(self.layer_norm_ops):
-                x = self.layer_norm_ops[i](x)
-            if activation == "linear":
-                pass
-            elif activation == "tanh":
-                x = torch.tanh(x)
-            else:
-                x = getattr(F, activation)(x)
-            if self.use_dropout and i < len(self.dropout_layers):
-                x = self.dropout_layers[i](x)
-        return x
+        return self.dnn(input)

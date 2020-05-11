@@ -67,4 +67,5 @@ class ConvolutionalNetwork(nn.Module):
         """
         x = self.conv_forward(input)
         x = x.view(-1, self.fc_input_dim)
+        # pyre-fixme[7]: Expected `FloatTensor` but got `Tensor`.
         return self.feed_forward.forward(x)

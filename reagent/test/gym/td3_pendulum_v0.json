@@ -11,9 +11,7 @@
   "td3_training": {
     "minibatch_size": 256,
     "use_2_q_functions": true,
-    "exploration_noise": 0.1,
-    "initial_exploration_ts": 1000,
-    "target_policy_smoothing": 0.2,
+    "noise_variance": 0.2,
     "noise_clip": 0.5,
     "delayed_policy_update": 2,
     "q_network_optimizer": {

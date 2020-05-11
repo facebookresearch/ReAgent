@@ -73,6 +73,7 @@ class RecSim:
         self.quality_variances = torch.tensor(quality_variances, device=self.device)
 
     def reset(self) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `device`.
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.users = self.sample_users(self.num_users)
@@ -118,6 +119,7 @@ class RecSim:
         batch_size = candidates.topic.shape[0]
         num_candidate = candidates.topic.shape[1]
         num_select = indices.shape[1]
+        # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
         offset = torch.arange(
             0,
             batch_size * num_candidate,
@@ -255,6 +257,7 @@ class RecSim:
             item_idxs = policy(obs, self)
             reward, user_choice, interest, num_alive = self.step(item_idxs)
 
+            # pyre-fixme[6]: Expected `int` for 1st param but got `Union[float, int]`.
             policy_reward += reward.sum().item()
 
             action_features = self.select(
@@ -262,14 +265,17 @@ class RecSim:
             ).as_vector()
 
             if memory_pool is not None and prev_obs is not None:
-                prev_active_user_idxs, prev_user_features, prev_candidate_features = (
-                    prev_obs
-                )
+                (
+                    prev_active_user_idxs,
+                    prev_user_features,
+                    prev_candidate_features,
+                ) = prev_obs
                 i, j = 0, 0
                 while i < len(prev_active_user_idxs):
                     mdp_id = prev_active_user_idxs[i]
                     state = prev_user_features[i]
                     possible_actions = prev_action[i]
+                    # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
                     action = possible_actions[prev_user_choice[i]].view(-1)
                     possible_actions_mask = torch.ones(self.k + 1, dtype=torch.uint8)
                     # HACK: Since reward is going to be masked, this is OK
@@ -360,10 +366,11 @@ def top_k_policy(
     action_dim = candidate_feature_vector.shape[2]
     flatten_candidate_features = candidate_feature_vector.view(-1, action_dim)
 
-    q_network_input = rlt.PreprocessedStateAction.from_tensors(
-        state=tiled_user_features, action=flatten_candidate_features
+    q_network_input = (
+        rlt.FeatureData(tiled_user_features),
+        rlt.FeatureData(flatten_candidate_features),
     )
-    q_values = q_network(q_network_input).q_value.view(-1, recsim.m)
+    q_values = q_network(*q_network_input).view(-1, recsim.m)
 
     values = q_values * propensity
 

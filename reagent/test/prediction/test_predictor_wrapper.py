@@ -3,12 +3,9 @@
 
 import unittest
 
+import reagent.models as models
 import reagent.types as rlt
 import torch
-from reagent.models.actor import FullyConnectedActor
-from reagent.models.dqn import FullyConnectedDQN
-from reagent.models.dqn_with_embedding import FullyConnectedDQNWithEmbedding
-from reagent.models.parametric_dqn import FullyConnectedParametricDQN
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
@@ -43,7 +40,7 @@ class TestPredictorWrapper(unittest.TestCase):
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         action_dim = 2
-        dqn = FullyConnectedDQN(
+        dqn = models.FullyConnectedDQN(
             state_dim=len(state_normalization_parameters),
             action_dim=action_dim,
             sizes=[16],
@@ -57,16 +54,14 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(action_names, output_action_names)
         self.assertEqual(q_values.shape, (1, 2))
 
-        expected_output = dqn(
-            rlt.PreprocessedState.from_tensor(state_preprocessor(*input_prototype[0]))
-        ).q_values
+        expected_output = dqn(rlt.FeatureData(state_preprocessor(*input_prototype[0])))
         self.assertTrue((expected_output == q_values).all())
 
     def test_discrete_wrapper_with_id_list_none(self):
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         action_dim = 2
-        dqn = FullyConnectedDQN(
+        dqn = models.FullyConnectedDQN(
             state_dim=len(state_normalization_parameters),
             action_dim=action_dim,
             sizes=[16],
@@ -84,9 +79,7 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(action_names, output_action_names)
         self.assertEqual(q_values.shape, (1, 2))
 
-        expected_output = dqn(
-            rlt.PreprocessedState.from_tensor(state_preprocessor(*input_prototype[0]))
-        ).q_values
+        expected_output = dqn(rlt.FeatureData(state_preprocessor(*input_prototype[0])))
         self.assertTrue((expected_output == q_values).all())
 
     def test_discrete_wrapper_with_id_list(self):
@@ -104,14 +97,22 @@ class TestPredictorWrapper(unittest.TestCase):
             ],
             id_mapping_config={"A_mapping": rlt.IdMapping(ids=[0, 1, 2])},
         )
-        dqn = FullyConnectedDQNWithEmbedding(
+        embedding_concat = models.EmbeddingBagConcat(
             state_dim=len(state_normalization_parameters),
-            action_dim=action_dim,
-            sizes=[16],
-            activations=["relu"],
             model_feature_config=state_feature_config,
             embedding_dim=8,
         )
+        dqn = models.Sequential(
+            embedding_concat,
+            rlt.TensorFeatureData(),
+            models.FullyConnectedDQN(
+                embedding_concat.output_dim,
+                action_dim=action_dim,
+                sizes=[16],
+                activations=["relu"],
+            ),
+        )
+
         dqn_with_preprocessor = DiscreteDqnWithPreprocessorWithIdList(
             dqn, state_preprocessor, state_feature_config
         )
@@ -132,13 +133,11 @@ class TestPredictorWrapper(unittest.TestCase):
             feature_id_to_name[k]: v for k, v in input_prototype[1].items()
         }
         expected_output = dqn(
-            rlt.PreprocessedState(
-                state=rlt.PreprocessedFeatureVector(
-                    float_features=state_preprocessor(*input_prototype[0]),
-                    id_list_features=state_id_list_features,
-                )
+            rlt.FeatureData(
+                float_features=state_preprocessor(*input_prototype[0]),
+                id_list_features=state_id_list_features,
             )
-        ).q_values
+        )
         self.assertTrue((expected_output == q_values).all())
 
     def test_parametric_wrapper(self):
@@ -146,7 +145,7 @@ class TestPredictorWrapper(unittest.TestCase):
         action_normalization_parameters = {i: _cont_norm() for i in range(5, 9)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         action_preprocessor = Preprocessor(action_normalization_parameters, False)
-        dqn = FullyConnectedParametricDQN(
+        dqn = models.FullyConnectedCritic(
             state_dim=len(state_normalization_parameters),
             action_dim=len(action_normalization_parameters),
             sizes=[16],
@@ -165,11 +164,9 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(q_value.shape, (1, 1))
 
         expected_output = dqn(
-            rlt.PreprocessedStateAction.from_tensors(
-                state=state_preprocessor(*input_prototype[0]),
-                action=action_preprocessor(*input_prototype[1]),
-            )
-        ).q_value
+            rlt.FeatureData(state_preprocessor(*input_prototype[0])),
+            rlt.FeatureData(action_preprocessor(*input_prototype[1])),
+        )
         self.assertTrue((expected_output == q_value).all())
 
     def test_actor_wrapper(self):
@@ -181,7 +178,7 @@ class TestPredictorWrapper(unittest.TestCase):
         postprocessor = Postprocessor(action_normalization_parameters, False)
 
         # Test with FullyConnectedActor to make behavior deterministic
-        actor = FullyConnectedActor(
+        actor = models.FullyConnectedActor(
             state_dim=len(state_normalization_parameters),
             action_dim=len(action_normalization_parameters),
             sizes=[16],
@@ -196,11 +193,7 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertEqual(action.shape, (1, len(action_normalization_parameters)))
 
         expected_output = postprocessor(
-            actor(
-                rlt.PreprocessedState.from_tensor(
-                    state_preprocessor(*input_prototype[0])
-                )
-            ).action
+            actor(rlt.FeatureData(state_preprocessor(*input_prototype[0]))).action
         )
         self.assertTrue((expected_output == action).all())
 
@@ -225,9 +218,10 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         wrapper = Seq2SlatePredictorWrapper(seq2slate_with_preprocessor)
 
-        state_input_prototype, candidate_input_prototype = (
-            seq2slate_with_preprocessor.input_prototype()
-        )
+        (
+            state_input_prototype,
+            candidate_input_prototype,
+        ) = seq2slate_with_preprocessor.input_prototype()
         ret_val = wrapper(state_input_prototype, candidate_input_prototype)
 
         preprocessed_state = state_preprocessor(

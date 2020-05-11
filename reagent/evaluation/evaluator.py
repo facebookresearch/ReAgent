@@ -93,19 +93,23 @@ class Evaluator:
 
         if self.action_names is not None:
             if edp.optimal_q_values is not None:
+                # pyre-fixme[16]: `Optional` has no attribute `mean`.
                 value_means = edp.optimal_q_values.mean(dim=0)
                 cpe_details.q_value_means = {
                     action: float(value_means[i])
                     for i, action in enumerate(self.action_names)
                 }
-                value_stds = edp.optimal_q_values.std(dim=0)  # type: ignore
+                # pyre-fixme[16]: `Optional` has no attribute `std`.
+                value_stds = edp.optimal_q_values.std(dim=0)
                 cpe_details.q_value_stds = {
                     action: float(value_stds[i])
                     for i, action in enumerate(self.action_names)
                 }
             if edp.eval_action_idxs is not None:
                 cpe_details.action_distribution = {
-                    action: float((edp.eval_action_idxs == i).sum())  # type: ignore
+                    # pyre-fixme[16]: `bool` has no attribute `sum`.
+                    action: float((edp.eval_action_idxs == i).sum())
+                    # pyre-fixme[16]: `Optional` has no attribute `shape`.
                     / edp.eval_action_idxs.shape[0]
                     for i, action in enumerate(self.action_names)
                 }
@@ -113,13 +117,16 @@ class Evaluator:
         cpe_details.mc_loss = float(
             F.mse_loss(edp.logged_values, edp.model_values_for_logged_action)
         )
-        self.notify_observers(cpe_details=cpe_details)  # type: ignore
+        # pyre-fixme[16]: `Evaluator` has no attribute `notify_observers`.
+        self.notify_observers(cpe_details=cpe_details)
         return cpe_details
 
     def score_cpe(self, metric_name, edp: EvaluationDataPage):
-        direct_method, inverse_propensity, doubly_robust = self.doubly_robust_estimator.estimate(
-            edp
-        )
+        (
+            direct_method,
+            inverse_propensity,
+            doubly_robust,
+        ) = self.doubly_robust_estimator.estimate(edp)
         sequential_doubly_robust = self.sequential_doubly_robust_estimator.estimate(edp)
         weighted_doubly_robust = self.weighted_sequential_doubly_robust_estimator.estimate(
             edp, num_j_steps=1, whether_self_normalize_importance_weights=True

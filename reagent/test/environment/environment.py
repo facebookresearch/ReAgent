@@ -170,6 +170,8 @@ class Environment:
         if use_continuous_action:
             actions = [{} for _ in range(num_transitions)]
         else:
+            # pyre-fixme[9]: actions has type `List[Union[Dict[int, float], str]]`;
+            #  used as `List[str]`.
             actions = [""] * num_transitions
 
         state = None
@@ -234,9 +236,11 @@ class Environment:
             next_state, reward, terminal, _ = self.step(raw_action)
             if max_step is not None and sequence_number >= max_step:
                 terminal = True
-            next_raw_action, next_processed_action, next_action_probability = self.sample_policy(
-                next_state, use_continuous_action, epsilon
-            )
+            (
+                next_raw_action,
+                next_processed_action,
+                next_action_probability,
+            ) = self.sample_policy(next_state, use_continuous_action, epsilon)
             possible_next_action = self.possible_actions(
                 next_state,
                 terminal=terminal,

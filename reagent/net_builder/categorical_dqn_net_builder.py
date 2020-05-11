@@ -18,9 +18,7 @@ try:
         FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
     )
 except ImportError:
-    from reagent.prediction.predictor_wrapper import (  # type: ignore
-        DiscreteDqnPredictorWrapper,
-    )
+    from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
 
 
 class CategoricalDQNNetBuilder(metaclass=RegistryMeta):

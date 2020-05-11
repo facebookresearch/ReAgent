@@ -69,11 +69,11 @@ class RLTrainer(Trainer):
         if use_gpu and cuda_available:
             logger.info("Using GPU: GPU requested and available.")
             self.use_gpu = True
-            self.device = torch.device("cuda")  # type: ignore
+            self.device = torch.device("cuda")
         else:
             logger.info("NOT Using GPU: GPU not requested or not available.")
             self.use_gpu = False
-            self.device = torch.device("cpu")  # type: ignore
+            self.device = torch.device("cpu")
 
         self.loss_reporter = loss_reporter or LossReporter(actions)
         self._actions = actions
@@ -81,6 +81,7 @@ class RLTrainer(Trainer):
     @property
     def num_actions(self) -> int:
         assert self._actions is not None, "Not a discrete action DQN"
+        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
         return len(self._actions)
 
     def _initialize_cpe(
@@ -96,7 +97,9 @@ class RLTrainer(Trainer):
                 cpe_optimizer_parameters.optimizer
             )
             assert reward_network is not None, "reward_network is required for CPE"
+            # pyre-fixme[16]: `RLTrainer` has no attribute `reward_network`.
             self.reward_network = reward_network
+            # pyre-fixme[16]: `RLTrainer` has no attribute `reward_network_optimizer`.
             self.reward_network_optimizer = optimizer_func(
                 self.reward_network.parameters(),
                 lr=cpe_optimizer_parameters.learning_rate,
@@ -105,13 +108,17 @@ class RLTrainer(Trainer):
             assert (
                 q_network_cpe is not None and q_network_cpe_target is not None
             ), "q_network_cpe and q_network_cpe_target are required for CPE"
+            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network_cpe`.
             self.q_network_cpe = q_network_cpe
+            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network_cpe_target`.
             self.q_network_cpe_target = q_network_cpe_target
+            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network_cpe_optimizer`.
             self.q_network_cpe_optimizer = optimizer_func(
                 self.q_network_cpe.parameters(),
                 lr=cpe_optimizer_parameters.learning_rate,
             )
             num_output_nodes = len(self.metrics_to_score) * self.num_actions
+            # pyre-fixme[16]: `RLTrainer` has no attribute `reward_idx_offsets`.
             self.reward_idx_offsets = torch.arange(
                 0,
                 num_output_nodes,
@@ -140,7 +147,7 @@ class RLTrainer(Trainer):
                 "{} optimizer not implemented".format(optimizer_name)
             )
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def _soft_update(self, network, target_network, tau) -> None:
         """ Target network update logic as defined in DDPG paper
         updated_params = tau * network_params + (1 - tau) * target_network_params
@@ -156,7 +163,7 @@ class RLTrainer(Trainer):
             new_param = tau * param.data + (1.0 - tau) * t_param.data
             t_param.data.copy_(new_param)
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def _maybe_soft_update(
         self, network, target_network, tau, minibatches_per_step
     ) -> None:
@@ -174,7 +181,7 @@ class RLTrainer(Trainer):
         optimizer.step()
         optimizer.zero_grad()
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_prediction(self, input):
         """ Q-network forward pass method for internal domains.
         :param input input to network
@@ -185,7 +192,7 @@ class RLTrainer(Trainer):
         self.q_network.train()
         return q_values.cpu()
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_reward_estimation(self, input):
         """ Reward-network forward pass for internal domains. """
         self.reward_network.eval()
@@ -194,7 +201,7 @@ class RLTrainer(Trainer):
         self.reward_network.train()
         return reward_estimates.cpu()
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def _calculate_cpes(
         self,
         training_batch,
@@ -226,9 +233,7 @@ class RLTrainer(Trainer):
 
         with torch.enable_grad():
             ######### Train separate reward network for CPE evaluation #############
-            # FIXME: the reward network should be outputting a tensor,
-            # not a q-value object
-            reward_estimates = self.reward_network(states).q_values
+            reward_estimates = self.reward_network(states)
             reward_estimates_for_logged_actions = reward_estimates.gather(
                 1, self.reward_idx_offsets + logged_action_idxs
             )
@@ -241,11 +246,11 @@ class RLTrainer(Trainer):
             )
 
             ######### Train separate q-network for CPE evaluation #############
-            metric_q_values = self.q_network_cpe(states).q_values.gather(
+            metric_q_values = self.q_network_cpe(states).gather(
                 1, self.reward_idx_offsets + logged_action_idxs
             )
             all_metrics_target_q_values = torch.chunk(
-                self.q_network_cpe_target(next_states).q_values.detach(),
+                self.q_network_cpe_target(next_states).detach(),
                 len(self.metrics_to_score),
                 dim=1,
             )

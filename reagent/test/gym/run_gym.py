@@ -13,16 +13,14 @@ import numpy as np
 import torch
 from reagent.json_serialize import json_to_object
 from reagent.parameters import (
-    CEMParameters,
+    CEMTrainerParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
     EvaluationParameters,
     FeedForwardParameters,
-    MDNRNNParameters,
+    MDNRNNTrainerParameters,
     RainbowDQNParameters,
     RLParameters,
-    TD3ModelParameters,
-    TD3TrainingParameters,
     TrainingParameters,
 )
 from reagent.test.base.utils import write_lists_to_csv
@@ -32,7 +30,7 @@ from reagent.test.gym.open_ai_gym_environment import (
     OpenAIGymEnvironment,
 )
 from reagent.test.gym.open_ai_gym_memory_pool import OpenAIGymMemoryPool
-from reagent.test.gym.trainer_creator import get_sac_trainer
+from reagent.training import SACTrainerParameters, TD3TrainingParameters
 from reagent.training.on_policy_predictor import (
     CEMPlanningPredictor,
     ContinuousActionOnPolicyPredictor,
@@ -42,13 +40,11 @@ from reagent.training.on_policy_predictor import (
 )
 from reagent.training.rl_dataset import RLDataset
 from reagent.training.rl_trainer_pytorch import RLTrainer
-from reagent.training.sac_trainer import SACTrainerParameters
 from reagent.types import BaseDataClass
 from reagent.workflow_utils.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
     get_cem_trainer,
-    get_td3_trainer,
 )
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
@@ -99,8 +95,8 @@ class OpenAiGymParameters(BaseDataClass):
     sac_value_training: Optional[FeedForwardParameters] = None
     critic_training: Optional[FeedForwardParameters] = None
     actor_training: Optional[FeedForwardParameters] = None
-    cem: Optional[CEMParameters] = None
-    mdnrnn: Optional[MDNRNNParameters] = None
+    cem: Optional[CEMTrainerParameters] = None
+    mdnrnn: Optional[MDNRNNTrainerParameters] = None
     evaluation: EvaluationParameters = EvaluationParameters()
 
 
@@ -206,6 +202,7 @@ def train(
             score_bar,
             run_details.max_steps,
             run_details.avg_over_num_episodes,
+            # pyre-fixme[6]: Expected `int` for 10th param but got `Optional[int]`.
             run_details.offline_train_epochs,
             run_details.offline_num_batches_per_epoch,
             bcq_imitator_hyperparams,
@@ -348,7 +345,8 @@ def train_gym_offline_rl(
                 train_score, test_score
             )
         )
-        trainer.bcq_imitator = gbdt.predict_proba  # type: ignore
+        # pyre-fixme[16]: `RLTrainer` has no attribute `bcq_imitator`.
+        trainer.bcq_imitator = gbdt.predict_proba
 
     # Offline training
     for i_epoch in range(offline_train_epochs):
@@ -795,12 +793,15 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
         assert params.training is not None
         training_parameters = params.training
         assert params.rainbow is not None
+        # pyre-fixme[16]: `OpenAIGymEnvironment` has no attribute `img`.
         if env.img:
             assert (
                 training_parameters.cnn_parameters is not None
             ), "Missing CNN parameters for image input"
+            # pyre-fixme[16]: `Optional` has no attribute `conv_dims`.
             training_parameters.cnn_parameters.conv_dims[0] = env.num_input_channels
             training_parameters._replace(
+                # pyre-fixme[16]: `Optional` has no attribute `_replace`.
                 cnn_parameters=training_parameters.cnn_parameters._replace(
                     input_height=env.height,
                     input_width=env.width,
@@ -846,30 +847,10 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
         )
 
     elif model_type == ModelType.TD3.value:
-        assert params.td3_training is not None
-        assert params.critic_training is not None
-        assert params.actor_training is not None
-        td3_trainer_params = TD3ModelParameters(
-            rl=rl_parameters,
-            training=params.td3_training,
-            q_network=params.critic_training,
-            actor_network=params.actor_training,
-        )
-        trainer = get_td3_trainer(env, td3_trainer_params, use_gpu)
+        raise NotImplementedError("To be deleted...")
 
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
-        assert params.sac_training is not None
-        assert params.critic_training is not None
-        assert params.actor_training is not None
-        trainer = get_sac_trainer(
-            env,
-            rl_parameters,
-            params.sac_training,
-            params.critic_training,
-            params.actor_training,
-            params.sac_value_training,
-            use_gpu,
-        )
+        raise NotImplementedError("To be deleted...")
     elif model_type == ModelType.CEM.value:
         assert params.cem is not None
         cem_trainer_params = params.cem._replace(rl=params.rl)

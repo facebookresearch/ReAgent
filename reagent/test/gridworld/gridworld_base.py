@@ -575,15 +575,14 @@ class GridworldBase(Environment):
                 propensities=action_probabilities[start:end],
                 rewards=rewards[start:end],
                 next_states=next_states_ndarray[start:end],
+                # pyre-fixme[16]: `int` has no attribute `__getitem__`.
                 not_terminal=not_terminal[start:end],
                 next_actions=next_actions_one_hot[start:end],
                 possible_actions_mask=possible_actions_mask[start:end],
                 possible_next_actions_mask=possible_next_actions_mask[start:end],
                 time_diffs=time_diffs[start:end],
             )
-            tdp.set_type(
-                torch.cuda.FloatTensor if use_gpu else torch.FloatTensor  # type: ignore
-            )
+            tdp.set_type(torch.cuda.FloatTensor if use_gpu else torch.FloatTensor)
             tdps.append(tdp)
         return tdps
 

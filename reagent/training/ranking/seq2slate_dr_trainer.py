@@ -64,6 +64,7 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
             per_symbol_log_probs, training_input.tgt_out_idx
         )
         assert per_symbol_log_probs.requires_grad and per_seq_log_probs.requires_grad
+        # pyre-fixme[16]: `Optional` has no attribute `shape`.
         assert per_seq_log_probs.shape == training_input.tgt_out_probs.shape
 
         if not self.parameters.on_policy:
@@ -82,6 +83,8 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
             )
         assert importance_sampling.requires_grad
 
+        # pyre-fixme[6]: Expected `Tensor` for 1st param but got
+        #  `Optional[torch.Tensor]`.
         labels = self._transform_label(training_input.tgt_out_idx)
         assert not labels.requires_grad
 

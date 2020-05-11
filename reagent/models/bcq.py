@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import torch
-from reagent import types as rlt
 from reagent.models.base import ModelBase
 
 
@@ -17,14 +16,14 @@ class BatchConstrainedDQN(ModelBase):
         self.bcq_drop_threshold = bcq_drop_threshold
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return self.q_network.input_prototype()
 
-    def forward(self, input):
-        q_values = self.q_network(input)
-        imitator_outputs = self.imitator_network(input.state.float_features)
+    def forward(self, state):
+        q_values = self.q_network(state)
+        imitator_outputs = self.imitator_network(state.float_features)
         imitator_probs = torch.nn.functional.softmax(imitator_outputs, dim=1)
         filter_values = imitator_probs / imitator_probs.max(keepdim=True, dim=1)[0]
         invalid_actions = (filter_values < self.bcq_drop_threshold).float()
         invalid_action_penalty = self.invalid_action_penalty * invalid_actions
-        constrained_q_values = q_values.q_values + invalid_action_penalty
-        return rlt.AllActionQValues(q_values=constrained_q_values)
+        constrained_q_values = q_values + invalid_action_penalty
+        return constrained_q_values

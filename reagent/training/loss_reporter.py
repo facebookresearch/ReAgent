@@ -12,6 +12,7 @@ from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 LOSS_REPORT_INTERVAL = 100
 
@@ -40,6 +41,8 @@ class BatchStats(NamedTuple):
                 if val is None:
                     continue
                 for i, action in enumerate(actions):
+                    # pyre-fixme[16]: `SummaryWriterContext` has no attribute
+                    #  `add_scalar`.
                     SummaryWriterContext.add_scalar(
                         "{}/{}".format(log_key, action), (val == i).sum().item()
                     )
@@ -216,7 +219,7 @@ class LossReporter(object):
         if len(self.incoming_stats) >= self.loss_report_interval:
             self.flush()
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def flush(self):
         if not len(self.incoming_stats):
             logger.info("Nothing to report")
@@ -344,6 +347,7 @@ class LossReporter(object):
             ("Training/reward_loss", self.get_recent_reward_loss()),
             ("Training/imitator_loss", self.get_recent_imitator_loss()),
         ]:
+            # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
             SummaryWriterContext.add_scalar(name, none_to_zero(value), epoch)
 
     @staticmethod

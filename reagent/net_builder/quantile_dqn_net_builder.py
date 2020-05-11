@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import abc
-from typing import Dict, List, Type
+from typing import Dict, List
 
 import reagent.types as rlt
 import torch
@@ -18,9 +18,13 @@ try:
         FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
     )
 except ImportError:
-    from reagent.prediction.predictor_wrapper import (  # type: ignore
-        DiscreteDqnPredictorWrapper,
-    )
+    from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
+
+
+class _Mean(torch.nn.Module):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        assert input.ndim == 3  # type: ignore
+        return torch.mean(input, dim=2)
 
 
 class QRDQNNetBuilder(metaclass=RegistryMeta):
@@ -53,7 +57,10 @@ class QRDQNNetBuilder(metaclass=RegistryMeta):
         """
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
-            q_network.cpu_model().eval(), state_preprocessor
+            torch.nn.Sequential(  # type: ignore
+                q_network.cpu_model().eval(), _Mean()
+            ),
+            state_preprocessor,
         )
         return DiscreteDqnPredictorWrapper(
             dqn_with_preprocessor, action_names, state_feature_config

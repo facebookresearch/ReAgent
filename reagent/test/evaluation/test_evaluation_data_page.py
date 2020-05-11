@@ -131,17 +131,15 @@ class TestEvaluationDataPage(unittest.TestCase):
         src_seq = torch.eye(candidate_dim).repeat(batch_size, 1, 1)
         tgt_out_idx = torch.LongTensor([[3, 2], [3, 2], [3, 2]])
         tgt_out_seq = src_seq[
-            torch.arange(batch_size).repeat_interleave(tgt_seq_len),  # type: ignore
+            torch.arange(batch_size).repeat_interleave(tgt_seq_len),
             tgt_out_idx.flatten() - 2,
         ].reshape(batch_size, tgt_seq_len, candidate_dim)
 
         ptb = rlt.PreprocessedTrainingBatch(
             training_input=rlt.PreprocessedRankingInput(
-                state=rlt.PreprocessedFeatureVector(
-                    float_features=torch.eye(state_dim)
-                ),
-                src_seq=rlt.PreprocessedFeatureVector(float_features=src_seq),
-                tgt_out_seq=rlt.PreprocessedFeatureVector(float_features=tgt_out_seq),
+                state=rlt.FeatureData(float_features=torch.eye(state_dim)),
+                src_seq=rlt.FeatureData(float_features=src_seq),
+                tgt_out_seq=rlt.FeatureData(float_features=tgt_out_seq),
                 src_src_mask=torch.ones(batch_size, src_seq_len, src_seq_len),
                 tgt_out_idx=tgt_out_idx,
                 tgt_out_probs=torch.tensor([0.2, 0.5, 0.4]),
@@ -158,9 +156,11 @@ class TestEvaluationDataPage(unittest.TestCase):
         )
         logger.info("---------- Start evaluating eval_greedy=True -----------------")
         doubly_robust_estimator = DoublyRobustEstimator()
-        direct_method, inverse_propensity, doubly_robust = doubly_robust_estimator.estimate(
-            edp
-        )
+        (
+            direct_method,
+            inverse_propensity,
+            doubly_robust,
+        ) = doubly_robust_estimator.estimate(edp)
         logger.info(f"{direct_method}, {inverse_propensity}, {doubly_robust}")
 
         avg_logged_reward = (4 + 5 + 7) / 3

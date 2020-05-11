@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from reagent.models.mdn_rnn import MDNRNNMemoryPool, gmm_loss
 from reagent.models.world_model import MemoryNetwork
-from reagent.parameters import MDNRNNParameters
+from reagent.parameters import MDNRNNTrainerParameters
 from reagent.test.world_model.simulated_world_model import SimulatedWorldModel
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from torch.distributions.categorical import Categorical
@@ -53,10 +53,10 @@ class TestMDNRNN(unittest.TestCase):
 
         logger.info(
             "gmm loss={}, p1={}, p2={}, p1+p2={}, -log(p1+p2)={}".format(
-                gl, p1, p2, p1 + p2, -torch.log(p1 + p2)
+                gl, p1, p2, p1 + p2, -(torch.log(p1 + p2))
             )
         )
-        assert -torch.log(p1 + p2) == gl
+        assert -(torch.log(p1 + p2)) == gl
 
     def test_mdnrnn_simulate_world_cpu(self):
         self._test_mdnrnn_simulate_world()
@@ -128,7 +128,7 @@ class TestMDNRNN(unittest.TestCase):
             )
 
         num_batch = num_episodes // batch_size
-        mdnrnn_params = MDNRNNParameters(
+        mdnrnn_params = MDNRNNTrainerParameters(
             hidden_size=mdnrnn_num_hiddens,
             num_hidden_layers=mdnrnn_num_hidden_layers,
             minibatch_size=batch_size,
@@ -145,15 +145,15 @@ class TestMDNRNN(unittest.TestCase):
         if use_gpu:
             mdnrnn_net = mdnrnn_net.cuda()
         trainer = MDNRNNTrainer(
-            mdnrnn_network=mdnrnn_net, params=mdnrnn_params, cum_loss_hist=num_batch
+            memory_network=mdnrnn_net, params=mdnrnn_params, cum_loss_hist=num_batch
         )
 
         for e in range(num_epochs):
             for i in range(num_batch):
                 training_batch = replay_buffer.sample_memories(
-                    batch_size, use_gpu=use_gpu, batch_first=True
+                    batch_size, use_gpu=use_gpu
                 )
-                losses = trainer.train(training_batch, batch_first=True)
+                losses = trainer.train(training_batch)
                 logger.info(
                     "{}-th epoch, {}-th minibatch: \n"
                     "loss={}, bce={}, gmm={}, mse={} \n"
@@ -179,4 +179,4 @@ class TestMDNRNN(unittest.TestCase):
                 ):
                     return
 
-        assert False, "losses not reduced significantly during training"
+        raise RuntimeError("losses not reduced significantly during training")

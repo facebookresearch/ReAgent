@@ -15,7 +15,7 @@ import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.models.cem_planner import CEMPlannerNetwork
-from reagent.parameters import CEMParameters
+from reagent.parameters import CEMTrainerParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.training_data_page import TrainingDataPage
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
@@ -29,7 +29,7 @@ class CEMTrainer(RLTrainer):
         self,
         cem_planner_network: CEMPlannerNetwork,
         world_model_trainers: List[MDNRNNTrainer],
-        parameters: CEMParameters,
+        parameters: CEMTrainerParameters,
         use_gpu: bool = False,
     ) -> None:
         super().__init__(parameters.rl, use_gpu=use_gpu)
@@ -37,16 +37,12 @@ class CEMTrainer(RLTrainer):
         self.world_model_trainers = world_model_trainers
         self.minibatch_size = parameters.mdnrnn.minibatch_size
 
-    def train(self, training_batch, batch_first=False):
+    def train(self, training_batch):
         if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_cem_training_batch(batch_first)
-        assert (
-            type(training_batch) is rlt.PreprocessedTrainingBatch
-            and type(training_batch.training_input)
-            is rlt.PreprocessedMemoryNetworkInput
-        )
+            training_batch = training_batch.as_cem_training_batch()
+        assert type(training_batch) is rlt.PreprocessedMemoryNetworkInput
         for i, trainer in enumerate(self.world_model_trainers):
-            losses = trainer.train(training_batch, batch_first=batch_first)
+            losses = trainer.train(training_batch)
             logger.info(
                 "{}-th minibatch {}-th model: \n"
                 "loss={}, bce={}, gmm={}, mse={} \n"
@@ -66,22 +62,21 @@ class CEMTrainer(RLTrainer):
         self.minibatch += 1
         logger.info("")
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
+    # pyre-fixme[14]: `internal_prediction` overrides method defined in `RLTrainer`
+    #  inconsistently.
     def internal_prediction(
         self, state: torch.Tensor
     ) -> Union[rlt.SacPolicyActionSet, rlt.DqnPolicyActionSet]:
         """
         Only used by Gym. Return the predicted next action
         """
-        input = rlt.PreprocessedState(
-            state=rlt.PreprocessedFeatureVector(float_features=state)
-        )
-        output = self.cem_planner_network(input)
+        output = self.cem_planner_network(rlt.FeatureData(state))
         if not self.cem_planner_network.discrete_action:
             return rlt.SacPolicyActionSet(greedy=output, greedy_propensity=1.0)
         return rlt.DqnPolicyActionSet(greedy=output[0])
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def internal_reward_estimation(self, input):
         """
         Only used by Gym

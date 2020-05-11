@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List, Optional
 
 from reagent.core.tracker import Aggregator, Observer
 
@@ -15,7 +15,7 @@ class CompositeObserver(Observer):
     A composite observer which takes care of dispatching values to child observers
     """
 
-    def __init__(self, observers: List[Observer]):
+    def __init__(self, observers: Iterable[Observer]):
         self.observers: Dict[str, List[Observer]] = {}
         for observer in observers:
             observing_keys = observer.get_observing_keys()
@@ -59,26 +59,37 @@ class ValueListObserver(Observer):
 
 
 class IntervalAggregatingObserver(Observer):
-    def __init__(self, interval: int, aggregator: Aggregator):
+    def __init__(self, interval: Optional[int], aggregator: Aggregator):
         self.key = aggregator.key
-        super().__init__(observing_keys=[self.key])
+        super().__init__(observing_keys=["epoch_end", self.key])
         self.iteration = 0
         self.interval = interval
         self.intermediate_values: List[Any] = []
         self.aggregator = aggregator
 
     def update(self, key: str, value):
-        self.intermediate_values.append(value)
+        if key == "epoch_end":
+            self.flush()
+            return
 
+        self.intermediate_values.append(value)
         self.iteration += 1
-        if self.iteration % self.interval == 0:
+        # pyre-fixme[6]: Expected `int` for 1st param but got `Optional[int]`.
+        if self.interval and self.iteration % self.interval == 0:
+            logger.info(
+                f"Interval Agg. Update: {self.key}; iteration {self.iteration}; "
+                f"aggregator: {self.aggregator.__class__.__name__}"
+            )
             self.aggregator(self.key, self.intermediate_values)
             self.intermediate_values = []
 
     def flush(self):
         # We need to reset iteration here to avoid aggregating on the same data multiple
         # times
-        logger.info(f"Flushing: {self.key}; iteration: {self.iteration}")
+        logger.info(
+            f"Interval Agg. Flushing: {self.key}; iteration: {self.iteration}; "
+            f"aggregator: {self.aggregator.__class__.__name__}; points: {len(self.intermediate_values)}"
+        )
         self.iteration = 0
         if self.intermediate_values:
             self.aggregator(self.key, self.intermediate_values)

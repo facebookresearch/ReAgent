@@ -4,19 +4,17 @@
 from typing import Dict
 
 import torch
-from reagent.models.actor import FullyConnectedActor
 from reagent.models.categorical_dqn import CategoricalDQN
 from reagent.models.cem_planner import CEMPlannerNetwork
+from reagent.models.critic import FullyConnectedCritic
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.dueling_q_network import DuelingQNetwork
-from reagent.models.parametric_dqn import FullyConnectedParametricDQN
-from reagent.models.quantile_dqn import QuantileDQN
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import (
-    CEMParameters,
+    CEMTrainerParameters,
     ContinuousActionModelParameters,
     DiscreteActionModelParameters,
-    MDNRNNParameters,
+    MDNRNNTrainerParameters,
     OptimizerParameters,
 )
 from reagent.preprocessing.normalization import (
@@ -24,16 +22,18 @@ from reagent.preprocessing.normalization import (
     get_num_output_features,
 )
 from reagent.test.gym.open_ai_gym_environment import EnvType, OpenAIGymEnvironment
-from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
-from reagent.training.cem_trainer import CEMTrainer
-from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
-from reagent.training.parametric_dqn_trainer import (
+from reagent.training import (
+    C51Trainer,
+    C51TrainerParameters,
+    CEMTrainer,
+    DQNTrainer,
+    DQNTrainerParameters,
+    MDNRNNTrainer,
     ParametricDQNTrainer,
     ParametricDQNTrainerParameters,
+    QRDQNTrainer,
+    QRDQNTrainerParameters,
 )
-from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
-from reagent.training.td3_trainer import TD3Trainer
-from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
 def create_dqn_trainer_from_params(
@@ -46,7 +46,7 @@ def create_dqn_trainer_from_params(
     metrics_to_score = metrics_to_score or []
 
     if model.rainbow.quantile:
-        q_network = QuantileDQN(
+        q_network = FullyConnectedDQN(
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             num_atoms=model.rainbow.num_atoms,
@@ -55,26 +55,29 @@ def create_dqn_trainer_from_params(
             dropout_ratio=model.training.dropout_ratio,
         )
     elif model.rainbow.categorical:
-        q_network = CategoricalDQN(  # type: ignore
+        distributional_network = FullyConnectedDQN(
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             num_atoms=model.rainbow.num_atoms,
-            qmin=model.rainbow.qmin,
-            qmax=model.rainbow.qmax,
             sizes=model.training.layers[1:-1],
             activations=model.training.activations[:-1],
             dropout_ratio=model.training.dropout_ratio,
-            use_gpu=use_gpu,
+        )
+        q_network = CategoricalDQN(  # type: ignore
+            distributional_network,
+            qmin=model.rainbow.qmin,
+            qmax=model.rainbow.qmax,
+            num_atoms=model.rainbow.num_atoms,
         )
     elif model.rainbow.dueling_architecture:
-        q_network = DuelingQNetwork(  # type: ignore
-            layers=[get_num_output_features(normalization_parameters)]
-            + model.training.layers[1:-1]
-            + [len(model.actions)],
-            activations=model.training.activations,
+        q_network = DuelingQNetwork.make_fully_connected(
+            state_dim=get_num_output_features(normalization_parameters),
+            action_dim=len(model.actions),
+            layers=model.training.layers[1:-1],
+            activations=model.training.activations[:-1],
         )
     else:
-        q_network = FullyConnectedDQN(  # type: ignore
+        q_network = FullyConnectedDQN(
             state_dim=get_num_output_features(normalization_parameters),
             action_dim=len(model.actions),
             sizes=model.training.layers[1:-1],
@@ -178,13 +181,13 @@ def create_parametric_dqn_trainer_from_params(
     use_gpu: bool = False,
     use_all_avail_gpus: bool = False,
 ):
-    q_network = FullyConnectedParametricDQN(
+    q_network = FullyConnectedCritic(
         state_dim=get_num_output_features(state_normalization_parameters),
         action_dim=get_num_output_features(action_normalization_parameters),
         sizes=model.training.layers[1:-1],
         activations=model.training.activations[:-1],
     )
-    reward_network = FullyConnectedParametricDQN(
+    reward_network = FullyConnectedCritic(
         state_dim=get_num_output_features(state_normalization_parameters),
         action_dim=get_num_output_features(action_normalization_parameters),
         sizes=model.training.layers[1:-1],
@@ -202,7 +205,8 @@ def create_parametric_dqn_trainer_from_params(
         q_network_target = q_network_target.get_distributed_data_parallel_model()
         reward_network = reward_network.get_distributed_data_parallel_model()
 
-    trainer_parameters = ParametricDQNTrainerParameters(  # type: ignore
+    # pyre-fixme[28]: Unexpected keyword argument `rl`.
+    trainer_parameters = ParametricDQNTrainerParameters(
         rl=model.rl,
         double_q_learning=model.rainbow.double_q_learning,
         minibatch_size=model.training.minibatch_size,
@@ -218,77 +222,27 @@ def create_parametric_dqn_trainer_from_params(
         q_network_target,
         reward_network,
         use_gpu=use_gpu,
-        **trainer_parameters.asdict()  # type: ignore
+        # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute `asdict`.
+        **trainer_parameters.asdict()
     )
-
-
-def get_td3_trainer(env, parameters, use_gpu):
-    state_dim = get_num_output_features(env.normalization)
-    action_dim = get_num_output_features(env.normalization_action)
-    q1_network = FullyConnectedParametricDQN(
-        state_dim,
-        action_dim,
-        parameters.q_network.layers,
-        parameters.q_network.activations,
-    )
-    q2_network = None
-    if parameters.training.use_2_q_functions:
-        q2_network = FullyConnectedParametricDQN(
-            state_dim,
-            action_dim,
-            parameters.q_network.layers,
-            parameters.q_network.activations,
-        )
-    actor_network = FullyConnectedActor(
-        state_dim,
-        action_dim,
-        parameters.actor_network.layers,
-        parameters.actor_network.activations,
-    )
-    min_action_range_tensor_training = torch.full((1, action_dim), -1)
-    max_action_range_tensor_training = torch.full((1, action_dim), 1)
-    min_action_range_tensor_serving = torch.FloatTensor(env.action_space.low).unsqueeze(
-        dim=0
-    )
-    max_action_range_tensor_serving = torch.FloatTensor(
-        env.action_space.high
-    ).unsqueeze(dim=0)
-    if use_gpu:
-        q1_network.cuda()
-        if q2_network:
-            q2_network.cuda()
-        actor_network.cuda()
-        min_action_range_tensor_training = min_action_range_tensor_training.cuda()
-        max_action_range_tensor_training = max_action_range_tensor_training.cuda()
-        min_action_range_tensor_serving = min_action_range_tensor_serving.cuda()
-        max_action_range_tensor_serving = max_action_range_tensor_serving.cuda()
-    trainer_args = [q1_network, actor_network, parameters]
-    trainer_kwargs = {
-        "q2_network": q2_network,
-        "min_action_range_tensor_training": min_action_range_tensor_training,
-        "max_action_range_tensor_training": max_action_range_tensor_training,
-        "min_action_range_tensor_serving": min_action_range_tensor_serving,
-        "max_action_range_tensor_serving": max_action_range_tensor_serving,
-    }
-    return TD3Trainer(*trainer_args, use_gpu=use_gpu, **trainer_kwargs)
 
 
 def get_cem_trainer(
-    env: OpenAIGymEnvironment, params: CEMParameters, use_gpu: bool
+    env: OpenAIGymEnvironment, params: CEMTrainerParameters, use_gpu: bool
 ) -> CEMTrainer:
     num_world_models = params.num_world_models
     world_model_trainers = [
         create_world_model_trainer(env, params.mdnrnn, use_gpu)
         for _ in range(num_world_models)
     ]
-    world_model_nets = [trainer.mdnrnn for trainer in world_model_trainers]
+    world_model_nets = [trainer.memory_network for trainer in world_model_trainers]
     discrete_action = env.action_type == EnvType.DISCRETE_ACTION
     terminal_effective = params.mdnrnn.not_terminal_loss_weight > 0
     action_upper_bounds, action_lower_bounds = None, None
     if not discrete_action:
         action_upper_bounds, action_lower_bounds = (
-            env.action_space.high,  # type: ignore
-            env.action_space.low,  # type: ignore
+            env.action_space.high,
+            env.action_space.low,
         )
 
     cem_planner_network = CEMPlannerNetwork(
@@ -313,9 +267,9 @@ def get_cem_trainer(
 
 
 def create_world_model_trainer(
-    env: OpenAIGymEnvironment, mdnrnn_params: MDNRNNParameters, use_gpu: bool
+    env: OpenAIGymEnvironment, mdnrnn_params: MDNRNNTrainerParameters, use_gpu: bool
 ) -> MDNRNNTrainer:
-    mdnrnn_net = MemoryNetwork(
+    memory_network = MemoryNetwork(
         state_dim=env.state_dim,
         action_dim=env.action_dim,
         num_hiddens=mdnrnn_params.hidden_size,
@@ -323,6 +277,6 @@ def create_world_model_trainer(
         num_gaussians=mdnrnn_params.num_gaussians,
     )
     if use_gpu:
-        mdnrnn_net = mdnrnn_net.cuda()
-    mdnrnn_trainer = MDNRNNTrainer(mdnrnn_network=mdnrnn_net, params=mdnrnn_params)
+        memory_network = memory_network.cuda()
+    mdnrnn_trainer = MDNRNNTrainer(memory_network=memory_network, params=mdnrnn_params)
     return mdnrnn_trainer

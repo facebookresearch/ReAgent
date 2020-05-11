@@ -16,6 +16,7 @@ logger.setLevel(logging.INFO)
 
 
 class RLDataset:
+    # TODO: delete file_path after mdnrnn test in old gym environment is migrated
     def __init__(self, file_path: Optional[str] = None):
         """
         Holds a collection of RL samples:
@@ -134,58 +135,46 @@ class RLDataset:
         Insert a new sample to the dataset in the pre-timeline json format.
         Format needed for running timeline operator and for uploading dataset to hive.
         """
-        state = state.tolist()
-        if possible_actions:
-            possible_actions = possible_actions.tolist()
-        else:
-            possible_actions = possible_actions_mask
 
-        assert isinstance(state, list)
-        assert isinstance(action, (list, str))
-        assert isinstance(reward, (float, int))
-        assert possible_actions is None or isinstance(
-            possible_actions, (list, torch.Tensor)
-        ), f"Expecting list/torch.Tensor; got {type(possible_actions)}"
-        assert isinstance(time_diff, int)
+        assert isinstance(reward, float)
         assert isinstance(action_probability, float)
+        row = {
+            "ds": "2019-01-01",  # Fix ds for simplicity in open source examples
+            "state_features": {i: v for i, v in enumerate(state.tolist())},
+            "mdp_id": str(mdp_id),
+            "sequence_number": int(sequence_number),
+            "action_probability": action_probability,
+            "reward": reward,
+            "metrics": {"reward": reward},
+        }
 
-        state_features = {i: v for i, v in enumerate(state)}
+        # Discrete actions should be str
+        # Parametric or continuou actions should be str -> double
+        assert isinstance(action, (str, dict))
+        row["action"] = action
 
-        # This assumes that every state feature is present in every training example.
-        int_state_feature_keys = [int(k) for k in state_features.keys()]
-        idx_bump = max(int_state_feature_keys) + 1
-        if isinstance(action, list):
-            # Parametric or continuous action domain
-            action = {str(k + idx_bump): v for k, v in enumerate(action) if v != 0}
-
-        if isinstance(possible_actions, torch.Tensor) and isinstance(
-            possible_actions[0].item(), int
-        ):
-            # Discrete action domain
-            possible_actions = [
-                str(idx) for idx, val in enumerate(possible_actions) if val == 1
-            ]
-        elif isinstance(possible_actions[0], list):
-            # Parametric action
-            possible_actions = [
-                {str(k + idx_bump): v for k, v in enumerate(action) if v != 0}
-                for action in possible_actions
-            ]
-        else:
-            raise NotImplementedError(
-                f"Got {type(possible_actions)}, value: {possible_actions}"
-            )
-
-        self.rows.append(
-            {
-                "ds": "2019-01-01",  # Fix ds for simplicity in open source examples
-                "mdp_id": str(mdp_id),
-                "sequence_number": int(sequence_number),
-                "state_features": state_features,
-                "action": action,
-                "reward": reward,
-                "action_probability": action_probability,
-                "possible_actions": possible_actions,
-                "metrics": {"reward": reward},
-            }
+        # if both None, we assume continuous action domain, and ignore possible_actions
+        possible_actions = (
+            possible_actions_mask if possible_actions is None else possible_actions
         )
+        if possible_actions is not None:
+            if isinstance(possible_actions, torch.Tensor) and isinstance(
+                possible_actions[0].item(), int
+            ):
+                # Discrete action domain
+                possible_actions = [
+                    str(idx) for idx, val in enumerate(possible_actions) if val == 1
+                ]
+            elif isinstance(possible_actions[0], list):
+                # Parametric action
+                possible_actions = [
+                    {str(k): v for k, v in enumerate(action) if v != 0}
+                    for action in possible_actions
+                ]
+            else:
+                raise NotImplementedError(
+                    f"Got {type(possible_actions)}, value: {possible_actions}"
+                )
+            row["possible_actions"] = possible_actions
+
+        self.rows.append(row)

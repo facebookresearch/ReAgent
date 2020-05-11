@@ -8,10 +8,11 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
-from reagent.parameters import NormalizationData
+from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     DiscreteDqnBatchPreprocessor,
+    InputColumn,
 )
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.workflow.data_fetcher import query_data
@@ -28,10 +29,6 @@ from reagent.workflow.types import (
     TableSpec,
 )
 from reagent.workflow.utils import train_and_evaluate_generic
-from reagent.workflow_utils.page_handler import (
-    EvaluationPageHandler,
-    TrainingPageHandler,
-)
 
 
 try:
@@ -39,16 +36,10 @@ try:
         FbDiscreteDqnPredictorUnwrapper as DiscreteDqnPredictorUnwrapper,
     )
 except ImportError:
-    from reagent.prediction.predictor_wrapper import (  # type: ignore
-        DiscreteDqnPredictorUnwrapper,
-    )
+    from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorUnwrapper
 
 
 logger = logging.getLogger(__name__)
-
-
-class DiscreteNormalizationParameterKeys:
-    STATE = "state"
 
 
 @dataclass
@@ -67,29 +58,41 @@ class DiscreteDQNBase(ModelManager):
 
     @classmethod
     def normalization_key(cls) -> str:
-        return DiscreteNormalizationParameterKeys.STATE
+        return NormalizationKey.STATE
+
+    @property
+    def should_generate_eval_dataset(self) -> bool:
+        return self.eval_parameters.calc_cpe_in_training
 
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
 
-        from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+        from reagent.gym.policies.samplers.discrete_sampler import (
+            SoftmaxActionSampler,
+            GreedyActionSampler,
+        )
         from reagent.gym.policies.scorers.discrete_scorer import (
             discrete_dqn_scorer,
             discrete_dqn_serving_scorer,
         )
 
+        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
         sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
         if serving:
+            sampler = GreedyActionSampler()
             scorer = discrete_dqn_serving_scorer(
                 DiscreteDqnPredictorUnwrapper(self.build_serving_module())
             )
         else:
+            sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
+            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
         return Policy(scorer=scorer, sampler=sampler)
 
     @property
     def metrics_to_score(self) -> List[str]:
-        assert self.reward_options is not None
+        assert self._reward_options is not None
+        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_metrics_to_score`.
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
                 self._reward_options.metric_reward_values
@@ -98,6 +101,7 @@ class DiscreteDQNBase(ModelManager):
 
     @property
     def should_generate_eval_dataset(self) -> bool:
+        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `eval_parameters`.
         return self.eval_parameters.calc_cpe_in_training
 
     def _set_normalization_parameters(
@@ -109,6 +113,9 @@ class DiscreteDQNBase(ModelManager):
         state_norm_data = normalization_data_map.get(self.normalization_key(), None)
         assert state_norm_data is not None
         assert state_norm_data.dense_normalization_parameters is not None
+        # pyre-fixme[8]: Attribute has type `Dict[int,
+        #  reagent.parameters.NormalizationParameters]`; used as `Optional[Dict[int,
+        #  reagent.parameters.NormalizationParameters]]`.
         self.state_normalization_parameters = (
             state_norm_data.dense_normalization_parameters
         )
@@ -126,10 +133,10 @@ class DiscreteDQNBase(ModelManager):
         )
 
         state_normalization_parameters = identify_normalization_parameters(
-            input_table_spec, "state_features", preprocessing_options
+            input_table_spec, InputColumn.STATE_FEATURES, preprocessing_options
         )
         return {
-            DiscreteNormalizationParameterKeys.STATE: NormalizationData(
+            NormalizationKey.STATE: NormalizationData(
                 dense_normalization_parameters=state_normalization_parameters
             )
         }
@@ -142,19 +149,25 @@ class DiscreteDQNBase(ModelManager):
     ) -> Dataset:
         return query_data(
             input_table_spec=input_table_spec,
+            discrete_action=True,
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             actions=self.action_names,
+            include_possible_actions=True,
             sample_range=sample_range,
             custom_reward_expression=reward_options.custom_reward_expression,
             multi_steps=self.multi_steps,
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             gamma=self.rl_parameters.gamma,
         )
 
     @property
     def multi_steps(self) -> Optional[int]:
+        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
         return self.rl_parameters.multi_steps
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         return DiscreteDqnBatchPreprocessor(
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             num_actions=len(self.action_names),
             state_preprocessor=Preprocessor(
                 normalization_parameters=self.state_normalization_parameters,
@@ -169,34 +182,28 @@ class DiscreteDQNBase(ModelManager):
         """
         Train the model
 
-        Returns partially filled RLTrainingOutput. The field that should not be filled
-        are:
+        Returns partially filled RLTrainingOutput.
+        The field that should not be filled are:
         - output_path
-        - warmstart_output_path
-        - vis_metrics
-        - validation_output
         """
-        logger.info("Creating reporter")
         reporter = DiscreteDQNReporter(
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `trainer_param`.
             self.trainer_param.actions,
             target_action_distribution=self.target_action_distribution,
         )
-        logger.info("Adding reporter to trainer")
+        # pyre-fixme[16]: `RLTrainer` has no attribute `add_observer`.
         self.trainer.add_observer(reporter)
 
-        training_page_handler = TrainingPageHandler(self.trainer)
-        training_page_handler.add_observer(reporter)
         evaluator = Evaluator(
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `action_names`.
             self.action_names,
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             self.rl_parameters.gamma,
             self.trainer,
             metrics_to_score=self.metrics_to_score,
         )
-        logger.info("Adding reporter to evaluator")
+        # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         evaluator.add_observer(reporter)
-        evaluation_page_handler = EvaluationPageHandler(
-            self.trainer, evaluator, reporter
-        )
 
         batch_preprocessor = self.build_batch_preprocessor()
         train_and_evaluate_generic(
@@ -206,10 +213,11 @@ class DiscreteDQNBase(ModelManager):
             num_epochs,
             self.use_gpu,
             batch_preprocessor,
-            training_page_handler,
-            evaluation_page_handler,
+            reporter,
+            evaluator,
             reader_options=self.reader_options,
         )
+        # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         training_report = RLTrainingReport.make_union_instance(
             reporter.generate_training_report()
         )

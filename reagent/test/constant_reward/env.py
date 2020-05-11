@@ -116,9 +116,31 @@ class Env(object):
             )
         )
         self.np_random.shuffle(merged)
-        states, actions, rewards, next_states, next_actions, terminals, possible_actions, possible_next_actions = zip(
-            *merged
-        )
+        (
+            # pyre-fixme[9]: states has type `List[np.ndarray]`; used as
+            #  `Tuple[typing.Any]`.
+            states,
+            # pyre-fixme[9]: actions has type `List[np.ndarray]`; used as
+            #  `Tuple[typing.Any]`.
+            actions,
+            # pyre-fixme[9]: rewards has type `List[int]`; used as `Tuple[typing.Any]`.
+            rewards,
+            # pyre-fixme[9]: next_states has type `List[np.ndarray]`; used as
+            #  `Tuple[typing.Any]`.
+            next_states,
+            # pyre-fixme[9]: next_actions has type `List[np.ndarray]`; used as
+            #  `Tuple[typing.Any]`.
+            next_actions,
+            # pyre-fixme[9]: terminals has type `List[bool]`; used as
+            #  `Tuple[typing.Any]`.
+            terminals,
+            # pyre-fixme[9]: possible_actions has type `List[np.ndarray]`; used as
+            #  `Tuple[typing.Any]`.
+            possible_actions,
+            # pyre-fixme[9]: possible_next_actions has type `List[np.ndarray]`; used
+            #  as `Tuple[typing.Any]`.
+            possible_next_actions,
+        ) = zip(*merged)
 
         not_terminal = np.logical_not(terminals).reshape(-1, 1)
         time_diffs = torch.ones([len(states), 1], dtype=torch.float32)

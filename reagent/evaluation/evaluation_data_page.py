@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class EvaluationDataPage(NamedTuple):
-    mdp_id: Optional[np.ndarray]
+    mdp_id: Optional[torch.Tensor]
     sequence_number: Optional[torch.Tensor]
     logged_propensities: torch.Tensor
     logged_rewards: torch.Tensor
@@ -51,17 +51,19 @@ class EvaluationDataPage(NamedTuple):
         reward_network: Optional[nn.Module] = None,
     ):
         if isinstance(tdb, rlt.DiscreteDqnInput):
+            # pyre-fixme[22]: The cast is redundant.
             discrete_training_input = cast(rlt.DiscreteDqnInput, tdb)
 
-            return EvaluationDataPage.create_from_tensors_dqn(  # type: ignore
+            return EvaluationDataPage.create_from_tensors_dqn(
+                # pyre-fixme[6]: Expected `DQNTrainer` for 1st param but got `Trainer`.
                 trainer,
                 tdb.extras.mdp_id,
                 tdb.extras.sequence_number,
                 discrete_training_input.state,
                 discrete_training_input.action,
                 tdb.extras.action_probability,
-                discrete_training_input.reward,  # type: ignore
-                discrete_training_input.possible_actions_mask,  # type: ignore
+                discrete_training_input.reward,
+                discrete_training_input.possible_actions_mask,
                 metrics=tdb.extras.metrics,
             )
         elif isinstance(tdb.training_input, rlt.PreprocessedParametricDqnInput):
@@ -69,16 +71,18 @@ class EvaluationDataPage(NamedTuple):
                 rlt.PreprocessedParametricDqnInput, tdb.training_input
             )
 
-            return EvaluationDataPage.create_from_tensors_parametric_dqn(  # type: ignore
+            return EvaluationDataPage.create_from_tensors_parametric_dqn(
+                # pyre-fixme[6]: Expected `ParametricDQNTrainer` for 1st param but
+                #  got `Trainer`.
                 trainer,
                 tdb.extras.mdp_id,
                 tdb.extras.sequence_number,
                 parametric_training_input.state,
                 parametric_training_input.action,
                 tdb.extras.action_probability,
-                parametric_training_input.reward,  # type: ignore
-                parametric_training_input.possible_actions_mask,  # type: ignore
-                parametric_training_input.possible_actions,  # type: ignore
+                parametric_training_input.reward,
+                parametric_training_input.possible_actions_mask,
+                parametric_training_input.possible_actions,
                 tdb.extras.max_num_actions,
                 metrics=tdb.extras.metrics,
             )
@@ -87,15 +91,15 @@ class EvaluationDataPage(NamedTuple):
                 f"training_input type: {type(tdb.training_input)}"
             )
 
-    @classmethod  # type: ignore
-    @torch.no_grad()  # type: ignore
+    @classmethod
+    @torch.no_grad()
     def create_from_tensors_seq2slate(
         cls,
         seq2slate_net: Seq2SlateTransformerNet,
         reward_network: nn.Module,
         training_input: rlt.PreprocessedRankingInput,
         eval_greedy: bool,
-        mdp_ids: Optional[np.ndarray] = None,
+        mdp_ids: Optional[torch.Tensor] = None,
         sequence_numbers: Optional[torch.Tensor] = None,
     ):
         """
@@ -109,9 +113,12 @@ class EvaluationDataPage(NamedTuple):
             and training_input.tgt_out_idx is not None
             and training_input.tgt_out_seq is not None
         )
-        batch_size, tgt_seq_len, candidate_dim = (
-            training_input.tgt_out_seq.float_features.shape
-        )
+        (
+            batch_size,
+            tgt_seq_len,
+            candidate_dim,
+            # pyre-fixme[16]: `Optional` has no attribute `float_features`.
+        ) = training_input.tgt_out_seq.float_features.shape
         device = training_input.state.float_features.device
 
         rank_output = seq2slate_net(
@@ -121,6 +128,8 @@ class EvaluationDataPage(NamedTuple):
         if eval_greedy:
             model_propensities = torch.ones(batch_size, 1, device=device)
             action_mask = torch.all(
+                # pyre-fixme[6]: Expected `int` for 1st param but got
+                #  `Optional[torch.Tensor]`.
                 (training_input.tgt_out_idx - 2)
                 == (rank_output.ranked_tgt_out_idx - 2),
                 dim=1,
@@ -148,9 +157,8 @@ class EvaluationDataPage(NamedTuple):
         ).reshape(-1, 1)
 
         ranked_tgt_out_seq = training_input.src_seq.float_features[
-            torch.arange(batch_size, device=device).repeat_interleave(  # type: ignore
-                tgt_seq_len
-            ),
+            # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
+            torch.arange(batch_size, device=device).repeat_interleave(tgt_seq_len),
             rank_output.ranked_tgt_out_idx.flatten() - 2,
         ].reshape(batch_size, tgt_seq_len, candidate_dim)
         # model_rewards refers to predicted rewards for the slate generated
@@ -163,6 +171,7 @@ class EvaluationDataPage(NamedTuple):
             training_input.src_src_mask,
             rank_output.ranked_tgt_out_idx,
         ).reshape(-1, 1)
+        # pyre-fixme[16]: `Optional` has no attribute `reshape`.
         logged_rewards = training_input.slate_reward.reshape(-1, 1)
         logged_propensities = training_input.tgt_out_probs.reshape(-1, 1)
         return cls(
@@ -176,19 +185,19 @@ class EvaluationDataPage(NamedTuple):
             logged_propensities=logged_propensities,
         )
 
-    @classmethod  # type: ignore
-    @torch.no_grad()  # type: ignore
+    @classmethod
+    @torch.no_grad()
     def create_from_tensors_parametric_dqn(
         cls,
         trainer: ParametricDQNTrainer,
-        mdp_ids: np.ndarray,
+        mdp_ids: torch.Tensor,
         sequence_numbers: torch.Tensor,
-        states: rlt.PreprocessedFeatureVector,
-        actions: rlt.PreprocessedFeatureVector,
+        states: rlt.FeatureData,
+        actions: rlt.FeatureData,
         propensities: torch.Tensor,
         rewards: torch.Tensor,
         possible_actions_mask: torch.Tensor,
-        possible_actions: rlt.PreprocessedFeatureVector,
+        possible_actions: rlt.FeatureData,
         max_num_actions: int,
         metrics: Optional[torch.Tensor] = None,
     ):
@@ -197,25 +206,19 @@ class EvaluationDataPage(NamedTuple):
         trainer.q_network.train(False)
         trainer.reward_network.train(False)
 
-        state_action_pairs = rlt.PreprocessedStateAction(state=states, action=actions)
         tiled_state = states.float_features.repeat(1, max_num_actions).reshape(
             -1, states.float_features.shape[1]
         )
         assert possible_actions is not None
         # Get Q-value of action taken
-        possible_actions_state_concat = rlt.PreprocessedStateAction(
-            state=rlt.PreprocessedFeatureVector(float_features=tiled_state),
-            action=possible_actions,
-        )
+        possible_actions_state_concat = (rlt.FeatureData(tiled_state), possible_actions)
 
         # FIXME: model_values, model_values_for_logged_action, and model_metrics_values
         # should be calculated using q_network_cpe (as in discrete dqn).
         # q_network_cpe has not been added in parametric dqn yet.
-        model_values = trainer.q_network(
-            possible_actions_state_concat
-        ).q_value  # type: ignore
+        model_values = trainer.q_network(*possible_actions_state_concat)
         optimal_q_values, _ = trainer.get_detached_q_values(
-            possible_actions_state_concat.state, possible_actions_state_concat.action
+            *possible_actions_state_concat
         )
         eval_action_idxs = None
 
@@ -236,8 +239,8 @@ class EvaluationDataPage(NamedTuple):
         )
 
         rewards_and_metric_rewards = trainer.reward_network(
-            possible_actions_state_concat
-        ).q_value  # type: ignore
+            *possible_actions_state_concat
+        )
         model_rewards = rewards_and_metric_rewards[:, :1]
         assert (
             model_rewards.shape[0] * model_rewards.shape[1]
@@ -253,10 +256,10 @@ class EvaluationDataPage(NamedTuple):
         model_metrics = rewards_and_metric_rewards[:, 1:]
         model_metrics = model_metrics.reshape(possible_actions_mask.shape[0], -1)
 
-        model_values_for_logged_action = trainer.q_network(state_action_pairs).q_value
+        model_values_for_logged_action = trainer.q_network(states, actions)
         model_rewards_and_metrics_for_logged_action = trainer.reward_network(
-            state_action_pairs
-        ).q_value
+            states, actions
+        )
         model_rewards_for_logged_action = model_rewards_and_metrics_for_logged_action[
             :, :1
         ]
@@ -278,8 +281,8 @@ class EvaluationDataPage(NamedTuple):
             # to parametric dqn
             model_metrics_values = model_values.repeat(1, num_metrics)
 
-        trainer.q_network.train(old_q_train_state)  # type: ignore
-        trainer.reward_network.train(old_reward_train_state)  # type: ignore
+        trainer.q_network.train(old_q_train_state)
+        trainer.reward_network.train(old_reward_train_state)
 
         return cls(
             mdp_id=mdp_ids,
@@ -305,73 +308,64 @@ class EvaluationDataPage(NamedTuple):
             eval_action_idxs=eval_action_idxs,
         )
 
-    @classmethod  # type: ignore
-    @torch.no_grad()  # type: ignore
+    @classmethod
+    @torch.no_grad()
     def create_from_tensors_dqn(
         cls,
         trainer: DQNTrainer,
-        mdp_ids: np.ndarray,
+        mdp_ids: torch.Tensor,
         sequence_numbers: torch.Tensor,
-        states: rlt.PreprocessedFeatureVector,
-        actions: rlt.PreprocessedFeatureVector,
+        states: rlt.FeatureData,
+        actions: rlt.FeatureData,
         propensities: torch.Tensor,
         rewards: torch.Tensor,
         possible_actions_mask: torch.Tensor,
         metrics: Optional[torch.Tensor] = None,
     ):
         old_q_train_state = trainer.q_network.training
+        # pyre-fixme[16]: `DQNTrainer` has no attribute `reward_network`.
         old_reward_train_state = trainer.reward_network.training
+        # pyre-fixme[16]: `DQNTrainer` has no attribute `q_network_cpe`.
         old_q_cpe_train_state = trainer.q_network_cpe.training
         trainer.q_network.train(False)
         trainer.reward_network.train(False)
         trainer.q_network_cpe.train(False)
 
         num_actions = trainer.num_actions
-        action_mask = actions.float()  # type: ignore
+        action_mask = actions.float()
 
-        rewards = trainer.boost_rewards(rewards, actions)  # type: ignore
-        model_values = trainer.q_network_cpe(
-            rlt.PreprocessedState(state=states)
-        ).q_values[:, 0:num_actions]
-        optimal_q_values, _ = trainer.get_detached_q_values(
-            states  # type: ignore
-        )
-        eval_action_idxs = trainer.get_max_q_values(  # type: ignore
+        # pyre-fixme[6]: Expected `torch.Tensor` for 2nd positional only parameter
+        rewards = trainer.boost_rewards(rewards, actions)
+        model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
+        optimal_q_values, _ = trainer.get_detached_q_values(states)
+        eval_action_idxs = trainer.get_max_q_values(
             optimal_q_values, possible_actions_mask
         )[1]
         model_propensities = masked_softmax(
             optimal_q_values, possible_actions_mask, trainer.rl_temperature
         )
-        assert model_values.shape == actions.shape, (  # type: ignore
-            "Invalid shape: "
-            + str(model_values.shape)  # type: ignore
-            + " != "
-            + str(actions.shape)  # type: ignore
+        assert model_values.shape == actions.shape, (
+            "Invalid shape: " + str(model_values.shape) + " != " + str(actions.shape)
         )
-        assert model_values.shape == possible_actions_mask.shape, (  # type: ignore
+        assert model_values.shape == possible_actions_mask.shape, (
             "Invalid shape: "
-            + str(model_values.shape)  # type: ignore
+            + str(model_values.shape)
             + " != "
-            + str(possible_actions_mask.shape)  # type: ignore
+            + str(possible_actions_mask.shape)
         )
         model_values_for_logged_action = torch.sum(
             model_values * action_mask, dim=1, keepdim=True
         )
 
-        rewards_and_metric_rewards = trainer.reward_network(
-            rlt.PreprocessedState(state=states)
-        )
+        rewards_and_metric_rewards = trainer.reward_network(states)
 
         # In case we reuse the modular for Q-network
         if hasattr(rewards_and_metric_rewards, "q_values"):
-            rewards_and_metric_rewards = rewards_and_metric_rewards.q_values
+            rewards_and_metric_rewards = rewards_and_metric_rewards
 
         model_rewards = rewards_and_metric_rewards[:, 0:num_actions]
-        assert model_rewards.shape == actions.shape, (  # type: ignore
-            "Invalid shape: "
-            + str(model_rewards.shape)  # type: ignore
-            + " != "
-            + str(actions.shape)  # type: ignore
+        assert model_rewards.shape == actions.shape, (
+            "Invalid shape: " + str(model_rewards.shape) + " != " + str(actions.shape)
         )
         model_rewards_for_logged_action = torch.sum(
             model_rewards * action_mask, dim=1, keepdim=True
@@ -392,20 +386,16 @@ class EvaluationDataPage(NamedTuple):
             model_metrics_for_logged_action = None
             model_metrics_values_for_logged_action = None
         else:
-            model_metrics_values = trainer.q_network_cpe(
-                rlt.PreprocessedState(state=states)
-            )
+            model_metrics_values = trainer.q_network_cpe(states)
             # Backward compatility
             if hasattr(model_metrics_values, "q_values"):
-                model_metrics_values = model_metrics_values.q_values
+                model_metrics_values = model_metrics_values
             model_metrics_values = model_metrics_values[:, num_actions:]
-            assert (
-                model_metrics_values.shape[1] == num_actions * num_metrics
-            ), (  # type: ignore
+            assert model_metrics_values.shape[1] == num_actions * num_metrics, (
                 "Invalid shape: "
-                + str(model_metrics_values.shape[1])  # type: ignore
+                + str(model_metrics_values.shape[1])
                 + " != "
-                + str(actions.shape[1] * num_metrics)  # type: ignore
+                + str(actions.shape[1] * num_metrics)
             )
 
             model_metrics_for_logged_action_list = []
@@ -435,9 +425,9 @@ class EvaluationDataPage(NamedTuple):
                 model_metrics_values_for_logged_action_list, dim=1
             )
 
-        trainer.q_network_cpe.train(old_q_cpe_train_state)  # type: ignore
-        trainer.q_network.train(old_q_train_state)  # type: ignore
-        trainer.reward_network.train(old_reward_train_state)  # type: ignore
+        trainer.q_network_cpe.train(old_q_cpe_train_state)
+        trainer.q_network.train(old_q_train_state)
+        trainer.reward_network.train(old_reward_train_state)
 
         return cls(
             mdp_id=mdp_ids,
@@ -498,13 +488,23 @@ class EvaluationDataPage(NamedTuple):
     def compute_values(self, gamma: float):
         assert self.mdp_id is not None and self.sequence_number is not None
         logged_values = EvaluationDataPage.compute_values_for_mdps(
-            self.logged_rewards, self.mdp_id, self.sequence_number, gamma
+            self.logged_rewards,
+            # pyre-fixme[6]: Expected `ndarray` for 2nd param but got
+            #  `Optional[np.ndarray]`.
+            self.mdp_id,
+            self.sequence_number,
+            gamma,
         )
         if self.logged_metrics is not None:
             logged_metrics_values: Optional[
                 torch.Tensor
             ] = EvaluationDataPage.compute_values_for_mdps(
-                self.logged_metrics, self.mdp_id, self.sequence_number, gamma
+                # pyre-fixme[6]: Expected `Tensor` for 1st param but got
+                #  `Optional[torch.Tensor]`.
+                self.logged_metrics,
+                self.mdp_id,
+                self.sequence_number,
+                gamma,
             )
         else:
             logged_metrics_values = None
@@ -515,7 +515,7 @@ class EvaluationDataPage(NamedTuple):
     @staticmethod
     def compute_values_for_mdps(
         rewards: torch.Tensor,
-        mdp_ids: np.ndarray,
+        mdp_ids: torch.Tensor,
         sequence_numbers: torch.Tensor,
         gamma: float,
     ) -> torch.Tensor:
@@ -608,6 +608,7 @@ class EvaluationDataPage(NamedTuple):
         assert self.model_metrics_values is not None, "metrics must not be none"
 
         return self._replace(
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             logged_rewards=self.logged_metrics[:, i : i + 1],
             logged_values=self.logged_metrics_values[:, i : i + 1],
             model_rewards=self.model_metrics[

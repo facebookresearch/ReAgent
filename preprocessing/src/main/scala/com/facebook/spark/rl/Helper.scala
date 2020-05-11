@@ -61,7 +61,10 @@ object Helper {
       .filter(column => columnNames.contains(column.name))
       .map(column => column.name -> column.dataType)
       .toMap
-    assert(dt.size == columnNames.size)
+    assert(
+      dt.size == columnNames.size,
+      s"${dt.size} != ${columnNames.size}\ndt: ${dt}\ncolumnNames: ${columnNames}"
+    )
     dt
   }
 

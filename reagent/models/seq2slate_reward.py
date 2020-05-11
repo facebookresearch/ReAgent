@@ -153,6 +153,7 @@ class Seq2SlateRewardNet(ModelBase):
         before the last item.
         """
         device = next(self.parameters()).device
+        # pyre-fixme[16]: Optional type has no attribute `float_features`.
         batch_size, tgt_seq_len, candidate_dim = input.tgt_out_seq.float_features.shape
         assert self.max_tgt_seq_len == tgt_seq_len
 
@@ -242,9 +243,9 @@ class Seq2SlateRewardNetJITWrapper(ModelBase):
     ) -> torch.Tensor:
         return self.model(
             rlt.PreprocessedRankingInput(
-                state=rlt.PreprocessedFeatureVector(float_features=state),
-                src_seq=rlt.PreprocessedFeatureVector(float_features=src_seq),
-                tgt_out_seq=rlt.PreprocessedFeatureVector(float_features=tgt_out_seq),
+                state=rlt.FeatureData(float_features=state),
+                src_seq=rlt.FeatureData(float_features=src_seq),
+                tgt_out_seq=rlt.FeatureData(float_features=tgt_out_seq),
                 src_src_mask=src_src_mask,
                 tgt_out_idx=tgt_out_idx,
             )

@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import inspect
 from typing import Any, Optional, Union
 
-import numpy as np
-import reagent.types as rlt
 import torch
-from gym import Env, spaces
+from gym import Env
 from reagent.gym.policies.policy import Policy
+from reagent.gym.preprocessors import (
+    make_default_action_extractor,
+    make_default_obs_preprocessor,
+    make_default_serving_action_extractor,
+    make_default_serving_obs_preprocessor,
+)
 from reagent.gym.types import PostStep
 
 
@@ -20,6 +25,7 @@ class Agent:
         self,
         policy: Policy,
         post_transition_callback: Optional[PostStep] = None,
+        device: Union[str, torch.device] = "cpu",
         obs_preprocessor=_id,
         action_extractor=_id,
     ):
@@ -39,6 +45,20 @@ class Agent:
         self.post_transition_callback = post_transition_callback
         self._reset_internal_states()
 
+        if isinstance(device, str):
+            device = torch.device(device)
+        self.device: torch.device = device
+
+        # check if policy.act needs possible_actions_mask (continuous policies don't)
+        sig = inspect.signature(policy.act)
+        # Assuming state is first parameter and possible_actions_mask is second
+        self.pass_in_possible_actions_mask = "possible_actions_mask" in sig.parameters
+        if not self.pass_in_possible_actions_mask and len(sig.parameters) != 1:
+            raise RuntimeError(
+                f"{sig.parameters} has length other than 1, "
+                "despite not having possible_actions_mask"
+            )
+
     def _reset_internal_states(self):
         # intermediate state between act and post_step
         self._obs: Any = None
@@ -51,57 +71,34 @@ class Agent:
         env: Env,
         policy: Policy,
         *,
-        device: Optional[Union[str, torch.device]] = None,
+        device: Union[str, torch.device] = "cpu",
         obs_preprocessor=None,
         action_extractor=None,
         **kwargs,
     ):
-        if device is not None and isinstance(device, str):
+        if isinstance(device, str):
             device = torch.device(device)
 
-        observation_space = env.observation_space
+        if obs_preprocessor is None:
+            obs_preprocessor = make_default_obs_preprocessor(env, device=device)
 
-        if obs_preprocessor is not None:
-            # Used whatever passed in, in case we want to apply normalization, etc.
-            pass
-        elif isinstance(observation_space, spaces.Box):
-
-            # Maybe we need to organize the code better here
-            def obs_preprocessor(obs: np.array) -> rlt.PreprocessedState:
-                obs_tensor = torch.tensor(obs).float().unsqueeze(0)
-                if device is not None:
-                    obs_tensor = obs_tensor.to(device)
-                return rlt.PreprocessedState.from_tensor(obs_tensor)
-
-        else:
-            raise NotImplementedError(
-                f"Unsupport observation space: {observation_space}"
-            )
-
-        action_space = env.action_space
-
-        if action_extractor is not None:
-            pass
-        elif isinstance(action_space, spaces.Discrete):
-
-            def action_extractor(actor_output: rlt.ActorOutput):
-                action = actor_output.action.squeeze(0)
-                assert action.ndim == 1
-                idx = action.argmax().numpy()
-                return idx
-
-        elif isinstance(action_space, spaces.Box):
-
-            def action_extractor(actor_output: rlt.ActorOutput):
-                action = actor_output.action.squeeze(0)
-                assert action.ndim == 1 and action.shape == action_space.shape
-                return action.numpy()
-
-        else:
-            raise NotImplementedError(f"Unsupport action space: {action_space}")
+        if action_extractor is None:
+            action_extractor = make_default_action_extractor(env)
 
         return cls(
             policy,
+            obs_preprocessor=obs_preprocessor,
+            action_extractor=action_extractor,
+            device=device,
+            **kwargs,
+        )
+
+    @classmethod
+    def create_from_serving_policy(cls, serving_policy, env: Env, **kwargs):
+        obs_preprocessor = make_default_serving_obs_preprocessor(env)
+        action_extractor = make_default_serving_action_extractor(env)
+        return cls(
+            serving_policy,
             obs_preprocessor=obs_preprocessor,
             action_extractor=action_extractor,
             **kwargs,
@@ -110,23 +107,36 @@ class Agent:
     def act(
         self, obs: Any, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> Any:
+        """ Act on a single observation """
+
+        # store intermediate obs and possible_actions_mask for post_step
+        self._obs = obs
+        self._possible_actions_mask = possible_actions_mask
+
+        # preprocess and convert to batch data
         preprocessed_obs = self.obs_preprocessor(obs)
 
-        if possible_actions_mask is not None:
-            assert possible_actions_mask.ndim() == 1
-            possible_actions_mask = possible_actions_mask.unsqueeze(0)
+        # optionally feed possible_actions_mask
+        if self.pass_in_possible_actions_mask:
+            # if possible_actions_mask is given, convert to batch of one
+            # NOTE: it's still possible that possible_actions_mask is None
+            if possible_actions_mask is not None:
+                # pyre-fixme[16]: `Tensor` has no attribute `ndim`.
+                assert possible_actions_mask.ndim() == 1
+                possible_actions_mask = possible_actions_mask.unsqueeze(0).to(
+                    self.device, non_blocking=True
+                )
+            actor_output = self.policy.act(preprocessed_obs, possible_actions_mask)
+        else:
+            assert possible_actions_mask is None
+            actor_output = self.policy.act(preprocessed_obs)
 
-        actor_output = self.policy.act(preprocessed_obs, possible_actions_mask)
-
-        # store intermediate states for post_step
-        self._obs = obs
+        # store intermediate actor output for post_step
+        # NOTE: it is critical we store the actor output and not the
+        # action taken by the environment, which may be normalized or processed.
+        # E.g. SAC requires input actions to be scaled (-1, 1).
+        # E.g. DiscreteDQN expects one-hot encoded
         self._actor_output = actor_output.squeeze(0)
-        self._possible_actions_mask = (
-            possible_actions_mask.squeeze(0)
-            if possible_actions_mask is not None
-            else None
-        )
-
         return self.action_extractor(actor_output)
 
     def post_step(self, reward: float, terminal: bool):
@@ -134,6 +144,9 @@ class Agent:
         assert self._obs is not None
         assert self._actor_output is not None
         if self.post_transition_callback is not None:
+            # pyre-fixme[29]: `Optional[typing.Callable[[typing.Any,
+            #  reagent.types.ActorOutput, float, bool, Optional[torch.Tensor]], None]]`
+            #  is not a function.
             self.post_transition_callback(
                 self._obs,
                 self._actor_output,

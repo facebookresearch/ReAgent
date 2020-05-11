@@ -4,16 +4,24 @@
 
 set -ex
 
-chmod +x ./reagent/workflow/cli.py
+if [[ -z "${CONFIG}" ]]
+then
+    echo "Config path is not defined!"
+    exit 1
+else
+    echo "Using config path: "
+    echo "$CONFIG"
+fi
 
-# gather data and upload to hive
-./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
-./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.upload_to_hive reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
+
+# gather data and store as pickle
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym "$CONFIG"
 
 # run through timeline operator
-./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator "$CONFIG"
 
 # train and evaluate
-./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym reagent/workflow/sample_configs/cartpole_discrete_dqn_offline.yaml
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym "$CONFIG"
 
-echo "End-to-end test passed!"
+echo "End-to-end test passed for config: "
+echo "$CONFIG"

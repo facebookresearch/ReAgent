@@ -2,26 +2,28 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import math
+from typing import List, Optional
 
 import torch
-import torch.nn as nn
 from reagent import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.tensorboardX import SummaryWriterContext
-from torch.distributions import Dirichlet  # type: ignore
+from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 
 
 class FullyConnectedActor(ModelBase):
     def __init__(
         self,
-        state_dim,
-        action_dim,
-        sizes,
-        activations,
-        use_batch_norm=False,
-        action_activation="tanh",
+        state_dim: int,
+        action_dim: int,
+        sizes: List[int],
+        activations: List[str],
+        use_batch_norm: bool = False,
+        action_activation: str = "tanh",
+        exploration_variance: Optional[float] = None,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -40,24 +42,50 @@ class FullyConnectedActor(ModelBase):
             use_batch_norm=use_batch_norm,
         )
 
-    def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        # Gaussian noise for exploration.
+        self.exploration_variance = exploration_variance
+        if exploration_variance is not None:
+            assert exploration_variance > 0
+            loc = torch.zeros(action_dim).float()
+            scale = torch.ones(action_dim).float() * exploration_variance
+            self.noise_dist = Normal(loc=loc, scale=scale)
 
-    def forward(self, input):
-        action = self.fc(input.state.float_features)
-        return rlt.ActorOutput(action=action)
+    def input_prototype(self):
+        return rlt.FeatureData(torch.randn(1, self.state_dim))
+
+    def forward(self, state: rlt.FeatureData) -> rlt.ActorOutput:
+        action = self.fc(state.float_features)
+        batch_size = action.shape[0]
+        assert action.shape == (
+            batch_size,
+            self.action_dim,
+        ), f"{action.shape} != ({batch_size}, {self.action_dim})"
+
+        if self.exploration_variance is None:
+            log_prob = torch.zeros(batch_size).to(action.device).float().view(-1, 1)
+            return rlt.ActorOutput(action=action, log_prob=log_prob)
+
+        noise = self.noise_dist.sample((batch_size,))
+        # TODO: log prob is affected by clamping, how to handle that?
+        log_prob = (
+            self.noise_dist.log_prob(noise).to(action.device).sum(dim=1).view(-1, 1)
+        )
+        action = (action + noise.to(action.device)).clamp(
+            *CONTINUOUS_TRAINING_ACTION_RANGE
+        )
+        return rlt.ActorOutput(action=action, log_prob=log_prob)
 
 
 class GaussianFullyConnectedActor(ModelBase):
     def __init__(
         self,
-        state_dim,
-        action_dim,
-        sizes,
-        activations,
-        scale=0.05,
-        use_batch_norm=False,
-        use_layer_norm=False,
+        state_dim: int,
+        action_dim: int,
+        sizes: List[int],
+        activations: List[str],
+        scale: float = 0.05,
+        use_batch_norm: bool = False,
+        use_layer_norm: bool = False,
     ):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -78,8 +106,8 @@ class GaussianFullyConnectedActor(ModelBase):
         )
         self.use_layer_norm = use_layer_norm
         if self.use_layer_norm:
-            self.loc_layer_norm = nn.LayerNorm(action_dim)
-            self.scale_layer_norm = nn.LayerNorm(action_dim)
+            self.loc_layer_norm = torch.nn.LayerNorm(action_dim)
+            self.scale_layer_norm = torch.nn.LayerNorm(action_dim)
 
         # used to calculate log-prob
         self.const = math.log(math.sqrt(2 * math.pi))
@@ -87,7 +115,7 @@ class GaussianFullyConnectedActor(ModelBase):
         self._log_min_max = (-20.0, 2.0)
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return rlt.FeatureData(torch.randn(1, self.state_dim))
 
     def _log_prob(self, r, scale_log):
         """
@@ -98,8 +126,8 @@ class GaussianFullyConnectedActor(ModelBase):
         -((value - loc) ** 2) / (2 * var) - log_scale - math.log(math.sqrt(2 * math.pi))
         ```
 
-        In the context of this class, `value = loc + r * scale`. Therefore, this function
-        only takes `r` & `scale`; it can be reduced to below.
+        In the context of this class, `value = loc + r * scale`. Therefore, this
+        function only takes `r` & `scale`; it can be reduced to below.
 
         The primary reason we don't use Normal class is that it currently
         cannot be exported through ONNX.
@@ -125,13 +153,11 @@ class GaussianFullyConnectedActor(ModelBase):
         scale_log = scale_log.clamp(*self._log_min_max)
         return loc, scale_log
 
-    def forward(self, input):
-        loc, scale_log = self._get_loc_and_scale_log(input.state)
+    def forward(self, state: rlt.FeatureData):
+        loc, scale_log = self._get_loc_and_scale_log(state)
         r = torch.randn_like(scale_log, device=scale_log.device)
         action = torch.tanh(loc + r * scale_log.exp())
-        if not self.training:
-            # ONNX doesn't like reshape either..
-            return rlt.ActorOutput(action=action)
+
         # Since each dim are independent, log-prob is simply sum
         log_prob = self._log_prob(r, scale_log)
         squash_correction = self._squash_correction(action)
@@ -158,7 +184,7 @@ class GaussianFullyConnectedActor(ModelBase):
         """
         return ((1 + x).log() - (1 - x).log()) / 2
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def get_log_prob(self, state, squashed_action):
         """
         Action is expected to be squashed with tanh
@@ -216,7 +242,7 @@ class DirichletFullyConnectedActor(ModelBase):
         )
 
     def input_prototype(self):
-        return rlt.PreprocessedState.from_tensor(torch.randn(1, self.state_dim))
+        return rlt.FeatureData(torch.randn(1, self.state_dim))
 
     def _get_concentration(self, state):
         """
@@ -225,14 +251,14 @@ class DirichletFullyConnectedActor(ModelBase):
         """
         return self.fc(state.float_features).exp() + self.EPSILON
 
-    @torch.no_grad()  # type: ignore
+    @torch.no_grad()
     def get_log_prob(self, state, action):
         concentration = self._get_concentration(state)
         log_prob = Dirichlet(concentration).log_prob(action)
         return log_prob.unsqueeze(dim=1)
 
-    def forward(self, input):
-        concentration = self._get_concentration(input.state)
+    def forward(self, state):
+        concentration = self._get_concentration(state)
         if self.training:
             # PyTorch can't backwards pass _sample_dirichlet
             action = Dirichlet(concentration).rsample()
