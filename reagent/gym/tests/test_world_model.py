@@ -57,7 +57,7 @@ def create_rb(env, batch_size, seq_len, desired_size):
         return_everything_as_stack=True,
     )
     random_policy = make_random_policy_for_env(env)
-    post_step = add_replay_buffer_post_step(rb)
+    post_step = add_replay_buffer_post_step(rb, env)
     agent = Agent.create_for_env(
         env, policy=random_policy, post_transition_callback=post_step
     )
@@ -201,7 +201,7 @@ def train_mdnrnn_and_compute_feature_stats(
     )
 
     device = "cuda" if use_gpu else "cpu"
-    trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device)
+    trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device, env)
     test_replay_buffer = create_rb(
         env,
         batch_size,
@@ -285,7 +285,7 @@ def create_embed_rl_dataset(
 
     device = "cuda" if use_gpu else "cpu"
     policy = make_random_policy_for_env(embed_env)
-    post_step = add_replay_buffer_post_step(embed_rb)
+    post_step = add_replay_buffer_post_step(embed_rb, env)
     agent = Agent.create_for_env(
         env=embed_env, policy=policy, post_transition_callback=post_step, device=device
     )
@@ -337,7 +337,7 @@ def train_mdnrnn_and_train_on_embedded_env(
 
     device = "cuda" if use_gpu else "cpu"
     embedding_trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
-        embedding_trainer, device
+        embedding_trainer, device, env
     )
     if saved_mdnrnn_path is None:
         # train from scratch
@@ -384,7 +384,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     )
     device = "cuda" if use_gpu else "cpu"
     agent_trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
-        agent_trainer, device
+        agent_trainer, device, env
     )
     num_batch_per_epoch = embed_rb.size // batch_size
     for epoch in range(num_agent_train_epochs):

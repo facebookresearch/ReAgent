@@ -3,13 +3,15 @@
 
 
 import logging
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import gym
 import numpy as np
-import reagent.types as rlt
 import torch
-from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
+from reagent.gym.preprocessors import (
+    make_replay_buffer_inserter,
+    make_replay_buffer_trainer_preprocessor,
+)
 from reagent.gym.types import PostStep
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.training.rl_dataset import RLDataset
@@ -19,39 +21,34 @@ from reagent.training.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
-def add_replay_buffer_post_step(replay_buffer: ReplayBuffer):
+def add_replay_buffer_post_step(
+    replay_buffer: ReplayBuffer, env: gym.Env, replay_buffer_inserter=None
+):
     """
     Simply add transitions to replay_buffer.
     """
 
+    if replay_buffer_inserter is None:
+        replay_buffer_inserter = make_replay_buffer_inserter(env)
+
     def post_step(
-        obs: np.ndarray,
-        actor_output: rlt.ActorOutput,
-        reward: float,
-        terminal: bool,
-        possible_actions_mask: Optional[torch.Tensor],
+        obs: Any, action: Any, reward: float, terminal: bool, log_prob: float
     ) -> None:
-        action = actor_output.action.numpy()
-        # pyre-fixme[16]: `Optional` has no attribute `numpy`.
-        log_prob = actor_output.log_prob.numpy()
-        if possible_actions_mask is None:
-            possible_actions_mask = torch.ones_like(actor_output.action).to(torch.bool)
-        possible_actions_mask = possible_actions_mask.numpy()
-        replay_buffer.add(
-            obs, action, reward, terminal, possible_actions_mask, log_prob.item()
-        )
+        replay_buffer_inserter(replay_buffer, obs, action, reward, terminal, log_prob)
 
     return post_step
 
 
 def train_with_replay_buffer_post_step(
     replay_buffer: ReplayBuffer,
+    env: gym.Env,
     trainer: Trainer,
     training_freq: int,
     batch_size: int,
     replay_burnin: Optional[int] = None,
     trainer_preprocessor=None,
     device: Union[str, torch.device] = "cpu",
+    replay_buffer_inserter=None,
 ) -> PostStep:
     """ Called in post_step of agent to train based on replay buffer (RB).
         Args:
@@ -71,26 +68,19 @@ def train_with_replay_buffer_post_step(
         size_req = max(size_req, replay_burnin)
 
     if trainer_preprocessor is None:
-        trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device)
+        trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
+            trainer, device, env
+        )
+
+    if replay_buffer_inserter is None:
+        replay_buffer_inserter = make_replay_buffer_inserter(env)
 
     def post_step(
-        obs: np.ndarray,
-        actor_output: rlt.ActorOutput,
-        reward: float,
-        terminal: bool,
-        possible_actions_mask: Optional[torch.Tensor],
+        obs: Any, action: Any, reward: float, terminal: bool, log_prob: float
     ) -> None:
         nonlocal _num_steps
 
-        action = actor_output.action.numpy()
-        # pyre-fixme[16]: `Optional` has no attribute `numpy`.
-        log_prob = actor_output.log_prob.numpy()
-        if possible_actions_mask is None:
-            possible_actions_mask = torch.ones_like(actor_output.action).to(torch.bool)
-        possible_actions_mask = possible_actions_mask.numpy()
-        replay_buffer.add(
-            obs, action, reward, terminal, possible_actions_mask, log_prob.item()
-        )
+        replay_buffer_inserter(replay_buffer, obs, action, reward, terminal, log_prob)
 
         if replay_buffer.size >= size_req and _num_steps % training_freq == 0:
             train_batch = replay_buffer.sample_transition_batch_tensor(
@@ -107,44 +97,32 @@ def train_with_replay_buffer_post_step(
 def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostStep:
     sequence_number = 0
 
+    action_space = env.action_space
+    if isinstance(action_space, gym.spaces.Discrete):
+        num_actions = action_space.n
+
     def post_step(
-        obs: np.ndarray,
-        actor_output: rlt.ActorOutput,
-        reward: float,
-        terminal: bool,
-        possible_actions_mask: Optional[torch.Tensor],
+        obs: np.ndarray, action: Any, reward: float, terminal: bool, log_prob: float
     ) -> None:
         """ log data into dataset """
         nonlocal sequence_number
 
-        # actor_output = actor_output.squeeze(0)
+        possible_actions_mask = None
         if isinstance(env.action_space, gym.spaces.Discrete):
-            # TimelineOperator expects str for discrete action
-            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
-            action = str(actor_output.action.argmax().item())
-            if possible_actions_mask is None:
-                possible_actions_mask = torch.ones_like(actor_output.action).to(
-                    torch.bool
-                )
-
-            if terminal:
-                possible_actions_mask = torch.zeros_like(actor_output.action).to(
-                    torch.bool
-                )
+            action: str = str(action)
+            possible_actions_mask = torch.full((num_actions,), int(not terminal)).to(
+                torch.bool
+            )
         elif isinstance(env.action_space, gym.spaces.Box):
             # TimelineOperator expects map<long, double> for discrete action
-            assert actor_output.action.dim() == 1, f"action dim > 1 in {actor_output}"
-            action = {
-                i: actor_output.action[i].item()
-                for i in range(actor_output.action.size(0))
-            }
+            assert isinstance(action, np.ndarray)
+            assert action.ndim == 1
+            action = {i: float(v) for i, v in enumerate(action)}
         else:
             raise NotImplementedError(f"{env.action_space} not supported!")
         # TODO: make output of policy the desired type already (which means
         # altering RB logic to store scalar types) What to do about continuous?
 
-        # pyre-fixme[16]: `Optional` has no attribute `exp`.
-        action_prob = actor_output.log_prob.exp().item()
         possible_actions = None  # TODO: this shouldn't be none if env passes it
         time_diff = 1  # TODO: should this be hardcoded?
 
@@ -159,7 +137,7 @@ def log_data_post_step(dataset: RLDataset, mdp_id: str, env: gym.Env) -> PostSte
             reward=reward,
             possible_actions=possible_actions,
             time_diff=time_diff,
-            action_probability=action_prob,
+            action_probability=np.exp(log_prob),
             possible_actions_mask=possible_actions_mask,
         )
         sequence_number += 1

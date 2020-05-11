@@ -35,10 +35,6 @@ from reagent.workflow.types import (
     TableSpec,
 )
 from reagent.workflow.utils import train_and_evaluate_generic
-from reagent.workflow_utils.page_handler import (
-    EvaluationPageHandler,
-    TrainingPageHandler,
-)
 
 
 try:
@@ -71,8 +67,6 @@ class ActorPolicyWrapper(Policy):
         self.actor_network = actor_network
 
     @torch.no_grad()
-    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
-    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
     def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
         self.actor_network.eval()
         output = self.actor_network(obs)
@@ -116,7 +110,6 @@ class ActorCriticBase(ModelManager):
     @property
     def should_generate_eval_dataset(self) -> bool:
         # pyre-fixme[16]: `ActorCriticBase` has no attribute `eval_parameters`.
-        # pyre-fixme[16]: `ActorCriticBase` has no attribute `eval_parameters`.
         return self.eval_parameters.calc_cpe_in_training
 
     def create_policy(self, serving: bool) -> Policy:
@@ -130,13 +123,11 @@ class ActorCriticBase(ModelManager):
             )
         else:
             # pyre-fixme[16]: `ActorCriticBase` has no attribute `_actor_network`.
-            # pyre-fixme[16]: `ActorCriticBase` has no attribute `_actor_network`.
             return ActorPolicyWrapper(self._actor_network)
 
     @property
     def metrics_to_score(self) -> List[str]:
         assert self._reward_options is not None
-        # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
         # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
@@ -160,8 +151,6 @@ class ActorCriticBase(ModelManager):
         state_preprocessing_options = (
             # pyre-fixme[16]: `ActorCriticBase` has no attribute
             #  `_state_preprocessing_options`.
-            # pyre-fixme[16]: `ActorCriticBase` has no attribute
-            #  `_state_preprocessing_options`.
             self._state_preprocessing_options
             or PreprocessingOptions()
         )
@@ -181,8 +170,6 @@ class ActorCriticBase(ModelManager):
         action_preprocessing_options = (
             # pyre-fixme[16]: `ActorCriticBase` has no attribute
             #  `_action_preprocessing_options`.
-            # pyre-fixme[16]: `ActorCriticBase` has no attribute
-            #  `_action_preprocessing_options`.
             self._action_preprocessing_options
             or PreprocessingOptions()
         )
@@ -191,7 +178,6 @@ class ActorCriticBase(ModelManager):
         ]
         logger.info(f"action whitelist_features: {action_features}")
 
-        # pyre-fixme[16]: `ActorCriticBase` has no attribute `actor_net_builder`.
         # pyre-fixme[16]: `ActorCriticBase` has no attribute `actor_net_builder`.
         actor_net_builder = self.actor_net_builder.value
         action_feature_override = actor_net_builder.default_action_preprocessing
@@ -277,12 +263,10 @@ class ActorCriticBase(ModelManager):
         evaluator = Evaluator(
             action_names=None,
             # pyre-fixme[16]: `ActorCriticBase` has no attribute `rl_parameters`.
-            # pyre-fixme[16]: `ActorCriticBase` has no attribute `rl_parameters`.
             gamma=self.rl_parameters.gamma,
             model=self.trainer,
             metrics_to_score=self.metrics_to_score,
         )
-        # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
         evaluator.add_observer(reporter)
 
@@ -298,7 +282,6 @@ class ActorCriticBase(ModelManager):
             evaluator=evaluator,
             reader_options=self.reader_options,
         )
-        # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         training_report = RLTrainingReport.make_union_instance(
             reporter.generate_training_report()

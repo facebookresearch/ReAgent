@@ -231,7 +231,6 @@ class ReplayBuffer(object):
         replay_memory_size: int,
         batch_size: int,
         stack_size: int = 1,
-        store_possible_actions_mask: bool = True,
         store_log_prob: bool = True,
         **kwargs,
     ):
@@ -263,17 +262,11 @@ class ReplayBuffer(object):
             action_dtype = action_space.dtype
             action_shape = action_space.shape
         elif isinstance(action_space, spaces.Discrete):
-            # TODO: don't store one-hot encoded actions in RB.
             action_dtype = action_space.dtype
-            action_shape = (action_space.n,)
+            action_shape = ()
         else:
             raise NotImplementedError(
                 f"env.action_space {type(env.action_space)} not supported."
-            )
-
-        if store_possible_actions_mask:
-            extra_storage_types.append(
-                ReplayElement("possible_actions_mask", action_shape, np.int64)
             )
 
         if store_log_prob:

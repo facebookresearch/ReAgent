@@ -27,22 +27,13 @@ class SoftmaxActionSampler(Sampler):
         self.key = "probs" if probs else "logits"
 
     @torch.no_grad()
-    # pyre-fixme[14]: `sample_action` overrides method defined in `Sampler`
-    #  inconsistently.
-    def sample_action(
-        self, scores: torch.Tensor, possible_actions_mask: Optional[torch.Tensor] = None
-    ) -> rlt.ActorOutput:
+    def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
         assert scores.dim() == 2, (
             "scores dim is %d" % scores.dim()
         )  # batch_size x num_actions
         _, num_actions = scores.shape
         f = F.log_softmax if self.key == "logits" else F.softmax
-        if possible_actions_mask is not None:
-            assert possible_actions_mask.dim() == 2  # batch_size x num_actions
-            mod_scores = f(scores + torch.log(possible_actions_mask))
-        else:
-            mod_scores = scores
-        m = torch.distributions.Categorical(**{self.key: mod_scores / self.temperature})
+        m = torch.distributions.Categorical(**{self.key: scores / self.temperature})
         raw_action = m.sample()
         assert raw_action.ndim == 1
         action = F.one_hot(raw_action, num_actions)
@@ -66,24 +57,13 @@ class GreedyActionSampler(Sampler):
     """
 
     @torch.no_grad()
-    # pyre-fixme[14]: `sample_action` overrides method defined in `Sampler`
-    #  inconsistently.
-    def sample_action(
-        self, scores: torch.Tensor, possible_actions_mask: Optional[torch.Tensor] = None
-    ) -> rlt.ActorOutput:
+    def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
         assert scores.dim() == 2, (
             "scores dim is %d" % scores.dim()
         )  # batch_size x num_actions
         batch_size, num_actions = scores.shape
-        if possible_actions_mask is not None:
-            assert scores.shape == possible_actions_mask.shape
-            mod_scores = scores.clone().float()
-            # pyre-fixme[16]: `BoolTensor` has no attribute `__invert__`.
-            mod_scores[~(possible_actions_mask.bool())] = -float("inf")
-        else:
-            mod_scores = scores
         # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
-        raw_action = mod_scores.argmax(dim=1)
+        raw_action = scores.argmax(dim=1)
         assert raw_action.ndim == 1
         action = F.one_hot(raw_action, num_actions)
         assert action.shape == (batch_size, num_actions)
@@ -121,28 +101,17 @@ class EpsilonGreedyActionSampler(Sampler):
         assert minimum_epsilon <= epsilon_decay
         self.minimum_epsilon = minimum_epsilon
 
-    # pyre-fixme[14]: `sample_action` overrides method defined in `Sampler`
-    #  inconsistently.
-    def sample_action(
-        self, scores: torch.Tensor, possible_actions_mask: Optional[torch.Tensor] = None
-    ) -> rlt.ActorOutput:
+    def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
         assert scores.dim() == 2, (
             "scores dim is %d" % scores.dim()
         )  # batch_size x num_actions
         batch_size, num_actions = scores.shape
 
-        if possible_actions_mask is None:
-            possible_actions_mask = torch.ones(num_actions)
-
         # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         argmax = F.one_hot(scores.argmax(dim=1), num_actions).bool()
 
-        p = torch.zeros_like(scores)
-        allowed_action_count = float(possible_actions_mask.sum().item())
-        mask = torch.repeat_interleave(possible_actions_mask.bool(), batch_size, axis=0)
-
-        rand_prob = self.epsilon / allowed_action_count
-        p[mask] = rand_prob
+        rand_prob = self.epsilon / num_actions
+        p = torch.full_like(rand_prob, scores)
 
         greedy_prob = 1 - self.epsilon + rand_prob
         p[argmax] = greedy_prob
