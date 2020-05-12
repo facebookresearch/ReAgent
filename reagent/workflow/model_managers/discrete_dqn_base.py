@@ -106,7 +106,7 @@ class DiscreteDQNBase(ModelManager):
 
     def _set_normalization_parameters(
         self, normalization_data_map: Dict[str, NormalizationData]
-    ):
+    ) -> None:
         """
         Set normalization parameters on current instance
         """
@@ -119,6 +119,7 @@ class DiscreteDQNBase(ModelManager):
         self.state_normalization_parameters = (
             state_norm_data.dense_normalization_parameters
         )
+        self.set_normalization_data_map(normalization_data_map)
 
     def run_feature_identification(
         self, input_table_spec: TableSpec

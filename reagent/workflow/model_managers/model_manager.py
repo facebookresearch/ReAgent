@@ -55,7 +55,6 @@ class ModelManager(metaclass=RegistryMeta):
             self._use_gpu is not None
         ), "Call initialize_trainer() to set the value first"
         # pyre-fixme[7]: Expected `bool` but got `Optional[bool]`.
-        # pyre-fixme[7]: Expected `bool` but got `Optional[bool]`.
         return self._use_gpu
 
     @property
@@ -94,8 +93,6 @@ class ModelManager(metaclass=RegistryMeta):
         ), "You need to set state_normalization_parameters before calling this"
         # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
         #  `Optional[Dict[int, NormalizationParameters]]`.
-        # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
-        #  `Optional[Dict[int, NormalizationParameters]]`.
         return self._state_normalization_parameters
 
     @state_normalization_parameters.setter
@@ -118,7 +115,6 @@ class ModelManager(metaclass=RegistryMeta):
             self._normalization_data_map is not None
         ), "self._normalization_data_map has not been set"
         assert (
-            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             key
             in self._normalization_data_map
@@ -156,7 +152,6 @@ class ModelManager(metaclass=RegistryMeta):
     def trainer(self) -> RLTrainer:
         assert self._trainer is not None, "Call initialize_trainer() first"
         # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
         return self._trainer
 
     def initialize_trainer(
@@ -179,9 +174,7 @@ class ModelManager(metaclass=RegistryMeta):
         if warmstart_path is not None:
             trainer_state = torch.load(warmstart_path)
             # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
-            # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
             self._trainer.load_state_dict(trainer_state)
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
         # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
         return self._trainer
 
