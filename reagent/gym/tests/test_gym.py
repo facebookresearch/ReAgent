@@ -4,7 +4,7 @@ import logging
 import os
 import pprint
 import unittest
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -103,6 +103,7 @@ def run_test(
     device = torch.device("cuda") if use_gpu else None
     post_step = train_with_replay_buffer_post_step(
         replay_buffer=replay_buffer,
+        env=env,
         trainer=trainer,
         training_freq=train_every_ts,
         batch_size=trainer.minibatch_size,

@@ -25,11 +25,7 @@ class CreateFromEnvTest(unittest.TestCase):
         }
         env = interest_exploration.create_environment(env_config)
         replay_buffer = ReplayBuffer.create_from_env(
-            env,
-            replay_memory_size=100,
-            batch_size=10,
-            store_possible_actions_mask=False,
-            store_log_prob=True,
+            env, replay_memory_size=100, batch_size=10, store_log_prob=True
         )
         obs = env.reset()
         observation = obs["user"]
@@ -67,11 +63,7 @@ class CreateFromEnvTest(unittest.TestCase):
         }
         env = interest_evolution.create_environment(env_config)
         replay_buffer = ReplayBuffer.create_from_env(
-            env,
-            replay_memory_size=100,
-            batch_size=10,
-            store_possible_actions_mask=False,
-            store_log_prob=True,
+            env, replay_memory_size=100, batch_size=10, store_log_prob=True
         )
         obs = env.reset()
         observation = obs["user"]

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Optional
-
 import gym
 import reagent.types as rlt
 import torch
@@ -37,18 +35,12 @@ class DiscreteRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    def act(
-        self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None
-    ) -> rlt.ActorOutput:
+    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.shape[0]
         weights = torch.ones((batch_size, self.num_actions))
-        if possible_actions_mask:
-            assert possible_actions_mask.shape == (batch_size, self.num_actions)
-            # element-wise multiplication
-            weights = weights * possible_actions_mask
 
         # sample a random action
         m = torch.distributions.Categorical(weights)
@@ -81,7 +73,6 @@ class ContinuousRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    # pyre-fixme[14]: `act` overrides method defined in `Policy` inconsistently.
     def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
         obs: torch.Tensor = obs.float_features

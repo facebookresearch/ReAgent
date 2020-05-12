@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import reagent.types as rlt
 import torch
@@ -16,9 +16,7 @@ class Sampler(ABC):
     """Given scores, select the action."""
 
     @abstractmethod
-    def sample_action(
-        self, scores: Any, possible_action_mask: Optional[Any]
-    ) -> rlt.ActorOutput:
+    def sample_action(self, scores: Any) -> rlt.ActorOutput:
         raise NotImplementedError()
 
     @abstractmethod
@@ -38,9 +36,9 @@ TrainerPreprocessor = Callable[[Any], rlt.PreprocessedTrainingBatch]
 
 
 """ Called after env.step(action)
-Args: (state, actor_output, reward, terminal, possible_actions_mask)
+Args: (state, action, reward, terminal, log_prob)
 """
-PostStep = Callable[[Any, rlt.ActorOutput, float, bool, Optional[torch.Tensor]], None]
+PostStep = Callable[[Any, Any, float, bool, float], None]
 
 
 @dataclass

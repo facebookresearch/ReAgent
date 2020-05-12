@@ -204,7 +204,7 @@ class TensorFeatureData(torch.nn.Module):
     Primarily for using in nn.Sequential
     """
 
-    def forward(self, input: torch.Tensor):
+    def forward(self, input: torch.Tensor) -> FeatureData:
         assert isinstance(input, torch.Tensor)
         return FeatureData(input)
 
@@ -231,7 +231,7 @@ class PreprocessedRankingInput(TensorDataClass):
     optim_tgt_in_seq: Optional[FeatureData] = None
     optim_tgt_out_seq: Optional[FeatureData] = None
 
-    def batch_size(self):
+    def batch_size(self) -> int:
         return self.state.float_features.size()[0]
 
     @classmethod
@@ -363,29 +363,6 @@ class DiscreteDqnInput(PreprocessedBaseInput):
     possible_next_actions_mask: torch.Tensor
     extras: ExtraData
 
-    @classmethod
-    def from_replay_buffer(cls, batch):
-        not_terminal = 1.0 - batch.terminal.float()
-        return cls(
-            state=FeatureData(float_features=batch.state),
-            action=batch.action,
-            next_state=FeatureData(float_features=batch.next_state),
-            next_action=batch.next_action,
-            possible_actions_mask=batch.possible_actions_mask,
-            possible_next_actions_mask=batch.next_possible_actions_mask,
-            reward=batch.reward,
-            not_terminal=not_terminal,
-            step=None,
-            time_diff=None,
-            extras=ExtraData(
-                mdp_id=None,
-                sequence_number=None,
-                action_probability=batch.log_prob.exp(),
-                max_num_actions=None,
-                metrics=None,
-            ),
-        )
-
 
 @dataclass
 class PreprocessedSlateFeatureVector(TensorDataClass):
@@ -467,27 +444,6 @@ class PolicyNetworkInput(PreprocessedBaseInput):
     extras: Optional[ExtraData] = None
 
     @classmethod
-    def from_replay_buffer(cls, batch):
-        not_terminal = 1.0 - batch.terminal.float()
-        return cls(
-            state=FeatureData(float_features=batch.state),
-            action=FeatureData(float_features=batch.action),
-            next_state=FeatureData(float_features=batch.next_state),
-            next_action=FeatureData(float_features=batch.next_action),
-            reward=batch.reward,
-            not_terminal=not_terminal,
-            step=None,
-            time_diff=None,
-            extras=ExtraData(
-                mdp_id=None,
-                sequence_number=None,
-                action_probability=batch.log_prob.exp(),
-                max_num_actions=None,
-                metrics=None,
-            ),
-        )
-
-    @classmethod
     def from_dict(cls, batch):
         return cls(
             state=FeatureData(float_features=batch["state_features"]),
@@ -501,45 +457,13 @@ class PolicyNetworkInput(PreprocessedBaseInput):
             extras=batch["extras"],
         )
 
-    def batch_size(self):
+    def batch_size(self) -> int:
         return self.state.float_features.shape[0]
 
 
 @dataclass
 class PreprocessedMemoryNetworkInput(PreprocessedBaseInput):
     action: torch.Tensor
-
-    @classmethod
-    def from_replay_buffer(cls, batch):
-        # RB's state is (batch_size, state_dim, stack_size) whereas
-        # we want (stack_size, batch_size, state_dim)
-        # for scalar fields like reward and terminal,
-        # RB returns (batch_size, stack_size), where as
-        # we want (stack_size, batch_size)
-        # Also convert action to float
-
-        if len(batch.state.shape) == 2:
-            # this is stack_size = 1 (i.e. we squeezed in RB)
-            state = batch.state.unsqueeze(2)
-            next_state = batch.next_state.unsqueeze(2)
-        else:
-            # shapes should be
-            state = batch.state
-            next_state = batch.next_state
-        # Now shapes should be (batch_size, state_dim, stack_size)
-        # Turn shapes into (stack_size, batch_size, feature_dim) where
-        # feature \in {state, action}; also, make action a float
-        permutation = [2, 0, 1]
-        not_terminal = 1.0 - batch.terminal.transpose(0, 1).float()
-        return cls(
-            state=FeatureData(state.permute(permutation)),
-            next_state=FeatureData(next_state.permute(permutation)),
-            action=batch.action.permute(permutation).float(),
-            reward=batch.reward.transpose(0, 1),
-            not_terminal=not_terminal,
-            step=None,
-            time_diff=None,
-        )
 
 
 @dataclass
