@@ -13,11 +13,13 @@ from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.runners.gymrunner import run_episode
-from reagent.gym.tests.utils import build_normalizer
+from reagent.gym.tests.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
+from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
+from torch.utils.tensorboard import SummaryWriter
 
 
 # for seeding the environment
@@ -34,6 +36,8 @@ unit tests which are run many times.
 """
 GYM_TESTS = [
     ("Discrete DQN Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
+    ("Discrete C51 Cartpole", "configs/cartpole/discrete_c51_cartpole_online.yaml"),
+    ("Discrete QR Cartpole", "configs/cartpole/discrete_qr_cartpole_online.yaml"),
     (
         "Discrete DQN Open Gridworld",
         "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
@@ -93,6 +97,7 @@ def run_test(
         reward_options=RewardOptions(),
         normalization_data_map=normalization,
     )
+    training_policy = manager.create_policy(serving=False)
 
     replay_buffer = ReplayBuffer.create_from_env(
         env=env,
@@ -101,26 +106,32 @@ def run_test(
     )
 
     device = torch.device("cuda") if use_gpu else None
+    # first fill the replay buffer to burn_in
+    train_after_ts = max(train_after_ts, trainer.minibatch_size)
+    fill_replay_buffer(
+        env=env, replay_buffer=replay_buffer, desired_size=train_after_ts
+    )
+
     post_step = train_with_replay_buffer_post_step(
         replay_buffer=replay_buffer,
         env=env,
         trainer=trainer,
         training_freq=train_every_ts,
         batch_size=trainer.minibatch_size,
-        replay_burnin=train_after_ts,
         device=device,
     )
 
-    training_policy = manager.create_policy(serving=False)
     agent = Agent.create_for_env(
         env, policy=training_policy, post_transition_callback=post_step, device=device
     )
 
-    train_rewards = []
-    for i in range(num_train_episodes):
-        ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
-        train_rewards.append(ep_reward)
-        logger.info(f"Finished training episode {i} with reward {ep_reward}.")
+    writer = SummaryWriter()
+    with summary_writer_context(writer):
+        train_rewards = []
+        for i in range(num_train_episodes):
+            ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
+            train_rewards.append(ep_reward)
+            logger.info(f"Finished training episode {i} with reward {ep_reward}.")
 
     assert train_rewards[-1] >= passing_score_bar, (
         f"reward after {len(train_rewards)} episodes is {train_rewards[-1]},"

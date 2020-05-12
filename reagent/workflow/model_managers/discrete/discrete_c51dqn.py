@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 
-import copy
 import logging
-from typing import List, Optional
 
-import torch  # @manual
-from reagent import types as rlt
+import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.categorical_dqn.categorical import Categorical
-from reagent.net_builder.categorical_dqn_net_builder import CategoricalDQNNetBuilder
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
 from reagent.parameters import param_hash
 from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
@@ -52,10 +48,15 @@ class DiscreteC51DQN(DiscreteDQNBase):
     def build_trainer(self) -> C51Trainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
-            self.state_normalization_parameters,
+            state_normalization_parameters=self.state_normalization_parameters,
             # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
             # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
-            len(self.action_names),
+            # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
+            # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `action_names`.
+            output_dim=len(self.action_names),
+            num_atoms=self.trainer_param.num_atoms,
+            qmin=self.trainer_param.qmin,
+            qmax=self.trainer_param.qmax,
         )
 
         if self.use_gpu:

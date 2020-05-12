@@ -45,7 +45,6 @@ def train_with_replay_buffer_post_step(
     trainer: Trainer,
     training_freq: int,
     batch_size: int,
-    replay_burnin: Optional[int] = None,
     trainer_preprocessor=None,
     device: Union[str, torch.device] = "cpu",
     replay_buffer_inserter=None,
@@ -56,16 +55,9 @@ def train_with_replay_buffer_post_step(
             trainer_preprocessor: format RB output for trainer.train
             training_freq: how many steps in between trains
             batch_size: how big of a batch to sample
-            replay_burnin: optional requirement for minimum size of RB before
-                training begins. (i.e. burn in this many frames)
     """
     if isinstance(device, str):
         device = torch.device(device)
-
-    _num_steps = 0
-    size_req = batch_size
-    if replay_burnin is not None:
-        size_req = max(size_req, replay_burnin)
 
     if trainer_preprocessor is None:
         trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
@@ -75,6 +67,8 @@ def train_with_replay_buffer_post_step(
     if replay_buffer_inserter is None:
         replay_buffer_inserter = make_replay_buffer_inserter(env)
 
+    _num_steps = 0
+
     def post_step(
         obs: Any, action: Any, reward: float, terminal: bool, log_prob: float
     ) -> None:
@@ -82,7 +76,8 @@ def train_with_replay_buffer_post_step(
 
         replay_buffer_inserter(replay_buffer, obs, action, reward, terminal, log_prob)
 
-        if replay_buffer.size >= size_req and _num_steps % training_freq == 0:
+        if _num_steps % training_freq == 0:
+            assert replay_buffer.size >= batch_size
             train_batch = replay_buffer.sample_transition_batch_tensor(
                 batch_size=batch_size
             )

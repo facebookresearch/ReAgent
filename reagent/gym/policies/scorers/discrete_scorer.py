@@ -13,6 +13,22 @@ def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
     def score(preprocessed_obs: rlt.FeatureData) -> torch.Tensor:
         q_network.eval()
         scores = q_network(preprocessed_obs)
+        assert scores.dim() == 2, f"{scores.shape} isn't (batchsize, num_actions)."
+        q_network.train()
+        return scores
+
+    return score
+
+
+def discrete_qrdqn_scorer(q_network: ModelBase) -> Scorer:
+    @torch.no_grad()
+    def score(preprocessed_obs: rlt.FeatureData) -> torch.Tensor:
+        q_network.eval()
+        scores = q_network(preprocessed_obs)
+        assert (
+            scores.dim() == 3
+        ), f"{scores.shape} isn't (batchsize, num_actions, num_atoms)."
+        scores = scores.mean(dim=2)
         q_network.train()
         return scores
 

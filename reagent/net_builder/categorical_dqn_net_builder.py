@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import abc
-from typing import Dict, List, Type
+from typing import Dict, List
 
 import reagent.types as rlt
 import torch
@@ -31,6 +31,9 @@ class CategoricalDQNNetBuilder(metaclass=RegistryMeta):
         self,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         output_dim: int,
+        num_atoms: int,
+        qmin: int,
+        qmax: int,
     ) -> ModelBase:
         pass
 

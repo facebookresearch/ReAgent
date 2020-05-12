@@ -24,10 +24,11 @@ class CategoricalDQN(ModelBase):
         return self.distributional_network.input_prototype()
 
     def forward(self, state: rlt.FeatureData):
-        dist = self.log_dist(state).exp()  # type: ignore
-        q_values = (dist * self.support).sum(2)
+        # pyre-fixme[16]: `Tensor` has no attribute `exp`.
+        dist = self.log_dist(state).exp()
+        q_values = (dist * self.support.to(dist.device)).sum(2)
         return q_values
 
-    def log_dist(self, state) -> torch.Tensor:
+    def log_dist(self, state: rlt.FeatureData) -> torch.Tensor:
         log_dist = self.distributional_network(state)
         return F.log_softmax(log_dist, -1)

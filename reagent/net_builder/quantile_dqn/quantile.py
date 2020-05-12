@@ -25,6 +25,8 @@ class Quantile(QRDQNNetBuilder):
             f"{self.sizes}, {self.activations}"
         )
 
+    # pyre-fixme[14]: `build_q_network` overrides method defined in
+    #  `QRDQNNetBuilder` inconsistently.
     def build_q_network(
         self,
         state_normalization_parameters: Dict[int, NormalizationParameters],

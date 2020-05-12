@@ -7,6 +7,14 @@ from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.samplers.discrete_sampler import (
+    GreedyActionSampler,
+    SoftmaxActionSampler,
+)
+from reagent.gym.policies.scorers.discrete_scorer import (
+    discrete_dqn_scorer,
+    discrete_dqn_serving_scorer,
+)
 from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
@@ -60,30 +68,17 @@ class DiscreteDQNBase(ModelManager):
     def normalization_key(cls) -> str:
         return NormalizationKey.STATE
 
-    @property
-    def should_generate_eval_dataset(self) -> bool:
-        return self.eval_parameters.calc_cpe_in_training
-
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
-
-        from reagent.gym.policies.samplers.discrete_sampler import (
-            SoftmaxActionSampler,
-            GreedyActionSampler,
-        )
-        from reagent.gym.policies.scorers.discrete_scorer import (
-            discrete_dqn_scorer,
-            discrete_dqn_serving_scorer,
-        )
-
-        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
-        sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
         if serving:
             sampler = GreedyActionSampler()
             scorer = discrete_dqn_serving_scorer(
                 DiscreteDqnPredictorUnwrapper(self.build_serving_module())
             )
         else:
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
+            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
