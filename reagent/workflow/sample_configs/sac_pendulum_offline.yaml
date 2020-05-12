@@ -74,4 +74,5 @@ publisher:
 # TODO: remove, evaluation temperature is not relevant here
 eval_temperature: 0.1
 num_eval_episodes: 30
-passing_score_bar: -750
+# TODO: raise this bar after training stabilize
+passing_score_bar: -900

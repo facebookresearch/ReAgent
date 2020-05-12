@@ -33,9 +33,9 @@ NOTE: These tests should ideally finish quickly (within 10 minutes) since they a
 unit tests which are run many times.
 """
 GYM_TESTS = [
-    ("Discrete Dqn Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
+    ("Discrete DQN Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
     (
-        "Discrete Dqn Open Gridworld",
+        "Discrete DQN Open Gridworld",
         "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
     ),
     ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),

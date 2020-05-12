@@ -57,16 +57,15 @@ class DiscreteDqnInputMaker:
 
     def __call__(self, batch):
         not_terminal = 1.0 - batch.terminal.float()
-        try:
-            action = F.one_hot(batch.action, self.num_actions).squeeze(1).float()
-            next_action = (
-                F.one_hot(batch.next_action, self.num_actions).squeeze(1).float()
-            )
-        except Exception:
-            logger.info(f"action {batch.action}")
-            logger.info(f"next_action {batch.next_action}")
-            logger.info(self.num_actions)
-            raise
+        action = F.one_hot(batch.action, self.num_actions).squeeze(1).float()
+        # next action is garbage for terminal transitions (so just zero them)
+        next_action = torch.zeros_like(action)
+        non_terminal_indices = (batch.terminal == 0).squeeze(1)
+        next_action[non_terminal_indices] = (
+            F.one_hot(batch.next_action[non_terminal_indices], self.num_actions)
+            .squeeze(1)
+            .float()
+        )
         return rlt.DiscreteDqnInput(
             state=rlt.FeatureData(float_features=batch.state),
             action=action,

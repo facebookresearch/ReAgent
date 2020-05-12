@@ -27,7 +27,7 @@ class TestPostprocessing(unittest.TestCase):
         )
         presence = torch.ones_like(x, dtype=torch.uint8)
         y = postprocessor(preprocessor(x, presence))
-        npt.assert_allclose(x, y, rtol=1e-5)
+        npt.assert_allclose(x, y, rtol=1e-4)
 
     def test_do_not_preprocess(self):
         normalization_parameters = {

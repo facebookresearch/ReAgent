@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Optional
 
 import reagent.types as rlt
 import torch
@@ -10,45 +9,49 @@ from reagent.gym.types import Sampler
 
 
 class SoftmaxActionSampler(Sampler):
-    """Softmax sampler - sample actions proportional to action probability.
-
-    The unnormalized action probabilities can be expressed directly or as logits.
-    Use the default logits if the scores can be negative.
+    """
+    Softmax sampler.
+    Equation: http://incompleteideas.net/book/first/ebook/node17.html
+    The action scores are logits.
 
     Args:
-        temperature: Float [default: 1.0] The higher the temperature,
-         the more the sampling looks uniform
-        probs: bool [default: False] If selected, scores are interpreted
-         to be (unnormalized) probabilities instead of logits
+        temperature: A measure of how uniformly random the distribution looks.
+            The higher the temperature, the more uniform the sampling.
     """
 
-    def __init__(self, temperature: float = 1.0, probs: bool = False):
+    def __init__(self, temperature: float = 1.0):
+        assert temperature > 0, f"Invalid non-positive temperature {temperature}."
         self.temperature = temperature
-        self.key = "probs" if probs else "logits"
+
+    def _get_distribution(
+        self, scores: torch.Tensor
+    ) -> torch.distributions.Categorical:
+        return torch.distributions.Categorical(logits=scores / self.temperature)
 
     @torch.no_grad()
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
-        assert scores.dim() == 2, (
-            "scores dim is %d" % scores.dim()
-        )  # batch_size x num_actions
-        _, num_actions = scores.shape
-        f = F.log_softmax if self.key == "logits" else F.softmax
-        m = torch.distributions.Categorical(**{self.key: scores / self.temperature})
+        assert (
+            scores.dim() == 2
+        ), f"scores shape is {scores.shape}, not (batch_size, num_actions)"
+        batch_size, num_actions = scores.shape
+        m = self._get_distribution(scores)
         raw_action = m.sample()
-        assert raw_action.ndim == 1
+        assert raw_action.shape == (
+            batch_size,
+        ), f"{raw_action.shape} != ({batch_size}, )"
         action = F.one_hot(raw_action, num_actions)
         assert action.ndim == 2
-        log_prob = m.log_prob(raw_action).float()
+        log_prob = m.log_prob(raw_action)
         assert log_prob.ndim == 1
         return rlt.ActorOutput(action=action, log_prob=log_prob)
 
     @torch.no_grad()
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
-        # pyre-fixme[16]: `Tensor` has no attribute `ndim`.
-        assert scores.ndim == 2
-        m = torch.distributions.Categorical(**{self.key: scores / self.temperature})
+        assert len(scores.shape) == 2, f"{scores.shape}"
+        assert scores.shape == action.shape, f"{scores.shape} != {action.shape}"
+        m = self._get_distribution(scores)
         # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
-        return m.log_prob(action.argmax(dim=-1)).float()
+        return m.log_prob(action.argmax(dim=1))
 
 
 class GreedyActionSampler(Sampler):
@@ -56,25 +59,27 @@ class GreedyActionSampler(Sampler):
     Return the highest scoring action.
     """
 
+    def _get_greedy_indices(self, scores: torch.Tensor) -> torch.Tensor:
+        assert (
+            len(scores.shape) == 2
+        ), f"scores shape is {scores.shape}, not (batchsize, num_actions)"
+        # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
+        return scores.argmax(dim=1)
+
     @torch.no_grad()
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
-        assert scores.dim() == 2, (
-            "scores dim is %d" % scores.dim()
-        )  # batch_size x num_actions
+
         batch_size, num_actions = scores.shape
-        # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
-        raw_action = scores.argmax(dim=1)
-        assert raw_action.ndim == 1
+        raw_action = self._get_greedy_indices(scores)
         action = F.one_hot(raw_action, num_actions)
         assert action.shape == (batch_size, num_actions)
-        log_prob = torch.ones(batch_size, device=scores.device)
-        return rlt.ActorOutput(action=action, log_prob=log_prob)
+        return rlt.ActorOutput(action=action, log_prob=torch.ones_like(raw_action))
 
     @torch.no_grad()
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+        greedy_indices = self._get_greedy_indices(scores)
         # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
-        max_index = scores.argmax(-1)
-        match = max_index == action.argmax(-1)
+        match = greedy_indices == action.argmax(-1)
         lp = torch.zeros(scores.shape[0]).float()
         lp[match] = -float("inf")
         return lp
