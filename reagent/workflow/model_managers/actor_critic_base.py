@@ -287,5 +287,4 @@ class ActorCriticBase(ModelManager):
             reporter.generate_training_report()
         )
 
-        # TODO: save actor/critic weights
         return RLTrainingOutput(training_report=training_report)

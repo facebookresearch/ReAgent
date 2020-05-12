@@ -16,9 +16,6 @@ class Categorical(CategoricalDQNNetBuilder):
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
-    num_atoms: int = 51
-    qmin: int = -100
-    qmax: int = 200
 
     def __post_init_post_parse__(self):
         super().__init__()
@@ -31,20 +28,20 @@ class Categorical(CategoricalDQNNetBuilder):
         self,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         output_dim: int,
+        num_atoms: int,
+        qmin: int,
+        qmax: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
         distributional_network = FullyConnectedDQN(
             state_dim=state_dim,
             action_dim=output_dim,
-            num_atoms=self.num_atoms,
+            num_atoms=num_atoms,
             sizes=self.sizes,
             activations=self.activations,
             use_batch_norm=False,
             dropout_ratio=0.0,
         )
         return CategoricalDQN(
-            distributional_network,
-            qmin=self.qmin,
-            qmax=self.qmax,
-            num_atoms=self.num_atoms,
+            distributional_network, qmin=qmin, qmax=qmax, num_atoms=num_atoms
         )

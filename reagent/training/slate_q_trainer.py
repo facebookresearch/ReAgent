@@ -80,6 +80,7 @@ class SlateQTrainer(DQNTrainerBase):
 
     @torch.no_grad()
     # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.PreprocessedSlateQInput):
         assert isinstance(
             training_batch, rlt.PreprocessedSlateQInput

@@ -99,6 +99,7 @@ class C51Trainer(RLTrainer):
         self.support = torch.linspace(
             self.qmin, self.qmax, self.num_atoms, device=self.device
         )
+        self.scale_support = (self.qmax - self.qmin) / (self.num_atoms - 1.0)
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
         if parameters.rl.reward_boost is not None:
@@ -110,7 +111,7 @@ class C51Trainer(RLTrainer):
 
     @torch.no_grad()
     # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
-    def train(self, training_batch: rlt.DiscreteDqnInput):
+    def train(self, training_batch: rlt.DiscreteDqnInput) -> None:
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
 
@@ -120,7 +121,7 @@ class C51Trainer(RLTrainer):
         possible_actions_mask = training_batch.possible_actions_mask.float()
 
         self.minibatch += 1
-        not_done_mask = training_batch.not_terminal.float()
+        not_terminal = training_batch.not_terminal.float()
 
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None
@@ -149,36 +150,37 @@ class C51Trainer(RLTrainer):
             next_dist = (next_dist * training_batch.next_action.unsqueeze(-1)).sum(1)
 
         # Build target distribution
-        target_Q = rewards + discount_tensor * not_done_mask * self.support
-
-        # Project target distribution back onto support
-        # remove support outliers
+        target_Q = rewards + discount_tensor * not_terminal * self.support
         target_Q = target_Q.clamp(self.qmin, self.qmax)
-        # rescale to indicies
-        b = (target_Q - self.qmin) / (self.qmax - self.qmin) * (self.num_atoms - 1.0)
+
+        # rescale to indicies [0, 1, ..., N-1]
+        b = (target_Q - self.qmin) / self.scale_support
         # pyre-fixme[16]: `Tensor` has no attribute `floor`.
-        lower = b.floor()
+        lo = b.floor().to(torch.int64)
         # pyre-fixme[16]: `Tensor` has no attribute `ceil`.
-        upper = b.ceil()
+        up = b.ceil().to(torch.int64)
 
-        # Since index_add_ doesn't work with multiple dimensions
-        # we operate on the flattened tensors
-        offset = self.num_atoms * torch.arange(
-            rewards.shape[0], device=self.device, dtype=torch.long
-        ).reshape(-1, 1).repeat(1, self.num_atoms)
+        # handle corner cases of l == b == u
+        # without the following, it would give 0 signal, whereas we want
+        # m to add p(s_t+n, a*) to index l == b == u.
+        # So we artificially adjust l and u.
+        # (1) If 0 < l == u < N-1, we make l = l-1, so b-l = 1
+        # (2) If 0 == l == u, we make u = 1, so u-b=1
+        # (3) If l == u == N-1, we make l = N-2, so b-1 = 1
+        # This first line handles (1) and (3).
+        lo[(up > 0) * (lo == up)] -= 1
+        # Note: l has already changed, so the only way l == u is possible is
+        # if u == 0, in which case we let u = 1
+        # I don't even think we need the first condition in the next line
+        up[(lo < (self.num_atoms - 1)) * (lo == up)] += 1
 
+        # distribute the probabilities
+        # m_l = m_l + p(s_t+n, a*)(u - b)
+        # m_u = m_u + p(s_t+n, a*)(b - l)
         m = torch.zeros_like(next_dist)
-        # pyre-fixme[16]: `Tensor` has no attribute `index_add_`.
-        m.reshape(-1).index_add_(
-            0,
-            (lower.long() + offset).reshape(-1),
-            (next_dist * (upper - b)).reshape(-1),
-        )
-        m.reshape(-1).index_add_(
-            0,
-            (upper.long() + offset).reshape(-1),
-            (next_dist * (b - lower)).reshape(-1),
-        )
+        # pyre-fixme[16]: `Tensor` has no attribute `scatter_add_`.
+        m.scatter_add_(dim=1, index=lo, src=next_dist * (up.float() - b))
+        m.scatter_add_(dim=1, index=up, src=next_dist * (b - lo.float()))
 
         with torch.enable_grad():
             log_dist = self.q_network.log_dist(training_batch.state)

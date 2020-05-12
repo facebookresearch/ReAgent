@@ -16,7 +16,6 @@ class Quantile(QRDQNNetBuilder):
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     dropout_ratio: float = 0.0
-    num_atoms: int = 51
 
     def __post_init_post_parse__(self):
         super().__init__()
@@ -29,13 +28,14 @@ class Quantile(QRDQNNetBuilder):
         self,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         output_dim: int,
+        num_atoms: int,
     ) -> ModelBase:
         state_dim = self._get_input_dim(state_normalization_parameters)
         return FullyConnectedDQN(
             state_dim=state_dim,
             action_dim=output_dim,
             sizes=self.sizes,
-            num_atoms=self.num_atoms,
+            num_atoms=num_atoms,
             activations=self.activations,
             dropout_ratio=self.dropout_ratio,
         )

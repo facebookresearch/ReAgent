@@ -11,6 +11,7 @@ from reagent.tensorboardX import SummaryWriterContext
 def run_episode(env: Env, agent: Agent, max_steps: Optional[int] = None) -> float:
     """
     Return sum of rewards from episode.
+    After max_steps (if specified), the environment is assumed to be terminal.
     """
     ep_reward = 0.0
     obs = env.reset()

@@ -37,6 +37,7 @@ class QRDQNNetBuilder(metaclass=RegistryMeta):
         self,
         state_normalization_parameters: Dict[int, NormalizationParameters],
         output_dim: int,
+        num_atoms: int,
     ) -> ModelBase:
         pass
 

@@ -2,8 +2,17 @@
 
 import logging
 
-import torch  # @manual
+import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.samplers.discrete_sampler import (
+    GreedyActionSampler,
+    SoftmaxActionSampler,
+)
+from reagent.gym.policies.scorers.discrete_scorer import (
+    discrete_dqn_serving_scorer,
+    discrete_qrdqn_scorer,
+)
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
 from reagent.net_builder.unions import (
@@ -14,6 +23,14 @@ from reagent.parameters import param_hash
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.qrdqn_trainer import QRDQNTrainer, QRDQNTrainerParameters
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
+
+
+try:
+    from reagent.fb.prediction.fb_predictor_wrapper import (
+        FbDiscreteDqnPredictorUnwrapper as DiscreteDqnPredictorUnwrapper,
+    )
+except ImportError:
+    from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorUnwrapper
 
 
 logger = logging.getLogger(__name__)
@@ -49,12 +66,26 @@ class DiscreteQRDQN(DiscreteDQNBase):
             self.trainer_param.minibatch_size % 8 == 0
         ), "The minibatch size must be divisible by 8 for performance reasons."
 
+    def create_policy(self, serving: bool) -> Policy:
+        if serving:
+            sampler = GreedyActionSampler()
+            scorer = discrete_dqn_serving_scorer(
+                DiscreteDqnPredictorUnwrapper(self.build_serving_module())
+            )
+        else:
+            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `rl_parameters`.
+            sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
+            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
+            scorer = discrete_qrdqn_scorer(self.trainer.q_network)
+        return Policy(scorer=scorer, sampler=sampler)
+
     def build_trainer(self) -> QRDQNTrainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
             self.state_normalization_parameters,
             # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             len(self.action_names),
+            num_atoms=self.trainer_param.num_atoms,
         )
 
         if self.use_gpu:

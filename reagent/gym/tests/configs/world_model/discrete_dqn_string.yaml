@@ -1,4 +1,4 @@
-env: StringGame-v0
+env_name: StringGame-v0
 
 # for training embedding model
 embedding_model:
@@ -13,12 +13,12 @@ embedding_model:
       num_gaussians: 1
 seq_len: 3
 batch_size: 1024
-num_embedding_train_episodes: 4000
+num_embedding_train_transitions: 24000  # approx. 4000 episodes
 num_embedding_train_epochs: 15
 saved_mdnrnn_path: null
 
 # for training agent
-num_state_embed_episodes: 1000
+num_state_embed_transitions: 6000  # approx 1000 episodes
 train_model:
   DiscreteDQN:
     trainer_param:

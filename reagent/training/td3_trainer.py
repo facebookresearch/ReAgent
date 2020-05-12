@@ -99,6 +99,7 @@ class TD3Trainer(RLTrainer):
         return components
 
     # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
+    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.PolicyNetworkInput) -> None:
         """
         IMPORTANT: the input action here is assumed to be preprocessed to match the
@@ -196,7 +197,6 @@ class TD3Trainer(RLTrainer):
                 assert v.dim() == 1
                 SummaryWriterContext.add_histogram(k, v.numpy())
                 SummaryWriterContext.add_scalar(f"{k}_mean", v.mean().item())
-            SummaryWriterContext.increase_global_step()
 
         self.loss_reporter.report(
             td_loss=float(q1_loss),

@@ -3,7 +3,7 @@
 import logging
 import os
 import unittest
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import gym
 import numpy as np
@@ -14,13 +14,11 @@ from reagent.evaluation.world_model_evaluator import (
     FeatureSensitivityEvaluator,
 )
 from reagent.gym.agents.agent import Agent
-from reagent.gym.agents.post_step import add_replay_buffer_post_step
 from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.envs.pomdp.state_embed_env import StateEmbedEnvironment
-from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import run_episode
-from reagent.gym.tests.utils import build_normalizer
+from reagent.gym.tests.utils import build_normalizer, fill_replay_buffer
 from reagent.models.world_model import MemoryNetwork
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
@@ -45,25 +43,6 @@ def print_mdnrnn_losses(epoch, batch_num, losses):
         f"loss={losses['loss']}, bce={losses['bce']},"
         f"gmm={losses['gmm']}, mse={losses['mse']} \n"
     )
-
-
-def create_rb(env, batch_size, seq_len, desired_size):
-    rb = ReplayBuffer.create_from_env(
-        env=env,
-        replay_memory_size=desired_size,
-        batch_size=batch_size,
-        stack_size=seq_len,
-        # we want sequence of actions too for WorldModel
-        return_everything_as_stack=True,
-    )
-    random_policy = make_random_policy_for_env(env)
-    post_step = add_replay_buffer_post_step(rb, env)
-    agent = Agent.create_for_env(
-        env, policy=random_policy, post_transition_callback=post_step
-    )
-    while not rb.is_full():
-        run_episode(env, agent)
-    return rb
 
 
 def calculate_feature_importance(
@@ -138,20 +117,21 @@ def train_mdnrnn(
     env: gym.Env,
     trainer: MDNRNNTrainer,
     trainer_preprocessor,
-    num_train_episodes: int,
+    num_train_transitions: int,
     seq_len: int,
     batch_size: int,
     num_train_epochs: int,
     # for optional validation
     test_replay_buffer=None,
 ):
-    train_replay_buffer = create_rb(
-        env,
-        batch_size,
-        seq_len,
-        # pyre-fixme[16]: `Env` has no attribute `_max_episode_steps`.
-        num_train_episodes * env._max_episode_steps,
+    train_replay_buffer = ReplayBuffer.create_from_env(
+        env=env,
+        replay_memory_size=num_train_transitions,
+        batch_size=batch_size,
+        stack_size=seq_len,
+        return_everything_as_stack=True,
     )
+    fill_replay_buffer(env, train_replay_buffer, num_train_transitions)
     num_batch_per_epoch = train_replay_buffer.size // batch_size
     logger.info("Made RBs, starting to train now!")
     for epoch in range(num_train_epochs):
@@ -178,19 +158,18 @@ def train_mdnrnn(
 
 
 def train_mdnrnn_and_compute_feature_stats(
-    env: str,
+    env_name: str,
     model: ModelManager__Union,
-    num_train_episodes: int,
-    num_test_episodes: int,
+    num_train_transitions: int,
+    num_test_transitions: int,
     seq_len: int,
     batch_size: int,
     num_train_epochs: int,
     use_gpu: bool,
-    # pyre-fixme[9]: saved_mdnrnn_path has type `str`; used as `None`.
-    saved_mdnrnn_path: str = None,
+    saved_mdnrnn_path: Optional[str] = None,
 ):
     """ Train MDNRNN Memory Network and compute feature importance/sensitivity. """
-    env: gym.Env = EnvFactory.make(env)
+    env: gym.Env = EnvFactory.make(env_name)
     env.seed(SEED)
 
     manager = model.value
@@ -202,13 +181,14 @@ def train_mdnrnn_and_compute_feature_stats(
 
     device = "cuda" if use_gpu else "cpu"
     trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device, env)
-    test_replay_buffer = create_rb(
-        env,
-        batch_size,
-        seq_len,
-        # pyre-fixme[16]: `Env` has no attribute `_max_episode_steps`.
-        num_test_episodes * env._max_episode_steps,
+    test_replay_buffer = ReplayBuffer.create_from_env(
+        env=env,
+        replay_memory_size=num_test_transitions,
+        batch_size=batch_size,
+        stack_size=seq_len,
+        return_everything_as_stack=True,
     )
+    fill_replay_buffer(env, test_replay_buffer, num_test_transitions)
 
     if saved_mdnrnn_path is None:
         # train from scratch
@@ -216,7 +196,7 @@ def train_mdnrnn_and_compute_feature_stats(
             env=env,
             trainer=trainer,
             trainer_preprocessor=trainer_preprocessor,
-            num_train_episodes=num_train_episodes,
+            num_train_transitions=num_train_transitions,
             seq_len=seq_len,
             batch_size=batch_size,
             num_train_epochs=num_train_epochs,
@@ -253,7 +233,7 @@ def train_mdnrnn_and_compute_feature_stats(
 def create_embed_rl_dataset(
     env: gym.Env,
     memory_network: MemoryNetwork,
-    num_state_embed_episodes: int,
+    num_state_embed_transitions: int,
     batch_size: int,
     seq_len: int,
     hidden_dim: int,
@@ -273,30 +253,18 @@ def create_embed_rl_dataset(
     )
     # now create a filled replay buffer of embeddings
     # new obs shape dim = state_dim + hidden_dim
-    # pyre-fixme[16]: `Env` has no attribute `_max_episode_steps`.
-    embed_rb_capacity = num_state_embed_episodes * env._max_episode_steps
-
     embed_rb = ReplayBuffer.create_from_env(
         env=embed_env,
-        replay_memory_size=embed_rb_capacity,
+        replay_memory_size=num_state_embed_transitions,
         batch_size=batch_size,
         stack_size=1,
     )
-
-    device = "cuda" if use_gpu else "cpu"
-    policy = make_random_policy_for_env(embed_env)
-    post_step = add_replay_buffer_post_step(embed_rb, env)
-    agent = Agent.create_for_env(
-        env=embed_env, policy=policy, post_transition_callback=post_step, device=device
+    fill_replay_buffer(
+        env=embed_env, replay_buffer=embed_rb, desired_size=num_state_embed_transitions
     )
-
-    # only an approximation, since episodes may not run to max steps
-    with tqdm(total=num_state_embed_episodes, desc="approx filling embed_rb") as pbar:
-        while not embed_rb.is_full():
-            run_episode(env=embed_env, agent=agent)
-            pbar.update()
-
-    batch = embed_rb.sample_transition_batch_tensor(batch_size=embed_rb_capacity)
+    batch = embed_rb.sample_transition_batch_tensor(
+        batch_size=num_state_embed_transitions
+    )
     state_min = min(batch.state.min(), batch.next_state.min()).item()
     state_max = max(batch.state.max(), batch.next_state.max()).item()
     logger.info(
@@ -307,14 +275,14 @@ def create_embed_rl_dataset(
 
 
 def train_mdnrnn_and_train_on_embedded_env(
-    env: str,
+    env_name: str,
     embedding_model: ModelManager__Union,
-    num_embedding_train_episodes: int,
+    num_embedding_train_transitions: int,
     seq_len: int,
     batch_size: int,
     num_embedding_train_epochs: int,
     train_model: ModelManager__Union,
-    num_state_embed_episodes: int,
+    num_state_embed_transitions: int,
     num_agent_train_epochs: int,
     num_agent_eval_epochs: int,
     use_gpu: bool,
@@ -323,9 +291,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     saved_mdnrnn_path: str = None,
 ):
     """ Train an agent on embedded states by the MDNRNN. """
-    # pyre-fixme[9]: env has type `str`; used as `Env`.
-    env = EnvFactory.make(env)
-    # pyre-fixme[16]: `str` has no attribute `seed`.
+    env = EnvFactory.make(env_name)
     env.seed(SEED)
 
     embedding_manager = embedding_model.value
@@ -342,11 +308,10 @@ def train_mdnrnn_and_train_on_embedded_env(
     if saved_mdnrnn_path is None:
         # train from scratch
         embedding_trainer = train_mdnrnn(
-            # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
             env=env,
             trainer=embedding_trainer,
             trainer_preprocessor=embedding_trainer_preprocessor,
-            num_train_episodes=num_embedding_train_episodes,
+            num_train_transitions=num_embedding_train_transitions,
             seq_len=seq_len,
             batch_size=batch_size,
             num_train_epochs=num_embedding_train_epochs,
@@ -359,17 +324,15 @@ def train_mdnrnn_and_train_on_embedded_env(
 
     # create embedding dataset
     embed_rb, state_min, state_max = create_embed_rl_dataset(
-        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         env=env,
         memory_network=embedding_trainer.memory_network,
-        num_state_embed_episodes=num_state_embed_episodes,
+        num_state_embed_transitions=num_state_embed_transitions,
         batch_size=batch_size,
         seq_len=seq_len,
         hidden_dim=embedding_trainer.params.hidden_size,
         use_gpu=use_gpu,
     )
     embed_env = StateEmbedEnvironment(
-        # pyre-fixme[6]: Expected `Env` for 1st param but got `str`.
         gym_env=env,
         mdnrnn=embedding_trainer.memory_network,
         max_embed_seq_len=seq_len,

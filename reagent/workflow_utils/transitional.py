@@ -206,6 +206,7 @@ def create_parametric_dqn_trainer_from_params(
         reward_network = reward_network.get_distributed_data_parallel_model()
 
     # pyre-fixme[28]: Unexpected keyword argument `rl`.
+    # pyre-fixme[28]: Unexpected keyword argument `rl`.
     trainer_parameters = ParametricDQNTrainerParameters(
         rl=model.rl,
         double_q_learning=model.rainbow.double_q_learning,
