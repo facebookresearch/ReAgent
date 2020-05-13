@@ -312,14 +312,16 @@ class ReplayBuffer(object):
         doc_0_space = doc_obs_space["0"]
         if isinstance(doc_0_space, spaces.Dict):
             for k, v in doc_obs_space["0"].spaces.items():
-                if isinstance(v, (spaces.Discrete, spaces.Box)):
+                if isinstance(v, spaces.Discrete):
+                    shape = (num_docs,)
+                elif isinstance(v, spaces.Box):
                     shape = (num_docs, *v.shape)
-                    replay_elements.append(ReplayElement(f"doc_{k}", shape, v.dtype))
                 else:
                     raise NotImplementedError(
                         f"Doc feature {k} with the observation space of {type(v)}"
                         " is not supported"
                     )
+                replay_elements.append(ReplayElement(f"doc_{k}", shape, v.dtype))
         elif isinstance(doc_0_space, spaces.Box):
             shape = (num_docs, *doc_0_space.shape)
             replay_elements.append(ReplayElement("doc", shape, doc_0_space.dtype))
@@ -334,14 +336,16 @@ class ReplayBuffer(object):
         response_space_0 = response_space[0]
         assert isinstance(response_space_0, spaces.Dict)
         for k, v in response_space_0.spaces.items():
-            if isinstance(v, (spaces.Discrete, spaces.Box)):
+            if isinstance(v, spaces.Discrete):
+                shape = (slate_size,)
+            elif isinstance(v, spaces.Box):
                 shape = (slate_size, *v.shape)
-                replay_elements.append(ReplayElement(f"response_{k}", shape, v.dtype))
             else:
                 raise NotImplementedError(
                     f"Response {k} with the observation space of {type(v)} "
                     "is not supported"
                 )
+            replay_elements.append(ReplayElement(f"response_{k}", shape, v.dtype))
 
         return replay_elements
 
@@ -496,9 +500,8 @@ class ReplayBuffer(object):
         """
         if len(args) + len(kwargs) != len(self.get_add_args_signature()):
             raise ValueError(
-                "Add expects {} elements, received {}".format(
-                    len(self.get_add_args_signature()), len(args) + len(kwargs)
-                )
+                f"Add expects: {self.get_add_args_signature()}; "
+                f" received {args} {kwargs}"
             )
 
     def _check_add_types(self, *args, **kwargs):

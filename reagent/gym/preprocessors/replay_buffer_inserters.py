@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Tuple
 
 import gym
 import numpy as np
@@ -49,12 +49,14 @@ class RecSimReplayBufferInserter:
         self,
         *,
         num_docs: int,
+        num_responses: int,
         discrete_keys: List[str],
         box_keys: List[str],
-        response_discrete_keys: List[str],
-        response_box_keys: List[str],
+        response_discrete_keys: List[Tuple[str, int]],
+        response_box_keys: List[Tuple[str, Tuple[int]]],
     ):
         self.num_docs = num_docs
+        self.num_responses = num_responses
         self.discrete_keys = discrete_keys
         self.box_keys = box_keys
         self.response_discrete_keys = response_discrete_keys
@@ -106,18 +108,19 @@ class RecSimReplayBufferInserter:
 
         response_space = obs_space["response"][0]
         assert isinstance(response_space, gym.spaces.Dict)
-        response_box_keys: List[str] = []
-        response_discrete_keys: List[str] = []
+        response_box_keys: List[Tuple[str, Tuple[int]]] = []
+        response_discrete_keys: List[Tuple[str, int]] = []
         for k, v in response_space.spaces.items():
             if isinstance(v, gym.spaces.Discrete):
-                response_discrete_keys.append(k)
+                response_discrete_keys.append((k, v.n))
             elif isinstance(v, gym.spaces.Box):
-                response_box_keys.append(k)
+                response_box_keys.append((k, v.shape))
             else:
                 raise NotImplementedError
 
         return cls(
             num_docs=len(doc_obs_space.spaces),
+            num_responses=len(obs_space["response"]),
             discrete_keys=discrete_keys,
             box_keys=box_keys,
             response_box_keys=response_box_keys,
@@ -140,18 +143,26 @@ class RecSimReplayBufferInserter:
         if self.box_keys or self.discrete_keys:
             doc_obs = obs["doc"]
             for k in self.box_keys:
-                kwargs["doc_{k}"] = np.vstack([v[k] for v in doc_obs.values()])
+                kwargs[f"doc_{k}"] = np.stack([v[k] for v in doc_obs.values()])
             for k in self.discrete_keys:
-                kwargs["doc_{k}"] = np.array([v[k] for v in doc_obs.values()])
+                kwargs[f"doc_{k}"] = np.array([v[k] for v in doc_obs.values()])
         else:
-            kwargs["doc"] = obs["doc"]
+            kwargs["doc"] = np.stack(list(obs["doc"].values()))
 
         # Responses
 
-        for k in self.response_box_keys:
-            kwargs["response_{k}"] = np.vstack([v[k] for v in obs["response"]])
-        for k in self.response_discrete_keys:
-            kwargs["response_{k}"] = np.arrray([v[k] for v in obs["response"]])
+        response = obs["response"]
+        # We need to handle None below because the first state won't have response
+        for k, d in self.response_box_keys:
+            if response is not None:
+                kwargs[f"response_{k}"] = np.stack([v[k] for v in response])
+            else:
+                kwargs[f"response_{k}"] = np.zeros((self.num_responses, *d))
+        for k, _n in self.response_discrete_keys:
+            if response is not None:
+                kwargs[f"response_{k}"] = np.array([v[k] for v in response])
+            else:
+                kwargs[f"response_{k}"] = np.zeros((self.num_responses,))
 
         replay_buffer.add(
             observation=user,
