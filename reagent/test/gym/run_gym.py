@@ -44,7 +44,6 @@ from reagent.types import BaseDataClass
 from reagent.workflow_utils.transitional import (
     create_dqn_trainer_from_params,
     create_parametric_dqn_trainer_from_params,
-    get_cem_trainer,
 )
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
@@ -848,13 +847,10 @@ def create_trainer(params: OpenAiGymParameters, env: OpenAIGymEnvironment):
 
     elif model_type == ModelType.TD3.value:
         raise NotImplementedError("To be deleted...")
-
     elif model_type == ModelType.SOFT_ACTOR_CRITIC.value:
         raise NotImplementedError("To be deleted...")
     elif model_type == ModelType.CEM.value:
-        assert params.cem is not None
-        cem_trainer_params = params.cem._replace(rl=params.rl)
-        trainer = get_cem_trainer(env, cem_trainer_params, use_gpu)
+        raise NotImplementedError("To be deleted...")
     else:
         raise NotImplementedError("Model of type {} not supported".format(model_type))
 

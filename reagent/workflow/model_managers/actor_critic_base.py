@@ -274,6 +274,7 @@ class ActorCriticBase(ModelManager):
         train_and_evaluate_generic(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
+            # pyre-fixme[6]: Expected `RLTrainer` for 3rd param but got `Trainer`.
             trainer=self.trainer,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,

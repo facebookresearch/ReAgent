@@ -20,10 +20,11 @@ import torch.nn as nn
 from reagent import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.world_model import MemoryNetwork
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
+from reagent.training.utils import rescale_actions
 from torch.distributions.bernoulli import Bernoulli
 from torch.distributions.categorical import Categorical
 from torch.distributions.normal import Normal
-from torch.nn.parallel.distributed import DistributedDataParallel
 
 
 logger = logging.getLogger(__name__)
@@ -50,18 +51,24 @@ class CEMPlannerNetwork(nn.Module):
     ):
         """
         :param mem_net_list: A list of world models used to simulate trajectories
-        :param cem_num_iterations: The maximum number of iterations for searching the best action
-        :param cem_population_size: The number of candidate solutions to evaluate in each CEM iteration
-        :param ensemble_population_size: The number of trajectories to be sampled to evaluate a CEM solution
-        :param num_elites: The number of elites kept to refine solutions in each iteration
+        :param cem_num_iterations: The maximum number of iterations for
+            searching the best action
+        :param cem_population_size: The number of candidate solutions to
+            evaluate in each CEM iteration
+        :param ensemble_population_size: The number of trajectories to be
+            sampled to evaluate a CEM solution
+        :param num_elites: The number of elites kept to refine solutions
+            in each iteration
         :param plan_horizon_length: The number of steps to plan ahead
         :param state_dim: state dimension
         :param action_dim: action dimension
         :param discrete_action: If actions are discrete or continuous
-        :param terminal_effective: If False, planning will stop after a predicted terminal signal
+        :param terminal_effective: If False, planning will stop after a
+            predicted terminal signal
         :param gamma: The reward discount factor
         :param alpha: The CEM solution update rate
-        :param epsilon: The planning will stop early when the solution variance drops below epsilon
+        :param epsilon: The planning will stop early when the solution
+            variance drops below epsilon
         :param action_upper_bounds: Upper bound of each action dimension.
             Only effective when discrete_action=False.
         :param action_lower_bounds: Lower bound of each action dimension.
@@ -98,6 +105,8 @@ class CEMPlannerNetwork(nn.Module):
             self.action_lower_bounds = np.tile(
                 action_lower_bounds, self.plan_horizon_length
             )
+            self.orig_action_upper = action_upper_bounds
+            self.orig_action_lower = action_lower_bounds
 
     @torch.no_grad()
     def forward(self, state: rlt.FeatureData):
@@ -248,7 +257,17 @@ class CEMPlannerNetwork(nn.Module):
 
         # Pick the first action of the optimal solution
         solution = mean[: self.action_dim]
-        return torch.tensor(solution.reshape((1, -1)))
+        raw_action = solution.reshape(-1)
+        low, high = CONTINUOUS_TRAINING_ACTION_RANGE
+        # rescale to range (-1, 1) as per canonical output range of continuous agents
+        raw_action = rescale_actions(
+            raw_action,
+            new_min=low,
+            new_max=high,
+            prev_min=self.orig_action_lower,
+            prev_max=self.orig_action_upper,
+        )
+        return torch.tensor(raw_action)
 
     @torch.no_grad()
     def discrete_planning(self, state: rlt.FeatureData) -> Tuple[int, np.ndarray]:
@@ -279,36 +298,8 @@ class CEMPlannerNetwork(nn.Module):
         best_next_action_one_hot[best_next_action_idx] = 1
 
         logger.debug(
-            f"Choose action {best_next_action_idx}. Stats: {reward_tally} / {first_action_tally}"
+            f"Choose action {best_next_action_idx}."
+            f"Stats: {reward_tally} / {first_action_tally}"
             f" = {reward_tally/first_action_tally} "
         )
         return best_next_action_idx, best_next_action_one_hot
-
-
-class CEMPlanner(ModelBase):
-    def __init__(
-        self,
-        cem_planner_network: CEMPlannerNetwork,
-        plan_horizon_length: int,
-        state_dim: int,
-        action_dim: int,
-        discrete_action: bool,
-    ):
-        super().__init__()
-        self.cem_planner_network = cem_planner_network
-        self.plan_horizon_length = plan_horizon_length
-        self.state_dim = state_dim
-        self.action_dim = action_dim
-        self.discrete_action = discrete_action
-
-    def input_prototype(self):
-        return rlt.FeatureData(torch.randn(1, self.state_dim))
-
-    def forward(self, state: rlt.FeatureData):
-        output = self.cem_planner_network(state)
-        if self.discrete_action:
-            return rlt.PlanningPolicyOutput(
-                next_best_discrete_action_idx=output[0],
-                next_best_discrete_action_one_hot=output[1],
-            )
-        return rlt.PlanningPolicyOutput(next_best_continuous_action=output)

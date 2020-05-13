@@ -5,12 +5,16 @@
 
 import inspect
 import logging
+from typing import Optional
 
 import gym
+import numpy as np
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.training.trainer import Trainer
+from reagent.training.utils import rescale_actions
 
 
 logger = logging.getLogger(__name__)
@@ -88,18 +92,46 @@ class DiscreteDqnInputMaker:
 
 
 class PolicyNetworkInputMaker:
+    def __init__(self, action_low: np.ndarray, action_high: np.ndarray):
+        self.action_low = action_low
+        self.action_high = action_high
+
     @classmethod
     def create_for_env(cls, env: gym.Env):
-        return cls()
+        action_space = env.action_space
+        assert isinstance(action_space, gym.spaces.Box)
+        return cls(action_space.low, action_space.high)
 
     def __call__(self, batch):
         not_terminal = 1.0 - batch.terminal.float()
-        # TODO: We need to normalized the action in here
+        # normalize actions
+        (train_low, train_high) = CONTINUOUS_TRAINING_ACTION_RANGE
+        action = torch.tensor(
+            rescale_actions(
+                batch.action.numpy(),
+                new_min=train_low,
+                new_max=train_high,
+                prev_min=self.action_low,
+                prev_max=self.action_high,
+            )
+        )
+        # only normalize non-terminal
+        non_terminal_indices = (batch.terminal == 0).squeeze(1)
+        next_action = torch.zeros_like(action)
+        next_action[non_terminal_indices] = torch.tensor(
+            rescale_actions(
+                batch.next_action[non_terminal_indices].numpy(),
+                new_min=train_low,
+                new_max=train_high,
+                prev_min=self.action_low,
+                prev_max=self.action_high,
+            )
+        )
         return rlt.PolicyNetworkInput(
             state=rlt.FeatureData(float_features=batch.state),
-            action=rlt.FeatureData(float_features=batch.action),
+            action=rlt.FeatureData(float_features=action),
             next_state=rlt.FeatureData(float_features=batch.next_state),
-            next_action=rlt.FeatureData(float_features=batch.next_action),
+            next_action=rlt.FeatureData(float_features=next_action),
             reward=batch.reward,
             not_terminal=not_terminal,
             step=None,
@@ -114,47 +146,64 @@ class PolicyNetworkInputMaker:
         )
 
 
-class PreprocessedMemoryNetworkInputMaker:
-    def __init__(self, num_actions: int):
+class MemoryNetworkInputMaker:
+    def __init__(self, num_actions: Optional[int] = None):
         self.num_actions = num_actions
 
     @classmethod
     def create_for_env(cls, env: gym.Env):
         action_space = env.action_space
-        assert isinstance(action_space, gym.spaces.Discrete)
-        return cls(action_space.n)
+        if isinstance(action_space, gym.spaces.Discrete):
+            return cls(action_space.n)
+        elif isinstance(action_space, gym.spaces.Box):
+            return cls()
+        else:
+            raise NotImplementedError()
 
     def __call__(self, batch):
-        # RB's state is (batch_size, state_dim, stack_size) whereas
-        # we want (stack_size, batch_size, state_dim)
-        # for scalar fields like reward and terminal,
-        # RB returns (batch_size, stack_size), where as
-        # we want (stack_size, batch_size)
-        # Also convert action to float
+        action = batch.action
+        if self.num_actions is not None:
+            assert len(action.shape) == 2, f"{action.shape}"
+            # one hot makes shape (batch_size, stack_size, feature_dim)
+            action = F.one_hot(batch.action, self.num_actions).float()
+            # make shape to (batch_size, feature_dim, stack_size)
+            action = action.transpose(1, 2)
 
-        if len(batch.state.shape) == 2:
-            # this is stack_size = 1 (i.e. we squeezed in RB)
-            state = batch.state.unsqueeze(2)
-            next_state = batch.next_state.unsqueeze(2)
-        else:
-            # shapes should be
-            state = batch.state
-            next_state = batch.next_state
-        # Now shapes should be (batch_size, state_dim, stack_size)
-        # Turn shapes into (stack_size, batch_size, feature_dim) where
-        # feature \in {state, action}; also, make action a float
+        # For (1-dimensional) vector fields, RB returns (batch_size, state_dim)
+        # or (batch_size, state_dim, stack_size).
+        # We want these to all be (stack_size, batch_size, state_dim), so
+        # unsqueeze the former case; Note this only happens for stack_size = 1.
+        # Then, permute.
         permutation = [2, 0, 1]
-        not_terminal = 1.0 - batch.terminal.transpose(0, 1).float()
-        batch_action = batch.action
-        if batch_action.ndim == 3:
-            batch_action = batch_action.squeeze(1)
-        action = F.one_hot(batch_action, self.num_actions).transpose(1, 2).float()
-        return rlt.PreprocessedMemoryNetworkInput(
-            state=rlt.FeatureData(state.permute(permutation)),
-            next_state=rlt.FeatureData(next_state.permute(permutation)),
-            action=action.permute(permutation).float(),
-            reward=batch.reward.transpose(0, 1),
-            not_terminal=not_terminal,
+        vector_fields = {
+            "state": batch.state,
+            "action": action,
+            "next_state": batch.next_state,
+        }
+        for name, tensor in vector_fields.items():
+            if len(tensor.shape) == 2:
+                tensor = tensor.unsqueeze(2)
+            assert len(tensor.shape) == 3, f"{name} has shape {tensor.shape}"
+            vector_fields[name] = tensor.permute(permutation)
+
+        # For scalar fields, RB returns (batch_size), or (batch_size, stack_size)
+        # Do same as above, except transpose instead.
+        scalar_fields = {
+            "reward": batch.reward,
+            "not_terminal": 1.0 - batch.terminal.float(),
+        }
+        for name, tensor in scalar_fields.items():
+            if len(tensor.shape) == 1:
+                tensor = tensor.unsqueeze(1)
+            assert len(tensor.shape) == 2, f"{name} has shape {tensor.shape}"
+            scalar_fields[name] = tensor.transpose(0, 1)
+
+        return rlt.MemoryNetworkInput(
+            state=rlt.FeatureData(float_features=vector_fields["state"]),
+            next_state=rlt.FeatureData(float_features=vector_fields["next_state"]),
+            action=vector_fields["action"],
+            reward=scalar_fields["reward"],
+            not_terminal=scalar_fields["not_terminal"],
             step=None,
             time_diff=None,
         )
@@ -163,5 +212,5 @@ class PreprocessedMemoryNetworkInputMaker:
 MAKER_MAP = {
     rlt.DiscreteDqnInput: DiscreteDqnInputMaker,
     rlt.PolicyNetworkInput: PolicyNetworkInputMaker,
-    rlt.PreprocessedMemoryNetworkInput: PreprocessedMemoryNetworkInputMaker,
+    rlt.MemoryNetworkInput: MemoryNetworkInputMaker,
 }

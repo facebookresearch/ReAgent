@@ -3,13 +3,9 @@
 
 import collections
 import csv
-from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 import six
-import torch
-from reagent import types as rlt
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.normalization import (
     BOX_COX_MARGIN,
@@ -99,7 +95,13 @@ def default_normalizer(feats, min_value=None, max_value=None):
     return normalization
 
 
-def only_continuous_normalizer(feats, min_value=None, max_value=None):
+def only_continuous_normalizer_helper(
+    feats, feature_type, min_value=None, max_value=None
+):
+    assert feature_type in (
+        "CONTINUOUS",
+        "CONTINUOUS_ACTION",
+    ), f"invalid feature type: {feature_type}."
     assert type(min_value) == type(max_value) and type(min_value) in (
         int,
         float,
@@ -115,7 +117,7 @@ def only_continuous_normalizer(feats, min_value=None, max_value=None):
             (
                 feats[i],
                 NormalizationParameters(
-                    feature_type="CONTINUOUS",
+                    feature_type=feature_type,
                     boxcox_lambda=None,
                     boxcox_shift=None,
                     mean=0,
@@ -132,27 +134,14 @@ def only_continuous_normalizer(feats, min_value=None, max_value=None):
     return normalization
 
 
+def only_continuous_normalizer(feats, min_value=None, max_value=None):
+    return only_continuous_normalizer_helper(feats, "CONTINUOUS", min_value, max_value)
+
+
 def only_continuous_action_normalizer(feats, min_value=None, max_value=None):
-    normalization = collections.OrderedDict(
-        [
-            (
-                feats[i],
-                NormalizationParameters(
-                    feature_type="CONTINUOUS_ACTION",
-                    boxcox_lambda=None,
-                    boxcox_shift=None,
-                    mean=0,
-                    stddev=1,
-                    possible_values=None,
-                    quantiles=None,
-                    min_value=min_value,
-                    max_value=max_value,
-                ),
-            )
-            for i in range(len(feats))
-        ]
+    return only_continuous_normalizer_helper(
+        feats, "CONTINUOUS_ACTION", min_value, max_value
     )
-    return normalization
 
 
 def write_lists_to_csv(path, *args):

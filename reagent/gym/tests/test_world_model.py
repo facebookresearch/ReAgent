@@ -49,7 +49,7 @@ def calculate_feature_importance(
     env: gym.Env,
     trainer: MDNRNNTrainer,
     use_gpu: bool,
-    test_batch: rlt.PreprocessedMemoryNetworkInput,
+    test_batch: rlt.MemoryNetworkInput,
 ):
     assert isinstance(env.action_space, gym.spaces.Discrete)
     assert isinstance(env.observation_space, gym.spaces.Box)
@@ -88,7 +88,7 @@ def calculate_feature_sensitivity(
     env: gym.Env,
     trainer: MDNRNNTrainer,
     use_gpu: bool,
-    test_batch: rlt.PreprocessedMemoryNetworkInput,
+    test_batch: rlt.MemoryNetworkInput,
 ):
     assert isinstance(env.action_space, gym.spaces.Discrete)
     assert isinstance(env.observation_space, gym.spaces.Box)

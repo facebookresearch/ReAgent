@@ -2,7 +2,7 @@
 
 import logging
 
-import torch  # @manual
+import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import MDNRNNTrainerParameters, NormalizationKey, param_hash

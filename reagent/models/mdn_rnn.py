@@ -126,9 +126,7 @@ class MDNRNNMemoryPool:
             s = self.replay_memory[i]
             yield s.state, s.action, s.next_state, s.reward, s.not_terminal
 
-    def sample_memories(
-        self, batch_size, use_gpu=False
-    ) -> rlt.PreprocessedMemoryNetworkInput:
+    def sample_memories(self, batch_size, use_gpu=False) -> rlt.MemoryNetworkInput:
         """
         :param batch_size: number of samples to return
         :param use_gpu: whether to put samples on gpu
@@ -150,7 +148,7 @@ class MDNRNNMemoryPool:
             state, action, next_state, reward, not_terminal
         )
 
-        training_input = rlt.PreprocessedMemoryNetworkInput(
+        return rlt.MemoryNetworkInput(
             state=rlt.FeatureData(float_features=state),
             reward=reward,
             time_diff=torch.ones_like(reward).float(),
@@ -159,7 +157,6 @@ class MDNRNNMemoryPool:
             not_terminal=not_terminal,
             step=None,
         )
-        return training_input
 
     def insert_into_memory(self, state, action, next_state, reward, not_terminal):
         self.replay_memory.append(

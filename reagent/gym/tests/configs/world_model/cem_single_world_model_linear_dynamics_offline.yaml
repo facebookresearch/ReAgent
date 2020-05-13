@@ -1,0 +1,29 @@
+env_name: LinearDynamics-v0
+max_steps: 200
+model:
+  CrossEntropyMethod:
+    trainer_param:
+      plan_horizon_length: 4
+      num_world_models: 1
+      cem_population_size: 100
+      cem_num_iterations: 10
+      ensemble_population_size: 1
+      num_elites: 15
+      mdnrnn:
+        hidden_size: 100
+        num_hidden_layers: 2
+        minibatch_size: 1024
+        learning_rate: 0.001
+        not_terminal_loss_weight: 0.0
+        next_state_loss_weight: 1.0
+        reward_loss_weight: 1.0
+        num_gaussians: 1
+      rl:
+        gamma: 1.0
+        softmax_policy: 0
+replay_memory_size: 50000
+num_batches_per_epoch: 5000
+num_train_epochs: 1
+num_eval_episodes: 1
+passing_score_bar: -2.5
+use_gpu: false

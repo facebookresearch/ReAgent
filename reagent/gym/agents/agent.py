@@ -83,7 +83,9 @@ class Agent:
         )
 
     @classmethod
-    def create_from_serving_policy(cls, serving_policy, env: Env, **kwargs):
+    def create_for_env_with_serving_policy(
+        cls, env: Env, serving_policy: Policy, **kwargs
+    ):
         obs_preprocessor = make_default_serving_obs_preprocessor(env)
         action_extractor = make_default_serving_action_extractor(env)
         return cls(

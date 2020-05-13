@@ -9,10 +9,10 @@ model:
       next_state_loss_weight: 1
       reward_loss_weight: 1
       num_gaussians: 1
-num_train_transitions: 150000 # approx. 500 episodes
+num_train_transitions: 100000 # approx. 500 episodes
 num_test_transitions: 6000 # approx. 30 episodes
 seq_len: 1
 batch_size: 1024
-num_train_epochs: 10
+num_train_epochs: 20
 use_gpu: false
 saved_mdnrnn_path: null
