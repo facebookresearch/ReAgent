@@ -10,7 +10,7 @@ import torch
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.tensorboardX import summary_writer_context
-from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.trainer import Trainer
 from reagent.workflow.types import Dataset, RewardOptions, RLTrainingOutput, TableSpec
 from torch.utils.tensorboard import SummaryWriter
 
@@ -39,14 +39,15 @@ class ModelManager(metaclass=RegistryMeta):
 
     def __init__(self):
         super().__init__()
-        # State normalization parameters is here for convenient
+        # initialization is delayed to `_set_normalization_parameters()`
         self._state_normalization_parameters: Optional[
             Dict[int, NormalizationParameters]
         ] = None
         self._normalization_data_map: Optional[Dict[str, NormalizationData]] = None
-        # The initialization of these attributes is delayed to `initialize_trainer()`
-        self._reward_options: RewardOptions = None
-        self._trainer: Optional[RLTrainer] = None
+
+        # initialization is delayed to `initialize_trainer()`
+        self._reward_options: Optional[RewardOptions] = None
+        self._trainer: Optional[Trainer] = None
         self._use_gpu: Optional[bool] = None
 
     @property
@@ -55,11 +56,14 @@ class ModelManager(metaclass=RegistryMeta):
             self._use_gpu is not None
         ), "Call initialize_trainer() to set the value first"
         # pyre-fixme[7]: Expected `bool` but got `Optional[bool]`.
+        # pyre-fixme[7]: Expected `bool` but got `Optional[bool]`.
         return self._use_gpu
 
     @property
     def reward_options(self) -> RewardOptions:
         assert self._reward_options is not None
+        # pyre-fixme[7]: Expected `RewardOptions` but got `Optional[RewardOptions]`.
+        # pyre-fixme[7]: Expected `RewardOptions` but got `Optional[RewardOptions]`.
         return self._reward_options
 
     @reward_options.setter
@@ -93,6 +97,8 @@ class ModelManager(metaclass=RegistryMeta):
         ), "You need to set state_normalization_parameters before calling this"
         # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
         #  `Optional[Dict[int, NormalizationParameters]]`.
+        # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
+        #  `Optional[Dict[int, NormalizationParameters]]`.
         return self._state_normalization_parameters
 
     @state_normalization_parameters.setter
@@ -116,8 +122,8 @@ class ModelManager(metaclass=RegistryMeta):
         ), "self._normalization_data_map has not been set"
         assert (
             # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-            key
-            in self._normalization_data_map
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
+            key in self._normalization_data_map
         ), f"{key} not available; available keys {self._normalization_data_map.keys()}"
         return self._normalization_data_map[key]
 
@@ -149,9 +155,10 @@ class ModelManager(metaclass=RegistryMeta):
         pass
 
     @property
-    def trainer(self) -> RLTrainer:
+    def trainer(self) -> Trainer:
         assert self._trainer is not None, "Call initialize_trainer() first"
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
         return self._trainer
 
     def initialize_trainer(
@@ -160,7 +167,7 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: RewardOptions,
         normalization_data_map: Dict[str, NormalizationData],
         warmstart_path: Optional[str] = None,
-    ) -> RLTrainer:
+    ) -> Trainer:
         """
         Initialize the trainer. Subclass should not override this. Instead,
         subclass should implement `_set_normalization_parameters()` and
@@ -174,12 +181,14 @@ class ModelManager(metaclass=RegistryMeta):
         if warmstart_path is not None:
             trainer_state = torch.load(warmstart_path)
             # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
+            # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
             self._trainer.load_state_dict(trainer_state)
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
         return self._trainer
 
     @abc.abstractmethod
-    def build_trainer(self) -> RLTrainer:
+    def build_trainer(self) -> Trainer:
         """
         Implement this to build the trainer, given the config
         """

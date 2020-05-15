@@ -143,7 +143,7 @@ def run_test(
     logger.info(train_rewards)
 
     serving_policy = manager.create_policy(serving=True)
-    agent = Agent.create_from_serving_policy(serving_policy, env)
+    agent = Agent.create_for_env_with_serving_policy(env, serving_policy)
 
     eval_rewards = []
     for i in range(num_eval_episodes):

@@ -12,6 +12,7 @@ import torch
 import torch.nn.functional as F
 from gym import Env, spaces
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
+from reagent.training.utils import rescale_actions
 
 
 logger = logging.getLogger(__name__)
@@ -42,8 +43,10 @@ def make_default_action_extractor(env: Env):
     """ Returns the default action extractor for the environment """
     action_space = env.action_space
     if isinstance(action_space, spaces.Discrete):
+        # Canonical rule to return one-hot encoded actions for discrete
         return discrete_action_extractor
     elif isinstance(action_space, spaces.Box):
+        # Canonical rule to scale actions to CONTINUOUS_TRAINING_ACTION_RANGE
         return make_box_action_extractor(action_space)
     else:
         raise NotImplementedError(f"Unsupport action space: {action_space}")
@@ -177,43 +180,20 @@ def discrete_action_extractor(actor_output: rlt.ActorOutput):
     return action.squeeze(0).argmax().cpu().numpy()
 
 
-def rescale_actions(
-    actions: np.ndarray,
-    new_min: float,
-    new_max: float,
-    prev_min: float,
-    prev_max: float,
-):
-    """ Scale from [prev_min, prev_max] to [new_min, new_max] """
-    # pyre-fixme[6]: Expected `float` for 1st param but got `ndarray`.
-    assert np.all(prev_min <= actions) and np.all(
-        actions <= prev_max
-    ), f"{actions} has values outside of [{prev_min}, {prev_max}]."
-    prev_range = prev_max - prev_min
-    new_range = new_max - new_min
-    return ((actions - prev_min) / prev_range) * new_range + new_min
-
-
 def make_box_action_extractor(action_space: spaces.Box):
-    assert (
-        len(action_space.shape) == 1 and action_space.shape[0] == 1
-    ), f"{action_space} not supported."
+    assert len(action_space.shape) == 1, f"{action_space} not supported."
 
     model_low, model_high = CONTINUOUS_TRAINING_ACTION_RANGE
-    env_low = action_space.low.item()
-    env_high = action_space.high.item()
 
-    def box_action_extractor(actor_output: rlt.ActorOutput):
+    def box_action_extractor(actor_output: rlt.ActorOutput) -> np.ndarray:
         action = actor_output.action
         assert (
-            # pyre-fixme[16]: `Tensor` has no attribute `ndim`.
-            action.ndim == 2
-            and action.shape[0] == 1
-        ), f"{action} is not a single batch of results!"
+            len(action.shape) == 2 and action.shape[0] == 1
+        ), f"{action} (shape: {action.shape}) is not a single action!"
         return rescale_actions(
             action.squeeze(0).cpu().numpy(),
-            new_min=env_low,
-            new_max=env_high,
+            new_min=action_space.low,
+            new_max=action_space.high,
             prev_min=model_low,
             prev_max=model_high,
         )

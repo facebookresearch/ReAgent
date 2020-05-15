@@ -14,7 +14,7 @@ from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.tensorboardX import SummaryWriterContext
 from reagent.training.sac_trainer import SACTrainer
 from reagent.training.td3_trainer import TD3Trainer
-from reagent.types import PreprocessedMemoryNetworkInput, PreprocessedTrainingBatch
+from reagent.types import MemoryNetworkInput, PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)
@@ -137,10 +137,10 @@ class WorldModelRandomTrainingPageHandler(PageHandler):
     """ Train a baseline model based on randomly shuffled data """
 
     # pyre-fixme[14]: `handle` overrides method defined in `PageHandler` inconsistently.
-    def handle(self, training_input: PreprocessedMemoryNetworkInput) -> None:
+    def handle(self, training_input: MemoryNetworkInput) -> None:
         _, batch_size, _ = training_input.next_state.float_features.size()
 
-        tdp = PreprocessedMemoryNetworkInput(
+        tdp = MemoryNetworkInput(
             state=training_input.state,
             action=training_input.action,
             time_diff=torch.ones_like(training_input.reward),
@@ -162,7 +162,7 @@ class WorldModelRandomTrainingPageHandler(PageHandler):
 
 class WorldModelEvaluationPageHandler(PageHandler):
     # pyre-fixme[14]: `handle` overrides method defined in `PageHandler` inconsistently.
-    def handle(self, tdp: PreprocessedMemoryNetworkInput) -> None:
+    def handle(self, tdp: MemoryNetworkInput) -> None:
         losses = self.trainer_or_evaluator.evaluate(tdp)
         self.results.append(losses)
 

@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import torch
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-from reagent.types import FeatureData, PreprocessedMemoryNetworkInput
+from reagent.types import FeatureData, MemoryNetworkInput
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class LossEvaluator(object):
         self.trainer = trainer
         self.state_dim = state_dim
 
-    def evaluate(self, tdp: PreprocessedMemoryNetworkInput) -> Dict[str, float]:
+    def evaluate(self, tdp: MemoryNetworkInput) -> Dict[str, float]:
         self.trainer.memory_network.mdnrnn.eval()
         losses = self.trainer.get_loss(tdp, state_dim=self.state_dim)
         detached_losses = {
@@ -58,7 +58,7 @@ class FeatureImportanceEvaluator(object):
         self.sorted_action_feature_start_indices = sorted_action_feature_start_indices
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
-    def evaluate(self, batch: PreprocessedMemoryNetworkInput):
+    def evaluate(self, batch: MemoryNetworkInput):
         """ Calculate feature importance: setting each state/action feature to
         the mean value and observe loss increase. """
 
@@ -106,7 +106,7 @@ class FeatureImportanceEvaluator(object):
                 )
 
             action_features = action_features.reshape((seq_len, batch_size, action_dim))
-            new_batch = PreprocessedMemoryNetworkInput(
+            new_batch = MemoryNetworkInput(
                 state=batch.state,
                 action=action_features,
                 next_state=batch.next_state,
@@ -133,7 +133,7 @@ class FeatureImportanceEvaluator(object):
                 state_features[:, boundary_start:boundary_end]
             )
             state_features = state_features.reshape((seq_len, batch_size, state_dim))
-            new_batch = PreprocessedMemoryNetworkInput(
+            new_batch = MemoryNetworkInput(
                 state=FeatureData(float_features=state_features),
                 action=batch.action,
                 next_state=batch.next_state,
@@ -184,11 +184,11 @@ class FeatureSensitivityEvaluator(object):
         self.state_feature_num = state_feature_num
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
-    def evaluate(self, batch: PreprocessedMemoryNetworkInput):
+    def evaluate(self, batch: MemoryNetworkInput):
         """ Calculate state feature sensitivity due to actions:
         randomly permutating actions and see how much the prediction of next
         state feature deviates. """
-        assert isinstance(batch, PreprocessedMemoryNetworkInput)
+        assert isinstance(batch, MemoryNetworkInput)
 
         self.trainer.memory_network.mdnrnn.eval()
 

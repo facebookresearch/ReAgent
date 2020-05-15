@@ -100,12 +100,15 @@ def build_action_normalizer(env):
             list(range(action_space.n)), min_value=0, max_value=1
         )
     elif isinstance(action_space, spaces.Box):
-        assert action_space.shape == (
-            1,
+        assert (
+            len(action_space.shape) == 1
         ), f"Box action shape {action_space.shape} not supported."
 
+        action_dim = action_space.shape[0]
         return only_continuous_action_normalizer(
-            [0], min_value=action_space.low.item(), max_value=action_space.high.item()
+            list(range(action_dim)),
+            min_value=action_space.low,
+            max_value=action_space.high,
         )
     else:
         raise NotImplementedError(f"{action_space} not supported.")

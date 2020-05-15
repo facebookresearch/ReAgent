@@ -143,8 +143,6 @@ class QRDQNTrainer(DQNTrainerBase):
         return components
 
     @torch.no_grad()
-    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
-    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()

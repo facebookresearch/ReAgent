@@ -80,29 +80,6 @@ class TrainingDataPage(object):
         self.next_propensities = next_propensities
         self.rewards_mask = rewards_mask
 
-    def as_cem_training_batch(self):
-        """
-        Generate one-step samples needed by CEM trainer.
-        The samples will be used to train an ensemble of world models used by CEM.
-
-        state/next state shape: 1 x batch_size x state_dim
-        action shape: 1 x batch_size x action_dim
-        reward/terminal shape: 1 x batch_size
-        """
-        seq_len_dim = 0
-        reward, not_terminal = transpose(self.rewards, self.not_terminal)
-        return rlt.PreprocessedMemoryNetworkInput(
-            state=rlt.FeatureData(self.states.unsqueeze(seq_len_dim)),
-            action=self.actions.unsqueeze(seq_len_dim),
-            next_state=rlt.FeatureData(
-                float_features=self.next_states.unsqueeze(seq_len_dim)
-            ),
-            reward=reward,
-            not_terminal=not_terminal,
-            step=self.step,
-            time_diff=self.time_diffs,
-        )
-
     def as_parametric_maxq_training_batch(self):
         state_dim = self.states.shape[1]
         return rlt.PreprocessedTrainingBatch(

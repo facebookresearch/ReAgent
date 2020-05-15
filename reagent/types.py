@@ -145,7 +145,10 @@ class ActorOutput(TensorDataClass):
 
 @dataclass
 class FeatureData(TensorDataClass):
+    # For dense features, shape is (batch_size, feature_dim)
     float_features: torch.Tensor
+    # For sequence, shape is (stack_size, batch_size, feature_dim)
+    stacked_float_features: Optional[torch.Tensor] = None
     id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # For ranking algos,
     # the shape is (batch_size, num_candidates, num_document_features)
@@ -156,14 +159,15 @@ class FeatureData(TensorDataClass):
     time_since_first: Optional[torch.Tensor] = None
 
     def __post_init__(self):
+        usage = (
+            f"For sequence features, use `stacked_float_features`."
+            f"For document features, use `candidate_doc_float_features`."
+        )
         if self.float_features.ndim == 3:
-            logger.warning(
-                "float_features should be 2D; for document features, "
-                "use `candidate_doc_float_features` instead"
-            )
+            logger.warning(f"`float_features` should be 2D.\n{usage}")
         elif self.float_features.ndim != 2:
             raise ValueError(
-                f"float_features should be 2D; got {self.float_features.shape}"
+                f"float_features should be 2D; got {self.float_features.shape}.\n{usage}"
             )
         if (
             self.candidate_doc_float_features is not None
@@ -171,7 +175,7 @@ class FeatureData(TensorDataClass):
         ):
             raise ValueError(
                 "candidate_doc_float_features should be 3D; "
-                f"got {self.candidate_doc_float_features.shape}"
+                f"got {self.candidate_doc_float_features.shape}.\n{usage}"
             )
 
     @classmethod
@@ -461,8 +465,9 @@ class PolicyNetworkInput(PreprocessedBaseInput):
         return self.state.float_features.shape[0]
 
 
+# TODO(T67083627): state and next_state should use stack_float_features
 @dataclass
-class PreprocessedMemoryNetworkInput(PreprocessedBaseInput):
+class MemoryNetworkInput(PreprocessedBaseInput):
     action: torch.Tensor
 
 
@@ -552,11 +557,7 @@ class RawParametricDqnInput(RawBaseInput):
 
 @dataclass
 class PreprocessedTrainingBatch(TensorDataClass):
-    training_input: Union[
-        PreprocessedParametricDqnInput,
-        PreprocessedMemoryNetworkInput,
-        PreprocessedRankingInput,
-    ]
+    training_input: Union[PreprocessedParametricDqnInput, PreprocessedRankingInput]
     # TODO: deplicate this and move into individual ones.
     extras: ExtraData = field(default_factory=ExtraData)
 
@@ -573,10 +574,7 @@ class RawTrainingBatch(TensorDataClass):
         return self.training_input.state.float_features.value.size()[0]
 
     def preprocess(
-        self,
-        training_input: Union[
-            PreprocessedParametricDqnInput, PreprocessedMemoryNetworkInput
-        ],
+        self, training_input: PreprocessedParametricDqnInput
     ) -> PreprocessedTrainingBatch:
         # FIXME: depends on the type of the input
         return PreprocessedTrainingBatch(

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Trainer:
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch) -> None:
+    def train(self, training_batch) -> None:
         raise NotImplementedError()
 
     def state_dict(self):

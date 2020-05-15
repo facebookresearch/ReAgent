@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import gym
+import numpy as np
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
@@ -67,9 +68,15 @@ class ContinuousRandomPolicy(Policy):
                 f"Action space is discrete. Try using DiscreteRandomPolicy instead."
             )
         elif isinstance(action_space, gym.spaces.Box):
-            assert action_space.shape == (1,), "Only support float scalar output."
+            assert (
+                len(action_space.shape) == 1
+            ), f"Box with shape {action_space.shape} not supported."
             low, high = CONTINUOUS_TRAINING_ACTION_RANGE
-            return cls(low=torch.tensor([low]), high=torch.tensor([high]))
+            # broadcast low and high to shape
+            np_ones = np.ones(action_space.shape)
+            return cls(
+                low=torch.tensor(low * np_ones), high=torch.tensor(high * np_ones)
+            )
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
@@ -81,5 +88,6 @@ class ContinuousRandomPolicy(Policy):
         # pyre-fixme[6]: Expected `Union[torch.Size, torch.Tensor]` for 1st param
         #  but got `Tuple[int]`.
         action = self.dist.sample((batch_size,))
-        log_prob = self.dist.log_prob(action)
+        # sum over action_dim (since assuming i.i.d. per coordinate)
+        log_prob = self.dist.log_prob(action).sum(1)
         return rlt.ActorOutput(action=action, log_prob=log_prob)

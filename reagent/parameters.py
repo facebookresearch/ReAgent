@@ -212,8 +212,8 @@ class NormalizationKey(object):
 @dataclass(frozen=True)
 class NormalizationData(BaseDataClass):
     __hash__ = param_hash
-
-    dense_normalization_parameters: Optional[Dict[int, NormalizationParameters]]
+    # TODO: replace with OrderedDict when can use Python >= 3.7.2
+    dense_normalization_parameters: Dict[int, NormalizationParameters]
 
 
 #################################################

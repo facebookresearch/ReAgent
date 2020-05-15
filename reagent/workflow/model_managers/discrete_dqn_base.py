@@ -77,8 +77,6 @@ class DiscreteDQNBase(ModelManager):
             )
         else:
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
@@ -90,6 +88,8 @@ class DiscreteDQNBase(ModelManager):
         # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_metrics_to_score`.
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
+                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
+                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 self._reward_options.metric_reward_values
             )
         return self._metrics_to_score
@@ -108,9 +108,6 @@ class DiscreteDQNBase(ModelManager):
         state_norm_data = normalization_data_map.get(self.normalization_key(), None)
         assert state_norm_data is not None
         assert state_norm_data.dense_normalization_parameters is not None
-        # pyre-fixme[8]: Attribute has type `Dict[int,
-        #  reagent.parameters.NormalizationParameters]`; used as `Optional[Dict[int,
-        #  reagent.parameters.NormalizationParameters]]`.
         self.state_normalization_parameters = (
             state_norm_data.dense_normalization_parameters
         )
@@ -205,6 +202,8 @@ class DiscreteDQNBase(ModelManager):
         train_and_evaluate_generic(
             train_dataset,
             eval_dataset,
+            # pyre-fixme[6]: Expected `RLTrainer` for 3rd param but got `Trainer`.
+            # pyre-fixme[6]: Expected `RLTrainer` for 3rd param but got `Trainer`.
             self.trainer,
             num_epochs,
             self.use_gpu,

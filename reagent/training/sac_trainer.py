@@ -175,8 +175,6 @@ class SACTrainer(RLTrainer):
         return components
 
     @torch.no_grad()
-    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
-    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.PolicyNetworkInput) -> None:
         """
         IMPORTANT: the input action here is assumed to match the

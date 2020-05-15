@@ -14,10 +14,16 @@ from reagent.gym.preprocessors.default_preprocessors import discrete_action_extr
 
 def make_default_serving_obs_preprocessor(env: Env):
     if not isinstance(env.observation_space, spaces.Box):
-        raise NotImplementedError
+        raise NotImplementedError(f"{env.observation_space} not supported!")
+
+    observation_space = env.observation_space
+    if len(observation_space.shape) != 1:
+        raise NotImplementedError(f"Box shape {observation_space.shape} not supported!")
+
+    state_dim = observation_space.shape[0]
 
     def gym_to_reagent_serving(obs: np.ndarray) -> Tuple[torch.Tensor, torch.Tensor]:
-        obs_tensor = torch.tensor(obs).float().unsqueeze(0)
+        obs_tensor = torch.tensor(obs).float().view(1, state_dim)
         presence_tensor = torch.ones_like(obs_tensor)
         return (obs_tensor, presence_tensor)
 
@@ -28,12 +34,16 @@ def make_default_serving_action_extractor(env: Env):
     if isinstance(env.action_space, spaces.Discrete):
         return discrete_action_extractor
     elif isinstance(env.action_space, spaces.Box):
-        assert env.action_space.shape == (1,)
+        assert (
+            len(env.action_space.shape) == 1
+        ), f"Unsupported Box with shape {env.action_space.shape}"
         return continuous_predictor_action_extractor
     else:
         raise NotImplementedError
 
 
 def continuous_predictor_action_extractor(output: rlt.ActorOutput):
-    action = output.action.item()
-    return np.array([action])
+    assert (
+        len(output.action.shape) == 2 and output.action.shape[0] == 1
+    ), f"{output.action.shape} isn't (1, action_dim)"
+    return output.action.squeeze(0).cpu().numpy()

@@ -131,6 +131,8 @@ class ActorCriticBase(ModelManager):
         # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
         if self._metrics_to_score is None:
             self._metrics_to_score = get_metrics_to_score(
+                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
+                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 self._reward_options.metric_reward_values
             )
         return self._metrics_to_score
@@ -274,6 +276,7 @@ class ActorCriticBase(ModelManager):
         train_and_evaluate_generic(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
+            # pyre-fixme[6]: Expected `RLTrainer` for 3rd param but got `Trainer`.
             trainer=self.trainer,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
