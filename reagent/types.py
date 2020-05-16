@@ -144,6 +144,36 @@ class ActorOutput(TensorDataClass):
 
 
 @dataclass
+class DocList(TensorDataClass):
+    # the shape is (batch_size, num_candidates, num_document_features)
+    float_features: torch.Tensor
+    # the shapes are (batch_size, num_candidates)
+    mask: torch.Tensor
+    value: torch.Tensor
+
+    def __post_init__(self):
+        assert (
+            len(self.float_features.shape) == 3
+        ), f"Unexpected shape: {self.float_features.shape}"
+
+    @torch.no_grad()
+    def select_slate(self, action: torch.Tensor):
+        row_idx = torch.repeat_interleave(
+            torch.arange(action.shape[0]).unsqueeze(1), action.shape[1], dim=1
+        )
+        mask = self.mask[row_idx, action]
+        # Make sure the indices are in the right range
+        assert mask.to(torch.bool).all()
+        float_features = self.float_features[row_idx, action]
+        value = self.value[row_idx, action]
+        return DocList(float_features, mask, value)
+
+    def as_feature_data(self):
+        _batch_size, _slate_size, feature_dim = self.float_features.shape
+        return FeatureData(self.float_features.view(-1, feature_dim))
+
+
+@dataclass
 class FeatureData(TensorDataClass):
     # For dense features, shape is (batch_size, feature_dim)
     float_features: torch.Tensor
@@ -151,8 +181,7 @@ class FeatureData(TensorDataClass):
     stacked_float_features: Optional[torch.Tensor] = None
     id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # For ranking algos,
-    # the shape is (batch_size, num_candidates, num_document_features)
-    candidate_doc_float_features: Optional[torch.Tensor] = None
+    candidate_docs: Optional[DocList] = None
     # Experimental: sticking this here instead of putting it in float_features
     # because a lot of places derive the shape of float_features from
     # normalization parameters.
@@ -168,14 +197,6 @@ class FeatureData(TensorDataClass):
         elif self.float_features.ndim != 2:
             raise ValueError(
                 f"float_features should be 2D; got {self.float_features.shape}.\n{usage}"
-            )
-        if (
-            self.candidate_doc_float_features is not None
-            and self.candidate_doc_float_features.ndim != 3
-        ):
-            raise ValueError(
-                "candidate_doc_float_features should be 3D; "
-                f"got {self.candidate_doc_float_features.shape}.\n{usage}"
             )
 
     @classmethod
@@ -199,7 +220,7 @@ class FeatureData(TensorDataClass):
         return (
             not self.id_list_features
             and self.time_since_first is None
-            and self.candidate_doc_float_features is None
+            and self.candidate_docs is None
         )
 
 
@@ -363,27 +384,6 @@ class DiscreteDqnInput(PreprocessedBaseInput):
 
 
 @dataclass
-class SlateFeatureVector(TensorDataClass):
-    """
-    The shape of `float_features` is
-    `(batch_size, slate_size, item_dim)`.
-
-    `item_mask` masks available items in the action
-
-    `item_probability` is the probability of item in being selected
-    """
-
-    float_features: torch.Tensor
-    item_mask: torch.Tensor
-    item_probability: torch.Tensor
-
-    def as_preprocessed_feature_vector(self) -> FeatureData:
-        return FeatureData(
-            float_features=self.float_features.view(-1, self.float_features.shape[2])
-        )
-
-
-@dataclass
 class SlateQInput(PreprocessedBaseInput):
     """
     The shapes of `reward`, `reward_mask`, & `next_item_mask` are
@@ -393,26 +393,32 @@ class SlateQInput(PreprocessedBaseInput):
     the item got into viewport or not.
     """
 
-    action: SlateFeatureVector
-    next_action: SlateFeatureVector
+    action: torch.Tensor
+    next_action: torch.Tensor
     reward_mask: torch.Tensor
     extras: Optional[ExtraData] = None
 
     @classmethod
     def from_dict(cls, d):
-        action = SlateFeatureVector(
-            float_features=d["action"],
-            item_mask=d["item_mask"],
-            item_probability=d["item_probability"],
-        )
-        next_action = SlateFeatureVector(
-            float_features=d["next_action"],
-            item_mask=d["next_item_mask"],
-            item_probability=d["next_item_probability"],
-        )
+        action = d["action"]
+        next_action = d["next_action"]
         return cls(
-            state=FeatureData.from_dict(d, "state_features"),
-            next_state=FeatureData.from_dict(d, "next_state_features"),
+            state=FeatureData(
+                float_features=d["state_features"],
+                candidate_docs=DocList(
+                    float_features=d["candidate_features"],
+                    mask=d["item_mask"],
+                    value=d["item_probability"],
+                ),
+            ),
+            next_state=FeatureData(
+                float_features=d["next_state_features"],
+                candidate_docs=DocList(
+                    float_features=d["next_candidate_features"],
+                    mask=d["next_item_mask"],
+                    value=d["next_item_probability"],
+                ),
+            ),
             action=action,
             next_action=next_action,
             reward=d["reward"],

@@ -7,6 +7,7 @@ from typing import List
 import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
+import torch.nn.functional as F
 from reagent.core.dataclasses import dataclass, field
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 
@@ -53,23 +54,19 @@ class SlateQTrainer(DQNTrainerBase):
         components = ["q_network", "q_network_target", "q_network_optimizer"]
         return components
 
-    def get_slate_q_value(
-        self, q_network, state: rlt.FeatureData, action: rlt.SlateFeatureVector
+    def _action_docs(self, state: rlt.FeatureData, action: torch.Tensor) -> rlt.DocList:
+        docs = state.candidate_docs
+        assert docs is not None
+        return docs.select_slate(action)
+
+    def _get_unmasked_q_values(
+        self, q_network, state: rlt.FeatureData, slate: rlt.DocList
     ) -> torch.Tensor:
         """ Gets the q values from the model and target networks """
-        return (
-            self._get_unmask_q_values(q_network, state, action)
-            * action.item_mask
-            * action.item_probability
-        ).sum(dim=1, keepdim=True)
-
-    def _get_unmask_q_values(
-        self, q_network, state: rlt.FeatureData, action: rlt.SlateFeatureVector
-    ) -> torch.Tensor:
-        batch_size, slate_size, _ = action.float_features.shape
+        batch_size, slate_size, _ = slate.float_features.shape
+        # TODO: Probably should create a new model type
         return q_network(
-            state.repeat_interleave(slate_size, dim=0),
-            action.as_preprocessed_feature_vector(),
+            state.repeat_interleave(slate_size, dim=0), slate.as_feature_data()
         ).view(batch_size, slate_size)
 
     @torch.no_grad()
@@ -88,10 +85,16 @@ class SlateQTrainer(DQNTrainerBase):
             raise NotImplementedError("Q-Learning for SlateQ is not implemented")
         else:
             # SARSA (Use the target network)
-            next_q_values = self.get_slate_q_value(
-                self.q_network_target,
-                training_batch.next_state,
-                training_batch.next_action,
+            next_action_docs = self._action_docs(
+                training_batch.next_state, training_batch.next_action
+            )
+            next_q_values = torch.sum(
+                self._get_unmasked_q_values(
+                    self.q_network_target, training_batch.next_state, next_action_docs
+                )
+                * F.softmax(next_action_docs.value, dim=1),
+                dim=1,
+                keepdim=True,
             )
 
         filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
@@ -101,8 +104,9 @@ class SlateQTrainer(DQNTrainerBase):
 
         with torch.enable_grad():
             # Get Q-value of action taken
-            q_values = self._get_unmask_q_values(
-                self.q_network, training_batch.state, training_batch.action
+            action_docs = self._action_docs(training_batch.state, training_batch.action)
+            q_values = self._get_unmasked_q_values(
+                self.q_network, training_batch.state, action_docs
             )[reward_mask]
             all_action_scores = q_values.detach()
 

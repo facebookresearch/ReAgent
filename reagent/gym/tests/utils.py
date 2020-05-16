@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+from typing import Optional
 
 from gym import Env, spaces
 from reagent.gym.agents.agent import Agent
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def get_max_steps(env: Env) -> int:
+def get_max_steps(env: Env) -> Optional[int]:
     possible_keys = [
         # gym should have _max_episode_steps
         "_max_episode_steps",
@@ -32,7 +33,7 @@ def get_max_steps(env: Env) -> int:
         res = getattr(env, key, None)
         if res is not None:
             return res
-    raise NotImplementedError(f"Could not determine max steps for env {env}")
+    return None
 
 
 def fill_replay_buffer(env: Env, replay_buffer: ReplayBuffer, desired_size: int):
@@ -57,7 +58,9 @@ def fill_replay_buffer(env: Env, replay_buffer: ReplayBuffer, desired_size: int)
     ) as pbar:
         while replay_buffer.size < desired_size:
             last_size = replay_buffer.size
-            max_steps = min(max_episode_steps, desired_size - replay_buffer.size - 1)
+            max_steps = desired_size - replay_buffer.size - 1
+            if max_episode_steps is not None:
+                max_steps = min(max_episode_steps, max_steps)
             run_episode(env=env, agent=agent, max_steps=max_steps)
             size_delta = replay_buffer.size - last_size
             assert (

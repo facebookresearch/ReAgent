@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+from typing import List
+
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -17,6 +19,8 @@ def make_random_policy_for_env(env: gym.Env):
     elif isinstance(env.action_space, gym.spaces.Box):
         # continuous action space
         return ContinuousRandomPolicy.create_for_env(env)
+    elif isinstance(env.action_space, gym.spaces.MultiDiscrete):
+        return MultiDiscreteRandomPolicy.create_for_env(env)
     else:
         raise NotImplementedError(f"{env.action_space} not supported")
 
@@ -49,6 +53,38 @@ class DiscreteRandomPolicy(Policy):
         action = F.one_hot(raw_action, self.num_actions)
         log_prob = m.log_prob(raw_action).float()
         return rlt.ActorOutput(action=action, log_prob=log_prob)
+
+
+class MultiDiscreteRandomPolicy(Policy):
+    def __init__(self, num_action_vec: List[int]):
+        self.num_action_vec = num_action_vec
+        self.dists = [
+            torch.distributions.Categorical(torch.ones(n) / n)
+            for n in self.num_action_vec
+        ]
+
+    @classmethod
+    def create_for_env(cls, env: gym.Env):
+        action_space = env.action_space
+        if not isinstance(action_space, gym.spaces.MultiDiscrete):
+            raise ValueError(f"Invalid action space: {action_space}")
+
+        return cls(action_space.nvec.tolist())
+
+    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+        obs: torch.Tensor = obs.float_features
+        batch_size, _ = obs.shape
+
+        actions = []
+        log_probs = []
+        for m in self.dists:
+            actions.append(m.sample((batch_size, 1)))
+            log_probs.append(m.log_prob(actions[-1]).float())
+
+        return rlt.ActorOutput(
+            action=torch.cat(actions, dim=1),
+            log_prob=torch.cat(log_probs, dim=1).sum(1, keepdim=True),
+        )
 
 
 class ContinuousRandomPolicy(Policy):

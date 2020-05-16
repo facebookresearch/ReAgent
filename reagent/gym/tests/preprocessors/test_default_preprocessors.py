@@ -65,7 +65,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         self.assertEqual(state.float_features.dtype, torch.float32)
         self.assertEqual(state.float_features.device, torch.device("cpu"))
         npt.assert_array_almost_equal(obs["user"], state.float_features.squeeze(0))
-        doc_float_features = state.candidate_doc_float_features
+        doc_float_features = state.candidate_docs.float_features
         self.assertIsNotNone(doc_float_features)
         self.assertEqual(
             doc_float_features.shape, (1, num_candidate, obs["doc"]["0"].shape[0])
@@ -93,7 +93,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         self.assertEqual(state.float_features.dtype, torch.float32)
         self.assertEqual(state.float_features.device, torch.device("cpu"))
         npt.assert_array_almost_equal(obs["user"], state.float_features.squeeze(0))
-        doc_float_features = state.candidate_doc_float_features
+        doc_float_features = state.candidate_docs.float_features
         self.assertIsNotNone(doc_float_features)
 
         quality_len = 1

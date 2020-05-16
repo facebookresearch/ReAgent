@@ -45,6 +45,8 @@ def make_default_action_extractor(env: Env):
     if isinstance(action_space, spaces.Discrete):
         # Canonical rule to return one-hot encoded actions for discrete
         return discrete_action_extractor
+    elif isinstance(action_space, spaces.MultiDiscrete):
+        return multi_discrete_action_extractor
     elif isinstance(action_space, spaces.Box):
         # Canonical rule to scale actions to CONTINUOUS_TRAINING_ACTION_RANGE
         return make_box_action_extractor(action_space)
@@ -160,9 +162,25 @@ class RecsimObsPreprocessor:
             vals = np.vstack(list(doc_obs.values()))
             doc_features = torch.tensor(vals).float().unsqueeze(0)
 
-        return rlt.FeatureData(
-            float_features=user, candidate_doc_float_features=doc_features
-        ).to(self.device, non_blocking=True)
+        # FIXME(T67072053): This should be an env wrapper
+        # FIXME(T67072053): This should be learned
+        if user.shape[1] == doc_features.shape[2]:
+            # interest_evolution, use inner-product as value
+            value = torch.bmm(user.unsqueeze(1), doc_features.transpose(1, 2)).squeeze(
+                1
+            )
+        else:
+            # Making stupid assumption; all items are equally interesting to the user
+            value = (torch.ones(doc_features.shape[:-1]),)
+
+        candidate_docs = rlt.DocList(
+            float_features=doc_features,
+            mask=torch.ones(doc_features.shape[:-1], dtype=torch.bool),
+            value=value,
+        )
+        return rlt.FeatureData(float_features=user, candidate_docs=candidate_docs).to(
+            self.device, non_blocking=True
+        )
 
 
 ############################################
@@ -178,6 +196,10 @@ def discrete_action_extractor(actor_output: rlt.ActorOutput):
     ), f"{action} is not a single batch of results!"
     # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
     return action.squeeze(0).argmax().cpu().numpy()
+
+
+def multi_discrete_action_extractor(actor_output: rlt.ActorOutput):
+    return actor_output.action.squeeze(0).cpu().numpy()
 
 
 def make_box_action_extractor(action_space: spaces.Box):

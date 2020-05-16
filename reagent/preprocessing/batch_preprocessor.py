@@ -5,15 +5,16 @@ from typing import Dict
 import torch
 import torch.nn.functional as F
 from reagent import types as rlt
-from reagent.preprocessing.normalization import get_num_output_features
 from reagent.preprocessing.preprocessor import Preprocessor
 
 
 class InputColumn(object):
     STATE_FEATURES = "state_features"
+    STATE_SEQUENCE_FEATURES = "state_sequence_features"
     STATE_ID_LIST_FEATURES = "state_id_list_features"
     STATE_ID_SCORE_LIST_FEATURES = "state_id_score_list_features"
     NEXT_STATE_FEATURES = "next_state_features"
+    NEXT_STATE_SEQUENCE_FEATURES = "next_state_sequence_features"
     NEXT_STATE_ID_LIST_FEATURES = "next_state_id_list_features"
     NEXT_STATE_ID_SCORE_LIST_FEATURES = "next_state_id_score_list_features"
     ACTION = "action"
@@ -34,6 +35,7 @@ class InputColumn(object):
     SLATE_REWARD = "slate_reward"
     POSITION_REWARD = "position_reward"
     CANDIDATE_FEATURES = "candidate_features"
+    NEXT_CANDIDATE_FEATURES = "next_candidate_features"
     REWARD_MASK = "reward_mask"
     ITEM_MASK = "item_mask"
     NEXT_ITEM_MASK = "next_item_mask"
