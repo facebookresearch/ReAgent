@@ -320,12 +320,6 @@ class PreprocessedRankingInput(TensorDataClass):
 
 
 @dataclass
-class RawStateAction(TensorDataClass):
-    state: RawFeatureData
-    action: RawFeatureData
-
-
-@dataclass
 class CommonInput(TensorDataClass):
     """
     Base class for all inputs, both raw and preprocessed
@@ -369,7 +363,7 @@ class DiscreteDqnInput(PreprocessedBaseInput):
 
 
 @dataclass
-class PreprocessedSlateFeatureVector(TensorDataClass):
+class SlateFeatureVector(TensorDataClass):
     """
     The shape of `float_features` is
     `(batch_size, slate_size, item_dim)`.
@@ -390,7 +384,7 @@ class PreprocessedSlateFeatureVector(TensorDataClass):
 
 
 @dataclass
-class PreprocessedSlateQInput(PreprocessedBaseInput):
+class SlateQInput(PreprocessedBaseInput):
     """
     The shapes of `reward`, `reward_mask`, & `next_item_mask` are
     `(batch_size, slate_size)`.
@@ -399,19 +393,19 @@ class PreprocessedSlateQInput(PreprocessedBaseInput):
     the item got into viewport or not.
     """
 
-    action: PreprocessedSlateFeatureVector
-    next_action: PreprocessedSlateFeatureVector
+    action: SlateFeatureVector
+    next_action: SlateFeatureVector
     reward_mask: torch.Tensor
     extras: Optional[ExtraData] = None
 
     @classmethod
     def from_dict(cls, d):
-        action = PreprocessedSlateFeatureVector(
+        action = SlateFeatureVector(
             float_features=d["action"],
             item_mask=d["item_mask"],
             item_probability=d["item_probability"],
         )
-        next_action = PreprocessedSlateFeatureVector(
+        next_action = SlateFeatureVector(
             float_features=d["next_action"],
             item_mask=d["next_item_mask"],
             item_probability=d["next_item_probability"],

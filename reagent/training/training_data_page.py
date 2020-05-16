@@ -143,40 +143,6 @@ class TrainingDataPage(object):
             ),
         )
 
-    def as_slate_q_training_batch(self):
-        batch_size, state_dim = self.states.shape
-        action_dim = self.actions.shape[1]
-        return rlt.PreprocessedSlateQInput(
-            state=rlt.FeatureData(float_features=self.states),
-            next_state=rlt.FeatureData(float_features=self.next_states),
-            action=rlt.PreprocessedSlateFeatureVector(
-                float_features=self.possible_actions_state_concat[:, state_dim:].view(
-                    batch_size, -1, action_dim
-                ),
-                item_mask=self.possible_actions_mask,
-                item_probability=self.propensities,
-            ),
-            next_action=rlt.PreprocessedSlateFeatureVector(
-                float_features=self.possible_next_actions_state_concat[
-                    :, state_dim:
-                ].view(batch_size, -1, action_dim),
-                item_mask=self.possible_next_actions_mask,
-                item_probability=self.next_propensities,
-            ),
-            reward=self.rewards,
-            reward_mask=self.rewards_mask,
-            time_diff=self.time_diffs,
-            step=self.step,
-            not_terminal=self.not_terminal,
-            extras=rlt.ExtraData(
-                mdp_id=self.mdp_ids,
-                sequence_number=self.sequence_numbers,
-                action_probability=self.propensities,
-                max_num_actions=self.max_num_actions,
-                metrics=self.metrics,
-            ),
-        )
-
     def size(self) -> int:
         if self.states:
             # pyre-fixme[6]: Expected `Sized` for 1st param but got

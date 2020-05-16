@@ -54,10 +54,7 @@ class SlateQTrainer(DQNTrainerBase):
         return components
 
     def get_slate_q_value(
-        self,
-        q_network,
-        state: rlt.FeatureData,
-        action: rlt.PreprocessedSlateFeatureVector,
+        self, q_network, state: rlt.FeatureData, action: rlt.SlateFeatureVector
     ) -> torch.Tensor:
         """ Gets the q values from the model and target networks """
         return (
@@ -67,10 +64,7 @@ class SlateQTrainer(DQNTrainerBase):
         ).sum(dim=1, keepdim=True)
 
     def _get_unmask_q_values(
-        self,
-        q_network,
-        state: rlt.FeatureData,
-        action: rlt.PreprocessedSlateFeatureVector,
+        self, q_network, state: rlt.FeatureData, action: rlt.SlateFeatureVector
     ) -> torch.Tensor:
         batch_size, slate_size, _ = action.float_features.shape
         return q_network(
@@ -79,9 +73,9 @@ class SlateQTrainer(DQNTrainerBase):
         ).view(batch_size, slate_size)
 
     @torch.no_grad()
-    def train(self, training_batch: rlt.PreprocessedSlateQInput):
+    def train(self, training_batch: rlt.SlateQInput):
         assert isinstance(
-            training_batch, rlt.PreprocessedSlateQInput
+            training_batch, rlt.SlateQInput
         ), f"learning input is a {type(training_batch)}"
         self.minibatch += 1
 
