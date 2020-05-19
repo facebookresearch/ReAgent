@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Dict, List, Optional
+import logging
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 from reagent.parameters import NormalizationParameters
 from reagent.preprocessing.preprocessor import Preprocessor
+
+
+logger = logging.getLogger(__name__)
 
 
 class Compose:
@@ -23,6 +27,7 @@ class Compose:
         return f"{self.__class__.__name__}(\n{transforms}\n)"
 
 
+# TODO: this wouldn't work for possible_actions_mask (list of value, presence)
 class ValuePresence:
     """
     For every key `x`, looks for `x_presence`; if `x_presence` exists,
@@ -38,6 +43,19 @@ class ValuePresence:
                 data[k] = (data[k], data[presence_key])
                 del data[presence_key]
 
+        return data
+
+
+class Lambda:
+    """ For simple transforms """
+
+    def __init__(self, keys: List[str], fn: Callable):
+        self.keys = keys
+        self.fn = fn
+
+    def __call__(self, data):
+        for k in self.keys:
+            data[k] = self.fn(data[k])
         return data
 
 
@@ -92,12 +110,15 @@ class ColumnVector:
 
     def __call__(self, data):
         for k in self.keys:
-            value = data[k]
-            if isinstance(value, tuple):
-                value, _presence = value
+            raw_value = data[k]
+            if isinstance(raw_value, tuple):
+                value, _presence = raw_value
 
-            if isinstance(value, list):
-                value = np.array(value)
+            if isinstance(raw_value, list):
+                logger.warn(f"Column vector list {k}")
+                # TODO: make mdp_id a tensor.
+                # We shouldn't even call column vector on this...
+                value = np.array(raw_value)
 
             assert value.ndim == 1 or (
                 value.ndim == 2 and value.shape[1] == 1
@@ -109,7 +130,7 @@ class ColumnVector:
 
 class MaskByPresence:
     """
-    Expect data is (value, presence) and return value * presence.
+    Expect data to be (value, presence) and return value * presence.
     """
 
     def __init__(self, keys: List[str]):
@@ -132,6 +153,11 @@ class MaskByPresence:
 
 
 class StackDenseFixedSizeArray:
+    """
+    Expect data to be List of (Value, Presence), and output a tensor of shape
+    (batch_size, feature_dim).
+    """
+
     def __init__(self, keys: List[str], size: int, dtype=torch.float):
         self.keys = keys
         self.size = size

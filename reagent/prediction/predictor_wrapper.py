@@ -163,14 +163,13 @@ class OSSPredictorUnwrapper(nn.Module):
         super().__init__()
         self.model = model
 
-    def forward(
-        self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
-    ) -> Tuple[List[str], torch.Tensor]:
-        return self.model(state_with_presence)
+    def forward(self, *args, **kwargs) -> Tuple[List[str], torch.Tensor]:
+        return self.model(*args, **kwargs)
 
 
 DiscreteDqnPredictorUnwrapper = OSSPredictorUnwrapper
 ActorPredictorUnwrapper = OSSPredictorUnwrapper
+ParametricDqnPredictorUnwrapper = OSSPredictorUnwrapper
 
 
 class DiscreteDqnPredictorWrapperWithIdList(torch.jit.ScriptModule):

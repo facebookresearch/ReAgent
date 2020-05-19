@@ -4,9 +4,10 @@
 import json
 import logging
 from dataclasses import asdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
+import reagent.types as rlt
 import six
 import torch
 from reagent.parameters import NormalizationParameters
@@ -172,6 +173,18 @@ def identify_parameter(
         min_value,
         max_value,
     )
+
+
+def get_feature_config(
+    float_features: Optional[List[Tuple[int, str]]]
+) -> rlt.ModelFeatureConfig:
+    float_features = float_features or []
+    float_feature_infos = [
+        rlt.FloatFeatureInfo(name=f_name, feature_id=f_id)
+        for f_id, f_name in float_features
+    ]
+
+    return rlt.ModelFeatureConfig(float_feature_infos=float_feature_infos)
 
 
 def get_num_output_features(normalization_parameters) -> int:

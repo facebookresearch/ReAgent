@@ -52,8 +52,6 @@ class DiscreteDQN(DiscreteDQNBase):
         q_network = net_builder.build_q_network(
             self.state_feature_config,
             self.state_normalization_parameters,
-            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
-            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
             len(self.action_names),
         )
 
@@ -107,16 +105,12 @@ class DiscreteDQN(DiscreteDQNBase):
         """
         Returns a TorchScript predictor module
         """
-        # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
-        # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
         assert self._q_network is not None, "_q_network was not initialized"
 
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
             self.state_normalization_parameters,
-            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
-            # pyre-fixme[16]: `DiscreteDQN` has no attribute `action_names`.
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

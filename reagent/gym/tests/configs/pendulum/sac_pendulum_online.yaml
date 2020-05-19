@@ -1,6 +1,6 @@
 env_name: Pendulum-v0
 model:
-  SoftActorCritic:
+  SAC:
     trainer_param:
       rl:
         gamma: 0.99

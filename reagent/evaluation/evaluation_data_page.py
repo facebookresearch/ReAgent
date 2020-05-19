@@ -66,24 +66,25 @@ class EvaluationDataPage(NamedTuple):
                 discrete_training_input.possible_actions_mask,
                 metrics=tdb.extras.metrics,
             )
-        elif isinstance(tdb.training_input, rlt.PreprocessedParametricDqnInput):
-            parametric_training_input = cast(
-                rlt.PreprocessedParametricDqnInput, tdb.training_input
-            )
-
+        elif isinstance(tdb, rlt.ParametricDqnInput):
             return EvaluationDataPage.create_from_tensors_parametric_dqn(
                 # pyre-fixme[6]: Expected `ParametricDQNTrainer` for 1st param but
                 #  got `Trainer`.
                 trainer,
+                # pyre-fixme[16]: `Optional` has no attribute `mdp_id`.
                 tdb.extras.mdp_id,
+                # pyre-fixme[16]: `Optional` has no attribute `sequence_number`.
                 tdb.extras.sequence_number,
-                parametric_training_input.state,
-                parametric_training_input.action,
+                tdb.state,
+                tdb.action,
+                # pyre-fixme[16]: `Optional` has no attribute `action_probability`.
                 tdb.extras.action_probability,
-                parametric_training_input.reward,
-                parametric_training_input.possible_actions_mask,
-                parametric_training_input.possible_actions,
+                tdb.reward,
+                tdb.possible_actions_mask,
+                tdb.possible_actions,
+                # pyre-fixme[16]: `Optional` has no attribute `max_num_actions`.
                 tdb.extras.max_num_actions,
+                # pyre-fixme[16]: `Optional` has no attribute `metrics`.
                 metrics=tdb.extras.metrics,
             )
         else:

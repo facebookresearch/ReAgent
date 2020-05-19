@@ -27,18 +27,12 @@ class WorldModel(WorldModelBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> MDNRNNTrainer:
         memory_network = MemoryNetwork(
-            state_dim=get_num_output_features(
-                self.get_normalization_data(
-                    NormalizationKey.STATE
-                ).dense_normalization_parameters
-            ),
-            action_dim=get_num_output_features(
-                self.get_normalization_data(
-                    NormalizationKey.ACTION
-                ).dense_normalization_parameters
-            ),
+            state_dim=get_num_output_features(self.state_normalization_parameters),
+            action_dim=get_num_output_features(self.action_normalization_parameters),
             num_hiddens=self.trainer_param.hidden_size,
             num_hidden_layers=self.trainer_param.num_hidden_layers,
             num_gaussians=self.trainer_param.num_gaussians,

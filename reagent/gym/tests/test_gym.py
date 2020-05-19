@@ -44,6 +44,11 @@ GYM_TESTS = [
     ),
     ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
     ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
+    ("Parametric DQN Cartpole", "configs/cartpole/parametric_dqn_cartpole_online.yaml"),
+    (
+        "Parametric SARSA Cartpole",
+        "configs/cartpole/parametric_sarsa_cartpole_online.yaml",
+    ),
 ]
 
 

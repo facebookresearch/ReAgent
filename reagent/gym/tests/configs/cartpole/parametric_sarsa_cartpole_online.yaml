@@ -1,0 +1,40 @@
+env_name: CartPole-v0
+model:
+  ParametricDQN:
+    trainer_param:
+      rl:
+        gamma: 0.99
+        target_update_rate: 0.2
+        # disabling maxq for sarsa
+        # although strictly speaking, this is still
+        # off-policy (due to replay buffer) so not
+        # vanilla, on-policy sarsa
+        maxq_learning: false
+        temperature: 0.35
+        softmax_policy: true
+        q_network_loss: mse
+      double_q_learning: true
+      minibatch_size: 1024
+      minibatches_per_step: 1
+      optimizer:
+        optimizer: ADAM
+        learning_rate: 0.05
+        l2_decay: 0
+    net_builder:
+      FullyConnected:
+        sizes:
+        - 64
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+    eval_parameters:
+      calc_cpe_in_training: false
+replay_memory_size: 50000
+train_every_ts: 1
+train_after_ts: 25000
+num_train_episodes: 30
+num_eval_episodes: 20
+max_steps: 200
+passing_score_bar: 100.0
+use_gpu: false
