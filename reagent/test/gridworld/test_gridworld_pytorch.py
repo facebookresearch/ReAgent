@@ -12,6 +12,7 @@ import reagent.types as rlt
 import torch
 from reagent.parameters import (
     DiscreteActionModelParameters,
+    NormalizationData,
     RainbowDQNParameters,
     RLParameters,
     TrainingParameters,
@@ -108,9 +109,11 @@ class TestGridworld(GridworldTestBase):
             environment, reward_shape, dueling, categorical, quantile, clip_grad_norm
         )
 
+        state_normalization_parameters = environment.normalization
+
         def make_dueling_dqn(num_atoms=None):
             return models.DuelingQNetwork.make_fully_connected(
-                state_dim=get_num_output_features(environment.normalization),
+                state_dim=get_num_output_features(state_normalization_parameters),
                 action_dim=len(environment.ACTIONS),
                 layers=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
@@ -123,7 +126,7 @@ class TestGridworld(GridworldTestBase):
 
             else:
                 q_network = models.FullyConnectedDQN(
-                    state_dim=get_num_output_features(environment.normalization),
+                    state_dim=get_num_output_features(state_normalization_parameters),
                     action_dim=len(environment.ACTIONS),
                     num_atoms=parameters.rainbow.num_atoms,
                     sizes=parameters.training.layers[1:-1],
@@ -132,7 +135,7 @@ class TestGridworld(GridworldTestBase):
         elif categorical:
             assert not dueling
             distributional_network = models.FullyConnectedDQN(
-                state_dim=get_num_output_features(environment.normalization),
+                state_dim=get_num_output_features(state_normalization_parameters),
                 action_dim=len(environment.ACTIONS),
                 num_atoms=parameters.rainbow.num_atoms,
                 sizes=parameters.training.layers[1:-1],
@@ -149,7 +152,7 @@ class TestGridworld(GridworldTestBase):
                 q_network = make_dueling_dqn()
             else:
                 q_network = models.FullyConnectedDQN(
-                    state_dim=get_num_output_features(environment.normalization),
+                    state_dim=get_num_output_features(state_normalization_parameters),
                     action_dim=len(environment.ACTIONS),
                     sizes=parameters.training.layers[1:-1],
                     activations=parameters.training.activations[:-1],
@@ -159,14 +162,14 @@ class TestGridworld(GridworldTestBase):
 
         if parameters.evaluation and parameters.evaluation.calc_cpe_in_training:
             q_network_cpe = models.FullyConnectedDQN(
-                state_dim=get_num_output_features(environment.normalization),
+                state_dim=get_num_output_features(state_normalization_parameters),
                 action_dim=len(environment.ACTIONS),
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
             )
             q_network_cpe_target = q_network_cpe.get_target_network()
             reward_network = models.FullyConnectedDQN(
-                state_dim=get_num_output_features(environment.normalization),
+                state_dim=get_num_output_features(state_normalization_parameters),
                 action_dim=len(environment.ACTIONS),
                 sizes=parameters.training.layers[1:-1],
                 activations=parameters.training.activations[:-1],
@@ -245,7 +248,8 @@ class TestGridworld(GridworldTestBase):
         return trainer
 
     def get_predictor(self, trainer, environment):
-        state_preprocessor = Preprocessor(environment.normalization, False)
+        state_normalization_parameters = environment.normalization
+        state_preprocessor = Preprocessor(state_normalization_parameters, False)
         q_network = trainer.q_network
         if isinstance(trainer, QRDQNTrainer):
 
@@ -374,7 +378,8 @@ class TestGridworld(GridworldTestBase):
 
         pre_export_q_values = trainer.q_network(input).detach().numpy()
 
-        preprocessor = Preprocessor(environment.normalization, False)
+        state_normalization_parameters = environment.normalization
+        preprocessor = Preprocessor(state_normalization_parameters, False)
         cpu_q_network = trainer.q_network.cpu_model()
         cpu_q_network.eval()
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(cpu_q_network, preprocessor)

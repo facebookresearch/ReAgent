@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from reagent.parameters import NormalizationParameters
+from reagent.parameters import NormalizationData
 from reagent.preprocessing.preprocessor import Preprocessor
 
 
@@ -61,7 +61,7 @@ class Lambda:
 
 class DenseNormalization:
     """
-    Normalize the `keys` using `normalization_parameters`.
+    Normalize the `keys` using `normalization_data`.
     The keys are expected to be `Tuple[torch.Tensor, torch.Tensor]`,
     where the first element is the value and the second element is the
     presence mask.
@@ -71,7 +71,7 @@ class DenseNormalization:
     def __init__(
         self,
         keys: List[str],
-        normalization_parameters: Dict[int, NormalizationParameters],
+        normalization_data: NormalizationData,
         device: Optional[torch.device] = None,
     ):
         """
@@ -79,7 +79,7 @@ class DenseNormalization:
             keys: the name of the keys to be transformed
         """
         self.keys = keys
-        self.normalization_parameters = normalization_parameters
+        self.normalization_data = normalization_data
         self.device = device or torch.device("cpu")
         # Delay the initialization of the preprocessor so this class
         # is pickleable
@@ -88,7 +88,8 @@ class DenseNormalization:
     def __call__(self, data):
         if self._preprocessor is None:
             self._preprocessor = Preprocessor(
-                self.normalization_parameters, device=self.device
+                self.normalization_data.dense_normalization_parameters,
+                device=self.device,
             )
 
         for k in self.keys:

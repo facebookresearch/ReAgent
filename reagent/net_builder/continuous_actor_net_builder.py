@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import abc
-from typing import Dict
 
 import torch
 from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
-from reagent.parameters import NormalizationParameters
+from reagent.parameters import NormalizationData
 from reagent.prediction.predictor_wrapper import ActorWithPreprocessor
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
@@ -33,27 +32,31 @@ class ContinuousActorNetBuilder(metaclass=RegistryMeta):
     @abc.abstractmethod
     def build_actor(
         self,
-        state_normalization: Dict[int, NormalizationParameters],
-        action_normalization: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
+        action_normalization_data: NormalizationData,
     ) -> ModelBase:
         pass
 
     def build_serving_module(
         self,
         actor: ModelBase,
-        state_normalization: Dict[int, NormalizationParameters],
-        action_normalization: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
+        action_normalization_data: NormalizationData,
     ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
 
-        state_preprocessor = Preprocessor(state_normalization, use_gpu=False)
-        postprocessor = Postprocessor(action_normalization, use_gpu=False)
+        state_preprocessor = Preprocessor(
+            state_normalization_data.dense_normalization_parameters, use_gpu=False
+        )
+        postprocessor = Postprocessor(
+            action_normalization_data.dense_normalization_parameters, use_gpu=False
+        )
         actor_with_preprocessor = ActorWithPreprocessor(
             actor.cpu_model().eval(), state_preprocessor, postprocessor
         )
         action_features = Preprocessor(
-            action_normalization, use_gpu=False
+            action_normalization_data.dense_normalization_parameters, use_gpu=False
         ).sorted_features
         return ActorPredictorWrapper(actor_with_preprocessor, action_features)

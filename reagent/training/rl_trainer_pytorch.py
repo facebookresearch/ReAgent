@@ -182,26 +182,6 @@ class RLTrainer(Trainer):
         optimizer.zero_grad()
 
     @torch.no_grad()
-    def internal_prediction(self, input):
-        """ Q-network forward pass method for internal domains.
-        :param input input to network
-        """
-        self.q_network.eval()
-        input = torch.from_numpy(np.array(input), device=self.device)
-        q_values = self.q_network(input)
-        self.q_network.train()
-        return q_values.cpu()
-
-    @torch.no_grad()
-    def internal_reward_estimation(self, input):
-        """ Reward-network forward pass for internal domains. """
-        self.reward_network.eval()
-        input = torch.from_numpy(np.array(input), device=self.device)
-        reward_estimates = self.reward_network(input)
-        self.reward_network.train()
-        return reward_estimates.cpu()
-
-    @torch.no_grad()
     def _calculate_cpes(
         self,
         training_batch,

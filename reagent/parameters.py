@@ -207,12 +207,13 @@ class NormalizationKey(object):
 
     STATE = "state"
     ACTION = "action"
+    ITEM = "item"
+    CANDIDATE = "candidate"
 
 
 @dataclass(frozen=True)
 class NormalizationData(BaseDataClass):
     __hash__ = param_hash
-    # TODO: replace with OrderedDict when can use Python >= 3.7.2
     dense_normalization_parameters: Dict[int, NormalizationParameters]
 
 

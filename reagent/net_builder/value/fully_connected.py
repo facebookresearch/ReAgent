@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List
+from typing import List
 
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.net_builder.value_net_builder import ValueNetBuilder
-from reagent.parameters import NormalizationParameters, param_hash
+from reagent.parameters import NormalizationData, param_hash
 from reagent.preprocessing.normalization import get_num_output_features
 
 
@@ -25,12 +25,12 @@ class FullyConnected(ValueNetBuilder):
             f"{self.sizes}, {self.activations}"
         )
 
-    # pyre-fixme[14]: `build_value_network` overrides method defined in
-    #  `ValueNetBuilder` inconsistently.
     def build_value_network(
-        self, state_normalization: Dict[int, NormalizationParameters]
+        self, state_normalization_data: NormalizationData
     ) -> torch.nn.Module:
-        state_dim = get_num_output_features(state_normalization)
+        state_dim = get_num_output_features(
+            state_normalization_data.dense_normalization_parameters
+        )
         return FullyConnectedNetwork(
             [state_dim] + self.sizes + [1],
             self.activations + ["linear"],

@@ -48,7 +48,7 @@ class DiscreteC51DQN(DiscreteDQNBase):
     def build_trainer(self) -> C51Trainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
-            state_normalization_parameters=self.state_normalization_parameters,
+            state_normalization_data=self.state_normalization_data,
             output_dim=len(self.action_names),
             num_atoms=self.trainer_param.num_atoms,
             qmin=self.trainer_param.qmin,
@@ -81,7 +81,7 @@ class DiscreteC51DQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
-            self.state_normalization_parameters,
+            self.state_normalization_data,
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

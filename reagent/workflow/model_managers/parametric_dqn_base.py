@@ -79,7 +79,9 @@ class ParametricDQNBase(ModelManager):
         """ Create an online DiscreteDQN Policy from env. """
 
         # FIXME: this only works for one-hot encoded actions
-        action_dim = get_num_output_features(self.action_normalization_parameters)
+        action_dim = get_num_output_features(
+            self.action_normalization_data.dense_normalization_parameters
+        )
         if serving:
             sampler = GreedyActionSampler()
             scorer = parametric_dqn_serving_scorer(
@@ -147,19 +149,9 @@ class ParametricDQNBase(ModelManager):
             ),
         }
 
-    def _set_normalization_parameters(
-        self, normalization_data_map: Dict[str, NormalizationData]
-    ):
-        """
-        Set normalization parameters on current instance
-        """
-        state_norm_data = normalization_data_map.get(NormalizationKey.STATE, None)
-        assert state_norm_data is not None
-        assert state_norm_data.dense_normalization_parameters is not None
-        action_norm_data = normalization_data_map.get(NormalizationKey.ACTION, None)
-        assert action_norm_data is not None
-        assert action_norm_data.dense_normalization_parameters is not None
-        self.set_normalization_data_map(normalization_data_map)
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
     def query_data(
         self,

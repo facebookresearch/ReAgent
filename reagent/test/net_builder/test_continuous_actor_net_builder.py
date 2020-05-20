@@ -5,7 +5,7 @@ import unittest
 
 from reagent.net_builder import continuous_actor
 from reagent.net_builder.unions import ContinuousActorNetBuilder__Union
-from reagent.parameters import NormalizationParameters
+from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS
 
 
@@ -23,20 +23,28 @@ class TestContinuousActorNetBuilder(unittest.TestCase):
     ) -> None:
         builder = chooser.value
         state_dim = 3
-        state_norm_params = {
-            i: NormalizationParameters(feature_type=CONTINUOUS, mean=0.0, stddev=1.0)
-            for i in range(state_dim)
-        }
+        state_normalization_data = NormalizationData(
+            dense_normalization_parameters={
+                i: NormalizationParameters(
+                    feature_type=CONTINUOUS, mean=0.0, stddev=1.0
+                )
+                for i in range(state_dim)
+            }
+        )
         action_dim = 2
-        action_norm_params = {
-            i: NormalizationParameters(
-                feature_type=builder.default_action_preprocessing,
-                min_value=0.0,
-                max_value=1.0,
-            )
-            for i in range(action_dim)
-        }
-        actor_network = builder.build_actor(state_norm_params, action_norm_params)
+        action_normalization_data = NormalizationData(
+            dense_normalization_parameters={
+                i: NormalizationParameters(
+                    feature_type=builder.default_action_preprocessing,
+                    min_value=0.0,
+                    max_value=1.0,
+                )
+                for i in range(action_dim)
+            }
+        )
+        actor_network = builder.build_actor(
+            state_normalization_data, action_normalization_data
+        )
         x = actor_network.input_prototype()
         y = actor_network(x)
         action = y.action
@@ -44,7 +52,7 @@ class TestContinuousActorNetBuilder(unittest.TestCase):
         self.assertEqual(action.shape, (1, action_dim))
         self.assertEqual(log_prob.shape, (1, 1))
         serving_module = builder.build_serving_module(
-            actor_network, state_norm_params, action_norm_params
+            actor_network, state_normalization_data, action_normalization_data
         )
         self.assertIsInstance(serving_module, ActorPredictorWrapper)
 
