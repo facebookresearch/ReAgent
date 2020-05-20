@@ -129,7 +129,6 @@ def query_and_train(
         train_dataset,
         eval_dataset,
         normalization_data_map,
-        model,
         num_epochs,
         use_gpu,
         parent_workflow_id=parent_workflow_id,

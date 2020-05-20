@@ -6,10 +6,11 @@ import collections
 import itertools
 import logging
 import random
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
+from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.normalization import sort_features_by_normalization
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
@@ -72,7 +73,7 @@ class GridworldBase(Environment):
         self._true_q_epsilon_values = collections.defaultdict(dict)
 
     @property
-    def normalization(self):
+    def normalization(self) -> Dict[int, NormalizationParameters]:
         return default_normalizer(self.STATES)
 
     def action_to_index(self, action):

@@ -5,12 +5,12 @@ import logging
 from typing import Dict, List, Optional, Tuple, cast
 
 import torch
+from reagent.parameters import NormalizationParameters
 from reagent.preprocessing.identify_types import ENUM, FEATURE_TYPES
 from reagent.preprocessing.normalization import (
     EPS,
     MAX_FEATURE_VALUE,
     MIN_FEATURE_VALUE,
-    NormalizationParameters,
 )
 from torch.nn import Module, Parameter
 

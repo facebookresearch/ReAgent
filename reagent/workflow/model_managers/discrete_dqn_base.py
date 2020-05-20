@@ -64,10 +64,6 @@ class DiscreteDQNBase(ModelManager):
         self._metrics_to_score = None
         self._q_network: Optional[ModelBase] = None
 
-    @classmethod
-    def normalization_key(cls) -> str:
-        return NormalizationKey.STATE
-
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
         if serving:
@@ -98,16 +94,9 @@ class DiscreteDQNBase(ModelManager):
     def should_generate_eval_dataset(self) -> bool:
         return self.eval_parameters.calc_cpe_in_training
 
-    def _set_normalization_parameters(
-        self, normalization_data_map: Dict[str, NormalizationData]
-    ) -> None:
-        """
-        Set normalization parameters on current instance
-        """
-        state_norm_data = normalization_data_map.get(self.normalization_key(), None)
-        assert state_norm_data is not None
-        assert state_norm_data.dense_normalization_parameters is not None
-        self.set_normalization_data_map(normalization_data_map)
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        return [NormalizationKey.STATE]
 
     def run_feature_identification(
         self, input_table_spec: TableSpec
@@ -120,13 +109,11 @@ class DiscreteDQNBase(ModelManager):
         preprocessing_options = preprocessing_options._replace(
             whitelist_features=state_features
         )
-
-        state_normalization_parameters = identify_normalization_parameters(
-            input_table_spec, InputColumn.STATE_FEATURES, preprocessing_options
-        )
         return {
             NormalizationKey.STATE: NormalizationData(
-                dense_normalization_parameters=state_normalization_parameters
+                dense_normalization_parameters=identify_normalization_parameters(
+                    input_table_spec, InputColumn.STATE_FEATURES, preprocessing_options
+                )
             )
         }
 
@@ -152,12 +139,13 @@ class DiscreteDQNBase(ModelManager):
         return self.rl_parameters.multi_steps
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
+        state_preprocessor = Preprocessor(
+            self.state_normalization_data.dense_normalization_parameters,
+            use_gpu=self.use_gpu,
+        )
         return DiscreteDqnBatchPreprocessor(
             num_actions=len(self.action_names),
-            state_preprocessor=Preprocessor(
-                normalization_parameters=self.state_normalization_parameters,
-                use_gpu=self.use_gpu,
-            ),
+            state_preprocessor=state_preprocessor,
             use_gpu=self.use_gpu,
         )
 

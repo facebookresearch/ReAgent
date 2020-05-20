@@ -41,13 +41,13 @@ class ParametricDQN(ParametricDQNBase):
         # pyre-fixme[16]: `ParametricDQN` has no attribute `_q_network`.
         # pyre-fixme[16]: `ParametricDQN` has no attribute `_q_network`.
         self._q_network = net_builder.build_q_network(
-            self.state_normalization_parameters, self.action_normalization_parameters
+            self.state_normalization_data, self.action_normalization_data
         )
         # Metrics + reward
         reward_output_dim = len(self.metrics_to_score) + 1
         reward_network = net_builder.build_q_network(
-            self.state_normalization_parameters,
-            self.action_normalization_parameters,
+            self.state_normalization_data,
+            self.action_normalization_data,
             output_dim=reward_output_dim,
         )
 
@@ -69,6 +69,6 @@ class ParametricDQN(ParametricDQNBase):
         assert self._q_network is not None
         return net_builder.build_serving_module(
             self._q_network,
-            self.state_normalization_parameters,
-            self.action_normalization_parameters,
+            self.state_normalization_data,
+            self.action_normalization_data,
         )

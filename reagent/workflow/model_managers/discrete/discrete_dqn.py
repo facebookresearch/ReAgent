@@ -51,7 +51,7 @@ class DiscreteDQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
             self.state_feature_config,
-            self.state_normalization_parameters,
+            self.state_normalization_data,
             len(self.action_names),
         )
 
@@ -70,12 +70,12 @@ class DiscreteDQN(DiscreteDQNBase):
             cpe_net_builder = self.cpe_net_builder.value
             reward_network = cpe_net_builder.build_q_network(
                 self.state_feature_config,
-                self.state_normalization_parameters,
+                self.state_normalization_data,
                 num_output_nodes,
             )
             q_network_cpe = cpe_net_builder.build_q_network(
                 self.state_feature_config,
-                self.state_normalization_parameters,
+                self.state_normalization_data,
                 num_output_nodes,
             )
 
@@ -110,7 +110,7 @@ class DiscreteDQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
-            self.state_normalization_parameters,
+            self.state_normalization_data,
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

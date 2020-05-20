@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Type
+from typing import List
 
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
-from reagent.parameters import NormalizationParameters, param_hash
+from reagent.parameters import NormalizationData, param_hash
 
 
 @dataclass
@@ -28,10 +28,10 @@ class FullyConnected(DiscreteDQNNetBuilder):
     def build_q_network(
         self,
         state_feature_config: rlt.ModelFeatureConfig,
-        state_normalization_parameters: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
         output_dim: int,
     ) -> ModelBase:
-        state_dim = self._get_input_dim(state_normalization_parameters)
+        state_dim = self._get_input_dim(state_normalization_data)
         return FullyConnectedDQN(
             state_dim=state_dim,
             action_dim=output_dim,

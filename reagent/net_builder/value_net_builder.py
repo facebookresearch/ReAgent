@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import abc
-from typing import Type
 
 import torch
 from reagent.core.registry_meta import RegistryMeta
@@ -15,6 +14,6 @@ class ValueNetBuilder(metaclass=RegistryMeta):
 
     @abc.abstractmethod
     def build_value_network(
-        self, state_normalization_parameters: NormalizationData
+        self, state_normalization_data: NormalizationData
     ) -> torch.nn.Module:
         pass

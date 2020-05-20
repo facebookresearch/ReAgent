@@ -9,6 +9,7 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.gym.policies.policy import Policy
 from reagent.models.cem_planner import CEMPlannerNetwork
 from reagent.parameters import CEMTrainerParameters, param_hash
+from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.cem_trainer import CEMTrainer
 from reagent.workflow.model_managers.model_based.world_model import WorldModel
@@ -34,9 +35,6 @@ class CEMPolicy(Policy):
             return rlt.ActorOutput(
                 action=greedy.unsqueeze(0), log_prob=torch.tensor(0.0)
             )
-
-
-CONTINUOUS_ACTION = "CONTINUOUS_ACTION"
 
 
 @dataclass
@@ -73,9 +71,13 @@ class CrossEntropyMethod(WorldModelBase):
         ]
         world_model_nets = [trainer.memory_network for trainer in world_model_trainers]
         terminal_effective = self.trainer_param.mdnrnn.not_terminal_loss_weight > 0
-        action_upper_bounds, action_lower_bounds = None, None
-        sorted_action_norm_vals = list(self.action_normalization_parameters.values())
+
+        action_normalization_parameters = (
+            self.action_normalization_data.dense_normalization_parameters
+        )
+        sorted_action_norm_vals = list(action_normalization_parameters.values())
         discrete_action = sorted_action_norm_vals[0].feature_type != CONTINUOUS_ACTION
+        action_upper_bounds, action_lower_bounds = None, None
         if not discrete_action:
             action_upper_bounds = np.array(
                 [v.max_value for v in sorted_action_norm_vals]
@@ -91,8 +93,12 @@ class CrossEntropyMethod(WorldModelBase):
             ensemble_population_size=self.trainer_param.ensemble_population_size,
             num_elites=self.trainer_param.num_elites,
             plan_horizon_length=self.trainer_param.plan_horizon_length,
-            state_dim=get_num_output_features(self.state_normalization_parameters),
-            action_dim=get_num_output_features(self.action_normalization_parameters),
+            state_dim=get_num_output_features(
+                self.state_normalization_data.dense_normalization_parameters
+            ),
+            action_dim=get_num_output_features(
+                self.action_normalization_data.dense_normalization_parameters
+            ),
             discrete_action=discrete_action,
             terminal_effective=terminal_effective,
             gamma=self.trainer_param.rl.gamma,

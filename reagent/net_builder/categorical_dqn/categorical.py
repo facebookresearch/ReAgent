@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List
+from typing import List
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
 from reagent.models.categorical_dqn import CategoricalDQN
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.net_builder.categorical_dqn_net_builder import CategoricalDQNNetBuilder
-from reagent.parameters import NormalizationParameters, param_hash
+from reagent.parameters import NormalizationData, param_hash
 
 
 @dataclass
@@ -26,13 +26,13 @@ class Categorical(CategoricalDQNNetBuilder):
 
     def build_q_network(
         self,
-        state_normalization_parameters: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
         output_dim: int,
         num_atoms: int,
         qmin: int,
         qmax: int,
     ) -> ModelBase:
-        state_dim = self._get_input_dim(state_normalization_parameters)
+        state_dim = self._get_input_dim(state_normalization_data)
         distributional_network = FullyConnectedDQN(
             state_dim=state_dim,
             action_dim=output_dim,
