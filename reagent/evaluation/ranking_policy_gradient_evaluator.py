@@ -75,6 +75,7 @@ class RankingPolicyGradientEvaluator:
             b = torch.zeros_like(eval_tdp.training_input.slate_reward)
             self.baseline_loss.append(0.0)
 
+        # pyre-fixme[16]: `Optional` has no attribute `__sub__`.
         advantage = (eval_tdp.training_input.slate_reward - b).flatten().cpu().numpy()
         self.advantages.append(advantage)
         self.logged_slate_log_probs.append(logged_slate_log_prob)

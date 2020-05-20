@@ -80,35 +80,6 @@ class TrainingDataPage(object):
         self.next_propensities = next_propensities
         self.rewards_mask = rewards_mask
 
-    def as_parametric_maxq_training_batch(self):
-        state_dim = self.states.shape[1]
-        return rlt.PreprocessedTrainingBatch(
-            training_input=rlt.PreprocessedParametricDqnInput(
-                state=rlt.FeatureData(float_features=self.states),
-                action=rlt.FeatureData(float_features=self.actions),
-                next_state=rlt.FeatureData(float_features=self.next_states),
-                next_action=rlt.FeatureData(float_features=self.next_actions),
-                tiled_next_state=rlt.FeatureData(
-                    float_features=self.possible_next_actions_state_concat[
-                        :, :state_dim
-                    ]
-                ),
-                possible_actions=None,
-                possible_actions_mask=self.possible_actions_mask,
-                possible_next_actions=rlt.FeatureData(
-                    float_features=self.possible_next_actions_state_concat[
-                        :, state_dim:
-                    ]
-                ),
-                possible_next_actions_mask=self.possible_next_actions_mask,
-                reward=self.rewards,
-                not_terminal=self.not_terminal,
-                step=self.step,
-                time_diff=self.time_diffs,
-            ),
-            extras=rlt.ExtraData(),
-        )
-
     def as_policy_network_training_batch(self):
         return rlt.PolicyNetworkInput(
             state=rlt.FeatureData(float_features=self.states),

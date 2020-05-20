@@ -69,7 +69,7 @@ class TestBasicReplayBufferInserter(HorizonTestBase):
 
 class TestRecSimReplayBufferInserter(HorizonTestBase):
     @unittest.skipIf(not HAS_RECSIM, "RecSim not installed")
-    def test_recsim_intereset_evolution(self):
+    def test_recsim_interest_evolution(self):
         num_candidate = 10
         env_config = {
             "num_candidates": num_candidate,
@@ -118,7 +118,7 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
             )
 
     @unittest.skipIf(not HAS_RECSIM, "RecSim not installed")
-    def test_recsim_intereset_exploration(self):
+    def test_recsim_interest_exploration(self):
         num_candidate = 10
         env_config = {
             "num_candidates": num_candidate,

@@ -8,13 +8,24 @@ import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from reagent.core.configuration import make_config_class, resolve_defaults
-from reagent.core.dataclasses import field
+from reagent.core.configuration import resolve_defaults
+from reagent.core.dataclasses import dataclass, field
 from reagent.training.dqn_trainer_base import DQNTrainerBase
-from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
+
+
+# TODO(T67238979): Make implicit
+@dataclass(frozen=True)
+class ParametricDQNTrainerParameters:
+    __hash__ = rlp.param_hash
+
+    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
+    double_q_learning: bool = True
+    minibatch_size: int = 1024
+    minibatches_per_step: int = 1
+    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
 
 
 class ParametricDQNTrainer(DQNTrainerBase):
@@ -24,36 +35,30 @@ class ParametricDQNTrainer(DQNTrainerBase):
         q_network,
         q_network_target,
         reward_network,
-        rl: rlp.RLParameters = field(default_factory=rlp.RLParameters),  # noqa B008
-        double_q_learning: bool = True,
-        minibatch_size: int = 1024,
-        minibatches_per_step: int = 1,
-        optimizer: rlp.OptimizerParameters = field(  # noqa B008
-            default_factory=rlp.OptimizerParameters
-        ),
+        params: ParametricDQNTrainerParameters,
         use_gpu: bool = False,
     ) -> None:
-        super().__init__(rl, use_gpu=use_gpu)
+        super().__init__(params.rl, use_gpu=use_gpu)
 
-        self.double_q_learning = double_q_learning
-        self.minibatch_size = minibatch_size
-        self.minibatches_per_step = minibatches_per_step or 1
+        self.double_q_learning = params.double_q_learning
+        self.minibatch_size = params.minibatch_size
+        self.minibatches_per_step = params.minibatches_per_step or 1
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(optimizer.optimizer)
+        self._set_optimizer(params.optimizer.optimizer)
         # pyre-fixme[16]: `ParametricDQNTrainer` has no attribute `optimizer_func`.
         self.q_network_optimizer = self.optimizer_func(
             self.q_network.parameters(),
-            lr=optimizer.learning_rate,
-            weight_decay=optimizer.l2_decay,
+            lr=params.optimizer.learning_rate,
+            weight_decay=params.optimizer.l2_decay,
         )
 
         self.reward_network = reward_network
         self.reward_network_optimizer = self.optimizer_func(
             self.reward_network.parameters(),
-            lr=optimizer.learning_rate,
-            weight_decay=optimizer.l2_decay,
+            lr=params.optimizer.learning_rate,
+            weight_decay=params.optimizer.l2_decay,
         )
 
     def warm_start_components(self):
@@ -73,54 +78,66 @@ class ParametricDQNTrainer(DQNTrainerBase):
         return q_values, q_values_target
 
     @torch.no_grad()
-    def train(self, training_batch) -> None:
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_parametric_maxq_training_batch()
-
-        learning_input = training_batch.training_input
+    def train(self, training_batch: rlt.ParametricDqnInput) -> None:
         self.minibatch += 1
-
-        reward = learning_input.reward
-        not_done_mask = learning_input.not_terminal
-
+        reward = training_batch.reward
+        not_terminal = training_batch.not_terminal.float()
         discount_tensor = torch.full_like(reward, self.gamma)
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None
-            discount_tensor = torch.pow(self.gamma, learning_input.time_diff.float())
+            discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
-            discount_tensor = torch.pow(self.gamma, learning_input.step.float())
+            # pyre-fixme[16]: Optional type has no attribute `float`.
+            discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         if self.maxq_learning:
+            # Assuming actions are parametrized in a k-dimensional space
+            # tiled_state = (batch_size * max_num_action, state_dim)
+            # possible_actions = (batch_size* max_num_action, k)
+            # possible_actions_mask = (batch_size, max_num_action)
+            product = training_batch.possible_next_actions.float_features.shape[0]
+            batch_size = training_batch.possible_actions_mask.shape[0]
+            assert product % batch_size == 0, (
+                f"batch_size * max_num_action {product} is "
+                f"not divisible by batch_size {batch_size}"
+            )
+            max_num_action = product // batch_size
+            tiled_next_state = training_batch.next_state.get_tiled_batch(max_num_action)
             all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
-                learning_input.tiled_next_state, learning_input.possible_next_actions
+                tiled_next_state, training_batch.possible_next_actions
             )
             # Compute max a' Q(s', a') over all possible actions using target network
             next_q_values, _ = self.get_max_q_values_with_target(
                 all_next_q_values,
                 all_next_q_values_target,
-                learning_input.possible_next_actions_mask.float(),
+                training_batch.possible_next_actions_mask.float(),
             )
+            assert (
+                len(next_q_values.shape) == 2 and next_q_values.shape[1] == 1
+            ), f"{next_q_values.shape}"
+
         else:
             # SARSA (Use the target network)
             _, next_q_values = self.get_detached_q_values(
-                learning_input.next_state, learning_input.next_action
+                training_batch.next_state, training_batch.next_action
             )
+            assert (
+                len(next_q_values.shape) == 2 and next_q_values.shape[1] == 1
+            ), f"{next_q_values.shape}"
 
-        filtered_max_q_vals = next_q_values * not_done_mask.float()
-
-        target_q_values = reward + (discount_tensor * filtered_max_q_vals)
+        target_q_values = reward + not_terminal * discount_tensor * next_q_values
+        assert (
+            target_q_values.shape[-1] == 1
+        ), f"{target_q_values.shape} doesn't end with 1"
 
         with torch.enable_grad():
             # Get Q-value of action taken
-            q_values = self.q_network(learning_input.state, learning_input.action)
-            # pyre-fixme[16]: `ParametricDQNTrainer` has no attribute
-            #  `all_action_scores`.
-            self.all_action_scores = q_values.detach()
-
-            value_loss = self.q_network_loss(q_values, target_q_values)
-            # pyre-fixme[16]: `ParametricDQNTrainer` has no attribute `loss`.
-            self.loss = value_loss.detach()
-            value_loss.backward()
+            q_values = self.q_network(training_batch.state, training_batch.action)
+            assert (
+                target_q_values.shape == q_values.shape
+            ), f"{target_q_values.shape} != {q_values.shape}."
+            td_loss = self.q_network_loss(q_values, target_q_values)
+            td_loss.backward()
             self._maybe_run_optimizer(
                 self.q_network_optimizer, self.minibatches_per_step
             )
@@ -131,52 +148,29 @@ class ParametricDQNTrainer(DQNTrainerBase):
         )
 
         with torch.enable_grad():
+            # pyre-fixme[16]: Optional type has no attribute `metrics`.
             if training_batch.extras.metrics is not None:
                 metrics_reward_concat_real_vals = torch.cat(
                     (reward, training_batch.extras.metrics), dim=1
                 )
             else:
                 metrics_reward_concat_real_vals = reward
+
             # get reward estimates
             reward_estimates = self.reward_network(
-                learning_input.state, learning_input.action
+                training_batch.state, training_batch.action
             )
-            reward_loss = F.mse_loss(reward_estimates, metrics_reward_concat_real_vals)
+            reward_loss = F.mse_loss(
+                reward_estimates, metrics_reward_concat_real_vals.squeeze(-1)
+            )
             reward_loss.backward()
             self._maybe_run_optimizer(
                 self.reward_network_optimizer, self.minibatches_per_step
             )
 
         self.loss_reporter.report(
-            td_loss=self.loss,
-            reward_loss=reward_loss,
+            td_loss=td_loss.detach().cpu(),
+            reward_loss=reward_loss.detach().cpu(),
             logged_rewards=reward,
-            model_values_on_logged_actions=self.all_action_scores,
+            model_values_on_logged_actions=q_values.detach().cpu(),
         )
-
-    @torch.no_grad()
-    def internal_prediction(self, state, action):
-        """
-        Only used by Gym
-        """
-        self.q_network.eval()
-        q_values = self.q_network(rlt.FeatureData(state), rlt.FeatureData(action))
-        self.q_network.train()
-        return q_values.cpu()
-
-    @torch.no_grad()
-    def internal_reward_estimation(self, state, action):
-        """
-        Only used by Gym
-        """
-        self.reward_network.eval()
-        reward_estimates = self.reward_network(
-            rlt.FeatureData(state), rlt.FeatureData(action)
-        )
-        self.reward_network.train()
-        return reward_estimates.cpu()
-
-
-@make_config_class(ParametricDQNTrainer.__init__, blacklist=["use_gpu"])
-class ParametricDQNTrainerParameters:
-    pass

@@ -48,7 +48,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         npt.assert_array_almost_equal(obs, state.float_features.cpu().squeeze(0))
 
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
-    def test_recsim_interest_evoluation(self):
+    def test_recsim_interest_evolution(self):
         num_candidate = 10
         env_config = {
             "num_candidates": num_candidate,
