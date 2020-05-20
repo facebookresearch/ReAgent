@@ -8,6 +8,7 @@ import gym
 import numpy as np
 import numpy.testing as npt
 from reagent.gym.preprocessors import make_replay_buffer_inserter
+from reagent.gym.types import Transition
 from reagent.replay_memory import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
 
@@ -44,8 +45,16 @@ def _create_replay_buffer_and_insert(env: gym.Env):
                 "terminal": terminal,
             }
         )
-        log_prob = 0.0
-        replay_buffer_inserter(replay_buffer, obs, action, reward, terminal, log_prob)
+        transition = Transition(
+            mdp_id=0,
+            sequence_number=i,
+            observation=obs,
+            action=action,
+            reward=reward,
+            terminal=terminal,
+            log_prob=0.0,
+        )
+        replay_buffer_inserter(replay_buffer, transition)
         obs = next_obs
         i += 1
 

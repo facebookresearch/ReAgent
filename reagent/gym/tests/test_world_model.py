@@ -17,8 +17,8 @@ from reagent.gym.agents.agent import Agent
 from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.envs.pomdp.state_embed_env import StateEmbedEnvironment
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
-from reagent.gym.runners.gymrunner import run_episode
-from reagent.gym.tests.utils import build_normalizer, fill_replay_buffer
+from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
+from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.models.world_model import MemoryNetwork
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
@@ -360,11 +360,9 @@ def train_mdnrnn_and_train_on_embedded_env(
     rewards = []
     policy = agent_manager.create_policy(serving=False)
     agent = Agent.create_for_env(embed_env, policy=policy, device=device)
-    for i in range(num_agent_eval_epochs):
-        ep_reward = run_episode(env=embed_env, agent=agent)
-        rewards.append(ep_reward)
-        logger.info(f"Finished eval episode {i} with reward {ep_reward}.")
-    logger.info(f"Average eval reward is {np.mean(rewards)}.")
+    rewards = evaluate_for_n_episodes(
+        n=num_agent_eval_epochs, env=embed_env, agent=agent
+    )
     assert (
         np.mean(rewards) >= passing_score_bar
     ), f"average reward doesn't pass our bar {passing_score_bar}"

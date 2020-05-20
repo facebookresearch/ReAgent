@@ -269,6 +269,8 @@ class ReplayBuffer(object):
                 f"env.action_space {type(env.action_space)} not supported."
             )
 
+        extra_storage_types.append(ReplayElement("mdp_id", (), np.int64))
+        extra_storage_types.append(ReplayElement("sequence_number", (), np.int64))
         if store_log_prob:
             extra_storage_types.append(ReplayElement("log_prob", (), np.float32))
 

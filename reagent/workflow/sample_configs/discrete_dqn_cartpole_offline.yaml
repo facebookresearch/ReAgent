@@ -46,12 +46,11 @@ model:
         - relu
     preprocessing_options:
       num_samples: 1000
-num_episodes_for_data_batch: 150
+num_train_transitions: 30000  # approx. 150 episodes
 max_steps: 200
 seed: 42
 
 # training params
-use_gpu: false
 num_train_epochs: 20
 reward_options:
   custom_reward_expression:

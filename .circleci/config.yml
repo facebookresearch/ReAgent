@@ -242,7 +242,7 @@ jobs:
       image: ubuntu-1604-cuda-10.1:201909-23
     resource_class: gpu.medium
     environment:
-      - CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline_gpu.yaml
+      - CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline.yaml
     steps:
       - checkout_merge
       - pip_install:

@@ -58,11 +58,10 @@ model:
     eval_parameters:
       calc_cpe_in_training: false
 
-num_episodes_for_data_batch: 200
+num_train_transitions: 40000  # approx. 200 episodes
 max_steps: 200
 seed: 42
 
-use_gpu: false
 num_train_epochs: 80
 reward_options:
   custom_reward_expression:

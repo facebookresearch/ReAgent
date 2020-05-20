@@ -6,6 +6,7 @@ from typing import Any, Callable, List, Tuple
 
 import gym
 import numpy as np
+from reagent.gym.types import Transition
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
@@ -22,7 +23,7 @@ except ImportError:
 
 
 # Arguments: replay_buffer, obs, action, reward, terminal, log_prob
-ReplayBufferInserter = Callable[[ReplayBuffer, Any, Any, float, bool, float], None]
+ReplayBufferInserter = Callable[[ReplayBuffer, Transition], None]
 
 
 def make_replay_buffer_inserter(env: gym.Env) -> ReplayBufferInserter:
@@ -32,16 +33,8 @@ def make_replay_buffer_inserter(env: gym.Env) -> ReplayBufferInserter:
 
 
 class BasicReplayBufferInserter:
-    def __call__(
-        self,
-        replay_buffer: ReplayBuffer,
-        obs: Any,
-        action: Any,
-        reward: float,
-        terminal: bool,
-        log_prob: float,
-    ):
-        replay_buffer.add(obs, action, reward, terminal, log_prob=log_prob)
+    def __call__(self, replay_buffer: ReplayBuffer, transition: Transition):
+        replay_buffer.add(**transition.asdict())
 
 
 class RecSimReplayBufferInserter:
@@ -127,15 +120,9 @@ class RecSimReplayBufferInserter:
             response_discrete_keys=response_discrete_keys,
         )
 
-    def __call__(
-        self,
-        replay_buffer: ReplayBuffer,
-        obs: Any,
-        action: Any,
-        reward: float,
-        terminal: bool,
-        log_prob: float,
-    ):
+    def __call__(self, replay_buffer: ReplayBuffer, transition: Transition):
+        transition_dict = transition.asdict()
+        obs = transition_dict.pop("observation")
         user = obs["user"]
 
         kwargs = {}
@@ -164,11 +151,5 @@ class RecSimReplayBufferInserter:
             else:
                 kwargs[f"response_{k}"] = np.zeros((self.num_responses,))
 
-        replay_buffer.add(
-            observation=user,
-            action=action,
-            reward=reward,
-            terminal=terminal,
-            log_prob=log_prob,
-            **kwargs,
-        )
+        transition_dict.update(kwargs)
+        replay_buffer.add(observation=user, **transition_dict)
