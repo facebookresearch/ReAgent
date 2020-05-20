@@ -32,18 +32,6 @@ MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
 EPS = 1e-6
 
 
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super().default(obj)
-
-
 def no_op_feature():
     return NormalizationParameters(
         identify_types.CONTINUOUS, None, 0, 0, 1, None, None, None, None
