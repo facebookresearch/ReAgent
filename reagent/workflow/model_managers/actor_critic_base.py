@@ -185,19 +185,9 @@ class ActorCriticBase(ModelManager):
             ),
         }
 
-    def _set_normalization_parameters(
-        self, normalization_data_map: Dict[str, NormalizationData]
-    ):
-        """
-        Set normalization parameters on current instance
-        """
-        state_norm_data = normalization_data_map.get(NormalizationKey.STATE, None)
-        assert state_norm_data is not None
-        assert state_norm_data.dense_normalization_parameters is not None
-        action_norm_data = normalization_data_map.get(NormalizationKey.ACTION, None)
-        assert action_norm_data is not None
-        assert action_norm_data.dense_normalization_parameters is not None
-        self.set_normalization_data_map(normalization_data_map)
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
     def query_data(
         self,
@@ -215,13 +205,17 @@ class ActorCriticBase(ModelManager):
         )
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
+        state_preprocessor = Preprocessor(
+            self.state_normalization_data.dense_normalization_parameters,
+            use_gpu=self.use_gpu,
+        )
+        action_preprocessor = Preprocessor(
+            self.action_normalization_data.dense_normalization_parameters,
+            use_gpu=self.use_gpu,
+        )
         return PolicyNetworkBatchPreprocessor(
-            state_preprocessor=Preprocessor(
-                self.state_normalization_parameters, use_gpu=self.use_gpu
-            ),
-            action_preprocessor=Preprocessor(
-                self.action_normalization_parameters, use_gpu=self.use_gpu
-            ),
+            state_preprocessor=state_preprocessor,
+            action_preprocessor=action_preprocessor,
             use_gpu=self.use_gpu,
         )
 

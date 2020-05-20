@@ -282,32 +282,3 @@ class DQNTrainer(DQNTrainerBase):
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=model_action_idxs,
         )
-
-    @torch.no_grad()
-    def internal_prediction(self, input):
-        """
-        Only used by Gym
-        """
-        self.q_network.eval()
-        q_values = self.q_network(rlt.FeatureData(input))
-        q_values = q_values.cpu()
-        self.q_network.train()
-
-        if self.bcq:
-            action_preds = torch.tensor(self.bcq_imitator(input.cpu()))
-            action_preds /= torch.max(action_preds, dim=1)[0]
-            action_off_policy = (action_preds < self.bcq_drop_threshold).float()
-            action_off_policy *= self.ACTION_NOT_POSSIBLE_VAL
-            q_values += action_off_policy
-
-        return q_values
-
-    @torch.no_grad()
-    def internal_reward_estimation(self, input):
-        """
-        Only used by Gym
-        """
-        self.reward_network.eval()
-        reward_estimates = self.reward_network(rlt.FeatureData(input))
-        self.reward_network.train()
-        return reward_estimates.cpu()

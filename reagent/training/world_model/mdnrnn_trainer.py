@@ -11,12 +11,13 @@ import torch.nn.functional as F
 from reagent.models.mdn_rnn import gmm_loss
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import MDNRNNTrainerParameters
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
 
 
-class MDNRNNTrainer:
+class MDNRNNTrainer(Trainer):
     """ Trainer for MDN-RNN """
 
     def __init__(

@@ -66,19 +66,18 @@ class SAC(ActorCriticBase):
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
-            self.state_normalization_parameters, self.action_normalization_parameters
+            self.state_normalization_data, self.action_normalization_data
         )
 
         critic_net_builder = self.critic_net_builder.value
         # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
         # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
         self._q1_network = critic_net_builder.build_q_network(
-            self.state_normalization_parameters, self.action_normalization_parameters
+            self.state_normalization_data, self.action_normalization_data
         )
         q2_network = (
             critic_net_builder.build_q_network(
-                self.state_normalization_parameters,
-                self.action_normalization_parameters,
+                self.state_normalization_data, self.action_normalization_data
             )
             if self.use_2_q_functions
             else None
@@ -90,7 +89,7 @@ class SAC(ActorCriticBase):
             # pyre-fixme[16]: `Optional` has no attribute `value`.
             value_net_builder = self.value_net_builder.value
             value_network = value_net_builder.build_value_network(
-                self.state_normalization_parameters
+                self.state_normalization_data
             )
 
         if self.use_gpu:
@@ -116,6 +115,6 @@ class SAC(ActorCriticBase):
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,
-            self.state_normalization_parameters,
-            self.action_normalization_parameters,
+            self.state_normalization_data,
+            self.action_normalization_data,
         )

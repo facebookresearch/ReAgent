@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List
+from typing import List
 
 import reagent.models as models
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNWithIdListNetBuilder
-from reagent.parameters import NormalizationParameters, param_hash
+from reagent.parameters import NormalizationData, param_hash
 
 
 @dataclass
@@ -28,10 +28,10 @@ class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
     def build_q_network(
         self,
         state_feature_config: rlt.ModelFeatureConfig,
-        state_normalization_parameters: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
         output_dim: int,
     ) -> models.ModelBase:
-        state_dim = self._get_input_dim(state_normalization_parameters)
+        state_dim = self._get_input_dim(state_normalization_data)
         embedding_concat = models.EmbeddingBagConcat(
             state_dim=state_dim,
             model_feature_config=state_feature_config,

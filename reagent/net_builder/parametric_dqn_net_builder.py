@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import abc
-from typing import Dict, Type
 
 import torch
 from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
-from reagent.parameters import NormalizationParameters
+from reagent.parameters import NormalizationData
 from reagent.prediction.predictor_wrapper import ParametricDqnWithPreprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
 
@@ -27,8 +26,8 @@ class ParametricDQNNetBuilder(metaclass=RegistryMeta):
     @abc.abstractmethod
     def build_q_network(
         self,
-        state_normalization_parameters: Dict[int, NormalizationParameters],
-        action_normalization_parameters: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
+        action_normalization_data: NormalizationData,
         output_dim: int = 1,
     ) -> ModelBase:
         pass
@@ -36,14 +35,18 @@ class ParametricDQNNetBuilder(metaclass=RegistryMeta):
     def build_serving_module(
         self,
         q_network: ModelBase,
-        state_normalization_parameters: Dict[int, NormalizationParameters],
-        action_normalization_parameters: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
+        action_normalization_data: NormalizationData,
     ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
-        state_preprocessor = Preprocessor(state_normalization_parameters, False)
-        action_preprocessor = Preprocessor(action_normalization_parameters, False)
+        state_preprocessor = Preprocessor(
+            state_normalization_data.dense_normalization_parameters, False
+        )
+        action_preprocessor = Preprocessor(
+            action_normalization_data.dense_normalization_parameters, False
+        )
         dqn_with_preprocessor = ParametricDqnWithPreprocessor(
             q_network.cpu_model().eval(), state_preprocessor, action_preprocessor
         )

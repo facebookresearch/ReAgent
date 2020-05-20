@@ -6,9 +6,8 @@ from typing import Optional
 
 from reagent import types as rlt
 from reagent.net_builder import discrete_dqn
-from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
-from reagent.parameters import NormalizationParameters
+from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS
 
 
@@ -41,22 +40,24 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
         )
         state_dim = len(state_feature_config.float_feature_infos)
 
-        state_norm_params = {
-            fi.feature_id: NormalizationParameters(
-                feature_type=CONTINUOUS, mean=0.0, stddev=1.0
-            )
-            for fi in state_feature_config.float_feature_infos
-        }
+        state_normalization_data = NormalizationData(
+            dense_normalization_parameters={
+                fi.feature_id: NormalizationParameters(
+                    feature_type=CONTINUOUS, mean=0.0, stddev=1.0
+                )
+                for fi in state_feature_config.float_feature_infos
+            }
+        )
 
         action_names = ["L", "R"]
         q_network = builder.build_q_network(
-            state_feature_config, state_norm_params, len(action_names)
+            state_feature_config, state_normalization_data, len(action_names)
         )
         x = q_network.input_prototype()
         y = q_network(x)
         self.assertEqual(y.shape, (1, 2))
         serving_module = builder.build_serving_module(
-            q_network, state_norm_params, action_names, state_feature_config
+            q_network, state_normalization_data, action_names, state_feature_config
         )
         self.assertIsInstance(serving_module, serving_module_class)
 

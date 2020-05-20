@@ -225,18 +225,6 @@ class C51Trainer(RLTrainer):
         )
 
     @torch.no_grad()
-    def internal_prediction(self, input):
-        """
-        Only used by Gym
-        """
-        self.q_network.eval()
-        q_values = self.q_network(rlt.FeatureData(input))
-        q_values = q_values.cpu()
-        self.q_network.train()
-
-        return q_values
-
-    @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor
     ) -> torch.Tensor:
