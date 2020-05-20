@@ -13,8 +13,8 @@ from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs.env_factory import EnvFactory
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
-from reagent.gym.runners.gymrunner import run_episode
-from reagent.gym.tests.utils import build_normalizer, fill_replay_buffer
+from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
+from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
@@ -72,20 +72,15 @@ class TestGymOffline(HorizonTestBase):
         logger.info(f"{name} passes!")
 
 
-def evaluate_for_num_episodes(
+def evaluate_cem(
     env: gym.Env, manager, max_steps: Optional[int], num_eval_episodes: int
 ):
     # NOTE: for CEM, serving isn't implemented
     policy = manager.create_policy(serving=False)
     agent = Agent.create_for_env(env, policy)
-
-    eval_rewards = []
-    for i in range(num_eval_episodes):
-        ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
-        eval_rewards.append(ep_reward)
-        logger.info(f"Finished eval episode {i} with reward {ep_reward}.")
-    logger.info(f"Rewards: {eval_rewards} (avg {np.mean(eval_rewards)}).")
-    return eval_rewards
+    return evaluate_for_n_episodes(
+        n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
+    )
 
 
 def run_test_offline(
@@ -130,14 +125,14 @@ def run_test_offline(
     with summary_writer_context(writer):
         for epoch in range(num_train_epochs):
             logger.info(f"Evaluating before epoch {epoch}: ")
-            eval_rewards = evaluate_for_num_episodes(env, manager, max_steps, 1)
+            eval_rewards = evaluate_cem(env, manager, max_steps, 1)
             for _ in tqdm(range(num_batches_per_epoch)):
                 train_batch = replay_buffer.sample_transition_batch_tensor()
                 preprocessed_batch = trainer_preprocessor(train_batch)
                 trainer.train(preprocessed_batch)
 
     logger.info(f"Evaluating after training for {num_train_epochs} epochs: ")
-    eval_rewards = evaluate_for_num_episodes(env, manager, max_steps, num_eval_episodes)
+    eval_rewards = evaluate_cem(env, manager, max_steps, num_eval_episodes)
     mean_rewards = np.mean(eval_rewards)
     assert (
         mean_rewards >= passing_score_bar

@@ -56,17 +56,19 @@ def fill_replay_buffer(env: Env, replay_buffer: ReplayBuffer, desired_size: int)
         total=desired_size - replay_buffer.size,
         desc=f"Filling replay buffer from {replay_buffer.size} to size {desired_size}",
     ) as pbar:
+        mdp_id = 0
         while replay_buffer.size < desired_size:
             last_size = replay_buffer.size
             max_steps = desired_size - replay_buffer.size - 1
             if max_episode_steps is not None:
                 max_steps = min(max_episode_steps, max_steps)
-            run_episode(env=env, agent=agent, max_steps=max_steps)
+            run_episode(env=env, agent=agent, mdp_id=mdp_id, max_steps=max_steps)
             size_delta = replay_buffer.size - last_size
             assert (
                 size_delta >= 0
             ), f"size delta is {size_delta} which should be non-negative."
             pbar.update(n=size_delta)
+            mdp_id += 1
             if size_delta == 0:
                 # replay buffer size isn't increasing... so stop early
                 break

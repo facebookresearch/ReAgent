@@ -62,6 +62,12 @@ def get_spark_session(config: Optional[Dict[str, str]] = DEFAULT_SPARK_CONFIG):
     return spark
 
 
+def call_spark_class(spark, class_name: str, args: str):
+    spark_class = getattr(spark._jvm.com.facebook.spark.rl, class_name, None)
+    assert spark_class is not None, f"Could not find {class_name}."
+    spark_class.main(args)
+
+
 def get_table_url(table_name: str) -> str:
     spark = get_spark_session()
     url = (

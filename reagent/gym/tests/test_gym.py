@@ -12,8 +12,8 @@ from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.envs.env_factory import EnvFactory
-from reagent.gym.runners.gymrunner import run_episode
-from reagent.gym.tests.utils import build_normalizer, fill_replay_buffer
+from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
+from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
@@ -134,7 +134,10 @@ def run_test(
     with summary_writer_context(writer):
         train_rewards = []
         for i in range(num_train_episodes):
-            ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
+            trajectory = run_episode(
+                env=env, agent=agent, mdp_id=i, max_steps=max_steps
+            )
+            ep_reward = trajectory.calculate_cumulative_reward()
             train_rewards.append(ep_reward)
             logger.info(f"Finished training episode {i} with reward {ep_reward}.")
 
@@ -150,12 +153,9 @@ def run_test(
     serving_policy = manager.create_policy(serving=True)
     agent = Agent.create_for_env_with_serving_policy(env, serving_policy)
 
-    eval_rewards = []
-    for i in range(num_eval_episodes):
-        ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
-        eval_rewards.append(ep_reward)
-        logger.info(f"Finished eval episode {i} with reward {ep_reward}.")
-
+    eval_rewards = evaluate_for_n_episodes(
+        n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
+    ).squeeze(1)
     assert np.mean(eval_rewards) >= passing_score_bar, (
         f"Predictor reward is {np.mean(eval_rewards)},"
         f"less than < {passing_score_bar}...\n"
