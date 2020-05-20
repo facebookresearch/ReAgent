@@ -24,3 +24,8 @@ class DQNTrainingReport(TrainingReport):
 @dataclass
 class ActorCriticTrainingReport(TrainingReport):
     __registry_name__ = "actor_critic_report"
+
+
+@dataclass
+class ParametricDQNTrainingReport(TrainingReport):
+    __registry_name__ = "parametric_dqn_report"

@@ -49,6 +49,34 @@ def make_replay_buffer_trainer_preprocessor(
     return trainer_preprocessor
 
 
+def one_hot_actions(
+    num_actions: int,
+    action: torch.Tensor,
+    next_action: torch.Tensor,
+    terminal: torch.Tensor,
+):
+    """
+    One-hot encode actions and non-terminal next actions.
+    Input shape is (batch_size, 1). Output shape is (batch_size, num_actions)
+    """
+    assert (
+        len(action.shape) == 2
+        and action.shape[1] == 1
+        and next_action.shape == action.shape
+    ), (
+        f"Must be action with stack_size = 1, but "
+        f"got shapes {action.shape}, {next_action.shape}"
+    )
+    action = F.one_hot(action, num_actions).squeeze(1).float()
+    # next action is garbage for terminal transitions (so just zero them)
+    next_action_res = torch.zeros_like(action)
+    non_terminal_indices = (terminal == 0).squeeze(1)
+    next_action_res[non_terminal_indices] = (
+        F.one_hot(next_action[non_terminal_indices], num_actions).squeeze(1).float()
+    )
+    return action, next_action_res
+
+
 class DiscreteDqnInputMaker:
     def __init__(self, num_actions: int):
         self.num_actions = num_actions
@@ -61,14 +89,8 @@ class DiscreteDqnInputMaker:
 
     def __call__(self, batch):
         not_terminal = 1.0 - batch.terminal.float()
-        action = F.one_hot(batch.action, self.num_actions).squeeze(1).float()
-        # next action is garbage for terminal transitions (so just zero them)
-        next_action = torch.zeros_like(action)
-        non_terminal_indices = (batch.terminal == 0).squeeze(1)
-        next_action[non_terminal_indices] = (
-            F.one_hot(batch.next_action[non_terminal_indices], self.num_actions)
-            .squeeze(1)
-            .float()
+        action, next_action = one_hot_actions(
+            self.num_actions, batch.action, batch.next_action, batch.terminal
         )
         return rlt.DiscreteDqnInput(
             state=rlt.FeatureData(float_features=batch.state),
@@ -209,8 +231,68 @@ class MemoryNetworkInputMaker:
         )
 
 
+def get_possible_actions_for_gym(batch_size: int, num_actions: int) -> rlt.FeatureData:
+    """
+    tiled_actions should be (batch_size * num_actions, num_actions)
+    forall i in [batch_size],
+    tiled_actions[i*num_actions:(i+1)*num_actions] should be I[num_actions]
+    where I[n] is the n-dimensional identity matrix.
+    NOTE: this is only the case for when we convert discrete action to
+    parametric action via one-hot encoding.
+    """
+    possible_actions = torch.eye(num_actions).repeat(repeats=(batch_size, 1))
+    return rlt.FeatureData(float_features=possible_actions)
+
+
+class ParametricDqnInputMaker:
+    def __init__(self, num_actions: int):
+        self.num_actions = num_actions
+
+    @classmethod
+    def create_for_env(cls, env: gym.Env):
+        action_space = env.action_space
+        assert isinstance(action_space, gym.spaces.Discrete)
+        return cls(action_space.n)
+
+    def __call__(self, batch):
+        not_terminal = 1.0 - batch.terminal.float()
+        assert (
+            len(batch.state.shape) == 2
+        ), f"{batch.state.shape} is not (batch_size, state_dim)."
+        batch_size, _ = batch.state.shape
+        action, next_action = one_hot_actions(
+            self.num_actions, batch.action, batch.next_action, batch.terminal
+        )
+        possible_actions = get_possible_actions_for_gym(batch_size, self.num_actions)
+        possible_next_actions = possible_actions.clone()
+        possible_actions_mask = torch.ones((batch_size, self.num_actions))
+        possible_next_actions_mask = possible_actions_mask.clone()
+        return rlt.ParametricDqnInput(
+            state=rlt.FeatureData(float_features=batch.state),
+            action=rlt.FeatureData(float_features=action),
+            next_state=rlt.FeatureData(float_features=batch.next_state),
+            next_action=rlt.FeatureData(float_features=next_action),
+            possible_actions=possible_actions,
+            possible_actions_mask=possible_actions_mask,
+            possible_next_actions=possible_next_actions,
+            possible_next_actions_mask=possible_next_actions_mask,
+            reward=batch.reward,
+            not_terminal=not_terminal,
+            step=None,
+            time_diff=None,
+            extras=rlt.ExtraData(
+                mdp_id=None,
+                sequence_number=None,
+                action_probability=batch.log_prob.exp(),
+                max_num_actions=None,
+                metrics=None,
+            ),
+        )
+
+
 MAKER_MAP = {
     rlt.DiscreteDqnInput: DiscreteDqnInputMaker,
     rlt.PolicyNetworkInput: PolicyNetworkInputMaker,
     rlt.MemoryNetworkInput: MemoryNetworkInputMaker,
+    rlt.ParametricDqnInput: ParametricDqnInputMaker,
 }

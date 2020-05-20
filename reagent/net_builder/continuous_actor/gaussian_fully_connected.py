@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import List
+from typing import Dict, List
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.actor import GaussianFullyConnectedActor
 from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
-from reagent.parameters import NormalizationData, param_hash
+from reagent.parameters import NormalizationParameters, param_hash
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 
@@ -33,15 +33,11 @@ class GaussianFullyConnected(ContinuousActorNetBuilder):
 
     def build_actor(
         self,
-        state_normalization_data: NormalizationData,
-        action_normalization_data: NormalizationData,
+        state_normalization: Dict[int, NormalizationParameters],
+        action_normalization: Dict[int, NormalizationParameters],
     ) -> ModelBase:
-        state_dim = get_num_output_features(
-            state_normalization_data.dense_normalization_parameters
-        )
-        action_dim = get_num_output_features(
-            action_normalization_data.dense_normalization_parameters
-        )
+        state_dim = get_num_output_features(state_normalization)
+        action_dim = get_num_output_features(action_normalization)
         return GaussianFullyConnectedActor(
             state_dim=state_dim,
             action_dim=action_dim,

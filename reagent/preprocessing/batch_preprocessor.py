@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from typing import Dict
 
@@ -45,7 +46,7 @@ class InputColumn(object):
 
 
 class BatchPreprocessor:
-    def __call__(self, batch: rlt.RawTrainingBatch) -> rlt.TensorDataClass:
+    def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.TensorDataClass:
         raise NotImplementedError()
 
 
@@ -101,57 +102,48 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
 
 class ParametricDqnBatchPreprocessor(BatchPreprocessor):
     def __init__(
-        self, state_preprocessor: Preprocessor, action_preprocessor: Preprocessor
+        self,
+        state_preprocessor: Preprocessor,
+        action_preprocessor: Preprocessor,
+        use_gpu: bool,
     ):
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
+        self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    def __call__(self, batch: rlt.RawTrainingBatch) -> rlt.PreprocessedTrainingBatch:
-        training_input = batch.training_input
-        assert isinstance(
-            training_input, rlt.RawParametricDqnInput
-        ), "Wrong Type: {}".format(str(type(training_input)))
+    def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.ParametricDqnInput:
+        batch = batch_to_device(batch, self.device)
+        # first preprocess state and action
         preprocessed_state = self.state_preprocessor(
-            training_input.state.float_features.value,
-            training_input.state.float_features.presence,
+            batch["state_features"], batch["state_features_presence"]
         )
         preprocessed_next_state = self.state_preprocessor(
-            training_input.next_state.float_features.value,
-            training_input.next_state.float_features.presence,
+            batch["next_state_features"], batch["next_state_features_presence"]
         )
-        assert isinstance(training_input.action, rlt.RawFeatureData)
         preprocessed_action = self.action_preprocessor(
-            training_input.action.float_features.value,
-            training_input.action.float_features.presence,
-        )
-
-        assert isinstance(training_input, rlt.RawParametricDqnInput)
-        preprocessed_tiled_next_state = self.state_preprocessor(
-            training_input.tiled_next_state.float_features.value,
-            training_input.tiled_next_state.float_features.presence,
+            batch["action"], batch["action_presence"]
         )
         preprocessed_next_action = self.action_preprocessor(
-            training_input.next_action.float_features.value,
-            training_input.next_action.float_features.presence,
+            batch["next_action"], batch["next_action_presence"]
         )
-        preprocessed_possible_actions = self.action_preprocessor(
-            training_input.possible_actions.float_features.value,
-            training_input.possible_actions.float_features.presence,
-        )
-        preprocessed_possible_next_actions = self.action_preprocessor(
-            training_input.possible_next_actions.float_features.value,
-            training_input.possible_next_actions.float_features.presence,
-        )
-        return batch.preprocess(
-            training_input=training_input.preprocess_tensors(
-                state=preprocessed_state,
-                next_state=preprocessed_next_state,
-                action=preprocessed_action,
-                next_action=preprocessed_next_action,
-                possible_actions=preprocessed_possible_actions,
-                possible_next_actions=preprocessed_possible_next_actions,
-                tiled_next_state=preprocessed_tiled_next_state,
-            )
+        return rlt.ParametricDqnInput(
+            state=rlt.FeatureData(preprocessed_state),
+            next_state=rlt.FeatureData(preprocessed_next_state),
+            action=rlt.FeatureData(preprocessed_action),
+            next_action=rlt.FeatureData(preprocessed_next_action),
+            reward=batch["reward"].unsqueeze(1),
+            time_diff=batch["time_diff"].unsqueeze(1),
+            step=batch["step"].unsqueeze(1),
+            not_terminal=batch["not_terminal"].unsqueeze(1),
+            possible_actions=batch["possible_actions"],
+            possible_actions_mask=batch["possible_actions_mask"],
+            possible_next_actions=batch["possible_next_actions"],
+            possible_next_actions_mask=batch["possible_next_actions_mask"],
+            extras=rlt.ExtraData(
+                mdp_id=batch["mdp_id"].unsqueeze(1),
+                sequence_number=batch["sequence_number"].unsqueeze(1),
+                action_probability=batch["action_probability"].unsqueeze(1),
+            ),
         )
 
 
@@ -166,7 +158,6 @@ class PolicyNetworkBatchPreprocessor(BatchPreprocessor):
         self.action_preprocessor = action_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    # TODO: remove type ignore after converting rest of BatchPreprocessors to Dict input
     def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.PolicyNetworkInput:
         batch = batch_to_device(batch, self.device)
         preprocessed_state = self.state_preprocessor(

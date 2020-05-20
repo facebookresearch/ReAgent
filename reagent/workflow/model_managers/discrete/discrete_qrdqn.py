@@ -73,7 +73,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
                 DiscreteDqnPredictorUnwrapper(self.build_serving_module())
             )
         else:
-            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `rl_parameters`.
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_qrdqn_scorer(self.trainer.q_network)
@@ -83,7 +82,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
             self.state_normalization_parameters,
-            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             len(self.action_names),
             num_atoms=self.trainer_param.num_atoms,
         )
@@ -137,13 +135,11 @@ class DiscreteQRDQN(DiscreteDQNBase):
         """
         Returns a TorchScript predictor module
         """
-        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
         assert self._q_network is not None, "_q_network was not initialized"
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
             self.state_normalization_parameters,
-            # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `action_names`.
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

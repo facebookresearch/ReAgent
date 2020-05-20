@@ -8,7 +8,7 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.gym.policies.policy import Policy
 from reagent.models.cem_planner import CEMPlannerNetwork
-from reagent.parameters import CEMTrainerParameters, NormalizationKey, param_hash
+from reagent.parameters import CEMTrainerParameters, param_hash
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.cem_trainer import CEMTrainer
 from reagent.workflow.model_managers.model_based.world_model import WorldModel
@@ -50,10 +50,6 @@ class CrossEntropyMethod(WorldModelBase):
 
     # TODO: should this be in base class?
     def create_policy(self, serving: bool = False) -> Policy:
-        # pyre-fixme[16]: `CrossEntropyMethod` has no attribute `cem_planner_network`.
-        # pyre-fixme[16]: `CrossEntropyMethod` has no attribute `cem_planner_network`.
-        # pyre-fixme[16]: `CrossEntropyMethod` has no attribute `discrete_action`.
-        # pyre-fixme[16]: `CrossEntropyMethod` has no attribute `discrete_action`.
         return CEMPolicy(self.cem_planner_network, self.discrete_action)
 
     def build_trainer(self) -> CEMTrainer:
@@ -61,13 +57,15 @@ class CrossEntropyMethod(WorldModelBase):
             trainer_param=self.trainer_param.mdnrnn
         )
         world_model_manager.initialize_trainer(
+            self.use_gpu,
+            self.reward_options,
             # pyre-fixme[6]: Expected `Dict[str,
             #  reagent.parameters.NormalizationData]` for 3rd param but got
             #  `Optional[typing.Dict[str, reagent.parameters.NormalizationData]]`.
             # pyre-fixme[6]: Expected `Dict[str,
             #  reagent.parameters.NormalizationData]` for 3rd param but got
             #  `Optional[typing.Dict[str, reagent.parameters.NormalizationData]]`.
-            self.use_gpu, self.reward_options, self._normalization_data_map
+            self._normalization_data_map,
         )
         world_model_trainers = [
             world_model_manager.build_trainer()
@@ -76,11 +74,7 @@ class CrossEntropyMethod(WorldModelBase):
         world_model_nets = [trainer.memory_network for trainer in world_model_trainers]
         terminal_effective = self.trainer_param.mdnrnn.not_terminal_loss_weight > 0
         action_upper_bounds, action_lower_bounds = None, None
-        sorted_action_norm_vals = list(
-            self.get_normalization_data(
-                NormalizationKey.ACTION
-            ).dense_normalization_parameters.values()
-        )
+        sorted_action_norm_vals = list(self.action_normalization_parameters.values())
         discrete_action = sorted_action_norm_vals[0].feature_type != CONTINUOUS_ACTION
         if not discrete_action:
             action_upper_bounds = np.array(
@@ -97,16 +91,8 @@ class CrossEntropyMethod(WorldModelBase):
             ensemble_population_size=self.trainer_param.ensemble_population_size,
             num_elites=self.trainer_param.num_elites,
             plan_horizon_length=self.trainer_param.plan_horizon_length,
-            state_dim=get_num_output_features(
-                self.get_normalization_data(
-                    NormalizationKey.STATE
-                ).dense_normalization_parameters
-            ),
-            action_dim=get_num_output_features(
-                self.get_normalization_data(
-                    NormalizationKey.ACTION
-                ).dense_normalization_parameters
-            ),
+            state_dim=get_num_output_features(self.state_normalization_parameters),
+            action_dim=get_num_output_features(self.action_normalization_parameters),
             discrete_action=discrete_action,
             terminal_effective=terminal_effective,
             gamma=self.trainer_param.rl.gamma,

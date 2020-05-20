@@ -40,9 +40,6 @@ class ModelManager(metaclass=RegistryMeta):
     def __init__(self):
         super().__init__()
         # initialization is delayed to `_set_normalization_parameters()`
-        self._state_normalization_parameters: Optional[
-            Dict[int, NormalizationParameters]
-        ] = None
         self._normalization_data_map: Optional[Dict[str, NormalizationData]] = None
 
         # initialization is delayed to `initialize_trainer()`
@@ -90,24 +87,6 @@ class ModelManager(metaclass=RegistryMeta):
         """
         pass
 
-    @property
-    def state_normalization_parameters(self) -> Dict[int, NormalizationParameters]:
-        assert (
-            self._state_normalization_parameters is not None
-        ), "You need to set state_normalization_parameters before calling this"
-        # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
-        #  `Optional[Dict[int, NormalizationParameters]]`.
-        # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
-        #  `Optional[Dict[int, NormalizationParameters]]`.
-        return self._state_normalization_parameters
-
-    @state_normalization_parameters.setter
-    def state_normalization_parameters(self, p: Dict[int, NormalizationParameters]):
-        assert (
-            self._state_normalization_parameters is None
-        ), "You should not reset state_normalization_parameters after assignment"
-        self._state_normalization_parameters = p
-
     def set_normalization_data_map(
         self, normalization_data_map: Dict[str, NormalizationData]
     ) -> None:
@@ -123,7 +102,8 @@ class ModelManager(metaclass=RegistryMeta):
         assert (
             # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-            key in self._normalization_data_map
+            key
+            in self._normalization_data_map
         ), f"{key} not available; available keys {self._normalization_data_map.keys()}"
         return self._normalization_data_map[key]
 
@@ -131,11 +111,22 @@ class ModelManager(metaclass=RegistryMeta):
         self, key: str
     ) -> Dict[int, NormalizationParameters]:
         norm_data = self.get_normalization_data(key)
+        assert norm_data is not None, f"NormalizationData for `{key}` is not set"
         dense_norm_params = norm_data.dense_normalization_parameters
         assert (
             dense_norm_params is not None
         ), f"dense_normalization_parameters for '{key}' is not set"
         return dense_norm_params
+
+    def __getattr__(self, key):
+        normalization_parameters_suffix = "_normalization_parameters"
+        if key.endswith(normalization_parameters_suffix):
+            normalization_key = key[: -len(normalization_parameters_suffix)]
+            return self.get_float_features_normalization_parameters(normalization_key)
+
+        raise AttributeError(
+            f"attr {key} not available {type(self)} (subclass of ModelManager)."
+        )
 
     @property
     @abc.abstractmethod
