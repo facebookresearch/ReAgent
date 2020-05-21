@@ -31,7 +31,7 @@ def make_default_obs_preprocessor(env: Env, *, device: Optional[torch.device] = 
     if device is None:
         device = torch.device("cpu")
     observation_space = env.observation_space
-    if HAS_RECSIM and isinstance(env, RecSimGymEnv):
+    if HAS_RECSIM and isinstance(env.unwrapped, RecSimGymEnv):
         return RecsimObsPreprocessor.create_from_env(env, device=device)
     elif isinstance(observation_space, spaces.Box):
         return BoxObsPreprocessor(device)
@@ -83,7 +83,7 @@ class RecsimObsPreprocessor:
         self.device = device
 
     @classmethod
-    def create_from_env(cls, env: "RecSimGymEnv", **kwargs):
+    def create_from_env(cls, env: Env, **kwargs):
         obs_space = env.observation_space
         assert isinstance(obs_space, spaces.Dict)
         user_obs_space = obs_space["user"]
@@ -162,16 +162,12 @@ class RecsimObsPreprocessor:
             vals = np.vstack(list(doc_obs.values()))
             doc_features = torch.tensor(vals).float().unsqueeze(0)
 
-        # FIXME(T67072053): This should be an env wrapper
-        # FIXME(T67072053): This should be learned
-        if user.shape[1] == doc_features.shape[2]:
-            # interest_evolution, use inner-product as value
-            value = torch.bmm(user.unsqueeze(1), doc_features.transpose(1, 2)).squeeze(
-                1
-            )
-        else:
-            # Making stupid assumption; all items are equally interesting to the user
-            value = (torch.ones(doc_features.shape[:-1]),)
+        # This comes from ValueWrapper
+        value = (
+            torch.tensor([v["value"] for v in obs["augmentation"].values()])
+            .float()
+            .unsqueeze(0)
+        )
 
         candidate_docs = rlt.DocList(
             float_features=doc_features,

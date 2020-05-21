@@ -236,7 +236,8 @@ class ReplayBuffer(object):
     ):
         extra_storage_types: List[ReplayElement] = []
         obs_space = env.observation_space
-        if HAS_RECSIM and isinstance(env, RecSimGymEnv):
+
+        if HAS_RECSIM and isinstance(env.unwrapped, RecSimGymEnv):
             assert isinstance(obs_space, spaces.Dict)
             user_obs_space = obs_space["user"]
             if not isinstance(user_obs_space, spaces.Box):
@@ -299,6 +300,7 @@ class ReplayBuffer(object):
         to the user. Each element should be identical. They should be dict with
         keys corresponding to the type of response.
         """
+        logger.info(obs_space)
         doc_obs_space = obs_space["doc"]
         if not isinstance(doc_obs_space, spaces.Dict):
             raise NotImplementedError(
@@ -313,7 +315,7 @@ class ReplayBuffer(object):
 
         doc_0_space = doc_obs_space["0"]
         if isinstance(doc_0_space, spaces.Dict):
-            for k, v in doc_obs_space["0"].spaces.items():
+            for k, v in doc_0_space.spaces.items():
                 if isinstance(v, spaces.Discrete):
                     shape = (num_docs,)
                 elif isinstance(v, spaces.Box):
@@ -329,6 +331,23 @@ class ReplayBuffer(object):
             replay_elements.append(ReplayElement("doc", shape, doc_0_space.dtype))
         else:
             raise NotImplementedError(f"Unknown space: {doc_0_space}")
+
+        augmentation = obs_space.spaces.get("augmentation", None)
+        if augmentation is not None:
+            aug_0_space = list(augmentation.spaces.values())[0]
+            for k, v in aug_0_space.spaces.items():
+                if isinstance(v, spaces.Discrete):
+                    shape = (num_docs,)
+                elif isinstance(v, spaces.Box):
+                    shape = (num_docs, *v.shape)
+                else:
+                    raise NotImplementedError(
+                        f"Augmentation feature {k} with the observation space "
+                        f"of {type(v)} is not supported"
+                    )
+                replay_elements.append(
+                    ReplayElement(f"augmentation_{k}", shape, v.dtype)
+                )
 
         response_space = obs_space["response"]
         assert isinstance(response_space, spaces.Tuple)
