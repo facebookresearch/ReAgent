@@ -450,7 +450,7 @@ class SlateQInput(PreprocessedBaseInput):
             ),
             action=action,
             next_action=next_action,
-            reward=d["reward"],
+            reward=d["position_reward"],
             reward_mask=d["reward_mask"],
             time_diff=d["time_diff"],
             not_terminal=d["not_terminal"],
