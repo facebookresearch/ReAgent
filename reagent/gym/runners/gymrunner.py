@@ -2,11 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-import multiprocessing
 import pickle
-from typing import List, Optional, Sequence
+from typing import Optional, Sequence
 
 import numpy as np
+import torch.multiprocessing as mp
 from gym import Env
 from reagent.core.multiprocess_utils import (
     unwrap_function_outputs,
@@ -67,6 +67,7 @@ def evaluate_for_n_episodes(
         where A[i, j] = ith episode evaluated with gamma=gammas[j].
         Runs environments on num_processes, via multiprocessing.Pool.
     """
+    num_processes = min(num_processes, n)
 
     def evaluate_one_episode(
         mdp_id: int,
@@ -83,20 +84,10 @@ def evaluate_for_n_episodes(
             rewards[i_gamma] = trajectory.calculate_cumulative_reward(gamma)
         return rewards
 
-    def singleprocess_run():
-        rewards = []
-        for i in range(n):
-            rewards.append(
-                evaluate_one_episode(
-                    mdp_id=i, env=env, agent=agent, max_steps=max_steps, gammas=gammas
-                )
-            )
-        rewards = np.array(rewards)
-        return rewards
-
+    rewards = None
     if num_processes > 1:
         try:
-            with multiprocessing.Pool(num_processes) as pool:
+            with mp.Pool(num_processes) as pool:
                 rewards = unwrap_function_outputs(
                     pool.map(
                         wrap_function_arguments(
@@ -109,16 +100,30 @@ def evaluate_for_n_episodes(
                         range(n),
                     )
                 )
-                rewards = np.array(rewards)
         except pickle.PickleError as e:
             # NOTE: Probably tried to perform mixed serialization of ScriptModule
             # and non-script modules. This isn't supported right now.
+            logger.info(e)
             logger.info(
-                f"Trying single processing instead, since got pickle error: {e}."
+                "This is probably from trying to serialize a TorchScript module, "
+                "wrapped in a non-script module. Mixed serialization is not supported."
             )
-            rewards = singleprocess_run()
-    else:
-        rewards = singleprocess_run()
 
-    logger.info(f"Average eval reward is {rewards.mean(axis=0)} for gammas {gammas}.")
+    # if we didn't run multiprocessing, or it failed, try single-processing instead.
+    if rewards is None:
+        rewards = []
+        for i in range(n):
+            rewards.append(
+                evaluate_one_episode(
+                    mdp_id=i, env=env, agent=agent, max_steps=max_steps, gammas=gammas
+                )
+            )
+
+    rewards = np.array(rewards)
+    for i, gamma in enumerate(gammas):
+        gamma_rewards = rewards[:, i]
+        logger.info(
+            f"For gamma={gamma}, average reward is {gamma_rewards.mean()}\n"
+            f"Rewards list: {gamma_rewards}"
+        )
     return rewards
