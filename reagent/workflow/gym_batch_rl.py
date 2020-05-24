@@ -11,19 +11,12 @@ import pandas as pd
 import torch
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs.env_factory import EnvFactory
+from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import fill_replay_buffer
-from reagent.prediction.dqn_torch_predictor import (
-    ActorTorchPredictor,
-    DiscreteDqnTorchPredictor,
-)
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.replay_memory.utils import replay_buffer_to_pre_timeline_df
 from reagent.workflow.model_managers.union import ModelManager__Union
-from reagent.workflow.predictor_policies import (
-    ActorTorchPredictorPolicy,
-    DiscreteDqnTorchPredictorPolicy,
-)
 from reagent.workflow.publishers.union import ModelPublisher__Union
 from reagent.workflow.spark_utils import call_spark_class, get_spark_session
 from reagent.workflow.training import identify_and_train_network
@@ -99,25 +92,8 @@ def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
     call_spark_class(spark, class_name="Timeline", args=json.dumps(arg))
 
 
-def create_predictor_policy_from_model(env: gym.Env, model: torch.nn.Module, **kwargs):
-    if isinstance(env.action_space, gym.spaces.Discrete):
-        assert "eval_temperature" in kwargs
-        predictor = DiscreteDqnTorchPredictor(model)
-        predictor.softmax_temperature = kwargs["eval_temperature"]
-        return DiscreteDqnTorchPredictorPolicy(predictor)
-    elif isinstance(env.action_space, gym.spaces.Box):
-        assert len(env.action_space.shape) == 1
-        predictor = ActorTorchPredictor(
-            model, action_feature_ids=list(range(env.action_space.shape[0]))
-        )
-        return ActorTorchPredictorPolicy(predictor)
-    else:
-        raise NotImplementedError(f"{env.action_space} not supported")
-
-
 def train_and_evaluate_gym(
     env_name: str,
-    eval_temperature: float,
     num_eval_episodes: int,
     passing_score_bar: float,
     input_table_spec: TableSpec,
@@ -147,13 +123,8 @@ def train_and_evaluate_gym(
 
     env = EnvFactory.make(env_name)
     jit_model = torch.jit.load(training_output.output_path)
-    policy = create_predictor_policy_from_model(
-        env, jit_model, eval_temperature=eval_temperature
-    )
-    # since we already return softmax action, override action_extractor
-    agent = Agent.create_for_env(
-        env, policy=policy, action_extractor=policy.get_action_extractor()
-    )
+    policy = create_predictor_policy_from_model(jit_model)
+    agent = Agent.create_for_env_with_serving_policy(env, policy)
     rewards = evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
     )

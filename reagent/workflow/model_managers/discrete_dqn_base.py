@@ -7,6 +7,7 @@ from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import (
     GreedyActionSampler,
     SoftmaxActionSampler,
@@ -39,14 +40,6 @@ from reagent.workflow.types import (
 from reagent.workflow.utils import train_and_evaluate_generic
 
 
-try:
-    from reagent.fb.prediction.fb_predictor_wrapper import (
-        FbDiscreteDqnPredictorUnwrapper as DiscreteDqnPredictorUnwrapper,
-    )
-except ImportError:
-    from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorUnwrapper
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -67,15 +60,12 @@ class DiscreteDQNBase(ModelManager):
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
         if serving:
-            sampler = GreedyActionSampler()
-            scorer = discrete_dqn_serving_scorer(
-                DiscreteDqnPredictorUnwrapper(self.build_serving_module())
-            )
+            return create_predictor_policy_from_model(self.build_serving_module())
         else:
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
-        return Policy(scorer=scorer, sampler=sampler)
+            return Policy(scorer=scorer, sampler=sampler)
 
     @property
     def metrics_to_score(self) -> List[str]:

@@ -259,12 +259,11 @@ class ReplayBuffer(object):
             )
 
         action_space = env.action_space
-        if isinstance(action_space, (spaces.Box, spaces.MultiDiscrete)):
+        if isinstance(
+            action_space, (spaces.Box, spaces.MultiDiscrete, spaces.Discrete)
+        ):
             action_dtype = action_space.dtype
             action_shape = action_space.shape
-        elif isinstance(action_space, spaces.Discrete):
-            action_dtype = action_space.dtype
-            action_shape = ()
         else:
             raise NotImplementedError(
                 f"env.action_space {type(env.action_space)} not supported."

@@ -65,7 +65,6 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
         self.state_preprocessor = state_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    # TODO: remove type ignore after converting rest of BatchPreprocessors to Dict input
     def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.DiscreteDqnInput:
         batch = batch_to_device(batch, self.device)
         preprocessed_state = self.state_preprocessor(

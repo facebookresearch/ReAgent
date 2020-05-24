@@ -592,10 +592,10 @@ class EvaluationDataPage(NamedTuple):
                 mdp_count += 1
                 prev_mdp_id = mdp_id
             else:
-                assert (
-                    seq_num > prev_seq_num
-                ), "Sequence number must be in increasing order"
-
+                assert seq_num >= prev_seq_num, (
+                    f"Sequence number must be in increasing order ({seq_num} <= {prev_seq_num})\n"
+                    f"Zip(mdp_id, seq_num): {list(zip(flatten_mdp_id, self.sequence_number))}"
+                )
             prev_seq_num = seq_num
 
         assert len(unique_mdp_ids) == mdp_count, "MDPs are broken up. {} vs {}".format(
