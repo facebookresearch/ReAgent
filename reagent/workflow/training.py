@@ -4,6 +4,7 @@ import dataclasses
 import logging
 from typing import Dict, NamedTuple, Optional, Tuple
 
+import torch
 from reagent.parameters import NormalizationData
 from reagent.workflow.env import get_workflow_id
 from reagent.workflow.model_managers.union import ModelManager__Union
@@ -24,12 +25,15 @@ def identify_and_train_network(
     input_table_spec: TableSpec,
     model: ModelManager__Union,
     num_epochs: int,
-    use_gpu: bool = True,
+    use_gpu: Optional[bool] = None,
     reward_options: Optional[RewardOptions] = None,
     warmstart_path: Optional[str] = None,
     validator: Optional[ModelValidator__Union] = None,
     publisher: Optional[ModelPublisher__Union] = None,
 ) -> RLTrainingOutput:
+    if use_gpu is None:
+        use_gpu: bool = torch.cuda.is_available()
+
     manager = model.value
     normalization_data_map = manager.run_feature_identification(input_table_spec)
 

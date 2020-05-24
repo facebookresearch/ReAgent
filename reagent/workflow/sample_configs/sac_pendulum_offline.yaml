@@ -61,7 +61,9 @@ model:
 num_train_transitions: 40000  # approx. 200 episodes
 max_steps: 200
 seed: 42
-num_train_epochs: 80
+num_epochs: 80
+publisher:
+  FileSystemPublisher: {}
 num_eval_episodes: 30
 # TODO: raise this bar after training stabilize
 passing_score_bar: -900

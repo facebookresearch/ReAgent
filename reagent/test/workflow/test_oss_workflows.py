@@ -102,7 +102,7 @@ class TestOSSWorkflows(HorizonTestBase):
                 result = runner.invoke(
                     cli.run,
                     [
-                        "reagent.workflow.gym_batch_rl.train_and_evaluate_gym",
+                        "reagent.workflow.training.identify_and_train_network",
                         NEW_CONFIG_NAME,
                     ],
                     catch_exceptions=False,
