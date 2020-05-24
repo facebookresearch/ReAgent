@@ -50,6 +50,7 @@ class ParametricDQNNetBuilder(metaclass=RegistryMeta):
         dqn_with_preprocessor = ParametricDqnWithPreprocessor(
             q_network.cpu_model().eval(), state_preprocessor, action_preprocessor
         )
-        return ParametricDqnPredictorWrapper(
+        wrapper = ParametricDqnPredictorWrapper(
             dqn_with_preprocessor=dqn_with_preprocessor
         )
+        return wrapper

@@ -35,8 +35,7 @@ def run_episode(
     while not terminal:
         action = agent.act(obs)
         next_obs, reward, terminal, _ = env.step(action)
-        num_steps += 1
-        if max_steps is not None and num_steps > max_steps:
+        if max_steps is not None and num_steps >= max_steps:
             terminal = True
 
         # Only partially filled. Agent can fill in more fields.
@@ -52,6 +51,7 @@ def run_episode(
         trajectory.add_transition(transition)
         SummaryWriterContext.increase_global_step()
         obs = next_obs
+        num_steps += 1
     return trajectory
 
 

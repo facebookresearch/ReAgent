@@ -9,7 +9,6 @@ import numpy as np
 import reagent.types as rlt
 import torch
 from gym import Env, spaces
-from reagent.gym.preprocessors.default_preprocessors import discrete_action_extractor
 
 
 def make_default_serving_obs_preprocessor(env: Env):
@@ -32,7 +31,7 @@ def make_default_serving_obs_preprocessor(env: Env):
 
 def make_default_serving_action_extractor(env: Env):
     if isinstance(env.action_space, spaces.Discrete):
-        return discrete_action_extractor
+        return discrete_predictor_action_extractor
     elif isinstance(env.action_space, spaces.Box):
         assert (
             len(env.action_space.shape) == 1
@@ -40,6 +39,14 @@ def make_default_serving_action_extractor(env: Env):
         return continuous_predictor_action_extractor
     else:
         raise NotImplementedError
+
+
+def discrete_predictor_action_extractor(output: rlt.ActorOutput):
+    assert (
+        len(output.action.shape) == 2 and output.action.shape[0] == 1
+    ), f"{output.action.shape} isn't (1, action_dim)"
+    # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
+    return output.action.cpu().squeeze(0).argmax().item()
 
 
 def continuous_predictor_action_extractor(output: rlt.ActorOutput):
