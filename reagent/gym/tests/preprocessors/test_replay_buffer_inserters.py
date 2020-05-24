@@ -26,7 +26,7 @@ except ModuleNotFoundError:
 def _create_replay_buffer_and_insert(env: gym.Env):
     env.seed(1)
     replay_buffer = ReplayBuffer.create_from_env(
-        env, replay_memory_size=10, batch_size=1
+        env, replay_memory_size=6, batch_size=1
     )
     replay_buffer_inserter = make_replay_buffer_inserter(env)
     obs = env.reset()
@@ -90,8 +90,7 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
         replay_buffer, inserted = _create_replay_buffer_and_insert(env)
         batch = replay_buffer.sample_transition_batch_tensor(indices=np.array([0]))
         npt.assert_array_almost_equal(
-            inserted[0]["observation"]["user"].astype(np.float32),
-            batch.state.squeeze(0),
+            inserted[0]["observation"]["user"], batch.state.squeeze(0)
         )
         npt.assert_array_almost_equal(
             inserted[1]["observation"]["user"], batch.next_state.squeeze(0)
