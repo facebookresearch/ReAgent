@@ -60,7 +60,6 @@ class Postprocessor(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.feature_type == CONTINUOUS_ACTION:
-            # pyre-fixme[7]: Expected `Tensor` but got `float`.
             return (
                 torch.clamp(input, -1 + EPS, 1 - EPS) + 1 - EPS
             ) * self.scaling_factor + self.min_serving_value

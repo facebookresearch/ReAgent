@@ -132,7 +132,6 @@ class DoublyRobustEstimator:
         if edp.contexts is None:
             raise ValueError("contexts not provided in input")
         contexts_dict = {
-            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             "train": edp.contexts[idx_train],
             "valid": edp.contexts[idx_valid],
             "eval": edp.contexts[idx_eval],
@@ -611,7 +610,6 @@ class DoublyRobustEstimatorBOPE(DoublyRobustEstimator):
             * bope_weight_normalization_factor
         )
         return ImportanceSamplingData(
-            # pyre-fixme[6]: Expected `Tensor` for 1st param but got `float`.
             importance_weight=importance_weights,
             logged_rewards=ed.logged_rewards_eval,
             model_rewards=ed.model_rewards_eval,

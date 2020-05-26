@@ -169,17 +169,13 @@ class TD3Trainer(RLTrainer):
         ):
             logs = {
                 "loss/q1_loss": q1_loss,
-                # pyre-fixme[18]: Global name `actor_loss` is undefined.
                 "loss/actor_loss": actor_loss,
                 "q_value/q1_value": q1_value,
                 "q_value/next_q_value": next_q_value,
                 "q_value/target_q_value": target_q_value,
-                # pyre-fixme[18]: Global name `actor_q1_value` is undefined.
                 "q_value/actor_q1_value": actor_q1_value,
             }
             if self.q2_network:
-                # pyre-fixme[18]: Global name `q2_loss` is undefined.
-                # pyre-fixme[18]: Global name `q2_value` is undefined.
                 logs.update({"loss/q2_loss": q2_loss, "q_value/q2_value": q2_value})
 
             for k, v in logs.items():

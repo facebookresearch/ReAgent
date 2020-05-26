@@ -239,13 +239,11 @@ class CEMPlannerNetwork(nn.Module):
                 + mean
             )
             action_solutions = torch.from_numpy(
-                # pyre-fixme[16]: `float` has no attribute `reshape`.
                 solutions.reshape(
                     (self.cem_pop_size, self.plan_horizon_length, self.action_dim)
                 )
             ).float()
             acc_rewards = self.acc_rewards_of_all_solutions(state, action_solutions)
-            # pyre-fixme[16]: `float` has no attribute `__getitem__`.
             elites = solutions[np.argsort(acc_rewards)][-self.num_elites :]
             new_mean = np.mean(elites, axis=0)
             new_var = np.var(elites, axis=0)

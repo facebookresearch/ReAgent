@@ -245,13 +245,11 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "min_training_value",
-            # pyre-fixme[6]: Expected `Tensor` for 3rd param but got `float`.
             torch.ones(len(norm_params), device=self.device) * -1 + EPS,
         )
         self._create_parameter(
             begin_index,
             "scaling_factor",
-            # pyre-fixme[6]: Expected `Tensor` for 3rd param but got `float`.
             (torch.ones(len(norm_params), device=self.device) - EPS)
             * 2
             / torch.tensor(

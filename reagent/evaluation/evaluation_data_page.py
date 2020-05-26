@@ -489,23 +489,13 @@ class EvaluationDataPage(NamedTuple):
     def compute_values(self, gamma: float):
         assert self.mdp_id is not None and self.sequence_number is not None
         logged_values = EvaluationDataPage.compute_values_for_mdps(
-            self.logged_rewards,
-            # pyre-fixme[6]: Expected `ndarray` for 2nd param but got
-            #  `Optional[np.ndarray]`.
-            self.mdp_id,
-            self.sequence_number,
-            gamma,
+            self.logged_rewards, self.mdp_id, self.sequence_number, gamma
         )
         if self.logged_metrics is not None:
             logged_metrics_values: Optional[
                 torch.Tensor
             ] = EvaluationDataPage.compute_values_for_mdps(
-                # pyre-fixme[6]: Expected `Tensor` for 1st param but got
-                #  `Optional[torch.Tensor]`.
-                self.logged_metrics,
-                self.mdp_id,
-                self.sequence_number,
-                gamma,
+                self.logged_metrics, self.mdp_id, self.sequence_number, gamma
             )
         else:
             logged_metrics_values = None
@@ -609,7 +599,6 @@ class EvaluationDataPage(NamedTuple):
         assert self.model_metrics_values is not None, "metrics must not be none"
 
         return self._replace(
-            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             logged_rewards=self.logged_metrics[:, i : i + 1],
             logged_values=self.logged_metrics_values[:, i : i + 1],
             model_rewards=self.model_metrics[

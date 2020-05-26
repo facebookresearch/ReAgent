@@ -19,14 +19,13 @@ def rescale_actions(
         actions <= prev_max
     ), f"{actions} has values outside of [{prev_min}, {prev_max}]."
     assert np.all(
+        new_min
         # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float,
         #  np.ndarray]`.
-        new_min <= new_max
+        <= new_max
     ), f"{new_min} is (has coordinate) greater than {new_max}."
     # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float, np.ndarray]`.
     prev_range = prev_max - prev_min
     # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float, np.ndarray]`.
     new_range = new_max - new_min
-    # pyre-fixme[7]: Expected `ndarray` but got `float`.
-    # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float, np.ndarray]`.
     return ((actions - prev_min) / prev_range) * new_range + new_min

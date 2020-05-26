@@ -54,7 +54,11 @@ class DiscreteDqnTorchPredictor:
         action_names, q_scores = self.model((state, state_feature_presence))
 
         return self.policy_given_q_values(
-            q_scores, action_names, self.softmax_temperature, possible_actions_presence
+            q_scores,
+            action_names,
+            # pyre-fixme[6]: Expected `float` for 3rd param but got `Optional[float]`.
+            self.softmax_temperature,
+            possible_actions_presence,
         )
 
     @staticmethod
@@ -154,7 +158,10 @@ class ParametricDqnTorchPredictor:
         q_scores = q_scores.reshape(1, -1)
 
         return self.policy_given_q_values(
-            q_scores, self.softmax_temperature, torch.ones_like(q_scores)
+            q_scores,
+            # pyre-fixme[6]: Expected `float` for 2nd param but got `Optional[float]`.
+            self.softmax_temperature,
+            torch.ones_like(q_scores),
         )
 
     @staticmethod

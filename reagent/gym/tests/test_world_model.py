@@ -180,6 +180,7 @@ def train_mdnrnn_and_compute_feature_stats(
     )
 
     device = "cuda" if use_gpu else "cpu"
+    # pyre-fixme[6]: Expected `device` for 2nd param but got `str`.
     trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device, env)
     test_replay_buffer = ReplayBuffer.create_from_env(
         env=env,
@@ -303,7 +304,10 @@ def train_mdnrnn_and_train_on_embedded_env(
 
     device = "cuda" if use_gpu else "cpu"
     embedding_trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
-        embedding_trainer, device, env
+        embedding_trainer,
+        # pyre-fixme[6]: Expected `device` for 2nd param but got `str`.
+        device,
+        env,
     )
     if saved_mdnrnn_path is None:
         # train from scratch
@@ -347,7 +351,10 @@ def train_mdnrnn_and_train_on_embedded_env(
     )
     device = "cuda" if use_gpu else "cpu"
     agent_trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
-        agent_trainer, device, env
+        agent_trainer,
+        # pyre-fixme[6]: Expected `device` for 2nd param but got `str`.
+        device,
+        env,
     )
     num_batch_per_epoch = embed_rb.size // batch_size
     for epoch in range(num_agent_train_epochs):

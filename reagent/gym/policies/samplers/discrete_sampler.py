@@ -135,9 +135,7 @@ class EpsilonGreedyActionSampler(Sampler):
         opt = max_index == action.argmax(-1)
         n = len(scores)
         lp = torch.ones(n) * self.epsilon / n
-        # pyre-fixme[16]: `float` has no attribute `__setitem__`.
         lp[opt] = 1 - self.epsilon + self.epsilon / n
-        # pyre-fixme[7]: Expected `Tensor` but got `float`.
         return lp
 
     def update(self) -> None:

@@ -394,8 +394,6 @@ def upload_as_parquet(df) -> Dataset:
         raise Exception(f"Failed to find name after {MAX_UPLOAD_PARQUET_TRIES} tries.")
 
     # perform the write
-    # pyre-fixme[18]: Global name `rand_name` is undefined.
-    # pyre-fixme[18]: Global name `rand_name` is undefined.
     df.write.mode("errorifexists").format("parquet").saveAsTable(rand_name)
     parquet_url = get_table_url(rand_name)
     logger.info(f"Saved parquet to {parquet_url}")

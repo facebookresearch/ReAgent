@@ -119,6 +119,7 @@ def run_test_offline(
     )
 
     device = torch.device("cuda") if use_gpu else None
+    # pyre-fixme[6]: Expected `device` for 2nd param but got `Optional[torch.device]`.
     trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device, env)
 
     writer = SummaryWriter()

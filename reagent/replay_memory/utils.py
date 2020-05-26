@@ -17,6 +17,8 @@ DEFAULT_DS = "2019-01-01"
 def _dense_to_sparse(dense: np.ndarray) -> List[Dict[str, float]]:
     """ Convert dense array to sparse representation """
     assert len(dense.shape) == 2, f"dense shape is {dense.shape}"
+    # pyre-fixme[7]: Expected `List[Dict[str, float]]` but got `List[Dict[int,
+    #  typing.Any]]`.
     return [{i: v.item() for i, v in enumerate(elem)} for elem in dense]
 
 

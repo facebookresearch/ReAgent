@@ -127,7 +127,12 @@ def run_test(
     )
 
     agent = Agent.create_for_env(
-        env, policy=training_policy, post_transition_callback=post_step, device=device
+        env,
+        policy=training_policy,
+        post_transition_callback=post_step,
+        # pyre-fixme[6]: Expected `Union[str, torch.device]` for 4th param but got
+        #  `Optional[torch.device]`.
+        device=device,
     )
 
     writer = SummaryWriter()

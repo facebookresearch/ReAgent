@@ -248,7 +248,6 @@ class DQNTrainer(DQNTrainerBase):
             action_on_policy = get_valid_actions_from_imitator(
                 self.bcq_imitator, training_batch.state, self.bcq_drop_threshold
             )
-            # pyre-fixme[18]: Global name `possible_actions_mask` is undefined.
             possible_actions_mask *= action_on_policy
 
         model_action_idxs = self.get_max_q_values(
