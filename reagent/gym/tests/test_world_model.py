@@ -360,8 +360,9 @@ def train_mdnrnn_and_train_on_embedded_env(
     rewards = []
     policy = agent_manager.create_policy(serving=False)
     agent = Agent.create_for_env(embed_env, policy=policy, device=device)
+    # num_processes=1 needed to avoid workers from dying on CircleCI tests
     rewards = evaluate_for_n_episodes(
-        n=num_agent_eval_epochs, env=embed_env, agent=agent
+        n=num_agent_eval_epochs, env=embed_env, agent=agent, num_processes=1
     )
     assert (
         np.mean(rewards) >= passing_score_bar
