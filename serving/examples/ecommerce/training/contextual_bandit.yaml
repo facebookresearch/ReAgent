@@ -1,55 +1,40 @@
-env_name: CartPole-v0
-model_path: "cartpole_batch_rl_model.torchscript"
-pkl_path: "/tmp/tmp_pickle.pkl"
+pkl_path: "/tmp/input_df.pkl"
 input_table_spec:
-  table_name: test_table
+  table_name: ecom_cb_input_data
   table_sample: 90
   eval_table_sample: 10
 model:
   DiscreteDQN:
     trainer_param:
       actions:
-      - 0
-      - 1
+      - Bacon
+      - Ribs
       rl:
-        gamma: 0.99
-        target_update_rate: 0.1
+        gamma: 0.0  # zero gamma for bandit setting
+        target_update_rate: 1.0
         maxq_learning: true
         temperature: 0.35
         softmax_policy: false
         q_network_loss: mse
       double_q_learning: true
-      minibatch_size: 512
+      minibatch_size: 128
       minibatches_per_step: 1
       optimizer:
         optimizer: ADAM
         learning_rate: 0.01
-        l2_decay: 0.01
+        l2_decay: 0.0
       evaluation:
         calc_cpe_in_training: true
     net_builder:
       FullyConnected:
-        sizes:
-        - 128
-        - 64
-        activations:
-        - relu
-        - relu
+        sizes: []
+        activations: []
     cpe_net_builder:
       FullyConnected:
-        sizes:
-        - 128
-        - 64
-        activations:
-        - relu
-        - relu
+        sizes: []
+        activations: []
     preprocessing_options:
       num_samples: 1000
-num_train_transitions: 30000  # approx. 150 episodes
-max_steps: 200
-seed: 42
-num_epochs: 20
+num_epochs: 10
 publisher:
   FileSystemPublisher: {}
-num_eval_episodes: 50
-passing_score_bar: 120

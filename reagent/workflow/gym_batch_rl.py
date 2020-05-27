@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
 import json
 import logging
 import random
@@ -17,11 +18,9 @@ from reagent.gym.utils import fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.replay_memory.utils import replay_buffer_to_pre_timeline_df
 from reagent.workflow.model_managers.union import ModelManager__Union
-from reagent.workflow.publishers.union import ModelPublisher__Union
+from reagent.workflow.publishers.union import FileSystemPublisher, ModelPublisher__Union
 from reagent.workflow.spark_utils import call_spark_class, get_spark_session
-from reagent.workflow.training import identify_and_train_network
-from reagent.workflow.types import RewardOptions, TableSpec
-from reagent.workflow.validators.union import ModelValidator__Union
+from reagent.workflow.types import TableSpec
 
 
 logger = logging.getLogger(__name__)
@@ -92,37 +91,21 @@ def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
     call_spark_class(spark, class_name="Timeline", args=json.dumps(arg))
 
 
-def train_and_evaluate_gym(
+def evaluate_gym(
     env_name: str,
+    model: ModelManager__Union,
+    publisher: ModelPublisher__Union,
     num_eval_episodes: int,
     passing_score_bar: float,
-    input_table_spec: TableSpec,
-    model: ModelManager__Union,
-    num_train_epochs: int,
-    use_gpu: Optional[bool] = None,
-    reward_options: Optional[RewardOptions] = None,
-    warmstart_path: Optional[str] = None,
-    validator: Optional[ModelValidator__Union] = None,
-    publisher: Optional[ModelPublisher__Union] = None,
-    seed: Optional[int] = None,
     max_steps: Optional[int] = None,
 ):
-    if use_gpu is None:
-        use_gpu = torch.cuda.is_available()
-    initialize_seed(seed)
-    training_output = identify_and_train_network(
-        input_table_spec=input_table_spec,
-        model=model,
-        num_epochs=num_train_epochs,
-        use_gpu=use_gpu,
-        reward_options=reward_options,
-        warmstart_path=warmstart_path,
-        validator=validator,
-        publisher=publisher,
-    )
-
+    publisher_manager = publisher.value
+    assert isinstance(
+        publisher_manager, FileSystemPublisher
+    ), f"publishing manager is type {type(publisher_manager)}, not FileSystemPublisher"
     env = EnvFactory.make(env_name)
-    jit_model = torch.jit.load(training_output.output_path)
+    torchscript_path = publisher_manager.get_latest_published_model(model.value)
+    jit_model = torch.jit.load(torchscript_path)
     policy = create_predictor_policy_from_model(jit_model)
     agent = Agent.create_for_env_with_serving_policy(env, policy)
     rewards = evaluate_for_n_episodes(
