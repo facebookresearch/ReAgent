@@ -9,6 +9,7 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.models.base import ModelBase
 from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
@@ -32,14 +33,6 @@ from reagent.workflow.types import (
     TableSpec,
 )
 from reagent.workflow.utils import train_and_evaluate_generic
-
-
-try:
-    from reagent.fb.prediction.fb_predictor_wrapper import (
-        FbActorPredictorUnwrapper as ActorPredictorUnwrapper,
-    )
-except ImportError:
-    from reagent.prediction.predictor_wrapper import ActorPredictorUnwrapper
 
 
 logger = logging.getLogger(__name__)
@@ -102,12 +95,8 @@ class ActorCriticBase(ModelManager):
     def create_policy(self, serving: bool) -> Policy:
         """ Create online actor critic policy. """
 
-        from reagent.gym.policies import ActorPredictorPolicy
-
         if serving:
-            return ActorPredictorPolicy(
-                ActorPredictorUnwrapper(self.build_serving_module())
-            )
+            return create_predictor_policy_from_model(self.build_serving_module())
         else:
             return ActorPolicyWrapper(self._actor_network)
 

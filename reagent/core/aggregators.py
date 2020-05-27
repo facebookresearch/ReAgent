@@ -199,6 +199,8 @@ class ActionCountAggregator(TensorAggregator):
         Returns the cumulative distributions in each aggregating step
         """
         totals = sum(sum(counts) for counts in zip(*self.values.values()))
+        if totals == 0:
+            return {action: 0.0 for action in self.values}
         return {action: sum(counts) / totals for action, counts in self.values.items()}
 
 

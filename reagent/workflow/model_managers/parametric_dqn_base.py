@@ -7,6 +7,7 @@ import reagent.types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import (
     GreedyActionSampler,
     SoftmaxActionSampler,
@@ -32,14 +33,6 @@ from reagent.workflow.types import (
     RLTrainingOutput,
     TableSpec,
 )
-
-
-try:
-    from reagent.fb.prediction.fb_predictor_wrapper import (
-        FbParametricPredictorUnwrapper as ParametricDqnPredictorUnwrapper,
-    )
-except ImportError:
-    from reagent.prediction.predictor_wrapper import ParametricDqnPredictorUnwrapper
 
 
 logger = logging.getLogger(__name__)
@@ -83,17 +76,15 @@ class ParametricDQNBase(ModelManager):
             self.action_normalization_data.dense_normalization_parameters
         )
         if serving:
-            sampler = GreedyActionSampler()
-            scorer = parametric_dqn_serving_scorer(
-                max_num_action=action_dim,
-                q_network=ParametricDqnPredictorUnwrapper(self.build_serving_module()),
+            return create_predictor_policy_from_model(
+                self.build_serving_module(), max_num_actions=action_dim
             )
         else:
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             scorer = parametric_dqn_scorer(
-                max_num_action=action_dim, q_network=self._q_network
+                max_num_actions=action_dim, q_network=self._q_network
             )
-        return Policy(scorer=scorer, sampler=sampler)
+            return Policy(scorer=scorer, sampler=sampler)
 
     @property
     def should_generate_eval_dataset(self) -> bool:
