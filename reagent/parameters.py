@@ -207,13 +207,14 @@ class NormalizationKey(object):
 
     STATE = "state"
     ACTION = "action"
+    ITEM = "item"
+    CANDIDATE = "candidate"
 
 
 @dataclass(frozen=True)
 class NormalizationData(BaseDataClass):
     __hash__ = param_hash
-
-    dense_normalization_parameters: Optional[Dict[int, NormalizationParameters]]
+    dense_normalization_parameters: Dict[int, NormalizationParameters]
 
 
 #################################################

@@ -21,8 +21,6 @@ class GaussianSampler(Sampler):
         return action, log_prob
 
     @torch.no_grad()
-    # pyre-fixme[14]: `sample_action` overrides method defined in `Sampler`
-    #  inconsistently.
     def sample_action(self, scores: GaussianSamplerScore) -> rlt.ActorOutput:
         self.actor_network.eval()
         unscaled_actions, log_prob = self._sample_action(scores.loc, scores.scale_log)

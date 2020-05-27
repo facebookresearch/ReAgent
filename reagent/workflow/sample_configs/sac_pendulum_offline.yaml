@@ -6,7 +6,7 @@ input_table_spec:
   table_sample: 100
   eval_table_sample: 0
 model:
-  SoftActorCritic:
+  SAC:
     trainer_param:
       rl:
         gamma: 0.9
@@ -58,11 +58,10 @@ model:
     eval_parameters:
       calc_cpe_in_training: false
 
-num_episodes_for_data_batch: 200
+num_train_transitions: 40000  # approx. 200 episodes
 max_steps: 200
 seed: 42
 
-use_gpu: false
 num_train_epochs: 80
 reward_options:
   custom_reward_expression:
@@ -74,4 +73,5 @@ publisher:
 # TODO: remove, evaluation temperature is not relevant here
 eval_temperature: 0.1
 num_eval_episodes: 30
-passing_score_bar: -750
+# TODO: raise this bar after training stabilize
+passing_score_bar: -900

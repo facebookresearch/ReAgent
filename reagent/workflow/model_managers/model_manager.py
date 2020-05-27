@@ -4,13 +4,13 @@ import abc
 import dataclasses
 import logging
 import time
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch
 from reagent.core.registry_meta import RegistryMeta
-from reagent.parameters import NormalizationData, NormalizationParameters
+from reagent.parameters import NormalizationData
 from reagent.tensorboardX import summary_writer_context
-from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.trainer import Trainer
 from reagent.workflow.types import Dataset, RewardOptions, RLTrainingOutput, TableSpec
 from torch.utils.tensorboard import SummaryWriter
 
@@ -34,19 +34,14 @@ class ModelManager(metaclass=RegistryMeta):
     4. `train()`
     5. `build_serving_module()` builds the module for prediction
     6. `save_tainer()` saves the trainer for warmstarting
-    7. `_set_normalization_parameters` sets the normalization parameters
     """
 
     def __init__(self):
         super().__init__()
-        # State normalization parameters is here for convenient
-        self._state_normalization_parameters: Optional[
-            Dict[int, NormalizationParameters]
-        ] = None
+        # initialization is delayed to `initialize_trainer()`
         self._normalization_data_map: Optional[Dict[str, NormalizationData]] = None
-        # The initialization of these attributes is delayed to `initialize_trainer()`
-        self._reward_options: RewardOptions = None
-        self._trainer: Optional[RLTrainer] = None
+        self._reward_options: Optional[RewardOptions] = None
+        self._trainer: Optional[Trainer] = None
         self._use_gpu: Optional[bool] = None
 
     @property
@@ -61,6 +56,8 @@ class ModelManager(metaclass=RegistryMeta):
     @property
     def reward_options(self) -> RewardOptions:
         assert self._reward_options is not None
+        # pyre-fixme[7]: Expected `RewardOptions` but got `Optional[RewardOptions]`.
+        # pyre-fixme[7]: Expected `RewardOptions` but got `Optional[RewardOptions]`.
         return self._reward_options
 
     @reward_options.setter
@@ -74,66 +71,38 @@ class ModelManager(metaclass=RegistryMeta):
     ) -> Dict[str, NormalizationData]:
         """
         Derive preprocessing parameters from data. The keys of the dict should
-        match the keys expected by `_set_normalization_parameters()`
-        """
-        pass
-
-    @abc.abstractmethod
-    def _set_normalization_parameters(
-        self, normalization_data_map: Dict[str, NormalizationData]
-    ):
-        """
-        Set normalization parameters on current instance
+        match the keys from `required_normalization_keys()`
         """
         pass
 
     @property
-    def state_normalization_parameters(self) -> Dict[int, NormalizationParameters]:
-        assert (
-            self._state_normalization_parameters is not None
-        ), "You need to set state_normalization_parameters before calling this"
-        # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
-        #  `Optional[Dict[int, NormalizationParameters]]`.
-        # pyre-fixme[7]: Expected `Dict[int, NormalizationParameters]` but got
-        #  `Optional[Dict[int, NormalizationParameters]]`.
-        return self._state_normalization_parameters
+    @abc.abstractmethod
+    def required_normalization_keys(self) -> List[str]:
+        """ Get the normalization keys required for current instance """
+        pass
 
-    @state_normalization_parameters.setter
-    def state_normalization_parameters(self, p: Dict[int, NormalizationParameters]):
-        assert (
-            self._state_normalization_parameters is None
-        ), "You should not reset state_normalization_parameters after assignment"
-        self._state_normalization_parameters = p
+    def __getattr__(self, attr):
+        """ Get X_normalization_data by attribute """
+        normalization_data_suffix = "_normalization_data"
+        if attr.endswith(normalization_data_suffix):
+            assert self._normalization_data_map is not None, (
+                f"Trying to access {attr} but normalization_data_map "
+                "has not been set via `initialize_trainer`."
+            )
+            normalization_key = attr[: -len(normalization_data_suffix)]
+            normalization_data = self._normalization_data_map.get(
+                normalization_key, None
+            )
+            if normalization_data is None:
+                raise AttributeError(
+                    f"normalization key `{normalization_key}` is unavailable. "
+                    f"Available keys are: {self._normalization_data_map.keys()}."
+                )
+            return normalization_data
 
-    def set_normalization_data_map(
-        self, normalization_data_map: Dict[str, NormalizationData]
-    ) -> None:
-        assert (
-            self._normalization_data_map is None
-        ), "Cannot reset self._normalization_data_map"
-        self._normalization_data_map = normalization_data_map
-
-    def get_normalization_data(self, key: str) -> NormalizationData:
-        assert (
-            self._normalization_data_map is not None
-        ), "self._normalization_data_map has not been set"
-        assert (
-            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-            key
-            in self._normalization_data_map
-        ), f"{key} not available; available keys {self._normalization_data_map.keys()}"
-        return self._normalization_data_map[key]
-
-    def get_float_features_normalization_parameters(
-        self, key: str
-    ) -> Dict[int, NormalizationParameters]:
-        norm_data = self.get_normalization_data(key)
-        dense_norm_params = norm_data.dense_normalization_parameters
-        assert (
-            dense_norm_params is not None
-        ), f"dense_normalization_parameters for '{key}' is not set"
-        return dense_norm_params
+        raise AttributeError(
+            f"attr {attr} not available {type(self)} (subclass of ModelManager)."
+        )
 
     @property
     @abc.abstractmethod
@@ -153,10 +122,10 @@ class ModelManager(metaclass=RegistryMeta):
         pass
 
     @property
-    def trainer(self) -> RLTrainer:
+    def trainer(self) -> Trainer:
         assert self._trainer is not None, "Call initialize_trainer() first"
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
         return self._trainer
 
     def initialize_trainer(
@@ -165,28 +134,43 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: RewardOptions,
         normalization_data_map: Dict[str, NormalizationData],
         warmstart_path: Optional[str] = None,
-    ) -> RLTrainer:
+    ) -> Trainer:
         """
         Initialize the trainer. Subclass should not override this. Instead,
-        subclass should implement `_set_normalization_parameters()` and
+        subclass should implement `required_normalization_keys()` and
         `build_trainer()`.
         """
         assert self._trainer is None, "Trainer was intialized"
         self._use_gpu = use_gpu
         self.reward_options = reward_options
-        self._set_normalization_parameters(normalization_data_map)
+        # validate that we have all the required keys
+        for normalization_key in self.required_normalization_keys:
+            normalization_data = normalization_data_map.get(normalization_key, None)
+            assert normalization_data is not None, (
+                f"NormalizationData for {normalization_key} "
+                "is required but not provided."
+            )
+            # NOTE: Don't need this check in the future, for non-dense parameters
+            assert normalization_data.dense_normalization_parameters is not None, (
+                f"Dense normalization parameters for "
+                f"{normalization_key} is not provided."
+            )
+        assert (
+            self._normalization_data_map is None
+        ), "Cannot reset self._normalization_data_map"
+        self._normalization_data_map = normalization_data_map
         self._trainer = self.build_trainer()
         if warmstart_path is not None:
             trainer_state = torch.load(warmstart_path)
             # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
             # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
             self._trainer.load_state_dict(trainer_state)
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
-        # pyre-fixme[7]: Expected `RLTrainer` but got `Optional[RLTrainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
+        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
         return self._trainer
 
     @abc.abstractmethod
-    def build_trainer(self) -> RLTrainer:
+    def build_trainer(self) -> Trainer:
         """
         Implement this to build the trainer, given the config
         """
@@ -197,7 +181,6 @@ class ModelManager(metaclass=RegistryMeta):
         train_dataset: Dataset,
         eval_dataset: Optional[Dataset],
         normalization_data_map: Dict[str, NormalizationData],
-        model,  # reagent.workflow.model_managers.ModelManager__Union
         num_epochs: int,
         use_gpu: bool,
         parent_workflow_id: int,
@@ -205,25 +188,27 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: Optional[RewardOptions] = None,
         warmstart_path: Optional[str] = None,
     ) -> RLTrainingOutput:
-        manager = model.value
-
         writer = SummaryWriter()
         logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
 
         warmstart_input_path = warmstart_path or None
-        manager.initialize_trainer(
+        self.initialize_trainer(
             use_gpu=use_gpu,
+            # pyre-fixme[6]: Expected `RewardOptions` for 2nd param but got
+            #  `Optional[RewardOptions]`.
+            # pyre-fixme[6]: Expected `RewardOptions` for 2nd param but got
+            #  `Optional[RewardOptions]`.
             reward_options=reward_options,
             normalization_data_map=normalization_data_map,
             warmstart_path=warmstart_input_path,
         )
 
         with summary_writer_context(writer):
-            train_output = manager.train(train_dataset, eval_dataset, num_epochs)
+            train_output = self.train(train_dataset, eval_dataset, num_epochs)
 
         # TODO: make this a parameter
         torchscript_output_path = f"model_{round(time.time())}.torchscript"
-        serving_module = manager.build_serving_module()
+        serving_module = self.build_serving_module()
         torch.jit.save(serving_module, torchscript_output_path)
         logger.info(f"Saved torchscript model to {torchscript_output_path}")
         return dataclasses.replace(train_output, output_path=torchscript_output_path)

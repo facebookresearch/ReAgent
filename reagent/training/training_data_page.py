@@ -80,58 +80,6 @@ class TrainingDataPage(object):
         self.next_propensities = next_propensities
         self.rewards_mask = rewards_mask
 
-    def as_cem_training_batch(self):
-        """
-        Generate one-step samples needed by CEM trainer.
-        The samples will be used to train an ensemble of world models used by CEM.
-
-        state/next state shape: 1 x batch_size x state_dim
-        action shape: 1 x batch_size x action_dim
-        reward/terminal shape: 1 x batch_size
-        """
-        seq_len_dim = 0
-        reward, not_terminal = transpose(self.rewards, self.not_terminal)
-        return rlt.PreprocessedMemoryNetworkInput(
-            state=rlt.FeatureData(self.states.unsqueeze(seq_len_dim)),
-            action=self.actions.unsqueeze(seq_len_dim),
-            next_state=rlt.FeatureData(
-                float_features=self.next_states.unsqueeze(seq_len_dim)
-            ),
-            reward=reward,
-            not_terminal=not_terminal,
-            step=self.step,
-            time_diff=self.time_diffs,
-        )
-
-    def as_parametric_maxq_training_batch(self):
-        state_dim = self.states.shape[1]
-        return rlt.PreprocessedTrainingBatch(
-            training_input=rlt.PreprocessedParametricDqnInput(
-                state=rlt.FeatureData(float_features=self.states),
-                action=rlt.FeatureData(float_features=self.actions),
-                next_state=rlt.FeatureData(float_features=self.next_states),
-                next_action=rlt.FeatureData(float_features=self.next_actions),
-                tiled_next_state=rlt.FeatureData(
-                    float_features=self.possible_next_actions_state_concat[
-                        :, :state_dim
-                    ]
-                ),
-                possible_actions=None,
-                possible_actions_mask=self.possible_actions_mask,
-                possible_next_actions=rlt.FeatureData(
-                    float_features=self.possible_next_actions_state_concat[
-                        :, state_dim:
-                    ]
-                ),
-                possible_next_actions_mask=self.possible_next_actions_mask,
-                reward=self.rewards,
-                not_terminal=self.not_terminal,
-                step=self.step,
-                time_diff=self.time_diffs,
-            ),
-            extras=rlt.ExtraData(),
-        )
-
     def as_policy_network_training_batch(self):
         return rlt.PolicyNetworkInput(
             state=rlt.FeatureData(float_features=self.states),
@@ -157,40 +105,6 @@ class TrainingDataPage(object):
             not_terminal=self.not_terminal,
             step=self.step,
             time_diff=self.time_diffs,
-            extras=rlt.ExtraData(
-                mdp_id=self.mdp_ids,
-                sequence_number=self.sequence_numbers,
-                action_probability=self.propensities,
-                max_num_actions=self.max_num_actions,
-                metrics=self.metrics,
-            ),
-        )
-
-    def as_slate_q_training_batch(self):
-        batch_size, state_dim = self.states.shape
-        action_dim = self.actions.shape[1]
-        return rlt.PreprocessedSlateQInput(
-            state=rlt.FeatureData(float_features=self.states),
-            next_state=rlt.FeatureData(float_features=self.next_states),
-            action=rlt.PreprocessedSlateFeatureVector(
-                float_features=self.possible_actions_state_concat[:, state_dim:].view(
-                    batch_size, -1, action_dim
-                ),
-                item_mask=self.possible_actions_mask,
-                item_probability=self.propensities,
-            ),
-            next_action=rlt.PreprocessedSlateFeatureVector(
-                float_features=self.possible_next_actions_state_concat[
-                    :, state_dim:
-                ].view(batch_size, -1, action_dim),
-                item_mask=self.possible_next_actions_mask,
-                item_probability=self.next_propensities,
-            ),
-            reward=self.rewards,
-            reward_mask=self.rewards_mask,
-            time_diff=self.time_diffs,
-            step=self.step,
-            not_terminal=self.not_terminal,
             extras=rlt.ExtraData(
                 mdp_id=self.mdp_ids,
                 sequence_number=self.sequence_numbers,

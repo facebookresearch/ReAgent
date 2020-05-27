@@ -7,6 +7,7 @@ import gym
 import numpy.testing as npt
 import torch
 import torch.nn.functional as F
+from reagent.gym.envs.recsim import ValueMode, ValueWrapper
 from reagent.gym.preprocessors.default_preprocessors import (
     make_default_obs_preprocessor,
 )
@@ -48,7 +49,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         npt.assert_array_almost_equal(obs, state.float_features.cpu().squeeze(0))
 
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
-    def test_recsim_interest_evoluation(self):
+    def test_recsim_interest_evolution(self):
         num_candidate = 10
         env_config = {
             "num_candidates": num_candidate,
@@ -57,6 +58,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
             "seed": 1,
         }
         env = interest_evolution.create_environment(env_config)
+        env = ValueWrapper(env, ValueMode.INNER_PROD)
         obs_preprocessor = make_default_obs_preprocessor(env)
         obs = env.reset()
         state = obs_preprocessor(obs)
@@ -65,7 +67,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         self.assertEqual(state.float_features.dtype, torch.float32)
         self.assertEqual(state.float_features.device, torch.device("cpu"))
         npt.assert_array_almost_equal(obs["user"], state.float_features.squeeze(0))
-        doc_float_features = state.candidate_doc_float_features
+        doc_float_features = state.candidate_docs.float_features
         self.assertIsNotNone(doc_float_features)
         self.assertEqual(
             doc_float_features.shape, (1, num_candidate, obs["doc"]["0"].shape[0])
@@ -85,6 +87,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
             "seed": 1,
         }
         env = interest_exploration.create_environment(env_config)
+        env = ValueWrapper(env, ValueMode.CONST)
         obs_preprocessor = make_default_obs_preprocessor(env)
         obs = env.reset()
         state = obs_preprocessor(obs)
@@ -93,7 +96,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         self.assertEqual(state.float_features.dtype, torch.float32)
         self.assertEqual(state.float_features.device, torch.device("cpu"))
         npt.assert_array_almost_equal(obs["user"], state.float_features.squeeze(0))
-        doc_float_features = state.candidate_doc_float_features
+        doc_float_features = state.candidate_docs.float_features
         self.assertIsNotNone(doc_float_features)
 
         quality_len = 1

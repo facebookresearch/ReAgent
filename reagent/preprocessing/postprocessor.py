@@ -5,12 +5,9 @@ from typing import Dict, Tuple
 
 import torch
 import torch.nn as nn
+from reagent.parameters import NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION, DO_NOT_PREPROCESS
-from reagent.preprocessing.normalization import (
-    EPS,
-    NormalizationParameters,
-    get_num_output_features,
-)
+from reagent.preprocessing.normalization import EPS, get_num_output_features
 
 
 class Postprocessor(nn.Module):
@@ -25,7 +22,6 @@ class Postprocessor(nn.Module):
     ) -> None:
         super().__init__()
         self.num_output_features = get_num_output_features(normalization_parameters)
-
         feature_types = {
             norm_param.feature_type for norm_param in normalization_parameters.values()
         }
@@ -64,7 +60,6 @@ class Postprocessor(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.feature_type == CONTINUOUS_ACTION:
-            # pyre-fixme[7]: Expected `Tensor` but got `float`.
             return (
                 torch.clamp(input, -1 + EPS, 1 - EPS) + 1 - EPS
             ) * self.scaling_factor + self.min_serving_value

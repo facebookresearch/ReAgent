@@ -11,12 +11,13 @@ import torch.nn.functional as F
 from reagent.models.mdn_rnn import gmm_loss
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import MDNRNNTrainerParameters
+from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
 
 
-class MDNRNNTrainer:
+class MDNRNNTrainer(Trainer):
     """ Trainer for MDN-RNN """
 
     def __init__(
@@ -36,7 +37,7 @@ class MDNRNNTrainer:
         self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
 
-    def train(self, training_batch: rlt.PreprocessedMemoryNetworkInput):
+    def train(self, training_batch: rlt.MemoryNetworkInput):
         self.minibatch += 1
 
         (seq_len, batch_size, state_dim) = training_batch.state.float_features.shape
@@ -57,9 +58,7 @@ class MDNRNNTrainer:
         return detached_losses
 
     def get_loss(
-        self,
-        training_batch: rlt.PreprocessedMemoryNetworkInput,
-        state_dim: Optional[int] = None,
+        self, training_batch: rlt.MemoryNetworkInput, state_dim: Optional[int] = None
     ):
         """
         Compute losses:
@@ -86,7 +85,7 @@ class MDNRNNTrainer:
         :returns: dictionary of losses, containing the gmm, the mse, the bce and
             the averaged loss.
         """
-        assert isinstance(training_batch, rlt.PreprocessedMemoryNetworkInput)
+        assert isinstance(training_batch, rlt.MemoryNetworkInput)
         # mdnrnn's input should have seq_len as the first dimension
 
         mdnrnn_output = self.memory_network(

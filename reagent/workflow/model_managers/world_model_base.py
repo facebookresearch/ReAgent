@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from reagent.core.dataclasses import dataclass
 from reagent.gym.policies.policy import Policy
@@ -31,19 +31,9 @@ class WorldModelBase(ModelManager):
     def should_generate_eval_dataset(self) -> bool:
         return False
 
-    def _set_normalization_parameters(
-        self, normalization_data_map: Dict[str, NormalizationData]
-    ):
-        """
-        Set normalization parameters on current instance
-        """
-        state_norm_data = normalization_data_map.get(NormalizationKey.STATE, None)
-        assert state_norm_data is not None
-        assert state_norm_data.dense_normalization_parameters is not None
-        action_norm_data = normalization_data_map.get(NormalizationKey.ACTION, None)
-        assert action_norm_data is not None
-        assert action_norm_data.dense_normalization_parameters is not None
-        self.set_normalization_data_map(normalization_data_map)
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
     def run_feature_identification(
         self, input_table_spec: TableSpec

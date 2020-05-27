@@ -6,7 +6,6 @@ import unittest
 import torch
 from reagent.net_builder import value
 from reagent.net_builder.unions import ValueNetBuilder__Union
-from reagent.net_builder.value_net_builder import ValueNetBuilder
 from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS
 
@@ -18,13 +17,13 @@ class TestValueNetBuilder(unittest.TestCase):
         )
         builder = chooser.value
         state_dim = 3
-        norm_data = NormalizationData(
+        normalization_data = NormalizationData(
             dense_normalization_parameters={
                 i: NormalizationParameters(feature_type=CONTINUOUS)
                 for i in range(state_dim)
             }
         )
-        value_network = builder.build_value_network(norm_data)
+        value_network = builder.build_value_network(normalization_data)
         batch_size = 5
         x = torch.randn(batch_size, state_dim)
         y = value_network(x)

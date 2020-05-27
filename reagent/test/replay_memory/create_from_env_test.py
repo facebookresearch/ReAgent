@@ -25,11 +25,7 @@ class CreateFromEnvTest(unittest.TestCase):
         }
         env = interest_exploration.create_environment(env_config)
         replay_buffer = ReplayBuffer.create_from_env(
-            env,
-            replay_memory_size=100,
-            batch_size=10,
-            store_possible_actions_mask=False,
-            store_log_prob=True,
+            env, replay_memory_size=100, batch_size=10, store_log_prob=True
         )
         obs = env.reset()
         observation = obs["user"]
@@ -49,6 +45,8 @@ class CreateFromEnvTest(unittest.TestCase):
             action,
             reward,
             terminal,
+            mdp_id=0,
+            sequence_number=0,
             doc_quality=quality,
             doc_cluster_id=cluster_id,
             response_click=click,
@@ -67,11 +65,7 @@ class CreateFromEnvTest(unittest.TestCase):
         }
         env = interest_evolution.create_environment(env_config)
         replay_buffer = ReplayBuffer.create_from_env(
-            env,
-            replay_memory_size=100,
-            batch_size=10,
-            store_possible_actions_mask=False,
-            store_log_prob=True,
+            env, replay_memory_size=100, batch_size=10, store_log_prob=True
         )
         obs = env.reset()
         observation = obs["user"]
@@ -92,6 +86,8 @@ class CreateFromEnvTest(unittest.TestCase):
             action,
             reward,
             terminal,
+            mdp_id=0,
+            sequence_number=0,
             doc=doc_features,
             response_click=click,
             response_cluster_id=repsonse_cluster_id,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List, Type
+from typing import List
 
 import torch
 from reagent.core.dataclasses import dataclass, field
@@ -25,8 +25,6 @@ class FullyConnected(ValueNetBuilder):
             f"{self.sizes}, {self.activations}"
         )
 
-    # pyre-fixme[14]: `build_value_network` overrides method defined in
-    #  `ValueNetBuilder` inconsistently.
     def build_value_network(
         self, state_normalization_data: NormalizationData
     ) -> torch.nn.Module:

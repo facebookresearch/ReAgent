@@ -4,12 +4,13 @@
 import json
 import logging
 from dataclasses import asdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
+import reagent.types as rlt
 import six
 import torch
-from reagent.parameters import NormalizationParameters
+from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
@@ -29,18 +30,6 @@ DEFAULT_NUM_SAMPLES = 100000
 MAX_FEATURE_VALUE = 6.0
 MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
 EPS = 1e-6
-
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super().default(obj)
 
 
 def no_op_feature():
@@ -174,7 +163,21 @@ def identify_parameter(
     )
 
 
-def get_num_output_features(normalization_parameters) -> int:
+def get_feature_config(
+    float_features: Optional[List[Tuple[int, str]]]
+) -> rlt.ModelFeatureConfig:
+    float_features = float_features or []
+    float_feature_infos = [
+        rlt.FloatFeatureInfo(name=f_name, feature_id=f_id)
+        for f_id, f_name in float_features
+    ]
+
+    return rlt.ModelFeatureConfig(float_feature_infos=float_feature_infos)
+
+
+def get_num_output_features(
+    normalization_parameters: Dict[int, NormalizationParameters]
+) -> int:
     return sum(
         map(
             lambda np: (
@@ -185,7 +188,10 @@ def get_num_output_features(normalization_parameters) -> int:
     )
 
 
-def get_feature_start_indices(sorted_features, normalization_parameters):
+def get_feature_start_indices(
+    sorted_features: List[int],
+    normalization_parameters: Dict[int, NormalizationParameters],
+):
     """ Returns the starting index for each feature in the output feature vector """
     start_indices = []
     cur_idx = 0
@@ -193,6 +199,9 @@ def get_feature_start_indices(sorted_features, normalization_parameters):
         np = normalization_parameters[feature]
         start_indices.append(cur_idx)
         if np.feature_type == identify_types.ENUM:
+            assert np.possible_values is not None
+            # pyre-fixme[6]: Expected `Sized` for 1st param but got
+            #  `Optional[List[int]]`.
             cur_idx += len(np.possible_values)
         else:
             cur_idx += 1
@@ -293,15 +302,3 @@ def construct_action_scale_tensor(action_norm_params, action_scale_overrides):
     min_action_range_tensor_serving = torch.from_numpy(min_action_array)
     max_action_range_tensor_serving = torch.from_numpy(max_action_array)
     return min_action_range_tensor_serving, max_action_range_tensor_serving
-
-
-def get_action_output_parameters(action_normalization_parameters):
-    action_feature_ids = sort_features_by_normalization(
-        action_normalization_parameters
-    )[0]
-    serving_min_scale, serving_max_scale = construct_action_scale_tensor(
-        action_normalization_parameters, action_scale_overrides={}
-    )
-    serving_min_scale = serving_min_scale.reshape(-1)
-    serving_max_scale = serving_max_scale.reshape(-1)
-    return action_feature_ids, serving_min_scale, serving_max_scale

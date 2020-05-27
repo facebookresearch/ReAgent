@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List
+from typing import List
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
 from reagent.models.dueling_q_network import DuelingQNetwork
 from reagent.net_builder.quantile_dqn_net_builder import QRDQNNetBuilder
-from reagent.parameters import NormalizationParameters, param_hash
+from reagent.parameters import NormalizationData, param_hash
 
 
 @dataclass
@@ -15,7 +15,6 @@ class DuelingQuantile(QRDQNNetBuilder):
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
-    num_atoms: int = 51
 
     def __post_init_post_parse__(self):
         assert len(self.sizes) == len(self.activations), (
@@ -25,14 +24,15 @@ class DuelingQuantile(QRDQNNetBuilder):
 
     def build_q_network(
         self,
-        state_normalization_parameters: Dict[int, NormalizationParameters],
+        state_normalization_data: NormalizationData,
         output_dim: int,
+        num_atoms: int,
     ) -> ModelBase:
-        state_dim = self._get_input_dim(state_normalization_parameters)
+        state_dim = self._get_input_dim(state_normalization_data)
         return DuelingQNetwork.make_fully_connected(
             state_dim,
             output_dim,
             layers=self.sizes,
             activations=self.activations,
-            num_atoms=self.num_atoms,
+            num_atoms=num_atoms,
         )

@@ -46,6 +46,7 @@ class RankingListwiseEvaluator:
         self.seq2slate_net.eval()
 
         eval_input = eval_tdp.training_input
+        # pyre-fixme[16]: `Optional` has no attribute `shape`.
         batch_size = eval_input.position_reward.shape[0]
 
         # shape: batch_size, tgt_seq_len
@@ -73,6 +74,7 @@ class RankingListwiseEvaluator:
         ranking_output = self.seq2slate_net(eval_input, mode=Seq2SlateMode.RANK_MODE)
         # pyre-fixme[16]: `int` has no attribute `cpu`.
         ranked_idx = (ranking_output.ranked_tgt_out_idx - 2).cpu().numpy()
+        # pyre-fixme[6]: Expected `int` for 1st param but got `Optional[torch.Tensor]`.
         logged_idx = (eval_input.tgt_out_idx - 2).cpu().numpy()
         score_bar = np.arange(self.slate_size, 0, -1)
 
@@ -83,6 +85,7 @@ class RankingListwiseEvaluator:
             ranked_scores = np.zeros(self.slate_size)
             ranked_scores[ranked_idx[i]] = score_bar
             truth_scores = np.zeros(self.slate_size)
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             truth_scores[logged_idx[i]] = eval_input.position_reward[i].cpu().numpy()
             # average_precision_score accepts 1D arrays
             # dcg & ndcg accepts 2D arrays

@@ -1,0 +1,42 @@
+env_name: CartPole-v0
+model:
+  DiscreteC51DQN:
+    trainer_param:
+      actions:
+      - 4
+      - 5
+      rl:
+        gamma: 0.99
+        target_update_rate: 0.1
+        maxq_learning: true
+        temperature: 0.1
+        softmax_policy: true
+        q_network_loss: mse
+      double_q_learning: true
+      minibatch_size: 512
+      minibatches_per_step: 1
+      num_atoms: 11
+      qmin: 0
+      qmax: 25
+      optimizer:
+        optimizer: ADAM
+        learning_rate: 0.001
+        l2_decay: 0
+      evaluation:
+        calc_cpe_in_training: false
+    net_builder:
+      Categorical:
+        sizes:
+        - 64
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+replay_memory_size: 50000
+train_every_ts: 3
+train_after_ts: 20000
+num_train_episodes: 60
+num_eval_episodes: 20
+max_steps: 200
+passing_score_bar: 100.0
+use_gpu: false

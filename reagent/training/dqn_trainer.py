@@ -154,7 +154,6 @@ class DQNTrainer(DQNTrainerBase):
         return q_values, q_values_target
 
     @torch.no_grad()
-    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
@@ -249,7 +248,6 @@ class DQNTrainer(DQNTrainerBase):
             action_on_policy = get_valid_actions_from_imitator(
                 self.bcq_imitator, training_batch.state, self.bcq_drop_threshold
             )
-            # pyre-fixme[18]: Global name `possible_actions_mask` is undefined.
             possible_actions_mask *= action_on_policy
 
         model_action_idxs = self.get_max_q_values(
@@ -283,32 +281,3 @@ class DQNTrainer(DQNTrainerBase):
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=model_action_idxs,
         )
-
-    @torch.no_grad()
-    def internal_prediction(self, input):
-        """
-        Only used by Gym
-        """
-        self.q_network.eval()
-        q_values = self.q_network(rlt.FeatureData(input))
-        q_values = q_values.cpu()
-        self.q_network.train()
-
-        if self.bcq:
-            action_preds = torch.tensor(self.bcq_imitator(input.cpu()))
-            action_preds /= torch.max(action_preds, dim=1)[0]
-            action_off_policy = (action_preds < self.bcq_drop_threshold).float()
-            action_off_policy *= self.ACTION_NOT_POSSIBLE_VAL
-            q_values += action_off_policy
-
-        return q_values
-
-    @torch.no_grad()
-    def internal_reward_estimation(self, input):
-        """
-        Only used by Gym
-        """
-        self.reward_network.eval()
-        reward_estimates = self.reward_network(rlt.FeatureData(input))
-        self.reward_network.train()
-        return reward_estimates.cpu()

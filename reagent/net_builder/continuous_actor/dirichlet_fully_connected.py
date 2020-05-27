@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List, Type
+from typing import List
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.actor import DirichletFullyConnectedActor

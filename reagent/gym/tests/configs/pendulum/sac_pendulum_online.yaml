@@ -1,6 +1,6 @@
 env_name: Pendulum-v0
 model:
-  SoftActorCritic:
+  SAC:
     trainer_param:
       rl:
         gamma: 0.99
@@ -50,10 +50,10 @@ model:
         - leaky_relu
     eval_parameters:
       calc_cpe_in_training: false
-replay_memory_size: 100000
+replay_memory_size: 10000
 train_every_ts: 1
 train_after_ts: 5000
-num_train_episodes: 50
+num_train_episodes: 40
 num_eval_episodes: 20
 max_steps: 200
 # Though maximal score is 0, we set lower bar to let tests finish in time

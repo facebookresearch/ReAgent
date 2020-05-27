@@ -64,8 +64,8 @@ class LinDynaEnv(Env):
         action = action.reshape((self.action_dim, 1))
         state = self.state.reshape((self.state_dim, 1))
         next_state = (self.A.dot(state) + self.B.dot(action)).squeeze()
-        # add the negative sign because we actually want to maximize the rewards, while an LRQ solution minimizes
-        # rewards by convention
+        # add negative sign because we want to maximize the rewards,
+        # while an LQR solution minimizes costs by convention
         reward = -(
             (
                 state.T.dot(self.Q).dot(state) + action.T.dot(self.R).dot(action)

@@ -66,6 +66,9 @@ class StateEmbedEnvironment(Env):
     def seed(self, seed):
         self.env.seed(seed)
 
+    def __getattr__(self, name):
+        return getattr(self.env, name)
+
     @torch.no_grad()
     def embed_state(self, state):
         """ Embed state after either reset() or step() """

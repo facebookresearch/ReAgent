@@ -143,7 +143,6 @@ class QRDQNTrainer(DQNTrainerBase):
         return components
 
     @torch.no_grad()
-    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(self, training_batch: rlt.DiscreteDqnInput):
         if isinstance(training_batch, TrainingDataPage):
             training_batch = training_batch.as_discrete_maxq_training_batch()
@@ -254,18 +253,6 @@ class QRDQNTrainer(DQNTrainerBase):
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=model_action_idxs,
         )
-
-    @torch.no_grad()
-    def internal_prediction(self, input):
-        """
-        Only used by Gym
-        """
-        self.q_network.eval()
-        q_values = self.q_network(rlt.FeatureData(input)).mean(dim=2)
-        q_values = q_values.cpu()
-        self.q_network.train()
-
-        return q_values
 
     @torch.no_grad()
     def boost_rewards(

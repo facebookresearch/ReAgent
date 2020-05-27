@@ -20,7 +20,7 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
-from reagent.parameters import EvaluationParameters, NormalizationKey, param_hash
+from reagent.parameters import EvaluationParameters, param_hash
 from reagent.training import SACTrainer, SACTrainerParameters
 from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class SoftActorCritic(ActorCriticBase):
+class SAC(ActorCriticBase):
     __hash__ = param_hash
 
     trainer_param: SACTrainerParameters = field(default_factory=SACTrainerParameters)
@@ -55,7 +55,6 @@ class SoftActorCritic(ActorCriticBase):
         )
     )
     use_2_q_functions: bool = True
-    eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
@@ -64,21 +63,21 @@ class SoftActorCritic(ActorCriticBase):
 
     def build_trainer(self) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
-        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
-        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
+        # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
+        # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
-            self.get_normalization_data(NormalizationKey.STATE),
-            self.get_normalization_data(NormalizationKey.ACTION),
+            self.state_normalization_data, self.action_normalization_data
         )
 
         critic_net_builder = self.critic_net_builder.value
-        q1_network = critic_net_builder.build_q_network(
-            self.state_normalization_parameters, self.action_normalization_parameters
+        # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
+        # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
+        self._q1_network = critic_net_builder.build_q_network(
+            self.state_normalization_data, self.action_normalization_data
         )
         q2_network = (
             critic_net_builder.build_q_network(
-                self.state_normalization_parameters,
-                self.action_normalization_parameters,
+                self.state_normalization_data, self.action_normalization_data
             )
             if self.use_2_q_functions
             else None
@@ -90,11 +89,11 @@ class SoftActorCritic(ActorCriticBase):
             # pyre-fixme[16]: `Optional` has no attribute `value`.
             value_net_builder = self.value_net_builder.value
             value_network = value_net_builder.build_value_network(
-                self.get_normalization_data(NormalizationKey.STATE)
+                self.state_normalization_data
             )
 
         if self.use_gpu:
-            q1_network.cuda()
+            self._q1_network.cuda()
             if q2_network:
                 q2_network.cuda()
             if value_network:
@@ -102,7 +101,7 @@ class SoftActorCritic(ActorCriticBase):
             self._actor_network.cuda()
 
         trainer = SACTrainer(
-            q1_network,
+            self._q1_network,
             self._actor_network,
             self.trainer_param,
             value_network=value_network,
@@ -113,11 +112,9 @@ class SoftActorCritic(ActorCriticBase):
 
     def build_serving_module(self) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
-        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
-        # pyre-fixme[16]: `SoftActorCritic` has no attribute `_actor_network`.
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,
-            self.get_normalization_data(NormalizationKey.STATE),
-            self.get_normalization_data(NormalizationKey.ACTION),
+            self.state_normalization_data,
+            self.action_normalization_data,
         )

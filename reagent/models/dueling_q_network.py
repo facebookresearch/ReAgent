@@ -89,7 +89,8 @@ class DuelingQNetwork(ModelBase):
         shared_state = rlt.FeatureData(self.shared_network(state))
         value = self.value_network(shared_state)
         raw_advantage = self.advantage_network(shared_state)
-        advantage = raw_advantage - raw_advantage.mean(dim=-1, keepdim=True)
+        reduce_over = tuple(range(1, raw_advantage.dim()))
+        advantage = raw_advantage - raw_advantage.mean(dim=reduce_over, keepdim=True)
 
         q_value = value + advantage
         return value, raw_advantage, advantage, q_value

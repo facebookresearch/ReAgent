@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import abc
-from typing import Type
 
 import torch
 from reagent.core.registry_meta import RegistryMeta
@@ -47,21 +46,17 @@ class ContinuousActorNetBuilder(metaclass=RegistryMeta):
         """
         Returns a TorchScript predictor module
         """
-        state_normalization_parameters = (
-            state_normalization_data.dense_normalization_parameters
-        )
-        action_normalization_parameters = (
-            action_normalization_data.dense_normalization_parameters
-        )
-        assert state_normalization_parameters is not None
-        assert action_normalization_parameters is not None
 
-        state_preprocessor = Preprocessor(state_normalization_parameters, use_gpu=False)
-        postprocessor = Postprocessor(action_normalization_parameters, use_gpu=False)
+        state_preprocessor = Preprocessor(
+            state_normalization_data.dense_normalization_parameters, use_gpu=False
+        )
+        postprocessor = Postprocessor(
+            action_normalization_data.dense_normalization_parameters, use_gpu=False
+        )
         actor_with_preprocessor = ActorWithPreprocessor(
             actor.cpu_model().eval(), state_preprocessor, postprocessor
         )
         action_features = Preprocessor(
-            action_normalization_parameters, use_gpu=False
+            action_normalization_data.dense_normalization_parameters, use_gpu=False
         ).sorted_features
         return ActorPredictorWrapper(actor_with_preprocessor, action_features)

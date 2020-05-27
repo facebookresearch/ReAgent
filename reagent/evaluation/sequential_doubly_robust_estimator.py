@@ -68,7 +68,6 @@ class SequentialDoublyRobustEstimator:
         last_episode_end = -1
         while i < num_examples:
             # calculate the doubly-robust Q-value for one episode
-            # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
             if i == num_examples - 1 or edp.mdp_id[i] != edp.mdp_id[i + 1]:
                 episode_end = i
                 episode_value = 0.0

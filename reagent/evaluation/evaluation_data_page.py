@@ -66,24 +66,25 @@ class EvaluationDataPage(NamedTuple):
                 discrete_training_input.possible_actions_mask,
                 metrics=tdb.extras.metrics,
             )
-        elif isinstance(tdb.training_input, rlt.PreprocessedParametricDqnInput):
-            parametric_training_input = cast(
-                rlt.PreprocessedParametricDqnInput, tdb.training_input
-            )
-
+        elif isinstance(tdb, rlt.ParametricDqnInput):
             return EvaluationDataPage.create_from_tensors_parametric_dqn(
                 # pyre-fixme[6]: Expected `ParametricDQNTrainer` for 1st param but
                 #  got `Trainer`.
                 trainer,
+                # pyre-fixme[16]: `Optional` has no attribute `mdp_id`.
                 tdb.extras.mdp_id,
+                # pyre-fixme[16]: `Optional` has no attribute `sequence_number`.
                 tdb.extras.sequence_number,
-                parametric_training_input.state,
-                parametric_training_input.action,
+                tdb.state,
+                tdb.action,
+                # pyre-fixme[16]: `Optional` has no attribute `action_probability`.
                 tdb.extras.action_probability,
-                parametric_training_input.reward,
-                parametric_training_input.possible_actions_mask,
-                parametric_training_input.possible_actions,
+                tdb.reward,
+                tdb.possible_actions_mask,
+                tdb.possible_actions,
+                # pyre-fixme[16]: `Optional` has no attribute `max_num_actions`.
                 tdb.extras.max_num_actions,
+                # pyre-fixme[16]: `Optional` has no attribute `metrics`.
                 metrics=tdb.extras.metrics,
             )
         else:
@@ -488,23 +489,13 @@ class EvaluationDataPage(NamedTuple):
     def compute_values(self, gamma: float):
         assert self.mdp_id is not None and self.sequence_number is not None
         logged_values = EvaluationDataPage.compute_values_for_mdps(
-            self.logged_rewards,
-            # pyre-fixme[6]: Expected `ndarray` for 2nd param but got
-            #  `Optional[np.ndarray]`.
-            self.mdp_id,
-            self.sequence_number,
-            gamma,
+            self.logged_rewards, self.mdp_id, self.sequence_number, gamma
         )
         if self.logged_metrics is not None:
             logged_metrics_values: Optional[
                 torch.Tensor
             ] = EvaluationDataPage.compute_values_for_mdps(
-                # pyre-fixme[6]: Expected `Tensor` for 1st param but got
-                #  `Optional[torch.Tensor]`.
-                self.logged_metrics,
-                self.mdp_id,
-                self.sequence_number,
-                gamma,
+                self.logged_metrics, self.mdp_id, self.sequence_number, gamma
             )
         else:
             logged_metrics_values = None
@@ -608,7 +599,6 @@ class EvaluationDataPage(NamedTuple):
         assert self.model_metrics_values is not None, "metrics must not be none"
 
         return self._replace(
-            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             logged_rewards=self.logged_metrics[:, i : i + 1],
             logged_values=self.logged_metrics_values[:, i : i + 1],
             model_rewards=self.model_metrics[

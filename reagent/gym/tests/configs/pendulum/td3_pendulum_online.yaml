@@ -39,9 +39,9 @@ model:
 replay_memory_size: 100000
 train_every_ts: 1
 train_after_ts: 5000
-# burn in for about 5000/200=25 episodes and train on the rest
-num_train_episodes: 60
+num_train_episodes: 40
 num_eval_episodes: 20
 max_steps: 200
 # Though maximal score is 0, we set lower bar to let tests finish in time
 passing_score_bar: -750
+use_gpu: false

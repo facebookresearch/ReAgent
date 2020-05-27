@@ -231,13 +231,13 @@ class ReplayBuffer(object):
         replay_memory_size: int,
         batch_size: int,
         stack_size: int = 1,
-        store_possible_actions_mask: bool = True,
         store_log_prob: bool = True,
         **kwargs,
     ):
         extra_storage_types: List[ReplayElement] = []
         obs_space = env.observation_space
-        if HAS_RECSIM and isinstance(env, RecSimGymEnv):
+
+        if HAS_RECSIM and isinstance(env.unwrapped, RecSimGymEnv):
             assert isinstance(obs_space, spaces.Dict)
             user_obs_space = obs_space["user"]
             if not isinstance(user_obs_space, spaces.Box):
@@ -263,19 +263,15 @@ class ReplayBuffer(object):
             action_dtype = action_space.dtype
             action_shape = action_space.shape
         elif isinstance(action_space, spaces.Discrete):
-            # TODO: don't store one-hot encoded actions in RB.
             action_dtype = action_space.dtype
-            action_shape = (action_space.n,)
+            action_shape = ()
         else:
             raise NotImplementedError(
                 f"env.action_space {type(env.action_space)} not supported."
             )
 
-        if store_possible_actions_mask:
-            extra_storage_types.append(
-                ReplayElement("possible_actions_mask", action_shape, np.int64)
-            )
-
+        extra_storage_types.append(ReplayElement("mdp_id", (), np.int64))
+        extra_storage_types.append(ReplayElement("sequence_number", (), np.int64))
         if store_log_prob:
             extra_storage_types.append(ReplayElement("log_prob", (), np.float32))
 
@@ -304,6 +300,7 @@ class ReplayBuffer(object):
         to the user. Each element should be identical. They should be dict with
         keys corresponding to the type of response.
         """
+        logger.info(obs_space)
         doc_obs_space = obs_space["doc"]
         if not isinstance(doc_obs_space, spaces.Dict):
             raise NotImplementedError(
@@ -318,20 +315,39 @@ class ReplayBuffer(object):
 
         doc_0_space = doc_obs_space["0"]
         if isinstance(doc_0_space, spaces.Dict):
-            for k, v in doc_obs_space["0"].spaces.items():
-                if isinstance(v, (spaces.Discrete, spaces.Box)):
+            for k, v in doc_0_space.spaces.items():
+                if isinstance(v, spaces.Discrete):
+                    shape = (num_docs,)
+                elif isinstance(v, spaces.Box):
                     shape = (num_docs, *v.shape)
-                    replay_elements.append(ReplayElement(f"doc_{k}", shape, v.dtype))
                 else:
                     raise NotImplementedError(
                         f"Doc feature {k} with the observation space of {type(v)}"
                         " is not supported"
                     )
+                replay_elements.append(ReplayElement(f"doc_{k}", shape, v.dtype))
         elif isinstance(doc_0_space, spaces.Box):
             shape = (num_docs, *doc_0_space.shape)
             replay_elements.append(ReplayElement("doc", shape, doc_0_space.dtype))
         else:
             raise NotImplementedError(f"Unknown space: {doc_0_space}")
+
+        augmentation = obs_space.spaces.get("augmentation", None)
+        if augmentation is not None:
+            aug_0_space = list(augmentation.spaces.values())[0]
+            for k, v in aug_0_space.spaces.items():
+                if isinstance(v, spaces.Discrete):
+                    shape = (num_docs,)
+                elif isinstance(v, spaces.Box):
+                    shape = (num_docs, *v.shape)
+                else:
+                    raise NotImplementedError(
+                        f"Augmentation feature {k} with the observation space "
+                        f"of {type(v)} is not supported"
+                    )
+                replay_elements.append(
+                    ReplayElement(f"augmentation_{k}", shape, v.dtype)
+                )
 
         response_space = obs_space["response"]
         assert isinstance(response_space, spaces.Tuple)
@@ -341,14 +357,16 @@ class ReplayBuffer(object):
         response_space_0 = response_space[0]
         assert isinstance(response_space_0, spaces.Dict)
         for k, v in response_space_0.spaces.items():
-            if isinstance(v, (spaces.Discrete, spaces.Box)):
+            if isinstance(v, spaces.Discrete):
+                shape = (slate_size,)
+            elif isinstance(v, spaces.Box):
                 shape = (slate_size, *v.shape)
-                replay_elements.append(ReplayElement(f"response_{k}", shape, v.dtype))
             else:
                 raise NotImplementedError(
                     f"Response {k} with the observation space of {type(v)} "
                     "is not supported"
                 )
+            replay_elements.append(ReplayElement(f"response_{k}", shape, v.dtype))
 
         return replay_elements
 
@@ -503,9 +521,8 @@ class ReplayBuffer(object):
         """
         if len(args) + len(kwargs) != len(self.get_add_args_signature()):
             raise ValueError(
-                "Add expects {} elements, received {}".format(
-                    len(self.get_add_args_signature()), len(args) + len(kwargs)
-                )
+                f"Add expects: {self.get_add_args_signature()}; "
+                f" received {args} {kwargs}"
             )
 
     def _check_add_types(self, *args, **kwargs):

@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Dict, List, Optional
+import logging
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from reagent.parameters import NormalizationParameters
+from reagent.parameters import NormalizationData
 from reagent.preprocessing.preprocessor import Preprocessor
+
+
+logger = logging.getLogger(__name__)
 
 
 class Compose:
@@ -23,6 +27,7 @@ class Compose:
         return f"{self.__class__.__name__}(\n{transforms}\n)"
 
 
+# TODO: this wouldn't work for possible_actions_mask (list of value, presence)
 class ValuePresence:
     """
     For every key `x`, looks for `x_presence`; if `x_presence` exists,
@@ -41,9 +46,22 @@ class ValuePresence:
         return data
 
 
+class Lambda:
+    """ For simple transforms """
+
+    def __init__(self, keys: List[str], fn: Callable):
+        self.keys = keys
+        self.fn = fn
+
+    def __call__(self, data):
+        for k in self.keys:
+            data[k] = self.fn(data[k])
+        return data
+
+
 class DenseNormalization:
     """
-    Normalize the `keys` using `normalization_parameters`.
+    Normalize the `keys` using `normalization_data`.
     The keys are expected to be `Tuple[torch.Tensor, torch.Tensor]`,
     where the first element is the value and the second element is the
     presence mask.
@@ -53,7 +71,7 @@ class DenseNormalization:
     def __init__(
         self,
         keys: List[str],
-        normalization_parameters: Dict[int, NormalizationParameters],
+        normalization_data: NormalizationData,
         device: Optional[torch.device] = None,
     ):
         """
@@ -61,7 +79,7 @@ class DenseNormalization:
             keys: the name of the keys to be transformed
         """
         self.keys = keys
-        self.normalization_parameters = normalization_parameters
+        self.normalization_data = normalization_data
         self.device = device or torch.device("cpu")
         # Delay the initialization of the preprocessor so this class
         # is pickleable
@@ -70,7 +88,8 @@ class DenseNormalization:
     def __call__(self, data):
         if self._preprocessor is None:
             self._preprocessor = Preprocessor(
-                self.normalization_parameters, device=self.device
+                self.normalization_data.dense_normalization_parameters,
+                device=self.device,
             )
 
         for k in self.keys:
@@ -92,12 +111,14 @@ class ColumnVector:
 
     def __call__(self, data):
         for k in self.keys:
-            value = data[k]
-            if isinstance(value, tuple):
-                value, _presence = value
+            raw_value = data[k]
+            if isinstance(raw_value, tuple):
+                value, _presence = raw_value
 
-            if isinstance(value, list):
-                value = np.array(value)
+            if isinstance(raw_value, list):
+                # TODO(T67265031): make mdp_id a tensor, which we will be able to
+                # when column type changes to int
+                value = np.array(raw_value)
 
             assert value.ndim == 1 or (
                 value.ndim == 2 and value.shape[1] == 1
@@ -109,7 +130,7 @@ class ColumnVector:
 
 class MaskByPresence:
     """
-    Expect data is (value, presence) and return value * presence.
+    Expect data to be (value, presence) and return value * presence.
     """
 
     def __init__(self, keys: List[str]):
@@ -132,6 +153,11 @@ class MaskByPresence:
 
 
 class StackDenseFixedSizeArray:
+    """
+    Expect data to be List of (Value, Presence), and output a tensor of shape
+    (batch_size, feature_dim).
+    """
+
     def __init__(self, keys: List[str], size: int, dtype=torch.float):
         self.keys = keys
         self.size = size

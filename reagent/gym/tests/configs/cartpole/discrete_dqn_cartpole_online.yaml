@@ -30,9 +30,9 @@ model:
         - leaky_relu
         - leaky_relu
 replay_memory_size: 20000
-train_every_ts: 3
-train_after_ts: 1
-num_train_episodes: 60
+train_every_ts: 1
+train_after_ts: 5000
+num_train_episodes: 50
 num_eval_episodes: 20
 max_steps: 200
 passing_score_bar: 100.0
