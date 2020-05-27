@@ -38,5 +38,5 @@ class HorizonTestBase(unittest.TestCase):
         class ConfigClass:
             pass
 
-        config = ConfigClass(**config_dict)  # type: ignore
-        return run_test(**config.asdict())  # type: ignore
+        config = ConfigClass(**config_dict)
+        return run_test(**config.asdict())

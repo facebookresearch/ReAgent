@@ -9,6 +9,7 @@ import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.tracker import observable
+from reagent.optimizer.union import Optimizer__Union
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.training_data_page import TrainingDataPage
 
@@ -26,10 +27,8 @@ class QRDQNTrainerParameters:
     num_atoms: int = 51
     minibatch_size: int = 1024
     minibatches_per_step: int = 1
-    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
-    cpe_optimizer: rlp.OptimizerParameters = field(
-        default_factory=rlp.OptimizerParameters
-    )
+    optimizer: Optimizer__Union = field(default_factory=Optimizer__Union.default)
+    cpe_optimizer: Optimizer__Union = field(default_factory=Optimizer__Union.default)
     evaluation: rlp.EvaluationParameters = field(
         default_factory=rlp.EvaluationParameters
     )
@@ -45,15 +44,19 @@ class QRDQNTrainerParameters:
             num_atoms=params.rainbow.num_atoms,
             minibatch_size=params.training.minibatch_size,
             minibatches_per_step=params.training.minibatches_per_step,
-            cpe_optimizer=rlp.OptimizerParameters(
-                optimizer=params.training.optimizer,
-                learning_rate=params.training.learning_rate,
-                l2_decay=params.training.l2_decay,
+            cpe_optimizer=Optimizer__Union.create_from_optimizer_params(
+                rlp.OptimizerParameters(
+                    optimizer=params.training.optimizer,
+                    learning_rate=params.training.learning_rate,
+                    l2_decay=params.training.l2_decay,
+                )
             ),
-            optimizer=rlp.OptimizerParameters(
-                optimizer=params.training.optimizer,
-                learning_rate=params.training.learning_rate,
-                l2_decay=params.rainbow.c51_l2_decay,
+            optimizer=Optimizer__Union.create_from_optimizer_params(
+                rlp.OptimizerParameters(
+                    optimizer=params.training.optimizer,
+                    learning_rate=params.training.learning_rate,
+                    l2_decay=params.rainbow.c51_l2_decay,
+                )
             ),
             evaluation=params.evaluation,
         )
@@ -104,8 +107,8 @@ class QRDQNTrainer(DQNTrainerBase):
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self.q_network_optimizer = self._get_optimizer(
-            self.q_network, parameters.optimizer
+        self.q_network_optimizer = parameters.optimizer.make_optimizer(
+            self.q_network.parameters()
         )
 
         self.num_atoms = parameters.num_atoms
@@ -119,7 +122,7 @@ class QRDQNTrainer(DQNTrainerBase):
             reward_network,
             q_network_cpe,
             q_network_cpe_target,
-            cpe_optimizer_parameters=parameters.cpe_optimizer,
+            optimizer=parameters.cpe_optimizer,
         )
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)

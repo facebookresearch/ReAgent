@@ -5,7 +5,7 @@ import logging
 from typing import Dict, Optional, Type
 
 from reagent.core.dataclasses import dataclass
-from reagent.core.tagged_union import TaggedUnion
+from reagent.core.tagged_union import INTERNAL_TAGGED_UNION, TaggedUnion
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class RegistryMeta(abc.ABCMeta):
 
             union.make_union_instance = make_union_instance
 
-            if issubclass(union, TaggedUnion):
+            if not INTERNAL_TAGGED_UNION:
                 # OSS TaggedUnion
                 union.__annotations__ = {
                     name: Optional[t] for name, t in cls.REGISTRY.items()
@@ -61,9 +61,9 @@ class RegistryMeta(abc.ABCMeta):
                 for name in cls.REGISTRY:
                     setattr(union, name, None)
                 return dataclass(frozen=True)(union)
-
-            # FBL TaggedUnion
-            union.__annotations__ = {name: t for name, t in cls.REGISTRY.items()}
-            return union
+            else:
+                # FBL TaggedUnion
+                union.__annotations__ = {name: t for name, t in cls.REGISTRY.items()}
+                return union
 
         return wrapper

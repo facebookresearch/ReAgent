@@ -3,8 +3,8 @@ model:
   DiscreteDQN:
     trainer_param:
       actions:
-      - 4
-      - 5
+      - 0
+      - 1
       rl:
         gamma: 0.99
         epsilon: 0.05
@@ -17,8 +17,8 @@ model:
       minibatch_size: 512
       minibatches_per_step: 1
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.05
+        Adam:
+          lr: 0.05
       evaluation:
         calc_cpe_in_training: false
     net_builder:

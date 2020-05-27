@@ -9,6 +9,7 @@ import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.tracker import observable
+from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import DiscreteActionModelParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.imitator_training import get_valid_actions_from_imitator
@@ -31,7 +32,7 @@ class DQNTrainerParameters:
     bcq: Optional[BCQConfig] = None
     minibatch_size: int = 1024
     minibatches_per_step: int = 1
-    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
+    optimizer: Optimizer__Union = field(default_factory=Optimizer__Union.default)
     evaluation: rlp.EvaluationParameters = field(
         default_factory=rlp.EvaluationParameters
     )
@@ -49,10 +50,12 @@ class DQNTrainerParameters:
             else None,
             minibatch_size=params.training.minibatch_size,
             minibatches_per_step=params.training.minibatches_per_step,
-            optimizer=rlp.OptimizerParameters(
-                optimizer=params.training.optimizer,
-                learning_rate=params.training.learning_rate,
-                l2_decay=params.training.l2_decay,
+            optimizer=Optimizer__Union.create_from_optimizer_params(
+                rlp.OptimizerParameters(
+                    optimizer=params.training.optimizer,
+                    learning_rate=params.training.learning_rate,
+                    l2_decay=params.training.l2_decay,
+                )
             ),
             evaluation=params.evaluation,
         )
@@ -98,12 +101,8 @@ class DQNTrainer(DQNTrainerBase):
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.optimizer.optimizer)
-        # pyre-fixme[16]: `DQNTrainer` has no attribute `optimizer_func`.
-        self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(),
-            lr=parameters.optimizer.learning_rate,
-            weight_decay=parameters.optimizer.l2_decay,
+        self.q_network_optimizer = parameters.optimizer.make_optimizer(
+            q_network.parameters()
         )
 
         self._initialize_cpe(
@@ -111,7 +110,7 @@ class DQNTrainer(DQNTrainerBase):
             reward_network,
             q_network_cpe,
             q_network_cpe_target,
-            cpe_optimizer_parameters=parameters.optimizer,
+            optimizer=parameters.optimizer,
         )
 
         # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.

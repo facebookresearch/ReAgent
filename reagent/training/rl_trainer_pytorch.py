@@ -4,10 +4,10 @@
 import logging
 from typing import List, Optional
 
-import numpy as np
 import torch
 import torch.nn.functional as F
-from reagent.parameters import EvaluationParameters, OptimizerParameters, RLParameters
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.torch_utils import masked_softmax
 from reagent.training.loss_reporter import LossReporter
 from reagent.training.trainer import Trainer
@@ -90,20 +90,15 @@ class RLTrainer(Trainer):
         reward_network,
         q_network_cpe,
         q_network_cpe_target,
-        cpe_optimizer_parameters: OptimizerParameters,
+        optimizer: Optimizer__Union,
     ) -> None:
         if self.calc_cpe_in_training:
-            optimizer_func = self._get_optimizer_func(
-                cpe_optimizer_parameters.optimizer
-            )
             assert reward_network is not None, "reward_network is required for CPE"
             # pyre-fixme[16]: `RLTrainer` has no attribute `reward_network`.
             self.reward_network = reward_network
             # pyre-fixme[16]: `RLTrainer` has no attribute `reward_network_optimizer`.
-            self.reward_network_optimizer = optimizer_func(
-                self.reward_network.parameters(),
-                lr=cpe_optimizer_parameters.learning_rate,
-                weight_decay=cpe_optimizer_parameters.l2_decay,
+            self.reward_network_optimizer = optimizer.make_optimizer(
+                self.reward_network.parameters()
             )
             assert (
                 q_network_cpe is not None and q_network_cpe_target is not None
@@ -113,9 +108,8 @@ class RLTrainer(Trainer):
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network_cpe_target`.
             self.q_network_cpe_target = q_network_cpe_target
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network_cpe_optimizer`.
-            self.q_network_cpe_optimizer = optimizer_func(
-                self.q_network_cpe.parameters(),
-                lr=cpe_optimizer_parameters.learning_rate,
+            self.q_network_cpe_optimizer = optimizer.make_optimizer(
+                self.q_network_cpe.parameters()
             )
             num_output_nodes = len(self.metrics_to_score) * self.num_actions
             # pyre-fixme[16]: `RLTrainer` has no attribute `reward_idx_offsets`.
