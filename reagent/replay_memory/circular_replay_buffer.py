@@ -259,12 +259,11 @@ class ReplayBuffer(object):
             )
 
         action_space = env.action_space
-        if isinstance(action_space, (spaces.Box, spaces.MultiDiscrete)):
+        if isinstance(
+            action_space, (spaces.Box, spaces.MultiDiscrete, spaces.Discrete)
+        ):
             action_dtype = action_space.dtype
             action_shape = action_space.shape
-        elif isinstance(action_space, spaces.Discrete):
-            action_dtype = action_space.dtype
-            action_shape = ()
         else:
             raise NotImplementedError(
                 f"env.action_space {type(env.action_space)} not supported."
@@ -622,7 +621,7 @@ class ReplayBuffer(object):
     def is_valid_transition(self, index):
         return self._is_index_valid[index]
 
-    def sample_index_batch(self, batch_size):
+    def sample_index_batch(self, batch_size: int):
         """Returns a batch of valid indices sampled uniformly.
         Args:
           batch_size: int, number of indices returned.
@@ -640,6 +639,16 @@ class ReplayBuffer(object):
             a=self._replay_capacity, size=batch_size, replace=True, p=p
         )
         return indices
+
+    def sample_all_valid_transitions(self):
+        nonzero = self._is_index_valid.nonzero()
+        assert (
+            len(nonzero) == 1
+        ), f"Expecting 1-tuple since is_index_valid is one dimensional. Got {nonzero}."
+        indices = nonzero[0]
+        return self.sample_transition_batch_tensor(
+            batch_size=len(indices), indices=indices
+        )
 
     def sample_transition_batch_tensor(self, batch_size=None, indices=None):
         """
