@@ -316,67 +316,40 @@ different. Fortunately, there’s a tool to convert from one to the other:
 
 ::
 
-   ➜  python serving/scripts/rasp_to_model.py /tmp/rasp_logging/log.txt ecom_cb_input_data/input.json
-   ➜  wc -l ecom_cb_input_data/input.json
-      10000 ecom_cb_input_data/input.json
+   ➜  python serving/scripts/rasp_to_model.py /tmp/rasp_logging/log.txt /tmp/input_df.pkl
+    ...
+    INFO:__main__:           ds               mdp_id  sequence_number    state_features action  reward  action_probability possible_actions          metrics
+    0  2019-01-01  1287515757457242569                0  {0: 0.0, 1: 1.0}   Ribs     0.0            0.475021    [Bacon, Ribs]  {'reward': 0.0}
+    1  2019-01-01 -1441171268272508658                0  {0: 0.0, 1: 1.0}   Ribs     0.0            0.475021    [Bacon, Ribs]  {'reward': 0.0}
+    2  2019-01-01  -267723109738500267                0  {0: 0.0, 1: 1.0}  Bacon     1.0            0.524979    [Bacon, Ribs]  {'reward': 1.0}
+    3  2019-01-01  7619952535038766490                0  {0: 0.0, 1: 1.0}   Ribs     0.0            0.475021    [Bacon, Ribs]  {'reward': 0.0}
+    4  2019-01-01 -2393212434904546228                0  {0: 0.0, 1: 1.0}  Bacon     0.0            0.524979    [Bacon, Ribs]  {'reward': 0.0}
+
 
 Since we are using the contextual bandit or RL model, we need to build a
 timeline:
 
 ::
 
-   rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log ; /usr/local/spark/bin/spark-submit \
-     --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
-     "`cat serving/examples/ecommerce/training/timeline.json`"
-   ...
-   2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Shutdown hook called
-   2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Deleting directory /private/var/folders/jm/snmq7xfn7llc1tpnjgn7889h6l6pkw/T/spark-2b6a4171-cb60-4d5e-8052-87620a0677a2
-   2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Deleting directory /private/var/folders/jm/snmq7xfn7llc1tpnjgn7889h6l6pkw/T/spark-927dae4a-6613-4a28-9d88-4d43a03d1cf3
-   ➜  
+    # Set the config
+    ➜  export CONFIG=serving/examples/ecommerce/training/contextual_bandit.yaml
 
-The spark job creates a directory full of files, so we must merge into
-one file for training & evaluation:
+    # First clean up derby database from last run
+    ➜  rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log
 
-::
+    # Run timeline operator
+    ➜  ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator "$CONFIG"
 
-   ➜  mkdir -p training_data
-   ➜  cat ecom_cb_training/part* > training_data/train.json
-   ➜  cat ecom_cb_eval/part* > training_data/eval.json
-
-Now we run our normalization. Any time we use a deep neural network, we
-need normalization to prevent some large features from drowning others.
+The `Click <https://click.palletsprojects.com/en/7.x/>`_ command submits a Spark job that uploads the timeline table to Hive.
+Now we can train the contextual bandit.
 
 ::
 
-   ➜  python reagent/workflow/create_normalization_metadata.py -p serving/examples/ecommerce/training/cb_train.json
+    ➜  ./reagent/workflow/cli.py run reagent.workflow.training.identify_and_train_network "$CONFIG"
+    ...
+    I0524 112136.208 model_manager.py:213] Saved torchscript model to model_1590344496.torchscript
 
-   WARNING:root:This caffe2 python run does not have GPU support. Will run in CPU only mode.
-   INFO:ml.rl.preprocessing.normalization:Got feature: 0
-   INFO:ml.rl.preprocessing.normalization:Feature 0 normalization: NormalizationParameters(feature_type='BINARY', boxcox_lambda=None, boxcox_shift=0.0, mean=0.0, stddev=1.0, possible_values=None, quantiles=None, min_value=0.0, max_value=1.0)
-   INFO:ml.rl.preprocessing.normalization:Got feature: 1
-   INFO:ml.rl.preprocessing.normalization:Feature 1 normalization: NormalizationParameters(feature_type='BINARY', boxcox_lambda=None, boxcox_shift=0.0, mean=0.0, stddev=1.0, possible_values=None, quantiles=None, min_value=1.0, max_value=1.0)
-   INFO:__main__:`state_features` normalization metadata written to training_data/state_features_norm.json
-
-Now we can train our contextual bandit:
-
-::
-
-   ➜  rm -Rf "outputs/*" ; python reagent/workflow/dqn_workflow.py -p serving/examples/ecommerce/training/cb_train.json
-   INFO:ml.rl.json_serialize:TYPE:
-   INFO:ml.rl.json_serialize:{'gamma': 0.0, 'target_update_rate': 1.0, 'maxq_learning': True, 'epsilon': 0.2, 'temperature': 0.35, 'softmax_policy': 0}
-   ...
-   INFO:ml.rl.workflow.page_handler:CPE evaluation took 0.26366519927978516 seconds.
-   INFO:ml.rl.workflow.base_workflow:Training finished. Processed ~6555 examples / s.
-   INFO:ml.rl.preprocessing.preprocessor:CUDA availability: False
-   INFO:ml.rl.preprocessing.preprocessor:NOT Using GPU: GPU not requested or not available.
-   /Users/jjg/github/Horizon/reagent/preprocessing/preprocessor.py:546: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-     elif max_value.gt(MAX_FEATURE_VALUE):
-   /Users/jjg/github/Horizon/reagent/preprocessing/preprocessor.py:552: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-     elif min_value.lt(MIN_FEATURE_VALUE):
-   INFO:__main__:Saving PyTorch trainer to outputs/trainer_1571105504.pt
-   INFO:ml.rl.workflow.base_workflow:Saving TorchScript predictor to outputs/model_1571105504.torchscript
-
-At this point, we have a model in ``outputs/model_*.torchscript``. We
+At this point, we have a model saved at ``model_*.torchscript``. We
 are going to combine this scoring model with an Softmax ranker. The
 ranker chooses the best actions most of the time, but rarely
 chooses other actions to explore:
@@ -433,7 +406,7 @@ put the model there so we can find it:
 ::
 
    ➜  mkdir -p /tmp/0
-   ➜  cp outputs/model_*.torchscript /tmp/0/0
+   ➜  cp model_*.torchscript /tmp/0/0
 
 Let’s run with our model:
 
