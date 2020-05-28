@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 import reagent.types as rlt
 import torch
+from reagent.core.tracker import observable
 from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.parameters import Seq2SlateTransformerParameters
 from reagent.training.trainer import Trainer
@@ -14,6 +15,9 @@ from reagent.training.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
+@observable(
+    pg_loss=torch.Tensor, train_baseline_loss=torch.Tensor, train_log_probs=torch.Tensor
+)
 class Seq2SlateTrainer(Trainer):
     def __init__(
         self,
@@ -165,6 +169,16 @@ class Seq2SlateTrainer(Trainer):
                     self.parameters.importance_sampling_clamp_max,
                 )
             )
+
+        # ips_rl_loss is the policy_gradient_loss.
+        # See RankingTrainingPageHandler.finish() function in page_handler.py
+        # pyre-fixme[16]: `Seq2SlateTrainer` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(
+            pg_loss=torch.tensor(ips_rl_loss).reshape(1),
+            train_baseline_loss=torch.tensor(baseline_loss).reshape(1),
+            train_log_probs=torch.FloatTensor(log_probs),
+        )
 
         return {
             "per_seq_probs": np.exp(log_probs),
