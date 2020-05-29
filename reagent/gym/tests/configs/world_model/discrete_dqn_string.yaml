@@ -34,8 +34,8 @@ train_model:
       minibatch_size: 1024
       minibatches_per_step: 1
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
+        Adam:
+          lr: 0.001
       evaluation:
         calc_cpe_in_training: false
     net_builder:

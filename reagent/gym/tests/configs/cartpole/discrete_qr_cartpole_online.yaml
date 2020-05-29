@@ -17,9 +17,9 @@ model:
       minibatches_per_step: 1
       num_atoms: 11
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.05
-        l2_decay: 0
+        Adam:
+          lr: 0.05
+          weight_decay: 0
       evaluation:
         calc_cpe_in_training: false
     net_builder:

@@ -20,9 +20,8 @@ model:
       minibatch_size: 128
       minibatches_per_step: 1
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.01
-        l2_decay: 0.0
+        Adam:
+          lr: 0.01
       evaluation:
         calc_cpe_in_training: true
     net_builder:

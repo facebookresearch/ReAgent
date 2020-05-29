@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from reagent.workflow import types
+from reagent.core.tagged_union import TaggedUnion
 
 from . import categorical_dqn  # noqa
 from . import continuous_actor  # noqa
@@ -17,30 +17,30 @@ from .value_net_builder import ValueNetBuilder
 
 
 @ContinuousActorNetBuilder.fill_union()
-class ContinuousActorNetBuilder__Union(types.TaggedUnion):
+class ContinuousActorNetBuilder__Union(TaggedUnion):
     pass
 
 
 @DiscreteDQNNetBuilder.fill_union()
-class DiscreteDQNNetBuilder__Union(types.TaggedUnion):
+class DiscreteDQNNetBuilder__Union(TaggedUnion):
     pass
 
 
 @CategoricalDQNNetBuilder.fill_union()
-class CategoricalDQNNetBuilder__Union(types.TaggedUnion):
+class CategoricalDQNNetBuilder__Union(TaggedUnion):
     pass
 
 
 @QRDQNNetBuilder.fill_union()
-class QRDQNNetBuilder__Union(types.TaggedUnion):
+class QRDQNNetBuilder__Union(TaggedUnion):
     pass
 
 
 @ParametricDQNNetBuilder.fill_union()
-class ParametricDQNNetBuilder__Union(types.TaggedUnion):
+class ParametricDQNNetBuilder__Union(TaggedUnion):
     pass
 
 
 @ValueNetBuilder.fill_union()
-class ValueNetBuilder__Union(types.TaggedUnion):
+class ValueNetBuilder__Union(TaggedUnion):
     pass
