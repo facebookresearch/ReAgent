@@ -21,6 +21,7 @@ Hessel for providing useful pointers on the algorithm and its implementation.
 """
 
 import numpy as np
+import torch
 from reagent.replay_memory import circular_replay_buffer, sum_tree
 from reagent.replay_memory.circular_replay_buffer import ReplayElement
 
@@ -41,7 +42,6 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
         max_sample_attempts=1000,
         extra_storage_types=None,
         observation_dtype=np.uint8,
-        terminal_dtype=np.uint8,
         action_shape=(),
         action_dtype=np.int32,
         reward_shape=(),
@@ -61,8 +61,6 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
             contents that will be stored and returned by sample_transition_batch.
           observation_dtype: np.dtype, type of the observations. Defaults to
             np.uint8 for Atari 2600.
-          terminal_dtype: np.dtype, type of the terminals. Defaults to np.uint8 for
-            Atari 2600.
           action_shape: tuple of ints, the shape for the action vector. Empty tuple
             means the action is a scalar.
           action_dtype: np.dtype, type of elements in the action.
@@ -80,7 +78,6 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
             max_sample_attempts=max_sample_attempts,
             extra_storage_types=extra_storage_types,
             observation_dtype=observation_dtype,
-            terminal_dtype=terminal_dtype,
             action_shape=action_shape,
             action_dtype=action_dtype,
             reward_shape=reward_shape,
@@ -122,20 +119,23 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
             if element.name == "priority":
                 priority = args[i]
             else:
-                transition[element.name] = args[i]
+                transition[element.name] = torch.from_numpy(
+                    np.array(args[i], dtype=element.type)
+                )
 
         self.sum_tree.set(self.cursor(), priority)
         super(PrioritizedReplayBuffer, self)._add_transition(transition)
 
-    def sample_index_batch(self, batch_size):
+    def sample_index_batch(self, batch_size: int) -> torch.Tensor:
         """Returns a batch of valid indices sampled as in Schaul et al. (2015).
         Args:
           batch_size: int, number of indices returned.
         Returns:
-          list of ints, a batch of valid indices sampled uniformly.
+          1D tensor of ints, a batch of valid indices sampled uniformly.
         Raises:
           Exception: If the batch was not constructed after maximum number of tries.
         """
+        # TODO: do priority sampling with torch as well.
         # Sample stratified indices. Some of them might be invalid.
         indices = self.sum_tree.stratified_sample(batch_size)
         allowed_attempts = self._max_sample_attempts
@@ -155,7 +155,7 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
                     index = self.sum_tree.sample()
                     allowed_attempts -= 1
                 indices[i] = index
-        return np.array(indices)
+        return torch.tensor(indices, dtype=torch.int64)
 
     def sample_transition_batch(self, batch_size=None, indices=None):
         """Returns a batch of transitions with extra storage and the priorities.
@@ -165,7 +165,7 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
         Args:
           batch_size: int, number of transitions returned. If None, the default
             batch_size will be used.
-          indices: None or list of ints, the indices of every transition in the
+          indices: None or 1D tensor of ints, the indices of every transition in the
             batch. If None, sample the indices uniformly.
         Returns:
           transition_batch: tuple of np.arrays with the shape and type as in
@@ -175,8 +175,10 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
             batch_size, indices
         )
         # The parent returned an empty array for the probabilities. Fill it with the
-        # contents of the sum tree.
-        transition.sampling_probabilities[:] = self.get_priority(transition.indices)
+        # contents of the sum tree. Note scalar values are returned as (batch_size, 1).
+        transition.sampling_probabilities[:, 0] = torch.from_numpy(
+            self.get_priority(transition.indices.numpy().astype(np.int32))
+        )
         return transition
 
     def set_priority(self, indices, priorities):

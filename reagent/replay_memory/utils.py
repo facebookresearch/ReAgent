@@ -27,7 +27,7 @@ def replay_buffer_to_pre_timeline_df(
 ) -> pd.DataFrame:
     """ Format needed for uploading dataset to Hive, and then run timeline. """
     n = replay_buffer.size
-    batch = replay_buffer.sample_transition_batch_tensor(batch_size=n)
+    batch = replay_buffer.sample_transition_batch(batch_size=n)
 
     # actions is inconsistent between models, so let's infer them.
     possible_actions_mask = getattr(batch, "possible_actions_mask", None)
