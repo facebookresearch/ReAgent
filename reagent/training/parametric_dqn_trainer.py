@@ -161,7 +161,8 @@ class ParametricDQNTrainer(DQNTrainerBase):
                 training_batch.state, training_batch.action
             )
             reward_loss = F.mse_loss(
-                reward_estimates, metrics_reward_concat_real_vals.squeeze(-1)
+                reward_estimates.squeeze(-1),
+                metrics_reward_concat_real_vals.squeeze(-1),
             )
             reward_loss.backward()
             self._maybe_run_optimizer(

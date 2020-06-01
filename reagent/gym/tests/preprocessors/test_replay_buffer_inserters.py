@@ -7,6 +7,7 @@ import unittest
 import gym
 import numpy as np
 import numpy.testing as npt
+import torch
 from reagent.gym.preprocessors import make_replay_buffer_inserter
 from reagent.gym.types import Transition
 from reagent.replay_memory import ReplayBuffer
@@ -65,7 +66,7 @@ class TestBasicReplayBufferInserter(HorizonTestBase):
     def test_cartpole(self):
         env = gym.make("CartPole-v0")
         replay_buffer, inserted = _create_replay_buffer_and_insert(env)
-        batch = replay_buffer.sample_transition_batch_tensor(indices=np.array([0]))
+        batch = replay_buffer.sample_transition_batch(indices=torch.tensor([0]))
         npt.assert_array_almost_equal(
             inserted[0]["observation"], batch.state.squeeze(0)
         )
@@ -88,7 +89,7 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
         }
         env = interest_evolution.create_environment(env_config)
         replay_buffer, inserted = _create_replay_buffer_and_insert(env)
-        batch = replay_buffer.sample_transition_batch_tensor(indices=np.array([0]))
+        batch = replay_buffer.sample_transition_batch(indices=torch.tensor([0]))
         npt.assert_array_almost_equal(
             inserted[0]["observation"]["user"], batch.state.squeeze(0)
         )
@@ -136,7 +137,7 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
         }
         env = interest_exploration.create_environment(env_config)
         replay_buffer, inserted = _create_replay_buffer_and_insert(env)
-        batch = replay_buffer.sample_transition_batch_tensor(indices=np.array([0]))
+        batch = replay_buffer.sample_transition_batch(indices=torch.tensor([0]))
         npt.assert_array_almost_equal(
             inserted[0]["observation"]["user"].astype(np.float32),
             batch.state.squeeze(0),

@@ -128,7 +128,7 @@ def run_test_offline(
             logger.info(f"Evaluating before epoch {epoch}: ")
             eval_rewards = evaluate_cem(env, manager, max_steps, 1)
             for _ in tqdm(range(num_batches_per_epoch)):
-                train_batch = replay_buffer.sample_transition_batch_tensor()
+                train_batch = replay_buffer.sample_transition_batch()
                 preprocessed_batch = trainer_preprocessor(train_batch)
                 trainer.train(preprocessed_batch)
 
