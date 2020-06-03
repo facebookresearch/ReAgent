@@ -4,30 +4,34 @@
 import logging
 
 import torch
-from reagent.parameters import DiscreteActionModelParameters
+from reagent.core.configuration import resolve_defaults
+from reagent.core.dataclasses import field
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import RLParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
-from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
 
 
 class ImitatorTrainer(RLTrainer):
+    @resolve_defaults
     def __init__(
-        self, imitator, parameters: DiscreteActionModelParameters, use_gpu=False
+        self,
+        imitator,
+        use_gpu: bool = False,
+        rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
+        minibatch_size: int = 1024,
+        minibatches_per_step: int = 1,
+        optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
     ) -> None:
-        super().__init__(parameters.rl, use_gpu=use_gpu)
-
-        self._set_optimizer(parameters.training.optimizer)
-        self.minibatch_size = parameters.training.minibatch_size
-        self.minibatches_per_step = parameters.training.minibatches_per_step or 1
+        super().__init__(rl, use_gpu=use_gpu)
+        self.minibatch_size = minibatch_size
+        self.minibatches_per_step = minibatches_per_step or 1
         self.imitator = imitator
-        # pyre-fixme[16]: `ImitatorTrainer` has no attribute `optimizer_func`.
-        self.imitator_optimizer = self.optimizer_func(
-            imitator.parameters(),
-            lr=parameters.training.learning_rate,
-            weight_decay=parameters.training.l2_decay,
-        )
+        self.imitator_optimizer = optimizer.make_optimizer(imitator.parameters())
 
     def _imitator_accuracy(self, predictions, true_labels):
         match_tensor = predictions == true_labels
@@ -36,8 +40,6 @@ class ImitatorTrainer(RLTrainer):
 
     @torch.no_grad()
     def train(self, training_batch, train=True):
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_discrete_maxq_training_batch()
         learning_input = training_batch.training_input
 
         with torch.enable_grad():
