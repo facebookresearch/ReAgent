@@ -7,7 +7,7 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.categorical_dqn.categorical import Categorical
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
 from reagent.parameters import param_hash
-from reagent.training.c51_trainer import C51Trainer, C51TrainerParameters
+from reagent.training import C51Trainer, C51TrainerParameters
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 
@@ -49,8 +49,14 @@ class DiscreteC51DQN(DiscreteDQNBase):
         q_network = net_builder.build_q_network(
             state_normalization_data=self.state_normalization_data,
             output_dim=len(self.action_names),
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `num_atoms`.
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `num_atoms`.
             num_atoms=self.trainer_param.num_atoms,
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `qmin`.
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `qmin`.
             qmin=self.trainer_param.qmin,
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `qmax`.
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `qmax`.
             qmax=self.trainer_param.qmax,
         )
 
@@ -63,13 +69,19 @@ class DiscreteC51DQN(DiscreteDQNBase):
         # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `_q_network`.
         self._q_network = q_network
 
+        # pyre-fixme[29]: `Type[reagent.training.c51_trainer.C51Trainer]` is not a
+        #  function.
+        # pyre-fixme[29]: `Type[reagent.training.c51_trainer.C51Trainer]` is not a
+        #  function.
         return C51Trainer(
-            q_network,
-            q_network_target,
-            self.trainer_param,
-            self.use_gpu,
+            q_network=q_network,
+            q_network_target=q_network_target,
             metrics_to_score=self.metrics_to_score,
             loss_reporter=NoOpLossReporter(),
+            use_gpu=self.use_gpu,
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `asdict`.
+            # pyre-fixme[16]: `C51TrainerParameters` has no attribute `asdict`.
+            **self.trainer_param.asdict(),
         )
 
     def build_serving_module(self) -> torch.nn.Module:

@@ -14,17 +14,14 @@ model:
       entropy_temperature: 0.01
       minibatch_size: 1024
       q_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+        Adam:
+          lr: 0.001
       value_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+        Adam:
+          lr: 0.001
       actor_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+        Adam:
+          lr: 0.001
       alpha_optimizer: null
     actor_net_builder:
       GaussianFullyConnected:

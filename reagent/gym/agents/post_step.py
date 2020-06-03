@@ -3,10 +3,9 @@
 
 
 import logging
-from typing import Any, Optional, Union
+from typing import Union
 
 import gym
-import numpy as np
 import torch
 from reagent.gym.preprocessors import (
     make_replay_buffer_inserter,
@@ -14,7 +13,6 @@ from reagent.gym.preprocessors import (
 )
 from reagent.gym.types import PostStep, Transition
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-from reagent.training.rl_dataset import RLDataset
 from reagent.training.trainer import Trainer
 
 

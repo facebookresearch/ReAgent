@@ -2,7 +2,7 @@
 
 import functools
 from dataclasses import MISSING, Field, fields
-from inspect import Parameter, signature
+from inspect import Parameter, isclass, signature
 from typing import List, Optional, Type, Union
 
 from reagent.core.dataclasses import dataclass
@@ -63,6 +63,9 @@ def make_config_class(
                 None
             ), "Only Unions of [X, None] (a.k.a. Optional[X]) are supported"
             t = t.__args__[0]
+        if hasattr(t, "__origin__"):
+            t = t.__origin__
+        assert isclass(t), f"{t} is not a class."
         return any(issubclass(t, blacklist_type) for blacklist_type in blacklist_types)
 
     def _is_valid_param(p):
@@ -115,18 +118,25 @@ def _resolve_default(val):
 
 def resolve_defaults(func):
     """
-    Use this decorator to resolve defualt field values in the constructor.
+    Use this decorator to resolve default field values in the constructor.
     """
 
-    field_parameters = [
-        p for p in signature(func).parameters.values() if isinstance(p.default, Field)
-    ]
+    func_params = list(signature(func).parameters.values())
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        for p in field_parameters:
-            if p.name not in kwargs:
-                kwargs[p.name] = _resolve_default(p.default)
+        if len(args) > len(func_params):
+            raise ValueError(
+                f"There are {len(func_params)} parameters in total, "
+                f"but args is {len(args)} long. \n"
+                f"{args}"
+            )
+        # go through unprovided default kwargs
+        for p in func_params[len(args) :]:
+            # only resolve defaults for Fields
+            if isinstance(p.default, Field):
+                if p.name not in kwargs:
+                    kwargs[p.name] = _resolve_default(p.default)
         return func(*args, **kwargs)
 
     return wrapper

@@ -20,7 +20,7 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
-from reagent.parameters import EvaluationParameters, param_hash
+from reagent.parameters import param_hash
 from reagent.training import SACTrainer, SACTrainerParameters
 from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
 
@@ -100,13 +100,19 @@ class SAC(ActorCriticBase):
                 value_network.cuda()
             self._actor_network.cuda()
 
+        # pyre-fixme[29]: `Type[reagent.training.sac_trainer.SACTrainer]` is not a
+        #  function.
+        # pyre-fixme[29]: `Type[reagent.training.sac_trainer.SACTrainer]` is not a
+        #  function.
         trainer = SACTrainer(
-            self._q1_network,
-            self._actor_network,
-            self.trainer_param,
+            actor_network=self._actor_network,
+            q1_network=self._q1_network,
             value_network=value_network,
             q2_network=q2_network,
             use_gpu=self.use_gpu,
+            # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
+            # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
+            **self.trainer_param.asdict(),
         )
         return trainer
 

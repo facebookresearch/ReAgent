@@ -4,34 +4,18 @@
 import logging
 from typing import List, Tuple
 
-import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
-from reagent.core.dataclasses import dataclass, field
+from reagent.core.configuration import resolve_defaults
+from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class QRDQNTrainerParameters:
-    __hash__ = rlp.param_hash
-
-    actions: List[str] = field(default_factory=list)
-    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
-    double_q_learning: bool = True
-    num_atoms: int = 51
-    minibatch_size: int = 1024
-    minibatches_per_step: int = 1
-    optimizer: Optimizer__Union = field(default_factory=Optimizer__Union.default)
-    cpe_optimizer: Optimizer__Union = field(default_factory=Optimizer__Union.default)
-    evaluation: rlp.EvaluationParameters = field(
-        default_factory=rlp.EvaluationParameters
-    )
 
 
 @observable(
@@ -51,59 +35,68 @@ class QRDQNTrainer(DQNTrainerBase):
     See https://arxiv.org/abs/1710.10044 for details
     """
 
+    @resolve_defaults
     def __init__(
         self,
         q_network,
         q_network_target,
-        parameters: QRDQNTrainerParameters,
-        use_gpu=False,
         metrics_to_score=None,
         reward_network=None,
         q_network_cpe=None,
         q_network_cpe_target=None,
         loss_reporter=None,
+        use_gpu: bool = False,
+        actions: List[str] = field(default_factory=list),  # noqa: B008
+        rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
+        double_q_learning: bool = True,
+        num_atoms: int = 51,
+        minibatch_size: int = 1024,
+        minibatches_per_step: int = 1,
+        optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        cpe_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        evaluation: EvaluationParameters = field(  # noqa: B008
+            default_factory=EvaluationParameters
+        ),
     ) -> None:
         super().__init__(
-            parameters.rl,
+            rl,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
-            actions=parameters.actions,
-            evaluation_parameters=parameters.evaluation,
+            actions=actions,
+            evaluation_parameters=evaluation,
             loss_reporter=loss_reporter,
         )
 
-        self.double_q_learning = parameters.double_q_learning
-        self.minibatch_size = parameters.minibatch_size
-        self.minibatches_per_step = parameters.minibatches_per_step or 1
-        self._actions = parameters.actions if parameters.actions is not None else []
+        self.double_q_learning = double_q_learning
+        self.minibatch_size = minibatch_size
+        self.minibatches_per_step = minibatches_per_step
+        self._actions = actions
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self.q_network_optimizer = parameters.optimizer.make_optimizer(
-            self.q_network.parameters()
-        )
+        self.q_network_optimizer = optimizer.make_optimizer(self.q_network.parameters())
 
-        self.num_atoms = parameters.num_atoms
+        self.num_atoms = num_atoms
         self.quantiles = (
             (0.5 + torch.arange(self.num_atoms, device=self.device).float())
             / float(self.num_atoms)
         ).view(1, -1)
 
         self._initialize_cpe(
-            parameters,
-            reward_network,
-            q_network_cpe,
-            q_network_cpe_target,
-            optimizer=parameters.cpe_optimizer,
+            reward_network, q_network_cpe, q_network_cpe_target, optimizer=cpe_optimizer
         )
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
-        if parameters.rl.reward_boost is not None:
+        if rl.reward_boost is not None:
             # pyre-fixme[16]: Optional type has no attribute `keys`.
-            for k in parameters.rl.reward_boost.keys():
+            for k in rl.reward_boost.keys():
                 i = self._actions.index(k)
                 # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
-                self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
+                self.reward_boosts[0, i] = rl.reward_boost[k]
 
     def warm_start_components(self):
         components = ["q_network", "q_network_target", "q_network_optimizer"]

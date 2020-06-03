@@ -11,8 +11,8 @@ import torch.nn as nn
 from reagent import types as rlt
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.torch_utils import masked_softmax
+from reagent.training import ParametricDQNTrainer
 from reagent.training.dqn_trainer import DQNTrainer
-from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 from reagent.training.trainer import Trainer
 
 

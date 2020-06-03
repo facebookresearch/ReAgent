@@ -2,17 +2,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import copy
 import logging
-from typing import Optional
 
 import reagent.types as rlt
 import torch
-from reagent.core.dataclasses import dataclass, field
-from reagent.parameters import (
-    CONTINUOUS_TRAINING_ACTION_RANGE,
-    OptimizerParameters,
-    RLParameters,
-    param_hash,
-)
+from reagent.core.configuration import resolve_defaults
+from reagent.core.dataclasses import field
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE, RLParameters
 from reagent.tensorboardX import SummaryWriterContext
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.training_data_page import TrainingDataPage
@@ -21,68 +17,64 @@ from reagent.training.training_data_page import TrainingDataPage
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
-class TD3TrainingParameters:
-    __hash__ = param_hash
-
-    rl: RLParameters = field(default_factory=RLParameters)
-    minibatch_size: int = 64
-    q_network_optimizer: OptimizerParameters = OptimizerParameters()
-    actor_network_optimizer: OptimizerParameters = OptimizerParameters()
-    use_2_q_functions: bool = True
-    noise_variance: float = 0.2
-    noise_clip: float = 0.5
-    delayed_policy_update: int = 2
-    warm_start_model_path: Optional[str] = None
-    minibatches_per_step: int = 1
-
-
 class TD3Trainer(RLTrainer):
     """
     Twin Delayed Deep Deterministic Policy Gradient algorithm trainer
     as described in https://arxiv.org/pdf/1802.09477
     """
 
+    @resolve_defaults
     def __init__(
         self,
-        q1_network,
         actor_network,
-        parameters: TD3TrainingParameters,
-        use_gpu: bool = False,
+        q1_network,
         q2_network=None,
+        use_gpu: bool = False,
+        # Start TD3TrainerParameters
+        rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
+        q_network_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        actor_network_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        minibatch_size: int = 64,
+        use_2_q_functions: bool = True,
+        noise_variance: float = 0.2,
+        noise_clip: float = 0.5,
+        delayed_policy_update: int = 2,
+        minibatches_per_step: int = 1,
     ) -> None:
         """
-        Args:
-            The four args below are provided for integration with other
-            environments (e.g., Gym):
+        Args: TODO: fill in
         """
-        super().__init__(parameters.rl, use_gpu=use_gpu)
+        super().__init__(rl, use_gpu=use_gpu)
 
-        self.minibatch_size = parameters.minibatch_size
-        self.minibatches_per_step = parameters.minibatches_per_step or 1
+        self.minibatch_size = minibatch_size
+        self.minibatches_per_step = minibatches_per_step or 1
 
         self.q1_network = q1_network
         self.q1_network_target = copy.deepcopy(self.q1_network)
-        self.q1_network_optimizer = self._get_optimizer(
-            q1_network, parameters.q_network_optimizer
+        self.q1_network_optimizer = q_network_optimizer.make_optimizer(
+            q1_network.parameters()
         )
 
         self.q2_network = q2_network
         if self.q2_network is not None:
             self.q2_network_target = copy.deepcopy(self.q2_network)
-            self.q2_network_optimizer = self._get_optimizer(
-                q2_network, parameters.q_network_optimizer
+            self.q2_network_optimizer = q_network_optimizer.make_optimizer(
+                q2_network.parameters()
             )
 
         self.actor_network = actor_network
         self.actor_network_target = copy.deepcopy(self.actor_network)
-        self.actor_network_optimizer = self._get_optimizer(
-            actor_network, parameters.actor_network_optimizer
+        self.actor_network_optimizer = actor_network_optimizer.make_optimizer(
+            actor_network.parameters()
         )
 
-        self.noise_variance = parameters.noise_variance
-        self.noise_clip_range = (-parameters.noise_clip, parameters.noise_clip)
-        self.delayed_policy_update = parameters.delayed_policy_update
+        self.noise_variance = noise_variance
+        self.noise_clip_range = (-noise_clip, noise_clip)
+        self.delayed_policy_update = delayed_policy_update
 
     def warm_start_components(self):
         components = [

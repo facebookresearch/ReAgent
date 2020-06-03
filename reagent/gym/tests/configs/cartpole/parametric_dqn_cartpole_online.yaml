@@ -13,9 +13,8 @@ model:
       minibatch_size: 1024
       minibatches_per_step: 1
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.03
-        l2_decay: 0
+        Adam:
+          lr: 0.03
     net_builder:
       FullyConnected:
         sizes:

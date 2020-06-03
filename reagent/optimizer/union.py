@@ -58,24 +58,3 @@ class Optimizer__Union(TaggedUnion):
 
     def make_optimizer(self, params):
         return self.value.make_optimizer(params)
-
-    # TODO: deprecate this once we don't use OptimizerParameters anymore
-    @classmethod
-    def create_from_optimizer_params(cls, optimizer_params: rlp.OptimizerParameters):
-        logger.warn(
-            "Use registry format instead of the deprecated OptimizerParameters!"
-        )
-        if optimizer_params.optimizer == "ADAM":
-            optimizer = classes["Adam"](
-                lr=optimizer_params.learning_rate,
-                weight_decay=optimizer_params.l2_decay,
-            )
-        elif optimizer_params.optimizer == "SGD":
-            optimizer = classes["SGD"](
-                lr=optimizer_params.learning_rate,
-                weight_decay=optimizer_params.l2_decay,
-            )
-        else:
-            raise NotImplementedError(f"{optimizer_params.optimizer} not supported.")
-        # pyre-fixme[16]: `Optimizer__Union` has no attribute `make_union_instance`.
-        return cls.make_union_instance(optimizer)

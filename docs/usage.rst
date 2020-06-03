@@ -98,9 +98,9 @@ The command essentially performs the following pseudo-code:
 
 .. code-block::
 
-    dataset = RLDataset()
+    dataset = ReplayBuffer()
     for epoch in range(num_episodes_for_data_batch):
-      run_episode & store transitions to dataset
+      run_episode & store transitions
 
     df = dataset.to_pandas_df()
     df.to_pickle(pkl_path)

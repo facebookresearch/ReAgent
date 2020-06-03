@@ -8,7 +8,7 @@ from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
 from reagent.parameters import param_hash
-from reagent.training.dqn_trainer import DQNTrainer, DQNTrainerParameters
+from reagent.training import DQNTrainer, DQNTrainerParameters
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 
@@ -64,9 +64,13 @@ class DiscreteDQN(DiscreteDQNBase):
         q_network_target = q_network.get_target_network()
 
         reward_network, q_network_cpe, q_network_cpe_target = None, None, None
+        # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `evaluation`.
+        # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `evaluation`.
         if self.trainer_param.evaluation.calc_cpe_in_training:
             # Metrics + reward
             num_output_nodes = (len(self.metrics_to_score) + 1) * len(
+                # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `actions`.
+                # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `actions`.
                 self.trainer_param.actions
             )
 
@@ -91,16 +95,22 @@ class DiscreteDQN(DiscreteDQNBase):
         # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
         # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
         self._q_network = q_network
+        # pyre-fixme[29]: `Type[reagent.training.dqn_trainer.DQNTrainer]` is not a
+        #  function.
+        # pyre-fixme[29]: `Type[reagent.training.dqn_trainer.DQNTrainer]` is not a
+        #  function.
         trainer = DQNTrainer(
-            q_network,
-            q_network_target,
-            reward_network,
-            self.trainer_param,
-            self.use_gpu,
+            q_network=q_network,
+            q_network_target=q_network_target,
+            reward_network=reward_network,
             q_network_cpe=q_network_cpe,
             q_network_cpe_target=q_network_cpe_target,
             metrics_to_score=self.metrics_to_score,
             loss_reporter=NoOpLossReporter(),
+            use_gpu=self.use_gpu,
+            # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `asdict`.
+            # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `asdict`.
+            **self.trainer_param.asdict(),
         )
         return trainer
 

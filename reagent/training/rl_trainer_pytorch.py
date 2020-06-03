@@ -86,7 +86,6 @@ class RLTrainer(Trainer):
 
     def _initialize_cpe(
         self,
-        parameters,
         reward_network,
         q_network_cpe,
         q_network_cpe_target,
@@ -122,24 +121,6 @@ class RLTrainer(Trainer):
             )
         else:
             self.reward_network = None
-
-    def _set_optimizer(self, optimizer_name):
-        self.optimizer_func = self._get_optimizer_func(optimizer_name)
-
-    def _get_optimizer(self, network, param):
-        return self._get_optimizer_func(param.optimizer)(
-            network.parameters(), lr=param.learning_rate, weight_decay=param.l2_decay
-        )
-
-    def _get_optimizer_func(self, optimizer_name):
-        if optimizer_name == "ADAM":
-            return torch.optim.Adam
-        elif optimizer_name == "SGD":
-            return torch.optim.SGD
-        else:
-            raise NotImplementedError(
-                "{} optimizer not implemented".format(optimizer_name)
-            )
 
     @torch.no_grad()
     def _soft_update(self, network, target_network, tau) -> None:

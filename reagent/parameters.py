@@ -24,7 +24,7 @@ class RLParameters(BaseDataClass):
     maxq_learning: bool = True
     reward_boost: Optional[Dict[str, float]] = None
     temperature: float = 0.01
-    softmax_policy: int = 1
+    softmax_policy: bool = True
     use_seq_num_diff_as_time_diff: bool = False
     q_network_loss: str = "mse"
     set_missing_value_to_zero: bool = False
@@ -91,13 +91,6 @@ class StateFeatureParameters(BaseDataClass):
 
     state_feature_names_override: List[str] = field(default_factory=lambda: [])
     state_feature_hashes_override: List[int] = field(default_factory=lambda: [])
-
-
-@dataclass(frozen=True)
-class OptimizerParameters(BaseDataClass):
-    optimizer: str = "ADAM"
-    learning_rate: float = 0.001
-    l2_decay: float = 0.01
 
 
 @dataclass(frozen=True)

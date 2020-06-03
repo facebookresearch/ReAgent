@@ -8,24 +8,12 @@ import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from reagent.core.dataclasses import dataclass, field
+from reagent.core.dataclasses import field
+from reagent.optimizer.union import Optimizer__Union
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class SlateQTrainerParameters:
-    rl: rlp.RLParameters = field(
-        default_factory=lambda: rlp.RLParameters(maxq_learning=False)
-    )
-    optimizer: str = "ADAM"
-    learning_rate: float = 0.001
-    minibatch_size: int = 1024
-    evaluation: rlp.EvaluationParameters = field(
-        default_factory=lambda: rlp.EvaluationParameters(calc_cpe_in_training=False)
-    )
 
 
 class SlateQTrainer(DQNTrainerBase):
@@ -33,22 +21,26 @@ class SlateQTrainer(DQNTrainerBase):
         self,
         q_network,
         q_network_target,
-        parameters: SlateQTrainerParameters,
         use_gpu: bool = False,
+        # Start SlateQTrainerParameters
+        rl: rlp.RLParameters = field(  # noqa: B008
+            default_factory=lambda: rlp.RLParameters(maxq_learning=False)
+        ),
+        optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        minibatch_size: int = 1024,
+        evaluation: rlp.EvaluationParameters = field(  # noqa: B008
+            default_factory=lambda: rlp.EvaluationParameters(calc_cpe_in_training=False)
+        ),
     ) -> None:
-        super().__init__(parameters.rl, use_gpu=use_gpu)
+        super().__init__(rl, use_gpu=use_gpu)
         self.minibatches_per_step = 1
-        self.minibatch_size = parameters.minibatch_size
+        self.minibatch_size = minibatch_size
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.optimizer)
-        # pyre-fixme[16]: `SlateQTrainer` has no attribute `optimizer_func`.
-        self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(),
-            lr=parameters.learning_rate,
-            # weight_decay=parameters.training.l2_decay,
-        )
+        self.q_network_optimizer = optimizer.make_optimizer(self.q_network.parameters())
 
     def warm_start_components(self) -> List[str]:
         components = ["q_network", "q_network_target", "q_network_optimizer"]

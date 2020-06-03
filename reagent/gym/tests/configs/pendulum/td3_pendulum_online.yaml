@@ -7,13 +7,11 @@ model:
         target_update_rate: 0.005
       minibatch_size: 256
       q_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.01
-        l2_decay: 0
+        Adam:
+          lr: 0.01
       actor_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.005
-        l2_decay: 0
+        Adam:
+          lr: 0.005
       noise_variance: 0.2
       noise_clip: 0.5
       delayed_policy_update: 2

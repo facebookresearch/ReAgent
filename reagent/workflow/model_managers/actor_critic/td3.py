@@ -19,7 +19,7 @@ from reagent.net_builder.unions import (
     ParametricDQNNetBuilder__Union,
 )
 from reagent.parameters import EvaluationParameters, param_hash
-from reagent.training import TD3Trainer, TD3TrainingParameters
+from reagent.training import TD3Trainer, TD3TrainerParameters
 from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
 
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class TD3(ActorCriticBase):
     __hash__ = param_hash
 
-    trainer_param: TD3TrainingParameters = field(default_factory=TD3TrainingParameters)
+    trainer_param: TD3TrainerParameters = field(default_factory=TD3TrainerParameters)
     actor_net_builder: ContinuousActorNetBuilder__Union = field(
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
@@ -81,12 +81,18 @@ class TD3(ActorCriticBase):
                 q2_network.cuda()
             self._actor_network.cuda()
 
+        # pyre-fixme[29]: `Type[reagent.training.td3_trainer.TD3Trainer]` is not a
+        #  function.
+        # pyre-fixme[29]: `Type[reagent.training.td3_trainer.TD3Trainer]` is not a
+        #  function.
         trainer = TD3Trainer(
-            self._q1_network,
-            self._actor_network,
-            self.trainer_param,
+            actor_network=self._actor_network,
+            q1_network=self._q1_network,
             q2_network=q2_network,
             use_gpu=self.use_gpu,
+            # pyre-fixme[16]: `TD3TrainerParameters` has no attribute `asdict`.
+            # pyre-fixme[16]: `TD3TrainerParameters` has no attribute `asdict`.
+            **self.trainer_param.asdict(),
         )
         return trainer
 

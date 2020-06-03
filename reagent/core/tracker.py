@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import functools
 import logging
 from typing import List
 
@@ -40,7 +41,7 @@ class Aggregator:
         pass
 
 
-def observable(cls=None, **kwargs):
+def observable(cls=None, **kwargs):  # noqa: C901
     """
     Decorator to mark a class as producing observable values. The names of the
     observable values are the names of keyword arguments. The values of keyword
@@ -56,6 +57,7 @@ def observable(cls=None, **kwargs):
 
         original_init = cls.__init__
 
+        @functools.wraps(original_init)
         def new_init(self, *args, **kwargs):
             original_init(self, *args, **kwargs)
             assert not hasattr(self, "_observable_value_types")

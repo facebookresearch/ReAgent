@@ -19,9 +19,8 @@ model:
       qmin: 0
       qmax: 25
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+        Adam:
+          lr: 0.001
     net_builder:
       Categorical:
         sizes:
