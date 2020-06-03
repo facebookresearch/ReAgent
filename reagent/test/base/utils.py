@@ -124,8 +124,8 @@ def only_continuous_normalizer_helper(
                     stddev=1,
                     possible_values=None,
                     quantiles=None,
-                    min_value=min_value[i],
-                    max_value=max_value[i],
+                    min_value=float(min_value[i]),
+                    max_value=float(max_value[i]),
                 ),
             )
             for i in range(len(feats))

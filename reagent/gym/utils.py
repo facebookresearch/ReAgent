@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 from gym import Env, spaces
 from reagent.gym.agents.agent import Agent
@@ -119,7 +119,7 @@ def build_action_normalizer(env):
         raise NotImplementedError(f"{action_space} not supported.")
 
 
-def build_normalizer(env):
+def build_normalizer(env) -> Dict[str, NormalizationData]:
     return {
         NormalizationKey.STATE: NormalizationData(
             dense_normalization_parameters=build_state_normalizer(env)
