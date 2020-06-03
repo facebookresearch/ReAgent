@@ -170,15 +170,6 @@ class DiscreteActionModelParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
-class ContinuousActionModelParameters(BaseDataClass):
-    rl: RLParameters
-    training: TrainingParameters
-    rainbow: RainbowDQNParameters
-    state_feature_params: Optional[StateFeatureParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-
-
-@dataclass(frozen=True)
 class OptimizerParameters(BaseDataClass):
     optimizer: str = "ADAM"
     learning_rate: float = 0.001

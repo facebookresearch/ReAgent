@@ -10,7 +10,6 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import DiscreteActionModelParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.imitator_training import get_valid_actions_from_imitator
 from reagent.training.training_data_page import TrainingDataPage
@@ -36,29 +35,6 @@ class DQNTrainerParameters:
     evaluation: rlp.EvaluationParameters = field(
         default_factory=rlp.EvaluationParameters
     )
-
-    @classmethod
-    def from_discrete_action_model_parameters(
-        cls, params: DiscreteActionModelParameters
-    ):
-        return cls(
-            actions=params.actions,
-            rl=params.rl,
-            double_q_learning=params.rainbow.double_q_learning,
-            bcq=BCQConfig(drop_threshold=params.rainbow.bcq_drop_threshold)
-            if params.rainbow.bcq
-            else None,
-            minibatch_size=params.training.minibatch_size,
-            minibatches_per_step=params.training.minibatches_per_step,
-            optimizer=Optimizer__Union.create_from_optimizer_params(
-                rlp.OptimizerParameters(
-                    optimizer=params.training.optimizer,
-                    learning_rate=params.training.learning_rate,
-                    l2_decay=params.training.l2_decay,
-                )
-            ),
-            evaluation=params.evaluation,
-        )
 
 
 @observable(

@@ -9,7 +9,6 @@ import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.tracker import observable
-from reagent.parameters import DiscreteActionModelParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.training_data_page import TrainingDataPage
 

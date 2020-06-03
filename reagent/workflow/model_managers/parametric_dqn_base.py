@@ -8,14 +8,8 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
-from reagent.gym.policies.samplers.discrete_sampler import (
-    GreedyActionSampler,
-    SoftmaxActionSampler,
-)
-from reagent.gym.policies.scorers.discrete_scorer import (
-    parametric_dqn_scorer,
-    parametric_dqn_serving_scorer,
-)
+from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+from reagent.gym.policies.scorers.discrete_scorer import parametric_dqn_scorer
 from reagent.models.base import ModelBase
 from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor, InputColumn

@@ -22,8 +22,6 @@ model:
         optimizer: ADAM
         learning_rate: 0.001
         l2_decay: 0
-      evaluation:
-        calc_cpe_in_training: false
     net_builder:
       Categorical:
         sizes:
@@ -32,6 +30,8 @@ model:
         activations:
         - leaky_relu
         - leaky_relu
+    eval_parameters:
+      calc_cpe_in_training: false
 replay_memory_size: 50000
 train_every_ts: 3
 train_after_ts: 20000

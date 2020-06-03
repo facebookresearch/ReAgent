@@ -8,16 +8,10 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
-from reagent.gym.policies.samplers.discrete_sampler import (
-    GreedyActionSampler,
-    SoftmaxActionSampler,
-)
-from reagent.gym.policies.scorers.discrete_scorer import (
-    discrete_dqn_scorer,
-    discrete_dqn_serving_scorer,
-)
+from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
 from reagent.models.base import ModelBase
-from reagent.parameters import NormalizationData, NormalizationKey
+from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     DiscreteDqnBatchPreprocessor,
@@ -51,6 +45,7 @@ class DiscreteDQNBase(ModelManager):
     )
     preprocessing_options: Optional[PreprocessingOptions] = None
     reader_options: Optional[ReaderOptions] = None
+    eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
     def __post_init_post_parse__(self):
         super().__init__()

@@ -59,7 +59,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
         self.rl_parameters = self.trainer_param.rl
-        self.eval_parameters = self.trainer_param.evaluation
         self.action_names = self.trainer_param.actions
         assert len(self.action_names) > 1, "DiscreteQRDQNModel needs at least 2 actions"
         assert (

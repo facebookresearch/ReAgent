@@ -25,12 +25,12 @@ model:
         Adam:
           lr: 0.01
           weight_decay: 0.01
-      evaluation:
-        calc_cpe_in_training: false
     net_builder:
       FullyConnected:
         sizes: []
         activations: []
+    eval_parameters:
+      calc_cpe_in_training: false
 replay_memory_size: 2000
 train_every_ts: 3
 train_after_ts: 1
