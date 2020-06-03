@@ -42,10 +42,14 @@ class DiscreteDQN(DiscreteDQNBase):
         self.rl_parameters = self.trainer_param.rl
         self.eval_parameters = self.trainer_param.evaluation
         self.action_names = self.trainer_param.actions
-        assert len(self.action_names) > 1, "DiscreteDQNModel needs at least 2 actions"
         assert (
-            self.trainer_param.minibatch_size % 8 == 0
-        ), "The minibatch size must be divisible by 8 for performance reasons."
+            len(self.action_names) > 1
+        ), f"DiscreteDQNModel needs at least 2 actions. Got {self.action_names}."
+        if self.trainer_param.minibatch_size % 8 != 0:
+            logger.warn(
+                f"minibatch size ({self.trainer_param.minibatch_size}) "
+                "should be divisible by 8 for performance reasons!"
+            )
 
     def build_trainer(self) -> DQNTrainer:
         net_builder = self.net_builder.value

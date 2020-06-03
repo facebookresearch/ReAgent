@@ -33,34 +33,6 @@ class QRDQNTrainerParameters:
         default_factory=rlp.EvaluationParameters
     )
 
-    @classmethod
-    def from_discrete_action_model_parameters(
-        cls, params: rlp.DiscreteActionModelParameters
-    ):
-        return cls(
-            actions=params.actions,
-            rl=params.rl,
-            double_q_learning=params.rainbow.double_q_learning,
-            num_atoms=params.rainbow.num_atoms,
-            minibatch_size=params.training.minibatch_size,
-            minibatches_per_step=params.training.minibatches_per_step,
-            cpe_optimizer=Optimizer__Union.create_from_optimizer_params(
-                rlp.OptimizerParameters(
-                    optimizer=params.training.optimizer,
-                    learning_rate=params.training.learning_rate,
-                    l2_decay=params.training.l2_decay,
-                )
-            ),
-            optimizer=Optimizer__Union.create_from_optimizer_params(
-                rlp.OptimizerParameters(
-                    optimizer=params.training.optimizer,
-                    learning_rate=params.training.learning_rate,
-                    l2_decay=params.rainbow.c51_l2_decay,
-                )
-            ),
-            evaluation=params.evaluation,
-        )
-
 
 @observable(
     td_loss=torch.Tensor,
