@@ -110,11 +110,9 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
             self.add_blank(memory, terminal=1)
         # This test should always pass.
         for _ in range(100):
-            _, _, _, _, _, _, terminals, _, _ = memory.sample_transition_batch(
-                batch_size=2
-            )
+            batch = memory.sample_transition_batch(batch_size=2)
             # Ensure all terminals are set to 1.
-            self.assertTrue((terminals == 1).all())
+            self.assertTrue((batch.terminal == 1).all())
 
     def testSampleIndexBatchTooManyFailedRetries(self):
         memory = self.create_default_memory()
