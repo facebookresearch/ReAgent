@@ -6,7 +6,6 @@ import unittest
 
 from reagent.test.gridworld.gridworld import Gridworld
 from reagent.test.gridworld.gridworld_continuous import GridworldContinuous
-from reagent.test.gym.open_ai_gym_environment import OpenAIGymEnvironment
 
 
 logger = logging.getLogger(__name__)
@@ -35,25 +34,6 @@ class TestEnvironment(unittest.TestCase):
             num_samples,
             epsilon=1.0,
             discount_factor=0.9,
-            multi_steps=num_steps,
-            include_shorter_samples_at_start=True,
-            include_shorter_samples_at_end=True,
-        )
-        self._check_samples(samples, num_samples, num_steps, True)
-
-    def test_open_ai_gym_generate_samples_multi_step(self):
-        env = OpenAIGymEnvironment(
-            "CartPole-v0",
-            epsilon=1.0,  # take random actions to collect training data
-            softmax_policy=False,
-            gamma=0.9,
-        )
-        num_samples = 1000
-        num_steps = 5
-        samples = env.generate_random_samples(
-            num_samples,
-            use_continuous_action=True,
-            epsilon=1.0,
             multi_steps=num_steps,
             include_shorter_samples_at_start=True,
             include_shorter_samples_at_end=True,
