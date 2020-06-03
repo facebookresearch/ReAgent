@@ -13,7 +13,6 @@ TODO: remove this file once we can infer everything.
 from typing import List, Optional, Union
 
 from reagent.core.dataclasses import dataclass
-from reagent.parameters import param_hash
 
 from .scheduler import LearningRateSchedulerConfig
 
@@ -39,8 +38,6 @@ class CyclicLR(LearningRateSchedulerConfig):
 
 @dataclass(frozen=True)
 class OneCycleLR(LearningRateSchedulerConfig):
-    __hash__ = param_hash
-
     max_lr: Union[float, List[float]]
     total_steps: Optional[int] = None
     epochs: Optional[int] = None

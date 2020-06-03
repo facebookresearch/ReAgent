@@ -4,11 +4,9 @@ import logging
 from typing import List
 
 import reagent.optimizer.uninferrable_optimizers as cannot_be_inferred
-import reagent.parameters as rlp
 import torch
-from reagent.core.configuration import make_config_class
+from reagent.core.configuration import make_config_class, param_hash
 from reagent.core.tagged_union import TaggedUnion
-from reagent.parameters import param_hash
 
 from .optimizer import OptimizerConfig
 from .utils import is_torch_optimizer
@@ -52,9 +50,13 @@ for name in get_torch_optimizers():
 @OptimizerConfig.fill_union()
 class Optimizer__Union(TaggedUnion):
     @classmethod
-    def default(cls):
-        # default factory is Adam
-        return cls(Adam=classes["Adam"]())
+    def default(cls, **kwargs):
+        """ Return default factory for Optimizer (defaulting to Adam). """
+        return (
+            cls(Adam=classes["Adam"]())
+            if kwargs == {}
+            else lambda: cls(Adam=classes["Adam"](**kwargs))
+        )
 
     def make_optimizer(self, params):
         return self.value.make_optimizer(params)

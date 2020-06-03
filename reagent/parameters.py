@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass, field
+from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters_seq2slate import LearningMethod, RewardClamp
 from reagent.types import BaseDataClass
 
@@ -134,7 +135,9 @@ class TransformerParameters(BaseDataClass):
     dim_model: int
     dim_feedforward: int
     num_stacked_layers: int
-    learning_rate: float = 1e-4
+    optimizer: Optimizer__Union = field(
+        default_factory=Optimizer__Union.default(lr=1e-4, amsgrad=True)
+    )
 
 
 @dataclass(frozen=True)
@@ -142,7 +145,9 @@ class BaselineParameters(BaseDataClass):
     dim_feedforward: int
     num_stacked_layers: int
     warmup_num_batches: int = 0
-    learning_rate: float = 1e-4
+    optimizer: Optimizer__Union = field(
+        default_factory=Optimizer__Union.default(lr=1e-4, amsgrad=True)
+    )
 
 
 @dataclass(frozen=True)

@@ -5,7 +5,7 @@ from typing import List
 
 import reagent.optimizer.uninferrable_schedulers as cannot_be_inferred
 import torch
-from reagent.core.configuration import make_config_class
+from reagent.core.configuration import make_config_class, param_hash
 from reagent.core.tagged_union import TaggedUnion
 
 from .scheduler import LearningRateSchedulerConfig
@@ -22,20 +22,26 @@ def get_torch_lr_schedulers() -> List[str]:
         name
         for name in dir(torch.optim.lr_scheduler)
         if is_torch_lr_scheduler(getattr(torch.optim.lr_scheduler, name))
-        # TODO: remove this condition
-        and not hasattr(cannot_be_inferred, name)
     ]
 
 
+classes = {}
 for name in get_torch_lr_schedulers():
-    torch_lr_scheduler_class = getattr(torch.optim.lr_scheduler, name)
-    subclass = type(
-        name,
-        # must subclass Optimizer to be added to the Registry
-        (LearningRateSchedulerConfig,),
-        {"__module__": __name__},
-    )
-    make_config_class(torch_lr_scheduler_class, blacklist=["optimizer"])(subclass)
+    if hasattr(cannot_be_inferred, name):
+        # these were manually filled in.
+        subclass = getattr(cannot_be_inferred, name)
+    else:
+        torch_lr_scheduler_class = getattr(torch.optim.lr_scheduler, name)
+        subclass = type(
+            name,
+            # must subclass Optimizer to be added to the Registry
+            (LearningRateSchedulerConfig,),
+            {"__module__": __name__},
+        )
+        make_config_class(torch_lr_scheduler_class, blacklist=["optimizer"])(subclass)
+
+    subclass.__hash__ = param_hash
+    classes[name] = subclass
 
 
 @LearningRateSchedulerConfig.fill_union()

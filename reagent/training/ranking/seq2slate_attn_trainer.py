@@ -36,10 +36,8 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = torch.optim.Adam(
-            self.seq2slate_net.parameters(),
-            lr=self.parameters.learning_rate,
-            amsgrad=True,
+        self.optimizer = parameters.optimizer.make_optimizer(
+            self.seq2slate_net.parameters()
         )
         self.log_softmax = nn.LogSoftmax(dim=1)
         self.kl_loss = nn.KLDivLoss(reduction="batchmean")

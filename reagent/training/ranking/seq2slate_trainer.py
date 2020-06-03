@@ -33,19 +33,14 @@ class Seq2SlateTrainer(Trainer):
         self.baseline_net = baseline_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.rl_opt = torch.optim.Adam(
-            self.seq2slate_net.parameters(),
-            lr=self.parameters.transformer.learning_rate,
-            amsgrad=True,
+        self.rl_opt = self.parameters.transformer.optimizer.make_optimizer(
+            self.seq2slate_net.parameters()
         )
         if self.baseline_net:
             assert self.parameters.baseline
-            self.baseline_opt = torch.optim.Adam(
-                # pyre-fixme[16]: `Optional` has no attribute `parameters`.
-                self.baseline_net.parameters(),
-                # pyre-fixme[16]: `Optional` has no attribute `learning_rate`.
-                lr=self.parameters.baseline.learning_rate,
-                amsgrad=True,
+            # pyre-fixme[16]: `Optional` has no attribute `optimizer`.
+            self.baseline_opt = self.parameters.baseline.optimizer.make_optimizer(
+                self.baseline_net.parameters()
             )
         assert (
             self.parameters.importance_sampling_clamp_max is None

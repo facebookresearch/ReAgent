@@ -40,10 +40,8 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
         self.baseline_net = baseline_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = torch.optim.Adam(
-            self.seq2slate_net.parameters(),
-            lr=self.parameters.transformer.learning_rate,
-            amsgrad=True,
+        self.optimizer = self.parameters.transformer.optimizer.make_optimizer(
+            self.seq2slate_net.parameters()
         )
         # TODO: T62269969 add baseline_net in training
         self.kl_div_loss = nn.KLDivLoss(reduction="none")
