@@ -59,6 +59,17 @@ class MDNRNNTrainerParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
+class Seq2RewardTrainerParameters(BaseDataClass):
+    __hash__ = param_hash
+
+    minibatch_size: int = 16
+    learning_rate: float = 0.001
+    train_data_percentage: float = 60.0
+    validation_data_percentage: float = 20.0
+    test_data_percentage: float = 20.0
+
+
+@dataclass(frozen=True)
 class CEMTrainerParameters(BaseDataClass):
     __hash__ = param_hash
 

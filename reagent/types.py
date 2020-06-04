@@ -549,6 +549,11 @@ class MemoryNetworkOutput(TensorDataClass):
 
 
 @dataclass
+class Seq2RewardOutput(TensorDataClass):
+    acc_reward: torch.Tensor
+
+
+@dataclass
 class DqnPolicyActionSet(TensorDataClass):
     greedy: int
     softmax: Optional[int] = None
