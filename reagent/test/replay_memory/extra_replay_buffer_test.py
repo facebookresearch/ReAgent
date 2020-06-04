@@ -84,7 +84,7 @@ def setup_buffer(buffer_size, trajectory_lengths, stack_size=None, multi_steps=N
     return memory.sample_all_valid_transitions()
 
 
-def test_stack_generic(buffer_size, trajectory_lengths, stack_size):
+def generic_stack_test_helper(buffer_size, trajectory_lengths, stack_size):
     batch = setup_buffer(buffer_size, trajectory_lengths, stack_size=stack_size)
 
     expected = {k: [] for k in ["state", "action", "reward", "extra1"]}
@@ -118,7 +118,7 @@ def test_stack_generic(buffer_size, trajectory_lengths, stack_size):
         )
 
 
-def test_stack_multi_steps_generic(
+def generic_stack_multi_steps_test_helper(
     buffer_size, trajectory_lengths, stack_size, multi_steps
 ):
     batch = setup_buffer(
@@ -239,7 +239,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
                 f"traj_lengths:{traj_lengths}, "
                 f"stack_size:{stack_size}"
             )
-            test_stack_generic(buffer_size, traj_lengths.tolist(), stack_size)
+            generic_stack_test_helper(buffer_size, traj_lengths.tolist(), stack_size)
             logger.info(f"Inserting {i} trajectories passed...")
 
     def test_stack_multistep_flags_slaughter(self):
@@ -258,7 +258,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
                 f"stack_size:{stack_size}, "
                 f"multi_steps:{multi_steps}"
             )
-            test_stack_multi_steps_generic(
+            generic_stack_multi_steps_test_helper(
                 buffer_size, traj_lengths.tolist(), stack_size, multi_steps
             )
             logger.info(f"Inserting {i} trajectories passed...")
