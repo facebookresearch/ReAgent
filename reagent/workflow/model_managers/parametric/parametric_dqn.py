@@ -59,8 +59,12 @@ class ParametricDQN(ParametricDQNBase):
             q_network=self._q_network,
             q_network_target=q_network_target,
             reward_network=reward_network,
-            params=self.trainer_param,
             use_gpu=self.use_gpu,
+            # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
+            #  `asdict`.
+            # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
+            #  `asdict`.
+            **self.trainer_param.asdict(),
         )
 
     def build_serving_module(self) -> torch.nn.Module:
