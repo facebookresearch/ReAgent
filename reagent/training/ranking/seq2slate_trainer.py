@@ -16,7 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 @observable(
-    pg_loss=torch.Tensor, train_baseline_loss=torch.Tensor, train_log_probs=torch.Tensor
+    pg_loss=torch.Tensor,
+    train_baseline_loss=torch.Tensor,
+    train_log_probs=torch.Tensor,
+    train_ips=torch.Tensor,
+    train_clamped_ips=torch.Tensor,
 )
 class Seq2SlateTrainer(Trainer):
     def __init__(
@@ -173,6 +177,8 @@ class Seq2SlateTrainer(Trainer):
             pg_loss=torch.tensor(ips_rl_loss).reshape(1),
             train_baseline_loss=torch.tensor(baseline_loss).reshape(1),
             train_log_probs=torch.FloatTensor(log_probs),
+            train_ips=importance_sampling,
+            train_clamped_ips=clamped_importance_sampling,
         )
 
         return {
