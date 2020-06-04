@@ -8,6 +8,8 @@ default values that cannot be inferred:
 - tuple
 - None
 - required parameters (no default value)
+
+Sometimes there are no defaults to infer from, so we got to include those here.
 TODO: remove this file once we can infer everything.
 """
 from typing import List, Optional, Union
@@ -18,9 +20,50 @@ from .scheduler import LearningRateSchedulerConfig
 
 
 @dataclass(frozen=True)
+class LambdaLR(LearningRateSchedulerConfig):
+    # lr_lambda is Callable, FBL doesn't support
+    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
+    pass
+
+
+@dataclass(frozen=True)
+class MultiplicativeLR(LearningRateSchedulerConfig):
+    # lr_lambda is Callable, FBL doesn't support
+    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
+    pass
+
+
+@dataclass(frozen=True)
+class StepLR(LearningRateSchedulerConfig):
+    step_size: int
+    gamma: float = 0.1
+    last_epoch: int = -1
+
+
+@dataclass(frozen=True)
+class MultiStepLR(LearningRateSchedulerConfig):
+    milestones: List[int]
+    gamma: float = 0.1
+    last_epoch: int = -1
+
+
+@dataclass(frozen=True)
+class ExponentialLR(LearningRateSchedulerConfig):
+    gamma: float
+    last_epoch: int = -1
+
+
+@dataclass(frozen=True)
+class CosineAnnealingLR(LearningRateSchedulerConfig):
+    T_max: int
+    eta_min: float = 0
+    last_epoch: int = -1
+
+
+@dataclass(frozen=True)
 class CyclicLR(LearningRateSchedulerConfig):
     # scale_fn is Callable, which FBL doesn't support.
-    # TODO(T67530507) Add a scale function factory (FBL doesn't allow callables)
+    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
     pass
     # base_lr: Union[float, List[float]]
     # max_lr: Union[float, List[float]]

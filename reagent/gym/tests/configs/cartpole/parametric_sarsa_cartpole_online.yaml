@@ -11,8 +11,6 @@ model:
         # vanilla, on-policy sarsa
         maxq_learning: false
         temperature: 0.35
-        softmax_policy: true
-        q_network_loss: mse
       double_q_learning: true
       minibatch_size: 1024
       minibatches_per_step: 1

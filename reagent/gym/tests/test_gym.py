@@ -146,14 +146,15 @@ def run_test(
             train_rewards.append(ep_reward)
             logger.info(f"Finished training episode {i} with reward {ep_reward}.")
 
-    assert train_rewards[-1] >= passing_score_bar, (
-        f"reward after {len(train_rewards)} episodes is {train_rewards[-1]},"
-        f"less than < {passing_score_bar}...\n"
-        f"Full reward history: {train_rewards}"
-    )
-
     logger.info("============Train rewards=============")
     logger.info(train_rewards)
+
+    # Check whether the max score passed the score bar; we explore during training
+    # the return could be bad (leading to flakiness in C51 and QRDQN).
+    assert np.max(train_rewards) >= passing_score_bar, (
+        f"max reward ({np.max(train_rewards)})after training for "
+        f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
+    )
 
     serving_policy = manager.create_policy(serving=True)
     agent = Agent.create_for_env_with_serving_policy(env, serving_policy)
@@ -161,14 +162,13 @@ def run_test(
     eval_rewards = evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
     ).squeeze(1)
-    assert np.mean(eval_rewards) >= passing_score_bar, (
-        f"Predictor reward is {np.mean(eval_rewards)},"
-        f"less than < {passing_score_bar}...\n"
-        f"Full eval rewards: {eval_rewards}."
-    )
 
     logger.info("============Eval rewards==============")
     logger.info(eval_rewards)
+    assert np.mean(eval_rewards) >= passing_score_bar, (
+        f"Predictor reward is {np.mean(eval_rewards)},"
+        f"less than < {passing_score_bar}.\n"
+    )
 
 
 if __name__ == "__main__":

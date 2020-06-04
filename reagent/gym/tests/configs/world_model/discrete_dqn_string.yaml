@@ -44,8 +44,8 @@ train_model:
         activations:
         - leaky_relu
         - leaky_relu
-      eval_parameters:
-        calc_cpe_in_training: false
+    eval_parameters:
+      calc_cpe_in_training: false
 num_agent_train_epochs: 100
 num_agent_eval_epochs: 10
 use_gpu: false

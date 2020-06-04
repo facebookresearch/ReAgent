@@ -220,6 +220,18 @@ class MemoryNetworkInputMaker:
             assert len(tensor.shape) == 2, f"{name} has shape {tensor.shape}"
             scalar_fields[name] = tensor.transpose(0, 1)
 
+        # stack_size > 1, so let's pad not_terminal with 1's, since
+        # previous states couldn't have been terminal..
+        if scalar_fields["reward"].shape[0] > 1:
+            batch_size = scalar_fields["reward"].shape[1]
+            assert scalar_fields["not_terminal"].shape == (
+                1,
+                batch_size,
+            ), f"{scalar_fields['not_terminal'].shape}"
+            stacked_not_terminal = torch.ones_like(scalar_fields["reward"])
+            stacked_not_terminal[-1] = scalar_fields["not_terminal"]
+            scalar_fields["not_terminal"] = stacked_not_terminal
+
         return rlt.MemoryNetworkInput(
             state=rlt.FeatureData(float_features=vector_fields["state"]),
             next_state=rlt.FeatureData(float_features=vector_fields["next_state"]),
