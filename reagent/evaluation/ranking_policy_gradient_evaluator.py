@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 @observable(
     eval_baseline_loss=torch.Tensor,
     eval_advantages=torch.Tensor,
-    logged_slate_probs=torch.Tensor,
-    ranked_slate_probs=torch.Tensor,
+    logged_slate_rank_probs=torch.Tensor,
+    ranked_slate_rank_probs=torch.Tensor,
     eval_data_pages_g=EvaluationDataPage,
     eval_data_pages_ng=EvaluationDataPage,
 )
@@ -50,17 +50,16 @@ class RankingPolicyGradientEvaluator:
         seq2slate_net_prev_mode = seq2slate_net.training
         seq2slate_net.eval()
 
-        logged_slate_log_prob = (
+        logged_slate_rank_prob = torch.exp(
             seq2slate_net(
                 eval_tdp.training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
             )
             .log_probs.detach()
             .flatten()
             .cpu()
-            .numpy()
         )
 
-        eval_baseline_loss = 0.0
+        eval_baseline_loss = torch.tensor([0.0]).reshape(1)
         if self.trainer.baseline_net:
             baseline_net = self.trainer.baseline_net
             # pyre-fixme[16]: `Optional` has no attribute `training`.
@@ -70,9 +69,9 @@ class RankingPolicyGradientEvaluator:
             # pyre-fixme[29]: `Optional[reagent.models.seq2slate.BaselineNet]` is
             #  not a function.
             b = baseline_net(eval_tdp.training_input).detach()
-            eval_baseline_loss = F.mse_loss(
-                b, eval_tdp.training_input.slate_reward
-            ).item()
+            eval_baseline_loss = (
+                F.mse_loss(b, eval_tdp.training_input.slate_reward).cpu().reshape(1)
+            )
             # pyre-fixme[16]: `Optional` has no attribute `train`.
             baseline_net.train(baseline_net_prev_mode)
         else:
@@ -83,24 +82,19 @@ class RankingPolicyGradientEvaluator:
             (eval_tdp.training_input.slate_reward - b)
             .flatten()
             .cpu()
-            .numpy()
         )
 
         ranked_slate_output = seq2slate_net(
             eval_tdp.training_input, Seq2SlateMode.RANK_MODE, greedy=True
         )
-        ranked_slate_prob = (
-            torch.prod(
-                torch.gather(
-                    ranked_slate_output.ranked_tgt_out_probs,
-                    2,
-                    ranked_slate_output.ranked_tgt_out_idx.unsqueeze(-1),
-                ).squeeze(),
-                -1,
-            )
-            .cpu()
-            .numpy()
-        )
+        ranked_slate_rank_prob = torch.prod(
+            torch.gather(
+                ranked_slate_output.ranked_tgt_out_probs,
+                2,
+                ranked_slate_output.ranked_tgt_out_idx.unsqueeze(-1),
+            ).squeeze(),
+            -1,
+        ).cpu()
 
         seq2slate_net.train(seq2slate_net_prev_mode)
 
@@ -137,10 +131,10 @@ class RankingPolicyGradientEvaluator:
         # pyre-fixme[16]: `RankingPolicyGradientEvaluator` has no attribute
         #  `notify_observers`.
         self.notify_observers(
-            eval_baseline_loss=torch.tensor(eval_baseline_loss).reshape(1),
-            eval_advantages=torch.FloatTensor(eval_advantage),
-            logged_slate_probs=torch.FloatTensor(logged_slate_log_prob),
-            ranked_slate_probs=torch.FloatTensor(ranked_slate_prob),
+            eval_baseline_loss=eval_baseline_loss,
+            eval_advantages=eval_advantage,
+            logged_slate_rank_probs=logged_slate_rank_prob,
+            ranked_slate_rank_probs=ranked_slate_rank_prob,
         )
 
     @torch.no_grad()
