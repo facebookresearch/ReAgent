@@ -1,40 +1,38 @@
-env_name: CartPole-v0
+env_name: CartPole-v1
 model:
   DiscreteQRDQN:
     trainer_param:
       actions:
-      - 4
-      - 5
+      - 0
+      - 1
       rl:
-        gamma: 0.99
-        target_update_rate: 0.1
+        gamma: 0.9
+        target_update_rate: 0.05
         maxq_learning: true
-        softmax_policy: true
-        temperature: 0.1
-        q_network_loss: mse
+        temperature: 1.0
       double_q_learning: true
       minibatch_size: 512
       minibatches_per_step: 1
       num_atoms: 11
       optimizer:
-        Adam:
-          lr: 0.05
-          weight_decay: 0
+        AdamW:
+          lr: 0.001
+          amsgrad: true
     net_builder:
       DuelingQuantile:
         sizes:
-        - 128
+        - 64
         - 64
         activations:
         - leaky_relu
         - leaky_relu
     eval_parameters:
       calc_cpe_in_training: false
-replay_memory_size: 50000
-train_every_ts: 3
-train_after_ts: 50000
-num_train_episodes: 50
+replay_memory_size: 100000
+train_every_ts: 1
+train_after_ts: 20000
+num_train_episodes: 40
 num_eval_episodes: 20
-max_steps: 200
+max_steps: null
 passing_score_bar: 100.0
 use_gpu: false
