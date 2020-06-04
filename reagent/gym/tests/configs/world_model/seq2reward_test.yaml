@@ -1,0 +1,12 @@
+env_name: StringGame-v0
+model:
+  Seq2RewardModel:
+    trainer_param:
+      learning_rate: 0.005
+num_train_transitions: 100000 # approx. 500 episodes
+num_test_transitions: 6000 # approx. 30 episodes
+seq_len: 6
+batch_size: 1024
+num_train_epochs: 20
+use_gpu: false
+saved_seq2reward_path: null
