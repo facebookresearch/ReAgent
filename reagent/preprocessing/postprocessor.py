@@ -41,7 +41,7 @@ class Postprocessor(nn.Module):
             self.min_serving_value = torch.tensor(
                 [normalization_parameters[f].min_value for f in sorted_features],
                 device=self.device,
-            )
+            ).float()
             self.scaling_factor = torch.tensor(
                 [
                     (
@@ -53,14 +53,17 @@ class Postprocessor(nn.Module):
                     for f in sorted_features
                 ],
                 device=self.device,
-            )
+            ).float()
+            self.almost_one = torch.tensor(1.0 - EPS, device=self.device).float()
 
     def input_prototype(self) -> Tuple[torch.Tensor]:
         return (torch.randn(1, self.num_output_features),)
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.feature_type == CONTINUOUS_ACTION:
+            # Please don't re-order; ONNX messed up tensor type when torch.clamp is
+            # the first operand.
             return (
-                torch.clamp(input, -1 + EPS, 1 - EPS) + 1 - EPS
+                self.almost_one + torch.clamp(input, -self.almost_one, self.almost_one)
             ) * self.scaling_factor + self.min_serving_value
         return input
