@@ -137,16 +137,6 @@ IdListFeatures = Dict[str, IdListFeatureValue]
 
 
 @dataclass
-class RawFeatureData(TensorDataClass):
-    float_features: ValuePresence
-    id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
-    # Experimental: sticking this here instead of putting it in float_features
-    # because a lot of places derive the shape of float_features from
-    # normalization parameters.
-    time_since_first: Optional[torch.Tensor] = None
-
-
-@dataclass
 class ActorOutput(TensorDataClass):
     action: torch.Tensor
     log_prob: Optional[torch.Tensor] = None
@@ -210,17 +200,6 @@ class FeatureData(TensorDataClass):
             raise ValueError(
                 f"float_features should be 2D; got {self.float_features.shape}.\n{usage()}"
             )
-
-    @classmethod
-    def from_raw_feature_data(cls, feature_vector: RawFeatureData, preprocessor):
-        return cls(
-            float_features=preprocessor(
-                feature_vector.float_features.value,
-                feature_vector.float_features.presence,
-            ),
-            id_list_features=feature_vector.id_list_features,
-            time_since_first=feature_vector.time_since_first,
-        )
 
     @classmethod
     def from_dict(cls, d, name: str):
@@ -541,12 +520,6 @@ class PolicyNetworkInput(PreprocessedBaseInput):
 @dataclass
 class MemoryNetworkInput(PreprocessedBaseInput):
     action: torch.Tensor
-
-
-@dataclass
-class RawBaseInput(CommonInput):
-    state: RawFeatureData
-    next_state: RawFeatureData
 
 
 @dataclass
