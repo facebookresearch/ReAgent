@@ -12,11 +12,12 @@ from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
 from reagent.gym.policies.scorers.discrete_scorer import parametric_dqn_scorer
 from reagent.models.base import ModelBase
 from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
-from reagent.preprocessing.batch_preprocessor import BatchPreprocessor, InputColumn
+from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.preprocessing.normalization import (
     get_feature_config,
     get_num_output_features,
 )
+from reagent.preprocessing.types import InputColumn
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (

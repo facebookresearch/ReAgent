@@ -15,9 +15,9 @@ from reagent.parameters import EvaluationParameters, NormalizationData, Normaliz
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     DiscreteDqnBatchPreprocessor,
-    InputColumn,
 )
 from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.types import InputColumn
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager

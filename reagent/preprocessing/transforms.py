@@ -6,6 +6,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from reagent.parameters import NormalizationData
 from reagent.preprocessing.preprocessor import Preprocessor
 
@@ -98,6 +99,40 @@ class DenseNormalization:
                 value.to(self.device), presence.to(self.device)
             )
 
+        return data
+
+
+class MapIDListFeatures:
+    def __init__(self, keys: List[str], id_to_name: Dict[int, str]):
+        self.keys = keys
+        self.id_to_name = id_to_name
+
+    def __call__(self, data):
+        for k in self.keys:
+            # if empty, just set value to None
+            # otherwise, turn id -> value map into name -> value map
+            if self.id_to_name == {}:
+                data[k] = None
+            else:
+                data[k] = {self.id_to_name[fid]: fval for fid, fval in data[k].items()}
+        return data
+
+
+class OneHotActions:
+    """ Keys should be in the set {0,1,2,...,num_actions}, where
+    a value equal to num_actions denotes that it's not valid.
+    """
+
+    def __init__(self, keys: List[str], num_actions: int):
+        self.keys = keys
+        self.num_actions = num_actions
+
+    def __call__(self, data):
+        for k in self.keys:
+            # index by zero since only care about value (presence doesnt matter)
+            # we do + 1 and then index up to n because value could be num_actions,
+            # in which case the result is a zero-vector
+            data[k] = F.one_hot(data[k][0], self.num_actions + 1)[:, : self.num_actions]
         return data
 
 

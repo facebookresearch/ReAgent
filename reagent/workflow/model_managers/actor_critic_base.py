@@ -14,11 +14,11 @@ from reagent.models.base import ModelBase
 from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
-    InputColumn,
     PolicyNetworkBatchPreprocessor,
     Preprocessor,
 )
 from reagent.preprocessing.normalization import get_feature_config
+from reagent.preprocessing.types import InputColumn
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
