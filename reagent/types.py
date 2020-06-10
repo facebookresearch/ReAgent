@@ -15,7 +15,7 @@ from reagent.core.dataclasses import dataclass as pydantic_dataclass
 class NoDuplicatedWarningLogger:
     def __init__(self, logger):
         self.logger = logger
-        self.msg = set([])
+        self.msg = set()
 
     def warning(self, msg):
         if msg not in self.msg:

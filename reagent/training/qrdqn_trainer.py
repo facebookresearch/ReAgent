@@ -12,7 +12,6 @@ from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
-from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
@@ -112,9 +111,6 @@ class QRDQNTrainer(DQNTrainerBase):
 
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput):
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_discrete_maxq_training_batch()
-
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
         possible_next_actions_mask = training_batch.possible_next_actions_mask.float()
@@ -128,6 +124,7 @@ class QRDQNTrainer(DQNTrainerBase):
             discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
             assert training_batch.step is not None
+            # pyre-fixme[16]: Optional type has no attribute `float`.
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         next_qf = self.q_network_target(training_batch.next_state)
