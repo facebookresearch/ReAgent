@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-
 from typing import List
 
 import reagent.types as rlt
@@ -12,7 +11,6 @@ from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
-from reagent.training.training_data_page import TrainingDataPage
 
 
 @observable(
@@ -87,9 +85,6 @@ class C51Trainer(RLTrainer):
 
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput) -> None:
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_discrete_maxq_training_batch()
-
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
         possible_next_actions_mask = training_batch.possible_next_actions_mask.float()
@@ -103,6 +98,7 @@ class C51Trainer(RLTrainer):
             discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
             assert training_batch.step is not None
+            # pyre-fixme[16]: Optional type has no attribute `float`.
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         next_dist = self.q_network_target.log_dist(training_batch.next_state).exp()
@@ -193,6 +189,7 @@ class C51Trainer(RLTrainer):
 
         self.loss_reporter.report(
             td_loss=loss,
+            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
             logged_actions=training_batch.action.argmax(dim=1, keepdim=True),
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,

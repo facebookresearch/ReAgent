@@ -15,7 +15,6 @@ from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import RLParameters
 from reagent.tensorboardX import SummaryWriterContext
 from reagent.training.rl_trainer_pytorch import RLTrainer
-from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
@@ -161,8 +160,6 @@ class SACTrainer(RLTrainer):
         IMPORTANT: the input action here is assumed to match the
         range of the output of the actor.
         """
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_policy_network_training_batch()
 
         assert isinstance(training_batch, rlt.PolicyNetworkInput)
 

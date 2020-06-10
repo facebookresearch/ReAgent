@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-
 from typing import List, Optional, Tuple
 
 import reagent.types as rlt
@@ -13,7 +12,6 @@ from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.imitator_training import get_valid_actions_from_imitator
-from reagent.training.training_data_page import TrainingDataPage
 
 
 @dataclass(frozen=True)
@@ -120,8 +118,6 @@ class DQNTrainer(DQNTrainerBase):
 
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput):
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_discrete_maxq_training_batch()
         assert isinstance(training_batch, rlt.DiscreteDqnInput)
         boosted_rewards = self.boost_rewards(
             training_batch.reward, training_batch.action
