@@ -129,10 +129,11 @@ class OneHotActions:
 
     def __call__(self, data):
         for k in self.keys:
-            # index by zero since only care about value (presence doesnt matter)
             # we do + 1 and then index up to n because value could be num_actions,
             # in which case the result is a zero-vector
-            data[k] = F.one_hot(data[k][0], self.num_actions + 1)[:, : self.num_actions]
+            data[k] = F.one_hot(data[k], self.num_actions + 1).index_select(
+                -1, torch.arange(self.num_actions)
+            )
         return data
 
 
@@ -149,11 +150,12 @@ class ColumnVector:
             raw_value = data[k]
             if isinstance(raw_value, tuple):
                 value, _presence = raw_value
-
-            if isinstance(raw_value, list):
+            elif isinstance(raw_value, list):
                 # TODO(T67265031): make mdp_id a tensor, which we will be able to
                 # when column type changes to int
                 value = np.array(raw_value)
+            else:
+                raise NotImplementedError(f"value of type {type(raw_value)}.")
 
             assert value.ndim == 1 or (
                 value.ndim == 2 and value.shape[1] == 1
