@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple, Union, cast
 
 import torch
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
+from reagent.preprocessing.types import InputColumn
 
 
 class NoDuplicatedWarningLogger:
@@ -410,6 +411,28 @@ class DiscreteDqnInput(PreprocessedBaseInput):
     possible_actions_mask: torch.Tensor
     possible_next_actions_mask: torch.Tensor
     extras: ExtraData
+
+    @classmethod
+    def from_dict(cls, batch):
+        return cls(
+            state=FeatureData(
+                float_features=batch[InputColumn.STATE_FEATURES],
+                id_list_features=batch[InputColumn.STATE_ID_LIST_FEATURES],
+            ),
+            action=batch[InputColumn.ACTION],
+            next_state=FeatureData(
+                float_features=batch[InputColumn.NEXT_STATE_FEATURES],
+                id_list_features=batch[InputColumn.NEXT_STATE_ID_LIST_FEATURES],
+            ),
+            next_action=batch[InputColumn.NEXT_ACTION],
+            possible_actions_mask=batch[InputColumn.POSSIBLE_ACTIONS_MASK],
+            possible_next_actions_mask=batch[InputColumn.POSSIBLE_NEXT_ACTIONS_MASK],
+            reward=batch[InputColumn.REWARD],
+            not_terminal=batch[InputColumn.NOT_TERMINAL],
+            time_diff=batch[InputColumn.TIME_DIFF],
+            step=batch[InputColumn.STEP],
+            extras=batch[InputColumn.EXTRAS],
+        )
 
 
 @dataclass
