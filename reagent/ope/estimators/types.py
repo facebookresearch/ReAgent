@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
 
-import random
+import logging
+import pickle
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from dataclasses import dataclass
-from functools import reduce
-from typing import (
-    Generic,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Generic, Mapping, Optional, Sequence, Tuple, TypeVar, Union
 
 import numpy as np
 import torch
@@ -25,11 +17,13 @@ def is_array(obj):
 
 
 Type = TypeVar("Type")
+KeyType = TypeVar("KeyType")
+ValueType = TypeVar("ValueType")
 
 
 @dataclass(frozen=True)
-class TypeWrapper(Generic[Type]):
-    value: Type
+class TypeWrapper(Generic[ValueType]):
+    value: ValueType
 
     def __index__(self):
         try:
@@ -89,7 +83,116 @@ class TypeWrapper(Generic[Type]):
         return f"{self.__class__.__name__}{{value[{self.value}]}}"
 
 
-class Values(Generic[Type], ABC):
+class Objects(Generic[KeyType, ValueType], ABC):
+    """
+    Generic class for a map from item to its value.
+    It supports [] indexing, and iterator protocol
+
+    Attributes:
+        items: list of items
+        values: list of their values
+    """
+
+    def __init__(self, values: Union[Mapping[KeyType, ValueType], Sequence[ValueType]]):
+        self._key_to_index = None
+        self._index_to_key = None
+        self._init_values(values)
+        self._reset()
+
+    def _init_values(
+        self, values: Union[Mapping[KeyType, ValueType], Sequence[ValueType]]
+    ):
+        if isinstance(values, Sequence):
+            self._values = list(values)
+        elif isinstance(values, Mapping):
+            self._key_to_index = dict(zip(values.keys(), range(len(values))))
+            self._index_to_key = list(values.keys())
+            self._values = list(values.values())
+        else:
+            raise TypeError(f"Unsupported values type {type(values)}")
+
+    def _reset(self):
+        self._unzipped = None
+        self._keys = None
+
+    def __getitem__(self, key: KeyType) -> ValueType:
+        if self._key_to_index is not None:
+            return self._values[self._key_to_index[key]]
+        else:
+            return self._values[key]
+
+    def __setitem__(self, key: KeyType, value: ValueType):
+        if self._key_to_index is not None:
+            self._values[self._key_to_index[key]] = value
+        else:
+            self._values[key] = value
+        self._reset()
+
+    @abstractmethod
+    def _to_key(self, k: int) -> KeyType:
+        pass
+
+    def _to_value(self, v) -> ValueType:
+        return v
+
+    def __iter__(self):
+        if self._key_to_index is not None:
+            return (
+                (k, self._to_value(self._values[i]))
+                for k, i in self._key_to_index.items()
+            )
+        else:
+            return (
+                (self._to_key(i), self._to_value(v)) for i, v in enumerate(self._values)
+            )
+
+    def __len__(self) -> int:
+        return len(self._values)
+
+    @property
+    def is_sequence(self):
+        return self._key_to_index is None
+
+    @property
+    def _values_copy(self) -> Sequence[ValueType]:
+        return list(self._values)
+
+    def index_of(self, key: KeyType) -> int:
+        if self._key_to_index is None:
+            try:
+                index = int(key)
+                if 0 <= index < len(self):
+                    return index
+                else:
+                    raise ValueError(f"{key} is not valid")
+            except Exception:
+                raise ValueError(f"{key} is not valid")
+        elif self._key_to_index is not None:
+            try:
+                return self._key_to_index[key]
+            except Exception:
+                raise ValueError(f"{key} is not valid")
+        else:
+            raise ValueError(f"{key} is not valid")
+
+    @property
+    def keys(self) -> Sequence[KeyType]:
+        if self._keys is None:
+            if self._key_to_index is not None:
+                self._keys = list(self._key_to_index.keys())
+            else:
+                self._keys = [self._to_key(i) for i in range(len(self))]
+        return self._keys
+
+    @property
+    def values(self):
+        return self._values_copy
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}{{values[{self._values}]}}"
+
+
+class Values(Objects[KeyType, float]):
     """
     Generic class for a map from item to its value.
     It supports [] indexing, and iterator protocol
@@ -100,10 +203,15 @@ class Values(Generic[Type], ABC):
     """
 
     def __init__(
-        self, values: Union[Mapping[Type, float], Sequence[float], np.ndarray, Tensor]
+        self,
+        values: Union[Mapping[KeyType, float], Sequence[float], np.ndarray, Tensor],
     ):
-        self._key_to_index = None
-        self._index_to_key = None
+        super().__init__(values)
+
+    def _init_values(
+        self,
+        values: Union[Mapping[KeyType, float], Sequence[float], np.ndarray, Tensor],
+    ):
         if isinstance(values, Tensor):
             self._values = values.to(dtype=torch.double)
         elif isinstance(values, np.ndarray):
@@ -116,45 +224,23 @@ class Values(Generic[Type], ABC):
             self._values = torch.tensor(list(values.values()), dtype=torch.double)
         else:
             raise TypeError(f"Unsupported values type {type(values)}")
-        self._reset()
 
     def _reset(self):
+        super()._reset()
         self._probabilities = None
         self._is_normalized = False
-        self._unzipped = None
         self._sorted = None
 
-    def __getitem__(self, key: Type) -> float:
-        if self._key_to_index is not None:
-            return self._values[self._key_to_index[key]].item()
-        else:
-            return self._values[key].item()
+    def __getitem__(self, key: KeyType) -> float:
+        return super().__getitem__(key).item()
 
-    def __setitem__(self, key: Type, value: float):
-        if self._key_to_index is not None:
-            self._values[self._key_to_index[key]] = value
-        else:
-            self._values[key] = value
-        self._reset()
-
-    @abstractmethod
-    def _new_key(self, k: int) -> Type:
-        pass
-
-    def __iter__(self):
-        if self._key_to_index is not None:
-            return ((k, self._values[i]) for k, i in self._key_to_index.items())
-        else:
-            return ((self._new_key(a), p.item()) for a, p in enumerate(self._values))
+    def _to_value(self, v: Tensor) -> float:
+        return v.item()
 
     def __len__(self) -> int:
         return self._values.shape[0]
 
-    @property
-    def is_sequence(self):
-        return self._key_to_index is None
-
-    def sort(self, descending: bool = True) -> Tuple[Sequence[Type], Tensor]:
+    def sort(self, descending: bool = True) -> Tuple[Sequence[KeyType], Tensor]:
         """
         Sort based on values
 
@@ -172,59 +258,16 @@ class Values(Generic[Type], ABC):
                     rs.detach(),
                 )
             else:
-                self._sorted = ([self._new_key(i.item()) for i in ids], rs.detach())
+                self._sorted = ([self._to_key(i.item()) for i in ids], rs.detach())
         return self._sorted
 
-    def _unzip(self):
-        if self._unzipped is None:
-            if self._key_to_index is not None:
-                self._unzipped = (
-                    list(self._key_to_index.keys()),
-                    self._values.clone().detach(),
-                )
-            else:
-                self._unzipped = (
-                    [self._new_key(i) for i in range(self._values.shape[0])],
-                    self._values.clone().detach(),
-                )
-
-    def index_of(self, item: Type) -> int:
-        if self._key_to_index is None and isinstance(item.value, int):
-            if 0 <= item.value < self._values.shape[0]:
-                return item.value
-            else:
-                raise ValueError(f"{item} is not valid")
-        elif self._key_to_index is not None:
-            try:
-                return self._key_to_index[item]
-            except Exception:
-                raise ValueError(f"{item} is not valid")
-        else:
-            raise ValueError(f"{item} is not valid")
-
     @property
-    def items(self) -> Sequence[Type]:
-        self._unzip()
-        return self._unzipped[0]
-
-    @property
-    def values(self) -> Tensor:
-        self._unzip()
-        return self._unzipped[1]
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}{{values[{self._values}]}}"
-
-    def copy(self) -> "Values":
-        cp = self.__class__(self._values.clone().detach())
-        if self._key_to_index is not None:
-            cp._key_to_index = dict(self._key_to_index)
-        if self._index_to_key is not None:
-            cp._index_to_key = list(self._index_to_key)
-        return cp
+    def _values_copy(self) -> Tensor:
+        return self._values.clone().detach()
 
     def replace(
-        self, values: Union[Mapping[Type, float], Sequence[float], Tensor, np.ndarray]
+        self,
+        values: Union[Mapping[ValueType, float], Sequence[float], Tensor, np.ndarray],
     ) -> "Values":
         """
         Replace current values with new values, and returns the new copy.
@@ -236,7 +279,7 @@ class Values(Generic[Type], ABC):
         Returns:
             Values object with new values
         """
-        copy = self.copy()
+        copy = deepcopy(self)
         if isinstance(values, Tensor):
             assert values.shape[0] == copy._values.shape[0]
             copy._values = values.to(dtype=torch.double)
@@ -271,7 +314,7 @@ class Values(Generic[Type], ABC):
         except ZeroDivisionError:
             pass
 
-    def probability(self, key: Type) -> float:
+    def probability(self, key: ValueType) -> float:
         self._normalize()
         if self._probabilities is not None:
             if self._key_to_index is not None:
@@ -281,7 +324,7 @@ class Values(Generic[Type], ABC):
         else:
             return 0.0
 
-    def sample(self, size=1) -> Union[Sequence[Type], Type]:
+    def sample(self, size=1) -> Union[Sequence[KeyType], KeyType]:
         self._normalize()
         if self._index_to_key is not None:
             l = [
@@ -290,7 +333,7 @@ class Values(Generic[Type], ABC):
             ]
         else:
             l = [
-                self._new_key(k.item())
+                self._to_key(k.item())
                 for k in torch.multinomial(self._probabilities, size)
             ]
         if size == 1:
@@ -298,7 +341,7 @@ class Values(Generic[Type], ABC):
         else:
             return l
 
-    def greedy(self, size=1) -> Union[Sequence[Type], Type]:
+    def greedy(self, size=1) -> Union[Sequence[KeyType], KeyType]:
         sorted_keys, _ = self.sort()
         if size == 1:
             return sorted_keys[0]
@@ -306,12 +349,12 @@ class Values(Generic[Type], ABC):
             return sorted_keys[:size]
 
 
-class Items(Generic[Type], ABC):
+class Items(Generic[ValueType], ABC):
     """
     List of items
     """
 
-    def __init__(self, items: Union[Sequence[Type], int]):
+    def __init__(self, items: Union[Sequence[ValueType], int]):
         if isinstance(items, int):
             assert items > 0
             self._items = [self._new_item(i) for i in range(items)]
@@ -320,7 +363,7 @@ class Items(Generic[Type], ABC):
             self._items = items
             self._reverse_lookup = {v: i for i, v in enumerate(items)}
 
-    def __getitem__(self, i) -> Type:
+    def __getitem__(self, i) -> ValueType:
         return self._items[i]
 
     def __len__(self):
@@ -336,17 +379,18 @@ class Items(Generic[Type], ABC):
             return 0
 
     @abstractmethod
-    def _new_item(self, i: int) -> Type:
+    def _new_item(self, i: int) -> ValueType:
         pass
 
     @property
     def is_sequence(self):
         return self._reverse_lookup is None
 
-    def index_of(self, item: Type) -> int:
-        if self._reverse_lookup is None and isinstance(item.value, int):
-            if 0 <= item.value < len(self._items):
-                return item.value
+    def index_of(self, item: ValueType) -> int:
+        if self._reverse_lookup is None:
+            int_val = int(item.value)
+            if 0 <= int_val < len(self._items):
+                return int_val
             else:
                 raise ValueError(f"{item} is not valid")
         elif self._reverse_lookup is not None:
@@ -357,9 +401,10 @@ class Items(Generic[Type], ABC):
         else:
             raise ValueError(f"{item} is not valid")
 
-    def _fill(
-        self, values: Union[Mapping[Type, float], Sequence[float], np.ndarray, Tensor]
-    ) -> Union[Sequence[float], Mapping[Type, float]]:
+    def fill(
+        self,
+        values: Union[Mapping[ValueType, float], Sequence[float], np.ndarray, Tensor],
+    ) -> Union[Sequence[float], Mapping[ValueType, float]]:
         if self._reverse_lookup is None:
             if isinstance(values, Mapping):
                 ds = []
@@ -383,7 +428,13 @@ class Items(Generic[Type], ABC):
                     ds[a] = 0.0
             return ds
         else:
-            raise Type(f"{values} not valid type")
+            ds = {}
+            for a in self._items:
+                try:
+                    ds[a] = values[self._reverse_lookup[a]]
+                except Exception:
+                    ds[a] = 0.0
+            return ds
 
 
 # action type
@@ -398,7 +449,7 @@ Probability = float
 #  if action can be indexed, the type is either sequence of float or 1-D tensor,
 #  with the indices being the action
 class ActionDistribution(Values[Action]):
-    def _new_key(self, k: int) -> Action:
+    def _to_key(self, k: int) -> Action:
         return Action(k)
 
 
@@ -413,7 +464,7 @@ class ActionSpace(Items[Action]):
     def distribution(
         self, dist: Union[Mapping[Action, float], Sequence[float], np.ndarray, Tensor]
     ) -> ActionDistribution:
-        return ActionDistribution(super()._fill(dist))
+        return ActionDistribution(super().fill(dist))
 
 
 class Policy(ABC):
@@ -435,3 +486,88 @@ class Policy(ABC):
     @property
     def action_space(self):
         return self._action_space
+
+
+@dataclass(frozen=True)
+class TrainingData:
+    train_x: Tensor
+    train_y: Tensor
+    train_weight: Optional[Tensor]
+    validation_x: Tensor
+    validation_y: Tensor
+    validation_weight: Optional[Tensor]
+
+
+@dataclass(frozen=True)
+class PredictResults:
+    predictions: Optional[Tensor]  # shape = [num_samples]
+    scores: Tensor  # shape = [num_samples]
+    probabilities: Optional[Tensor] = None
+
+
+class Trainer(ABC):
+    def __init__(self):
+        self._model = None
+
+    @staticmethod
+    def _sample(
+        x: Tensor,
+        y: Tensor,
+        weight: Optional[Tensor] = None,
+        num_samples: int = 0,
+        fortran_order: bool = False,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        assert x.shape[0] == y.shape[0]
+        x_na = x.numpy()
+        if fortran_order:
+            x_na = x_na.reshape(x.shape, order="F")
+        y_na = y.numpy()
+        w_na = weight.numpy() if weight is not None else None
+        if num_samples > 0 and num_samples < x.shape[0]:
+            cs = np.random.choice(x.shape[0], num_samples, replace=False)
+            x_na = x_na[cs, :]
+            y_na = y_na[cs]
+            w_na = w_na[cs] if w_na is not None else None
+        return x_na, y_na, w_na
+
+    def reset(self):
+        self._model = None
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @property
+    def is_trained(self) -> bool:
+        return self._model is not None
+
+    @abstractmethod
+    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
+        pass
+
+    @abstractmethod
+    def predict(self, x: Tensor, device=None) -> PredictResults:
+        pass
+
+    @abstractmethod
+    def score(self, x: Tensor, y: Tensor, weight: Optional[Tensor] = None) -> float:
+        pass
+
+    def save_model(self, file: str):
+        if self._model is None:
+            logging.error(f"{self.__class__.__name__}.save_model: _model is None ")
+            return
+        try:
+            with open(file, "wb") as f:
+                pickle.dump(self._model, f, protocol=pickle.HIGHEST_PROTOCOL)
+        except Exception:
+            logging.error(f"{file} cannot be accessed.")
+
+    def load_model(self, file: str):
+        try:
+            logging.info(f"{self.__class__.__name__}.load_model: {file}")
+            with open(file, "rb") as f:
+                self._model = pickle.load(f)
+        except Exception:
+            logging.error(f"{file} cannot be read.")

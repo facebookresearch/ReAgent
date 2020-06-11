@@ -14,6 +14,21 @@
     "source_file": "test.txt",
     "cache_file": "test.pickle"
   },
+  "all_set": {
+    "folder": "data/MSLR-WEB30K",
+    "source_file": "",
+    "cache_file": "all.pickle"
+  },
+  "first_set": {
+    "folder": "data/MSLR-WEB30K",
+    "source_file": "",
+    "cache_file": "first_half.pickle"
+  },
+  "second_set": {
+    "folder": "data/MSLR-WEB30K",
+    "source_file": "",
+    "cache_file": "second_half.pickle"
+  },
   "num_columns": 138,
   "anchor_url_features": [
     2,

@@ -5,15 +5,13 @@ from functools import reduce
 from typing import Mapping, Sequence
 
 import torch
-from reagent.ope.estimators.estimator import (
-    Action,
-    ActionDistribution,
-    ActionSpace,
+from reagent.ope.estimators.sequential_estimators import (
     Model,
     RLPolicy,
     State,
     ValueFunction,
 )
+from reagent.ope.estimators.types import Action, ActionDistribution, ActionSpace
 from reagent.ope.test.envs import Environment, PolicyLogGenerator
 
 
