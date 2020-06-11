@@ -9,36 +9,38 @@ import random
 import sys
 import time
 from collections import OrderedDict
-from typing import List, Optional, Tuple
+from functools import reduce
+from typing import Iterable, List, Optional, Tuple
 
 import numpy as np
 import torch
-from reagent.ope.estimators.estimator import Estimator, EstimatorResults
+import torch.multiprocessing as mp
+from reagent.ope.estimators.estimator import Evaluator
 from reagent.ope.estimators.slate_estimators import (
+    DCGSlateMetric,
     DMEstimator,
-    LogEpisode,
+    DoublyRobustEstimator,
+    ERRSlateMetric,
+    IPSEstimator,
     LogSample,
     NDCGSlateMetric,
+    PassThruDistribution,
+    PBMEstimator,
+    PseudoInverseEstimator,
+    RankingDistribution,
+    RewardDistribution,
     SlateContext,
+    SlateEstimator,
     SlateEstimatorInput,
-    SlateItem,
-    SlateItemProbabilities,
-    SlateItems,
+    SlateItemFeatures,
     SlateItemValues,
     SlateModel,
-    SlatePolicy,
     SlateQuery,
     SlateSlots,
 )
-from reagent.ope.trainers.linear_trainers import (
-    DecisionTreeClassifierTrainer,
-    DecisionTreeTrainer,
-    LassoTrainer,
-    LogisticRegressionTrainer,
-    SGDClassifierTrainer,
-    Trainer,
-    TrainingData,
-)
+from reagent.ope.estimators.types import Trainer, TrainingData
+from reagent.ope.trainers.linear_trainers import DecisionTreeTrainer, LassoTrainer
+from reagent.ope.utils import Clamper
 from torch import Tensor
 
 
@@ -53,6 +55,7 @@ class MSLRDatasets:
         num_columns: int,
         anchor_url_features: List[int],
         body_features: List[int],
+        dataset_name: str = "",
         device=None,
     ):
         if "folder" not in params:
@@ -78,6 +81,12 @@ class MSLRDatasets:
         self._validation_data = None
         self._test_data = None
 
+        self._name = dataset_name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
     def _add(self, qid: Optional[int], feature_list: List[Tuple[float, Tensor]]):
         if qid is None or len(feature_list) == 0:
             return
@@ -93,6 +102,7 @@ class MSLRDatasets:
             with open(pickle_file, "rb") as f:
                 self._queries, self._features, self._relevances = pickle.load(f)
                 self._cache_file = ""
+            del f
         else:
             self._dict = OrderedDict()
             text_file = os.path.join(self._folder, self._source_file)
@@ -169,6 +179,10 @@ class MSLRDatasets:
         return self._features[:, 1:]
 
     @property
+    def all_features(self) -> Tensor:
+        return self.features
+
+    @property
     def anchor_url_features(self) -> Tensor:
         self._load_features()
         return (
@@ -216,28 +230,35 @@ class MSLRDatasets:
         return self._cache_file
 
 
-def train(trainer: Trainer, train_dataset: MSLRDatasets, vali_dataset: MSLRDatasets):
+def train(
+    trainer: Trainer,
+    train_dataset: MSLRDatasets,
+    vali_dataset: MSLRDatasets,
+    prefix: str = "",
+):
     logging.info("training all features...")
     st = time.process_time()
     training_data = TrainingData(
-        train_dataset.features,
+        train_dataset.all_features,
         train_dataset.relevances,
         train_dataset.sample_weights,
-        vali_dataset.features,
+        vali_dataset.all_features,
         vali_dataset.relevances,
         vali_dataset.sample_weights,
     )
     trainer.train(training_data)
     logging.info(f"  training time: {time.process_time() - st}")
     trainer.save_model(
-        os.path.join(train_dataset.folder, trainer.name + "_all_features.pickle")
+        os.path.join(
+            train_dataset.folder, trainer.name + "_" + prefix + "_all_features.pickle"
+        )
     )
 
-    # logging.info("scoring...")
-    # score = trainer.score(
-    #     vali_dataset.features, vali_dataset.relevances, vali_dataset.sample_weights
-    # )
-    # logging.info(f"  score: {score}")
+    logging.info("scoring...")
+    score = trainer.score(
+        vali_dataset.all_features, vali_dataset.relevances, vali_dataset.sample_weights
+    )
+    logging.info(f"  score: {score}")
 
     logging.info("training anchor_url features...")
     st = time.process_time()
@@ -253,16 +274,19 @@ def train(trainer: Trainer, train_dataset: MSLRDatasets, vali_dataset: MSLRDatas
     )
     logging.info(f"  training time: {time.process_time() - st}")
     trainer.save_model(
-        os.path.join(train_dataset.folder, trainer.name + "_anchor_url_features.pickle")
+        os.path.join(
+            train_dataset.folder,
+            trainer.name + "_" + prefix + "_anchor_url_features.pickle",
+        )
     )
 
-    # logging.info("scoring...")
-    # score = trainer.score(
-    #     vali_dataset.anchor_url_features,
-    #     vali_dataset.relevances,
-    #     vali_dataset.sample_weights,
-    # )
-    # logging.info(f"  score: {score}")
+    logging.info("scoring...")
+    score = trainer.score(
+        vali_dataset.anchor_url_features,
+        vali_dataset.relevances,
+        vali_dataset.sample_weights,
+    )
+    logging.info(f"  score: {score}")
 
     logging.info("training body features...")
     st = time.process_time()
@@ -278,21 +302,25 @@ def train(trainer: Trainer, train_dataset: MSLRDatasets, vali_dataset: MSLRDatas
     )
     logging.info(f"  training time: {time.process_time() - st}")
     trainer.save_model(
-        os.path.join(train_dataset.folder, trainer.name + "_body_features.pickle")
+        os.path.join(
+            train_dataset.folder, trainer.name + "_" + prefix + "_body_features.pickle"
+        )
     )
 
-    # logging.info("scoring...")
-    # score = trainer.score(
-    #     vali_dataset.body_features, vali_dataset.relevances, vali_dataset.sample_weights
-    # )
-    # logging.info(f"  score: {score}")
+    logging.info("scoring...")
+    score = trainer.score(
+        vali_dataset.body_features, vali_dataset.relevances, vali_dataset.sample_weights
+    )
+    logging.info(f"  score: {score}")
 
 
 def load_dataset(
-    params, num_columns, anchor_url_features, body_features
+    params, num_columns, anchor_url_features, body_features, dataset_name=""
 ) -> MSLRDatasets:
     logging.info(f"loading {params['source_file']}")
-    dataset = MSLRDatasets(params, num_columns, anchor_url_features, body_features)
+    dataset = MSLRDatasets(
+        params, num_columns, anchor_url_features, body_features, dataset_name
+    )
     st = time.process_time()
     dataset.load()
     logging.info(f"  load time: {time.process_time() - st}")
@@ -311,155 +339,190 @@ def load_dataset(
     return dataset
 
 
-def train_all(train_dataset, vali_dataset):
-    train(DecisionTreeClassifierTrainer(), train_dataset, vali_dataset)
-    train(DecisionTreeTrainer(), train_dataset, vali_dataset)
-    train(LassoTrainer(), train_dataset, vali_dataset)
-    train(LogisticRegressionTrainer(), train_dataset, vali_dataset)
-    train(SGDClassifierTrainer(), train_dataset, vali_dataset)
+def train_all(train_dataset, vali_dataset, prefix: str = ""):
+    # train(DecisionTreeClassifierTrainer(), train_dataset, vali_dataset)
+    train(DecisionTreeTrainer(), train_dataset, vali_dataset, prefix)
+    train(LassoTrainer(), train_dataset, vali_dataset, prefix)
+    # train(LogisticRegressionTrainer(), train_dataset, vali_dataset)
+    # train(SGDClassifierTrainer(), train_dataset, vali_dataset)
 
 
-class TrainedModel(SlateModel):
+def train_models(params):
+    all_dataset = load_dataset(
+        params["all_set"], num_columns, anchor_url_features, body_features
+    )
+    half_dataset = load_dataset(
+        params["first_set"], num_columns, anchor_url_features, body_features
+    )
+    vali_dataset = load_dataset(
+        params["vali_set"], num_columns, anchor_url_features, body_features
+    )
+    train_all(all_dataset, vali_dataset, "all")
+    train_all(half_dataset, vali_dataset, "half")
+
+
+class MSLRModel(SlateModel):
     def __init__(self, relevances: Tensor, device=None):
         self._relevances = relevances
         self._device = device
 
-    def item_rewards(self, context: SlateContext) -> SlateItemValues:
+    def item_relevances(self, context: SlateContext) -> Tensor:
         qv = context.query.value
-        item_rewards = self._relevances[qv[1] : (qv[1] + qv[2])].detach().clone()
-        return SlateItemValues(item_rewards)
-
-    # def item_rewards(self, context: SlateContext) -> SlateItemValues:
-    #     qv = context.query.value
-    #     item_rewards = self._relevances[qv[1] : (qv[1] + qv[2])]
-    #     return SlateItemValues(item_rewards)
-
-
-class GroundTruthModel(SlateModel):
-    def __init__(self, relevances: Tensor, device=None):
-        self._relevances = relevances
-        self._device = device
+        if context.params is None:
+            relevances = self._relevances[qv[1] : (qv[1] + qv[2])].detach().clone()
+        else:
+            relevances = (
+                self._relevances[qv[1] : (qv[1] + qv[2])][context.params]
+                .detach()
+                .clone()
+            )
+        return relevances
 
     def item_rewards(self, context: SlateContext) -> SlateItemValues:
-        qv = context.query.value
-        doc_rewards = self._relevances[qv[1] : (qv[1] + qv[2])]
-        return SlateItemValues(doc_rewards)
-
-
-class MSLRPolicy(SlatePolicy):
-    def __init__(
-        self, relevances: Tensor, deterministic: bool, alpha: float = -1.0, device=None
-    ):
-        super().__init__(device)
-        self._relevances = relevances
-        self._deterministic = deterministic
-        self._alpha = alpha
-
-    def _item_rewards(self, context: SlateContext) -> Tensor:
-        qv = context.query.value
-        item_rewards = self._relevances[qv[1] : (qv[1] + qv[2])].detach().clone()
-        if self._alpha >= 0:
-            _, ids = torch.sort(item_rewards, descending=True)
-            rank = torch.arange(1, ids.shape[0] + 1, dtype=torch.double)
-            item_rewards[ids] = torch.pow(2, -1.0 * self._alpha * torch.log2(rank))
-        return item_rewards
-
-    def _query(self, context: SlateContext) -> SlateItemProbabilities:
-        return SlateItemProbabilities(self._item_rewards(context), self._deterministic)
+        return SlateItemValues(self.item_relevances(context))
 
 
 def evaluate(
-    estimator: Estimator, input: SlateEstimatorInput, folder: str = "."
-) -> EstimatorResults:
-    logging.info(f"Evaluating {estimator}...")
-    st = time.process_time()
-    rs = estimator.evaluate(input)
-    dt = time.process_time() - st
-    print(f"Evaluating {estimator} done: {rs} in {dt}s", flush=True)
-    file = os.path.join(folder, estimator.__class__.__name__ + "_results.pickle")
-    try:
-        with open(file, "wb") as f:
-            pickle.dump(rs, f, protocol=pickle.HIGHEST_PROTOCOL)
-    except Exception:
-        logging.error(f"{file} cannot be accessed.")
-    return rs
-
-
-def evalute_all(
+    experiments: Iterable[Tuple[Iterable[SlateEstimator], int]],
     dataset: MSLRDatasets,
     slate_size: int,
+    item_size: int,
+    metric_func: str,
     log_trainer: Trainer,
+    log_distribution: RewardDistribution,
+    log_features: str,
     tgt_trainer: Trainer,
-    tgt_deterministic: bool,
-    num_episodes: int,
-    num_samples: int,
+    tgt_distribution: RewardDistribution,
+    tgt_features: str,
+    dm_features: str,
+    max_num_workers: int,
+    device=None,
 ):
+    assert slate_size < item_size
     print(
-        f"Run: {log_trainer.name}, {tgt_trainer.name}"
-        f"[{'deterministic' if tgt_deterministic else 'stochastic'}]",
+        f"Evaluate All:"
+        f" slate_size={slate_size}, item_size={item_size}, metric={metric_func}"
+        f", Log=[{log_trainer.name}, {log_distribution}, {log_features}]"
+        f", Target=[{tgt_trainer.name}, {tgt_distribution}, {tgt_features}]"
+        f", DM=[{dm_features}]"
+        f", Workers={max_num_workers}, device={device}",
         flush=True,
     )
     logging.info("Preparing models and policies...")
-    st = time.process_time()
+    st = time.perf_counter()
     log_trainer.load_model(
-        os.path.join(dataset.folder, log_trainer.name + "_anchor_url_features.pickle")
+        os.path.join(
+            dataset.folder, log_trainer.name + "_all_" + log_features + ".pickle"
+        )
     )
-    log_pred = log_trainer.predict(dataset.anchor_url_features)
-    log_model = TrainedModel(log_pred.scores)
-    log_policy = MSLRPolicy(log_pred.scores, False, 1.0)
+    # calculate behavior model scores
+    log_pred = log_trainer.predict(getattr(dataset, log_features))
 
     tgt_trainer.load_model(
-        os.path.join(dataset.folder, tgt_trainer.name + "_body_features.pickle")
+        os.path.join(
+            dataset.folder, tgt_trainer.name + "_all_" + tgt_features + ".pickle"
+        )
     )
-    tgt_pred = tgt_trainer.predict(dataset.body_features)
-    tgt_model = TrainedModel(tgt_pred.scores)
-    tgt_policy = MSLRPolicy(tgt_pred.scores, tgt_deterministic, 1.0)
+    # calculate target model scores
+    tgt_pred = tgt_trainer.predict(getattr(dataset, tgt_features))
 
-    dt = time.process_time() - st
+    dm_train_features = getattr(dataset, dm_features)
+
+    slots = SlateSlots(slate_size)
+
+    dt = time.perf_counter() - st
     logging.info(f"Preparing models and policies done: {dt}s")
 
-    logging.info("Generating log...")
-    st = time.process_time()
-    slots = SlateSlots(slate_size)
-    queries = dataset.queries
-    episodes = []
-    for q in queries:
-        query = SlateQuery(q)
-        items = SlateItems([SlateItem(i) for i in range(q[2].item())])
-        if len(items) < slate_size:
-            logging.warning(
-                f"Number of items ({len(items)}) less than "
-                f"number of slots ({slate_size})"
-            )
-            continue
-        context = SlateContext(query, slots, items)
-        log_item_probs = log_policy(context)
-        log_item_rewards = log_model.item_rewards(context)
-        tgt_item_probs = tgt_policy(context)
-        metric = NDCGSlateMetric(log_item_rewards)
+    total_samples = 0
+    for _, num_samples in experiments:
+        total_samples += num_samples
+    logging.info(f"Generating log: total_samples={total_samples}")
+    st = time.perf_counter()
+    tasks = []
+    samples_generated = 0
+    total_queries = dataset.queries.shape[0]
+    for estimators, num_samples in experiments:
         samples = []
-        for _ in range(num_samples):
-            slate = log_item_probs.sample_slate(slots)
-            samples.append(LogSample(slate, slate.slot_values(log_item_rewards)))
-        episodes.append(
-            LogEpisode(
-                context, metric, samples, None, log_item_probs, None, tgt_item_probs
+        for i in range(num_samples):
+            # randomly sample a query
+            q = dataset.queries[random.randrange(total_queries)]
+            doc_size = int(q[2])
+            if doc_size < item_size:
+                # skip if number of docs is less than item_size
+                continue
+            si = int(q[1])
+            ei = si + doc_size
+            # using top item_size docs for logging
+            log_scores, item_choices = log_pred.scores[si:ei].sort(
+                dim=0, descending=True
             )
-        )
-        if len(episodes) >= num_episodes:
-            break
-    dt = time.process_time() - st
-    logging.info(f"Generating log done: {len(episodes)} samples in {dt}s")
+            log_scores = log_scores[:item_size]
+            item_choices = item_choices[:item_size]
+            log_item_probs = log_distribution(SlateItemValues(log_scores))
+            tgt_scores = tgt_pred.scores[si:ei][item_choices].detach().clone()
+            tgt_item_probs = tgt_distribution(SlateItemValues(tgt_scores))
+            tgt_slot_expectation = tgt_item_probs.slot_item_expectations(slots)
+            gt_item_rewards = SlateItemValues(dataset.relevances[si:ei][item_choices])
+            gt_rewards = tgt_slot_expectation.expected_rewards(gt_item_rewards)
+            if metric_func == "dcg":
+                metric = DCGSlateMetric(device=device)
+            elif metric_func == "err":
+                metric = ERRSlateMetric(4.0, device=device)
+            else:
+                metric = NDCGSlateMetric(gt_item_rewards, device=device)
+            query = SlateQuery((si, ei))
+            context = SlateContext(query, slots, item_choices)
+            slot_weights = metric.slot_weights(slots)
+            gt_reward = metric.calculate_reward(slots, gt_rewards, None, slot_weights)
+            if tgt_item_probs.is_deterministic:
+                tgt_slate_prob = 1.0
+                log_slate = tgt_item_probs.sample_slate(slots)
+                log_reward = gt_reward
+            else:
+                tgt_slate_prob = float("nan")
+                log_slate = log_item_probs.sample_slate(slots)
+                log_rewards = log_slate.slot_values(gt_item_rewards)
+                log_reward = metric.calculate_reward(
+                    slots, log_rewards, None, slot_weights
+                )
+            log_slate_prob = log_item_probs.slate_probability(log_slate)
+            item_features = SlateItemFeatures(dm_train_features[si:ei][item_choices])
+            sample = LogSample(
+                context,
+                metric,
+                log_slate,
+                log_reward,
+                log_slate_prob,
+                None,
+                log_item_probs,
+                tgt_slate_prob,
+                None,
+                tgt_item_probs,
+                gt_reward,
+                slot_weights,
+                None,
+                item_features,
+            )
+            samples.append(sample)
+            samples_generated += 1
+            if samples_generated % 1000 == 0:
+                logging.info(
+                    f"  samples generated: {samples_generated}, {100 * samples_generated / total_samples:.1f}%"
+                )
+        tasks.append((estimators, SlateEstimatorInput(samples)))
+    dt = time.perf_counter() - st
+    logging.info(f"Generating log done: {total_samples} samples in {dt}s")
 
-    input = SlateEstimatorInput(episodes, tgt_model, log_model)
-
-    evaluate(DMEstimator(device=device), input)
-    # evaluate(IPSEstimator(device=device), input)
-    # evaluate(PseudoInverseEstimator(device=device), input)
-    # evaluate(PBMEstimator(device=device), input)
+    logging.info("start evaluating...")
+    st = time.perf_counter()
+    evaluator = Evaluator(tasks, max_num_workers)
+    Evaluator.report_results(evaluator.evaluate())
+    logging.info(f"evaluating done in {time.perf_counter() - st}s")
 
 
 if __name__ == "__main__":
+    mp.set_start_method("spawn")
+
     logging.basicConfig(
         format="%(asctime)-15s_%(levelname)s: %(message)s", level=logging.INFO
     )
@@ -498,20 +561,49 @@ if __name__ == "__main__":
     )
     body_features = params["body_features"] if "body_features" in params else None
 
-    train_dataset = load_dataset(
-        params["train_set"], num_columns, anchor_url_features, body_features
-    )
-    vali_dataset = load_dataset(
-        params["vali_set"], num_columns, anchor_url_features, body_features
-    )
-    train_all(train_dataset, vali_dataset)
-
-    exit(0)
+    # uncomment to train behavior and target models
+    # train_models(params)
 
     test_dataset = load_dataset(
-        params["test_set"], num_columns, anchor_url_features, body_features
+        params["second_set"],
+        num_columns,
+        anchor_url_features,
+        body_features,
+        "second_set",
     )
+    weight_clamper = Clamper(min=0.0)
+    estimators = [
+        DMEstimator(DecisionTreeTrainer(), 0.5, device=device),
+        IPSEstimator(weight_clamper=weight_clamper, device=device),
+        DoublyRobustEstimator(
+            DecisionTreeTrainer(), 0.5, weight_clamper, False, device
+        ),
+        DoublyRobustEstimator(DecisionTreeTrainer(), 0.5, weight_clamper, True, device),
+        PseudoInverseEstimator(weight_clamper=weight_clamper, device=device),
+        PBMEstimator(weight_clamper=weight_clamper, device=device),
+    ]
 
-    evalute_all(
-        test_dataset, 5, DecisionTreeTrainer(), DecisionTreeTrainer(), True, 100, 100
-    )
+    metrics = ["ndcg", "err"]
+    alphas = [0.0, 1.0, 2.0]
+    trainers = [
+        (DecisionTreeTrainer(), LassoTrainer()),
+        (LassoTrainer(), DecisionTreeTrainer()),
+    ]
+    for log_trainer, tgt_trainers in trainers:
+        for metric in metrics:
+            for alpha in alphas:
+                evaluate(
+                    [(estimators, 200)] * 4,
+                    test_dataset,
+                    5,
+                    20,
+                    metric,
+                    log_trainer,
+                    RankingDistribution(alpha),
+                    "anchor_url_features",
+                    tgt_trainers,
+                    PassThruDistribution(),
+                    "body_features",
+                    "all_features",
+                    4,
+                )

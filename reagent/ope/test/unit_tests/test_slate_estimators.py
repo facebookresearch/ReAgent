@@ -2,9 +2,9 @@
 
 import random
 import unittest
-from functools import reduce
 
 import torch
+
 from reagent.ope.estimators.slate_estimators import (
     DCGSlateMetric,
     NDCGSlateMetric,
@@ -55,11 +55,8 @@ class TestEstimator(unittest.TestCase):
         slot_rewards = slot_item_expectations.expected_rewards(
             SlateItemValues(self._item_rewards)
         )
-        diff = slot_rewards.values - torch.tensor([1.818, 2.449, 4.353])
+        diff = slot_rewards.values - torch.tensor([1.81818, 2.51352, 7.36929])
         self.assertAlmostEqual(diff.sum().item(), 0, places=5)
-        for d in slot_item_expectations.items:
-            sum = reduce(lambda a, b: a + b, d.values)
-            self.assertAlmostEqual(sum.item(), 1.0)
 
     def test_metrics(self):
         dcg = DCGSlateMetric()

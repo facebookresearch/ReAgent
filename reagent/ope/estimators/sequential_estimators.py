@@ -4,6 +4,7 @@ import logging
 import random
 import time
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from functools import reduce
@@ -12,7 +13,11 @@ from typing import Iterable, Mapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torch
-from reagent.ope.estimators.estimator import Estimator, EstimatorResults
+from reagent.ope.estimators.estimator import (
+    Estimator,
+    EstimatorResult,
+    EstimatorResults,
+)
 from reagent.ope.estimators.types import (
     Action,
     ActionDistribution,
@@ -121,7 +126,7 @@ class EpsilonGreedyRLPolicy(RLPolicy):
         self._exploration_prob = epsilon / len(policy.action_space)
 
     def action_dist(self, state) -> ActionDistribution:
-        new_dist = self._policy(state).copy()
+        new_dist = deepcopy(self._policy(state))
         for a, p in new_dist:
             new_dist[a] = p * self._exploitation_prob + self._exploration_prob
         return new_dist
@@ -197,21 +202,23 @@ class DMEstimator(RLEstimator):
         assert input.value_function is not None
         logging.info(f"{self}: start evaluating")
         stime = time.process_time()
-        self.reset()
+        results = EstimatorResults()
         for state, mdps in input.log.items():
             estimate = input.value_function(state)
             if input.ground_truth is not None:
                 ground_truth = input.ground_truth(state)
             else:
                 ground_truth = None
-            self._append_estimate(
-                self._log_reward(input.gamma, mdps), estimate, ground_truth
+            results.append(
+                EstimatorResult(
+                    self._log_reward(input.gamma, mdps), estimate, ground_truth
+                )
             )
         logging.info(
             f"{self}: finishing evaluating["
             f"process_time={time.process_time() - stime}]"
         )
-        return self.results
+        return results
 
 
 class IPSEstimator(RLEstimator):
@@ -264,7 +271,7 @@ class IPSEstimator(RLEstimator):
     def evaluate(self, input: RLEstimatorInput, **kwargs) -> EstimatorResults:
         logging.info(f"{self}: start evaluating")
         stime = time.process_time()
-        self.reset()
+        results = EstimatorResults()
         for state, mdps in input.log.items():
             n = len(mdps)
             horizon = len(reduce(lambda a, b: a if len(a) > len(b) else b, mdps))
@@ -289,20 +296,22 @@ class IPSEstimator(RLEstimator):
                 ground_truth = input.ground_truth(state)
             else:
                 ground_truth = None
-            self._append_estimate(
-                self._log_reward(input.gamma, mdps), estimate, ground_truth
+            results.append(
+                EstimatorResult(
+                    self._log_reward(input.gamma, mdps), estimate, ground_truth
+                )
             )
         logging.info(
             f"{self}: finishing evaluating["
             f"process_time={time.process_time() - stime}]"
         )
-        return self.results
+        return results
 
     def __repr__(self):
         return super().__repr__()[0:-1] + f",weighted[{self._weighted}]}}"
 
 
-class DREstimator(IPSEstimator):
+class DoublyRobustEstimator(IPSEstimator):
     """
     Doubly Robust estimator
     """
@@ -310,7 +319,7 @@ class DREstimator(IPSEstimator):
     def evaluate(self, input: RLEstimatorInput, **kwargs) -> EstimatorResults:
         logging.info(f"{self}: start evaluating")
         stime = time.process_time()
-        self.reset()
+        results = EstimatorResults()
         for state, mdps in input.log.items():
             n = len(mdps)
             horizon = len(reduce(lambda a, b: a if len(a) > len(b) else b, mdps))
@@ -338,14 +347,16 @@ class DREstimator(IPSEstimator):
                 ground_truth = input.ground_truth(state)
             else:
                 ground_truth = None
-            self._append_estimate(
-                self._log_reward(input.gamma, mdps), estimate, ground_truth
+            results.append(
+                EstimatorResult(
+                    self._log_reward(input.gamma, mdps), estimate, ground_truth
+                )
             )
         logging.info(
             f"{self}: finishing evaluating["
             f"process_time={time.process_time() - stime}]"
         )
-        return self.results
+        return results
 
 
 class MAGICEstimator(IPSEstimator):
@@ -360,7 +371,7 @@ class MAGICEstimator(IPSEstimator):
         assert input.value_function is not None
         logging.info(f"{self}: start evaluating")
         stime = time.process_time()
-        self.reset()
+        results = EstimatorResults()
         num_resamples = kwargs["num_resamples"] if "num_resamples" in kwargs else 200
         loss_threhold = (
             kwargs["loss_threhold"] if "loss_threhold" in kwargs else 0.00001
@@ -449,11 +460,13 @@ class MAGICEstimator(IPSEstimator):
                 ground_truth = input.ground_truth(state)
             else:
                 ground_truth = None
-            self._append_estimate(
-                self._log_reward(input.gamma, mdps), estimate, ground_truth
+            results.append(
+                EstimatorResult(
+                    self._log_reward(input.gamma, mdps), estimate, ground_truth
+                )
             )
         logging.info(
             f"{self}: finishing evaluating["
             f"process_time={time.process_time() - stime}]"
         )
-        return self.results
+        return results

@@ -8,26 +8,40 @@ import pickle
 import random
 import sys
 import time
-from typing import List, MutableMapping, Optional, Sequence, Tuple, Union
+from typing import (
+    Iterable,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 import torch
+import torch.multiprocessing as mp
+from reagent.ope.estimators.estimator import Estimator, Evaluator
 from reagent.ope.estimators.slate_estimators import (
-    DMEstimator,
-    LogEpisode,
+    DCGSlateMetric,
+    ERRSlateMetric,
+    FrechetDistribution,
+    IPSEstimator,
     LogSample,
     NDCGSlateMetric,
+    PBMEstimator,
+    PseudoInverseEstimator,
+    RankingDistribution,
+    RewardDistribution,
     SlateContext,
+    SlateEstimator,
     SlateEstimatorInput,
-    SlateItemProbabilities,
-    SlateItems,
     SlateItemValues,
     SlateModel,
     SlateQuery,
-    SlateSlotItemExpectations,
     SlateSlots,
     SlateSlotValues,
-    make_slate,
 )
 from reagent.ope.utils import RunningAverage
 
@@ -37,8 +51,24 @@ from reagent.ope.utils import RunningAverage
 
 RELEVANT_THRESHOLD = 49
 HIGHLY_RELEVANT_THRESHOLD = 399
-MAX_POSITION = 10
+MAX_SLATE_SIZE = 10
 MIN_QUERY_COUNT = 10
+
+
+def click_to_relevances(
+    clicks: Iterable[Tuple[int, int]], urls: Sequence[Tuple[int, int]]
+) -> Tuple[List[float], Mapping[Tuple[int, int], float]]:
+    position_relevances = [0.0] * max(len(urls), MAX_SLATE_SIZE)
+    url_relevances = {url: 0.0 for url in urls}
+    for i, dt in clicks:
+        r = 0.0
+        if dt > HIGHLY_RELEVANT_THRESHOLD:
+            r = 2.0
+        elif dt > RELEVANT_THRESHOLD:
+            r = 1.0
+        position_relevances[i] = r
+        url_relevances[urls[i]] = r
+    return position_relevances, url_relevances
 
 
 class LoggedQuery:
@@ -88,8 +118,8 @@ class LoggedQuery:
         return self._clicks
 
     def _click_to_relevances(self):
-        self._position_relevances = [0.0] * max(len(self._list), MAX_POSITION)
-        self._url_relevances = {}
+        self._position_relevances = [0.0] * max(len(self._list), MAX_SLATE_SIZE)
+        self._url_relevances = {url: 0.0 for url in self._list}
         for i, dt in self.clicks:
             r = 0.0
             if dt > HIGHLY_RELEVANT_THRESHOLD:
@@ -112,7 +142,7 @@ class LoggedQuery:
         return self._url_relevances
 
 
-class ProcessedQuery:
+class TrainingQuery:
     def __init__(self, query_id: int, query_terms: Tuple[int]):
         self._query_id = query_id
         self._query_terms = query_terms
@@ -121,43 +151,40 @@ class ProcessedQuery:
             Sequence[Tuple[Tuple[int, int], float]],
             MutableMapping[Tuple[int, int], float],
         ] = {}
-        self._position_relevances = [0.0] * MAX_POSITION
+        self._position_relevances = [RunningAverage() for _ in range(MAX_SLATE_SIZE)]
 
     def add(self, query: LoggedQuery):
-        if len(query.clicks) == 0:
-            return
         self._count += 1
         urs = query.url_relevances
         for item_id, r in urs.items():
             if item_id not in self._url_relevances:
-                self._url_relevances[item_id] = 0.0
+                self._url_relevances[item_id] = RunningAverage(r)
             else:
-                self._url_relevances[item_id] += r
+                self._url_relevances[item_id].add(r)
         prs = query.position_relevances
-        for i in range(MAX_POSITION):
-            self._position_relevances[i] += prs[i]
+        for i in range(MAX_SLATE_SIZE):
+            self._position_relevances[i].add(prs[i])
 
-    def merge(self, other: "ProcessedQuery"):
-        self._count += 1
+    def merge(self, other: "TrainingQuery"):
         for i, r in other.url_relevances.items():
             if i not in self._url_relevances:
-                self._url_relevances[i] = r
+                self._url_relevances[i] = RunningAverage(r)
             else:
-                self._url_relevances[i] += r
-        for i in range(MAX_POSITION):
-            self._position_relevances[i] += other.position_relevances[i]
+                self._url_relevances[i].add(r)
+        for i in range(MAX_SLATE_SIZE):
+            self._position_relevances[i].add(other.position_relevances[i])
 
     def finalize(self):
-        self._url_relevances = {
-            k: v / self._count for k, v in self._url_relevances.items()
-        }
-        self._position_relevances = [v / self._count for v in self._position_relevances]
+        self._url_relevances = {k: v.average for k, v in self._url_relevances.items()}
+        self._position_relevances = [v.average for v in self._position_relevances]
 
     def pack(self):
-        self._url_relevances = list(self._url_relevances.items())
+        if isinstance(self._url_relevances, Mapping):
+            self._url_relevances = list(self._url_relevances.items())
 
-    def unpack(self):
-        self._url_relevances = {v[0]: v[1] for v in self._url_relevances}
+    def _unpack(self):
+        if isinstance(self._url_relevances, Sequence):
+            self._url_relevances = {v[0]: v[1] for v in self._url_relevances}
 
     @property
     def count(self):
@@ -173,6 +200,7 @@ class ProcessedQuery:
 
     @property
     def url_relevances(self):
+        self._unpack()
         return self._url_relevances
 
     @property
@@ -267,25 +295,33 @@ def create_cache(params):
         logging.info(f"  saving time: {time.process_time() - st}")
 
 
-def load_logged_queries(params):
+def load_logged_queries(params) -> Sequence[TrainingQuery]:
     logging.info("loading logged queries...")
     if "folder" not in params:
         raise Exception('Please define "folder" in "raw_data"')
     folder = params["folder"] if "folder" in params else ""
     if len(folder) == 0:
         folder = os.getcwd()
-    cache_folder = params["cache_folder"] if "cache_folder" in params else folder
-    if len(cache_folder) == 0:
-        cache_folder = folder
+    cache_file_name = params["cache_file_name"] if "cache_file_name" in params else ""
+    cache_file = os.path.join(folder, f"{cache_file_name}.pickle")
+    if len(cache_file_name) > 0 and os.access(cache_file, os.R_OK):
+        logging.info(f"  loading {cache_file}")
+        try:
+            st = time.perf_counter()
+            with open(cache_file, "rb") as f:
+                logged_queries = pickle.load(f)
+            logging.info(f"  loading time {time.perf_counter() - st}")
+            return logged_queries
+        except Exception as err:
+            logging.warning(f" loading error {err}")
     base_file_name = params["base_file_name"] if "base_file_name" in params else ""
     if len(base_file_name) == 0:
         raise Exception('"base_file_name" not defined!')
     days = params["days"] if "days" in params else []
     all_queries = {}
-    st = time.process_time()
+    st = time.perf_counter()
     for day in days:
-        cache_file = f"{base_file_name}_{day:02}.pickle"
-        pickle_file = os.path.join(cache_folder, cache_file)
+        pickle_file = os.path.join(folder, f"{base_file_name}_{day:02}.pickle")
         if os.access(pickle_file, os.R_OK):
             logging.info(f"  loading {pickle_file}")
             with open(pickle_file, "rb") as f:
@@ -296,13 +332,27 @@ def load_logged_queries(params):
                 logging.info(f"  loaded queries: {len(queries)}")
                 for q in queries:
                     if q.query_id in all_queries:
-                        all_queries[q.q.query_id].append(q)
+                        tq = all_queries[q.query_id]
                     else:
-                        all_queries[q.q.query_id] = [q]
+                        tq = TrainingQuery(q.query_id, q.query_terms)
+                        all_queries[q.query_id] = tq
+                    tq.add(q)
         else:
             logging.warning(f"  {pickle_file} not accessible!")
-    logging.info(f"loading time {time.process_time() - st}")
-    return all_queries
+    logging.info(f"  loading time {time.perf_counter() - st}")
+    logged_queries = tuple(all_queries.values())
+    for v in logged_queries:
+        v.finalize()
+    if len(cache_file_name) > 0:
+        logging.info(f"  saving logged queries to {cache_file}")
+        try:
+            st = time.perf_counter()
+            with open(cache_file, "wb") as f:
+                pickle.dump(logged_queries, f, protocol=pickle.HIGHEST_PROTOCOL)
+            logging.info(f"  saving time {time.perf_counter() - st}")
+        except Exception:
+            logging.warning(f"  {cache_file} not accessible!")
+    return logged_queries
 
 
 class TrainingDataset:
@@ -335,12 +385,22 @@ class TrainingDataset:
             logging.info(f"  loading {pickle_file}")
             st = time.process_time()
             with open(pickle_file, "rb") as f:
-                min_query_count, days, queries = pickle.load(f)
+                (
+                    min_query_count,
+                    days,
+                    queries,
+                    query_ids,
+                    query_terms,
+                    position_relevances,
+                ) = pickle.load(f)
             if min_query_count != self._min_query_count or days != self._days:
                 logging.info("  updated config from last cache, reload")
                 self.load_queries(True)
             else:
                 self._queries = queries
+                self._query_ids = query_ids
+                self._query_terms = query_terms
+                self._position_relevances = position_relevances
                 logging.info(
                     f"  loaded {len(self._queries)}, "
                     f"  time {time.process_time() - st}"
@@ -364,7 +424,7 @@ class TrainingDataset:
                     st = time.process_time()
                     for q in queries:
                         if q.query_id not in all_queries:
-                            qr = ProcessedQuery(q.query_id, q.query_terms)
+                            qr = TrainingQuery(q.query_id, q.query_terms)
                             all_queries[q.query_id] = qr
                         else:
                             qr = all_queries[q.query_id]
@@ -378,22 +438,33 @@ class TrainingDataset:
                     v.finalize()
                     v.pack()
                     self._queries.append(v)
+            self._query_ids = None
+            self._query_terms = None
+            self._position_relevances = None
             if len(self._cache_file) > 0:
                 logging.info(f"saving training queries to {pickle_file}")
                 try:
                     st = time.process_time()
                     with open(pickle_file, "wb") as f:
+                        self._process_training_queries()
                         pickle.dump(
-                            (self._min_query_count, self._days, self._queries),
+                            (
+                                self._min_query_count,
+                                self._days,
+                                self._queries,
+                                self._query_ids,
+                                self._query_terms,
+                                self._position_relevances,
+                            ),
                             f,
                             protocol=pickle.HIGHEST_PROTOCOL,
                         )
                     logging.info(f"  saving time {time.process_time() - st}")
                 except Exception:
                     logging.warning(f"  {pickle_file} not accessible!")
-        self._query_ids = None
-        self._query_terms = None
-        self._position_relevances = None
+        # self._query_ids = None
+        # self._query_terms = None
+        # self._position_relevances = None
         logging.info(f"loaded training queries: {len(self._queries)}")
 
     def _process_training_queries(self):
@@ -407,15 +478,14 @@ class TrainingDataset:
         st = time.process_time()
         self._query_ids = {}
         self._query_terms = {}
-        self._position_relevances = [RunningAverage() for _ in range(MAX_POSITION)]
+        self._position_relevances = [RunningAverage() for _ in range(MAX_SLATE_SIZE)]
         for q in self._queries:
-            q.unpack()
             self._query_ids[q.query_id] = q
             for t in q.query_terms:
                 if t in self._query_terms:
                     self._query_terms[t].merge(q)
                 else:
-                    mq = ProcessedQuery(0, (t,))
+                    mq = TrainingQuery(0, (t,))
                     mq.merge(q)
                     self._query_terms[t] = mq
             for ra, r in zip(self._position_relevances, q.position_relevances):
@@ -429,25 +499,36 @@ class TrainingDataset:
     def training_queries(self):
         return self._queries
 
-    def predict_item(self, query_id: int, query_terms: Tuple[int]) -> SlateItemValues:
+    def item_relevances(
+        self, query_id: int, query_terms: Tuple[int], items: Iterable[Tuple[int, int]]
+    ) -> SlateItemValues:
         self._process_training_queries()
         if query_id in self._query_ids:
             q = self._query_ids[query_id]
-            return SlateItemValues(dict(q.url_relevances.items()))
+            rels = q.url_relevances
         else:
-            rels = {}
+            ras = {}
             for t in query_terms:
-                q = self._query_terms[t]
-                for i, r in q.url_relevances:
-                    if i in rels:
-                        ra = rels[i]
-                    else:
-                        ra = RunningAverage()
-                    ra.add(r)
-            return SlateItemValues({i: r.average for i, r in rels.items()})
+                if t in self._query_terms:
+                    q = self._query_terms[t]
+                    for i, r in q.url_relevances:
+                        if i in ras:
+                            ra = ras[i]
+                        else:
+                            ra = RunningAverage()
+                            ras[i] = ra
+                        ra.add(r)
+            rels = {i: r.average for i, r in ras.items()}
+        item_rels = {}
+        for i in items:
+            if i in rels:
+                item_rels[i] = rels[i]
+            else:
+                item_rels[i] = 0.0
+        return SlateItemValues(item_rels)
 
-    def predict_slot(self, slots: SlateSlots) -> SlateSlotItemExpectations:
-        return SlateSlotItemExpectations(self._position_relevances[: len(slots)])
+    def slot_relevances(self, slots: SlateSlots) -> SlateSlotValues:
+        return SlateSlotValues(self._position_relevances[: len(slots)])
 
 
 class YandexSlateModel(SlateModel):
@@ -456,13 +537,111 @@ class YandexSlateModel(SlateModel):
 
     def item_rewards(self, context: SlateContext) -> SlateItemValues:
         query = context.query.value
-        return self._dataset.predict_item(query[0], query[1:])
+        return self._dataset.item_relevances(query[0], query[1:])
 
-    def slot_probabilities(self, context: SlateContext) -> SlateSlotItemExpectations:
-        return self._dataset.predict_slot(context.slots)
+    def slot_probabilities(self, context: SlateContext) -> SlateSlotValues:
+        return self._dataset.slot_relevances(context.slots)
+
+
+def evaluate(
+    experiments: Iterable[Tuple[Iterable[SlateEstimator], int]],
+    log_dataset: TrainingDataset,
+    log_distribution: RewardDistribution,
+    tgt_dataset: TrainingDataset,
+    tgt_distribution: RewardDistribution,
+    log_queries: Sequence[TrainingQuery],
+    slate_size: int,
+    item_size: int,
+    metric_func: str,
+    max_num_workers: int,
+    device=None,
+):
+    log_length = len(log_queries)
+    slots = SlateSlots(slate_size)
+
+    logging.info("Generating log...")
+    st = time.perf_counter()
+    tasks = []
+    total_samples = 0
+    for estimators, num_samples in experiments:
+        samples = []
+        if num_samples * 10 > log_length:
+            logging.warning(f"not enough log data, needs {num_samples * 10}")
+            continue
+        query_choices = np.random.choice(log_length, num_samples, replace=False)
+        for i in query_choices:
+            q = log_queries[i]
+            context = SlateContext(SlateQuery((q.query_id, *(q.query_terms))), slots)
+            url_relevances = q.url_relevances
+            if len(url_relevances) > item_size:
+                url_relevances = {
+                    k: v
+                    for k, v in sorted(
+                        url_relevances.items(), key=lambda item: item[1]
+                    )[:item_size]
+                }
+            items = url_relevances.keys()
+            log_item_rewards = log_dataset.item_relevances(
+                q.query_id, q.query_terms, items
+            )
+            log_item_probs = log_distribution(log_item_rewards)
+            tgt_item_rewards = tgt_dataset.item_relevances(
+                q.query_id, q.query_terms, items
+            )
+            tgt_item_probs = tgt_distribution(tgt_item_rewards)
+            tgt_slot_expectation = tgt_item_probs.slot_item_expectations(slots)
+            gt_item_rewards = SlateItemValues(url_relevances)
+            if metric_func == "dcg":
+                metric = DCGSlateMetric(device=device)
+            elif metric_func == "err":
+                metric = ERRSlateMetric(4.0, device=device)
+            else:
+                metric = NDCGSlateMetric(gt_item_rewards, device=device)
+            slot_weights = metric.slot_weights(slots)
+            if tgt_item_probs.is_deterministic:
+                tgt_slate_prob = 1.0
+                log_slate = tgt_item_probs.sample_slate(slots)
+            else:
+                tgt_slate_prob = float("nan")
+                log_slate = log_item_probs.sample_slate(slots)
+            log_slate_prob = log_item_probs.slate_probability(log_slate)
+            log_rewards = log_slate.slot_values(gt_item_rewards)
+            log_reward = metric.calculate_reward(slots, log_rewards, None, slot_weights)
+            gt_slot_rewards = tgt_slot_expectation.expected_rewards(gt_item_rewards)
+            gt_reward = metric.calculate_reward(
+                slots, gt_slot_rewards, None, slot_weights
+            )
+            samples.append(
+                LogSample(
+                    context,
+                    metric,
+                    log_slate,
+                    log_reward,
+                    log_slate_prob,
+                    None,
+                    log_item_probs,
+                    tgt_slate_prob,
+                    None,
+                    tgt_item_probs,
+                    gt_reward,
+                    slot_weights,
+                )
+            )
+            total_samples += 1
+        tasks.append((estimators, SlateEstimatorInput(samples)))
+    dt = time.perf_counter() - st
+    logging.info(f"Generating log done: {total_samples} samples in {dt}s")
+
+    logging.info("start evaluating...")
+    st = time.perf_counter()
+    evaluator = Evaluator(tasks, max_num_workers)
+    Evaluator.report_results(evaluator.evaluate())
+    logging.info(f"evaluating done in {time.perf_counter() - st}s")
 
 
 if __name__ == "__main__":
+    mp.set_start_method("spawn")
+
     logging.basicConfig(
         format="%(asctime)-15s_%(levelname)s: %(message)s", level=logging.INFO
     )
@@ -480,71 +659,40 @@ if __name__ == "__main__":
     with open(args.parameters, "r") as f:
         params = json.load(f)
 
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    # uncomment to create cache for faster data loading
+    # create_cache(params["raw_data"])
 
-    logging.info('loading "ground_truth_training_data"')
-    ground_truth_training_dataset = TrainingDataset(
-        params["ground_truth_training_data"]
-    )
-    st = time.process_time()
-    ground_truth_training_dataset.load_queries()
-    logging.info(f"load time: {time.process_time() - st}")
-    gt_model = YandexSlateModel(ground_truth_training_dataset)
+    # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    device = None
 
-    logging.info('loading "log_training_data"')
-    log_training_dataset = TrainingDataset(params["log_training_data"])
-    st = time.process_time()
-    log_training_dataset.load_queries()
-    logging.info(f"load time: {time.process_time() - st}")
+    logging.info('loading "log_data"')
+    log_dataset = TrainingDataset(params["log_data"])
+    st = time.perf_counter()
+    log_dataset.load_queries()
+    logging.info(f"load time: {time.perf_counter() - st}")
 
-    logging.info('loading "target_training_data"')
-    tgt_training_dataset = TrainingDataset(params["target_training_data"])
-    st = time.process_time()
-    tgt_training_dataset.load_queries()
-    logging.info(f"load time: {time.process_time() - st}")
-    tgt_model = YandexSlateModel(tgt_training_dataset)
+    logging.info('loading "target_data"')
+    tgt_dataset = TrainingDataset(params["target_data"])
+    st = time.perf_counter()
+    tgt_dataset.load_queries()
+    logging.info(f"load time: {time.perf_counter() - st}")
 
+    logging.info('loading "test_data"')
+    st = time.perf_counter()
     log_queries = load_logged_queries(params["test_data"])
-    slots = SlateSlots(MAX_POSITION)
-    episodes = []
-    for qid, qs in sorted(log_queries.items(), key=lambda i: len(i[1]), reverse=True):
-        log_query = qs[0]
-        context = SlateContext(SlateQuery((qid, *(log_query.query_terms))), slots)
-        log_item_rewards = log_training_dataset.predict_item(
-            log_query.query_id, log_query.query_terms
-        )
-        log_item_probs = SlateItemProbabilities(log_item_rewards.values)
-        tgt_item_rewards = tgt_model.item_rewards(context)
-        tgt_item_probs = SlateItemProbabilities(tgt_item_rewards.values)
-        gt_item_rewards = gt_model.item_rewards(context)
-        metric = NDCGSlateMetric(gt_item_rewards)
-        samples = []
-        for q in qs:
-            slate = make_slate(slots, q.list)
-            samples.append(
-                LogSample(
-                    slate,
-                    slate.slot_values(gt_item_rewards),
-                    SlateSlotValues(q.position_relevances),
-                )
-            )
-        episodes.append(
-            LogEpisode(
-                context,
-                metric,
-                samples,
-                None,
-                log_item_probs,
-                None,
-                tgt_item_probs,
-                gt_item_rewards,
-            )
-        )
-    input = SlateEstimatorInput(episodes)
+    logging.info(f"load time: {time.perf_counter() - st}")
 
-    estimator = DMEstimator()
-    logging.info("Evaluating...")
-    st = time.process_time()
-    rs = estimator.evaluate(input)
-    dt = time.process_time() - st
-    logging.info(f"Evaluating DMEstimator done: {rs} in {dt}s")
+    estimators = [IPSEstimator(), PseudoInverseEstimator(), PBMEstimator()]
+
+    evaluate(
+        [(estimators, 200)] * 4,
+        log_dataset,
+        RankingDistribution(1.0),
+        tgt_dataset,
+        FrechetDistribution(2.0, True),
+        log_queries,
+        5,
+        10,
+        "ndcg",
+        2,
+    )

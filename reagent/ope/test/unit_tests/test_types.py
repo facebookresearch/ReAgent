@@ -5,8 +5,9 @@ from typing import Tuple, Union
 
 import numpy as np
 import torch
-from reagent.ope.estimators.types import Distribution, Items, TypeWrapper, Values
 from torch import Tensor
+
+from reagent.ope.estimators.types import TypeWrapper, Values
 
 
 class TestTypes(unittest.TestCase):
