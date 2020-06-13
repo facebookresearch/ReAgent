@@ -3,7 +3,6 @@
 
 import copy
 import logging
-from enum import Enum
 
 import gym
 import gym.spaces.dict
@@ -13,17 +12,22 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class ValueMode(Enum):
-    CONST = 0
-    INNER_PROD = 1
+def dot_value_fn(user, doc):
+    return np.inner(user, doc)
 
 
 class ValueWrapper(gym.core.ObservationWrapper):
     KEY = "value"
 
-    def __init__(self, env, value_mode: ValueMode):
+    def __init__(self, env, value_fn):
+        """
+        Args:
+          env: a RecSim gym environment
+          value_fn: a function taking user & document feature,
+            returning the value of the document for the user
+        """
         super().__init__(env)
-        self.value_mode = value_mode
+        self.value_fn = value_fn
 
     @property
     def observation_space(self):
@@ -66,11 +70,6 @@ class ValueWrapper(gym.core.ObservationWrapper):
                 aug_k = {}
                 augmentation[k] = aug_k
 
-            if self.value_mode == ValueMode.CONST:
-                aug_k[self.KEY] = 0.0
-            elif self.value_mode == ValueMode.INNER_PROD:
-                aug_k[self.KEY] = np.inner(obs["user"], obs["doc"][k])
-            else:
-                raise NotImplementedError(f"{self.value_mode} is not implemented")
+            aug_k[self.KEY] = self.value_fn(obs["user"], obs["doc"][k])
 
         return obs

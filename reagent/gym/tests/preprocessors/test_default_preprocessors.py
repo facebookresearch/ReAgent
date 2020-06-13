@@ -7,7 +7,7 @@ import gym
 import numpy.testing as npt
 import torch
 import torch.nn.functional as F
-from reagent.gym.envs.recsim import ValueMode, ValueWrapper
+from reagent.gym.envs.recsim import ValueWrapper, dot_value_fn
 from reagent.gym.preprocessors.default_preprocessors import (
     make_default_obs_preprocessor,
 )
@@ -58,7 +58,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
             "seed": 1,
         }
         env = interest_evolution.create_environment(env_config)
-        env = ValueWrapper(env, ValueMode.INNER_PROD)
+        env = ValueWrapper(env, dot_value_fn)
         obs_preprocessor = make_default_obs_preprocessor(env)
         obs = env.reset()
         state = obs_preprocessor(obs)
@@ -87,7 +87,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
             "seed": 1,
         }
         env = interest_exploration.create_environment(env_config)
-        env = ValueWrapper(env, ValueMode.CONST)
+        env = ValueWrapper(env, lambda user, doc: 0.0)
         obs_preprocessor = make_default_obs_preprocessor(env)
         obs = env.reset()
         state = obs_preprocessor(obs)

@@ -29,6 +29,7 @@ class SlateQTrainer(DQNTrainerBase):
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        single_selection: bool = True,
         minibatch_size: int = 1024,
         evaluation: rlp.EvaluationParameters = field(  # noqa: B008
             default_factory=lambda: rlp.EvaluationParameters(calc_cpe_in_training=False)
@@ -37,6 +38,7 @@ class SlateQTrainer(DQNTrainerBase):
         super().__init__(rl, use_gpu=use_gpu)
         self.minibatches_per_step = 1
         self.minibatch_size = minibatch_size
+        self.single_selection = single_selection
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -80,26 +82,38 @@ class SlateQTrainer(DQNTrainerBase):
             next_action_docs = self._action_docs(
                 training_batch.next_state, training_batch.next_action
             )
+            value = next_action_docs.value
+            if self.single_selection:
+                value = F.softmax(value, dim=1)
             next_q_values = torch.sum(
                 self._get_unmasked_q_values(
                     self.q_network_target, training_batch.next_state, next_action_docs
                 )
-                * F.softmax(next_action_docs.value, dim=1),
+                * value,
                 dim=1,
                 keepdim=True,
             )
 
+        # If not single selection, divide max-Q by N
+        if not self.single_selection:
+            _batch_size, slate_size = reward.shape
+            next_q_values = next_q_values / slate_size
+
         filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
 
         target_q_values = reward + (discount_tensor * filtered_max_q_vals)
-        target_q_values = target_q_values[reward_mask]
+        # Don't mask if not single selection
+        if self.single_selection:
+            target_q_values = target_q_values[reward_mask]
 
         with torch.enable_grad():
             # Get Q-value of action taken
             action_docs = self._action_docs(training_batch.state, training_batch.action)
             q_values = self._get_unmasked_q_values(
                 self.q_network, training_batch.state, action_docs
-            )[reward_mask]
+            )
+            if self.single_selection:
+                q_values = q_values[reward_mask]
             all_action_scores = q_values.detach()
 
             value_loss = self.q_network_loss(q_values, target_q_values)
@@ -113,6 +127,9 @@ class SlateQTrainer(DQNTrainerBase):
         self._maybe_soft_update(
             self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
         )
+
+        if not self.single_selection:
+            all_action_scores = all_action_scores.sum(dim=1, keepdim=True)
 
         self.loss_reporter.report(
             td_loss=td_loss, model_values_on_logged_actions=all_action_scores
