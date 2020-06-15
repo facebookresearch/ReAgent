@@ -1,0 +1,7 @@
+{
+    "dataset": {
+      "file": "data/satimage.data",
+      "sep": " ",
+      "label_col": 36
+    }
+  }
