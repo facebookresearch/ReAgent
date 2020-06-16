@@ -17,8 +17,8 @@ class RewardNetTrainer(Trainer):
     def __init__(
         self,
         reward_net: ModelBase,
-        minibatch_size: int,
         use_gpu: bool = False,
+        minibatch_size: int = 1024,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
