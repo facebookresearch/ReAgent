@@ -4,14 +4,14 @@
 from typing import Dict
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from reagent import types as rlt
 from reagent.preprocessing.preprocessor import Preprocessor
 
 
-class BatchPreprocessor:
-    def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.TensorDataClass:
-        raise NotImplementedError()
+class BatchPreprocessor(nn.Module):
+    pass
 
 
 def batch_to_device(batch: Dict[str, torch.Tensor], device: torch.device):
@@ -29,7 +29,7 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
         self.state_preprocessor = state_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.DiscreteDqnInput:
+    def forward(self, batch: Dict[str, torch.Tensor]) -> rlt.DiscreteDqnInput:
         batch = batch_to_device(batch, self.device)
         preprocessed_state = self.state_preprocessor(
             batch["state_features"], batch["state_features_presence"]
@@ -74,7 +74,7 @@ class ParametricDqnBatchPreprocessor(BatchPreprocessor):
         self.action_preprocessor = action_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.ParametricDqnInput:
+    def forward(self, batch: Dict[str, torch.Tensor]) -> rlt.ParametricDqnInput:
         batch = batch_to_device(batch, self.device)
         # first preprocess state and action
         preprocessed_state = self.state_preprocessor(
@@ -121,7 +121,7 @@ class PolicyNetworkBatchPreprocessor(BatchPreprocessor):
         self.action_preprocessor = action_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
 
-    def __call__(self, batch: Dict[str, torch.Tensor]) -> rlt.PolicyNetworkInput:
+    def forward(self, batch: Dict[str, torch.Tensor]) -> rlt.PolicyNetworkInput:
         batch = batch_to_device(batch, self.device)
         preprocessed_state = self.state_preprocessor(
             batch["state_features"], batch["state_features_presence"]
