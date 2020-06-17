@@ -154,11 +154,6 @@ class ColumnVector:
                 # TODO(T67265031): make mdp_id a tensor, which we will be able to
                 # when column type changes to int
                 value = np.array(raw_value)
-            elif isinstance(raw_value, torch.Tensor):
-                # TODO(T67265031): this is an identity mapping, which is only necessary
-                # when mdp_id in traced batch preprocessors becomes a tensor (mdp_id
-                # is a list of strings in normal batch preprocessors).
-                value = raw_value
             else:
                 raise NotImplementedError(f"value of type {type(raw_value)}.")
 
