@@ -25,6 +25,7 @@ class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
     def __init__(
         self, num_actions: int, state_preprocessor: Preprocessor, use_gpu: bool
     ):
+        super().__init__()
         self.num_actions = num_actions
         self.state_preprocessor = state_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
@@ -70,6 +71,7 @@ class ParametricDqnBatchPreprocessor(BatchPreprocessor):
         action_preprocessor: Preprocessor,
         use_gpu: bool,
     ):
+        super().__init__()
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
@@ -117,6 +119,7 @@ class PolicyNetworkBatchPreprocessor(BatchPreprocessor):
         action_preprocessor: Preprocessor,
         use_gpu: bool,
     ):
+        super().__init__()
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
