@@ -1,7 +1,0 @@
-{
-    "dataset": {
-      "file": "data/optdigits.data",
-      "sep": ",",
-      "label_col": 64
-    }
-  }
