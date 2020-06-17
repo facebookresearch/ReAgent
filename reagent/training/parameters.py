@@ -7,7 +7,6 @@ from .c51_trainer import C51Trainer
 from .dqn_trainer import DQNTrainer
 from .parametric_dqn_trainer import ParametricDQNTrainer
 from .qrdqn_trainer import QRDQNTrainer
-from .reward_network_trainer import RewardNetTrainer
 from .sac_trainer import SACTrainer
 from .slate_q_trainer import SlateQTrainer
 from .td3_trainer import TD3Trainer
@@ -90,9 +89,4 @@ class QRDQNTrainerParameters:
     ],
 )
 class C51TrainerParameters:
-    pass
-
-
-@make_config_class(RewardNetTrainer.__init__, blacklist=["use_gpu", "reward_net"])
-class RewardNetworkTrainerParameters:
     pass

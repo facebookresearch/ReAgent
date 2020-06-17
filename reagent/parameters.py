@@ -152,12 +152,6 @@ class TransformerParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
-class GRUParameters(BaseDataClass):
-    dim_model: int
-    num_stacked_layers: int
-
-
-@dataclass(frozen=True)
 class BaselineParameters(BaseDataClass):
     dim_feedforward: int
     num_stacked_layers: int

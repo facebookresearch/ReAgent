@@ -6,7 +6,6 @@ from reagent.training.cem_trainer import CEMTrainer
 from reagent.training.dqn_trainer import DQNTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 from reagent.training.qrdqn_trainer import QRDQNTrainer
-from reagent.training.reward_network_trainer import RewardNetTrainer
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.sac_trainer import SACTrainer
 from reagent.training.slate_q_trainer import SlateQTrainer
@@ -18,7 +17,6 @@ from .parameters import (
     DQNTrainerParameters,
     ParametricDQNTrainerParameters,
     QRDQNTrainerParameters,
-    RewardNetworkTrainerParameters,
     SACTrainerParameters,
     SlateQTrainerParameters,
     TD3TrainerParameters,
@@ -36,7 +34,6 @@ __all__ = [
     "SACTrainer",
     "SlateQTrainer",
     "TD3Trainer",
-    "RewardNetTrainer",
     "C51TrainerParameters",
     "DQNTrainerParameters",
     "ParametricDQNTrainerParameters",
@@ -44,5 +41,4 @@ __all__ = [
     "SACTrainerParameters",
     "SlateQTrainerParameters",
     "TD3TrainerParameters",
-    "RewardNetworkTrainerParameters",
 ]
