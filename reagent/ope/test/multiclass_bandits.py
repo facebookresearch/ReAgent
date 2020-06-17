@@ -272,8 +272,10 @@ def evaluate_all(
     logging.info("start evaluating...")
     st = time.perf_counter()
     evaluator = Evaluator(tasks, max_num_workers)
-    Evaluator.report_results(evaluator.evaluate())
+    results = evaluator.evaluate()
+    Evaluator.report_results(results)
     logging.info(f"evaluating done in {time.perf_counter() - st}s")
+    return results
 
 
 DEFAULT_ITERATIONS = 500
