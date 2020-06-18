@@ -61,7 +61,6 @@ autodoc_mock_imports = [
     "sklearn",
     "reagent.test",
     "onnx",
-    "xgboost",
 ]
 
 # -- Options for HTML output -------------------------------------------------
