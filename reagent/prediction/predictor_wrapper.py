@@ -136,7 +136,6 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         super().__init__()
 
         self.state_sorted_features_t = dqn_with_preprocessor.sorted_features
-
         self.dqn_with_preprocessor = torch.jit.trace(
             dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
         )
