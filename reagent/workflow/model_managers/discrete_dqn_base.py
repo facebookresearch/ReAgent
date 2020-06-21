@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 class DiscreteDQNBase(ModelManager):
     target_action_distribution: Optional[List[float]] = None
     state_feature_config: rlt.ModelFeatureConfig = field(
-        default_factory=lambda: rlt.ModelFeatureConfig(float_feature_infos=[])
+        default_factory=rlt.ModelFeatureConfig
     )
     preprocessing_options: Optional[PreprocessingOptions] = None
     reader_options: Optional[ReaderOptions] = None

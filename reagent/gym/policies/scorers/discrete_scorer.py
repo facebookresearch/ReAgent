@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
 import torch
@@ -39,8 +39,20 @@ def discrete_qrdqn_scorer(q_network: ModelBase) -> Scorer:
 
 def discrete_dqn_serving_scorer(q_network: torch.nn.Module) -> Scorer:
     @torch.no_grad()
-    def score(value_presence: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
-        action_names, q_values = q_network(value_presence)
+    def score(
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        state_id_list_features: Optional[
+            Dict[int, Tuple[torch.Tensor, torch.Tensor]]
+        ] = None,
+        state_id_score_list_features: Optional[
+            Dict[int, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]
+        ] = None,
+    ) -> torch.Tensor:
+        action_names, q_values = q_network(
+            state_with_presence,
+            state_id_list_features or {},
+            state_id_score_list_features or {},
+        )
         return q_values
 
     return score

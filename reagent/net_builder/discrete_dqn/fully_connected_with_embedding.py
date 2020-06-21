@@ -5,12 +5,12 @@ from typing import List
 import reagent.models as models
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
-from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNWithIdListNetBuilder
+from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from reagent.parameters import NormalizationData, param_hash
 
 
 @dataclass
-class FullyConnectedWithEmbedding(DiscreteDQNWithIdListNetBuilder):
+class FullyConnectedWithEmbedding(DiscreteDQNNetBuilder):
     __hash__ = param_hash
 
     sizes: List[int] = field(default_factory=lambda: [256, 128])

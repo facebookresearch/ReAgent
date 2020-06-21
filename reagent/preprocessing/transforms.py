@@ -103,18 +103,23 @@ class DenseNormalization:
 
 
 class MapIDListFeatures:
-    def __init__(self, keys: List[str], id_to_name: Dict[int, str]):
+    def __init__(self, keys: List[str], id2name: Dict[int, str]):
         self.keys = keys
-        self.id_to_name = id_to_name
+        self.id2name = id2name
 
     def __call__(self, data):
-        for k in self.keys:
-            # if empty, just set value to None
-            # otherwise, turn id -> value map into name -> value map
-            if self.id_to_name == {}:
+        # if no ids, it means we're not using sparse features.
+        if not self.id2name:
+            for k in self.keys:
                 data[k] = None
+            return data
+
+        for k in self.keys:
+            # convert keys from feature id to name
+            if isinstance(data[k], dict):
+                data[k] = {self.id2name[fid]: fval for fid, fval in data[k].items()}
             else:
-                data[k] = {self.id_to_name[fid]: fval for fid, fval in data[k].items()}
+                raise NotImplementedError(f"{k} has type {type(data[k])}")
         return data
 
 

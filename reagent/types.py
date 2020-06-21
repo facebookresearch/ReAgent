@@ -100,7 +100,14 @@ class IdListFeatureConfig(BaseDataClass):
     name: str
     feature_id: int  # integer feature ID
     id_mapping_name: str  # key to ModelPreprocessingConfig.id_mapping_config
-    # max_length: int
+
+
+@pydantic_dataclass
+class IDScoreListFeatureConfig(BaseDataClass):
+    # same as id_list for now
+    name: str
+    feature_id: int  # integer feature ID
+    id_mapping_name: str  # key to ModelPreprocessingConfig.id_mapping_config
 
 
 @pydantic_dataclass
@@ -116,9 +123,50 @@ class IdMapping(BaseDataClass):
 
 @pydantic_dataclass
 class ModelFeatureConfig(BaseDataClass):
-    float_feature_infos: List[FloatFeatureInfo]
+    float_feature_infos: List[FloatFeatureInfo] = field(default_factory=list)
+    # mapping from feature to embedding table indices
     id_mapping_config: Dict[str, IdMapping] = field(default_factory=dict)
+    # id_list_feature_configs is feature_id -> list of values
     id_list_feature_configs: List[IdListFeatureConfig] = field(default_factory=list)
+    # id_score_list_feature_configs is feature_id -> (keys -> values)
+    id_score_list_feature_configs: List[IDScoreListFeatureConfig] = field(
+        default_factory=list
+    )
+
+    def __post_init_post_parse__(self):
+        both_lists = self.id_list_feature_configs + self.id_score_list_feature_configs
+        if self.only_dense:
+            if self.float_feature_infos == []:
+                logger.warn(
+                    "None of float features or sparse features has configs. "
+                    "This will cause likely cause Offline workflow to fail."
+                )
+        else:
+            # sanity check for keys in mapping config
+            ids = [config.feature_id for config in both_lists]
+            names = [config.name for config in both_lists]
+            assert len(ids) == len(set(ids)), f"duplicates in ids: {ids}"
+            assert len(names) == len(set(names)), f"duplicates in names: {names}"
+            assert len(ids) == len(names), f"{len(ids)} != {len(names)}"
+            for config in both_lists:
+                if config.id_mapping_name not in self.id_mapping_config:
+                    logger.warn(
+                        f"{config.name} not in id_mapping_config ({self.id_mapping_config.keys()})."
+                        "May cause Offline workflow to fail."
+                    )
+        self.map_arr = [(config.feature_id, config.name) for config in both_lists]
+
+    @property
+    def only_dense(self):
+        return not (self.id_list_feature_configs or self.id_score_list_feature_configs)
+
+    @property
+    def id2name(self):
+        return {id: name for id, name in self.map_arr}
+
+    @property
+    def name2id(self):
+        return {name: id for id, name in self.map_arr}
 
 
 ######
@@ -132,8 +180,13 @@ class ValuePresence(TensorDataClass):
     presence: Optional[torch.Tensor]
 
 
+# (offset, value)
 IdListFeatureValue = Tuple[torch.Tensor, torch.Tensor]
 IdListFeatures = Dict[str, IdListFeatureValue]
+
+# (offset, key, value)
+IdScoreListFeatureValue = Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
+IdScoreListFeatures = Dict[str, IdScoreListFeatureValue]
 
 
 @dataclass
@@ -180,6 +233,9 @@ class FeatureData(TensorDataClass):
     # For sequence, shape is (stack_size, batch_size, feature_dim)
     stacked_float_features: Optional[torch.Tensor] = None
     id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
+    id_score_list_features: IdScoreListFeatures = dataclasses.field(
+        default_factory=dict
+    )
     # For ranking algos,
     candidate_docs: Optional[DocList] = None
     # Experimental: sticking this here instead of putting it in float_features
@@ -200,11 +256,6 @@ class FeatureData(TensorDataClass):
             raise ValueError(
                 f"float_features should be 2D; got {self.float_features.shape}.\n{usage()}"
             )
-
-    @classmethod
-    def from_dict(cls, d, name: str):
-        # TODO: Looks for id_list_features
-        return cls(float_features=d[name])
 
     @property
     def has_float_features_only(self) -> bool:
@@ -391,17 +442,22 @@ class DiscreteDqnInput(PreprocessedBaseInput):
     possible_next_actions_mask: torch.Tensor
     extras: ExtraData
 
+    # TODO: clean up from_dict with class hierarchy to reduce duplication
     @classmethod
     def from_dict(cls, batch):
         return cls(
             state=FeatureData(
                 float_features=batch[InputColumn.STATE_FEATURES],
                 id_list_features=batch[InputColumn.STATE_ID_LIST_FEATURES],
+                id_score_list_features=batch[InputColumn.STATE_ID_SCORE_LIST_FEATURES],
             ),
             action=batch[InputColumn.ACTION],
             next_state=FeatureData(
                 float_features=batch[InputColumn.NEXT_STATE_FEATURES],
                 id_list_features=batch[InputColumn.NEXT_STATE_ID_LIST_FEATURES],
+                id_score_list_features=batch[
+                    InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES
+                ],
             ),
             next_action=batch[InputColumn.NEXT_ACTION],
             possible_actions_mask=batch[InputColumn.POSSIBLE_ACTIONS_MASK],

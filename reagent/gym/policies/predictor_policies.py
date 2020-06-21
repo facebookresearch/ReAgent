@@ -32,11 +32,13 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
     """
     module_name = serving_module.original_name
     if module_name.endswith("DiscreteDqnPredictorWrapper"):
-        sampler = GreedyActionSampler()
+        expand_args = kwargs.get("expand_args", False)
         scorer = discrete_dqn_serving_scorer(
             q_network=DiscreteDqnPredictorUnwrapper(serving_module)
         )
-        return Policy(scorer=scorer, sampler=sampler)
+        return Policy(
+            scorer=scorer, sampler=GreedyActionSampler(), expand_args=expand_args
+        )
     elif module_name.endswith("ActorPredictorWrapper"):
         return ActorPredictorPolicy(predictor=ActorPredictorUnwrapper(serving_module))
     elif module_name.endswith("ParametricDqnPredictorWrapper"):
