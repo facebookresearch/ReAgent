@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import math
 from collections import OrderedDict
 from typing import Sequence, Union
 
@@ -42,13 +43,16 @@ class LRUCache(OrderedDict):
 
 
 class RunningAverage:
-    def __init__(self):
-        self._average = 0.0
-        self._count = 0
+    def __init__(self, init_val: float = float("nan")):
+        self._average = init_val
+        self._count = 0 if math.isnan(init_val) else 1
 
     def add(self, value) -> "RunningAverage":
-        self._count += 1
-        self._average = self._average + (float(value) - self._average) / self._count
+        if not math.isnan(value) and not math.isinf(value):
+            if self._count == 0:
+                self._average = 0.0
+            self._count += 1
+            self._average = self._average + (float(value) - self._average) / self._count
         return self
 
     @property
@@ -62,6 +66,9 @@ class RunningAverage:
     @property
     def total(self):
         return self._average * self._count
+
+    def __float__(self):
+        return self._average
 
 
 class Clamper:
@@ -82,3 +89,6 @@ class Clamper:
             return [max(self._min, min(self._max, float(i))) for i in v]
         else:
             return max(self._min, min(self._max, float(v)))
+
+    def __repr__(self):
+        return f"Clamper({self._min},{self._max})"

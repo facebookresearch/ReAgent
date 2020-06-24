@@ -1,97 +1,17 @@
 #!/usr/bin/env python3
 
 import logging
-import pickle
+import math
 import time
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
+from reagent.ope.estimators.types import PredictResults, Trainer, TrainingData
 from sklearn.linear_model import Lasso, LogisticRegression, SGDClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from torch import Tensor
-
-
-@dataclass(frozen=True)
-class TrainingData:
-    train_x: Tensor
-    train_y: Tensor
-    train_weight: Optional[Tensor]
-    validation_x: Tensor
-    validation_y: Tensor
-    validation_weight: Optional[Tensor]
-
-
-@dataclass(frozen=True)
-class PredictResults:
-    predictions: Optional[Tensor]  # shape = [num_samples]
-    scores: Tensor  # shape = [num_samples]
-    probabilities: Optional[Tensor] = None
-
-
-class Trainer(ABC):
-    def __init__(self):
-        self._model = None
-
-    @staticmethod
-    def _sample(
-        x: Tensor,
-        y: Tensor,
-        weight: Optional[Tensor] = None,
-        num_samples: int = 0,
-        fortran_order: bool = False,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        assert x.shape[0] == y.shape[0]
-        x_na = x.numpy()
-        if fortran_order:
-            x_na = x_na.reshape(x.shape, order="F")
-        y_na = y.numpy()
-        w_na = weight.numpy() if weight is not None else None
-        if num_samples > 0 and num_samples < x.shape[0]:
-            cs = np.random.choice(x.shape[0], num_samples, replace=False)
-            x_na = x_na[cs, :]
-            y_na = y_na[cs]
-            w_na = w_na[cs] if w_na is not None else None
-        return x_na, y_na, w_na
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        pass
-
-    @abstractmethod
-    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
-        pass
-
-    @abstractmethod
-    def predict(self, x: Tensor, device=None) -> PredictResults:
-        pass
-
-    @abstractmethod
-    def score(
-        self, y: Tensor, y_pred: Tensor, weight: Optional[Tensor] = None
-    ) -> float:
-        pass
-
-    def save_model(self, file: str):
-        if self._model is None:
-            logging.error(f"{self.__class__.__name__}.save_model: _model is None ")
-            return
-        try:
-            with open(file, "wb") as f:
-                pickle.dump(self._model, f, protocol=pickle.HIGHEST_PROTOCOL)
-        except Exception:
-            logging.error(f"{file} cannot be accessed.")
-
-    def load_model(self, file: str):
-        try:
-            with open(file, "rb") as f:
-                self._model = pickle.load(f)
-        except Exception:
-            logging.error(f"{file} cannot be read.")
 
 
 class LinearTrainer(Trainer):
@@ -120,11 +40,18 @@ class LinearTrainer(Trainer):
         else:
             raise Exception("model not trained")
 
-    def score(
-        self, y: Tensor, y_pred: Tensor, weight: Optional[Tensor] = None
-    ) -> float:
+    def _score(self, y_true: np.ndarray, y_pred: np.ndarray, weight=None) -> float:
+        if self._is_classifier:
+            return accuracy_score(y_true, y_pred, sample_weight=weight)
+        else:
+            return 1.0 / math.pow(
+                2, mean_squared_error(y_true, y_pred, sample_weight=weight)
+            )
+
+    def score(self, x: Tensor, y: Tensor, weight: Optional[Tensor] = None) -> float:
+        y_pred = self._model.predict(x)
         w = weight.numpy() if weight is not None else None
-        return accuracy_score(y.numpy(), y_pred.numpy(), sample_weight=w)
+        return self._score(y.numpy(), y_pred, weight=w)
 
 
 class LassoTrainer(LinearTrainer):
@@ -143,17 +70,19 @@ class LassoTrainer(LinearTrainer):
             sx, sy, ssw = super()._sample(
                 data.validation_x, data.validation_y, data.validation_weight
             )
-            for alpha in np.logspace(-8, -1, num=8, base=10):
+            for alpha in np.logspace(-4, 2, num=7, base=10):
                 model = Lasso(
                     alpha=alpha,
                     fit_intercept=False,
                     copy_X=True,
-                    max_iter=1000,
+                    max_iter=10000,
                     warm_start=False,
                     selection="random",
                 )
                 model.fit(x, y)
-                score = model.score(sx, sy, ssw)
+                y_pred = model.predict(sx)
+                score = self._score(sy, y_pred, weight=ssw)
+                # score = model.score(sx, sy, ssw)
                 logging.info(f"  alpha: {alpha}, score: {score}")
                 if score > best_score:
                     best_score = score
@@ -176,6 +105,18 @@ class DecisionTreeTrainer(LinearTrainer):
             sx, sy, ssw = super()._sample(
                 data.validation_x, data.validation_y, data.validation_weight
             )
+            if self._model is None:
+                self._model = DecisionTreeRegressor(
+                    criterion="mse",
+                    splitter="random",
+                    max_depth=None,
+                    min_samples_split=4,
+                    min_samples_leaf=4,
+                )
+                self._model.fit(x, y, sw)
+                y_pred = self._model.predict(sx)
+                best_score = self._score(sy, y_pred, weight=ssw)
+                logging.info(f"  max_depth: None, score: {best_score}")
             for depth in range(3, 21, 3):
                 model = DecisionTreeRegressor(
                     criterion="mse",
@@ -185,7 +126,9 @@ class DecisionTreeTrainer(LinearTrainer):
                     min_samples_leaf=4,
                 )
                 model.fit(x, y, sw)
-                score = model.score(sx, sy, ssw)
+                y_pred = model.predict(sx)
+                score = self._score(sy, y_pred, weight=ssw)
+                # score = model.score(sx, sy, ssw)
                 logging.info(f"  max_depth: {depth}, score: {score}")
                 if score > best_score:
                     best_score = score

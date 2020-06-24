@@ -10,12 +10,13 @@ from typing import Dict, List, Optional, Tuple, Union, cast
 
 import torch
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
+from reagent.preprocessing.types import InputColumn
 
 
 class NoDuplicatedWarningLogger:
     def __init__(self, logger):
         self.logger = logger
-        self.msg = set([])
+        self.msg = set()
 
     def warning(self, msg):
         if msg not in self.msg:
@@ -136,16 +137,6 @@ IdListFeatures = Dict[str, IdListFeatureValue]
 
 
 @dataclass
-class RawFeatureData(TensorDataClass):
-    float_features: ValuePresence
-    id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
-    # Experimental: sticking this here instead of putting it in float_features
-    # because a lot of places derive the shape of float_features from
-    # normalization parameters.
-    time_since_first: Optional[torch.Tensor] = None
-
-
-@dataclass
 class ActorOutput(TensorDataClass):
     action: torch.Tensor
     log_prob: Optional[torch.Tensor] = None
@@ -209,17 +200,6 @@ class FeatureData(TensorDataClass):
             raise ValueError(
                 f"float_features should be 2D; got {self.float_features.shape}.\n{usage()}"
             )
-
-    @classmethod
-    def from_raw_feature_data(cls, feature_vector: RawFeatureData, preprocessor):
-        return cls(
-            float_features=preprocessor(
-                feature_vector.float_features.value,
-                feature_vector.float_features.presence,
-            ),
-            id_list_features=feature_vector.id_list_features,
-            time_since_first=feature_vector.time_since_first,
-        )
 
     @classmethod
     def from_dict(cls, d, name: str):
@@ -411,6 +391,28 @@ class DiscreteDqnInput(PreprocessedBaseInput):
     possible_next_actions_mask: torch.Tensor
     extras: ExtraData
 
+    @classmethod
+    def from_dict(cls, batch):
+        return cls(
+            state=FeatureData(
+                float_features=batch[InputColumn.STATE_FEATURES],
+                id_list_features=batch[InputColumn.STATE_ID_LIST_FEATURES],
+            ),
+            action=batch[InputColumn.ACTION],
+            next_state=FeatureData(
+                float_features=batch[InputColumn.NEXT_STATE_FEATURES],
+                id_list_features=batch[InputColumn.NEXT_STATE_ID_LIST_FEATURES],
+            ),
+            next_action=batch[InputColumn.NEXT_ACTION],
+            possible_actions_mask=batch[InputColumn.POSSIBLE_ACTIONS_MASK],
+            possible_next_actions_mask=batch[InputColumn.POSSIBLE_NEXT_ACTIONS_MASK],
+            reward=batch[InputColumn.REWARD],
+            not_terminal=batch[InputColumn.NOT_TERMINAL],
+            time_diff=batch[InputColumn.TIME_DIFF],
+            step=batch[InputColumn.STEP],
+            extras=batch[InputColumn.EXTRAS],
+        )
+
 
 @dataclass
 class SlateQInput(PreprocessedBaseInput):
@@ -521,12 +523,6 @@ class MemoryNetworkInput(PreprocessedBaseInput):
 
 
 @dataclass
-class RawBaseInput(CommonInput):
-    state: RawFeatureData
-    next_state: RawFeatureData
-
-
-@dataclass
 class PreprocessedTrainingBatch(TensorDataClass):
     training_input: Union[PreprocessedRankingInput]
     # TODO: deplicate this and move into individual ones.
@@ -546,6 +542,11 @@ class MemoryNetworkOutput(TensorDataClass):
     last_step_lstm_hidden: torch.Tensor
     last_step_lstm_cell: torch.Tensor
     all_steps_lstm_hidden: torch.Tensor
+
+
+@dataclass
+class Seq2RewardOutput(TensorDataClass):
+    acc_reward: torch.Tensor
 
 
 @dataclass

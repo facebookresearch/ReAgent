@@ -11,18 +11,14 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 
 class TestJsonSerialize(HorizonTestBase):
     def test_json_serialize_basic(self):
-        damp = rlp.DiscreteActionModelParameters(
-            actions=["foo", "bar"],
-            rl=rlp.RLParameters(),
-            training=rlp.TrainingParameters(),
-            rainbow=rlp.RainbowDQNParameters(double_q_learning=False, categorical=True),
-            state_feature_params=None,
-            target_action_distribution=[1.0, 2.0],
-            evaluation=rlp.EvaluationParameters(),
+        typed_param = rlp.NormalizationData(
+            dense_normalization_parameters={
+                0: rlp.NormalizationParameters(feature_type="CONTINUOUS")
+            }
         )
         self.assertEqual(
-            damp,
-            json_to_object(object_to_json(damp), rlp.DiscreteActionModelParameters),
+            typed_param,
+            json_to_object(object_to_json(typed_param), rlp.NormalizationData),
         )
 
     def test_json_serialize_nested(self):

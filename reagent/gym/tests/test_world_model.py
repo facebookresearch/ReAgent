@@ -136,9 +136,7 @@ def train_mdnrnn(
     logger.info("Made RBs, starting to train now!")
     for epoch in range(num_train_epochs):
         for i in range(num_batch_per_epoch):
-            batch = train_replay_buffer.sample_transition_batch_tensor(
-                batch_size=batch_size
-            )
+            batch = train_replay_buffer.sample_transition_batch(batch_size=batch_size)
             preprocessed_batch = trainer_preprocessor(batch)
             losses = trainer.train(preprocessed_batch)
             print_mdnrnn_losses(epoch, i, losses)
@@ -147,7 +145,7 @@ def train_mdnrnn(
         if test_replay_buffer is not None:
             with torch.no_grad():
                 trainer.memory_network.mdnrnn.eval()
-                test_batch = test_replay_buffer.sample_transition_batch_tensor(
+                test_batch = test_replay_buffer.sample_transition_batch(
                     batch_size=batch_size
                 )
                 preprocessed_test_batch = trainer_preprocessor(test_batch)
@@ -209,7 +207,7 @@ def train_mdnrnn_and_compute_feature_stats(
 
     with torch.no_grad():
         trainer.memory_network.mdnrnn.eval()
-        test_batch = test_replay_buffer.sample_transition_batch_tensor(
+        test_batch = test_replay_buffer.sample_transition_batch(
             batch_size=test_replay_buffer.size
         )
         preprocessed_test_batch = trainer_preprocessor(test_batch)
@@ -263,9 +261,7 @@ def create_embed_rl_dataset(
     fill_replay_buffer(
         env=embed_env, replay_buffer=embed_rb, desired_size=num_state_embed_transitions
     )
-    batch = embed_rb.sample_transition_batch_tensor(
-        batch_size=num_state_embed_transitions
-    )
+    batch = embed_rb.sample_transition_batch(batch_size=num_state_embed_transitions)
     state_min = min(batch.state.min(), batch.next_state.min()).item()
     state_max = max(batch.state.max(), batch.next_state.max()).item()
     logger.info(
@@ -359,7 +355,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     num_batch_per_epoch = embed_rb.size // batch_size
     for epoch in range(num_agent_train_epochs):
         for _ in tqdm(range(num_batch_per_epoch), desc=f"epoch {epoch}"):
-            batch = embed_rb.sample_transition_batch_tensor(batch_size=batch_size)
+            batch = embed_rb.sample_transition_batch(batch_size=batch_size)
             preprocessed_batch = agent_trainer_preprocessor(batch)
             agent_trainer.train(preprocessed_batch)
 

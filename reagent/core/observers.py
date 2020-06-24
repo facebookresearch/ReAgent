@@ -59,9 +59,16 @@ class ValueListObserver(Observer):
 
 
 class IntervalAggregatingObserver(Observer):
-    def __init__(self, interval: Optional[int], aggregator: Aggregator):
+    def __init__(
+        self,
+        interval: Optional[int],
+        aggregator: Aggregator,
+        observe_epoch_end: bool = True,
+    ):
         self.key = aggregator.key
-        super().__init__(observing_keys=["epoch_end", self.key])
+        obs_keys = ["epoch_end"] if observe_epoch_end else []
+        obs_keys.append(self.key)
+        super().__init__(observing_keys=obs_keys)
         self.iteration = 0
         self.interval = interval
         self.intermediate_values: List[Any] = []

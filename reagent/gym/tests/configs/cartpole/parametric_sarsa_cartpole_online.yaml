@@ -11,15 +11,12 @@ model:
         # vanilla, on-policy sarsa
         maxq_learning: false
         temperature: 0.35
-        softmax_policy: true
-        q_network_loss: mse
       double_q_learning: true
       minibatch_size: 1024
       minibatches_per_step: 1
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.05
-        l2_decay: 0
+        Adam:
+          lr: 0.05
     net_builder:
       FullyConnected:
         sizes:

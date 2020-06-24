@@ -486,7 +486,9 @@ class Preprocessor(Module):
         self._create_parameter(
             begin_index,
             "enum_values",
-            torch.tensor(norm_params.possible_values, device=self.device).unsqueeze(0),
+            torch.tensor(
+                norm_params.possible_values, device=self.device, dtype=torch.float
+            ).unsqueeze(0),
         )
 
     def _preprocess_ENUM(

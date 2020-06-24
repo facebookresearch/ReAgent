@@ -6,6 +6,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from reagent.parameters import NormalizationData
 from reagent.preprocessing.preprocessor import Preprocessor
 
@@ -101,6 +102,41 @@ class DenseNormalization:
         return data
 
 
+class MapIDListFeatures:
+    def __init__(self, keys: List[str], id_to_name: Dict[int, str]):
+        self.keys = keys
+        self.id_to_name = id_to_name
+
+    def __call__(self, data):
+        for k in self.keys:
+            # if empty, just set value to None
+            # otherwise, turn id -> value map into name -> value map
+            if self.id_to_name == {}:
+                data[k] = None
+            else:
+                data[k] = {self.id_to_name[fid]: fval for fid, fval in data[k].items()}
+        return data
+
+
+class OneHotActions:
+    """ Keys should be in the set {0,1,2,...,num_actions}, where
+    a value equal to num_actions denotes that it's not valid.
+    """
+
+    def __init__(self, keys: List[str], num_actions: int):
+        self.keys = keys
+        self.num_actions = num_actions
+
+    def __call__(self, data):
+        for k in self.keys:
+            # we do + 1 and then index up to n because value could be num_actions,
+            # in which case the result is a zero-vector
+            data[k] = F.one_hot(data[k], self.num_actions + 1).index_select(
+                -1, torch.arange(self.num_actions)
+            )
+        return data
+
+
 class ColumnVector:
     """
     Ensure that the keys are column vectors
@@ -114,11 +150,17 @@ class ColumnVector:
             raw_value = data[k]
             if isinstance(raw_value, tuple):
                 value, _presence = raw_value
-
-            if isinstance(raw_value, list):
+            elif isinstance(raw_value, list):
                 # TODO(T67265031): make mdp_id a tensor, which we will be able to
                 # when column type changes to int
                 value = np.array(raw_value)
+            elif isinstance(raw_value, torch.Tensor):
+                # TODO(T67265031): this is an identity mapping, which is only necessary
+                # when mdp_id in traced batch preprocessors becomes a tensor (mdp_id
+                # is a list of strings in normal batch preprocessors).
+                value = raw_value
+            else:
+                raise NotImplementedError(f"value of type {type(raw_value)}.")
 
             assert value.ndim == 1 or (
                 value.ndim == 2 and value.shape[1] == 1

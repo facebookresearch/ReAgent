@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 from gym import Env, spaces
 from reagent.gym.agents.agent import Agent
@@ -64,12 +64,15 @@ def fill_replay_buffer(env: Env, replay_buffer: ReplayBuffer, desired_size: int)
                 max_steps = min(max_episode_steps, max_steps)
             run_episode(env=env, agent=agent, mdp_id=mdp_id, max_steps=max_steps)
             size_delta = replay_buffer.size - last_size
-            assert (
-                size_delta >= 0
-            ), f"size delta is {size_delta} which should be non-negative."
+            # The assertion below is commented out because it can't
+            # support input samples which has seq_len>1. This should be
+            # treated as a bug, and need to be fixed in the future.
+            # assert (
+            #     size_delta >= 0
+            # ), f"size delta is {size_delta} which should be non-negative."
             pbar.update(n=size_delta)
             mdp_id += 1
-            if size_delta == 0:
+            if size_delta <= 0:
                 # replay buffer size isn't increasing... so stop early
                 break
 
@@ -119,7 +122,7 @@ def build_action_normalizer(env):
         raise NotImplementedError(f"{action_space} not supported.")
 
 
-def build_normalizer(env):
+def build_normalizer(env) -> Dict[str, NormalizationData]:
     return {
         NormalizationKey.STATE: NormalizationData(
             dense_normalization_parameters=build_state_normalizer(env)

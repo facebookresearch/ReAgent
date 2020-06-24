@@ -1,56 +1,16 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-
 from typing import List
 
-import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
-from reagent.core.dataclasses import dataclass, field
+from reagent.core.configuration import resolve_defaults
+from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
-from reagent.parameters import DiscreteActionModelParameters
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
-from reagent.training.training_data_page import TrainingDataPage
-
-
-@dataclass(frozen=True)
-class C51TrainerParameters:
-    __hash__ = rlp.param_hash
-
-    actions: List[str] = field(default_factory=list)
-    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
-    double_q_learning: bool = True
-    minibatch_size: int = 1024
-    minibatches_per_step: int = 1
-    num_atoms: int = 51
-    qmin: float = -100
-    qmax: float = 200
-    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
-    evaluation: rlp.EvaluationParameters = field(
-        default_factory=rlp.EvaluationParameters
-    )
-
-    @classmethod
-    def from_discrete_action_model_parameters(
-        cls, params: DiscreteActionModelParameters
-    ):
-        return cls(
-            actions=params.actions,
-            rl=params.rl,
-            double_q_learning=params.rainbow.double_q_learning,
-            minibatch_size=params.training.minibatch_size,
-            minibatches_per_step=params.training.minibatches_per_step,
-            num_atoms=params.rainbow.num_atoms,
-            qmin=params.rainbow.qmin,
-            qmax=params.rainbow.qmax,
-            optimizer=rlp.OptimizerParameters(
-                optimizer=params.training.optimizer,
-                learning_rate=params.training.learning_rate,
-                l2_decay=params.rainbow.c51_l2_decay,
-            ),
-            evaluation=params.evaluation,
-        )
 
 
 @observable(
@@ -68,52 +28,63 @@ class C51Trainer(RLTrainer):
     See https://arxiv.org/abs/1707.06887 for details
     """
 
+    @resolve_defaults
     def __init__(
         self,
         q_network,
         q_network_target,
-        parameters: C51TrainerParameters,
-        use_gpu=False,
         metrics_to_score=None,
         loss_reporter=None,
+        use_gpu: bool = False,
+        actions: List[str] = field(default_factory=list),  # noqa: B008
+        rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
+        double_q_learning: bool = True,
+        minibatch_size: int = 1024,
+        minibatches_per_step: int = 1,
+        num_atoms: int = 51,
+        qmin: float = -100,
+        qmax: float = 200,
+        optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        evaluation: EvaluationParameters = field(  # noqa: B008
+            default_factory=EvaluationParameters
+        ),
     ) -> None:
         RLTrainer.__init__(
             self,
-            parameters.rl,
+            rl,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
-            actions=parameters.actions,
+            actions=actions,
             loss_reporter=loss_reporter,
         )
 
-        self.double_q_learning = parameters.double_q_learning
-        self.minibatch_size = parameters.minibatch_size
-        self.minibatches_per_step = parameters.minibatches_per_step or 1
-        self._actions = parameters.actions if parameters.actions is not None else []
+        self.double_q_learning = double_q_learning
+        self.minibatch_size = minibatch_size
+        self.minibatches_per_step = minibatches_per_step
+        self._actions = actions
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self.q_network_optimizer = self._get_optimizer(q_network, parameters.optimizer)
-        self.qmin = parameters.qmin
-        self.qmax = parameters.qmax
-        self.num_atoms = parameters.num_atoms
+        self.q_network_optimizer = optimizer.make_optimizer(q_network.parameters())
+        self.qmin = qmin
+        self.qmax = qmax
+        self.num_atoms = num_atoms
         self.support = torch.linspace(
             self.qmin, self.qmax, self.num_atoms, device=self.device
         )
         self.scale_support = (self.qmax - self.qmin) / (self.num_atoms - 1.0)
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
-        if parameters.rl.reward_boost is not None:
+        if rl.reward_boost is not None:
             # pyre-fixme[16]: Optional type has no attribute `keys`.
-            for k in parameters.rl.reward_boost.keys():
+            for k in rl.reward_boost.keys():
                 i = self._actions.index(k)
                 # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
-                self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
+                self.reward_boosts[0, i] = rl.reward_boost[k]
 
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput) -> None:
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_discrete_maxq_training_batch()
-
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
         possible_next_actions_mask = training_batch.possible_next_actions_mask.float()
@@ -127,6 +98,7 @@ class C51Trainer(RLTrainer):
             discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
             assert training_batch.step is not None
+            # pyre-fixme[16]: Optional type has no attribute `float`.
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         next_dist = self.q_network_target.log_dist(training_batch.next_state).exp()
@@ -217,6 +189,7 @@ class C51Trainer(RLTrainer):
 
         self.loss_reporter.report(
             td_loss=loss,
+            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
             logged_actions=training_batch.action.argmax(dim=1, keepdim=True),
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,

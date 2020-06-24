@@ -29,7 +29,6 @@ off-policy corrections.
 import collections
 import gzip
 import logging
-import math
 import os
 import pickle
 from typing import Dict, List, Optional, Tuple
@@ -74,35 +73,6 @@ STORE_FILENAME_PREFIX = "$store$_"
 CHECKPOINT_DURATION = 4
 
 
-def invalid_range(
-    cursor: int, replay_capacity: int, stack_size: int, update_horizon: int
-) -> np.ndarray:
-    """Returns a array with the indices of cursor-related invalid transitions.
-    There are update_horizon + stack_size invalid indices:
-      - The update_horizon indices before the cursor, because we do not have a
-        valid N-step transition (including the next state).
-      - The stack_size indices on or immediately after the cursor.
-    If N = update_horizon, K = stack_size, and the cursor is at c, invalid
-    indices are:
-      c - N, c - N + 1, ..., c, c + 1, ..., c + K - 1.
-    It handles special cases in a circular buffer in the beginning and the end.
-    Args:
-      cursor: int, the position of the cursor.
-      replay_capacity: int, the size of the replay memory.
-      stack_size: int, the size of the stacks returned by the replay memory.
-      update_horizon: int, the agent's update horizon.
-    Returns:
-      np.array of size stack_size with the invalid indices.
-    """
-    assert cursor < replay_capacity
-    return np.array(
-        [
-            (cursor - update_horizon + i) % replay_capacity
-            for i in range(stack_size + update_horizon)
-        ]
-    )
-
-
 class ReplayBuffer(object):
     """A simple Replay Buffer.
     Stores transitions, state, action, reward, next_state, terminal (and any
@@ -123,12 +93,12 @@ class ReplayBuffer(object):
         replay_capacity: int,
         batch_size: int,
         return_everything_as_stack: bool = False,
+        return_as_timeline_format: bool = False,
         update_horizon: int = 1,
         gamma: float = 0.99,
         max_sample_attempts: int = 1000,
         extra_storage_types: Optional[List[ReplayElement]] = None,
         observation_dtype=np.uint8,
-        terminal_dtype=np.uint8,
         action_shape: Tuple[int, ...] = (),
         action_dtype=np.int32,
         reward_shape: Tuple[int, ...] = (),
@@ -142,6 +112,8 @@ class ReplayBuffer(object):
           batch_size: int.
           return_everything_as_stack: bool, set True if we want everything,
              not just states, to be stacked too
+          return_as_timeline_format: bool, when set True, next_(states, actions, etc.)
+            is returned list format, like the output of TimelineOperator
           update_horizon: int, length of update ('n' in n-step update).
           gamma: int, the discount factor.
           max_sample_attempts: int, the maximum number of attempts allowed to
@@ -150,8 +122,6 @@ class ReplayBuffer(object):
             contents that will be stored and returned by sample_transition_batch.
           observation_dtype: np.dtype, type of the observations. Defaults to
             np.uint8 for Atari 2600.
-          terminal_dtype: np.dtype, type of the terminals. Defaults to np.uint8 for
-            Atari 2600.
           action_shape: tuple of ints, the shape for the action vector. Empty tuple
             means the action is a scalar.
           action_dtype: np.dtype, type of elements in the action.
@@ -169,13 +139,20 @@ class ReplayBuffer(object):
                 "update_horizon and stack_size."
             )
 
+        if return_as_timeline_format:
+            if update_horizon <= 1:
+                logger.warn(
+                    f"Pointless to set return_as_timeline_format when "
+                    f"update_horizon ({update_horizon}) isn't > 1."
+                    "But we'll support it anyways..."
+                )
+
         logger.info(
             "Creating a %s replay memory with the following parameters:",
             self.__class__.__name__,
         )
         logger.info("\t observation_shape: %s", str(observation_shape))
         logger.info("\t observation_dtype: %s", str(observation_dtype))
-        logger.info("\t terminal_dtype: %s", str(terminal_dtype))
         logger.info("\t stack_size: %d", stack_size)
         logger.info("\t replay_capacity: %d", replay_capacity)
         logger.info("\t batch_size: %d", batch_size)
@@ -189,13 +166,15 @@ class ReplayBuffer(object):
         self._observation_shape = observation_shape
         self._stack_size = stack_size
         self._return_everything_as_stack = return_everything_as_stack
+        self._return_as_timeline_format = return_as_timeline_format
         self._state_shape = self._observation_shape + (self._stack_size,)
         self._replay_capacity = replay_capacity
         self._batch_size = batch_size
         self._update_horizon = update_horizon
         self._gamma = gamma
         self._observation_dtype = observation_dtype
-        self._terminal_dtype = terminal_dtype
+        # FIXME: np.bool causes UBSAN error
+        self._terminal_dtype = np.uint8
         self._max_sample_attempts = max_sample_attempts
         if extra_storage_types:
             self._extra_storage_types = extra_storage_types
@@ -203,21 +182,19 @@ class ReplayBuffer(object):
             self._extra_storage_types = []
         self._create_storage()
         self.add_count = np.array(0)
-        self.invalid_range = np.zeros((self._stack_size))
         # When the horizon is > 1, we compute the sum of discounted rewards as a dot
         # product using the precomputed vector <gamma^0, gamma^1, ..., gamma^{n-1}>.
-        self._cumulative_discount_vector = np.array(
-            [math.pow(self._gamma, n) for n in range(update_horizon)], dtype=np.float32
-        )
+        self._decays = (self._gamma ** torch.arange(self._update_horizon)).unsqueeze(0)
         # track if index is valid for sampling purposes. there're two cases
         # 1) first stack_size-1 zero transitions at start of episode
         # 2) last update_horizon transitions before the cursor
-        self._is_index_valid = np.zeros(self._replay_capacity, dtype=np.bool)
+        self._is_index_valid = torch.zeros(self._replay_capacity, dtype=torch.bool)
         self._num_valid_indices = 0
         self._num_transitions_in_current_episode = 0
         self._batch_type = collections.namedtuple(
             "batch_type", [e.name for e in self.get_transition_elements()]
         )
+        self._key_to_shape_map = {k.name: k.shape for k in self.get_storage_signature()}
 
     @property
     def size(self) -> int:
@@ -259,12 +236,11 @@ class ReplayBuffer(object):
             )
 
         action_space = env.action_space
-        if isinstance(action_space, (spaces.Box, spaces.MultiDiscrete)):
+        if isinstance(
+            action_space, (spaces.Box, spaces.MultiDiscrete, spaces.Discrete)
+        ):
             action_dtype = action_space.dtype
             action_shape = action_space.shape
-        elif isinstance(action_space, spaces.Discrete):
-            action_dtype = action_space.dtype
-            action_shape = ()
         else:
             raise NotImplementedError(
                 f"env.action_space {type(env.action_space)} not supported."
@@ -383,11 +359,11 @@ class ReplayBuffer(object):
     def _create_storage(self) -> None:
         """Creates the numpy arrays used to store transitions.
         """
-        self._store: Dict[str, np.ndarray] = {}
+        self._store: Dict[str, torch.Tensor] = {}
         for storage_element in self.get_storage_signature():
             array_shape = [self._replay_capacity] + list(storage_element.shape)
-            self._store[storage_element.name] = np.empty(
-                array_shape, dtype=storage_element.type
+            self._store[storage_element.name] = torch.from_numpy(
+                np.empty(array_shape, dtype=storage_element.type)
             )
 
     def get_add_args_signature(self) -> List[ReplayElement]:
@@ -446,7 +422,7 @@ class ReplayBuffer(object):
         """
         self._check_add_types(observation, action, reward, terminal, *args, **kwargs)
         last_idx = (self.cursor() - 1) % self._replay_capacity
-        if self.is_empty() or self._store["terminal"][last_idx] == 1:
+        if self.is_empty() or self._store["terminal"][last_idx]:
             self._num_transitions_in_current_episode = 0
             for _ in range(self._stack_size - 1):
                 # Child classes can rely on the padding transitions being filled with
@@ -492,12 +468,23 @@ class ReplayBuffer(object):
           *args: All the elements in a transition.
         """
         self._check_args_length(*args, **kwargs)
+        elements = self.get_add_args_signature()
+        # convert kwarg np.arrays to torch.tensors
+        for element in elements[len(args) :]:
+            if element.name in kwargs:
+                kwargs[element.name] = torch.from_numpy(
+                    np.array(kwargs[element.name], dtype=element.type)
+                )
+        # convert arg np.arrays to torch.tensors
         kwargs.update(
-            {e.name: arg for arg, e in zip(args, self.get_add_args_signature())}
+            {
+                e.name: torch.from_numpy(np.array(arg, dtype=e.type))
+                for arg, e in zip(args, elements[: len(args)])
+            }
         )
         self._add_transition(kwargs)
 
-    def _add_transition(self, transition):
+    def _add_transition(self, transition: Dict[str, torch.Tensor]) -> None:
         """Internal add method to add transition dictionary to storage arrays.
         Args:
           transition: The dictionary of names and values of the transition
@@ -508,9 +495,6 @@ class ReplayBuffer(object):
             self._store[arg_name][cursor] = transition[arg_name]
 
         self.add_count += 1
-        self.invalid_range = invalid_range(
-            self.cursor(), self._replay_capacity, self._stack_size, self._update_horizon
-        )
 
     def _check_args_length(self, *args, **kwargs):
         """Check if args passed to the add method have the same length as storage.
@@ -543,7 +527,7 @@ class ReplayBuffer(object):
                 arg_shape = np.array(arg_element).shape
             else:
                 # Assume it is scalar.
-                arg_shape = tuple()
+                arg_shape = ()
             store_element_shape = tuple(store_element.shape)
             if arg_shape != store_element_shape:
                 raise ValueError(
@@ -571,63 +555,15 @@ class ReplayBuffer(object):
         """Index to the location where the next transition will be written."""
         return self.add_count % self._replay_capacity
 
-    def get_range(
-        self, array: np.ndarray, start_index: int, end_index: int
-    ) -> np.ndarray:
-        """Returns the range of array at the index handling wraparound if necessary.
-        Args:
-          array: np.array, the array to get the stack from.
-          start_index: int, index to the start of the range to be returned. Range
-            will wraparound if start_index is smaller than 0.
-          end_index: int, exclusive end index. Range will wraparound if end_index
-            exceeds replay_capacity.
-        Returns:
-          np.array, with shape [end_index - start_index, array.shape[1:]].
-        """
-        assert end_index > start_index, "end_index must be larger than start_index"
-        assert end_index >= 0
-        assert start_index < self._replay_capacity
-        if not self.is_full():
-            assert end_index <= self.cursor(), "Index {} has not been added.".format(
-                start_index
-            )
-
-        # Fast slice read when there is no wraparound.
-        if start_index % self._replay_capacity < end_index % self._replay_capacity:
-            return_array = array[start_index:end_index, ...]
-        # Slow list read.
-        else:
-            indices = [
-                (start_index + i) % self._replay_capacity
-                for i in range(end_index - start_index)
-            ]
-            return_array = array[indices, ...]
-        return return_array
-
-    def get_observation_stack(self, index):
-        return self._get_element_stack(index, "observation")
-
-    def _get_element_stack(self, index, element_name):
-        state = self.get_range(
-            self._store[element_name], index - self._stack_size + 1, index + 1
-        )
-        # The stacking axis is 0 but the agent expects as the last axis.
-        return np.moveaxis(state, 0, -1)
-
-    def get_terminal_stack(self, index):
-        return self.get_range(
-            self._store["terminal"], index - self._stack_size + 1, index + 1
-        )
-
     def is_valid_transition(self, index):
         return self._is_index_valid[index]
 
-    def sample_index_batch(self, batch_size):
+    def sample_index_batch(self, batch_size: int) -> torch.Tensor:
         """Returns a batch of valid indices sampled uniformly.
         Args:
           batch_size: int, number of indices returned.
         Returns:
-          list of ints, a batch of valid indices sampled uniformly.
+          1D tensor of ints, a batch of valid indices sampled uniformly.
         Raises:
           RuntimeError: If there are no valid indices to sample.
         """
@@ -635,31 +571,16 @@ class ReplayBuffer(object):
             raise RuntimeError(
                 f"Cannot sample {batch_size} since there are no valid indices so far."
             )
-        p = self._is_index_valid.astype(np.float64) / float(self._num_valid_indices)
-        indices = np.random.choice(
-            a=self._replay_capacity, size=batch_size, replace=True, p=p
-        )
-        return indices
+        valid_indices = self._is_index_valid.nonzero().squeeze(1)
+        return valid_indices[torch.randint(valid_indices.shape[0], (batch_size,))]
 
-    def sample_transition_batch_tensor(self, batch_size=None, indices=None):
-        """
-        Like sample_transition_batch, but returns torch tensors. Also, reshaping to
-        our common shapes. I.e., state is 2-D unless stack_size > 1.
-        Scalar values are returned as (batch_size, 1) instead of (batch_size,)
-        """
-        batch = self.sample_transition_batch(batch_size=batch_size, indices=indices)
-
-        def _normalize_tensor(k, v):
-            squeeze_set = {"state", "next_state"}
-            t = torch.tensor(v)
-            if k in squeeze_set and self._stack_size == 1:
-                t = t.squeeze(2)
-            elif t.ndim == 1:
-                t = t.unsqueeze(1)
-            return t
-
-        return batch._replace(
-            **{k: _normalize_tensor(k, v) for k, v in batch._asdict().items()}
+    def sample_all_valid_transitions(self):
+        valid_indices = self._is_index_valid.nonzero().squeeze(1)
+        assert (
+            valid_indices.ndim == 1
+        ), f"Expecting 1D tensor since is_index_valid is 1D. Got {valid_indices}."
+        return self.sample_transition_batch(
+            batch_size=len(valid_indices), indices=valid_indices
         )
 
     def sample_transition_batch(self, batch_size=None, indices=None):
@@ -674,13 +595,15 @@ class ReplayBuffer(object):
         are only valid during the call to sample_transition_batch, i.e. they may
         be used by subclasses of this replay buffer but may point to different data
         as soon as sampling is done.
+        NOTE: Tensors are reshaped. I.e., state is 2-D unless stack_size > 1.
+        Scalar values are returned as (batch_size, 1) instead of (batch_size,).
         Args:
           batch_size: int, number of transitions returned. If None, the default
             batch_size will be used.
-          indices: None or list of ints, the indices of every transition in the
+          indices: None or Tensor, the indices of every transition in the
             batch. If None, sample the indices uniformly.
         Returns:
-          transition_batch: tuple of np.arrays with the shape and type as in
+          transition_batch: tuple of Tensors with the shape and type as in
             get_transition_elements().
         Raises:
           ValueError: If an element to be sampled is missing from the replay buffer.
@@ -689,100 +612,151 @@ class ReplayBuffer(object):
             batch_size = self._batch_size
         if indices is None:
             indices = self.sample_index_batch(batch_size)
-        assert isinstance(
-            indices, np.ndarray
-        ), f"Indices {indices} have type {type(indices)} instead of np.darray"
+        else:
+            assert isinstance(
+                indices, torch.Tensor
+            ), f"Indices {indices} have type {type(indices)} instead of torch.Tensor"
+            indices = indices.type(dtype=torch.int64)
         assert len(indices) == batch_size
 
         transition_elements = self.get_transition_elements(batch_size)
 
-        def get_stack_for_indices(key, indices):
-            """ Get stack of observations """
-            # calculate 2d array of indices with size (batch_size, stack_size)
-            # ith row contain indices in the stack of obs at indices[i]
-            stack_indices = indices.reshape(-1, 1) + np.arange(-self._stack_size + 1, 1)
-            stack_indices %= self._replay_capacity
-            retval = self._store[key][stack_indices]
-            if len(retval.shape) > 2:
-                # Reshape to (batch_size, obs_shape, stack_size)
-                perm = [0] + list(range(2, len(self._observation_shape) + 2)) + [1]
-                retval = retval.transpose(perm)
-            return retval
-
         # calculate 2d array of indices with size (batch_size, update_horizon)
         # ith row contain the multistep indices starting at indices[i]
-        multistep_indices = indices.reshape(-1, 1) + np.arange(self._update_horizon)
+        multistep_indices = indices.unsqueeze(1) + torch.arange(self._update_horizon)
         multistep_indices %= self._replay_capacity
 
-        def get_traj_lengths():
-            """ Calculate trajectory length, defined to be the number of states
-            in this multi_step transition until terminal state or until
-            end of multi_step (a.k.a. update_horizon).
-            """
-            terminals = self._store["terminal"][multistep_indices]
-            # if trajectory is non-terminal, we'll have traj_length = update_horizon
-            terminals[:, -1] = True
-            # Argmax find the first True in each one
-            traj_lengths = np.argmax(terminals.astype(np.bool), axis=1) + 1
-            return traj_lengths
+        steps = self._get_steps(multistep_indices)
 
-        traj_lengths = get_traj_lengths()
-        next_indices = (indices + traj_lengths) % self._replay_capacity
-
-        def get_multistep_reward_for_indices():
-            """ Sums up the reward for trajectory. """
-            decays = self._gamma ** np.arange(self._update_horizon)
-            decays = decays.reshape(1, self._update_horizon)
-            masks = np.arange(self._update_horizon) < traj_lengths.reshape(-1, 1)
-            rewards = self._store["reward"][multistep_indices] * decays * masks
-            return rewards.sum(axis=1)
+        # to pass in to next_features and reward to toggle whether to return
+        # a list batch of length steps.
+        if self._return_as_timeline_format:
+            next_indices = (indices + 1) % self._replay_capacity
+            steps_for_timeline_format = steps
+        else:
+            next_indices = (indices + steps) % self._replay_capacity
+            steps_for_timeline_format = None
 
         batch_arrays = []
         for element in transition_elements:
             if element.name == "state":
-                batch = get_stack_for_indices("observation", indices)
+                batch = self._get_batch_for_indices("observation", indices)
             elif element.name == "next_state":
-                batch = get_stack_for_indices("observation", next_indices)
-            elif element.name == "reward":
-                if self._return_everything_as_stack:
-                    if self._update_horizon > 1:
-                        raise NotImplementedError(
-                            "Uncertain how to do this without double counting.."
-                        )
-                    batch = get_stack_for_indices("reward", indices)
-                else:
-                    batch = get_multistep_reward_for_indices()
-            elif element.name == "terminal":
-                terminal_indices = (next_indices - 1) % self._replay_capacity
-                if self._return_everything_as_stack:
-                    batch = get_stack_for_indices("terminal", terminal_indices)
-                else:
-                    batch = self._store["terminal"][terminal_indices]
-                batch = batch.astype(np.bool)
+                batch = self._get_batch_for_indices(
+                    "observation", next_indices, steps_for_timeline_format
+                )
             elif element.name == "indices":
                 batch = indices
-            elif element.name in self._store:
-                if self._return_everything_as_stack:
-                    batch = get_stack_for_indices(element.name, indices)
+            elif element.name == "terminal":
+                terminal_indices = (indices + steps - 1) % self._replay_capacity
+                batch = self._store["terminal"][terminal_indices].to(torch.bool)
+            elif element.name == "reward":
+                if self._return_as_timeline_format or self._return_everything_as_stack:
+                    batch = self._get_batch_for_indices(
+                        "reward", indices, steps_for_timeline_format
+                    )
                 else:
-                    batch = self._store[element.name][indices]
+                    batch = self._reduce_multi_step_reward(multistep_indices, steps)
+            elif element.name == "step":
+                batch = steps
+            elif element.name in self._store:
+                batch = self._get_batch_for_indices(element.name, indices)
             elif element.name.startswith("next_"):
                 store_name = element.name[len("next_") :]
                 assert (
                     store_name in self._store
                 ), f"{store_name} is not in {self._store.keys()}"
-                if self._return_everything_as_stack:
-                    batch = get_stack_for_indices(store_name, next_indices)
-                else:
-                    batch = self._store[store_name][next_indices]
+                batch = self._get_batch_for_indices(
+                    store_name, next_indices, steps_for_timeline_format
+                )
+            else:
+                # We assume the other elements are filled in by the subclass.
+                batch = torch.from_numpy(np.empty(element.shape, dtype=element.type))
 
-            batch = batch.astype(element.type)
+            # always enables the batch_size dim
+            if isinstance(batch, torch.Tensor) and batch.ndim == 1:
+                batch = batch.unsqueeze(1)
             batch_arrays.append(batch)
 
         batch_arrays = self._batch_type(*batch_arrays)
-
-        # We assume the other elements are filled in by the subclass.
         return batch_arrays
+
+    def _get_batch_for_indices(
+        self, key: str, indices: torch.Tensor, steps: Optional[torch.Tensor] = None
+    ):
+        """ Get batch for given key.
+            There are two orthogonal special cases.
+            - returning a stack of features:
+                View this case as adding an extra "stack" dimension to feature,
+                causing the shape to be (*feature.shape, stack_size)
+            - returning next_features as a list (same as timeline output):
+                This should only be on if update_horizon is > 1.
+                If this is the case then we don't return a torch.Tensor,
+                but instead return List[List[features]] where the ith
+                element is torch.tensor([feat_{t+1}, ..., feat_{t+k}]);
+                where k <= multi_steps could be strictly less if there's a
+                terminal state.
+                NOTE: this option is activated by using the optional steps parameter.
+
+            Otherwise, we just return the indexed features in the replay buffer.
+            In all of the cases, we assume indices is 1-dimensional.
+        """
+        assert len(indices.shape) == 1, f"{indices.shape} isn't 1-dimensional."
+        if steps is not None:
+            # for next state timeline format
+            assert indices.shape == steps.shape, f"{indices.shape} != {steps.shape}"
+            return [
+                self._get_stack_for_indices(
+                    key, torch.arange(start_idx, start_idx + step)
+                )
+                for start_idx, step in zip(indices.tolist(), steps.tolist())
+            ]
+        else:
+            return self._get_stack_for_indices(key, indices)
+
+    def _reduce_multi_step_reward(
+        self, multistep_indices: torch.Tensor, steps: torch.Tensor
+    ):
+        # default behavior is to sum up multi_step reward
+        masks = torch.arange(self._update_horizon) < steps.unsqueeze(1)
+        rewards = self._store["reward"][multistep_indices] * self._decays * masks
+        return rewards.sum(dim=1)
+
+    def _get_stack_for_indices(self, key: str, indices: torch.Tensor) -> torch.Tensor:
+        """ Get stack of transition data. """
+        assert len(indices.shape) == 1, f"{indices.shape} not 1-dimensional"
+        feature_shape = self._key_to_shape_map[key]
+        # calculate 2d array of indices of shape (batch_size, stack_size)
+        # ith row contain indices in the stack of obs at indices[i]
+        stack_indices = indices.unsqueeze(1) + torch.arange(-self._stack_size + 1, 1)
+        # pyre-fixme[16]: `Tensor` has no attribute `__imod__`.
+        stack_indices %= self._replay_capacity
+        retval = self._store[key][stack_indices]
+        # retval has shape (batch_size, stack_size, obs_shape) right now, so
+        # reshape to (batch_size, obs_shape, stack_size)
+        perm = [0] + list(range(2, len(feature_shape) + 2)) + [1]
+        retval = retval.permute(*perm)
+        # squeeze the stack dim if it is 1
+        if self._stack_size == 1:
+            retval = retval.squeeze(len(perm) - 1)
+        return retval
+
+    def _get_steps(self, multistep_indices: torch.Tensor) -> torch.Tensor:
+        """ Calculate trajectory length, defined to be the number of states
+        in this multi_step transition until terminal state or until
+        end of multi_step (a.k.a. update_horizon).
+        """
+        terminals = self._store["terminal"][multistep_indices].to(torch.bool)
+        # if trajectory is non-terminal, we'll have traj_length = update_horizon
+        terminals[:, -1] = True
+        # use argmax to find the first True in each trajectory
+        # NOTE: argmax may not contain the first occurrence of each maximal value found,
+        # unless it is unique, so we need to make each boolean unique,
+        # with the first occurance the largarst number
+        terminals = terminals.float()
+        unique_mask = torch.arange(terminals.shape[1] + 1, 1, -1)
+        terminals = torch.einsum("ab,b->ab", (terminals, unique_mask))
+        return torch.argmax(terminals, dim=1) + 1
 
     def get_transition_elements(self, batch_size=None):
         """Returns a 'type signature' for sample_transition_batch.
@@ -815,6 +789,7 @@ class ReplayBuffer(object):
             ),
             ReplayElement("terminal", (batch_size,), self._terminal_dtype),
             ReplayElement("indices", (batch_size,), np.int32),
+            ReplayElement("step", (batch_size,), np.int32),
         ]
         for element in self._extra_storage_types:
             for prefix in ["", "next_"]:
@@ -854,6 +829,7 @@ class ReplayBuffer(object):
           iteration_number: int, iteration_number to use as a suffix in naming
             numpy checkpoint files.
         """
+        # TODO: Save tensors to torch files.
         if not os.path.exists(checkpoint_dir):
             return
 
@@ -869,7 +845,9 @@ class ReplayBuffer(object):
                     # self._store.
                     if attr.startswith(STORE_FILENAME_PREFIX):
                         array_name = attr[len(STORE_FILENAME_PREFIX) :]
-                        np.save(outfile, self._store[array_name], allow_pickle=False)
+                        np.save(
+                            outfile, self._store[array_name].numpy(), allow_pickle=False
+                        )
                     # Some numpy arrays might not be part of storage
                     elif isinstance(self.__dict__[attr], np.ndarray):
                         np.save(outfile, self.__dict__[attr], allow_pickle=False)
@@ -897,6 +875,7 @@ class ReplayBuffer(object):
         Raises:
           NotFoundError: If not all expected files are found in directory.
         """
+        # TODO: Load tensors from torch files.
         save_elements = self._return_checkpointable_elements()
         # We will first make sure we have all the necessary files available to avoid
         # loading a partially-specified (i.e. corrupted) replay buffer.
@@ -912,7 +891,9 @@ class ReplayBuffer(object):
                 with gzip.GzipFile(fileobj=f) as infile:
                     if attr.startswith(STORE_FILENAME_PREFIX):
                         array_name = attr[len(STORE_FILENAME_PREFIX) :]
-                        self._store[array_name] = np.load(infile, allow_pickle=False)
+                        self._store[array_name] = torch.from_numpy(
+                            np.load(infile, allow_pickle=False)
+                        )
                     elif isinstance(self.__dict__[attr], np.ndarray):
                         self.__dict__[attr] = np.load(infile, allow_pickle=False)
                     else:

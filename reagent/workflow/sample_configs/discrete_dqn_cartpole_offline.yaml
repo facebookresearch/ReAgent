@@ -13,7 +13,6 @@ model:
       - 1
       rl:
         gamma: 0.99
-        epsilon: 0.2
         target_update_rate: 0.1
         maxq_learning: true
         temperature: 0.35
@@ -23,11 +22,9 @@ model:
       minibatch_size: 512
       minibatches_per_step: 1
       optimizer:
-        optimizer: ADAM
-        learning_rate: 0.01
-        l2_decay: 0.01
-      evaluation:
-        calc_cpe_in_training: true
+        Adam:
+          lr: 0.01
+          weight_decay: 0.01
     net_builder:
       FullyConnected:
         sizes:
@@ -46,20 +43,13 @@ model:
         - relu
     preprocessing_options:
       num_samples: 1000
+    eval_parameters:
+      calc_cpe_in_training: true
 num_train_transitions: 30000  # approx. 150 episodes
 max_steps: 200
 seed: 42
-
-# training params
-num_train_epochs: 20
-reward_options:
-  custom_reward_expression:
-validator:
-  NoValidation: {}
+num_epochs: 20
 publisher:
-  NoPublishing: {}
-
-# evaluation
-eval_temperature: 0.1
+  FileSystemPublisher: {}
 num_eval_episodes: 50
 passing_score_bar: 120

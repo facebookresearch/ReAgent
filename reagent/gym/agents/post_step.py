@@ -3,10 +3,9 @@
 
 
 import logging
-from typing import Any, Optional, Union
+from typing import Union
 
 import gym
-import numpy as np
 import torch
 from reagent.gym.preprocessors import (
     make_replay_buffer_inserter,
@@ -14,7 +13,6 @@ from reagent.gym.preprocessors import (
 )
 from reagent.gym.types import PostStep, Transition
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-from reagent.training.rl_dataset import RLDataset
 from reagent.training.trainer import Trainer
 
 
@@ -74,9 +72,7 @@ def train_with_replay_buffer_post_step(
 
         if _num_steps % training_freq == 0:
             assert replay_buffer.size >= batch_size
-            train_batch = replay_buffer.sample_transition_batch_tensor(
-                batch_size=batch_size
-            )
+            train_batch = replay_buffer.sample_transition_batch(batch_size=batch_size)
             preprocessed_batch = trainer_preprocessor(train_batch)
             trainer.train(preprocessed_batch)
         _num_steps += 1

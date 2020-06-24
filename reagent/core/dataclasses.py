@@ -26,7 +26,7 @@ except ImportError:
     USE_VANILLA_DATACLASS = False
 
 
-ARBITRARY_TYPES_ALLOWED = False
+ARBITRARY_TYPES_ALLOWED = True
 
 
 try:
@@ -34,6 +34,7 @@ try:
     USE_VANILLA_DATACLASS = bool(int(os.environ["USE_VANILLA_DATACLASS"]))
 except KeyError:
     pass
+
 
 try:
     ARBITRARY_TYPES_ALLOWED = bool(int(os.environ["ARBITRARY_TYPES_ALLOWED"]))

@@ -14,17 +14,14 @@ model:
       entropy_temperature: 0.01
       minibatch_size: 1024
       q_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+        Adam:
+          lr: 0.001
       value_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+        Adam:
+          lr: 0.001
       actor_network_optimizer:
-        optimizer: ADAM
-        learning_rate: 0.001
-        l2_decay: 0
+        Adam:
+          lr: 0.001
       alpha_optimizer: null
     actor_net_builder:
       GaussianFullyConnected:
@@ -61,17 +58,9 @@ model:
 num_train_transitions: 40000  # approx. 200 episodes
 max_steps: 200
 seed: 42
-
-num_train_epochs: 80
-reward_options:
-  custom_reward_expression:
-validator:
-  NoValidation: {}
+num_epochs: 80
 publisher:
-  NoPublishing: {}
-
-# TODO: remove, evaluation temperature is not relevant here
-eval_temperature: 0.1
+  FileSystemPublisher: {}
 num_eval_episodes: 30
 # TODO: raise this bar after training stabilize
 passing_score_bar: -900

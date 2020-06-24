@@ -167,6 +167,7 @@ class WorldModelEvaluationPageHandler(PageHandler):
         self.results.append(losses)
 
 
+@observable(epoch_end=int)
 class RankingTrainingPageHandler(PageHandler):
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
@@ -179,6 +180,7 @@ class RankingTrainingPageHandler(PageHandler):
         self.results.append(res_dict)
 
     def finish(self):
+        self.notify_observers(epoch_end=self.epoch)
         if "ips_rl_loss" in self.results[0]:
             self.policy_gradient_loss.append(
                 float(self.get_mean_loss(loss_name="ips_rl_loss"))
@@ -200,8 +202,8 @@ class RankingEvaluationPageHandler(PageHandler):
         self.trainer_or_evaluator.evaluate(tdp)
 
     def finish(self):
-        self.notify_observers(epoch_end=self.epoch)  # type: ignore
         eval_res = self.trainer_or_evaluator.evaluate_post_training()
+        self.notify_observers(epoch_end=self.epoch)  # type: ignore
         self.results.append(eval_res)
 
 

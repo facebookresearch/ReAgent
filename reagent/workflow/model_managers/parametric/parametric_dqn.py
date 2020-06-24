@@ -7,10 +7,7 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.parameters import param_hash
-from reagent.training.parametric_dqn_trainer import (
-    ParametricDQNTrainer,
-    ParametricDQNTrainerParameters,
-)
+from reagent.training import ParametricDQNTrainer, ParametricDQNTrainerParameters
 from reagent.workflow.model_managers.parametric_dqn_base import ParametricDQNBase
 
 
@@ -62,8 +59,12 @@ class ParametricDQN(ParametricDQNBase):
             q_network=self._q_network,
             q_network_target=q_network_target,
             reward_network=reward_network,
-            params=self.trainer_param,
             use_gpu=self.use_gpu,
+            # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
+            #  `asdict`.
+            # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
+            #  `asdict`.
+            **self.trainer_param.asdict(),
         )
 
     def build_serving_module(self) -> torch.nn.Module:

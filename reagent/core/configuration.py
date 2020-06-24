@@ -2,7 +2,7 @@
 
 import functools
 from dataclasses import MISSING, Field, fields
-from inspect import Parameter, signature
+from inspect import Parameter, isclass, signature
 from typing import List, Optional, Type, Union
 
 from reagent.core.dataclasses import dataclass
@@ -10,6 +10,28 @@ from torch import nn
 
 
 BLACKLIST_TYPES = [nn.Module]
+
+
+def _get_param_annotation(p):
+    # if not annotated, infer type from default
+    if p.annotation == Parameter.empty and p.default == Parameter.empty:
+        raise ValueError(
+            f"Param {p}: both annotation and default are empty, "
+            "so cannot infer any useful annotation."
+        )
+    if p.annotation != Parameter.empty:
+        return p.annotation
+    # case on default types
+    if p.default is None:
+        raise ValueError(
+            f"Param {p}: default is None and annotation is empty, "
+            "cannot infer useful annotation"
+        )
+    if isinstance(p.default, tuple):
+        raise ValueError(f"Param {p}: default is tuple, cannot infer type")
+    if isinstance(p.default, dict):
+        raise ValueError(f"Param{p}: default is tuple, cannot infer type")
+    return type(p.default)
 
 
 def make_config_class(
@@ -41,26 +63,28 @@ def make_config_class(
                 None
             ), "Only Unions of [X, None] (a.k.a. Optional[X]) are supported"
             t = t.__args__[0]
+        if hasattr(t, "__origin__"):
+            t = t.__origin__
+        assert isclass(t), f"{t} is not a class."
         return any(issubclass(t, blacklist_type) for blacklist_type in blacklist_types)
 
-    whitelist = whitelist or [
-        p.name
-        for p in parameters.values()
-        if p.name not in blacklist_set
-        and p.annotation != Parameter.empty
-        and not _is_type_blacklisted(p.annotation)
-    ]
+    def _is_valid_param(p):
+        if p.name in blacklist_set:
+            return False
+        if p.annotation == Parameter.empty and p.default == Parameter.empty:
+            return False
+        ptype = _get_param_annotation(p)
+        if _is_type_blacklisted(ptype):
+            return False
+        return True
 
-    for field_name in whitelist:
-        p = parameters[field_name]
-        assert p.annotation != Parameter.empty and not _is_type_blacklisted(
-            p.annotation
-        ), f"{field_name} has wrong annotation: {p.annotation}"
+    whitelist = whitelist or [p.name for p in parameters.values() if _is_valid_param(p)]
 
     def wrapper(config_cls):
         # Add __annotations__ for dataclass
         config_cls.__annotations__ = {
-            field_name: parameters[field_name].annotation for field_name in whitelist
+            field_name: _get_param_annotation(parameters[field_name])
+            for field_name in whitelist
         }
         # Set default values
         for field_name in whitelist:
@@ -94,18 +118,25 @@ def _resolve_default(val):
 
 def resolve_defaults(func):
     """
-    Use this decorator to resolve defualt field values in the constructor.
+    Use this decorator to resolve default field values in the constructor.
     """
 
-    field_parameters = [
-        p for p in signature(func).parameters.values() if isinstance(p.default, Field)
-    ]
+    func_params = list(signature(func).parameters.values())
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        for p in field_parameters:
-            if p.name not in kwargs:
-                kwargs[p.name] = _resolve_default(p.default)
+        if len(args) > len(func_params):
+            raise ValueError(
+                f"There are {len(func_params)} parameters in total, "
+                f"but args is {len(args)} long. \n"
+                f"{args}"
+            )
+        # go through unprovided default kwargs
+        for p in func_params[len(args) :]:
+            # only resolve defaults for Fields
+            if isinstance(p.default, Field):
+                if p.name not in kwargs:
+                    kwargs[p.name] = _resolve_default(p.default)
         return func(*args, **kwargs)
 
     return wrapper

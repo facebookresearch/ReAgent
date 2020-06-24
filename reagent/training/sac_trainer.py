@@ -8,44 +8,16 @@ import numpy as np
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
-from reagent.core.dataclasses import dataclass, field
+from reagent.core.configuration import resolve_defaults
+from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
-from reagent.parameters import OptimizerParameters, RLParameters, param_hash
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import RLParameters
 from reagent.tensorboardX import SummaryWriterContext
 from reagent.training.rl_trainer_pytorch import RLTrainer
-from reagent.training.training_data_page import TrainingDataPage
 
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class SACTrainerParameters:
-    __hash__ = param_hash
-
-    rl: RLParameters = field(default_factory=RLParameters)
-    minibatch_size: int = 1024
-    q_network_optimizer: OptimizerParameters = field(
-        default_factory=OptimizerParameters
-    )
-    value_network_optimizer: OptimizerParameters = field(
-        default_factory=OptimizerParameters
-    )
-    actor_network_optimizer: OptimizerParameters = field(
-        default_factory=OptimizerParameters
-    )
-    # alpha in the paper; controlling explore & exploit
-    entropy_temperature: Optional[float] = None
-    warm_start_model_path: Optional[str] = None
-    logged_action_uniform_prior: bool = True
-    target_entropy: float = -1.0
-    alpha_optimizer: Optional[OptimizerParameters] = field(
-        default_factory=OptimizerParameters
-    )
-    action_embedding_kld_weight: Optional[float] = None
-    apply_kld_on_mean: Optional[bool] = None
-    action_embedding_mean: Optional[List[float]] = None
-    action_embedding_variance: Optional[List[float]] = None
 
 
 @observable(
@@ -66,40 +38,68 @@ class SACTrainer(RLTrainer):
     The actor is assumed to implement reparameterization trick.
     """
 
+    @resolve_defaults
     def __init__(
         self,
-        q1_network,
         actor_network,
-        parameters: SACTrainerParameters,
-        use_gpu: bool = False,
-        value_network=None,
+        q1_network,
         q2_network=None,
+        value_network=None,
+        use_gpu: bool = False,
+        # Start SACTrainerParameters
+        rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
+        q_network_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        value_network_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        actor_network_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        alpha_optimizer: Optional[Optimizer__Union] = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        minibatch_size: int = 1024,
+        entropy_temperature: float = 0.01,
+        logged_action_uniform_prior: bool = True,
+        target_entropy: float = -1.0,
+        action_embedding_kld_weight: Optional[float] = None,
+        apply_kld_on_mean: bool = False,
+        action_embedding_mean: Optional[List[float]] = None,
+        action_embedding_variance: Optional[List[float]] = None,
     ) -> None:
         """
         Args:
-            The four args below are provided for integration with other
-            environments (e.g., Gym):
+            actor_network: states -> actions, trained to maximize soft value,
+                which is value + policy entropy.
+            q1_network: states, action -> q-value
+            q2_network (optional): double q-learning to stabilize training
+                from overestimation bias
+            value_network (optional): states -> value of state under actor
+            # alpha in the paper; controlling explore & exploit
+            # TODO: finish
         """
-        super().__init__(parameters.rl, use_gpu=use_gpu)
+        super().__init__(rl, use_gpu=use_gpu)
 
-        self.minibatch_size = parameters.minibatch_size
+        self.minibatch_size = minibatch_size
         self.minibatches_per_step = 1
 
         self.q1_network = q1_network
-        self.q1_network_optimizer = self._get_optimizer(
-            q1_network, parameters.q_network_optimizer
+        self.q1_network_optimizer = q_network_optimizer.make_optimizer(
+            q1_network.parameters()
         )
 
         self.q2_network = q2_network
         if self.q2_network is not None:
-            self.q2_network_optimizer = self._get_optimizer(
-                q2_network, parameters.q_network_optimizer
+            self.q2_network_optimizer = q_network_optimizer.make_optimizer(
+                q2_network.parameters()
             )
 
         self.value_network = value_network
         if self.value_network is not None:
-            self.value_network_optimizer = self._get_optimizer(
-                value_network, parameters.value_network_optimizer
+            self.value_network_optimizer = value_network_optimizer.make_optimizer(
+                value_network.parameters()
             )
             self.value_network_target = copy.deepcopy(self.value_network)
         else:
@@ -107,50 +107,30 @@ class SACTrainer(RLTrainer):
             self.q2_network_target = copy.deepcopy(self.q2_network)
 
         self.actor_network = actor_network
-        self.actor_network_optimizer = self._get_optimizer(
-            actor_network, parameters.actor_network_optimizer
+        self.actor_network_optimizer = actor_network_optimizer.make_optimizer(
+            actor_network.parameters()
         )
-
-        self.entropy_temperature = (
-            parameters.entropy_temperature
-            if parameters.entropy_temperature is not None
-            else 0.1
-        )
+        self.entropy_temperature = entropy_temperature
 
         self.alpha_optimizer = None
         device = "cuda" if use_gpu else "cpu"
-        if parameters.alpha_optimizer is not None:
-            if parameters.target_entropy is not None:
-                self.target_entropy = parameters.target_entropy
-            else:
-                self.target_entropy = -1
-
+        if alpha_optimizer is not None:
+            self.target_entropy = target_entropy
             self.log_alpha = torch.tensor(
                 [np.log(self.entropy_temperature)], requires_grad=True, device=device
             )
-            self.alpha_optimizer = self._get_optimizer_func(
-                # pyre-fixme[16]: `Optional` has no attribute `optimizer`.
-                parameters.alpha_optimizer.optimizer
-            )(
-                [self.log_alpha],
-                # pyre-fixme[16]: `Optional` has no attribute `learning_rate`.
-                lr=parameters.alpha_optimizer.learning_rate,
-                # pyre-fixme[16]: `Optional` has no attribute `l2_decay`.
-                weight_decay=parameters.alpha_optimizer.l2_decay,
-            )
+            self.alpha_optimizer = alpha_optimizer.make_optimizer([self.log_alpha])
 
-        self.logged_action_uniform_prior = parameters.logged_action_uniform_prior
+        self.logged_action_uniform_prior = logged_action_uniform_prior
 
-        self.add_kld_to_loss = bool(parameters.action_embedding_kld_weight)
-        self.apply_kld_on_mean = bool(parameters.apply_kld_on_mean)
+        self.add_kld_to_loss = bool(action_embedding_kld_weight)
+        self.apply_kld_on_mean = apply_kld_on_mean
 
         if self.add_kld_to_loss:
-            self.kld_weight = parameters.action_embedding_kld_weight
-            self.action_emb_mean = torch.tensor(
-                parameters.action_embedding_mean, device=device
-            )
+            self.kld_weight = action_embedding_kld_weight
+            self.action_emb_mean = torch.tensor(action_embedding_mean, device=device)
             self.action_emb_variance = torch.tensor(
-                parameters.action_embedding_variance, device=device
+                action_embedding_variance, device=device
             )
 
     def warm_start_components(self):
@@ -180,8 +160,6 @@ class SACTrainer(RLTrainer):
         IMPORTANT: the input action here is assumed to match the
         range of the output of the actor.
         """
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_policy_network_training_batch()
 
         assert isinstance(training_batch, rlt.PolicyNetworkInput)
 
@@ -288,6 +266,7 @@ class SACTrainer(RLTrainer):
                 self.entropy_temperature * actor_output.log_prob - min_q_actor_value
             )
             # Do this in 2 steps so we can log histogram of actor loss
+            # pyre-fixme[16]: `float` has no attribute `mean`.
             actor_loss_mean = actor_loss.mean()
 
             if self.add_kld_to_loss:

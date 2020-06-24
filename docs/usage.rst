@@ -40,8 +40,10 @@ To train a batch RL model, run the following commands:
     ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
     # convert data to timeline format
     ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
-    # train model based on timeline data, and evaluate
-    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym $CONFIG
+    # train model based on timeline data
+    ./reagent/workflow/cli.py run reagent.workflow.training.identify_and_train_network $CONFIG
+    # evaluate the model
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.evaluate_gym "$CONFIG"
 
 
 Now we will describe how the above commands work, starting with a traditional RL setup with a simulator where we can trivially evaluate new policies:
@@ -85,7 +87,7 @@ We now proceed to give pseudo-code to sketch out the main ideas of our batch RL 
 Step 1 - Create training data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We first generate data from a random policy (chooses random actions) run on the ``CartPole-v0`` environment. 
+We first generate data from a random policy (chooses random actions) run on the ``CartPole-v0`` environment.
 In particular, the following Click command runs 150 episodes of ``CartPole-v0`` (max steps of 200) and stored the pickled dataframe in ``/tmp/tmp_pickle.pkl``, which you may inspect via ``pd_df = pd.read_pickle(pkl_path)``.
 
 .. code-block::
@@ -96,14 +98,14 @@ The command essentially performs the following pseudo-code:
 
 .. code-block::
 
-    dataset = RLDataset()
+    dataset = ReplayBuffer()
     for epoch in range(num_episodes_for_data_batch):
-      run_episode & store transitions to dataset
+      run_episode & store transitions
 
     df = dataset.to_pandas_df()
     df.to_pickle(pkl_path)
 
-In practice, end users would generate a dataset in a similar format from their production system. For this example, the data is stored as a pickled Pandas dataframe. 
+In practice, end users would generate a dataset in a similar format from their production system. For this example, the data is stored as a pickled Pandas dataframe.
 
 This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data are parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:
 
@@ -163,7 +165,7 @@ When running spark locally, spark creates a fake "cluster" where it stores all o
 Now that we are ready, let's run our spark job on our local machine. This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated. To do so, run the following Click command:
 
 .. code-block::
-    
+
     ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
 
 
@@ -183,11 +185,11 @@ The command essentially performs the following pseudo-code:
    spark._jvm.com.facebook.spark.rl.Timeline.main(json_params)
 
 
-Now that our data is a Spark table in Hive storage, we're ready to run the training workflow (Steps 3-5). These steps are altogether accomplished with the following Click command:
+Now that our data is a Spark table in Hive storage, we're ready to run the training workflow (Steps 3-4). These steps are altogether accomplished with the following Click command:
 
 .. code-block::
 
-    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.train_and_evaluate_gym $CONFIG
+    ./reagent/workflow/cli.py run reagent.workflow.training.identify_and_train_network $CONFIG
 
 
 We now proceed to describing this command and present some pseudo-code.
@@ -245,7 +247,6 @@ Now we are ready to train a model by running:
       for batch in dataloader:
         trainer.train(batch)
 
-
     # Store model outputs
     torchscript_output_path = f"model_{round(time.time())}.torchscript"
     serving_module = manager.build_serving_module()
@@ -267,21 +268,26 @@ Now that we have trained a new policy on the offline ``CartPole-v0`` data, we ca
 
 .. code-block::
 
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.evaluate_gym $CONFIG
+
+which performs the following pseudo-code
+
+.. code-block::
+
     # load our previous serving module
-    jit_model = torch.jit.load(training_output.output_path)
+    jit_model = torch.jit.load(saved_serving_module)
 
     # wrap around module to fit our gymrunner interface
     policy = create_predictor_policy_from_model(env, jit_model)
-    agent = Agent.create_for_env(
-        env, policy=policy, action_extractor=policy.get_action_extractor()
+    agent = Agent.create_for_env_with_serving_policy(env, policy=policy)
+
+    # run Agent on environment, and record rewards
+    rewards = evaluate_for_n_episodes(
+        n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
     )
 
-    # observe rewards
-    for _ in range(num_eval_episodes):
-        ep_reward = run_episode(env=env, agent=agent, max_steps=max_steps)
 
-
-Even on completely random data, DQN was able to learn a policy that can obtain scores close to the maximum possible score of 200.
+Even on completely random data, DQN can learn a policy that obtains scores close to the maximum possible score of 200!
 
 
 Step 6 - Visualize Results via Tensorboard

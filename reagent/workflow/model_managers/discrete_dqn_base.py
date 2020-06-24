@@ -7,22 +7,17 @@ from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
-from reagent.gym.policies.samplers.discrete_sampler import (
-    GreedyActionSampler,
-    SoftmaxActionSampler,
-)
-from reagent.gym.policies.scorers.discrete_scorer import (
-    discrete_dqn_scorer,
-    discrete_dqn_serving_scorer,
-)
+from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
+from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
 from reagent.models.base import ModelBase
-from reagent.parameters import NormalizationData, NormalizationKey
+from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     DiscreteDqnBatchPreprocessor,
-    InputColumn,
 )
 from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.types import InputColumn
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -39,14 +34,6 @@ from reagent.workflow.types import (
 from reagent.workflow.utils import train_and_evaluate_generic
 
 
-try:
-    from reagent.fb.prediction.fb_predictor_wrapper import (
-        FbDiscreteDqnPredictorUnwrapper as DiscreteDqnPredictorUnwrapper,
-    )
-except ImportError:
-    from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorUnwrapper
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -58,6 +45,7 @@ class DiscreteDQNBase(ModelManager):
     )
     preprocessing_options: Optional[PreprocessingOptions] = None
     reader_options: Optional[ReaderOptions] = None
+    eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
     def __post_init_post_parse__(self):
         super().__init__()
@@ -67,15 +55,12 @@ class DiscreteDQNBase(ModelManager):
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
         if serving:
-            sampler = GreedyActionSampler()
-            scorer = discrete_dqn_serving_scorer(
-                DiscreteDqnPredictorUnwrapper(self.build_serving_module())
-            )
+            return create_predictor_policy_from_model(self.build_serving_module())
         else:
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
-        return Policy(scorer=scorer, sampler=sampler)
+            return Policy(scorer=scorer, sampler=sampler)
 
     @property
     def metrics_to_score(self) -> List[str]:

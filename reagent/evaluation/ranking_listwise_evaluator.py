@@ -82,10 +82,14 @@ class RankingListwiseEvaluator:
         batch_ndcg = []
         batch_mean_ap = []
         for i in range(batch_size):
+            # no positive label in the slate
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
+            if not torch.any(eval_input.position_reward[i].bool()):
+                continue
+
             ranked_scores = np.zeros(self.slate_size)
             ranked_scores[ranked_idx[i]] = score_bar
             truth_scores = np.zeros(self.slate_size)
-            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             truth_scores[logged_idx[i]] = eval_input.position_reward[i].cpu().numpy()
             # average_precision_score accepts 1D arrays
             # dcg & ndcg accepts 2D arrays

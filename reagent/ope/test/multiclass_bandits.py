@@ -6,8 +6,10 @@ import logging
 import os
 import random
 import sys
+import time
 from dataclasses import dataclass
-from typing import Tuple
+from pathlib import PurePath
+from typing import Iterable, Tuple
 
 import numpy as np
 import pandas as pd
@@ -21,14 +23,14 @@ from reagent.ope.estimators.contextual_bandits_estimators import (
     DMEstimator,
     DoublyRobustEstimator,
     IPSEstimator,
-    Log,
     LogSample,
 )
-from reagent.ope.estimators.types import ActionSpace, Policy
+from reagent.ope.estimators.estimator import Estimator, Evaluator
+from reagent.ope.estimators.types import ActionSpace, Policy, Trainer, TrainingData
 from reagent.ope.trainers.linear_trainers import (
+    DecisionTreeTrainer,
     LogisticRegressionTrainer,
     SGDClassifierTrainer,
-    TrainingData,
 )
 from torch import Tensor
 
@@ -57,8 +59,9 @@ class UCIMultiClassDataset:
         index_col = params["index_col"] if "index_col" in params else None
         label_col = params["label_col"]
         sep = params["sep"] if "sep" in params else ","
+        self._config_file = params["file"]
         self._data_frame = pd.read_csv(
-            params["file"],
+            self._config_file,
             sep=sep,
             header=None,
             index_col=index_col if index_col is not None else False,
@@ -102,6 +105,10 @@ class UCIMultiClassDataset:
         return MultiClassDataRow(
             self._features[idx], self._class_indices[idx], self._one_hots[idx]
         )
+
+    @property
+    def config_file(self) -> str:
+        return self._config_file
 
     @property
     def num_features(self) -> int:
@@ -183,11 +190,92 @@ class MultiClassPolicy(Policy):
         self._exploitation_prob = 1.0 - epsilon
         self._exploration_prob = epsilon / len(self.action_space)
 
-    def _query(self, context: MultiClassContext) -> Tuple[Action, ActionDistribution]:
-        dist = self._action_ditributions[context.query_id]
+    def _query(self, query_id: int) -> Tuple[Action, ActionDistribution]:
+        dist = self._action_ditributions[query_id]
         dist = dist * self._exploitation_prob + self._exploration_prob
         action = torch.multinomial(dist, 1).item()
         return Action(action), ActionDistribution(dist)
+
+
+def evaluate_all(
+    experiments: Iterable[Tuple[Iterable[Estimator], int]],
+    dataset: UCIMultiClassDataset,
+    log_trainer: Trainer,
+    log_epsilon: float,
+    tgt_trainer: Trainer,
+    tgt_epsilon: float,
+    max_num_workers: int,
+    device=None,
+):
+    action_space = ActionSpace(dataset.num_actions)
+    config_path = PurePath(dataset.config_file)
+    data_name = config_path.stem
+    log_model_name = data_name + "_" + log_trainer.__class__.__name__ + ".pickle"
+    log_model_file = str(config_path.with_name(log_model_name))
+    tgt_model_name = data_name + "_" + tgt_trainer.__class__.__name__ + ".pickle"
+    tgt_model_file = str(config_path.with_name(tgt_model_name))
+
+    log_trainer.load_model(log_model_file)
+    tgt_trainer.load_model(tgt_model_file)
+    if not log_trainer.is_trained or not tgt_trainer.is_trained:
+        (
+            train_x,
+            train_y,
+            train_r,
+            val_x,
+            val_y,
+            val_r,
+            test_x,
+            test_y,
+            test_r,
+        ) = dataset.train_val_test_split((0.8, 0.8))
+        trainer_data = TrainingData(train_x, train_y, None, val_x, val_y, None)
+        if not log_trainer.is_trained:
+            log_trainer.train(trainer_data)
+            log_trainer.save_model(log_model_file)
+        if not tgt_trainer.is_trained:
+            tgt_trainer.train(trainer_data)
+            tgt_trainer.save_model(tgt_model_file)
+
+    log_results = log_trainer.predict(dataset.features)
+    log_policy = MultiClassPolicy(action_space, log_results.probabilities, log_epsilon)
+
+    tgt_results = tgt_trainer.predict(dataset.features)
+    tgt_policy = MultiClassPolicy(action_space, tgt_results.probabilities, tgt_epsilon)
+
+    inputs = []
+    tasks = []
+    total_queries = len(dataset)
+    for estimators, num_samples in experiments:
+        samples = []
+        for i in range(num_samples):
+            qid = random.randrange(total_queries)
+            label = int(dataset.labels[qid].item())
+            log_action, log_action_probabilities = log_policy(qid)
+            log_reward = 1.0 if log_action.value == label else 0.0
+            tgt_action, tgt_action_probabilities = tgt_policy(qid)
+            ground_truth_reward = 1.0 if tgt_action.value == label else 0.0
+            item_feature = dataset.features[qid]
+            samples.append(
+                LogSample(
+                    qid,
+                    log_action,
+                    log_reward,
+                    log_action_probabilities,
+                    tgt_action_probabilities,
+                    ground_truth_reward,
+                    item_feature,
+                )
+            )
+        tasks.append((estimators, BanditsEstimatorInput(action_space, samples)))
+
+    logging.info("start evaluating...")
+    st = time.perf_counter()
+    evaluator = Evaluator(tasks, max_num_workers)
+    results = evaluator.evaluate()
+    Evaluator.report_results(results)
+    logging.info(f"evaluating done in {time.perf_counter() - st}s")
+    return results
 
 
 DEFAULT_ITERATIONS = 500
@@ -212,71 +300,22 @@ if __name__ == "__main__":
     torch.random.manual_seed(1234)
 
     dataset = UCIMultiClassDataset(params["dataset"])
-
-    episodes = DEFAULT_ITERATIONS
-    if "iterations" in params:
-        episodes = params["iterations"]
-
-    training_iterations = 10
-    training_test_split_ratio = 0.5
-    train_x, train_y, train_r, val_x, val_y, val_r, test_x, test_y, test_r = dataset.train_val_test_split(
-        (0.8, 0.8)
-    )
-
-    trainer_data = TrainingData(train_x, train_y, None, val_x, val_y, None)
-
-    action_space = ActionSpace(dataset.num_actions)
-    gt_model = MultiClassModel(test_x, test_r)
-
     log_trainer = LogisticRegressionTrainer()
-    log_trainer.train(trainer_data)
-    log_results = log_trainer.predict(test_x)
-    score = log_trainer.score(test_y, log_results.predictions)
-    logging.info(f"Model trainer score: {score}")
-    log_model = MultiClassModel(test_x, log_results.probabilities)
-    log_policy = MultiClassPolicy(action_space, log_results.probabilities, 1.0)
-
-    target_trainer = SGDClassifierTrainer()
-    # target_trainer = SGDClassifierTrainer(500, 'modified_huber')
-    target_trainer.train(trainer_data)
-    target_results = target_trainer.predict(test_x)
-    score = target_trainer.score(test_y, target_results.predictions)
-    logging.info(f"Target trainer score: {score}")
-    target_model = MultiClassModel(test_x, target_results.probabilities)
-    target_policy = MultiClassPolicy(action_space, target_results.probabilities, 0.1)
-
-    num_epsidoes = 10
-    num_total_samples = test_x.shape[0]
-    num_sample = num_total_samples // 5
-
-    logs = []
-    for i in range(num_epsidoes):
-        train_choices = random.sample(range(num_total_samples), num_sample)
-        samples = []
-        for i in train_choices:
-            context = MultiClassContext(i)
-            logged_action, logged_dist = log_policy(context)
-            logged_reward = log_model(context)[logged_action]
-            target_action, target_dist = target_policy(context)
-            samples.append(
-                LogSample(
-                    context,
-                    logged_action,
-                    logged_dist,
-                    logged_reward,
-                    target_action,
-                    target_dist,
-                )
-            )
-        logs.append(Log(samples))
-
-    input = BanditsEstimatorInput(action_space, logs, target_model, gt_model)
-
-    result = DMEstimator().evaluate(input)
-    logging.info(f"DM result: {result}")
-
-    result = IPSEstimator().evaluate(input)
-    logging.info(f"IPS result: {result}")
-
-    result = DoublyRobustEstimator().evaluate(input)
-    logging.info(f"DR result: {result}")
+    log_epsilon = 0.1
+    tgt_trainer = SGDClassifierTrainer()
+    tgt_epsilon = 0.1
+    dm_trainer = DecisionTreeTrainer()
+    experiments = [
+        (
+            (
+                DMEstimator(DecisionTreeTrainer()),
+                IPSEstimator(),
+                DoublyRobustEstimator(DecisionTreeTrainer()),
+            ),
+            1000,
+        )
+        for _ in range(100)
+    ]
+    evaluate_all(
+        experiments, dataset, log_trainer, log_epsilon, tgt_trainer, tgt_epsilon, 0
+    )

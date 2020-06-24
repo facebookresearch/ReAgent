@@ -32,10 +32,8 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = torch.optim.Adam(
-            self.seq2slate_net.parameters(),
-            lr=self.parameters.transformer.learning_rate,
-            amsgrad=True,
+        self.optimizer = self.parameters.transformer.optimizer.make_optimizer(
+            self.seq2slate_net.parameters()
         )
         self.kl_div_loss = nn.KLDivLoss(reduction="batchmean")
 

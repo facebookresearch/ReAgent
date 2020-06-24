@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from reagent.ope.estimators.sequential_estimators import (
     DMEstimator,
-    DREstimator,
+    DoublyRobustEstimator,
     EpsilonGreedyRLPolicy,
     IPSEstimator,
     MAGICEstimator,
@@ -333,10 +333,10 @@ if __name__ == "__main__":
         estimator_input
     )
 
-    DREstimator(weight_clamper=None, weighted=False, device=device).evaluate(
+    DoublyRobustEstimator(weight_clamper=None, weighted=False, device=device).evaluate(
         estimator_input
     )
-    DREstimator(weight_clamper=None, weighted=True, device=device).evaluate(
+    DoublyRobustEstimator(weight_clamper=None, weighted=True, device=device).evaluate(
         estimator_input
     )
 

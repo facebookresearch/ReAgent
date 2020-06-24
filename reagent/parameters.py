@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass, field
+from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters_seq2slate import LearningMethod, RewardClamp
 from reagent.types import BaseDataClass
 
@@ -24,7 +25,7 @@ class RLParameters(BaseDataClass):
     maxq_learning: bool = True
     reward_boost: Optional[Dict[str, float]] = None
     temperature: float = 0.01
-    softmax_policy: int = 1
+    softmax_policy: bool = True
     use_seq_num_diff_as_time_diff: bool = False
     q_network_loss: str = "mse"
     set_missing_value_to_zero: bool = False
@@ -36,24 +37,6 @@ class RLParameters(BaseDataClass):
     # for pytorch discrete model, specify the max number of prediction change
     # allowed during conversions between model frameworks in ratio
     ratio_different_predictions_tolerance: float = 0
-
-
-@dataclass(frozen=True)
-class RainbowDQNParameters(BaseDataClass):
-    double_q_learning: bool = True
-    dueling_architecture: bool = True
-    # Batch constrained q-learning (bcq) is not technically a Rainbow addition
-    # but an augmentation to DQN so putting here.
-    bcq: bool = False
-    # 0 = max q-learning, 1 = imitation learning
-    bcq_drop_threshold: float = 0.1
-    categorical: bool = False
-    num_atoms: int = 51
-    qmin: float = -100
-    qmax: float = 200
-    # C51's performance degrades with l2_regularization != 0.
-    c51_l2_decay: float = 0
-    quantile: bool = False
 
 
 @dataclass(frozen=True)
@@ -76,6 +59,17 @@ class MDNRNNTrainerParameters(BaseDataClass):
 
 
 @dataclass(frozen=True)
+class Seq2RewardTrainerParameters(BaseDataClass):
+    __hash__ = param_hash
+
+    minibatch_size: int = 16
+    learning_rate: float = 0.001
+    train_data_percentage: float = 60.0
+    validation_data_percentage: float = 20.0
+    test_data_percentage: float = 20.0
+
+
+@dataclass(frozen=True)
 class CEMTrainerParameters(BaseDataClass):
     __hash__ = param_hash
 
@@ -89,51 +83,6 @@ class CEMTrainerParameters(BaseDataClass):
     rl: RLParameters = RLParameters()
     alpha: float = 0.25
     epsilon: float = 0.001
-
-
-@dataclass(frozen=True)
-class CNNParameters(BaseDataClass):
-    __hash__ = param_hash
-
-    conv_dims: List[int]
-    conv_height_kernels: List[int]
-    conv_width_kernels: List[int]
-    pool_kernels_strides: List[int]
-    pool_types: List[str]
-    num_input_channels: int
-    input_height: int
-    input_width: int
-
-
-@dataclass(frozen=True)
-class FeedForwardParameters(BaseDataClass):
-    __hash__ = param_hash
-
-    layers: List[int] = field(default_factory=lambda: [256, 128])
-    activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
-    use_layer_norm: Optional[bool] = None
-
-
-@dataclass(frozen=True)
-class TrainingParameters(BaseDataClass):
-    __hash__ = param_hash
-
-    minibatch_size: int = 4096
-    learning_rate: float = 0.001
-    optimizer: str = "ADAM"
-    layers: List[int] = field(default_factory=lambda: [-1, 256, 128, 1])
-    activations: List[str] = field(default_factory=lambda: ["relu", "relu", "linear"])
-    lr_policy: str = "fixed"
-    lr_decay: float = 0.999
-    dropout_ratio: float = 0.0
-    warm_start_model_path: Optional[str] = None
-    cnn_parameters: Optional[CNNParameters] = None
-    l2_decay: float = 0.01
-    weight_init_min_std: float = 0.0
-    use_batch_norm: bool = False
-    clip_grad_norm: Optional[float] = None
-    minibatches_per_step: int = 1
-    do_not_warm_start_optimizer: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -154,35 +103,6 @@ class StateFeatureParameters(BaseDataClass):
 
     state_feature_names_override: List[str] = field(default_factory=lambda: [])
     state_feature_hashes_override: List[int] = field(default_factory=lambda: [])
-
-
-@dataclass(frozen=True)
-class DiscreteActionModelParameters(BaseDataClass):
-    __hash__ = param_hash
-
-    actions: List[str] = field(default_factory=lambda: [])
-    rl: RLParameters = RLParameters()
-    training: TrainingParameters = TrainingParameters()
-    rainbow: RainbowDQNParameters = RainbowDQNParameters()
-    state_feature_params: Optional[StateFeatureParameters] = None
-    target_action_distribution: Optional[List[float]] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-
-
-@dataclass(frozen=True)
-class ContinuousActionModelParameters(BaseDataClass):
-    rl: RLParameters
-    training: TrainingParameters
-    rainbow: RainbowDQNParameters
-    state_feature_params: Optional[StateFeatureParameters] = None
-    evaluation: EvaluationParameters = EvaluationParameters()
-
-
-@dataclass(frozen=True)
-class OptimizerParameters(BaseDataClass):
-    optimizer: str = "ADAM"
-    learning_rate: float = 0.001
-    l2_decay: float = 0.01
 
 
 @dataclass(frozen=True)
@@ -226,7 +146,15 @@ class TransformerParameters(BaseDataClass):
     dim_model: int
     dim_feedforward: int
     num_stacked_layers: int
-    learning_rate: float = 1e-4
+    optimizer: Optimizer__Union = field(
+        default_factory=Optimizer__Union.default(lr=1e-4, amsgrad=True)
+    )
+
+
+@dataclass(frozen=True)
+class GRUParameters(BaseDataClass):
+    dim_model: int
+    num_stacked_layers: int
 
 
 @dataclass(frozen=True)
@@ -234,7 +162,9 @@ class BaselineParameters(BaseDataClass):
     dim_feedforward: int
     num_stacked_layers: int
     warmup_num_batches: int = 0
-    learning_rate: float = 1e-4
+    optimizer: Optimizer__Union = field(
+        default_factory=Optimizer__Union.default(lr=1e-4, amsgrad=True)
+    )
 
 
 @dataclass(frozen=True)

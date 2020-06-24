@@ -23,6 +23,7 @@ import unittest
 
 import numpy as np
 import numpy.testing as npt
+import torch
 from reagent.replay_memory import circular_replay_buffer
 
 
@@ -48,7 +49,6 @@ class ReplayBufferTest(unittest.TestCase):
         self._test_reward = np.ones(num_dims) * 3
         self._test_terminal = np.ones(num_dims) * 4
         self._test_add_count = np.array(7)
-        self._test_invalid_range = np.ones(num_dims)
 
     def tearDown(self):
         self.tmp_dir.cleanup()
@@ -79,15 +79,6 @@ class ReplayBufferTest(unittest.TestCase):
         )
         self.assertEqual(memory._observation_shape, (4, 20))
         self.assertEqual(memory.add_count, 0)
-        # Test with terminal datatype of np.int32
-        memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            terminal_dtype=np.int32,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
-        )
-        self.assertEqual(memory._terminal_dtype, np.int32)
 
     def testAdd(self):
         memory = circular_replay_buffer.ReplayBuffer(
@@ -172,88 +163,6 @@ class ReplayBufferTest(unittest.TestCase):
             gamma=1.0,
         )
 
-    def testGetRangeInvalidIndexOrder(self):
-        replay_capacity = 10
-        memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=replay_capacity,
-            batch_size=BATCH_SIZE,
-            update_horizon=5,
-            gamma=1.0,
-        )
-        with self.assertRaisesRegex(
-            AssertionError, "end_index must be larger than start_index"
-        ):
-            memory.get_range([], 2, 1)
-        with self.assertRaises(AssertionError):
-            # Negative end_index.
-            memory.get_range([], 1, -1)
-        with self.assertRaises(AssertionError):
-            # Start index beyond replay capacity.
-            memory.get_range([], replay_capacity, replay_capacity + 1)
-        with self.assertRaisesRegex(AssertionError, "Index 1 has not been added."):
-            memory.get_range([], 1, 2)
-
-    def testGetRangeNoWraparound(self):
-        # Test the get_range function when the indices do not wrap around the
-        # circular buffer. In other words, start_index < end_index.
-        memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=10,
-            batch_size=BATCH_SIZE,
-            update_horizon=5,
-            gamma=1.0,
-        )
-        for _ in range(10):
-            memory.add(np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE), 0, 2.0, 0)
-        # The constructed `array` will be:
-        # array([[ 1.,  1.,  1.,  1.,  1.],
-        #        [ 2.,  2.,  2.,  2.,  2.],
-        #        [ 3.,  3.,  3.,  3.,  3.],
-        #        [ 4.,  4.,  4.,  4.,  4.],
-        #        [ 5.,  5.,  5.,  5.,  5.],
-        #        [ 6.,  6.,  6.,  6.,  6.],
-        #        [ 7.,  7.,  7.,  7.,  7.],
-        #        [ 8.,  8.,  8.,  8.,  8.],
-        #        [ 9.,  9.,  9.,  9.,  9.],
-        #        [10., 10., 10., 10., 10.]])
-        array = np.arange(10).reshape(10, 1) + np.ones(5)
-        sliced_array = memory.get_range(array, 2, 5)
-        npt.assert_array_equal(sliced_array, array[2:5])
-
-    def testGetRangeWithWraparound(self):
-        # Test the get_range function when the indices wrap around the circular
-        # buffer. In other words, start_index > end_index.
-        memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=10,
-            batch_size=BATCH_SIZE,
-            update_horizon=5,
-            gamma=1.0,
-        )
-        for _ in range(10):
-            memory.add(np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE), 0, 2.0, 0)
-        # The constructed `array` will be:
-        # array([[ 1.,  1.,  1.,  1.,  1.],
-        #        [ 2.,  2.,  2.,  2.,  2.],
-        #        [ 3.,  3.,  3.,  3.,  3.],
-        #        [ 4.,  4.,  4.,  4.,  4.],
-        #        [ 5.,  5.,  5.,  5.,  5.],
-        #        [ 6.,  6.,  6.,  6.,  6.],
-        #        [ 7.,  7.,  7.,  7.,  7.],
-        #        [ 8.,  8.,  8.,  8.,  8.],
-        #        [ 9.,  9.,  9.,  9.,  9.],
-        #        [10., 10., 10., 10., 10.]])
-        array = np.arange(10).reshape(10, 1) + np.ones(5)
-        sliced_array = memory.get_range(array, 8, 12)
-        # We roll by two, since start_index == 8 and replay_capacity == 10, so the
-        # resulting indices used will be [8, 9, 0, 1].
-        rolled_array = np.roll(array, 2, axis=0)
-        npt.assert_array_equal(sliced_array, rolled_array[:4])
-
     def testNSteprewardum(self):
         memory = circular_replay_buffer.ReplayBuffer(
             observation_shape=OBSERVATION_SHAPE,
@@ -271,35 +180,6 @@ class ReplayBufferTest(unittest.TestCase):
             batch = memory.sample_transition_batch()
             # Make sure the total reward is reward per step x update_horizon.
             self.assertEqual(batch[2][0], 10.0)
-
-    def testGetStack(self):
-        zero_stack = np.zeros(OBSERVATION_SHAPE + (4,), dtype=OBS_DTYPE)
-
-        memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=50,
-            batch_size=BATCH_SIZE,
-        )
-        for i in range(11):
-            memory.add(np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE), 0, 0, 0)
-
-        # ensure that the returned shapes are always correct
-        for i in range(3, memory.cursor()):
-            self.assertTrue(
-                memory.get_observation_stack(i).shape, OBSERVATION_SHAPE + (4,)
-            )
-
-        # ensure that there is the necessary 0 padding
-        stack = memory.get_observation_stack(3)
-        self.assertTrue(np.array_equal(zero_stack, stack))
-
-        # ensure that after the padding the contents are properly stored
-        stack = memory.get_observation_stack(6)
-        for i in range(4):
-            self.assertTrue(
-                np.array_equal(np.full(OBSERVATION_SHAPE, i), stack[:, :, i])
-            )
 
     def testSampleTransitionBatch(self):
         replay_capacity = 10
@@ -330,7 +210,7 @@ class ReplayBufferTest(unittest.TestCase):
         # Verify we can specify what indices to sample.
         indices = [1, 2, 3, 5, 8]
         expected_states = np.array(
-            [np.full(OBSERVATION_SHAPE + (1,), i, dtype=OBS_DTYPE) for i in indices]
+            [np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE) for i in indices]
         )
         expected_next_states = (expected_states + 1) % replay_capacity
         # Because the replay buffer is circular, we can exactly compute what the
@@ -339,30 +219,20 @@ class ReplayBufferTest(unittest.TestCase):
         expected_next_states += num_adds - replay_capacity
         # This is replicating the formula that was used above to determine what
         # transitions are terminal when adding observation (i % 4).
-        expected_terminal = np.array(
-            [min((x + num_adds - replay_capacity) % 4, 1) for x in indices]
-        )
+        expected_terminal = np.expand_dims(
+            np.array([min((x + num_adds - replay_capacity) % 4, 1) for x in indices]), 1
+        ).astype(np.bool)
         batch = memory.sample_transition_batch(
-            batch_size=len(indices), indices=np.array(indices)
+            batch_size=len(indices), indices=torch.tensor(indices)
         )
-        (
-            states,
-            action,
-            reward,
-            next_states,
-            next_action,
-            next_reward,
-            terminal,
-            indices_batch,
-        ) = batch
-        npt.assert_array_equal(states, expected_states)
-        npt.assert_array_equal(action, np.zeros(len(indices)))
-        npt.assert_array_equal(reward, np.zeros(len(indices)))
-        npt.assert_array_equal(next_action, np.zeros(len(indices)))
-        npt.assert_array_equal(next_reward, np.zeros(len(indices)))
-        npt.assert_array_equal(next_states, expected_next_states)
-        npt.assert_array_equal(terminal, expected_terminal)
-        npt.assert_array_equal(indices_batch, indices)
+        npt.assert_array_equal(batch.state, expected_states)
+        npt.assert_array_equal(batch.action, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.reward, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.next_action, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.next_reward, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.next_state, expected_next_states)
+        npt.assert_array_equal(batch.terminal, expected_terminal)
+        npt.assert_array_equal(batch.indices, np.expand_dims(np.array(indices), 1))
 
     def testSampleTransitionBatchExtra(self):
         replay_capacity = 10
@@ -402,7 +272,7 @@ class ReplayBufferTest(unittest.TestCase):
         # Verify we can specify what indices to sample.
         indices = [1, 2, 3, 5, 8]
         expected_states = np.array(
-            [np.full(OBSERVATION_SHAPE + (1,), i, dtype=OBS_DTYPE) for i in indices]
+            [np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE) for i in indices]
         )
         expected_next_states = (expected_states + 1) % replay_capacity
         # Because the replay buffer is circular, we can exactly compute what the
@@ -411,14 +281,14 @@ class ReplayBufferTest(unittest.TestCase):
         expected_next_states += num_adds - replay_capacity
         # This is replicating the formula that was used above to determine what
         # transitions are terminal when adding observation (i % 4).
-        expected_terminal = np.array(
-            [min((x + num_adds - replay_capacity) % 4, 1) for x in indices]
+        expected_terminal = np.expand_dims(
+            np.array([min((x + num_adds - replay_capacity) % 4, 1) for x in indices]), 1
+        ).astype(np.bool)
+        expected_extra1 = np.expand_dims(
+            np.array([(x + num_adds - replay_capacity) % 2 for x in indices]), 1
         )
-        expected_extra1 = np.array(
-            [(x + num_adds - replay_capacity) % 2 for x in indices]
-        )
-        expected_next_extra1 = np.array(
-            [(x + 1 + num_adds - replay_capacity) % 2 for x in indices]
+        expected_next_extra1 = np.expand_dims(
+            np.array([(x + 1 + num_adds - replay_capacity) % 2 for x in indices]), 1
         )
         expected_extra2 = np.stack(
             [
@@ -435,34 +305,20 @@ class ReplayBufferTest(unittest.TestCase):
             axis=1,
         )
         batch = memory.sample_transition_batch(
-            batch_size=len(indices), indices=np.array(indices)
+            batch_size=len(indices), indices=torch.tensor(indices)
         )
-        (
-            states,
-            action,
-            reward,
-            next_states,
-            next_action,
-            next_reward,
-            terminal,
-            indices_batch,
-            extra1,
-            next_extra1,
-            extra2,
-            next_extra2,
-        ) = batch
-        npt.assert_array_equal(states, expected_states)
-        npt.assert_array_equal(action, np.zeros(len(indices)))
-        npt.assert_array_equal(reward, np.zeros(len(indices)))
-        npt.assert_array_equal(next_action, np.zeros(len(indices)))
-        npt.assert_array_equal(next_reward, np.zeros(len(indices)))
-        npt.assert_array_equal(next_states, expected_next_states)
-        npt.assert_array_equal(terminal, expected_terminal)
-        npt.assert_array_equal(indices_batch, indices)
-        npt.assert_array_equal(extra1, expected_extra1)
-        npt.assert_array_equal(next_extra1, expected_next_extra1)
-        npt.assert_array_equal(extra2, expected_extra2)
-        npt.assert_array_equal(next_extra2, expected_next_extra2)
+        npt.assert_array_equal(batch.state, expected_states)
+        npt.assert_array_equal(batch.action, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.reward, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.next_action, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.next_reward, np.zeros((len(indices), 1)))
+        npt.assert_array_equal(batch.next_state, expected_next_states)
+        npt.assert_array_equal(batch.terminal, expected_terminal)
+        npt.assert_array_equal(batch.indices, np.expand_dims(np.array(indices), 1))
+        npt.assert_array_equal(batch.extra1, expected_extra1)
+        npt.assert_array_equal(batch.next_extra1, expected_next_extra1)
+        npt.assert_array_equal(batch.extra2, expected_extra2)
+        npt.assert_array_equal(batch.next_extra2, expected_next_extra2)
 
     def testSamplingWithterminalInTrajectory(self):
         replay_capacity = 10
@@ -484,11 +340,11 @@ class ReplayBufferTest(unittest.TestCase):
             )  # terminal
         indices = [2, 3, 4]
         batch = memory.sample_transition_batch(
-            batch_size=len(indices), indices=np.array(indices)
+            batch_size=len(indices), indices=torch.tensor(indices)
         )
-        states, action, reward, _, _, _, terminal, indices_batch = batch
+        # In commone shape, state is 2-D unless stack_size > 1.
         expected_states = np.array(
-            [np.full(OBSERVATION_SHAPE + (1,), i, dtype=OBS_DTYPE) for i in indices]
+            [np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE) for i in indices]
         )
         # The reward in the replay buffer will be (an asterisk marks the terminal
         # state):
@@ -497,42 +353,16 @@ class ReplayBufferTest(unittest.TestCase):
         # reward starting at each of the replay buffer positions will be:
         #   [3 6 5 3 15 18 21 24]
         # Since indices = [2, 3, 4], our expected reward are [5, 3, 15].
-        expected_reward = np.array([5, 3, 15])
+        expected_reward = np.array([[5], [3], [15]])
         # Because update_horizon = 3, both indices 2 and 3 include terminal.
-        expected_terminal = np.array([1, 1, 0])
-        npt.assert_array_equal(states, expected_states)
-        npt.assert_array_equal(action, np.array(indices) * 2)
-        npt.assert_array_equal(reward, expected_reward)
-        npt.assert_array_equal(terminal, expected_terminal)
-        npt.assert_array_equal(indices_batch, indices)
-
-    def testInvalidRange(self):
-        # The correct range accounts for the automatically applied padding (3 blanks
-        # each episode.
-
-        invalid_range = circular_replay_buffer.invalid_range(
-            cursor=6, replay_capacity=10, stack_size=4, update_horizon=1
+        expected_terminal = np.array([[1], [1], [0]]).astype(np.bool)
+        npt.assert_array_equal(batch.state, expected_states)
+        npt.assert_array_equal(
+            batch.action, np.expand_dims(np.array(indices) * 2, axis=1)
         )
-        correct_invalid_range = [5, 6, 7, 8, 9]
-        npt.assert_allclose(correct_invalid_range, invalid_range)
-
-        invalid_range = circular_replay_buffer.invalid_range(
-            cursor=9, replay_capacity=10, stack_size=4, update_horizon=1
-        )
-        correct_invalid_range = [8, 9, 0, 1, 2]
-        npt.assert_allclose(correct_invalid_range, invalid_range)
-
-        invalid_range = circular_replay_buffer.invalid_range(
-            cursor=0, replay_capacity=10, stack_size=4, update_horizon=1
-        )
-        correct_invalid_range = [9, 0, 1, 2, 3]
-        npt.assert_allclose(correct_invalid_range, invalid_range)
-
-        invalid_range = circular_replay_buffer.invalid_range(
-            cursor=6, replay_capacity=10, stack_size=4, update_horizon=3
-        )
-        correct_invalid_range = [3, 4, 5, 6, 7, 8, 9]
-        npt.assert_allclose(correct_invalid_range, invalid_range)
+        npt.assert_array_equal(batch.reward, expected_reward)
+        npt.assert_array_equal(batch.terminal, expected_terminal)
+        npt.assert_array_equal(batch.indices, np.expand_dims(np.array(indices), 1))
 
     def testIsTransitionValid(self):
         memory = circular_replay_buffer.ReplayBuffer(
@@ -648,7 +478,6 @@ class ReplayBufferTest(unittest.TestCase):
         self.assertNotEqual(memory._store["reward"], self._test_reward)
         self.assertNotEqual(memory._store["terminal"], self._test_terminal)
         self.assertNotEqual(memory.add_count, self._test_add_count)
-        self.assertNotEqual(memory.invalid_range, self._test_invalid_range)
 
     def testPartialLoadFails(self):
         memory = circular_replay_buffer.ReplayBuffer(
@@ -667,7 +496,6 @@ class ReplayBufferTest(unittest.TestCase):
             "action": self._test_action,
             "terminal": self._test_terminal,
             "add_count": self._test_add_count,
-            "invalid_range": self._test_invalid_range,
         }
         for attr in numpy_arrays:
             filename = os.path.join(self._test_subdir, "{}_ckpt.3.gz".format(attr))
@@ -684,7 +512,6 @@ class ReplayBufferTest(unittest.TestCase):
         self.assertNotEqual(memory._store["reward"], self._test_reward)
         self.assertNotEqual(memory._store["terminal"], self._test_terminal)
         self.assertNotEqual(memory.add_count, self._test_add_count)
-        self.assertNotEqual(memory.invalid_range, self._test_invalid_range)
 
     def testLoad(self):
         memory = circular_replay_buffer.ReplayBuffer(
@@ -698,7 +525,6 @@ class ReplayBufferTest(unittest.TestCase):
         self.assertNotEqual(memory._store["reward"], self._test_reward)
         self.assertNotEqual(memory._store["terminal"], self._test_terminal)
         self.assertNotEqual(memory.add_count, self._test_add_count)
-        self.assertNotEqual(memory.invalid_range, self._test_invalid_range)
         store_prefix = "$store$_"
         numpy_arrays = {
             store_prefix + "observation": self._test_observation,
@@ -706,7 +532,6 @@ class ReplayBufferTest(unittest.TestCase):
             store_prefix + "reward": self._test_reward,
             store_prefix + "terminal": self._test_terminal,
             "add_count": self._test_add_count,
-            "invalid_range": self._test_invalid_range,
         }
         for attr in numpy_arrays:
             filename = os.path.join(self._test_subdir, "{}_ckpt.3.gz".format(attr))
@@ -719,4 +544,3 @@ class ReplayBufferTest(unittest.TestCase):
         npt.assert_allclose(memory._store["reward"], self._test_reward)
         npt.assert_allclose(memory._store["terminal"], self._test_terminal)
         self.assertEqual(memory.add_count, self._test_add_count)
-        npt.assert_allclose(memory.invalid_range, self._test_invalid_range)

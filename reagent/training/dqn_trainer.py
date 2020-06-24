@@ -1,61 +1,23 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-
 from typing import List, Optional, Tuple
 
-import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
+from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.tracker import observable
-from reagent.parameters import DiscreteActionModelParameters
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.imitator_training import get_valid_actions_from_imitator
-from reagent.training.training_data_page import TrainingDataPage
 
 
 @dataclass(frozen=True)
 class BCQConfig:
     # 0 = max q-learning, 1 = imitation learning
     drop_threshold: float = 0.1
-
-
-@dataclass(frozen=True)
-class DQNTrainerParameters:
-    __hash__ = rlp.param_hash
-
-    actions: List[str] = field(default_factory=list)
-    rl: rlp.RLParameters = field(default_factory=rlp.RLParameters)
-    double_q_learning: bool = True
-    bcq: Optional[BCQConfig] = None
-    minibatch_size: int = 1024
-    minibatches_per_step: int = 1
-    optimizer: rlp.OptimizerParameters = field(default_factory=rlp.OptimizerParameters)
-    evaluation: rlp.EvaluationParameters = field(
-        default_factory=rlp.EvaluationParameters
-    )
-
-    @classmethod
-    def from_discrete_action_model_parameters(
-        cls, params: DiscreteActionModelParameters
-    ):
-        return cls(
-            actions=params.actions,
-            rl=params.rl,
-            double_q_learning=params.rainbow.double_q_learning,
-            bcq=BCQConfig(drop_threshold=params.rainbow.bcq_drop_threshold)
-            if params.rainbow.bcq
-            else None,
-            minibatch_size=params.training.minibatch_size,
-            minibatches_per_step=params.training.minibatches_per_step,
-            optimizer=rlp.OptimizerParameters(
-                optimizer=params.training.optimizer,
-                learning_rate=params.training.learning_rate,
-                l2_decay=params.training.l2_decay,
-            ),
-            evaluation=params.evaluation,
-        )
 
 
 @observable(
@@ -70,66 +32,67 @@ class DQNTrainerParameters:
     model_action_idxs=torch.Tensor,
 )
 class DQNTrainer(DQNTrainerBase):
+    @resolve_defaults
     def __init__(
         self,
         q_network,
         q_network_target,
         reward_network,
-        parameters: DQNTrainerParameters,
-        use_gpu=False,
         q_network_cpe=None,
         q_network_cpe_target=None,
         metrics_to_score=None,
         imitator=None,
         loss_reporter=None,
+        use_gpu: bool = False,
+        actions: List[str] = field(default_factory=list),  # noqa: B008
+        rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
+        double_q_learning: bool = True,
+        bcq: Optional[BCQConfig] = None,
+        minibatch_size: int = 1024,
+        minibatches_per_step: int = 1,
+        optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        evaluation: EvaluationParameters = field(  # noqa: B008
+            default_factory=EvaluationParameters
+        ),
     ) -> None:
         super().__init__(
-            parameters.rl,
+            rl,
             use_gpu=use_gpu,
             metrics_to_score=metrics_to_score,
-            actions=parameters.actions,
-            evaluation_parameters=parameters.evaluation,
+            actions=actions,
+            evaluation_parameters=evaluation,
             loss_reporter=loss_reporter,
         )
         assert self._actions is not None, "Discrete-action DQN needs action names"
-        self.double_q_learning = parameters.double_q_learning
-        self.minibatch_size = parameters.minibatch_size
-        self.minibatches_per_step = parameters.minibatches_per_step or 1
+        self.double_q_learning = double_q_learning
+        self.minibatch_size = minibatch_size
+        self.minibatches_per_step = minibatches_per_step or 1
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self._set_optimizer(parameters.optimizer.optimizer)
-        # pyre-fixme[16]: `DQNTrainer` has no attribute `optimizer_func`.
-        self.q_network_optimizer = self.optimizer_func(
-            self.q_network.parameters(),
-            lr=parameters.optimizer.learning_rate,
-            weight_decay=parameters.optimizer.l2_decay,
-        )
+        self.q_network_optimizer = optimizer.make_optimizer(q_network.parameters())
 
         self._initialize_cpe(
-            parameters,
-            reward_network,
-            q_network_cpe,
-            q_network_cpe_target,
-            cpe_optimizer_parameters=parameters.optimizer,
+            reward_network, q_network_cpe, q_network_cpe_target, optimizer=optimizer
         )
 
         # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
-        if parameters.rl.reward_boost is not None:
+        if rl.reward_boost is not None:
             # pyre-fixme[16]: `Optional` has no attribute `keys`.
-            for k in parameters.rl.reward_boost.keys():
+            for k in rl.reward_boost.keys():
                 # pyre-fixme[16]: `Optional` has no attribute `index`.
                 i = self._actions.index(k)
                 # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-                self.reward_boosts[0, i] = parameters.rl.reward_boost[k]
+                self.reward_boosts[0, i] = rl.reward_boost[k]
 
         # Batch constrained q-learning
-        self.bcq = parameters.bcq is not None
+        self.bcq = bcq is not None
         if self.bcq:
-            assert parameters.bcq is not None
-            # pyre-fixme[16]: `Optional` has no attribute `drop_threshold`.
-            self.bcq_drop_threshold = parameters.bcq.drop_threshold
+            assert bcq is not None
+            self.bcq_drop_threshold = bcq.drop_threshold
             self.bcq_imitator = imitator
 
     def warm_start_components(self):
@@ -155,8 +118,6 @@ class DQNTrainer(DQNTrainerBase):
 
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput):
-        if isinstance(training_batch, TrainingDataPage):
-            training_batch = training_batch.as_discrete_maxq_training_batch()
         assert isinstance(training_batch, rlt.DiscreteDqnInput)
         boosted_rewards = self.boost_rewards(
             training_batch.reward, training_batch.action

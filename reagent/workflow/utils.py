@@ -92,8 +92,6 @@ def gather_eval_data(
         for batch in reader:
             assert rlt.isinstance_namedtuple(batch)
             tensor_batch = dict_to_tensor(batch._asdict(), device=device)
-            # pyre-fixme[9]: tdp has type `PreprocessedTrainingBatch`; used as
-            #  `TensorDataClass`.
             tdp: rlt.PreprocessedTrainingBatch = batch_preprocessor(tensor_batch)
             edp = EvaluationDataPage.create_from_training_batch(tdp, trainer)
             if eval_data is None:

@@ -7,21 +7,17 @@ import reagent.types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
-from reagent.gym.policies.samplers.discrete_sampler import (
-    GreedyActionSampler,
-    SoftmaxActionSampler,
-)
-from reagent.gym.policies.scorers.discrete_scorer import (
-    parametric_dqn_scorer,
-    parametric_dqn_serving_scorer,
-)
+from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
+from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+from reagent.gym.policies.scorers.discrete_scorer import parametric_dqn_scorer
 from reagent.models.base import ModelBase
 from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
-from reagent.preprocessing.batch_preprocessor import BatchPreprocessor, InputColumn
+from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.preprocessing.normalization import (
     get_feature_config,
     get_num_output_features,
 )
+from reagent.preprocessing.types import InputColumn
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
@@ -32,14 +28,6 @@ from reagent.workflow.types import (
     RLTrainingOutput,
     TableSpec,
 )
-
-
-try:
-    from reagent.fb.prediction.fb_predictor_wrapper import (
-        FbParametricPredictorUnwrapper as ParametricDqnPredictorUnwrapper,
-    )
-except ImportError:
-    from reagent.prediction.predictor_wrapper import ParametricDqnPredictorUnwrapper
 
 
 logger = logging.getLogger(__name__)
@@ -83,17 +71,15 @@ class ParametricDQNBase(ModelManager):
             self.action_normalization_data.dense_normalization_parameters
         )
         if serving:
-            sampler = GreedyActionSampler()
-            scorer = parametric_dqn_serving_scorer(
-                max_num_action=action_dim,
-                q_network=ParametricDqnPredictorUnwrapper(self.build_serving_module()),
+            return create_predictor_policy_from_model(
+                self.build_serving_module(), max_num_actions=action_dim
             )
         else:
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             scorer = parametric_dqn_scorer(
-                max_num_action=action_dim, q_network=self._q_network
+                max_num_actions=action_dim, q_network=self._q_network
             )
-        return Policy(scorer=scorer, sampler=sampler)
+            return Policy(scorer=scorer, sampler=sampler)
 
     @property
     def should_generate_eval_dataset(self) -> bool:
