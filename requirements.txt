@@ -8,7 +8,7 @@ torch
 tqdm==4.46.0
 petastorm==0.9.0
 parameterized==0.7.4
-pyspark==2.4.5
+pyspark==2.4.6
 pytest==5.3
 pytest-xdist==1.30.0
 recsim-no-tf==0.2.3
