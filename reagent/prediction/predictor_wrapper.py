@@ -43,11 +43,6 @@ class DiscreteDqnWithPreprocessor(ModelBase):
     def input_prototype(self):
         return (self.state_preprocessor.input_prototype(),)
 
-    @property
-    def sorted_features(self):
-        # TODO: the interface here should be ModelFeatureConfig
-        return self.state_preprocessor.sorted_features
-
 
 class DiscreteDqnWithPreprocessorWithIdList(ModelBase):
     """
@@ -114,15 +109,8 @@ class DiscreteDqnWithPreprocessorWithIdList(ModelBase):
             }
         return (self.state_preprocessor.input_prototype(), state_id_list_features)
 
-    @property
-    def sorted_features(self):
-        # TODO: the interface here should be ModelFeatureConfig
-        return self.state_preprocessor.sorted_features
-
 
 class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
-    __constants__ = ["state_sorted_features_t"]
-
     def __init__(
         self,
         dqn_with_preprocessor: DiscreteDqnWithPreprocessor,
@@ -135,19 +123,10 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         """
         super().__init__()
 
-        self.state_sorted_features_t = dqn_with_preprocessor.sorted_features
-
         self.dqn_with_preprocessor = torch.jit.trace(
             dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
         )
         self.action_names = torch.jit.Attribute(action_names, List[str])
-
-    @torch.jit.script_method
-    def state_sorted_features(self) -> List[int]:
-        """
-        This interface is used by DiscreteDqnTorchPredictor
-        """
-        return self.state_sorted_features_t
 
     @torch.jit.script_method
     def forward(
@@ -173,8 +152,6 @@ ParametricDqnPredictorUnwrapper = OSSPredictorUnwrapper
 
 
 class DiscreteDqnPredictorWrapperWithIdList(torch.jit.ScriptModule):
-    __constants__ = ["state_sorted_features_t"]
-
     def __init__(
         self,
         dqn_with_preprocessor: DiscreteDqnWithPreprocessorWithIdList,
@@ -187,19 +164,10 @@ class DiscreteDqnPredictorWrapperWithIdList(torch.jit.ScriptModule):
         """
         super().__init__()
 
-        self.state_sorted_features_t = dqn_with_preprocessor.sorted_features
-
         self.dqn_with_preprocessor = torch.jit.trace(
             dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
         )
         self.action_names = torch.jit.Attribute(action_names, List[str])
-
-    @torch.jit.script_method
-    def state_sorted_features(self) -> List[int]:
-        """
-        This interface is used by DiscreteDqnTorchPredictor
-        """
-        return self.state_sorted_features_t
 
     @torch.jit.script_method
     def forward(
@@ -225,14 +193,6 @@ class ParametricDqnWithPreprocessor(ModelBase):
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
 
-    @property
-    def state_sorted_features(self) -> List[int]:
-        return self.state_preprocessor.sorted_features
-
-    @property
-    def action_sorted_features(self) -> List[int]:
-        return self.action_preprocessor.sorted_features
-
     def forward(
         self,
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
@@ -257,30 +217,12 @@ class ParametricDqnWithPreprocessor(ModelBase):
 
 
 class ParametricDqnPredictorWrapper(torch.jit.ScriptModule):
-    __constants__ = ["state_sorted_features_t", "action_sorted_features_t"]
-
     def __init__(self, dqn_with_preprocessor: ParametricDqnWithPreprocessor) -> None:
         super().__init__()
 
-        self.state_sorted_features_t = dqn_with_preprocessor.state_sorted_features
-        self.action_sorted_features_t = dqn_with_preprocessor.action_sorted_features
         self.dqn_with_preprocessor = torch.jit.trace(
             dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
         )
-
-    @torch.jit.script_method
-    def state_sorted_features(self) -> List[int]:
-        """
-        This interface is used by ParametricDqnTorchPredictor
-        """
-        return self.state_sorted_features_t
-
-    @torch.jit.script_method
-    def action_sorted_features(self) -> List[int]:
-        """
-        This interface is used by ParametricDqnTorchPredictor
-        """
-        return self.action_sorted_features_t
 
     @torch.jit.script_method
     def forward(
@@ -326,18 +268,11 @@ class ActorWithPreprocessor(ModelBase):
     def input_prototype(self):
         return (self.state_preprocessor.input_prototype(),)
 
-    @property
-    def sorted_features(self):
-        # TODO: the interface here should be ModelFeatureConfig
-        return self.state_preprocessor.sorted_features
-
 
 _DEFAULT_FEATURE_IDS = []
 
 
 class ActorPredictorWrapper(torch.jit.ScriptModule):
-    __constants__ = ["state_sorted_features_t"]
-
     def __init__(
         self,
         actor_with_preprocessor: ActorWithPreprocessor,
@@ -349,18 +284,9 @@ class ActorPredictorWrapper(torch.jit.ScriptModule):
         """
         super().__init__()
 
-        self.state_sorted_features_t = actor_with_preprocessor.sorted_features
-
         self.actor_with_preprocessor = torch.jit.trace(
             actor_with_preprocessor, actor_with_preprocessor.input_prototype()
         )
-
-    @torch.jit.script_method
-    def state_sorted_features(self) -> List[int]:
-        """
-        This interface is used by ONNX exporter
-        """
-        return self.state_sorted_features_t
 
     @torch.jit.script_method
     def forward(
@@ -394,14 +320,6 @@ class Seq2SlateWithPreprocessor(ModelBase):
             ),
         )
 
-    @property
-    def state_sorted_features(self) -> List[int]:
-        return self.state_preprocessor.sorted_features
-
-    @property
-    def candidate_sorted_features(self) -> List[int]:
-        return self.candidate_preprocessor.sorted_features
-
     def forward(
         self,
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
@@ -418,11 +336,11 @@ class Seq2SlateWithPreprocessor(ModelBase):
         preprocessed_candidates = self.candidate_preprocessor(
             candidate_with_presence[0].view(
                 batch_size * self.model.max_src_seq_len,
-                len(self.candidate_sorted_features),
+                len(self.candidate_preprocessor.sorted_features),
             ),
             candidate_with_presence[1].view(
                 batch_size * self.model.max_src_seq_len,
-                len(self.candidate_sorted_features),
+                len(self.candidate_preprocessor.sorted_features),
             ),
         ).view(batch_size, self.model.max_src_seq_len, -1)
 
@@ -445,32 +363,11 @@ class Seq2SlateWithPreprocessor(ModelBase):
 
 
 class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
-    __constants__ = ["state_sorted_features_t", "candidate_sorted_features_t"]
-
     def __init__(self, seq2slate_with_preprocessor: Seq2SlateWithPreprocessor) -> None:
         super().__init__()
-
-        self.state_sorted_features_t = seq2slate_with_preprocessor.state_sorted_features
-        self.candidate_sorted_features_t = (
-            seq2slate_with_preprocessor.candidate_sorted_features
-        )
         self.seq2slate_with_preprocessor = torch.jit.trace(
             seq2slate_with_preprocessor, seq2slate_with_preprocessor.input_prototype()
         )
-
-    @torch.jit.script_method
-    def state_sorted_features(self) -> List[int]:
-        """
-        This interface is used by Seq2SlateTorchPredictor
-        """
-        return self.state_sorted_features_t
-
-    @torch.jit.script_method
-    def candidate_sorted_features(self) -> List[int]:
-        """
-        This interface is used by Seq2SlateTorchPredictor
-        """
-        return self.candidate_sorted_features_t
 
     @torch.jit.script_method
     def forward(
