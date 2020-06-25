@@ -5,8 +5,10 @@ import logging
 import reagent.types as rlt
 import torch
 import torch.nn as nn
+from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import TransformerParameters
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.trainer import Trainer
@@ -25,18 +27,19 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
-        parameters: TransformerParameters,
-        minibatch_size: int,
+        minibatch_size: int = 1024,
         loss_reporter=None,
         use_gpu: bool = False,
+        policy_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
     ) -> None:
-        self.parameters = parameters
         self.loss_reporter = loss_reporter
         self.use_gpu = use_gpu
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = parameters.optimizer.make_optimizer(
+        self.optimizer = policy_optimizer.make_optimizer(
             self.seq2slate_net.parameters()
         )
         self.log_softmax = nn.LogSoftmax(dim=1)

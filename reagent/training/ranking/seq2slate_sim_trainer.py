@@ -7,13 +7,15 @@ from typing import List, Optional
 import numpy as np
 import reagent.types as rlt
 import torch
+from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
 from reagent.models.seq2slate import (
     DECODER_START_SYMBOL,
     BaselineNet,
     Seq2SlateTransformerNet,
 )
-from reagent.parameters import Seq2SlateTransformerParameters
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import Seq2SlateParameters
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 from reagent.training.trainer import Trainer
 
@@ -69,11 +71,18 @@ class Seq2SlateSimulationTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
-        parameters: Seq2SlateTransformerParameters,
-        minibatch_size: int,
         reward_net_path: str,
+        minibatch_size: int,
+        parameters: Seq2SlateParameters,
         baseline_net: Optional[BaselineNet] = None,
+        baseline_warmup_num_batches: int = 0,
         use_gpu: bool = False,
+        policy_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        baseline_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
     ) -> None:
         self.reward_net_path = reward_net_path
         # loaded when used
@@ -108,7 +117,14 @@ class Seq2SlateSimulationTrainer(Trainer):
             self.MAX_DISTANCE = torch.max(self.permutation_distance)
 
         self.trainer = Seq2SlateTrainer(
-            seq2slate_net, parameters, minibatch_size, baseline_net, use_gpu
+            seq2slate_net,
+            minibatch_size,
+            self.parameters,
+            baseline_net=baseline_net,
+            baseline_warmup_num_batches=baseline_warmup_num_batches,
+            use_gpu=use_gpu,
+            policy_optimizer=policy_optimizer,
+            baseline_optimizer=baseline_optimizer,
         )
         self.seq2slate_net = self.trainer.seq2slate_net
         self.baseline_net = self.trainer.baseline_net
