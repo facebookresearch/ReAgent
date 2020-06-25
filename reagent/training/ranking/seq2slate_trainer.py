@@ -6,9 +6,11 @@ from typing import Optional
 import numpy as np
 import reagent.types as rlt
 import torch
+from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
 from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
-from reagent.parameters import Seq2SlateTransformerParameters
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import Seq2SlateParameters
 from reagent.training.trainer import Trainer
 
 
@@ -26,26 +28,37 @@ class Seq2SlateTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
-        parameters: Seq2SlateTransformerParameters,
-        minibatch_size: int,
+        minibatch_size: int = 1024,
+        parameters: Seq2SlateParameters = field(  # noqa: B008
+            default_factory=Seq2SlateParameters
+        ),
         baseline_net: Optional[BaselineNet] = None,
+        baseline_warmup_num_batches: int = 0,
         use_gpu: bool = False,
+        policy_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
+        baseline_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
     ) -> None:
+        self.seq2slate_net = seq2slate_net
         self.parameters = parameters
         self.use_gpu = use_gpu
-        self.seq2slate_net = seq2slate_net
-        self.baseline_net = baseline_net
+
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.rl_opt = self.parameters.transformer.optimizer.make_optimizer(
-            self.seq2slate_net.parameters()
-        )
+
+        self.baseline_net = baseline_net
+        self.baseline_warmup_num_batches = baseline_warmup_num_batches
+
+        self.rl_opt = policy_optimizer.make_optimizer(self.seq2slate_net.parameters())
         if self.baseline_net:
-            assert self.parameters.baseline
-            # pyre-fixme[16]: `Optional` has no attribute `optimizer`.
-            self.baseline_opt = self.parameters.baseline.optimizer.make_optimizer(
+            self.baseline_opt = baseline_optimizer.make_optimizer(
+                # pyre-fixme[16]: `Optional` has no attribute `parameters`.
                 self.baseline_net.parameters()
             )
+
         assert (
             self.parameters.importance_sampling_clamp_max is None
             or not self.parameters.on_policy
@@ -63,6 +76,12 @@ class Seq2SlateTrainer(Trainer):
     def _compute_impt_sampling(
         self, model_propensities, logged_propensities
     ) -> torch.Tensor:
+        logged_propensities = logged_propensities.reshape(-1, 1)
+        assert (
+            model_propensities.shape == logged_propensities.shape
+            and len(model_propensities.shape) == 2
+            and model_propensities.shape[1] == 1
+        ), f"{model_propensities.shape} {logged_propensities.shape}"
         device = model_propensities.device
         batch_size = model_propensities.shape[0]
         if not self.parameters.on_policy:
@@ -112,8 +131,11 @@ class Seq2SlateTrainer(Trainer):
             clamped_importance_sampling = torch.clamp(
                 importance_sampling, 0, self.parameters.importance_sampling_clamp_max
             )
-
-        assert importance_sampling.shape == reward.shape
+        assert (
+            importance_sampling.shape
+            == clamped_importance_sampling.shape
+            == reward.shape
+        ), f"{importance_sampling.shape} {clamped_importance_sampling.shape} {reward.shape}"
 
         # gradient is only w.r.t log_probs
         assert (
@@ -130,9 +152,8 @@ class Seq2SlateTrainer(Trainer):
         rl_loss = 1.0 / batch_size * torch.sum(batch_loss)
 
         if (
-            self.parameters.baseline is None
-            # pyre-fixme[16]: `Optional` has no attribute `warmup_num_batches`.
-            or self.minibatch >= self.parameters.baseline.warmup_num_batches
+            self.baseline_net is None
+            or self.minibatch >= self.baseline_warmup_num_batches
         ):
             self.rl_opt.zero_grad()
             rl_loss.backward()

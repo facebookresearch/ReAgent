@@ -7,13 +7,14 @@ import reagent.types as rlt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from reagent.core.dataclasses import field
 from reagent.models.seq2slate import (
-    BaselineNet,
     Seq2SlateMode,
     Seq2SlateTransformerModel,
     Seq2SlateTransformerNet,
 )
-from reagent.parameters import Seq2SlateTransformerParameters
+from reagent.optimizer.union import Optimizer__Union
+from reagent.parameters import Seq2SlateParameters
 from reagent.training.trainer import Trainer
 
 
@@ -29,18 +30,19 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
-        parameters: Seq2SlateTransformerParameters,
+        parameters: Seq2SlateParameters,
         minibatch_size: int,
-        baseline_net: Optional[BaselineNet] = None,
         use_gpu: bool = False,
+        policy_optimizer: Optimizer__Union = field(  # noqa: B008
+            default_factory=Optimizer__Union.default
+        ),
     ) -> None:
         self.parameters = parameters
         self.use_gpu = use_gpu
         self.seq2slate_net = seq2slate_net
-        self.baseline_net = baseline_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = self.parameters.transformer.optimizer.make_optimizer(
+        self.optimizer = policy_optimizer.make_optimizer(
             self.seq2slate_net.parameters()
         )
         # TODO: T62269969 add baseline_net in training

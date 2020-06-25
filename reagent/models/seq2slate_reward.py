@@ -195,7 +195,7 @@ class Seq2SlateGRURewardNet(Seq2SlateRewardNetBase):
         return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
 
 
-class Seq2SlateRewardNet(Seq2SlateRewardNetBase):
+class Seq2SlateTransformerRewardNet(Seq2SlateRewardNetBase):
     def __init__(
         self,
         state_dim: int,
@@ -312,7 +312,12 @@ class Seq2SlateRewardNet(Seq2SlateRewardNetBase):
         # shape: batch_szie, tgt_seq_len + 1
         tgt_in_idx = torch.cat(
             (
-                torch.full((batch_size, 1), DECODER_START_SYMBOL, device=device).long(),
+                torch.full(
+                    (batch_size, 1),
+                    DECODER_START_SYMBOL,
+                    device=device,
+                    dtype=torch.long,
+                ),
                 input.tgt_out_idx,
             ),
             dim=1,

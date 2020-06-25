@@ -20,6 +20,7 @@ from .parameters import (
     QRDQNTrainerParameters,
     RewardNetworkTrainerParameters,
     SACTrainerParameters,
+    Seq2SlateTrainerParameters,
     SlateQTrainerParameters,
     TD3TrainerParameters,
 )
@@ -45,4 +46,5 @@ __all__ = [
     "SlateQTrainerParameters",
     "TD3TrainerParameters",
     "RewardNetworkTrainerParameters",
+    "Seq2SlateTrainerParameters",
 ]

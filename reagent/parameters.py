@@ -146,9 +146,6 @@ class TransformerParameters(BaseDataClass):
     dim_model: int
     dim_feedforward: int
     num_stacked_layers: int
-    optimizer: Optimizer__Union = field(
-        default_factory=Optimizer__Union.default(lr=1e-4, amsgrad=True)
-    )
 
 
 @dataclass(frozen=True)
@@ -162,17 +159,12 @@ class BaselineParameters(BaseDataClass):
     dim_feedforward: int
     num_stacked_layers: int
     warmup_num_batches: int = 0
-    optimizer: Optimizer__Union = field(
-        default_factory=Optimizer__Union.default(lr=1e-4, amsgrad=True)
-    )
 
 
 @dataclass(frozen=True)
-class Seq2SlateTransformerParameters(BaseDataClass):
-    transformer: TransformerParameters
-    baseline: Optional[BaselineParameters]
-    on_policy: bool
-    learning_method: LearningMethod
+class Seq2SlateParameters(BaseDataClass):
+    on_policy: bool = True
+    learning_method: LearningMethod = LearningMethod.REINFORCEMENT_LEARNING
     importance_sampling_clamp_max: Optional[float] = None
     simulation_reward_clamp: Optional[RewardClamp] = None
     # penalize sequences far away from prod
@@ -181,7 +173,6 @@ class Seq2SlateTransformerParameters(BaseDataClass):
 
 @dataclass(frozen=True)
 class RankingParameters(BaseDataClass):
-    minibatch_size: int
     max_src_seq_len: int
     max_tgt_seq_len: int
     greedy_serving: bool
