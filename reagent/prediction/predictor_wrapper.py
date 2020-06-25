@@ -358,7 +358,7 @@ class ActorPredictorWrapper(torch.jit.ScriptModule):
     @torch.jit.script_method
     def state_sorted_features(self) -> List[int]:
         """
-        This interface is used by ActorTorchPredictor
+        This interface is used by ONNX exporter
         """
         return self.state_sorted_features_t
 
