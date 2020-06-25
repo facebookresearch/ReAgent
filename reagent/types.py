@@ -559,12 +559,6 @@ class DqnPolicyActionSet(TensorDataClass):
 
 
 @dataclass
-class SacPolicyActionSet(TensorDataClass):
-    greedy: torch.Tensor
-    greedy_propensity: float
-
-
-@dataclass
 class PlanningPolicyOutput(TensorDataClass):
     # best action to take next
     next_best_continuous_action: Optional[torch.Tensor] = None
