@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 import reagent.workflow.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
 from reagent.core.dataclasses import dataclass
+from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
     DEFAULT_MAX_UNIQUE_ENUM,
@@ -59,6 +60,11 @@ class PreprocessingOptions(BaseDataClass):
     set_missing_value_to_zero: Optional[bool] = False
     whitelist_features: Optional[List[int]] = None
     assert_whitelist_feature_coverage: bool = True
+
+
+@ModelFeatureConfigProvider.fill_union()
+class ModelFeatureConfigProvider__Union(TaggedUnion):
+    pass
 
 
 @PublishingResult.fill_union()

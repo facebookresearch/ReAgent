@@ -11,6 +11,7 @@ from reagent.gym.policies.predictor_policies import create_predictor_policy_from
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
 from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
 from reagent.models.base import ModelBase
+from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
@@ -24,6 +25,7 @@ from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.workflow.types import (
     Dataset,
+    ModelFeatureConfigProvider__Union,
     PreprocessingOptions,
     ReaderOptions,
     RewardOptions,
@@ -40,8 +42,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DiscreteDQNBase(ModelManager):
     target_action_distribution: Optional[List[float]] = None
-    state_feature_config: rlt.ModelFeatureConfig = field(
-        default_factory=lambda: rlt.ModelFeatureConfig(float_feature_infos=[])
+    state_feature_config_provider: ModelFeatureConfigProvider__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `raw`.
+        # pyre-fixme[28]: Unexpected keyword argument `raw`.
+        default_factory=lambda: ModelFeatureConfigProvider__Union(
+            raw=RawModelFeatureConfigProvider(float_feature_infos=[])
+        )
     )
     preprocessing_options: Optional[PreprocessingOptions] = None
     reader_options: Optional[ReaderOptions] = None
@@ -61,6 +67,10 @@ class DiscreteDQNBase(ModelManager):
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
             return Policy(scorer=scorer, sampler=sampler)
+
+    @property
+    def state_feature_config(self) -> rlt.ModelFeatureConfig:
+        return self.state_feature_config_provider.value.get_model_feature_config()
 
     @property
     def metrics_to_score(self) -> List[str]:
