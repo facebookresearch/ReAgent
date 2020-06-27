@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 class EnvFactory:
     @staticmethod
-    def make(name: str) -> gym.Env:
-        env: gym.Env = gym.make(name)
+    def make(name: str, **kwargs) -> gym.Env:
+        env: gym.Env = gym.make(name, **kwargs)
         if name.startswith("MiniGrid-"):
             # Wrap in minigrid simplifier
             env = SimpleObsWrapper(ReseedWrapper(env))

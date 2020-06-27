@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.parameters import Seq2RewardTrainerParameters
+from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.trainer import Trainer
 
 
@@ -25,6 +26,11 @@ class Seq2RewardTrainer(Trainer):
         self.optimizer = torch.optim.Adam(
             self.seq2reward_network.parameters(), lr=params.learning_rate
         )
+        self.minibatch_size = self.params.batch_size
+        self.loss_reporter = NoOpLossReporter()
+
+        # PageHandler must use this to activate evaluator:
+        self.calc_cpe_in_training = self.params.calc_cpe_in_training
 
     def train(self, training_batch: rlt.MemoryNetworkInput):
         self.optimizer.zero_grad()
@@ -61,3 +67,8 @@ class Seq2RewardTrainer(Trainer):
         assert predicted_acc_reward.size() == target_acc_reward.size()
         mse = F.mse_loss(predicted_acc_reward, target_acc_reward)
         return mse
+
+    def warm_start_components(self):
+        logger.info("No warm start components yet...")
+        components = []
+        return components

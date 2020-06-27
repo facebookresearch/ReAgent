@@ -15,6 +15,7 @@ from .dqn import FullyConnectedDQN
 from .dueling_q_network import DuelingQNetwork, ParametricDuelingQNetwork
 from .embedding_bag_concat import EmbeddingBagConcat
 from .fully_connected_network import FullyConnectedNetwork
+from .seq2reward_model import Seq2RewardNetwork
 
 
 __all__ = [
@@ -31,4 +32,5 @@ __all__ = [
     "GaussianFullyConnectedActor",
     "DirichletFullyConnectedActor",
     "FullyConnectedActor",
+    "Seq2RewardNetwork",
 ]

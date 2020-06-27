@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
 import torch
+import torch.nn.functional as F
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.preprocessing.postprocessor import Postprocessor
@@ -391,3 +392,82 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
         # -2 to offset padding symbol and decoder start symbol
         ranked_tgt_out_idx -= 2
         return ranked_tgt_out_probs, ranked_tgt_out_idx
+
+
+class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
+    def __init__(
+        self,
+        model: ModelBase,
+        state_preprocessor: Preprocessor,
+        seq_len: int,
+        num_action: int,
+    ):
+        """
+        Since TorchScript unable to trace control-flow, we
+        have to generate the action enumerations as constants
+        here so that trace can use them directly.
+        """
+
+        super().__init__(model=model, state_preprocessor=state_preprocessor)
+        self.seq_len = seq_len
+        self.num_action = num_action
+
+        def gen_permutations(seq_len: int, num_action: int) -> torch.Tensor:
+            """
+            generate all seq_len permutations for a given action set
+            the return shape is (SEQ_LEN, PERM_NUM, ACTION_DIM)
+            """
+            all_permut = torch.cartesian_prod(*[torch.arange(num_action)] * seq_len)
+            all_permut = F.one_hot(all_permut, num_action).transpose(0, 1)
+
+            return all_permut.float()
+
+        self.all_permut = gen_permutations(seq_len, num_action)
+        self.num_permut = self.all_permut.size(1)
+
+    def forward(self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]):
+        """
+        This serving module only takes in current state.
+        We need to simulate all multi-step length action seq's
+        then predict accumulated reward on all those seq's.
+        After that, we categorize all action seq's by their
+        first actions. Then take the maximum reward as the
+        predicted categorical reward for that category.
+        Return: categorical reward for the first action
+        """
+        batch_size, state_dim = state_with_presence[0].size()
+
+        # expand state tensor to match the enumerated action sequences:
+        # the tensor manipulations here are tricky:
+        # Suppose the input states are s1,s2, these manipulations
+        # will generate a input batch s1,s1,...,s1,s2,s2,...,s2
+        # where len(s1,s1,...,s1)=len(s2,s2,...,s2)=num_permut
+        preprocessed_state = (
+            self.state_preprocessor(state_with_presence[0], state_with_presence[1])
+            .repeat(1, self.seq_len * self.num_permut)
+            .reshape(batch_size * self.num_permut, self.seq_len, state_dim)
+            .transpose(0, 1)
+        )
+        state_feature_vector = rlt.FeatureData(preprocessed_state)
+
+        # expand action to match the expanded state sequence
+        action = self.all_permut.repeat(1, batch_size, 1)
+        reward = self.model(
+            state_feature_vector, rlt.FeatureData(action)
+        ).acc_reward.reshape(
+            batch_size, self.num_action, self.num_permut // self.num_action
+        )
+
+        # The permuations are generated with lexical order
+        # the output has shape [num_perm, num_action,1]
+        # that means we can aggregate on the max reward
+        # then reshape it to (BATCH_SIZE, ACT_DIM)
+        max_reward = (
+            # pyre-fixme[16]: `Tuple` has no attribute `values`.
+            torch.max(reward, 2)
+            .values.cpu()
+            .detach()
+            .reshape(batch_size, self.num_action)
+        )
+
+        return max_reward
