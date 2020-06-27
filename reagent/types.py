@@ -521,6 +521,14 @@ class PolicyNetworkInput(PreprocessedBaseInput):
 class MemoryNetworkInput(PreprocessedBaseInput):
     action: torch.Tensor
 
+    def batch_size(self):
+        if len(self.state.float_features.size()) == 2:
+            return self.state.float_features.size()[0]
+        elif len(self.state.float_features.size()) == 3:
+            return self.state.float_features.size()[1]
+        else:
+            raise NotImplementedError()
+
 
 @dataclass
 class PreprocessedTrainingBatch(TensorDataClass):

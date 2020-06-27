@@ -67,6 +67,10 @@ class Seq2RewardTrainerParameters(BaseDataClass):
     train_data_percentage: float = 60.0
     validation_data_percentage: float = 20.0
     test_data_percentage: float = 20.0
+    multi_steps: int = 1
+    action_names: List[str] = field(default_factory=lambda: [])
+    batch_size: int = 32
+    calc_cpe_in_training: bool = True
 
 
 @dataclass(frozen=True)

@@ -31,7 +31,7 @@ class Seq2RewardModel(WorldModelBase):
 
     def build_trainer(self) -> Seq2RewardTrainer:
         seq2reward_network = self.net_builder.value.build_value_network(
-            self.state_normalization_data, self.action_normalization_data
+            self.state_normalization_data
         )
 
         if self.use_gpu:
