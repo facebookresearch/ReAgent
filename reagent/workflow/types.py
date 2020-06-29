@@ -24,6 +24,14 @@ from reagent.workflow.result_registries import (
 from reagent.workflow.tagged_union import TaggedUnion  # noqa F401
 
 
+try:
+    from reagent.fb.models.model_feature_config_builder import (  # noqa
+        ConfigeratorModelFeatureConfigProvider,
+    )
+except ImportError:
+    pass
+
+
 @dataclass
 class Dataset:
     parquet_url: str
