@@ -60,7 +60,6 @@ autodoc_mock_imports = [
     "pandas",
     "sklearn",
     "reagent.test",
-    "onnx",
 ]
 
 # -- Options for HTML output -------------------------------------------------
