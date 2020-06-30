@@ -2,16 +2,20 @@
 
 import logging
 import math
-import multiprocessing
 import pickle
 import tempfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from multiprocessing import JoinableQueue, Pipe, Pool, Process, connection
-from typing import Iterable, Mapping, MutableSequence, Optional, Sequence, Tuple, Union
+from multiprocessing import Pool
+from typing import Iterable, List, Mapping, Optional, Tuple, Union
 
 import torch
+from reagent.evaluation.cpe import bootstrapped_std_error_of_mean
 from torch import Tensor
+
+
+logger = logging.getLogger(__name__)
+SCORE_THRESHOLD = 1e-6
 
 
 class ResultDiffs:
@@ -40,6 +44,7 @@ class ResultDiffs:
     @property
     def variance(self) -> Tensor:
         if self._variance is None:
+            # pyre-fixme[16]: `Tensor` has no attribute `var`.
             self._variance = self._diffs.var()
         return self._variance
 
@@ -52,10 +57,13 @@ class ResultDiffs:
 
 @dataclass(frozen=True)
 class EstimatorResult:
-    log_reward: Union[float, Tensor]
-    estimated_reward: Union[float, Tensor]
-    ground_truth_reward: Union[float, Tensor] = 0.0
-    estimated_weight: Union[float, Tensor] = 1.0
+    log_reward: float
+    estimated_reward: float
+    ground_truth_reward: Optional[float] = 0.0
+    estimated_weight: float = 1.0
+    estimated_reward_normalized: Optional[float] = None
+    estimated_reward_std_error: Optional[float] = None
+    estimated_reward_normalized_std_error: Optional[float] = None
 
 
 @dataclass
@@ -64,10 +72,7 @@ class EstimatorResults:
     Estimator results
     """
 
-    log_rewards: MutableSequence[float] = field(default_factory=list)
-    estimated_rewards: MutableSequence[float] = field(default_factory=list)
-    estimated_weights: MutableSequence[float] = field(default_factory=list)
-    ground_truth_rewards: MutableSequence[float] = field(default_factory=list)
+    results: List[EstimatorResult] = field(default_factory=list)
     device = None
 
     def append(self, result: EstimatorResult):
@@ -76,29 +81,47 @@ class EstimatorResults:
         Args:
             result: result from an experimental run
         """
-
-        er = float(result.estimated_reward)
+        er = result.estimated_reward
         if math.isnan(er) or math.isinf(er):
             logging.warning(f"  Invalid estimate: {er}")
             return
-        lr = float(result.log_reward)
-        gr = float(result.ground_truth_reward)
+        lr = result.log_reward
+        gr = (
+            result.ground_truth_reward
+            if result.ground_truth_reward is not None
+            else 0.0
+        )
         logging.info(
-            f"  Append estimate [{len(self.estimated_rewards) + 1}]: "
+            f"  Append estimate [{len(self.results) + 1}]: "
             f"log={lr}, estimated={er}, ground_truth={gr}"
         )
-        self.log_rewards.append(lr)
-        self.estimated_rewards.append(er)
-        self.estimated_weights.append(float(result.estimated_weight))
-        self.ground_truth_rewards.append(gr)
+        self.results.append(
+            EstimatorResult(
+                log_reward=result.log_reward,
+                estimated_reward=result.estimated_reward,
+                ground_truth_reward=gr,
+                estimated_weight=result.estimated_weight,
+            )
+        )
 
     def report(self):
         ert = torch.tensor(
-            self.estimated_rewards, dtype=torch.double, device=self.device
+            [res.estimated_reward for res in self.results],
+            dtype=torch.double,
+            device=self.device,
         )
-        lrt = torch.tensor(self.log_rewards, dtype=torch.double, device=self.device)
+        lrt = torch.tensor(
+            [res.log_reward for res in self.results],
+            dtype=torch.double,
+            device=self.device,
+        )
         grt = torch.tensor(
-            self.ground_truth_rewards, dtype=torch.double, device=self.device
+            [
+                res.ground_truth_reward if res.ground_truth_reward is not None else 0.0
+                for res in self.results
+            ],
+            dtype=torch.double,
+            device=self.device,
         )
         self._estimated_log_diff = ResultDiffs(ert - lrt)
         self._estimated_ground_truth_diff = ResultDiffs(ert - grt)
@@ -132,11 +155,26 @@ class Estimator(ABC):
     Estimator interface
     """
 
-    _main_process_logger: logging.Logger = None
-    _multiprocessing_logger: logging.Logger = None
-
     def __init__(self, device=None):
         self._device = device
+
+    def _compute_metric_data(
+        self, tgt_rewards: Tensor, logged_rewards: Tensor, tgt_score: float
+    ) -> Tuple[float, float, float, float]:
+        """
+        Given a sequence of scores, normalizes the target score by the average logged score
+        and computes the standard error of the target score. Normalizing by the logged score
+        can provide a better metric to compare models against.
+        """
+        logged_policy_score = float(torch.mean(logged_rewards))
+        if logged_policy_score < SCORE_THRESHOLD:
+            normalizer = 0.0
+        else:
+            normalizer = 1.0 / logged_policy_score
+        std_err = bootstrapped_std_error_of_mean(
+            tgt_rewards, num_samples=tgt_rewards.shape[0]
+        )
+        return (tgt_score, tgt_score * normalizer, std_err, std_err * normalizer)
 
     @abstractmethod
     def evaluate(
@@ -147,23 +185,10 @@ class Estimator(ABC):
     def __repr__(self):
         return f"{self.__class__.__name__}(device({self._device}))"
 
-    @staticmethod
-    def logger() -> logging.Logger:
-        if multiprocessing.current_process().name == "MainProcess":
-            if Estimator._main_process_logger is None:
-                Estimator._main_process_logger = logging.getLogger()
-            return Estimator._main_process_logger
-        else:
-            if Estimator._multiprocessing_logger is None:
-                Estimator._multiprocessing_logger = multiprocessing.log_to_stderr()
-                Estimator._multiprocessing_logger.setLevel(logging.INFO)
-            return Estimator._multiprocessing_logger
-
 
 def run_evaluation(
     file_name: str,
 ) -> Optional[Mapping[str, Iterable[EstimatorResults]]]:
-    logger = Estimator.logger()
     logger.info(f"received filename {file_name}")
     try:
         with open(file_name, "rb") as fp:

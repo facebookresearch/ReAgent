@@ -103,6 +103,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
         self, values: Union[Mapping[KeyType, ValueType], Sequence[ValueType]]
     ):
         if isinstance(values, Sequence):
+            # pyre-fixme[16]: `Objects` has no attribute `_values`.
             self._values = list(values)
         elif isinstance(values, Mapping):
             self._key_to_index = dict(zip(values.keys(), range(len(values))))
@@ -117,12 +118,14 @@ class Objects(Generic[KeyType, ValueType], ABC):
 
     def __getitem__(self, key: KeyType) -> ValueType:
         if self._key_to_index is not None:
+            # pyre-fixme[16]: `Objects` has no attribute `_values`.
             return self._values[self._key_to_index[key]]
         else:
             return self._values[key]
 
     def __setitem__(self, key: KeyType, value: ValueType):
         if self._key_to_index is not None:
+            # pyre-fixme[16]: `Objects` has no attribute `_values`.
             self._values[self._key_to_index[key]] = value
         else:
             self._values[key] = value
@@ -147,6 +150,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
             )
 
     def __len__(self) -> int:
+        # pyre-fixme[16]: `Objects` has no attribute `_values`.
         return len(self._values)
 
     @property
@@ -155,11 +159,14 @@ class Objects(Generic[KeyType, ValueType], ABC):
 
     @property
     def _values_copy(self) -> Sequence[ValueType]:
+        # pyre-fixme[16]: `Objects` has no attribute `_values`.
         return list(self._values)
 
     def index_of(self, key: KeyType) -> int:
         if self._key_to_index is None:
             try:
+                # pyre-fixme[6]: Expected `Union[_SupportsIndex, bytes, str,
+                #  typing.SupportsInt]` for 1st param but got `KeyType`.
                 index = int(key)
                 if 0 <= index < len(self):
                     return index
@@ -206,6 +213,10 @@ class Values(Objects[KeyType, float]):
         self,
         values: Union[Mapping[KeyType, float], Sequence[float], np.ndarray, Tensor],
     ):
+        # pyre-fixme[6]: Expected `Union[Mapping[Variable[KeyType],
+        #  Variable[ValueType]], Sequence[Variable[ValueType]]]` for 1st param but got
+        #  `Union[Mapping[Variable[KeyType], float], Sequence[float], Tensor,
+        #  np.ndarray]`.
         super().__init__(values)
 
     def _init_values(
@@ -213,6 +224,7 @@ class Values(Objects[KeyType, float]):
         values: Union[Mapping[KeyType, float], Sequence[float], np.ndarray, Tensor],
     ):
         if isinstance(values, Tensor):
+            # pyre-fixme[16]: `Values` has no attribute `_values`.
             self._values = values.to(dtype=torch.double)
         elif isinstance(values, np.ndarray):
             self._values = torch.as_tensor(values, dtype=torch.double)
@@ -238,6 +250,7 @@ class Values(Objects[KeyType, float]):
         return v.item()
 
     def __len__(self) -> int:
+        # pyre-fixme[16]: `Values` has no attribute `_values`.
         return self._values.shape[0]
 
     def sort(self, descending: bool = True) -> Tuple[Sequence[KeyType], Tensor]:
@@ -250,7 +263,9 @@ class Values(Objects[KeyType, float]):
         Returns:
             Tuple of sorted indices and values
         """
+        # pyre-fixme[16]: `Values` has no attribute `_sorted`.
         if self._sorted is None:
+            # pyre-fixme[16]: `Values` has no attribute `_values`.
             rs, ids = torch.sort(self._values, descending=descending)
             if self._index_to_key is not None:
                 self._sorted = (
@@ -263,6 +278,7 @@ class Values(Objects[KeyType, float]):
 
     @property
     def _values_copy(self) -> Tensor:
+        # pyre-fixme[16]: `Values` has no attribute `_values`.
         return self._values.clone().detach()
 
     def replace(
@@ -281,6 +297,7 @@ class Values(Objects[KeyType, float]):
         """
         copy = deepcopy(self)
         if isinstance(values, Tensor):
+            # pyre-fixme[16]: `Values` has no attribute `_values`.
             assert values.shape[0] == copy._values.shape[0]
             copy._values = values.to(dtype=torch.double)
         elif isinstance(values, np.ndarray):
@@ -316,6 +333,7 @@ class Values(Objects[KeyType, float]):
 
     def probability(self, key: ValueType) -> float:
         self._normalize()
+        # pyre-fixme[16]: `Values` has no attribute `_probabilities`.
         if self._probabilities is not None:
             if self._key_to_index is not None:
                 return self._probabilities[self._key_to_index[key]].item()
@@ -329,6 +347,7 @@ class Values(Objects[KeyType, float]):
         if self._index_to_key is not None:
             l = [
                 self._index_to_key[k.item()]
+                # pyre-fixme[16]: `Values` has no attribute `_probabilities`.
                 for k in torch.multinomial(self._probabilities, size)
             ]
         else:
@@ -388,6 +407,7 @@ class Items(Generic[ValueType], ABC):
 
     def index_of(self, item: ValueType) -> int:
         if self._reverse_lookup is None:
+            # pyre-fixme[16]: `ValueType` has no attribute `value`.
             int_val = int(item.value)
             if 0 <= int_val < len(self._items):
                 return int_val

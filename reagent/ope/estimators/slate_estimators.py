@@ -50,6 +50,7 @@ from torch import Tensor
 # Types for slates
 SlateSlotType = Union[int, Tuple[int], float, Tuple[float], np.ndarray, Tensor]
 SlateSlot = TypeWrapper[SlateSlotType]
+logger = logging.getLogger(__name__)
 
 
 class SlateSlotValues(Values[SlateSlot]):
@@ -69,6 +70,7 @@ class SlateSlots(Items[SlateSlot]):
     def _new_item(self, i: int) -> SlateSlot:
         return SlateSlot(i)
 
+    # pyre-fixme[15]: `fill` overrides method defined in `Items` inconsistently.
     def fill(
         self,
         values: Union[Mapping[SlateSlot, float], Sequence[float], np.ndarray, Tensor],
@@ -98,6 +100,7 @@ class SlateSlotObjects(Objects[SlateSlot, ValueType]):
     @property
     def slots(self) -> SlateSlots:
         if self.is_sequence:
+            # pyre-fixme[16]: `SlateSlotObjects` has no attribute `_values`.
             return SlateSlots(len(self._values))
         else:
             return SlateSlots(list(self._key_to_index.keys()))
@@ -109,6 +112,7 @@ class SlateSlotObjects(Objects[SlateSlot, ValueType]):
     def fill(
         self, values: Sequence[ValueType]
     ) -> Union[Mapping[SlateSlot, ValueType], Sequence[ValueType]]:
+        # pyre-fixme[16]: `SlateSlotObjects` has no attribute `_values`.
         assert len(values) >= len(self._values)
         if self._key_to_index is None:
             return values[: len(self._values)]
@@ -142,6 +146,11 @@ class SlateItemFeatures(Objects[SlateItem, Tensor]):
         self,
         values: Union[Mapping[SlateItem, Tensor], Sequence[Tensor], Tensor, np.ndarray],
     ):
+        # pyre-fixme[6]: Expected
+        #  `Union[Mapping[Variable[reagent.ope.estimators.types.KeyType],
+        #  Variable[ValueType]], Sequence[Variable[ValueType]]]` for 1st param but got
+        #  `Union[Mapping[TypeWrapper[Union[Tuple[float], Tuple[int], Tensor, float,
+        #  int, np.ndarray]], Tensor], Sequence[Tensor], Tensor, np.ndarray]`.
         super().__init__(values)
 
     def _init_values(
@@ -149,10 +158,13 @@ class SlateItemFeatures(Objects[SlateItem, Tensor]):
         values: Union[Mapping[SlateItem, Tensor], Sequence[Tensor], Tensor, np.ndarray],
     ):
         if isinstance(values, Tensor):
+            # pyre-fixme[16]: `SlateItemFeatures` has no attribute `_values`.
             self._values = values.to(dtype=torch.double)
         elif isinstance(values, np.ndarray):
             self._values = torch.as_tensor(values, dtype=torch.double)
         elif isinstance(values, Sequence):
+            # pyre-fixme[6]: Expected `Union[typing.List[Tensor],
+            #  typing.Tuple[Tensor, ...]]` for 1st param but got `Sequence[Tensor]`.
             self._values = torch.stack(values).to(dtype=torch.double)
         elif isinstance(values, Mapping):
             self._key_to_index = dict(zip(values.keys(), range(len(values))))
@@ -176,6 +188,7 @@ class SlateItemFeatures(Objects[SlateItem, Tensor]):
 class SlateSlotFeatures(SlateSlotObjects[Tensor]):
     @property
     def features(self) -> Tensor:
+        # pyre-fixme[16]: `SlateSlotFeatures` has no attribute `_values`.
         return torch.stack(self._values)
 
 
@@ -186,6 +199,7 @@ class Slate(SlateSlotObjects[SlateItem]):
 
     def one_hots(self, items: SlateItems, device=None) -> Tensor:
         oh = torch.zeros((len(self), len(items)), dtype=torch.double, device=device)
+        # pyre-fixme[16]: `Slate` has no attribute `_values`.
         for t, i in zip(oh, self._values):
             t[items.index_of(i)] = 1.0
         return oh
@@ -204,6 +218,7 @@ class Slate(SlateSlotObjects[SlateItem]):
             List of values in the slate
         """
         if self._key_to_index is None:
+            # pyre-fixme[16]: `Slate` has no attribute `_values`.
             return SlateSlotValues([item_values[i] for i in self._values])
         else:
             return SlateSlotValues({k: item_values[i] for k, i in self._key_to_index})
@@ -219,6 +234,7 @@ class Slate(SlateSlotObjects[SlateItem]):
         """
         if self._key_to_index is None:
             return SlateSlotFeatures(
+                # pyre-fixme[16]: `Slate` has no attribute `_values`.
                 [item_features[i].detach().clone() for i in self._values]
             )
         else:
@@ -249,11 +265,13 @@ class SlateSlotItemValues(SlateSlotObjects[SlateItemValues]):
         ],
     ):
         super().__init__(values)
+        # pyre-fixme[16]: `SlateSlotItemValues` has no attribute `_values`.
         self._item_size = len(self._values[0])
         for v in self._values[1:]:
             assert self._item_size == len(v)
 
     def values_tensor(self, device=None) -> Tensor:
+        # pyre-fixme[16]: `SlateSlotItemValues` has no attribute `_values`.
         dist = [v.values for v in self._values]
         return torch.stack(dist).to(device=device)
 
@@ -381,11 +399,13 @@ class SlateItemProbabilities(SlateItemValues):
         """
         if self._greedy:
             items = super().greedy(len(slate))
+            assert isinstance(items, Sequence)
             for i1, i2 in zip(items, slate.items):
                 if i1 != i2:
                     return 0.0
             return 1.0
         else:
+            # pyre-fixme[16]: `SlateItemProbabilities` has no attribute `_values`.
             clamped = torch.clamp(self._values, 0.0)
             indices = [self.index_of(item) for _, item in slate]
             probs = clamped[indices]
@@ -406,6 +426,8 @@ class SlateItemProbabilities(SlateItemValues):
         if self._greedy:
             self._slot_item_expectations = make_slot_item_distributions(
                 slots,
+                # pyre-fixme[6]: Expected `Sequence[SlateItemValues]` for 2nd param
+                #  but got `List[Values[typing.Any]]`.
                 [
                     self.replace(torch.zeros(item_size, dtype=torch.double))
                     for _ in range(len(self))
@@ -429,6 +451,7 @@ class SlateItemProbabilities(SlateItemValues):
         item_size = len(self)
         dm = torch.zeros((slate_size, item_size), dtype=torch.double)
         ri = torch.arange(slate_size)
+        # pyre-fixme[16]: `SlateItemProbabilities` has no attribute `_probabilities`.
         ws = self._probabilities.repeat((num_samples, 1))
         for _ in range(item_size):
             samples = torch.multinomial(ws, slate_size)
@@ -436,7 +459,10 @@ class SlateItemProbabilities(SlateItemValues):
                 dm[ri, sample] += 1
         dm /= num_samples * item_size
         self._slot_item_expectations = make_slot_item_distributions(
-            slots, [self.replace(vs) for vs in dm]
+            slots,
+            # pyre-fixme[6]: Expected `Sequence[SlateItemValues]` for 2nd param but
+            #  got `List[Values[typing.Any]]`.
+            [self.replace(vs) for vs in dm],
         )
 
     def _calculate_expectations(self, slots: SlateSlots):
@@ -447,13 +473,17 @@ class SlateItemProbabilities(SlateItemValues):
         slate_size = len(slots)
         item_size = len(self)
         dm = torch.zeros((slate_size, item_size), dtype=torch.double)
+        # pyre-fixme[16]: `SlateItemProbabilities` has no attribute `_probabilities`.
         dm[0] = self._probabilities
-        buffer = [({}, 1.0, 0.0, 1.0)]
+        buffer = [(set(), 1.0, 0.0, 1.0)]
         probs = self._probabilities.tolist()
         for d in dm[1:]:
             buffer = _calculate_slot_expectation(d, probs, buffer)
         self._slot_item_expectations = make_slot_item_distributions(
-            slots, [self.replace(vs) for vs in dm]
+            slots,
+            # pyre-fixme[6]: Expected `Sequence[SlateItemValues]` for 2nd param but
+            #  got `List[Values[typing.Any]]`.
+            [self.replace(vs) for vs in dm],
         )
 
     def sample_slate(self, slots: SlateSlots) -> Slate:
@@ -464,6 +494,13 @@ class SlateItemProbabilities(SlateItemValues):
             items = super().sample(slate_size)
         if slate_size == 1:
             items = [items]
+        # pyre-fixme[6]: Expected `Sequence[TypeWrapper[Union[Tuple[float],
+        #  Tuple[int], Tensor, float, int, np.ndarray]]]` for 2nd param but got
+        #  `Union[Sequence[Union[Sequence[TypeWrapper[Union[Tuple[float], Tuple[int],
+        #  Tensor, float, int, np.ndarray]]], TypeWrapper[Union[Tuple[float],
+        #  Tuple[int], Tensor, float, int, np.ndarray]]]],
+        #  TypeWrapper[Union[Tuple[float], Tuple[int], Tensor, float, int,
+        #  np.ndarray]]]`.
         return make_slate(slots, items)
 
     @property
@@ -487,9 +524,12 @@ class SlateItemProbabilities(SlateItemValues):
         assert item_size >= slate_size
         if self._greedy:
             items = super().greedy(slate_size)
+            assert isinstance(items, Sequence)
             return [(items, 1.0)]
         else:
             buffer = [([], 1.0, 0.0)]
+            # pyre-fixme[16]: `SlateItemProbabilities` has no attribute
+            #  `_probabilities`.
             probs = self._probabilities.tolist()
             for _ in range(slate_size):
                 next_buffer = []
@@ -563,6 +603,7 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
             and len(self._slot_item_expectations) >= slate_size
         ):
             return self._slot_item_expectations
+        # pyre-fixme[16]: `SlateSlotItemProbabilities` has no attribute `_values`.
         item_size = len(self._values[0])
         assert item_size >= slate_size
         ps = self.values_tensor()
@@ -586,6 +627,7 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
 
     def _sample_expectations(self, num_samples: int):
         slate_size = len(self.slots)
+        # pyre-fixme[16]: `SlateSlotItemProbabilities` has no attribute `_values`.
         item_size = len(self._values[0])
         dm = torch.zeros((slate_size, item_size), dtype=torch.double)
         ri = torch.arange(slate_size)
@@ -623,6 +665,7 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
         ps = self.values_tensor()
         items = []
         if self._greedy:
+            # pyre-fixme[16]: `SlateSlotItemProbabilities` has no attribute `_values`.
             for i, value in zip(range(slate_size), self._values):
                 item = ps[i].argmax().item()
                 items.append(value.items[item])
@@ -688,7 +731,9 @@ class RankingDistribution(RewardDistribution):
             _, ids = torch.sort(rewards, descending=True)
             rank = torch.arange(1, ids.shape[0] + 1, dtype=torch.double)
             dist[ids] = torch.pow(
-                2.0, (-1.0 * (self._alpha * torch.log2(rank)).floor_())
+                2.0,
+                # pyre-fixme[16]: `float` has no attribute `floor_`.
+                (-1.0 * (self._alpha * torch.log2(rank)).floor_()),
             )
         return dist
 
@@ -766,11 +811,12 @@ class SlateMetric:
     def calculate_reward(
         self,
         slots: SlateSlots,
-        rewards: SlateSlotValues = None,
-        slot_values: SlateSlotValues = None,
-        slot_weights: SlateSlotValues = None,
+        rewards: Optional[SlateSlotValues] = None,
+        slot_values: Optional[SlateSlotValues] = None,
+        slot_weights: Optional[SlateSlotValues] = None,
     ) -> float:
         if slot_values is None:
+            assert rewards is not None
             slot_values = self.slot_values(rewards)
         values = slot_values.values.to(device=self._device)
         if slot_weights is None:
@@ -789,13 +835,14 @@ class SlateMetric:
 
 
 class DCGSlateMetric(SlateMetric):
-    _weights: Tensor = None
+    _weights: Optional[Tensor] = None
 
     def _get_discount(self, slate_size: int) -> Tensor:
+        weights = DCGSlateMetric._weights
         if (
-            DCGSlateMetric._weights is None
-            or DCGSlateMetric._weights.shape[0] < slate_size
-            or DCGSlateMetric._weights.device != self._device
+            weights is None
+            or weights.shape[0] < slate_size
+            or weights.device != self._device
         ):
             DCGSlateMetric._weights = torch.reciprocal(
                 torch.log2(
@@ -804,12 +851,15 @@ class DCGSlateMetric(SlateMetric):
                     )
                 )
             )
-        return DCGSlateMetric._weights[:slate_size]
+        weights = DCGSlateMetric._weights
+        assert weights is not None
+        return weights[:slate_size]
 
     def slot_weights(self, slots: SlateSlots) -> SlateSlotValues:
         return slots.fill(self._get_discount(len(slots)))
 
     def slot_values(self, rewards: SlateSlotValues) -> SlateSlotValues:
+        # pyre-fixme[7]: Expected `SlateSlotValues` but got `Values[typing.Any]`.
         return rewards.replace(torch.pow(2.0, rewards.values) - 1.0)
 
 
@@ -858,6 +908,7 @@ class ERRSlateMetric(SlateMetric):
             ri = r[i]
             err[i] = p * ri
             p = p * (1.0 - ri.item())
+        # pyre-fixme[7]: Expected `SlateSlotValues` but got `Values[typing.Any]`.
         return rewards.replace(err)
 
 
@@ -914,7 +965,7 @@ class LogSample:
     # item/action independent examination probabilities of each slot, used by PBM
     slot_probabilities: Optional[SlateSlotValues] = None
     # features associated with the slate, to train direct model
-    item_features: SlateItemFeatures = None
+    item_features: Optional[SlateItemFeatures] = None
 
     def validate(self):
         slate_size = len(self.context.slots)
@@ -998,6 +1049,7 @@ class LogSample:
     @property
     def items(self) -> SlateItems:
         if self._log_slot_item_probabilities is not None:
+            # pyre-fixme[16]: `SlateSlotItemProbabilities` has no attribute `_values`.
             return self._log_slot_item_probabilities._values[0].items
         if self._log_item_probabilities is not None:
             return self._log_item_probabilities.items
@@ -1015,9 +1067,7 @@ class SlateEstimatorInput:
 
 class SlateEstimator(Estimator):
     @abstractmethod
-    def _evaluate_sample(
-        self, sample: LogSample, logger: logging.Logger
-    ) -> Optional[EstimatorSampleResult]:
+    def _evaluate_sample(self, sample: LogSample) -> Optional[EstimatorSampleResult]:
         pass
 
 
@@ -1032,7 +1082,7 @@ class DMEstimator(SlateEstimator):
         self._training_sample_ratio = training_sample_ratio
 
     def _train_model(
-        self, samples: Sequence[LogSample], logger: logging.Logger
+        self, samples: Sequence[LogSample]
     ) -> Optional[Iterable[LogSample]]:
         if self._trainer is None:
             logger.error("Target model trainer is none, DM is not available")
@@ -1084,15 +1134,14 @@ class DMEstimator(SlateEstimator):
 
         return evaluate_samples
 
-    def _evaluate_sample(
-        self, sample: LogSample, logger: logging.Logger
-    ) -> Optional[EstimatorSampleResult]:
+    def _evaluate_sample(self, sample: LogSample) -> Optional[EstimatorSampleResult]:
         slots = sample.context.slots
         tgt_slate_space = sample.tgt_slate_space(slots)
         features = []
         probs = []
         for items, prob in tgt_slate_space:
             slate = make_slate(slots, items)
+            assert sample.item_features is not None
             slate_features = slate.slot_features(sample.item_features)
             features.append(slate_features.features.flatten())
             probs.append(prob)
@@ -1107,12 +1156,12 @@ class DMEstimator(SlateEstimator):
             float("nan"),
         )
 
+    # pyre-fixme[14]: `evaluate` overrides method defined in `Estimator` inconsistently.
     def evaluate(
         self, input: SlateEstimatorInput, *kwargs
     ) -> Optional[EstimatorResult]:
         input.validate()
-        logger = Estimator.logger()
-        samples = self._train_model(input.samples, logger)
+        samples = self._train_model(input.samples)
         if samples is None:
             return None
 
@@ -1120,7 +1169,7 @@ class DMEstimator(SlateEstimator):
         tgt_avg = RunningAverage()
         gt_avg = RunningAverage()
         for sample in samples:
-            result = self._evaluate_sample(sample, logger)
+            result = self._evaluate_sample(sample)
             if result is None:
                 continue
             log_avg.add(result.log_reward)
@@ -1139,7 +1188,10 @@ class DMEstimator(SlateEstimator):
 
 class IPSEstimator(SlateEstimator):
     def __init__(
-        self, weight_clamper: Clamper = None, weighted: bool = True, device=None
+        self,
+        weight_clamper: Optional[Clamper] = None,
+        weighted: bool = True,
+        device=None,
     ):
         super().__init__(device)
         self._weight_clamper = (
@@ -1147,9 +1199,7 @@ class IPSEstimator(SlateEstimator):
         )
         self._weighted = weighted
 
-    def _evaluate_sample(
-        self, sample: LogSample, logger: logging.Logger
-    ) -> Optional[EstimatorSampleResult]:
+    def _evaluate_sample(self, sample: LogSample) -> Optional[EstimatorSampleResult]:
         tgt_prob = sample.tgt_slate_probability()
         log_prob = sample.log_slate_probability(sample.log_slate)
         if tgt_prob == log_prob:
@@ -1167,18 +1217,18 @@ class IPSEstimator(SlateEstimator):
             weight,
         )
 
+    # pyre-fixme[14]: `evaluate` overrides method defined in `Estimator` inconsistently.
     def evaluate(
         self, input: SlateEstimatorInput, *kwargs
     ) -> Optional[EstimatorResult]:
         input.validate()
-        logger = Estimator.logger()
         log_avg = RunningAverage()
         tgt_avg = RunningAverage()
         acc_weight = RunningAverage()
         gt_avg = RunningAverage()
         zw = 0
         for sample in input.samples:
-            result = self._evaluate_sample(sample, logger)
+            result = self._evaluate_sample(sample)
             if result is None:
                 zw += 1
                 continue
@@ -1215,7 +1265,7 @@ class DoublyRobustEstimator(DMEstimator):
         self,
         trainer: Trainer,
         training_sample_ratio: float,
-        weight_clamper: Clamper = None,
+        weight_clamper: Optional[Clamper] = None,
         weighted: bool = False,
         device=None,
     ):
@@ -1225,9 +1275,7 @@ class DoublyRobustEstimator(DMEstimator):
         )
         self._weighted = weighted
 
-    def _evaluate_sample(
-        self, sample: LogSample, logger: logging.Logger
-    ) -> Optional[EstimatorSampleResult]:
+    def _evaluate_sample(self, sample: LogSample) -> Optional[EstimatorSampleResult]:
         slots = sample.context.slots
         if self._trainer.is_trained:
             tgt_slate_space = sample.tgt_slate_space(slots)
@@ -1235,6 +1283,7 @@ class DoublyRobustEstimator(DMEstimator):
             probs = []
             for items, prob in tgt_slate_space:
                 slate = make_slate(slots, items)
+                assert sample.item_features is not None
                 slate_features = slate.slot_features(sample.item_features)
                 features.append(slate_features.features.flatten())
                 probs.append(prob)
@@ -1243,6 +1292,7 @@ class DoublyRobustEstimator(DMEstimator):
                 preds.scores,
                 torch.tensor(probs, dtype=torch.double, device=self._device),
             ).item()
+            assert sample.item_features is not None
             log_slate_feature = sample.log_slate.slot_features(sample.item_features)
             pred = self._trainer.predict(
                 torch.unsqueeze(log_slate_feature.features.flatten(), dim=0),
@@ -1271,8 +1321,7 @@ class DoublyRobustEstimator(DMEstimator):
         self, input: SlateEstimatorInput, *kwargs
     ) -> Optional[EstimatorResult]:
         input.validate()
-        logger = Estimator.logger()
-        samples = self._train_model(input.samples, logger)
+        samples = self._train_model(input.samples)
         if samples is None:
             samples = input.samples
 
@@ -1281,7 +1330,7 @@ class DoublyRobustEstimator(DMEstimator):
         acc_weight = RunningAverage()
         gt_avg = RunningAverage()
         for sample in samples:
-            result = self._evaluate_sample(sample, logger)
+            result = self._evaluate_sample(sample)
             if result is None:
                 continue
             log_avg.add(result.log_reward)
@@ -1313,7 +1362,10 @@ class PseudoInverseEstimator(SlateEstimator):
     """
 
     def __init__(
-        self, weight_clamper: Clamper = None, weighted: bool = True, device=None
+        self,
+        weight_clamper: Optional[Clamper] = None,
+        weighted: bool = True,
+        device=None,
     ):
         super().__init__(device)
         self._weight_clamper = (
@@ -1321,16 +1373,14 @@ class PseudoInverseEstimator(SlateEstimator):
         )
         self._weighted = weighted
 
-    def _evaluate_sample(
-        self, sample: LogSample, logger: logging.Logger
-    ) -> Optional[EstimatorSampleResult]:
+    def _evaluate_sample(self, sample: LogSample) -> Optional[EstimatorSampleResult]:
         log_slot_expects = sample.log_slot_item_expectations(sample.context.slots)
         if log_slot_expects is None:
-            logger.warning(f"Log slot distribution not available")
+            logger.warning("Log slot distribution not available")
             return None
         tgt_slot_expects = sample.tgt_slot_expectations(sample.context.slots)
         if tgt_slot_expects is None:
-            logger.warning(f"Target slot distribution not available")
+            logger.warning("Target slot distribution not available")
             return None
         log_indicator = log_slot_expects.values_tensor(self._device)
         tgt_indicator = tgt_slot_expects.values_tensor(self._device)
@@ -1357,18 +1407,18 @@ class PseudoInverseEstimator(SlateEstimator):
             weight,
         )
 
+    # pyre-fixme[14]: `evaluate` overrides method defined in `Estimator` inconsistently.
     def evaluate(
         self, input: SlateEstimatorInput, *kwargs
     ) -> Optional[EstimatorResult]:
         input.validate()
-        logger = Estimator.logger()
         log_avg = RunningAverage()
         tgt_avg = RunningAverage()
         acc_weight = RunningAverage()
         gt_avg = RunningAverage()
         zw = 0
         for sample in input.samples:
-            result = self._evaluate_sample(sample, logger)
+            result = self._evaluate_sample(sample)
             if result is None:
                 zw += 1
                 continue
@@ -1408,7 +1458,10 @@ class PBMEstimator(SlateEstimator):
     """
 
     def __init__(
-        self, weight_clamper: Clamper = None, weighted: bool = True, device=None
+        self,
+        weight_clamper: Optional[Clamper] = None,
+        weighted: bool = True,
+        device=None,
     ):
         super().__init__(device)
         self._weight_clamper = (
@@ -1416,16 +1469,14 @@ class PBMEstimator(SlateEstimator):
         )
         self._weighted = weighted
 
-    def _evaluate_sample(
-        self, sample: LogSample, logger: logging.Logger
-    ) -> Optional[EstimatorSampleResult]:
+    def _evaluate_sample(self, sample: LogSample) -> Optional[EstimatorSampleResult]:
         log_slot_expects = sample.log_slot_item_expectations(sample.context.slots)
         if log_slot_expects is None:
-            logger.warning(f"  Log slot distribution not available")
+            logger.warning("  Log slot distribution not available")
             return None
         tgt_slot_expects = sample.tgt_slot_expectations(sample.context.slots)
         if tgt_slot_expects is None:
-            logger.warning(f"  Target slot distribution not available")
+            logger.warning("  Target slot distribution not available")
             return None
         slate_size = len(sample.context.slots)
         slot_weights = sample.slot_weights
@@ -1458,18 +1509,18 @@ class PBMEstimator(SlateEstimator):
             weight,
         )
 
+    # pyre-fixme[14]: `evaluate` overrides method defined in `Estimator` inconsistently.
     def evaluate(
         self, input: SlateEstimatorInput, *kwargs
     ) -> Optional[EstimatorResult]:
         input.validate()
-        logger = Estimator.logger()
         log_avg = RunningAverage()
         tgt_avg = RunningAverage()
         acc_weight = RunningAverage()
         gt_avg = RunningAverage()
         zw = 0
         for sample in input.samples:
-            result = self._evaluate_sample(sample, logger)
+            result = self._evaluate_sample(sample)
             if result is None:
                 zw += 1
                 continue
