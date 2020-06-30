@@ -43,7 +43,7 @@ class State(TypeWrapper[StateType]):
 
 @dataclass(frozen=True)
 class StateReward:
-    state: State = None
+    state: Optional[State] = None
     reward: Reward = 0.0
 
 
@@ -119,7 +119,7 @@ class EpsilonGreedyRLPolicy(RLPolicy):
     """
 
     def __init__(self, policy: RLPolicy, epsilon: float = 0.0):
-        assert policy is not None and 0 <= epsilon < 1
+        assert policy is not None and 0.0 <= epsilon < 1.0
         super().__init__(policy._device)
         self._policy = policy
         self._exploitation_prob = 1.0 - epsilon
@@ -227,7 +227,10 @@ class IPSEstimator(RLEstimator):
     """
 
     def __init__(
-        self, weight_clamper: Clamper = None, weighted: bool = True, device=None
+        self,
+        weight_clamper: Optional[Clamper] = None,
+        weighted: bool = True,
+        device=None,
     ):
         super().__init__(device)
         self._weight_clamper = (
@@ -250,6 +253,7 @@ class IPSEstimator(RLEstimator):
             i = 0
             for t in ts:
                 if t is not None and t.action is not None and t.action_prob > 0.0:
+                    assert t.last_state is not None
                     pi_e[i, j] = policy(t.last_state)[t.action]
                     pi_b[i, j] = t.action_prob
                 else:
@@ -336,7 +340,9 @@ class DoublyRobustEstimator(IPSEstimator):
             for ts, j in zip(zip_longest(*mdps), count()):
                 for t, i in zip(ts, count()):
                     if t is not None and t.action is not None:
+                        assert input.value_function is not None
                         qs[i, j] = input.value_function(t.last_state, t.action)
+                        assert input.value_function is not None
                         vs[i, j] = input.value_function(t.last_state)
                         rs[i, j] = t.reward
             vs = vs.to(device=self._device)
@@ -364,7 +370,7 @@ class MAGICEstimator(IPSEstimator):
     Algorithm from https://arxiv.org/abs/1604.00923, appendix G.3
     """
 
-    def __init__(self, weight_clamper: Clamper = None, device=None):
+    def __init__(self, weight_clamper: Optional[Clamper] = None, device=None):
         super().__init__(weight_clamper, True, device)
 
     def evaluate(self, input: RLEstimatorInput, **kwargs) -> EstimatorResults:
@@ -431,6 +437,8 @@ class MAGICEstimator(IPSEstimator):
                 list(
                     map(
                         lambda a: a - ub if a > ub else (a - lb if a < lb else 0.0),
+                        # pyre-fixme[6]: Expected `Iterable[Variable[_T1]]` for 2nd
+                        #  param but got `Tensor`.
                         gs.sum(0),
                     )
                 ),

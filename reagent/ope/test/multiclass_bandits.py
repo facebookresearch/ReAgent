@@ -258,16 +258,17 @@ def evaluate_all(
             item_feature = dataset.features[qid]
             samples.append(
                 LogSample(
-                    qid,
-                    log_action,
-                    log_reward,
-                    log_action_probabilities,
-                    tgt_action_probabilities,
-                    ground_truth_reward,
-                    item_feature,
+                    context=qid,
+                    log_action=log_action,
+                    log_reward=log_reward,
+                    log_action_probabilities=log_action_probabilities,
+                    tgt_action_probabilities=tgt_action_probabilities,
+                    tgt_action=tgt_action,
+                    ground_truth_reward=ground_truth_reward,
+                    item_feature=item_feature,
                 )
             )
-        tasks.append((estimators, BanditsEstimatorInput(action_space, samples)))
+        tasks.append((estimators, BanditsEstimatorInput(action_space, samples, False)))
 
     logging.info("start evaluating...")
     st = time.perf_counter()

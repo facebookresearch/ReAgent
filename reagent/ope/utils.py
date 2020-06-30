@@ -8,6 +8,10 @@ import numpy as np
 import torch
 
 
+DEFAULT_MIN = float("-inf")
+DEFAULT_MAX = float("inf")
+
+
 def convert_to_one_hots(a, num_classes: int, dtype=torch.int, device=None):
     """
     Convert class index array (num_sample,) to an one hots array
@@ -72,9 +76,9 @@ class RunningAverage:
 
 
 class Clamper:
-    def __init__(self, min: float = None, max: float = None):
-        self._min = min if min is not None else float("-inf")
-        self._max = max if max is not None else float("inf")
+    def __init__(self, min_v: float = DEFAULT_MIN, max_v: float = DEFAULT_MAX):
+        self._min = min_v
+        self._max = max_v
         if self._min >= self._max:
             raise ValueError(f"min[{min}] greater than max[{max}]")
 
