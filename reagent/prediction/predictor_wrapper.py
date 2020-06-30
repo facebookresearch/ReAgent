@@ -394,7 +394,7 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
         return ranked_tgt_out_probs, ranked_tgt_out_idx
 
 
-class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
+class Seq2RewardWithPreprocessor(ModelBase):
     def __init__(
         self,
         model: ModelBase,
@@ -408,7 +408,9 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         here so that trace can use them directly.
         """
 
-        super().__init__(model=model, state_preprocessor=state_preprocessor)
+        super().__init__()
+        self.model = model
+        self.state_preprocessor = state_preprocessor
         self.seq_len = seq_len
         self.num_action = num_action
 
@@ -471,3 +473,6 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         )
 
         return max_reward
+
+    def input_prototype(self):
+        return (self.state_preprocessor.input_prototype(),)
