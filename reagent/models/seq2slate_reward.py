@@ -111,10 +111,12 @@ class Seq2SlateGRURewardNet(Seq2SlateRewardNetBase):
         assert self.max_src_seq_len == src_seq_len
 
         # unselected_idx stores indices of items that are not included in the slate
-        unselected_idx = torch.ones(batch_size, src_seq_len)
+        unselected_idx = torch.ones(batch_size, src_seq_len, device=device)
         unselected_idx[
             # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
-            torch.arange(batch_size, device=device).repeat_interleave(tgt_seq_len),
+            torch.arange(batch_size, device=device).repeat_interleave(
+                torch.tensor(tgt_seq_len, device=device)
+            ),
             # pyre-fixme[16]: Optional type has no attribute `flatten`.
             input.tgt_out_idx.flatten() - 2,
         ] = 0
@@ -131,7 +133,7 @@ class Seq2SlateGRURewardNet(Seq2SlateRewardNetBase):
             (
                 input.tgt_out_seq.float_features,
                 unselected_candidate_features,
-                # self.end_of_seq_vec.repeat(batch_size, 1, 1),
+                self.end_of_seq_vec.repeat(batch_size, 1, 1),
             ),
             dim=1,
         )
@@ -151,8 +153,8 @@ class Seq2SlateGRURewardNet(Seq2SlateRewardNetBase):
         # state_embed: batch_size, dim_model/2
         state_embed = self.state_embedder(state)
         # transform state_embed into shape: batch_size, src_seq_len, dim_model/2
-        state_embed = state_embed.repeat(1, self.max_src_seq_len).reshape(
-            batch_size, self.max_src_seq_len, -1
+        state_embed = state_embed.repeat(1, self.max_src_seq_len + 1).reshape(
+            batch_size, self.max_src_seq_len + 1, -1
         )
 
         # Input at each encoder step is actually concatenation of state_embed
