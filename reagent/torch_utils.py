@@ -83,8 +83,11 @@ def gather(data, index_2d):
     batch_size = data.shape[0]
     data_shape = data.shape[2:]
     index_len = index_2d.shape[1]
+    device = data.device
     res = data[
-        torch.arange(batch_size, device=data.device).repeat_interleave(index_len),
+        torch.arange(batch_size, device=device).repeat_interleave(
+            torch.tensor(index_len, device=device)
+        ),
         index_2d.flatten(),
     ].view(batch_size, index_len, *data_shape)
     return res
