@@ -39,8 +39,8 @@ def discrete_qrdqn_scorer(q_network: ModelBase) -> Scorer:
 
 def discrete_dqn_serving_scorer(q_network: torch.nn.Module) -> Scorer:
     @torch.no_grad()
-    def score(value_presence: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
-        action_names, q_values = q_network(value_presence)
+    def score(state: rlt.ServingFeatureData) -> torch.Tensor:
+        action_names, q_values = q_network(*state)
         return q_values
 
     return score

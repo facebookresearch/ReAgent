@@ -78,24 +78,39 @@ def one_hot_actions(
 
 
 class DiscreteDqnInputMaker:
-    def __init__(self, num_actions: int):
+    def __init__(self, num_actions: int, trainer_preprocessor=None):
         self.num_actions = num_actions
+        self.trainer_preprocessor = trainer_preprocessor
 
     @classmethod
     def create_for_env(cls, env: gym.Env):
         action_space = env.action_space
         assert isinstance(action_space, gym.spaces.Discrete)
-        return cls(num_actions=action_space.n)
+        try:
+            return cls(
+                num_actions=action_space.n,
+                # pyre-fixme[16]: `Env` has no attribute `trainer_preprocessor`.
+                trainer_preprocessor=env.trainer_preprocessor,
+            )
+        except AttributeError:
+            return cls(num_actions=action_space.n)
 
     def __call__(self, batch):
         not_terminal = 1.0 - batch.terminal.float()
         action, next_action = one_hot_actions(
             self.num_actions, batch.action, batch.next_action, batch.terminal
         )
+        if self.trainer_preprocessor is not None:
+            state = self.trainer_preprocessor(batch.state)
+            next_state = self.trainer_preprocessor(batch.next_state)
+        else:
+            state = rlt.FeatureData(float_features=batch.state)
+            next_state = rlt.FeatureData(float_features=batch.next_state)
+
         return rlt.DiscreteDqnInput(
-            state=rlt.FeatureData(float_features=batch.state),
+            state=state,
             action=action,
-            next_state=rlt.FeatureData(float_features=batch.next_state),
+            next_state=next_state,
             next_action=next_action,
             possible_actions_mask=torch.ones_like(action).float(),
             possible_next_actions_mask=torch.ones_like(next_action).float(),

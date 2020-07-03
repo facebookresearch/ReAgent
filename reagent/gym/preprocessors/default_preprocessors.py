@@ -28,15 +28,20 @@ except ImportError:
 
 def make_default_obs_preprocessor(env: Env, *, device: Optional[torch.device] = None):
     """ Returns the default obs preprocessor for the environment """
-    if device is None:
-        device = torch.device("cpu")
-    observation_space = env.observation_space
-    if HAS_RECSIM and isinstance(env.unwrapped, RecSimGymEnv):
-        return RecsimObsPreprocessor.create_from_env(env, device=device)
-    elif isinstance(observation_space, spaces.Box):
-        return BoxObsPreprocessor(device)
-    else:
-        raise NotImplementedError(f"Unsupport observation space: {observation_space}")
+    try:
+        # pyre-fixme[16]: `Env` has no attribute `obs_preprocessor`.
+        return env.obs_preprocessor
+    except AttributeError:
+        device = device or torch.device("cpu")
+        observation_space = env.observation_space
+        if HAS_RECSIM and isinstance(env.unwrapped, RecSimGymEnv):
+            return RecsimObsPreprocessor.create_from_env(env, device=device)
+        elif isinstance(observation_space, spaces.Box):
+            return BoxObsPreprocessor(device)
+        else:
+            raise NotImplementedError(
+                f"Unsupport observation space: {observation_space}"
+            )
 
 
 def make_default_action_extractor(env: Env):
