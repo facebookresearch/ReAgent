@@ -9,8 +9,10 @@ import torch
 import torch.nn.functional as F
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.models.seq2slate_reward import Seq2SlateRewardNetBase
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.torch_utils import gather
 from torch import nn
 
 
@@ -476,3 +478,87 @@ class Seq2RewardWithPreprocessor(ModelBase):
 
     def input_prototype(self):
         return (self.state_preprocessor.input_prototype(),)
+
+
+class Seq2SlateRewardWithPreprocessor(ModelBase):
+    def __init__(
+        self,
+        model: Seq2SlateRewardNetBase,
+        state_preprocessor: Preprocessor,
+        candidate_preprocessor: Preprocessor,
+    ):
+        super().__init__()
+        self.model = model
+        self.state_preprocessor = state_preprocessor
+        self.candidate_preprocessor = candidate_preprocessor
+
+    def input_prototype(self):
+        candidate_input_prototype = self.candidate_preprocessor.input_prototype()
+        slate_idx_input_prototype = torch.arange(self.model.max_tgt_seq_len)
+
+        return (
+            self.state_preprocessor.input_prototype(),
+            (
+                candidate_input_prototype[0].repeat((1, self.model.max_src_seq_len, 1)),
+                candidate_input_prototype[1].repeat((1, self.model.max_src_seq_len, 1)),
+            ),
+            [(slate_idx_input_prototype, torch.ones(self.model.max_tgt_seq_len))],
+        )
+
+    @property
+    def state_sorted_features(self) -> List[int]:
+        return self.state_preprocessor.sorted_features
+
+    @property
+    def candidate_sorted_features(self) -> List[int]:
+        return self.candidate_preprocessor.sorted_features
+
+    def forward(
+        self,
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        candidate_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        slate_idx_with_presence: List[Tuple[torch.Tensor, torch.Tensor]],
+    ):
+        # state_value.shape == state_presence.shape == batch_size x state_feat_num
+        # candidate_value.shape == candidate_presence.shape ==
+        # batch_size x max_src_seq_len x candidate_feat_num
+        # slate_idx_with presence: length = batch_size, length of tensor: max_tgt_seq_len
+        batch_size = state_with_presence[0].shape[0]
+
+        preprocessed_state = self.state_preprocessor(
+            state_with_presence[0], state_with_presence[1]
+        )
+        preprocessed_candidates = self.candidate_preprocessor(
+            candidate_with_presence[0].view(
+                batch_size * self.model.max_src_seq_len,
+                len(self.candidate_sorted_features),
+            ),
+            candidate_with_presence[1].view(
+                batch_size * self.model.max_src_seq_len,
+                len(self.candidate_sorted_features),
+            ),
+        ).view(batch_size, self.model.max_src_seq_len, -1)
+
+        src_src_mask = torch.ones(
+            batch_size, self.model.max_src_seq_len, self.model.max_src_seq_len
+        )
+
+        tgt_out_idx = torch.cat(
+            [slate_idx[0] for slate_idx in slate_idx_with_presence]
+        ).view(batch_size, self.model.max_tgt_seq_len)
+
+        tgt_out_seq = gather(preprocessed_candidates, tgt_out_idx)
+
+        ranking_input = rlt.PreprocessedRankingInput.from_tensors(
+            state=preprocessed_state,
+            src_seq=preprocessed_candidates,
+            src_src_mask=src_src_mask,
+            tgt_out_seq=tgt_out_seq,
+            # +2 is needed to avoid two preserved symbols:
+            # PADDING_SYMBOL = 0
+            # DECODER_START_SYMBOL = 1
+            tgt_out_idx=tgt_out_idx + 2,
+        )
+
+        output = self.model(ranking_input)
+        return output.predicted_reward
