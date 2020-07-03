@@ -3,6 +3,8 @@
 
 from typing import Dict, List, Optional
 
+import reagent.types as rlt
+
 # pyre-fixme[21]: Could not find `pyspark`.
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, collect_list, explode
@@ -126,3 +128,14 @@ def create_normalization_spec_spark(
         collect_list("feature_value").alias("feature_values")
     )
     return df
+
+
+# TODO: for OSS
+def identify_sparse_normalization_parameters(
+    feature_config: rlt.ModelFeatureConfig,
+    table_spec: TableSpec,
+    id_list_column: str,
+    id_score_list_column: str,
+    preprocessing_options: PreprocessingOptions,
+):
+    return {}
