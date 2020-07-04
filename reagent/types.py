@@ -173,6 +173,7 @@ class ModelFeatureConfig(BaseDataClass):
         self._id2name = {config.feature_id: config.name for config in both_lists}
         self._name2id = {config.name: config.feature_id for config in both_lists}
         self._id2config = {config.feature_id: config for config in both_lists}
+        self._name2config = {config.name: config for config in both_lists}
 
     @property
     def only_dense(self):
@@ -189,6 +190,10 @@ class ModelFeatureConfig(BaseDataClass):
     @property
     def id2config(self):
         return self._id2config
+
+    @property
+    def name2config(self):
+        return self._name2config
 
 
 ######

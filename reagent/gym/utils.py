@@ -84,7 +84,7 @@ def fill_replay_buffer(env: Env, replay_buffer: ReplayBuffer, desired_size: int)
         )
 
 
-def build_state_normalizer(env):
+def build_state_normalizer(env: Env):
     if isinstance(env.observation_space, spaces.Box):
         assert (
             len(env.observation_space.shape) == 1
@@ -101,7 +101,7 @@ def build_state_normalizer(env):
         raise NotImplementedError(f"{env.observation_space} not supported")
 
 
-def build_action_normalizer(env):
+def build_action_normalizer(env: Env):
     action_space = env.action_space
     if isinstance(action_space, spaces.Discrete):
         return only_continuous_normalizer(
@@ -122,12 +122,16 @@ def build_action_normalizer(env):
         raise NotImplementedError(f"{action_space} not supported.")
 
 
-def build_normalizer(env) -> Dict[str, NormalizationData]:
-    return {
-        NormalizationKey.STATE: NormalizationData(
-            dense_normalization_parameters=build_state_normalizer(env)
-        ),
-        NormalizationKey.ACTION: NormalizationData(
-            dense_normalization_parameters=build_action_normalizer(env)
-        ),
-    }
+def build_normalizer(env: Env) -> Dict[str, NormalizationData]:
+    try:
+        # pyre-fixme[16]: `Env` has no attribute `normalization_data`.
+        return env.normalization_data
+    except AttributeError:
+        return {
+            NormalizationKey.STATE: NormalizationData(
+                dense_normalization_parameters=build_state_normalizer(env)
+            ),
+            NormalizationKey.ACTION: NormalizationData(
+                dense_normalization_parameters=build_action_normalizer(env)
+            ),
+        }

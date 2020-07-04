@@ -49,6 +49,11 @@ GYM_TESTS = [
         "Parametric SARSA Cartpole",
         "configs/cartpole/parametric_sarsa_cartpole_online.yaml",
     ),
+    # TODO: add back when torchscript fix lands
+    # (
+    #     "Sparse DQN Changing Arms",
+    #     "configs/sparse/discrete_dqn_changing_arms_online.yaml",
+    # ),
 ]
 
 
@@ -97,6 +102,16 @@ def run_test(
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
     manager = model.value
+    try:
+        # pyre-fixme[16]: `Env` has no attribute `state_feature_config_provider`.
+        manager.state_feature_config_provider = env.state_feature_config_provider
+        logger.info(
+            f"Using environment's state_feature_config_provider.\n"
+            f"{manager.state_feature_config_provider}"
+        )
+    except AttributeError:
+        logger.info("state_feature_config_provider override not applicable")
+
     trainer = manager.initialize_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
@@ -110,7 +125,7 @@ def run_test(
         batch_size=trainer.minibatch_size,
     )
 
-    device = torch.device("cuda") if use_gpu else None
+    device = torch.device("cuda") if use_gpu else torch.device("cpu")
     # first fill the replay buffer to burn_in
     train_after_ts = max(train_after_ts, trainer.minibatch_size)
     fill_replay_buffer(
@@ -127,12 +142,7 @@ def run_test(
     )
 
     agent = Agent.create_for_env(
-        env,
-        policy=training_policy,
-        post_transition_callback=post_step,
-        # pyre-fixme[6]: Expected `Union[str, torch.device]` for 4th param but got
-        #  `Optional[torch.device]`.
-        device=device,
+        env, policy=training_policy, post_transition_callback=post_step, device=device
     )
 
     writer = SummaryWriter()
@@ -144,10 +154,14 @@ def run_test(
             )
             ep_reward = trajectory.calculate_cumulative_reward()
             train_rewards.append(ep_reward)
-            logger.info(f"Finished training episode {i} with reward {ep_reward}.")
+            logger.info(
+                f"Finished training episode {i} (len {len(trajectory)})"
+                f" with reward {ep_reward}."
+            )
 
     logger.info("============Train rewards=============")
     logger.info(train_rewards)
+    logger.info(f"average: {np.mean(train_rewards)};\tmax: {np.max(train_rewards)}")
 
     # Check whether the max score passed the score bar; we explore during training
     # the return could be bad (leading to flakiness in C51 and QRDQN).
@@ -165,6 +179,7 @@ def run_test(
 
     logger.info("============Eval rewards==============")
     logger.info(eval_rewards)
+    logger.info(f"average: {np.mean(eval_rewards)};\tmax: {np.max(eval_rewards)}")
     assert np.mean(eval_rewards) >= passing_score_bar, (
         f"Predictor reward is {np.mean(eval_rewards)},"
         f"less than < {passing_score_bar}.\n"

@@ -18,6 +18,7 @@ ENV_CLASSES = [
     ("Pocman-v0", ".pomdp.pocman:PocManEnv"),
     ("StringGame-v0", ".pomdp.string_game:StringGameEnv"),
     ("LinearDynamics-v0", ".dynamics.linear_dynamics:LinDynaEnv"),
+    ("ChangingArms-v0", ".changing_arms:ChangingArms"),
 ]
 
 for env_name, rel_module_path in ENV_CLASSES:

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+from typing import Dict, List
+
 import torch
 from reagent import types as rlt
 from reagent.models.base import ModelBase
@@ -21,24 +23,32 @@ class EmbeddingBagConcat(ModelBase):
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         self.state_dim = state_dim
+        # for input prototype
+        self._id_list_feature_names: List[str] = [
+            config.name for config in model_feature_config.id_list_feature_configs
+        ]
+        self._id_score_list_feature_names: List[str] = [
+            config.name for config in model_feature_config.id_score_list_feature_configs
+        ]
 
         self.embedding_bags = torch.nn.ModuleDict(
             {
-                id_list_feature.name: torch.nn.EmbeddingBag(
-                    len(
-                        model_feature_config.id_mapping_config[
-                            id_list_feature.id_mapping_name
-                        ].ids
-                    ),
-                    embedding_dim,
+                table_name: torch.nn.EmbeddingBag(
+                    num_embeddings=id_mapping.table_size,
+                    embedding_dim=embedding_dim,
+                    mode="sum",
                 )
-                for id_list_feature in model_feature_config.id_list_feature_configs
+                for table_name, id_mapping in model_feature_config.id_mapping_config.items()
             }
         )
-
+        self.feat2table: Dict[str, str] = {
+            feature_name: config.id_mapping_name
+            for feature_name, config in model_feature_config.name2config.items()
+        }
         self._output_dim = (
             state_dim
-            + len(model_feature_config.id_list_feature_configs) * embedding_dim
+            + len(self._id_list_feature_names) * embedding_dim
+            + len(self._id_score_list_feature_names) * embedding_dim
         )
 
     @property
@@ -46,17 +56,39 @@ class EmbeddingBagConcat(ModelBase):
         return self._output_dim
 
     def input_prototype(self):
+        id_list_features = {
+            k: (torch.tensor([0], dtype=torch.long), torch.tensor([], dtype=torch.long))
+            for k in self._id_list_feature_names
+        }
+        id_score_list_features = {
+            k: (
+                torch.tensor([0], dtype=torch.long),
+                torch.tensor([], dtype=torch.long),
+                torch.tensor([], dtype=torch.float),
+            )
+            for k in self._id_score_list_feature_names
+        }
         return rlt.FeatureData(
             float_features=torch.randn(1, self.state_dim),
-            id_list_features={
-                k: (torch.zeros(1, dtype=torch.long), torch.ones(1, dtype=torch.long))
-                for k in self.embedding_bags
-            },
+            id_list_features=id_list_features,
+            id_score_list_features=id_score_list_features,
         )
 
     def forward(self, state: rlt.FeatureData):
-        embeddings = [
-            m(state.id_list_features[name][1], state.id_list_features[name][0])
-            for name, m in self.embedding_bags.items()
+        # id_list is (offset, value); sum pooling
+        id_list_embeddings = [
+            self.embedding_bags[self.feat2table[feature_name]](input=v[1], offsets=v[0])
+            for feature_name, v in state.id_list_features.items()
         ]
-        return torch.cat(embeddings + [state.float_features], dim=1)
+
+        # id_score_list is (offset, key, value); weighted sum pooling
+        id_score_list_embeddings = [
+            self.embedding_bags[self.feat2table[feature_name]](
+                input=v[1], offsets=v[0], per_sample_weights=v[2]
+            )
+            for feature_name, v in state.id_score_list_features.items()
+        ]
+        return torch.cat(
+            id_list_embeddings + id_score_list_embeddings + [state.float_features],
+            dim=1,
+        )

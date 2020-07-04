@@ -12,21 +12,28 @@ from gym import Env, spaces
 
 
 def make_default_serving_obs_preprocessor(env: Env):
-    if not isinstance(env.observation_space, spaces.Box):
-        raise NotImplementedError(f"{env.observation_space} not supported!")
+    try:
+        # pyre-fixme[16]: `Env` has no attribute `serving_obs_preprocessor`.
+        return env.serving_obs_preprocessor
+    except AttributeError:
+        if not isinstance(env.observation_space, spaces.Box):
+            raise NotImplementedError(f"{env.observation_space} not supported!")
 
-    observation_space = env.observation_space
-    if len(observation_space.shape) != 1:
-        raise NotImplementedError(f"Box shape {observation_space.shape} not supported!")
+        observation_space = env.observation_space
+        if len(observation_space.shape) != 1:
+            raise NotImplementedError(
+                f"Box shape {observation_space.shape} not supported!"
+            )
+        state_dim = observation_space.shape[0]
 
-    state_dim = observation_space.shape[0]
+        def gym_to_reagent_serving(
+            obs: np.ndarray,
+        ) -> Tuple[torch.Tensor, torch.Tensor]:
+            obs_tensor = torch.tensor(obs).float().view(1, state_dim)
+            presence_tensor = torch.ones_like(obs_tensor)
+            return (obs_tensor, presence_tensor)
 
-    def gym_to_reagent_serving(obs: np.ndarray) -> Tuple[torch.Tensor, torch.Tensor]:
-        obs_tensor = torch.tensor(obs).float().view(1, state_dim)
-        presence_tensor = torch.ones_like(obs_tensor)
-        return (obs_tensor, presence_tensor)
-
-    return gym_to_reagent_serving
+        return gym_to_reagent_serving
 
 
 def make_default_serving_action_extractor(env: Env):
