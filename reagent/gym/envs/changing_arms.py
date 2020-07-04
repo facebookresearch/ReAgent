@@ -221,7 +221,7 @@ class ChangingArms(gym.Env):
         """ For generate data """
         dense_val, id_list_val, id_score_list_val = self._split_state(elem.numpy())
         return (
-            {i: s.item() for i, s in enumerate(dense_val)},
+            {i: s.item() for i, s in enumerate(dense_val.view(-1))},
             {100: (id_list_val + ID_LIST_OFFSET).tolist()},
             {
                 1000: {

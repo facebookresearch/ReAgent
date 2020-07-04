@@ -5,10 +5,12 @@ import logging
 from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.parameters import NormalizationData
 from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.preprocessing.sparse_preprocessor import make_sparse_preprocessor
 
 
 logger = logging.getLogger(__name__)
@@ -103,18 +105,33 @@ class DenseNormalization:
 
 
 class MapIDListFeatures:
-    def __init__(self, keys: List[str], id_to_name: Dict[int, str]):
-        self.keys = keys
-        self.id_to_name = id_to_name
+    def __init__(
+        self,
+        id_list_keys: List[str],
+        id_score_list_keys: List[str],
+        feature_config: rlt.ModelFeatureConfig,
+        device: torch.device,
+    ):
+        self.id_list_keys = id_list_keys
+        self.id_score_list_keys = id_score_list_keys
+        assert set(id_list_keys).intersection(set(id_score_list_keys)) == set()
+        self.feature_config = feature_config
+        self.sparse_preprocessor = make_sparse_preprocessor(
+            feature_config=feature_config, device=device
+        )
 
     def __call__(self, data):
-        for k in self.keys:
-            # if empty, just set value to None
-            # otherwise, turn id -> value map into name -> value map
-            if self.id_to_name == {}:
+        for k in self.id_list_keys + self.id_score_list_keys:
+            # if no ids, it means we're not using sparse features.
+            if not self.feature_config.id2name or k not in data:
                 data[k] = None
+                continue
+
+            assert isinstance(data[k], dict), f"{k} has type {type(data[k])}. {data[k]}"
+            if k in self.id_list_keys:
+                data[k] = self.sparse_preprocessor.preprocess_id_list(data[k])
             else:
-                data[k] = {self.id_to_name[fid]: fval for fid, fval in data[k].items()}
+                data[k] = self.sparse_preprocessor.preprocess_id_score_list(data[k])
         return data
 
 
