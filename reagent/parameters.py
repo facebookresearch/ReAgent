@@ -3,11 +3,11 @@
 
 from typing import Dict, List, Optional
 
+from reagent.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass, field
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters_seq2slate import LearningMethod, RewardClamp
-from reagent.types import BaseDataClass
 
 
 # For TD3 and SAC: actions are normalized in this range for training and

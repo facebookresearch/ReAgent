@@ -6,9 +6,11 @@ import logging
 
 # The dataclasses in this file should be vanilla dataclass to have minimal overhead
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
 import torch
+from reagent.base_dataclass import BaseDataClass
+from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.preprocessing.types import InputColumn
 
@@ -30,17 +32,6 @@ no_dup_logger = NoDuplicatedWarningLogger(logger)
 
 def isinstance_namedtuple(x):
     return isinstance(x, tuple) and hasattr(x, "_fields")
-
-
-"""
-We should revisit this at some point. Config classes shouldn't subclass from this.
-"""
-
-
-@dataclass
-class BaseDataClass:
-    def _replace(self, **kwargs):
-        return cast(type(self), dataclasses.replace(self, **kwargs))
 
 
 @dataclass
@@ -85,6 +76,18 @@ class TensorDataClass(BaseDataClass):
         return type(self)(**cuda_tensor)
 
 
+# (offset, value)
+IdListFeatureValue = Tuple[torch.Tensor, torch.Tensor]
+# (offset, key, value)
+IdScoreListFeatureValue = Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
+# name -> value
+IdListFeature = Dict[str, IdListFeatureValue]
+IdScoreListFeature = Dict[str, IdScoreListFeatureValue]
+# id -> value
+ServingIdListFeature = Dict[int, IdListFeatureValue]
+ServingIdScoreListFeature = Dict[int, IdScoreListFeatureValue]
+
+
 #####
 # FIXME: These config types are misplaced but we need to write FBL config adapter
 # if we moved them.
@@ -93,14 +96,20 @@ class TensorDataClass(BaseDataClass):
 
 @pydantic_dataclass
 class IdListFeatureConfig(BaseDataClass):
-    """
-    This describes how to map raw features to model features
-    """
-
     name: str
-    feature_id: int  # integer feature ID
-    id_mapping_name: str  # key to ModelPreprocessingConfig.id_mapping_config
-    # max_length: int
+    # integer feature ID
+    feature_id: int
+    # name of the embedding table to use
+    id_mapping_name: str
+
+
+@pydantic_dataclass
+class IdScoreListFeatureConfig(BaseDataClass):
+    name: str
+    # integer feature ID
+    feature_id: int
+    # name of the embedding table to use
+    id_mapping_name: str
 
 
 @pydantic_dataclass
@@ -109,16 +118,77 @@ class FloatFeatureInfo(BaseDataClass):
     feature_id: int
 
 
-@pydantic_dataclass
-class IdMapping(BaseDataClass):
-    ids: List[int]
+@dataclass
+class IdMapping(object):
+    __hash__ = param_hash
+
+    def __init__(self, ids: List[int]):
+        self._ids: List[int] = ids
+
+    @property
+    def ids(self) -> List[int]:
+        return self._ids
+
+    @property
+    def id2index(self) -> Dict[int, int]:
+        """
+        used in preprocessing
+        ids list represents mapping from idx -> value
+        we want the reverse: from feature to embedding table indices
+        """
+        try:
+            # pyre-fixme[16]: `IdMapping` has no attribute `_id2index`.
+            return self._id2index
+        except AttributeError:
+            self._id2index = {id: i for i, id in enumerate(self.ids)}
+            return self._id2index
+
+    @property
+    def table_size(self):
+        return len(self.ids)
 
 
 @pydantic_dataclass
 class ModelFeatureConfig(BaseDataClass):
-    float_feature_infos: List[FloatFeatureInfo]
+    float_feature_infos: List[FloatFeatureInfo] = field(default_factory=list)
+    # table name -> id mapping
     id_mapping_config: Dict[str, IdMapping] = field(default_factory=dict)
+    # id_list_feature_configs is feature_id -> list of values
     id_list_feature_configs: List[IdListFeatureConfig] = field(default_factory=list)
+    # id_score_list_feature_configs is feature_id -> (keys -> values)
+    id_score_list_feature_configs: List[IdScoreListFeatureConfig] = field(
+        default_factory=list
+    )
+
+    def __post_init_post_parse__(self):
+        both_lists = self.id_list_feature_configs + self.id_score_list_feature_configs
+        if not self.only_dense:
+            # sanity check for keys in mapping config
+            ids = [config.feature_id for config in both_lists]
+            names = [config.name for config in both_lists]
+            assert len(ids) == len(set(ids)), f"duplicates in ids: {ids}"
+            assert len(names) == len(set(names)), f"duplicates in names: {names}"
+            assert len(ids) == len(names), f"{len(ids)} != {len(names)}"
+
+        self._id2name = {config.feature_id: config.name for config in both_lists}
+        self._name2id = {config.name: config.feature_id for config in both_lists}
+        self._id2config = {config.feature_id: config for config in both_lists}
+
+    @property
+    def only_dense(self):
+        return not (self.id_list_feature_configs or self.id_score_list_feature_configs)
+
+    @property
+    def id2name(self):
+        return self._id2name
+
+    @property
+    def name2id(self):
+        return self._name2id
+
+    @property
+    def id2config(self):
+        return self._id2config
 
 
 ######
@@ -130,10 +200,6 @@ class ModelFeatureConfig(BaseDataClass):
 class ValuePresence(TensorDataClass):
     value: torch.Tensor
     presence: Optional[torch.Tensor]
-
-
-IdListFeatureValue = Tuple[torch.Tensor, torch.Tensor]
-IdListFeatures = Dict[str, IdListFeatureValue]
 
 
 @dataclass
@@ -177,9 +243,10 @@ class DocList(TensorDataClass):
 class FeatureData(TensorDataClass):
     # For dense features, shape is (batch_size, feature_dim)
     float_features: torch.Tensor
+    id_list_features: IdListFeature = dataclasses.field(default_factory=dict)
+    id_score_list_features: IdScoreListFeature = dataclasses.field(default_factory=dict)
     # For sequence, shape is (stack_size, batch_size, feature_dim)
     stacked_float_features: Optional[torch.Tensor] = None
-    id_list_features: IdListFeatures = dataclasses.field(default_factory=dict)
     # For ranking algos,
     candidate_docs: Optional[DocList] = None
     # Experimental: sticking this here instead of putting it in float_features
@@ -200,11 +267,6 @@ class FeatureData(TensorDataClass):
             raise ValueError(
                 f"float_features should be 2D; got {self.float_features.shape}.\n{usage()}"
             )
-
-    @classmethod
-    def from_dict(cls, d, name: str):
-        # TODO: Looks for id_list_features
-        return cls(float_features=d[name])
 
     @property
     def has_float_features_only(self) -> bool:
@@ -241,6 +303,12 @@ class TensorFeatureData(torch.nn.Module):
     def forward(self, input: torch.Tensor) -> FeatureData:
         assert isinstance(input, torch.Tensor)
         return FeatureData(input)
+
+
+class ServingFeatureData(NamedTuple):
+    float_features_with_presence: Tuple[torch.Tensor, torch.Tensor]
+    id_list_features: ServingIdListFeature
+    id_score_list_features: ServingIdScoreListFeature
 
 
 @dataclass
@@ -350,15 +418,49 @@ class PreprocessedRankingInput(TensorDataClass):
 
 
 @dataclass
-class CommonInput(TensorDataClass):
+class BaseInput(TensorDataClass):
     """
     Base class for all inputs, both raw and preprocessed
     """
 
+    state: FeatureData
+    next_state: FeatureData
     reward: torch.Tensor
     time_diff: torch.Tensor
     step: Optional[torch.Tensor]
     not_terminal: torch.Tensor
+
+    def batch_size(self):
+        return self.state.float_features.size()[0]
+
+    @classmethod
+    def from_dict(cls, batch):
+        id_list_features = batch.get(InputColumn.STATE_ID_LIST_FEATURES, None) or {}
+        id_score_list_features = (
+            batch.get(InputColumn.STATE_ID_SCORE_LIST_FEATURES, None) or {}
+        )
+        next_id_list_features = (
+            batch.get(InputColumn.NEXT_STATE_ID_LIST_FEATURES, None) or {}
+        )
+        next_id_score_list_features = (
+            batch.get(InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES, None) or {}
+        )
+        return BaseInput(
+            state=FeatureData(
+                float_features=batch[InputColumn.STATE_FEATURES],
+                id_list_features=id_list_features,
+                id_score_list_features=id_score_list_features,
+            ),
+            next_state=FeatureData(
+                float_features=batch[InputColumn.NEXT_STATE_FEATURES],
+                id_list_features=next_id_list_features,
+                id_score_list_features=next_id_score_list_features,
+            ),
+            reward=batch[InputColumn.REWARD],
+            time_diff=batch[InputColumn.TIME_DIFF],
+            step=batch[InputColumn.STEP],
+            not_terminal=batch[InputColumn.NOT_TERMINAL],
+        )
 
 
 @dataclass
@@ -375,16 +477,7 @@ class ExtraData(TensorDataClass):
 
 
 @dataclass
-class PreprocessedBaseInput(CommonInput):
-    state: FeatureData
-    next_state: FeatureData
-
-    def batch_size(self):
-        return self.state.float_features.size()[0]
-
-
-@dataclass
-class DiscreteDqnInput(PreprocessedBaseInput):
+class DiscreteDqnInput(BaseInput):
     action: torch.Tensor
     next_action: torch.Tensor
     possible_actions_mask: torch.Tensor
@@ -393,29 +486,24 @@ class DiscreteDqnInput(PreprocessedBaseInput):
 
     @classmethod
     def from_dict(cls, batch):
+        base = super().from_dict(batch)
         return cls(
-            state=FeatureData(
-                float_features=batch[InputColumn.STATE_FEATURES],
-                id_list_features=batch[InputColumn.STATE_ID_LIST_FEATURES],
-            ),
+            state=base.state,
+            next_state=base.next_state,
+            reward=base.reward,
+            time_diff=base.time_diff,
+            step=base.step,
+            not_terminal=base.not_terminal,
             action=batch[InputColumn.ACTION],
-            next_state=FeatureData(
-                float_features=batch[InputColumn.NEXT_STATE_FEATURES],
-                id_list_features=batch[InputColumn.NEXT_STATE_ID_LIST_FEATURES],
-            ),
             next_action=batch[InputColumn.NEXT_ACTION],
             possible_actions_mask=batch[InputColumn.POSSIBLE_ACTIONS_MASK],
             possible_next_actions_mask=batch[InputColumn.POSSIBLE_NEXT_ACTIONS_MASK],
-            reward=batch[InputColumn.REWARD],
-            not_terminal=batch[InputColumn.NOT_TERMINAL],
-            time_diff=batch[InputColumn.TIME_DIFF],
-            step=batch[InputColumn.STEP],
             extras=batch[InputColumn.EXTRAS],
         )
 
 
 @dataclass
-class SlateQInput(PreprocessedBaseInput):
+class SlateQInput(BaseInput):
     """
     The shapes of `reward`, `reward_mask`, & `next_item_mask` are
     `(batch_size, slate_size)`.
@@ -462,7 +550,7 @@ class SlateQInput(PreprocessedBaseInput):
 
 
 @dataclass
-class ParametricDqnInput(PreprocessedBaseInput):
+class ParametricDqnInput(BaseInput):
     action: FeatureData
     next_action: FeatureData
     possible_actions: FeatureData
@@ -493,7 +581,7 @@ class ParametricDqnInput(PreprocessedBaseInput):
 
 
 @dataclass
-class PolicyNetworkInput(PreprocessedBaseInput):
+class PolicyNetworkInput(BaseInput):
     action: FeatureData
     next_action: FeatureData
     extras: Optional[ExtraData] = None
@@ -518,7 +606,7 @@ class PolicyNetworkInput(PreprocessedBaseInput):
 
 # TODO(T67083627): state and next_state should use stack_float_features
 @dataclass
-class MemoryNetworkInput(PreprocessedBaseInput):
+class MemoryNetworkInput(BaseInput):
     action: torch.Tensor
 
     def batch_size(self):
