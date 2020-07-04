@@ -82,10 +82,21 @@ class Agent:
 
     @classmethod
     def create_for_env_with_serving_policy(
-        cls, env: Env, serving_policy: Policy, **kwargs
+        cls,
+        env: Env,
+        serving_policy: Policy,
+        *,
+        device: Union[str, torch.device] = "cpu",
+        obs_preprocessor=None,
+        action_extractor=None,
+        **kwargs,
     ):
-        obs_preprocessor = make_default_serving_obs_preprocessor(env)
-        action_extractor = make_default_serving_action_extractor(env)
+        if obs_preprocessor is None:
+            obs_preprocessor = make_default_serving_obs_preprocessor(env)
+
+        if action_extractor is None:
+            action_extractor = make_default_serving_action_extractor(env)
+
         return cls(
             serving_policy,
             obs_preprocessor=obs_preprocessor,

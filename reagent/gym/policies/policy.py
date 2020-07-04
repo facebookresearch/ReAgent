@@ -2,6 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
+from typing import Any
+
 import reagent.types as rlt
 from reagent.gym.types import Sampler, Scorer
 
@@ -19,7 +21,7 @@ class Policy:
         self.scorer = scorer
         self.sampler = sampler
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(self, obs: Any) -> rlt.ActorOutput:
         """
         Performs the composition described above.
         These are the actions being put into the replay buffer, not necessary
@@ -27,5 +29,4 @@ class Policy:
         """
         scores = self.scorer(obs)
         actor_output = self.sampler.sample_action(scores)
-
         return actor_output.cpu().detach()

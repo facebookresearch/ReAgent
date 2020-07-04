@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+from typing import Any, Tuple, Union
+
 import reagent.types as rlt
 import torch
 from reagent.gym.policies import Policy
@@ -32,11 +34,7 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
     """
     module_name = serving_module.original_name
     if module_name.endswith("DiscreteDqnPredictorWrapper"):
-        sampler = GreedyActionSampler()
-        scorer = discrete_dqn_serving_scorer(
-            q_network=DiscreteDqnPredictorUnwrapper(serving_module)
-        )
-        return Policy(scorer=scorer, sampler=sampler)
+        return DiscreteDQNPredictorPolicy(serving_module)
     elif module_name.endswith("ActorPredictorWrapper"):
         return ActorPredictorPolicy(predictor=ActorPredictorUnwrapper(serving_module))
     elif module_name.endswith("ParametricDqnPredictorWrapper"):
@@ -57,12 +55,38 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
         )
 
 
+class DiscreteDQNPredictorPolicy(Policy):
+    def __init__(self, wrapped_dqn_predictor):
+        self.sampler = GreedyActionSampler()
+        self.scorer = discrete_dqn_serving_scorer(
+            q_network=DiscreteDqnPredictorUnwrapper(wrapped_dqn_predictor)
+        )
+
+    @torch.no_grad()
+    def act(
+        self, obs: Union[rlt.ServingFeatureData, Tuple[torch.Tensor, torch.Tensor]]
+    ) -> rlt.ActorOutput:
+        """ Input is either state_with_presence, or
+        ServingFeatureData (in the case of sparse features) """
+        assert isinstance(obs, tuple)
+        if isinstance(obs, rlt.ServingFeatureData):
+            state: rlt.ServingFeatureData = obs
+        else:
+            state = rlt.ServingFeatureData(
+                float_features_with_presence=obs,
+                id_list_features={},
+                id_score_list_features={},
+            )
+        scores = self.scorer(state)
+        return self.sampler.sample_action(scores).cpu().detach()
+
+
 class ActorPredictorPolicy(Policy):
     def __init__(self, predictor):
         self.predictor = predictor
 
     @torch.no_grad()
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(self, obs: Any) -> rlt.ActorOutput:
         action = self.predictor(obs).cpu()
         # TODO: return log_probs as well
         return rlt.ActorOutput(action=action)

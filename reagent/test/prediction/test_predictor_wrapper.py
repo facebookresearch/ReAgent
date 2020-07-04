@@ -11,9 +11,7 @@ from reagent.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
     DiscreteDqnPredictorWrapper,
-    DiscreteDqnPredictorWrapperWithIdList,
     DiscreteDqnWithPreprocessor,
-    DiscreteDqnWithPreprocessorWithIdList,
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
     Seq2SlatePredictorWrapper,
@@ -49,37 +47,13 @@ class TestPredictorWrapper(unittest.TestCase):
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(dqn, state_preprocessor)
         action_names = ["L", "R"]
         wrapper = DiscreteDqnPredictorWrapper(dqn_with_preprocessor, action_names)
-        input_prototype = dqn_with_preprocessor.input_prototype()
-        output_action_names, q_values = wrapper(*input_prototype)
+        input_prototype = dqn_with_preprocessor.input_prototype()[0]
+        output_action_names, q_values = wrapper(input_prototype)
         self.assertEqual(action_names, output_action_names)
         self.assertEqual(q_values.shape, (1, 2))
 
-        expected_output = dqn(rlt.FeatureData(state_preprocessor(*input_prototype[0])))
-        self.assertTrue((expected_output == q_values).all())
-
-    def test_discrete_wrapper_with_id_list_none(self):
-        state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
-        state_preprocessor = Preprocessor(state_normalization_parameters, False)
-        action_dim = 2
-        dqn = models.FullyConnectedDQN(
-            state_dim=len(state_normalization_parameters),
-            action_dim=action_dim,
-            sizes=[16],
-            activations=["relu"],
-        )
-        dqn_with_preprocessor = DiscreteDqnWithPreprocessorWithIdList(
-            dqn, state_preprocessor
-        )
-        action_names = ["L", "R"]
-        wrapper = DiscreteDqnPredictorWrapperWithIdList(
-            dqn_with_preprocessor, action_names
-        )
-        input_prototype = dqn_with_preprocessor.input_prototype()
-        output_action_names, q_values = wrapper(*input_prototype)
-        self.assertEqual(action_names, output_action_names)
-        self.assertEqual(q_values.shape, (1, 2))
-
-        expected_output = dqn(rlt.FeatureData(state_preprocessor(*input_prototype[0])))
+        state_with_presence = input_prototype.float_features_with_presence
+        expected_output = dqn(rlt.FeatureData(state_preprocessor(*state_with_presence)))
         self.assertTrue((expected_output == q_values).all())
 
     def test_discrete_wrapper_with_id_list(self):
@@ -113,15 +87,15 @@ class TestPredictorWrapper(unittest.TestCase):
             ),
         )
 
-        dqn_with_preprocessor = DiscreteDqnWithPreprocessorWithIdList(
+        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
             dqn, state_preprocessor, state_feature_config
         )
         action_names = ["L", "R"]
-        wrapper = DiscreteDqnPredictorWrapperWithIdList(
+        wrapper = DiscreteDqnPredictorWrapper(
             dqn_with_preprocessor, action_names, state_feature_config
         )
-        input_prototype = dqn_with_preprocessor.input_prototype()
-        output_action_names, q_values = wrapper(*input_prototype)
+        input_prototype = dqn_with_preprocessor.input_prototype()[0]
+        output_action_names, q_values = wrapper(input_prototype)
         self.assertEqual(action_names, output_action_names)
         self.assertEqual(q_values.shape, (1, 2))
 
@@ -130,11 +104,13 @@ class TestPredictorWrapper(unittest.TestCase):
             for config in state_feature_config.id_list_feature_configs
         }
         state_id_list_features = {
-            feature_id_to_name[k]: v for k, v in input_prototype[1].items()
+            feature_id_to_name[k]: v
+            for k, v in input_prototype.id_list_features.items()
         }
+        state_with_presence = input_prototype.float_features_with_presence
         expected_output = dqn(
             rlt.FeatureData(
-                float_features=state_preprocessor(*input_prototype[0]),
+                float_features=state_preprocessor(*state_with_presence),
                 id_list_features=state_id_list_features,
             )
         )
