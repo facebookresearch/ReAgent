@@ -108,7 +108,7 @@ def only_continuous_normalizer_helper(
         list,
         np.ndarray,
         type(None),
-    )
+    ), f"invalid {type(min_value)}, {type(max_value)}"
     if type(min_value) in [int, float, type(None)]:
         min_value = [min_value] * len(feats)
         max_value = [max_value] * len(feats)
