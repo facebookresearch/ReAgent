@@ -9,6 +9,7 @@ import random
 import sys
 import time
 from typing import (
+    Dict,
     Iterable,
     List,
     Mapping,
@@ -22,7 +23,7 @@ from typing import (
 import numpy as np
 import torch
 import torch.multiprocessing as mp
-from reagent.ope.estimators.estimator import Estimator, Evaluator
+from reagent.ope.estimators.estimator import Evaluator
 from reagent.ope.estimators.slate_estimators import (
     DCGSlateMetric,
     ERRSlateMetric,
@@ -147,10 +148,7 @@ class TrainingQuery:
         self._query_id = query_id
         self._query_terms = query_terms
         self._count = 0
-        self._url_relevances: Union[
-            Sequence[Tuple[Tuple[int, int], float]],
-            MutableMapping[Tuple[int, int], float],
-        ] = {}
+        self._url_relevances: MutableMapping[Tuple[int, int], RunningAverage] = {}
         self._position_relevances = [RunningAverage() for _ in range(MAX_SLATE_SIZE)]
 
     def add(self, query: LoggedQuery):
@@ -537,6 +535,7 @@ class YandexSlateModel(SlateModel):
 
     def item_rewards(self, context: SlateContext) -> SlateItemValues:
         query = context.query.value
+        # pyre-fixme[20]: Call `TrainingDataset.item_relevances` expects argument `items`.
         return self._dataset.item_relevances(query[0], query[1:])
 
     def slot_probabilities(self, context: SlateContext) -> SlateSlotValues:

@@ -2,7 +2,7 @@
 
 import pickle
 from functools import reduce
-from typing import Mapping, Sequence
+from typing import List, Mapping, Sequence
 
 import torch
 from reagent.ope.estimators.sequential_estimators import (
@@ -22,7 +22,7 @@ class TabularPolicy(RLPolicy):
         as_size = len(action_space)
         self._exploitation_prob = 1.0 - epsilon
         self._exploration_prob = epsilon / len(action_space)
-        self._uniform_probs = as_size * [1.0 / as_size]
+        self._uniform_probs: List[float] = as_size * [1.0 / as_size]
         self._state_space = {}
 
     def update(self, state: State, actions: Sequence[float]) -> float:

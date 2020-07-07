@@ -131,7 +131,7 @@ class EstimatorResults:
             grt.mean().item(),
             ResultDiffs(ert - grt),
             ResultDiffs(ert - lrt),
-            torch.tensor(self.estimated_weights).mean().item(),
+            torch.tensor([res.estimated_weight for res in self.results]).mean().item(),
         )
 
 
