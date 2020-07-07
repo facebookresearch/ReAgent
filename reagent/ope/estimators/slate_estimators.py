@@ -771,7 +771,7 @@ class FrechetDistribution(RewardDistribution):
         )
 
 
-SlateQueryType = Union[int, Tuple[int], float, Tuple[float], np.ndarray, Tensor]
+SlateQueryType = Union[Tuple[int], Tuple[float], np.ndarray, Tensor, Tuple[int, int]]
 SlateQuery = TypeWrapper[SlateQueryType]
 
 

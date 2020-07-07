@@ -48,8 +48,8 @@ class GridWorld(Environment):
     @classmethod
     def from_grid(cls, grid: Sequence[Sequence[str]], max_horizon: int = -1):
         size = (len(grid), len(grid[0]))
-        start = ()
-        goal = ()
+        start = (0, 0)
+        goal = (0, 0)
         walls = []
         for x, r in enumerate(grid):
             for y, c in enumerate(r):
@@ -89,7 +89,12 @@ class GridWorld(Environment):
             return to_pos, 0.0, False
 
     def _next_state_reward(self, state: State, action: Action) -> StateReward:
-        x, y = state.value
+        value = state.value
+        assert isinstance(value, tuple), f"got type {type(value)} instead of tuple"
+        (x, y) = value
+        assert isinstance(x, int) and isinstance(
+            y, int
+        ), "Gridworld expects states to be Tuple[int, int]"
         if state.value in self.walls or state.value == self.goal:
             return StateReward(State((x, y), state.is_terminal), 0.0)
         if action.value == 0:
@@ -104,6 +109,7 @@ class GridWorld(Environment):
 
     def next_state_reward_dist(self, state: State, action: Action) -> StateDistribution:
         sr = self._next_state_reward(state, action)
+        assert sr.state is not None
         return {sr.state: RewardProbability(sr.reward, 1.0)}
 
     @property
@@ -226,6 +232,9 @@ class NoiseGridWorldModel(Environment):
 
     def next_state_reward_dist(self, state: State, action: Action) -> StateDistribution:
         probs = [self.noise_prob] * len(self.action_space)
+        assert isinstance(
+            action.value, int
+        ), f"got type {type(action.value)} instead of int"
         probs[action.value] = 1 - self.epsilon
         states = {}
         for a in self.action_space:

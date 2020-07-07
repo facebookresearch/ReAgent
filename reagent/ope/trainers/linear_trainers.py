@@ -263,6 +263,7 @@ class NNTrainer(Trainer):
     def __init__(self, device=None):
         super().__init__()
         self._device = device
+        self._loss_fn: Optional[torch.nn.MSELoss] = None
 
     @property
     def name(self) -> str:
@@ -306,20 +307,16 @@ class NNTrainer(Trainer):
 
         logging.info(f"  training time {time.process_time() - st}")
 
-    def predict(self, features: Tensor, device=None) -> PredictResults:
+    def predict(self, x: Tensor, device=None) -> PredictResults:
         if self._model is not None:
             self._model.eval()
-            proba = torch.as_tensor(
-                self._model(features), dtype=torch.double, device=device
-            )
+            proba = torch.as_tensor(self._model(x), dtype=torch.double, device=device)
             return PredictResults(torch.argmax(proba, 1), proba)
         else:
             raise Exception("mode not trained")
 
-    def score(
-        self, y: Tensor, y_pred: Tensor, weight: Optional[Tensor] = None
-    ) -> float:
+    def score(self, x: Tensor, y: Tensor, weight: Optional[Tensor] = None) -> float:
         if self._loss_fn is not None:
-            return self._loss_fn(y_pred, y).item()
+            return self._loss_fn(y, x).item()
         else:
             raise Exception("mode not trained")

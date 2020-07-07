@@ -36,6 +36,8 @@ class Environment(Model):
     def step(self, policy: RLPolicy):
         a_dist = policy(self.current_state)
         a = a_dist.sample()
+        if isinstance(a, list):
+            a = a[0]
         s_dist = self(self.current_state, a)
         srs = []
         probs = []
@@ -79,7 +81,7 @@ class Environment(Model):
         return self._current_state
 
     @current_state.setter
-    def current_state(self, state: Optional[None]):
+    def current_state(self, state: Optional[State]):
         self._current_state = state
 
 

@@ -186,12 +186,12 @@ class MultiClassPolicy(Policy):
         device=None,
     ):
         super().__init__(action_space, device)
-        self._action_ditributions = action_distributions
+        self._action_distributions = action_distributions
         self._exploitation_prob = 1.0 - epsilon
         self._exploration_prob = epsilon / len(self.action_space)
 
-    def _query(self, query_id: int) -> Tuple[Action, ActionDistribution]:
-        dist = self._action_ditributions[query_id]
+    def _query(self, context: int) -> Tuple[Action, ActionDistribution]:
+        dist = self._action_distributions[context]
         dist = dist * self._exploitation_prob + self._exploration_prob
         action = torch.multinomial(dist, 1).item()
         return Action(action), ActionDistribution(dist)
@@ -238,17 +238,18 @@ def evaluate_all(
             tgt_trainer.save_model(tgt_model_file)
 
     log_results = log_trainer.predict(dataset.features)
+    assert log_results.probabilities is not None
     log_policy = MultiClassPolicy(action_space, log_results.probabilities, log_epsilon)
 
     tgt_results = tgt_trainer.predict(dataset.features)
+    assert tgt_results.probabilities is not None
     tgt_policy = MultiClassPolicy(action_space, tgt_results.probabilities, tgt_epsilon)
 
-    inputs = []
     tasks = []
     total_queries = len(dataset)
     for estimators, num_samples in experiments:
         samples = []
-        for i in range(num_samples):
+        for _ in range(num_samples):
             qid = random.randrange(total_queries)
             label = int(dataset.labels[qid].item())
             log_action, log_action_probabilities = log_policy(qid)

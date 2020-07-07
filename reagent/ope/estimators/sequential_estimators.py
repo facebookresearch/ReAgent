@@ -416,7 +416,8 @@ class MAGICEstimator(IPSEstimator):
             next_vs[:, :-1] = vs[:, 1:]
             gs = wdrs + ws * next_vs * discount
             gs_normal = gs.sub(torch.mean(gs, 0))
-            omiga = n * torch.einsum("ij,ik->jk", gs_normal, gs_normal) / (n - 1.0)
+            assert n > 1
+            omiga = (n / (n - 1.0)) * torch.einsum("ij,ik->jk", gs_normal, gs_normal)
             resample_wdrs = torch.zeros((num_resamples,))
             for i in range(num_resamples):
                 samples = random.choices(range(n), k=n)

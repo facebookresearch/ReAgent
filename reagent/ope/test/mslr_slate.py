@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import itertools
 import json
 import logging
 import os
@@ -9,7 +10,6 @@ import random
 import sys
 import time
 from collections import OrderedDict
-from functools import reduce
 from typing import Iterable, List, Optional, Tuple
 
 import numpy as np
@@ -204,7 +204,8 @@ class MSLRDatasets:
     def relevances(self) -> Tensor:
         if self._relevances is None:
             self._relevances = torch.tensor(
-                [r[0] for v in self._dict.values() for r in v], device=self._device
+                [r[0] for r in itertools.chain(self._dict.values())],
+                device=self._device,
             )
         return self._relevances
 
@@ -443,7 +444,7 @@ def evaluate(
     total_queries = dataset.queries.shape[0]
     for estimators, num_samples in experiments:
         samples = []
-        for i in range(num_samples):
+        for _ in range(num_samples):
             # randomly sample a query
             q = dataset.queries[random.randrange(total_queries)]
             doc_size = int(q[2])
@@ -571,7 +572,7 @@ if __name__ == "__main__":
         body_features,
         "second_set",
     )
-    weight_clamper = Clamper(min=0.0)
+    weight_clamper = Clamper(min_v=0.0)
     estimators = [
         DMEstimator(DecisionTreeTrainer(), 0.5, device=device),
         IPSEstimator(weight_clamper=weight_clamper, device=device),
