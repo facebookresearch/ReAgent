@@ -476,7 +476,6 @@ class Seq2SlateRewardWithPreprocessor(ModelBase):
 
     def input_prototype(self):
         candidate_input_prototype = self.candidate_preprocessor.input_prototype()
-        slate_idx_input_prototype = torch.arange(self.model.max_tgt_seq_len)
 
         return (
             self.state_preprocessor.input_prototype(),
@@ -484,7 +483,6 @@ class Seq2SlateRewardWithPreprocessor(ModelBase):
                 candidate_input_prototype[0].repeat((1, self.model.max_src_seq_len, 1)),
                 candidate_input_prototype[1].repeat((1, self.model.max_src_seq_len, 1)),
             ),
-            [(slate_idx_input_prototype, torch.ones(self.model.max_tgt_seq_len))],
         )
 
     @property
@@ -499,35 +497,40 @@ class Seq2SlateRewardWithPreprocessor(ModelBase):
         self,
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
         candidate_with_presence: Tuple[torch.Tensor, torch.Tensor],
-        slate_idx_with_presence: List[Tuple[torch.Tensor, torch.Tensor]],
     ):
         # state_value.shape == state_presence.shape == batch_size x state_feat_num
         # candidate_value.shape == candidate_presence.shape ==
         # batch_size x max_src_seq_len x candidate_feat_num
-        # slate_idx_with presence: length = batch_size, length of tensor: max_tgt_seq_len
         batch_size = state_with_presence[0].shape[0]
+        max_tgt_seq_len = self.model.max_tgt_seq_len
+        max_src_seq_len = self.model.max_src_seq_len
+
+        # we use a fake slate_idx_with_presence to retrive the first
+        # max_tgt_seq_len candidates from
+        # len(slate_idx_with presence) == batch_size
+        # component: 1d tensor with length max_tgt_seq_len
+        slate_idx_with_presence = [
+            (torch.arange(max_tgt_seq_len), torch.ones(max_tgt_seq_len))
+        ] * batch_size
 
         preprocessed_state = self.state_preprocessor(
             state_with_presence[0], state_with_presence[1]
         )
+
         preprocessed_candidates = self.candidate_preprocessor(
             candidate_with_presence[0].view(
-                batch_size * self.model.max_src_seq_len,
-                len(self.candidate_sorted_features),
+                batch_size * max_src_seq_len, len(self.candidate_sorted_features)
             ),
             candidate_with_presence[1].view(
-                batch_size * self.model.max_src_seq_len,
-                len(self.candidate_sorted_features),
+                batch_size * max_src_seq_len, len(self.candidate_sorted_features)
             ),
-        ).view(batch_size, self.model.max_src_seq_len, -1)
+        ).view(batch_size, max_src_seq_len, -1)
 
-        src_src_mask = torch.ones(
-            batch_size, self.model.max_src_seq_len, self.model.max_src_seq_len
-        )
+        src_src_mask = torch.ones(batch_size, max_src_seq_len, max_src_seq_len)
 
         tgt_out_idx = torch.cat(
             [slate_idx[0] for slate_idx in slate_idx_with_presence]
-        ).view(batch_size, self.model.max_tgt_seq_len)
+        ).view(batch_size, max_tgt_seq_len)
 
         tgt_out_seq = gather(preprocessed_candidates, tgt_out_idx)
 
