@@ -2,13 +2,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from .dynamics.linear_dynamics import LinDynaEnv  # noqa
-from .env_factory import EnvFactory
 from .pomdp.pocman import PocManEnv  # noqa
 from .pomdp.string_game import StringGameEnv  # noqa
+from .union import ChangingArms, Env__Union, Gym, RecSim
 from .utils import register_if_not_exists
 
 
-__all__ = ["EnvFactory"]
+__all__ = ["Env__Union", "Gym", "RecSim", "ChangingArms"]
 
 
 ######### Register classes below ##########
@@ -18,7 +18,6 @@ ENV_CLASSES = [
     ("Pocman-v0", ".pomdp.pocman:PocManEnv"),
     ("StringGame-v0", ".pomdp.string_game:StringGameEnv"),
     ("LinearDynamics-v0", ".dynamics.linear_dynamics:LinDynaEnv"),
-    ("ChangingArms-v0", ".changing_arms:ChangingArms"),
 ]
 
 for env_name, rel_module_path in ENV_CLASSES:

@@ -14,7 +14,7 @@ from reagent.evaluation.world_model_evaluator import (
     FeatureSensitivityEvaluator,
 )
 from reagent.gym.agents.agent import Agent
-from reagent.gym.envs.env_factory import EnvFactory
+from reagent.gym.envs import Gym
 from reagent.gym.envs.pomdp.state_embed_env import StateEmbedEnvironment
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
@@ -167,7 +167,7 @@ def train_mdnrnn_and_compute_feature_stats(
     saved_mdnrnn_path: Optional[str] = None,
 ):
     """ Train MDNRNN Memory Network and compute feature importance/sensitivity. """
-    env: gym.Env = EnvFactory.make(env_name)
+    env: gym.Env = Gym(env_name=env_name)
     env.seed(SEED)
 
     manager = model.value
@@ -288,7 +288,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     saved_mdnrnn_path: str = None,
 ):
     """ Train an agent on embedded states by the MDNRNN. """
-    env = EnvFactory.make(env_name)
+    env = Gym(env_name=env_name)
     env.seed(SEED)
 
     embedding_manager = embedding_model.value

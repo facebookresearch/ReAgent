@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import torch
 from reagent.gym.agents.agent import Agent
-from reagent.gym.envs.env_factory import EnvFactory
+from reagent.gym.envs import Gym
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import fill_replay_buffer
@@ -45,7 +45,7 @@ def offline_gym(
     saves results in a pandas df parquet.
     """
     initialize_seed(seed)
-    env = EnvFactory.make(env_name)
+    env = Gym(env_name=env_name)
 
     replay_buffer = ReplayBuffer.create_from_env(
         env=env, replay_memory_size=num_train_transitions, batch_size=1
@@ -103,7 +103,7 @@ def evaluate_gym(
     assert isinstance(
         publisher_manager, FileSystemPublisher
     ), f"publishing manager is type {type(publisher_manager)}, not FileSystemPublisher"
-    env = EnvFactory.make(env_name)
+    env = Gym(env_name=env_name)
     torchscript_path = publisher_manager.get_latest_published_model(model.value)
     jit_model = torch.jit.load(torchscript_path)
     policy = create_predictor_policy_from_model(jit_model)

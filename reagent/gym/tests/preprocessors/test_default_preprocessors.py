@@ -7,14 +7,13 @@ import gym
 import numpy.testing as npt
 import torch
 import torch.nn.functional as F
-from reagent.gym.envs.recsim import ValueWrapper, dot_value_fn
 from reagent.gym.preprocessors.default_preprocessors import (
     make_default_obs_preprocessor,
 )
 
 
 try:
-    from recsim.environments import interest_evolution, interest_exploration
+    from reagent.gym.envs import RecSim
 
     HAS_RECSIM = True
 except ModuleNotFoundError:
@@ -51,14 +50,9 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
     def test_recsim_interest_evolution(self):
         num_candidate = 10
-        env_config = {
-            "num_candidates": num_candidate,
-            "slate_size": 3,
-            "resample_documents": False,
-            "seed": 1,
-        }
-        env = interest_evolution.create_environment(env_config)
-        env = ValueWrapper(env, dot_value_fn)
+        env = RecSim(
+            num_candidates=num_candidate, slate_size=3, resample_documents=False, seed=1
+        )
         obs_preprocessor = make_default_obs_preprocessor(env)
         obs = env.reset()
         state = obs_preprocessor(obs)
@@ -80,14 +74,13 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
     def test_recsim_interest_exploration(self):
         num_candidate = 10
-        env_config = {
-            "num_candidates": num_candidate,
-            "slate_size": 3,
-            "resample_documents": False,
-            "seed": 1,
-        }
-        env = interest_exploration.create_environment(env_config)
-        env = ValueWrapper(env, lambda user, doc: 0.0)
+        env = RecSim(
+            num_candidates=num_candidate,
+            slate_size=3,
+            resample_documents=False,
+            seed=1,
+            is_interest_exploration=True,
+        )
         obs_preprocessor = make_default_obs_preprocessor(env)
         obs = env.reset()
         state = obs_preprocessor(obs)

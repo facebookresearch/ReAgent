@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
-from reagent.gym.envs.env_factory import EnvFactory
+from reagent.gym.envs import Gym
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
@@ -94,7 +94,7 @@ def run_test_offline(
     num_eval_episodes: int,
     use_gpu: bool,
 ):
-    env = EnvFactory.make(env_name)
+    env = Gym(env_name=env_name)
     env.seed(SEED)
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)
