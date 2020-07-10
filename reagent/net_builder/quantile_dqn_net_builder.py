@@ -6,7 +6,7 @@ from typing import List
 import reagent.types as rlt
 import torch
 from reagent.core.registry_meta import RegistryMeta
-from reagent.models.base import ModelBase
+from reagent.models import ModelBase, Sequential
 from reagent.parameters import NormalizationData
 from reagent.prediction.predictor_wrapper import DiscreteDqnWithPreprocessor
 from reagent.preprocessing.normalization import get_num_output_features
@@ -60,7 +60,7 @@ class QRDQNNetBuilder(metaclass=RegistryMeta):
             state_normalization_data.dense_normalization_parameters, False
         )
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
-            torch.nn.Sequential(  # type: ignore
+            Sequential(  # type: ignore
                 q_network.cpu_model().eval(), _Mean()
             ),
             state_preprocessor,

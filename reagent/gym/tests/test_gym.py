@@ -49,7 +49,7 @@ GYM_TESTS = [
         "Parametric SARSA Cartpole",
         "configs/cartpole/parametric_sarsa_cartpole_online.yaml",
     ),
-    # TODO: add back when torchscript fix lands
+    # TODO: fix this for GPU
     # (
     #     "Sparse DQN Changing Arms",
     #     "configs/sparse/discrete_dqn_changing_arms_online.yaml",
