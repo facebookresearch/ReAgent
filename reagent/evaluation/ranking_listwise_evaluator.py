@@ -10,7 +10,12 @@ import torch.nn as nn
 from reagent.core.tracker import observable
 from reagent.models.seq2slate import Seq2SlateMode
 from reagent.types import PreprocessedTrainingBatch
-from sklearn.metrics import average_precision_score, dcg_score, ndcg_score
+from sklearn.metrics import (
+    average_precision_score,
+    dcg_score,
+    ndcg_score,
+    roc_auc_score,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +30,15 @@ class ListwiseRankingMetrics:
 
 
 @observable(
-    cross_entropy_loss=torch.Tensor, dcg=np.float64, ndcg=np.float64, mean_ap=np.float64
+    cross_entropy_loss=torch.Tensor,
+    dcg=torch.Tensor,
+    ndcg=torch.Tensor,
+    mean_ap=torch.Tensor,
+    auc=torch.Tensor,
+    base_dcg=torch.Tensor,
+    base_ndcg=torch.Tensor,
+    base_map=torch.Tensor,
+    base_auc=torch.Tensor,
 )
 class RankingListwiseEvaluator:
     """ Evaluate listwise ranking models on common ranking metrics """
@@ -37,6 +50,9 @@ class RankingListwiseEvaluator:
         self.ndcg = []
         self.dcg = []
         self.mean_ap = []
+        self.base_dcg = []
+        self.base_ndcg = []
+        self.base_map = []
         self.log_softmax = nn.LogSoftmax(dim=1)
         self.kl_loss = nn.KLDivLoss(reduction="batchmean")
 
@@ -81,29 +97,49 @@ class RankingListwiseEvaluator:
         batch_dcg = []
         batch_ndcg = []
         batch_mean_ap = []
+        batch_auc = []
+        batch_base_dcg = []
+        batch_base_ndcg = []
+        batch_base_map = []
+        batch_base_auc = []
         for i in range(batch_size):
-            # no positive label in the slate
+            # no positive label in the slate or slate labels are all positive
             # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-            if not torch.any(eval_input.position_reward[i].bool()):
+            if (not torch.any(eval_input.position_reward[i].bool())) or (
+                torch.all(eval_input.position_reward[i].bool())
+            ):
                 continue
 
             ranked_scores = np.zeros(self.slate_size)
             ranked_scores[ranked_idx[i]] = score_bar
             truth_scores = np.zeros(self.slate_size)
             truth_scores[logged_idx[i]] = eval_input.position_reward[i].cpu().numpy()
+            base_scores = np.zeros(self.slate_size)
+            base_scores[logged_idx[i]] = score_bar
             # average_precision_score accepts 1D arrays
             # dcg & ndcg accepts 2D arrays
             batch_mean_ap.append(average_precision_score(truth_scores, ranked_scores))
+            batch_base_map.append(average_precision_score(truth_scores, base_scores))
+            batch_auc.append(roc_auc_score(truth_scores, ranked_scores))
+            batch_base_auc.append(roc_auc_score(truth_scores, base_scores))
             ranked_scores = np.expand_dims(ranked_scores, axis=0)
             truth_scores = np.expand_dims(truth_scores, axis=0)
+            base_scores = np.expand_dims(base_scores, axis=0)
             batch_dcg.append(dcg_score(truth_scores, ranked_scores))
             batch_ndcg.append(ndcg_score(truth_scores, ranked_scores))
+            batch_base_dcg.append(dcg_score(truth_scores, base_scores))
+            batch_base_ndcg.append(ndcg_score(truth_scores, base_scores))
 
         self.notify_observers(
             cross_entropy_loss=ce_loss,
             dcg=torch.mean(torch.tensor(batch_dcg)).reshape(1),
             ndcg=torch.mean(torch.tensor(batch_ndcg)).reshape(1),
             mean_ap=torch.mean(torch.tensor(batch_mean_ap)).reshape(1),
+            auc=torch.mean(torch.tensor(batch_auc)).reshape(1),
+            base_dcg=torch.mean(torch.tensor(batch_base_dcg)).reshape(1),
+            base_ndcg=torch.mean(torch.tensor(batch_base_ndcg)).reshape(1),
+            base_map=torch.mean(torch.tensor(batch_base_map)).reshape(1),
+            base_auc=torch.mean(torch.tensor(batch_base_auc)).reshape(1),
         )
 
     @torch.no_grad()
