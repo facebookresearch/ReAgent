@@ -52,16 +52,22 @@ class TensorDataClass(BaseDataClass):
             else:
                 raise RuntimeError(f"Tensor.{attr} is not callable.")
 
-        def f(*args, **kwargs):
-            values = {}
-            for k, v in self.__dict__.items():  # noqa F402
+        def continuation(*args, **kwargs):
+            def f(v):
+                # if possible, returns v.attr(*args, **kwargs).
+                # otws, return v
                 if isinstance(v, (torch.Tensor, TensorDataClass)):
-                    values[k] = getattr(v, attr)(*args, **kwargs)
-                else:
-                    values[k] = v
-            return type(self)(**values)
+                    return getattr(v, attr)(*args, **kwargs)
+                elif isinstance(v, dict):
+                    return {
+                        kk: f(vv) for kk, vv in v.items()
+                    }
+                elif isinstance(v, tuple):
+                    return tuple(f(vv) for vv in v)
+                return v
+            return type(self)(**f(self.__dict__))
+        return continuation
 
-        return f
 
     def cuda(self, *args, **kwargs):
         cuda_tensor = {}

@@ -67,7 +67,6 @@ class SparsePreprocessor(torch.nn.Module):
             id2mapping, Dict[int, Dict[int, int]]
         )
         assert set(id2name.keys()) == set(id2mapping.keys())
-        # TODO: use this to support GPU
         self.device = device
 
     @torch.jit.export
@@ -83,7 +82,7 @@ class SparsePreprocessor(torch.nn.Module):
             if fid in self.id2name:
                 id2index = self.id2mapping[fid]
                 idx_values = map_id_list(values, id2index)
-                ret[self.id2name[fid]] = (offsets, idx_values)
+                ret[self.id2name[fid]] = (offsets.to(self.device), idx_values.to(self.device))
         return ret
 
     @torch.jit.export
@@ -99,5 +98,5 @@ class SparsePreprocessor(torch.nn.Module):
             if fid in self.id2name:
                 id2index = self.id2mapping[fid]
                 idx_keys, weights = map_id_score_list(keys, values, id2index)
-                ret[self.id2name[fid]] = (offsets, idx_keys, weights)
+                ret[self.id2name[fid]] = (offsets.to(self.device), idx_keys.to(self.device), weights.to(self.device))
         return ret

@@ -35,25 +35,24 @@ NOTE: These tests should ideally finish quickly (within 10 minutes) since they a
 unit tests which are run many times.
 """
 GYM_TESTS = [
-    ("Discrete DQN Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
-    ("Discrete C51 Cartpole", "configs/cartpole/discrete_c51_cartpole_online.yaml"),
-    ("Discrete QR Cartpole", "configs/cartpole/discrete_qr_cartpole_online.yaml"),
-    (
-        "Discrete DQN Open Gridworld",
-        "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
-    ),
-    ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
-    ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
-    ("Parametric DQN Cartpole", "configs/cartpole/parametric_dqn_cartpole_online.yaml"),
-    (
-        "Parametric SARSA Cartpole",
-        "configs/cartpole/parametric_sarsa_cartpole_online.yaml",
-    ),
-    # TODO: add back when torchscript fix lands
+    # ("Discrete DQN Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
+    # ("Discrete C51 Cartpole", "configs/cartpole/discrete_c51_cartpole_online.yaml"),
+    # ("Discrete QR Cartpole", "configs/cartpole/discrete_qr_cartpole_online.yaml"),
     # (
-    #     "Sparse DQN Changing Arms",
-    #     "configs/sparse/discrete_dqn_changing_arms_online.yaml",
+    #     "Discrete DQN Open Gridworld",
+    #     "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
     # ),
+    # ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
+    # ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
+    # ("Parametric DQN Cartpole", "configs/cartpole/parametric_dqn_cartpole_online.yaml"),
+    # (
+    #     "Parametric SARSA Cartpole",
+    #     "configs/cartpole/parametric_sarsa_cartpole_online.yaml",
+    # ),
+    (
+        "Sparse DQN Changing Arms",
+        "configs/sparse/discrete_dqn_changing_arms_online.yaml",
+    ),
 ]
 
 

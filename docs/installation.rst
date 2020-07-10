@@ -24,6 +24,9 @@ Once you make sure you have the right version, you can simply clone this repo an
    cd ReAgent
    pip install ".[gym]"
 
+   # install nightly torch (change cpu to cu101/102 if fit)
+   pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+
 If you don't want need gym dependencies, you can remove :code:`[gym]`
 
 To verify your setup please run `tox <https://tox.readthedocs.io/en/latest/>`_.
@@ -46,7 +49,7 @@ To build from source, you'll need JDK, Scala, & Maven. We will use `SDKMAN! <htt
    curl -s "https://get.sdkman.io" | bash
    source "$HOME/.sdkman/bin/sdkman-init.sh"
    sdk version
-   sdk install java 8.0.242.hs-adpt
+   sdk install java 8.0.252.hs-adpt
    sdk install scala
    sdk install maven
 
@@ -54,7 +57,7 @@ If you are testing locally, you can also install Spark
 
 .. code-block:: bash
 
-   sdk install spark 2.3.3
+   sdk install spark 2.4.6
 
 Now, you can build our preprocessing JAR
 

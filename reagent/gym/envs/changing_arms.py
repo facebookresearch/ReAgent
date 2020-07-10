@@ -142,8 +142,8 @@ class ChangingArms(gym.Env):
                 )
             ],
             id_mapping_config={
-                "legal_actions": rlt.IdMapping(ids=[0, 1, 2, 3, 4, 5]),
-                "arms_list": rlt.IdMapping(ids=[0, 1, 2, 3, 4]),
+                "legal_actions": rlt.IdMapping(ids=[1000000, 1000001, 1000002, 1000003, 1000004, 1000005]),
+                "arms_list": rlt.IdMapping(ids=[1500000, 1500001, 1500002, 1500003, 1500004]),
             },
         )
         # pyre-fixme[16]: `ModelFeatureConfigProvider__Union` has no attribute
