@@ -105,7 +105,7 @@ commands:
             coverage run --append ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator "$CONFIG"
             # train on logged data
             coverage run --append ./reagent/workflow/cli.py run reagent.workflow.training.identify_and_train_network "$CONFIG"
-            # evaluate torchscript on gym environment
+            # evaluate on gym environment
             coverage run --append ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.evaluate_gym "$CONFIG"
       - run:
           name: Save coverage results
@@ -154,13 +154,14 @@ commands:
                   - run:
                       command: |
                         pip install -e .[gym,test]
-                        pip install torch==1.5.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+                        pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cu101/torch_nightly.html
             - unless:
                 condition: << parameters.is_ubuntu_gpu >>
                 steps:
                   - run:
                       command: |
                         sudo pip install -e .[gym,test]
+                        sudo pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cu101/torch_nightly.html
 
   run_unittest:
     description: Run unittests, coverage and save results
