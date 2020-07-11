@@ -11,7 +11,7 @@ import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
-from reagent.gym.envs import Gym
+from reagent.gym.envs import Env__Union
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
@@ -84,7 +84,7 @@ class TestGym(HorizonTestBase):
 
 
 def run_test(
-    env_name: str,
+    env: Env__Union,
     model: ModelManager__Union,
     replay_memory_size: int,
     train_every_ts: int,
@@ -95,7 +95,7 @@ def run_test(
     num_eval_episodes: int,
     use_gpu: bool,
 ):
-    env = Gym(env_name=env_name)
+    env = env.value
     env.seed(SEED)
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)

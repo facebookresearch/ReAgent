@@ -1,4 +1,6 @@
-env_name: MiniGrid-Empty-5x5-v0
+env:
+  Gym:
+    env_name: MiniGrid-Empty-5x5-v0
 model:
   DiscreteDQN:
     trainer_param:
