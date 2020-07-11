@@ -45,7 +45,6 @@ class SoftmaxActionSampler(Sampler):
         assert log_prob.ndim == 1
         return rlt.ActorOutput(action=action, log_prob=log_prob)
 
-    @torch.no_grad()
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         assert len(scores.shape) == 2, f"{scores.shape}"
         assert scores.shape == action.shape, f"{scores.shape} != {action.shape}"

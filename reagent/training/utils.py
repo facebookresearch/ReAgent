@@ -4,6 +4,10 @@
 from typing import Union
 
 import numpy as np
+import torch
+
+
+EPS = np.finfo(float).eps.item()
 
 
 def rescale_actions(
@@ -29,3 +33,24 @@ def rescale_actions(
     # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float, np.ndarray]`.
     new_range = new_max - new_min
     return ((actions - prev_min) / prev_range) * new_range + new_min
+
+
+def whiten(x: torch.Tensor, subtract_mean: bool) -> torch.Tensor:
+    numer = x
+    if subtract_mean:
+        numer -= x.mean()
+    return numer / (x.std() + EPS)
+
+
+def discounted_returns(rewards: torch.Tensor, gamma: float = 0) -> torch.Tensor:
+    """Perform rollout to compute reward to go
+    and do a baseline subtraction."""
+    if gamma == 0:
+        return rewards.float()
+    else:
+        R = 0
+        returns = []
+        for r in rewards.numpy()[::-1]:
+            R = r + gamma * R
+            returns.insert(0, R)
+        return torch.tensor(returns).float()
