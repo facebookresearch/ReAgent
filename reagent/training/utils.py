@@ -11,26 +11,20 @@ EPS = np.finfo(float).eps.item()
 
 
 def rescale_actions(
-    actions: np.ndarray,
-    new_min: Union[np.ndarray, float],
-    new_max: Union[np.ndarray, float],
-    prev_min: Union[np.ndarray, float],
-    prev_max: Union[np.ndarray, float],
-) -> np.ndarray:
+    actions: torch.Tensor,
+    new_min: torch.Tensor,
+    new_max: torch.Tensor,
+    prev_min: torch.Tensor,
+    prev_max: torch.Tensor,
+) -> torch.Tensor:
     """ Scale from [prev_min, prev_max] to [new_min, new_max] """
-    # pyre-fixme[6]: Expected `float` for 1st param but got `ndarray`.
-    assert np.all(prev_min <= actions) and np.all(
+    assert torch.all(prev_min <= actions) and torch.all(
         actions <= prev_max
     ), f"{actions} has values outside of [{prev_min}, {prev_max}]."
-    assert np.all(
-        new_min
-        # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float,
-        #  np.ndarray]`.
-        <= new_max
+    assert torch.all(
+        new_min <= new_max
     ), f"{new_min} is (has coordinate) greater than {new_max}."
-    # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float, np.ndarray]`.
     prev_range = prev_max - prev_min
-    # pyre-fixme[6]: Expected `float` for 1st param but got `Union[float, np.ndarray]`.
     new_range = new_max - new_min
     return ((actions - prev_min) / prev_range) * new_range + new_min
 

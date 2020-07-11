@@ -3,10 +3,36 @@
 
 import abc
 import logging
+from typing import Callable
 
 import gym
+import numpy as np
+import reagent.types as rlt
+import torch
+from gym import spaces
 from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
+from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
+from reagent.training.utils import rescale_actions
+
+
+# types for reference
+ObsPreprocessor = Callable[[np.ndarray], rlt.FeatureData]
+ServingObsPreprocessor = Callable[[np.ndarray], rlt.ServingFeatureData]
+ActionExtractor = Callable[[rlt.ActorOutput], np.ndarray]
+ServingActionExtractor = ActionExtractor
+
+CONTINUOUS_MODEL_LOW = torch.tensor(CONTINUOUS_TRAINING_ACTION_RANGE[0])
+CONTINUOUS_MODEL_HIGH = torch.tensor(CONTINUOUS_TRAINING_ACTION_RANGE[1])
+
+# for getting preprocessors (see __getattr__)
+GET_PREFIX = "get_"
+ACTION_EXTRACTORS = ["action_extractor", "serving_action_extractor"]
+GETTABLE_PREPROCESSORS = [
+    "obs_preprocessor",
+    "serving_obs_preprocessor",
+    *ACTION_EXTRACTORS,
+]
 
 
 logger = logging.getLogger(__name__)
@@ -25,11 +51,95 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
         )
 
     def __getattr__(self, attr):
-        raise AttributeError(f"Trying to get {attr}")
+        """
+        User can call env_wrapper.get_X(args), where X falls in GETTABLE_PREPROCESSORS.
+        We return the corresponding preprocessor, which also ends with result.to(args).
+        For action_extractors, ends with result.cpu().numpy(), and args should be empty.
+        """
+        if not attr.startswith(GET_PREFIX):
+            raise AttributeError(attr)
+
+        field = attr[len(GET_PREFIX) :]
+        if field not in GETTABLE_PREPROCESSORS:
+            raise AttributeError(f"{field} not in {GETTABLE_PREPROCESSORS}")
+
+        # this is the method implemented by wrapper
+        raw_preprocessor = getattr(self, field)
+
+        # get action extractors, which should convert result to numpy
+        # user shouldn't pass any arguments to get_action_extractor()
+        if field in ACTION_EXTRACTORS:
+
+            def actor_extractor_continuation(*args, **kwargs):
+                return raw_preprocessor(*args, **kwargs).cpu().numpy()
+
+            return lambda: actor_extractor_continuation
+
+        # get all the rest
+        def preprocessor_ctor(*ctor_args, **ctor_kwargs):
+            # ctor_args go to .to call
+            ctor_kwargs["non_blocking"] = True
+
+            def continuation(*args, **kwargs):
+                return raw_preprocessor(*args, **kwargs).to(*ctor_args, **ctor_kwargs)
+
+            return continuation
+
+        return preprocessor_ctor
 
     @abc.abstractmethod
     def make(self) -> gym.Env:
         pass
+
+    @abc.abstractmethod
+    def obs_preprocessor(self, obs: np.ndarray) -> rlt.FeatureData:
+        pass
+
+    @abc.abstractmethod
+    def serving_obs_preprocessor(self, obs: np.ndarray) -> rlt.ServingFeatureData:
+        pass
+
+    def action_extractor(self, actor_output: rlt.ActorOutput) -> torch.Tensor:
+        action = actor_output.action
+        action_space = self.action_space
+        # Canonical rule to return one-hot encoded actions for discrete
+        assert (
+            len(action.shape) == 2 and action.shape[0] == 1
+        ), f"{action} (shape: {action.shape}) is not a single action!"
+        if isinstance(action_space, spaces.Discrete):
+            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
+            return action.squeeze(0).argmax()
+        elif isinstance(action_space, spaces.MultiDiscrete):
+            return action.squeeze(0)
+        # Canonical rule to scale actions to CONTINUOUS_TRAINING_ACTION_RANGE
+        elif isinstance(action_space, spaces.Box):
+            assert len(action_space.shape) == 1, f"{action_space} not supported."
+            return rescale_actions(
+                action.squeeze(0),
+                new_min=torch.tensor(action_space.low),
+                new_max=torch.tensor(action_space.high),
+                prev_min=CONTINUOUS_MODEL_LOW,
+                prev_max=CONTINUOUS_MODEL_HIGH,
+            )
+        else:
+            raise NotImplementedError(f"Unsupported action space: {action_space}")
+
+    def serving_action_extractor(self, actor_output: rlt.ActorOutput) -> torch.Tensor:
+        action = actor_output.action
+        action_space = self.action_space
+        assert (
+            len(action.shape) == 2 and action.shape[0] == 1
+        ), f"{action.shape} isn't (1, action_dim)"
+        if isinstance(action_space, spaces.Discrete):
+            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
+            return action.squeeze(0).argmax().view([])
+        elif isinstance(action_space, spaces.Box):
+            assert (
+                len(action_space.shape) == 1
+            ), f"Unsupported Box with shape {action_space.shape}"
+            return action.squeeze(0)
+        else:
+            raise NotImplementedError(f"Unsupported action space: {action_space}")
 
     # TODO: add more methods to simplify gym code
     # e.g. normalization, specific preprocessor, etc.
