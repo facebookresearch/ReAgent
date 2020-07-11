@@ -121,8 +121,8 @@ class Agent:
 
     def post_step(self, transition: Transition):
         """ to be called after step(action) """
+        transition.log_prob = self._log_prob
         if self.post_transition_callback is not None:
-            transition.log_prob = self._log_prob
             # pyre-fixme[29]: `Optional[typing.Callable[[Transition], None]]` is not
             #  a function.
             self.post_transition_callback(transition)

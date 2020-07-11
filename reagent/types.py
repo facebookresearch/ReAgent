@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
 import torch
+import torch.nn.functional as F
 from reagent.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
@@ -614,7 +615,26 @@ class PolicyNetworkInput(BaseInput):
         return self.state.float_features.shape[0]
 
 
-# TODO(T67083627): state and next_state should use stack_float_features
+@dataclass
+class PolicyGradientInput(BaseDataClass):
+    state: FeatureData
+    action: torch.Tensor
+    reward: torch.Tensor
+    log_prob: torch.Tensor
+
+    @classmethod
+    def input_prototype(cls):
+        num_classes = 5
+        batch_size = 10
+        state_dim = 3
+        return cls(
+            state=FeatureData(float_features=torch.randn(batch_size, state_dim)),
+            action=F.one_hot(torch.randint(high=num_classes, size=(batch_size,))),
+            reward=torch.rand(batch_size),
+            log_prob=torch.log(torch.rand(batch_size)),
+        )
+
+
 @dataclass
 class MemoryNetworkInput(BaseInput):
     action: torch.Tensor

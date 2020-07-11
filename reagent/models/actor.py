@@ -14,6 +14,23 @@ from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 
 
+class StochasticActor(ModelBase):
+    def __init__(self, scorer, sampler):
+        super().__init__()
+        self.scorer = scorer
+        self.sampler = sampler
+
+    def input_prototype(self):
+        return self.scorer.input_prototype()
+
+    def get_distributed_data_parallel_model(self):
+        raise NotImplementedError()
+
+    def forward(self, state):
+        action_scores = self.scorer(state)
+        return self.sampler.sample_action(action_scores, possible_actions_mask=None)
+
+
 class FullyConnectedActor(ModelBase):
     def __init__(
         self,
