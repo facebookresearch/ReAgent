@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Tuple
 
 import torch
 from gym import Env
@@ -104,24 +104,23 @@ class Agent:
             **kwargs,
         )
 
-    def act(self, obs: Any) -> Any:
+    def act(self, obs: Any) -> Tuple[Any, float]:
         """ Act on a single observation """
         # preprocess and convert to batch data
         preprocessed_obs = self.obs_preprocessor(obs)
 
         # store intermediate actor output for post_step
         actor_output = self.policy.act(preprocessed_obs)
-        self._log_prob = (
+        log_prob = (
             0.0
             if actor_output.log_prob is None
             # pyre-fixme[16]: `Optional` has no attribute `cpu`.
             else actor_output.log_prob.cpu().squeeze(0).item()
         )
-        return self.action_extractor(actor_output)
+        return self.action_extractor(actor_output), log_prob
 
     def post_step(self, transition: Transition):
         """ to be called after step(action) """
-        transition.log_prob = self._log_prob
         if self.post_transition_callback is not None:
             # pyre-fixme[29]: `Optional[typing.Callable[[Transition], None]]` is not
             #  a function.

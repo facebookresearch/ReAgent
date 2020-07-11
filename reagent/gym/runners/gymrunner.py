@@ -33,7 +33,7 @@ def run_episode(
     terminal = False
     num_steps = 0
     while not terminal:
-        action = agent.act(obs)
+        action, log_prob = agent.act(obs)
         next_obs, reward, terminal, _ = env.step(action)
         if max_steps is not None and num_steps >= max_steps:
             terminal = True
@@ -46,6 +46,7 @@ def run_episode(
             action=action,
             reward=reward,
             terminal=terminal,
+            log_prob=log_prob,
         )
         agent.post_step(transition)
         trajectory.add_transition(transition)
