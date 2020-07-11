@@ -8,7 +8,7 @@ from typing import Optional
 
 import gym
 import torch
-from reagent.gym.envs.env_factory import EnvFactory
+from reagent.gym.envs import Gym
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
@@ -106,7 +106,7 @@ def train_seq2reward_and_compute_reward_mse(
     saved_seq2reward_path: Optional[str] = None,
 ):
     """ Train Seq2Reward Network and compute reward mse. """
-    env: gym.Env = EnvFactory.make(env_name)
+    env: gym.Env = Gym(env_name=env_name)
     env.seed(SEED)
 
     manager = model.value
