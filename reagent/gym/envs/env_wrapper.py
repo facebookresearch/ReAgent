@@ -133,6 +133,8 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
         if isinstance(action_space, spaces.Discrete):
             # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
             return action.squeeze(0).argmax().view([])
+        elif isinstance(action_space, spaces.MultiDiscrete):
+            return action.squeeze(0)
         elif isinstance(action_space, spaces.Box):
             assert (
                 len(action_space.shape) == 1

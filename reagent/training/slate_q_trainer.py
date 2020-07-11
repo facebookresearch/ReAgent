@@ -100,7 +100,6 @@ class SlateQTrainer(DQNTrainerBase):
             next_q_values = next_q_values / slate_size
 
         filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
-
         target_q_values = reward + (discount_tensor * filtered_max_q_vals)
         # Don't mask if not single selection
         if self.single_selection:

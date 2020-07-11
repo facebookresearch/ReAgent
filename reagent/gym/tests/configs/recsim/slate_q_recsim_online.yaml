@@ -1,0 +1,31 @@
+env:
+  RecSim:
+    slate_size: 3
+    num_candidates: 10
+model:
+  SlateQ:
+    slate_size: 3
+    num_candidates: 10
+    slate_feature_id: 1  # filler
+    slate_score_id: [42, 42]  # filler
+    trainer_param:
+      minibatch_size: 128
+      optimizer:
+        Adam:
+          lr: 0.001
+    net_builder:
+      FullyConnected:
+        sizes:
+        - 64
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+replay_memory_size: 100000
+train_every_ts: 1
+train_after_ts: 5000
+num_train_episodes: 200
+num_eval_episodes: 20
+max_steps: 200
+passing_score_bar: 154.0
+use_gpu: false
