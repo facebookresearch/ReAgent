@@ -64,6 +64,7 @@ class QRDQNNetBuilder(metaclass=RegistryMeta):
                 q_network.cpu_model().eval(), _Mean()
             ),
             state_preprocessor,
+            state_feature_config,
         )
         return DiscreteDqnPredictorWrapper(
             dqn_with_preprocessor, action_names, state_feature_config

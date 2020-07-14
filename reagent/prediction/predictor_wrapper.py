@@ -48,10 +48,10 @@ def sparse_input_prototype(
     # Terrible hack to make JIT tracing works. Python dict doesn't have type
     # so we need to insert something so JIT tracer can infer the type.
     state_id_list_features = {
-        -1: (torch.zeros(1, dtype=torch.long), torch.tensor([], dtype=torch.long))
+        42: (torch.zeros(1, dtype=torch.long), torch.tensor([], dtype=torch.long))
     }
     state_id_score_list_features = {
-        -1: (
+        42: (
             torch.zeros(1, dtype=torch.long),
             torch.tensor([], dtype=torch.long),
             torch.tensor([], dtype=torch.float),
@@ -87,12 +87,12 @@ class DiscreteDqnWithPreprocessor(ModelBase):
         self,
         model: ModelBase,
         state_preprocessor: Preprocessor,
-        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        state_feature_config: rlt.ModelFeatureConfig,
     ):
         super().__init__()
         self.model = model
         self.state_preprocessor = state_preprocessor
-        self.state_feature_config = state_feature_config or rlt.ModelFeatureConfig()
+        self.state_feature_config = state_feature_config
         self.sparse_preprocessor = make_sparse_preprocessor(
             self.state_feature_config, device=torch.device("cpu")
         )
@@ -118,7 +118,7 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         dqn_with_preprocessor: DiscreteDqnWithPreprocessor,
         action_names: List[str],
         # here to keep interface consistent with FB internal
-        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        state_feature_config: rlt.ModelFeatureConfig,
     ) -> None:
         super().__init__()
         self.dqn_with_preprocessor = torch.jit.trace(
@@ -396,7 +396,7 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         here so that trace can use them directly.
         """
 
-        super().__init__(model, state_preprocessor)
+        super().__init__(model, state_preprocessor, rlt.ModelFeatureConfig())
         self.seq_len = seq_len
         self.num_action = num_action
 

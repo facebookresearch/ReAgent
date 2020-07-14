@@ -116,6 +116,9 @@ class Preprocessor(Module):
         """ Preprocess the input matrix
         :param input tensor
         """
+        assert (
+            input.shape == input_presence_byte.shape
+        ), f"{input.shape} != {input_presence_byte.shape}"
         outputs = []
         split_input = torch.split(input, self.split_sections, dim=1)
         # NB: converting to float prevent ASAN heap-buffer-overflow

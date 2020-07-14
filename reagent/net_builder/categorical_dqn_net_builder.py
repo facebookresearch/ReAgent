@@ -56,7 +56,7 @@ class CategoricalDQNNetBuilder(metaclass=RegistryMeta):
             state_normalization_data.dense_normalization_parameters, False
         )
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
-            q_network.cpu_model().eval(), state_preprocessor
+            q_network.cpu_model().eval(), state_preprocessor, state_feature_config
         )
         return DiscreteDqnPredictorWrapper(
             dqn_with_preprocessor, action_names, state_feature_config
