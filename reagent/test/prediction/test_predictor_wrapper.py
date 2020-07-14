@@ -35,7 +35,8 @@ def _cont_action_norm():
 
 class TestPredictorWrapper(unittest.TestCase):
     def test_discrete_wrapper(self):
-        state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
+        ids = range(1, 5)
+        state_normalization_parameters = {i: _cont_norm() for i in ids}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         action_dim = 2
         dqn = models.FullyConnectedDQN(
@@ -44,9 +45,18 @@ class TestPredictorWrapper(unittest.TestCase):
             sizes=[16],
             activations=["relu"],
         )
-        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(dqn, state_preprocessor)
+        state_feature_config = rlt.ModelFeatureConfig(
+            float_feature_infos=[
+                rlt.FloatFeatureInfo(feature_id=i, name=f"feat_{i}") for i in ids
+            ]
+        )
+        dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
+            dqn, state_preprocessor, state_feature_config
+        )
         action_names = ["L", "R"]
-        wrapper = DiscreteDqnPredictorWrapper(dqn_with_preprocessor, action_names)
+        wrapper = DiscreteDqnPredictorWrapper(
+            dqn_with_preprocessor, action_names, state_feature_config
+        )
         input_prototype = dqn_with_preprocessor.input_prototype()[0]
         output_action_names, q_values = wrapper(input_prototype)
         self.assertEqual(action_names, output_action_names)
