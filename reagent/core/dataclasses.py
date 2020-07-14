@@ -7,7 +7,7 @@ import os
 
 # Redirection to make import simpler
 from dataclasses import field  # noqa
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any
 
 import pydantic
 
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
 else:
 
     def dataclass(
-        _cls: Optional[pydantic.typing.AnyType] = None, *, config=None, **kwargs
+        _cls: Optional[Any] = None, *, config=None, **kwargs
     ):
         def wrap(cls):
             # We don't want to look at parent class
