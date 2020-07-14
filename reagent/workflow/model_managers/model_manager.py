@@ -11,7 +11,13 @@ from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
 from reagent.tensorboardX import summary_writer_context
 from reagent.training.trainer import Trainer
-from reagent.workflow.types import Dataset, RewardOptions, RLTrainingOutput, TableSpec
+from reagent.workflow.types import (
+    Dataset,
+    ReaderOptions,
+    RewardOptions,
+    RLTrainingOutput,
+    TableSpec,
+)
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -186,6 +192,7 @@ class ModelManager(metaclass=RegistryMeta):
         parent_workflow_id: int,
         child_workflow_id: int,
         reward_options: Optional[RewardOptions] = None,
+        reader_options: Optional[ReaderOptions] = None,
         warmstart_path: Optional[str] = None,
     ) -> RLTrainingOutput:
         writer = SummaryWriter()
@@ -203,8 +210,13 @@ class ModelManager(metaclass=RegistryMeta):
             warmstart_path=warmstart_input_path,
         )
 
+        if not reader_options:
+            reader_options = ReaderOptions()
+
         with summary_writer_context(writer):
-            train_output = self.train(train_dataset, eval_dataset, num_epochs)
+            train_output = self.train(
+                train_dataset, eval_dataset, num_epochs, reader_options
+            )
 
         # TODO: make this a parameter
         torchscript_output_path = f"model_{round(time.time())}.torchscript"
@@ -215,7 +227,11 @@ class ModelManager(metaclass=RegistryMeta):
 
     @abc.abstractmethod
     def train(
-        self, train_dataset: Dataset, eval_dataset: Optional[Dataset], num_epochs: int
+        self,
+        train_dataset: Dataset,
+        eval_dataset: Optional[Dataset],
+        num_epochs: int,
+        reader_options: ReaderOptions,
     ) -> RLTrainingOutput:
         """
         Train the model

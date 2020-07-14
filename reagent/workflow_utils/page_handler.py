@@ -245,15 +245,20 @@ def feed_pages(
     minibatch_size,
     use_gpu,
     page_handler,
-    batch_preprocessor=None,
+    # used before batch is handled by page_handler
+    post_data_loader_preprocessor=None,
 ):
     num_rows_processed = 0
     num_rows_to_process_for_progress_tick = max(1, dataset_num_rows // 100)
     last_percent_reported = -1
 
     for batch in data_loader:
+        if post_data_loader_preprocessor:
+            batch = post_data_loader_preprocessor(batch)
+
         if use_gpu:
             batch = batch.cuda()
+
         batch_size = get_actual_minibatch_size(batch, minibatch_size)
         num_rows_processed += batch_size
 
@@ -272,8 +277,6 @@ def feed_pages(
                 )
             )
 
-        if batch_preprocessor:
-            batch = batch_preprocessor(batch)
         page_handler.handle(batch)
 
     page_handler.finish()
