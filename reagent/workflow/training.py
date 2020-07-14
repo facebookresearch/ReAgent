@@ -10,6 +10,7 @@ from reagent.workflow.env import get_workflow_id
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.publishers.union import ModelPublisher__Union
 from reagent.workflow.types import (
+    ReaderOptions,
     RecurringPeriod,
     RewardOptions,
     RLTrainingOutput,
@@ -27,6 +28,7 @@ def identify_and_train_network(
     num_epochs: int,
     use_gpu: Optional[bool] = None,
     reward_options: Optional[RewardOptions] = None,
+    reader_options: Optional[ReaderOptions] = None,
     warmstart_path: Optional[str] = None,
     validator: Optional[ModelValidator__Union] = None,
     publisher: Optional[ModelPublisher__Union] = None,
@@ -44,6 +46,7 @@ def identify_and_train_network(
         num_epochs,
         use_gpu=use_gpu,
         reward_options=reward_options,
+        reader_options=reader_options,
         warmstart_path=warmstart_path,
         validator=validator,
         publisher=publisher,
@@ -98,6 +101,7 @@ def query_and_train(
     num_epochs: int,
     use_gpu: bool,
     reward_options: Optional[RewardOptions] = None,
+    reader_options: Optional[ReaderOptions] = None,
     warmstart_path: Optional[str] = None,
     validator: Optional[ModelValidator__Union] = None,
     publisher: Optional[ModelPublisher__Union] = None,
@@ -111,6 +115,7 @@ def query_and_train(
     logger.info("Starting query")
 
     reward_options = reward_options or RewardOptions()
+    reader_options = reader_options or ReaderOptions()
     manager = model.value
 
     calc_cpe_in_training = manager.should_generate_eval_dataset
@@ -138,6 +143,7 @@ def query_and_train(
         parent_workflow_id=parent_workflow_id,
         child_workflow_id=child_workflow_id,
         reward_options=reward_options,
+        reader_options=reader_options,
         warmstart_path=warmstart_path,
     )
 

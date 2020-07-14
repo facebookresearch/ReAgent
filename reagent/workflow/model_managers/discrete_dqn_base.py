@@ -145,7 +145,11 @@ class DiscreteDQNBase(ModelManager):
         )
 
     def train(
-        self, train_dataset: Dataset, eval_dataset: Optional[Dataset], num_epochs: int
+        self,
+        train_dataset: Dataset,
+        eval_dataset: Optional[Dataset],
+        num_epochs: int,
+        reader_options: ReaderOptions,
     ) -> RLTrainingOutput:
         """
         Train the model

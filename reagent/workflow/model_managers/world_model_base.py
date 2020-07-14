@@ -8,7 +8,13 @@ from reagent.gym.policies.policy import Policy
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.types import Dataset, RewardOptions, RLTrainingOutput, TableSpec
+from reagent.workflow.types import (
+    Dataset,
+    ReaderOptions,
+    RewardOptions,
+    RLTrainingOutput,
+    TableSpec,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -52,7 +58,11 @@ class WorldModelBase(ModelManager):
         raise NotImplementedError()
 
     def train(
-        self, train_dataset: Dataset, eval_dataset: Optional[Dataset], num_epochs: int
+        self,
+        train_dataset: Dataset,
+        eval_dataset: Optional[Dataset],
+        num_epochs: int,
+        reader_options: ReaderOptions,
     ) -> RLTrainingOutput:
         """
         Train the model

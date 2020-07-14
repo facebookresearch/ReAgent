@@ -210,7 +210,11 @@ class ActorCriticBase(ModelManager):
 
     # TODO: deprecate, once we deprecate internal page handlers
     def train(
-        self, train_dataset: Dataset, eval_dataset: Optional[Dataset], num_epochs: int
+        self,
+        train_dataset: Dataset,
+        eval_dataset: Optional[Dataset],
+        num_epochs: int,
+        reader_options: ReaderOptions,
     ) -> RLTrainingOutput:
 
         reporter = ActorCriticReporter()
