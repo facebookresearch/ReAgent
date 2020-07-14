@@ -14,6 +14,7 @@ from reagent.training.trainer import Trainer
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
+    ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
@@ -193,6 +194,7 @@ class ModelManager(metaclass=RegistryMeta):
         child_workflow_id: int,
         reward_options: Optional[RewardOptions] = None,
         reader_options: Optional[ReaderOptions] = None,
+        resource_options: Optional[ResourceOptions] = None,
         warmstart_path: Optional[str] = None,
     ) -> RLTrainingOutput:
         writer = SummaryWriter()

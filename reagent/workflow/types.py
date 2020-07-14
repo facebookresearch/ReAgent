@@ -56,6 +56,11 @@ class ReaderOptions:
 
 
 @dataclass
+class ResourceOptions:
+    pass
+
+
+@dataclass
 class PreprocessingOptions(BaseDataClass):
     num_samples: int = DEFAULT_NUM_SAMPLES
     max_unique_enum_values: int = DEFAULT_MAX_UNIQUE_ENUM
