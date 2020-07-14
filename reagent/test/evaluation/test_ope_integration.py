@@ -95,7 +95,7 @@ class TestOPEModuleAlgs(unittest.TestCase):
     CPE_MAX_VALUE = 2.0
     MAX_HORIZON = 1000
     NOISE_EPSILON = 0.3
-    EPISODES = 4
+    EPISODES = 2
 
     def test_gridworld_sequential_adapter(self):
         """
