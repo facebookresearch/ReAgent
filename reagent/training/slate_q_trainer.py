@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List
+from typing import List, Optional
 
 import reagent.parameters as rlp
 import reagent.types as rlt
@@ -48,7 +48,18 @@ class SlateQTrainer(DQNTrainerBase):
         components = ["q_network", "q_network_target", "q_network_optimizer"]
         return components
 
-    def _action_docs(self, state: rlt.FeatureData, action: torch.Tensor) -> rlt.DocList:
+    def _action_docs(
+        self,
+        state: rlt.FeatureData,
+        action: torch.Tensor,
+        terminal_mask: Optional[torch.Tensor] = None,
+    ) -> rlt.DocList:
+        # for invalid indices, simply set action to 0 so we can batch index still
+        if terminal_mask is not None:
+            assert terminal_mask.shape == (
+                action.shape[0],
+            ), f"{terminal_mask.shape} != 0th dim of {action.shape}"
+            action[terminal_mask] = torch.zeros_like(action[terminal_mask])
         docs = state.candidate_docs
         assert docs is not None
         return docs.select_slate(action)
@@ -79,8 +90,13 @@ class SlateQTrainer(DQNTrainerBase):
             raise NotImplementedError("Q-Learning for SlateQ is not implemented")
         else:
             # SARSA (Use the target network)
+            terminal_mask = (
+                training_batch.not_terminal.to(torch.bool) == False
+            ).squeeze(1)
             next_action_docs = self._action_docs(
-                training_batch.next_state, training_batch.next_action
+                training_batch.next_state,
+                training_batch.next_action,
+                terminal_mask=terminal_mask,
             )
             value = next_action_docs.value
             if self.single_selection:
@@ -100,7 +116,6 @@ class SlateQTrainer(DQNTrainerBase):
             next_q_values = next_q_values / slate_size
 
         filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
-
         target_q_values = reward + (discount_tensor * filtered_max_q_vals)
         # Don't mask if not single selection
         if self.single_selection:

@@ -146,7 +146,7 @@ class PolicyNetworkInputMaker:
         not_terminal = 1.0 - batch.terminal.float()
         # normalize actions
         action = rescale_actions(
-            batch.action.numpy(),
+            batch.action,
             new_min=self.train_low,
             new_max=self.train_high,
             prev_min=self.action_low,
@@ -179,6 +179,57 @@ class PolicyNetworkInputMaker:
                 metrics=None,
             ),
         )
+
+
+class SlateQInputMaker:
+    def __init__(self):
+        self.metric = "watch_time"
+
+    @classmethod
+    def create_for_env(cls, env: gym.Env):
+        return cls()
+
+    def __call__(self, batch):
+        n = batch.state.shape[0]
+        item_mask = torch.ones(batch.doc.shape[:2])
+        next_item_mask = torch.ones(batch.doc.shape[:2])
+        # TODO: abs value to make probability?
+        item_probability = batch.augmentation_value  # .unsqueeze(2)
+        next_item_probability = batch.next_augmentation_value  # .unsqueeze(2)
+
+        # concat null action
+        null_action = torch.tensor([batch.action.shape[1]] * n, dtype=torch.int64).view(
+            n, 1
+        )
+        action = torch.cat([batch.action, null_action], dim=1)
+        next_action = torch.cat([batch.next_action, null_action], dim=1)
+
+        # concat null reward to position wise reward
+        position_reward = getattr(batch, f"response_{self.metric}")
+        null_reward = torch.zeros((n, 1))
+        position_reward = torch.cat([position_reward, null_reward], dim=1)
+
+        # concat null mask when nothing clicked
+        reward_mask = batch.response_click
+        null_mask = (reward_mask.sum(dim=1) == 0).view(n, 1)
+        reward_mask = torch.cat([reward_mask.to(torch.bool), null_mask], dim=1)
+        dict_batch = {
+            "state_features": batch.state,
+            "next_state_features": batch.next_state,
+            "candidate_features": batch.doc,
+            "next_candidate_features": batch.next_doc,
+            "item_mask": item_mask,
+            "next_item_mask": next_item_mask,
+            "item_probability": item_probability,
+            "next_item_probability": next_item_probability,
+            "action": action,
+            "next_action": next_action,
+            "position_reward": position_reward,
+            "reward_mask": reward_mask,
+            "time_diff": None,
+            "not_terminal": ~batch.terminal,
+        }
+        return rlt.SlateQInput.from_dict(dict_batch)
 
 
 class MemoryNetworkInputMaker:
@@ -320,4 +371,5 @@ MAKER_MAP = {
     rlt.PolicyNetworkInput: PolicyNetworkInputMaker,
     rlt.MemoryNetworkInput: MemoryNetworkInputMaker,
     rlt.ParametricDqnInput: ParametricDqnInputMaker,
+    rlt.SlateQInput: SlateQInputMaker,
 }

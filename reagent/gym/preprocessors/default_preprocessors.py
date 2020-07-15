@@ -54,10 +54,11 @@ class RecsimObsPreprocessor:
         discrete_keys: List[Tuple[str, int]] = []
         box_keys: List[Tuple[str, int]] = []
 
-        doc_0_space = doc_obs_space["0"]
+        key_0 = next(iter(doc_obs_space.spaces))
+        doc_0_space = doc_obs_space[key_0]
 
         if isinstance(doc_0_space, spaces.Dict):
-            for k, v in doc_obs_space["0"].spaces.items():
+            for k, v in doc_obs_space[key_0].spaces.items():
                 if isinstance(v, spaces.Discrete):
                     if v.n > 0:
                         discrete_keys.append((k, v.n))

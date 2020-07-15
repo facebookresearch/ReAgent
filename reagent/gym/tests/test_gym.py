@@ -54,6 +54,7 @@ GYM_TESTS = [
     #     "Sparse DQN Changing Arms",
     #     "configs/sparse/discrete_dqn_changing_arms_online.yaml",
     # ),
+    ("SlateQ RecSim", "configs/recsim/slate_q_recsim_online.yaml"),
 ]
 
 

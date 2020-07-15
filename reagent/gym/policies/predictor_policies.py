@@ -7,10 +7,12 @@ import reagent.types as rlt
 import torch
 from reagent.gym.policies import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
+from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
 from reagent.gym.policies.scorers.discrete_scorer import (
     discrete_dqn_serving_scorer,
     parametric_dqn_serving_scorer,
 )
+from reagent.gym.policies.scorers.slate_q_scorer import slate_q_serving_scorer
 
 
 try:
@@ -43,11 +45,20 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
         assert (
             max_num_actions is not None
         ), f"max_num_actions not given for Parametric DQN."
-        sampler = GreedyActionSampler()
-        scorer = parametric_dqn_serving_scorer(
-            max_num_actions=max_num_actions,
-            q_network=ParametricDqnPredictorUnwrapper(serving_module),
-        )
+        q_network = ParametricDqnPredictorUnwrapper(serving_module)
+
+        # TODO: write SlateQ Wrapper
+        slate_size = kwargs.get("slate_size", None)
+        if slate_size is not None:
+            scorer = slate_q_serving_scorer(
+                num_candidates=max_num_actions, q_network=q_network
+            )
+            sampler = TopKSampler(k=slate_size)
+        else:
+            sampler = GreedyActionSampler()
+            scorer = parametric_dqn_serving_scorer(
+                max_num_actions=max_num_actions, q_network=q_network
+            )
         return Policy(scorer=scorer, sampler=sampler)
     else:
         raise NotImplementedError(

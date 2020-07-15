@@ -19,7 +19,13 @@ from tqdm import tqdm
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
+try:
+    from reagent.gym.envs import RecSim  # noqa
+
+    HAS_RECSIM = True
+except ImportError:
+    HAS_RECSIM = False
 
 
 def get_max_steps(env) -> Optional[int]:
@@ -127,6 +133,21 @@ def build_normalizer(env: Env) -> Dict[str, NormalizationData]:
         # pyre-fixme[16]: `Env` has no attribute `normalization_data`.
         return env.normalization_data
     except AttributeError:
+        # TODO: make this a property of EnvWrapper?
+        # pyre-fixme[16]: Module `envs` has no attribute `RecSim`.
+        if HAS_RECSIM and isinstance(env, RecSim):
+            return {
+                NormalizationKey.STATE: NormalizationData(
+                    dense_normalization_parameters=only_continuous_normalizer(
+                        list(range(env.observation_space["user"].shape[0]))
+                    )
+                ),
+                NormalizationKey.ITEM: NormalizationData(
+                    dense_normalization_parameters=only_continuous_normalizer(
+                        list(range(env.observation_space["doc"]["0"].shape[0]))
+                    )
+                ),
+            }
         return {
             NormalizationKey.STATE: NormalizationData(
                 dense_normalization_parameters=build_state_normalizer(env)
