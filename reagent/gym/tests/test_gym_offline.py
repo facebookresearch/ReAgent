@@ -106,10 +106,8 @@ def run_test_offline(
     )
 
     # first fill the replay buffer to burn_in
-    replay_buffer = ReplayBuffer.create_from_env(
-        env=env,
-        replay_memory_size=replay_memory_size,
-        batch_size=trainer.minibatch_size,
+    replay_buffer = ReplayBuffer(
+        replay_capacity=replay_memory_size, batch_size=trainer.minibatch_size
     )
     # always fill full RB
     fill_replay_buffer(

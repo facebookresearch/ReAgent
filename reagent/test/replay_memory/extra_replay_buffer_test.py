@@ -6,7 +6,7 @@ import logging
 import numpy as np
 import numpy.testing as npt
 import torch
-from reagent.replay_memory.circular_replay_buffer import ReplayBuffer, ReplayElement
+from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
 
 
@@ -57,15 +57,12 @@ def setup_buffer(buffer_size, trajectory_lengths, stack_size=None, multi_steps=N
     stack_size = stack_size if stack_size is not None else 1
     update_horizon = multi_steps if multi_steps is not None else 1
     memory = ReplayBuffer(
-        observation_shape=OBS_SHAPE,
-        observation_dtype=OBS_TYPE,
         stack_size=stack_size,
         replay_capacity=buffer_size,
         batch_size=1,
         update_horizon=update_horizon,
         return_everything_as_stack=stack_size is not None,
         return_as_timeline_format=multi_steps is not None,
-        extra_storage_types=[ReplayElement("extra1", (), np.float32)],
     )
 
     i = 0
@@ -74,11 +71,11 @@ def setup_buffer(buffer_size, trajectory_lengths, stack_size=None, multi_steps=N
             trans = get_add_transition(i)
             terminal = bool(j == traj_len - 1)
             memory.add(
-                trans["state"],
-                trans["action"],
-                trans["reward"],
-                terminal,
-                trans["extra1"],
+                observation=trans["state"],
+                action=trans["action"],
+                reward=trans["reward"],
+                terminal=terminal,
+                extra1=trans["extra1"],
             )
             i += 1
     return memory.sample_all_valid_transitions()
@@ -273,8 +270,6 @@ class ExtraReplayBufferTest(HorizonTestBase):
         multi_steps = 2
         stack_size = 2
         memory = ReplayBuffer(
-            observation_shape=OBS_SHAPE,
-            observation_dtype=OBS_TYPE,
             stack_size=stack_size,
             replay_capacity=6,
             batch_size=1,
@@ -284,7 +279,11 @@ class ExtraReplayBufferTest(HorizonTestBase):
         )
 
         def trans(i):
-            return np.ones(OBS_SHAPE, dtype=OBS_TYPE), int(2 * i), float(3 * i)
+            return {
+                "observation": np.ones(OBS_SHAPE, dtype=OBS_TYPE),
+                "action": int(2 * i),
+                "reward": float(3 * i),
+            }
 
         # Contents of RB
         # start: [X, X, X, X, X, X]
@@ -293,20 +292,20 @@ class ExtraReplayBufferTest(HorizonTestBase):
         )
 
         # t0: [X, s0, X, X, X, X]
-        memory.add(*trans(0), False)
+        memory.add(**trans(0), terminal=False)
         npt.assert_array_equal(
             memory._is_index_valid, [False, False, False, False, False, False]
         )
 
         # t1: [X, s0, s1, X, X, X]
-        memory.add(*trans(1), False)
+        memory.add(**trans(1), terminal=False)
         npt.assert_array_equal(
             memory._is_index_valid, [False, False, False, False, False, False]
         )
 
         # t2: [X, s0, s1, s2, X, X]
         # s0 finally becomes valid as its next state was added
-        memory.add(*trans(2), False)
+        memory.add(**trans(2), terminal=False)
         npt.assert_array_equal(
             memory._is_index_valid, [False, True, False, False, False, False]
         )
@@ -316,7 +315,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
 
         # t3: [X, s0, s1, s2, s3, X]
         # episode termination validates whole episode
-        memory.add(*trans(3), True)
+        memory.add(**trans(3), terminal=True)
         npt.assert_array_equal(
             memory._is_index_valid, [False, True, True, True, True, False]
         )
@@ -330,7 +329,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
 
         # t4: [s4, s0, s1, s2, s3, X]
         # s0 invalidated as its previous frame is corrupted
-        memory.add(*trans(4), False)
+        memory.add(**trans(4), terminal=False)
         npt.assert_array_equal(
             memory._is_index_valid, [False, False, True, True, True, False]
         )
@@ -340,7 +339,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
         npt.assert_array_equal(batch.next_action[1][0], [4, 6])
 
         # t5: [s4, s5, s1, s2, s3, X]
-        memory.add(*trans(5), False)
+        memory.add(**trans(5), terminal=False)
         npt.assert_array_equal(
             memory._is_index_valid, [False, False, False, True, True, False]
         )
@@ -349,7 +348,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
         npt.assert_array_equal(batch.next_action[0][0], [4, 6])
 
         # t6: [s4, s5, s6, s2, s3, X]
-        memory.add(*trans(6), True)
+        memory.add(**trans(6), terminal=True)
         npt.assert_array_equal(
             memory._is_index_valid, [True, True, True, False, True, False]
         )
@@ -361,3 +360,90 @@ class ExtraReplayBufferTest(HorizonTestBase):
         # batch.next_action[3] is [garbage]
 
         logger.info("Overflow test passes!")
+
+    def test_sparse_input(self):
+        replay_capacity = 100
+        num_transitions = replay_capacity // 2
+        memory = ReplayBuffer(
+            stack_size=1, replay_capacity=replay_capacity, update_horizon=1
+        )
+
+        def trans(i):
+            sparse_feat1 = list(range(0, i % 4))
+            sparse_feat2 = list(range(i % 4, 4))
+            id_list = {"sparse_feat1": sparse_feat1, "sparse_feat2": sparse_feat2}
+            sparse_feat3 = (list(range(0, i % 7)), [k + 0.5 for k in range(0, i % 7)])
+            sparse_feat4 = (list(range(i % 7, 7)), [k + 0.5 for k in range(i % 7, 7)])
+            id_score_list = {"sparse_feat3": sparse_feat3, "sparse_feat4": sparse_feat4}
+            return {
+                "observation": np.ones(OBS_SHAPE, dtype=OBS_TYPE),
+                "action": int(2 * i),
+                "reward": float(3 * i),
+                "terminal": i % 4,
+                "id_list": id_list,
+                "id_score_list": id_score_list,
+            }
+
+        for i in range(num_transitions):
+            memory.add(**trans(i))
+
+        indices = list(range(num_transitions - 1))
+        batch = memory.sample_transition_batch(len(indices), torch.tensor(indices))
+
+        # calculate expected
+        res = {
+            "id_list": {"sparse_feat1": ([], []), "sparse_feat2": ([], [])},
+            "id_score_list": {
+                "sparse_feat3": ([], [], []),
+                "sparse_feat4": ([], [], []),
+            },
+            "next_id_list": {"sparse_feat1": ([], []), "sparse_feat2": ([], [])},
+            "next_id_score_list": {
+                "sparse_feat3": ([], [], []),
+                "sparse_feat4": ([], [], []),
+            },
+        }
+        for i in range(num_transitions - 1):
+            feats_i = trans(i)
+            feats_next = trans(i + 1)
+            for k in ["id_list", "id_score_list"]:
+                for feat_id in res[k]:
+                    res[k][feat_id][0].append(len(res[k][feat_id][1]))
+                    if k == "id_list":
+                        res[k][feat_id][1].extend(feats_i[k][feat_id])
+                    else:
+                        res[k][feat_id][1].extend(feats_i[k][feat_id][0])
+                        res[k][feat_id][2].extend(feats_i[k][feat_id][1])
+
+            for k in ["next_id_list", "next_id_score_list"]:
+                for feat_id in res[k]:
+                    res[k][feat_id][0].append(len(res[k][feat_id][1]))
+                    orig_k = k[len("next_") :]
+                    if k == "next_id_list":
+                        res[k][feat_id][1].extend(feats_next[orig_k][feat_id])
+                    else:
+                        res[k][feat_id][1].extend(feats_next[orig_k][feat_id][0])
+                        res[k][feat_id][2].extend(feats_next[orig_k][feat_id][1])
+
+        for k in ["id_list", "id_score_list", "next_id_list", "next_id_score_list"]:
+            for feat_id in res[k]:
+                if k in ["id_list", "next_id_list"]:
+                    npt.assert_array_equal(
+                        res[k][feat_id][0], getattr(batch, k)[feat_id][0]
+                    )
+                    npt.assert_array_equal(
+                        res[k][feat_id][1], getattr(batch, k)[feat_id][1]
+                    )
+                else:
+                    npt.assert_array_equal(
+                        res[k][feat_id][0], getattr(batch, k)[feat_id][0]
+                    )
+                    npt.assert_array_equal(
+                        res[k][feat_id][1], getattr(batch, k)[feat_id][1]
+                    )
+                    npt.assert_array_equal(
+                        res[k][feat_id][2], getattr(batch, k)[feat_id][2]
+                    )
+
+        # sample random
+        _ = memory.sample_transition_batch(10)

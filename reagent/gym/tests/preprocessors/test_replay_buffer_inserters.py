@@ -8,6 +8,7 @@ import gym
 import numpy as np
 import numpy.testing as npt
 import torch
+from reagent.gym.envs import EnvWrapper
 from reagent.gym.preprocessors import make_replay_buffer_inserter
 from reagent.gym.types import Transition
 from reagent.replay_memory import ReplayBuffer
@@ -17,18 +18,16 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 logger = logging.getLogger(__name__)
 
 try:
-    from recsim.environments import interest_evolution, interest_exploration
+    from reagent.gym.envs import RecSim
 
     HAS_RECSIM = True
 except ModuleNotFoundError:
     HAS_RECSIM = False
 
 
-def _create_replay_buffer_and_insert(env: gym.Env):
+def _create_replay_buffer_and_insert(env: EnvWrapper):
     env.seed(1)
-    replay_buffer = ReplayBuffer.create_from_env(
-        env, replay_memory_size=6, batch_size=1
-    )
+    replay_buffer = ReplayBuffer(replay_capacity=6, batch_size=1)
     replay_buffer_inserter = make_replay_buffer_inserter(env)
     obs = env.reset()
     inserted = []
@@ -81,13 +80,12 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
     @unittest.skipIf(not HAS_RECSIM, "RecSim not installed")
     def test_recsim_interest_evolution(self):
         num_candidate = 10
-        env_config = {
-            "num_candidates": num_candidate,
-            "slate_size": 3,
-            "resample_documents": False,
-            "seed": 1,
-        }
-        env = interest_evolution.create_environment(env_config)
+        slate_size = 3
+        env = RecSim(
+            num_candidates=num_candidate,
+            slate_size=slate_size,
+            resample_documents=False,
+        )
         replay_buffer, inserted = _create_replay_buffer_and_insert(env)
         batch = replay_buffer.sample_transition_batch(indices=torch.tensor([0]))
         npt.assert_array_almost_equal(
@@ -109,7 +107,7 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
         npt.assert_array_equal([0.0, 0.0, 0.0], batch.response_quality.squeeze(0))
         npt.assert_array_equal([0.0, 0.0, 0.0], batch.response_watch_time.squeeze(0))
         resp = inserted[1]["observation"]["response"]
-        for i in range(env_config["slate_size"]):
+        for i in range(slate_size):
             npt.assert_array_equal(
                 resp[i]["click"], batch.next_response_click.squeeze(0)[i]
             )
@@ -129,13 +127,13 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
     @unittest.skipIf(not HAS_RECSIM, "RecSim not installed")
     def test_recsim_interest_exploration(self):
         num_candidate = 10
-        env_config = {
-            "num_candidates": num_candidate,
-            "slate_size": 3,
-            "resample_documents": False,
-            "seed": 1,
-        }
-        env = interest_exploration.create_environment(env_config)
+        slate_size = 3
+        env = RecSim(
+            num_candidates=num_candidate,
+            slate_size=slate_size,
+            resample_documents=False,
+            is_interest_exploration=True,
+        )
         replay_buffer, inserted = _create_replay_buffer_and_insert(env)
         batch = replay_buffer.sample_transition_batch(indices=torch.tensor([0]))
         npt.assert_array_almost_equal(
@@ -160,7 +158,7 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
         npt.assert_array_equal([0, 0, 0], batch.response_cluster_id.squeeze(0))
         npt.assert_array_equal([0.0, 0.0, 0.0], batch.response_quality.squeeze(0))
         resp = inserted[1]["observation"]["response"]
-        for i in range(env_config["slate_size"]):
+        for i in range(slate_size):
             npt.assert_array_equal(
                 resp[i]["click"], batch.next_response_click.squeeze(0)[i]
             )
