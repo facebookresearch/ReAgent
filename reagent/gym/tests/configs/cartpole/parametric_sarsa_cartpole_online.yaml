@@ -1,4 +1,6 @@
-env_name: CartPole-v0
+env:
+  Gym:
+    env_name: CartPole-v0
 model:
   ParametricDQN:
     trainer_param:

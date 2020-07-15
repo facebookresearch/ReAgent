@@ -1,4 +1,6 @@
-env_name: Pendulum-v0
+env:
+  Gym:
+    env_name: Pendulum-v0
 model:
   SAC:
     trainer_param:
