@@ -84,7 +84,8 @@ class RecSim(EnvWrapper):
         return preprocessor(obs)
 
     def serving_obs_preprocessor(self, obs: np.ndarray):
-        raise NotImplementedError()
+        preprocessor = RecsimObsPreprocessor.create_from_env(self)
+        return preprocessor(obs)
 
 
 class MulticlickIEvUserModel(interest_evolution.IEvUserModel):

@@ -80,7 +80,8 @@ class RecSimReplayBufferInserter:
         discrete_keys: List[str] = []
         box_keys: List[str] = []
 
-        doc_0_space = doc_obs_space["0"]
+        key_0 = next(iter(doc_obs_space.spaces))
+        doc_0_space = doc_obs_space[key_0]
 
         if isinstance(doc_0_space, gym.spaces.Dict):
             for k, v in doc_0_space.spaces.items():

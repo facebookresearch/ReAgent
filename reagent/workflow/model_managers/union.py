@@ -10,6 +10,7 @@ from .actor_critic import *  # noqa
 from .discrete import *  # noqa
 from .model_based import *  # noqa
 from .parametric import *  # noqa
+from .ranking import *  # noqa
 
 
 @ModelManager.fill_union()
