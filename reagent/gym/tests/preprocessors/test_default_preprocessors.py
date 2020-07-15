@@ -7,9 +7,7 @@ import gym
 import numpy.testing as npt
 import torch
 import torch.nn.functional as F
-from reagent.gym.preprocessors.default_preprocessors import (
-    make_default_obs_preprocessor,
-)
+from reagent.gym.envs import Gym
 
 
 try:
@@ -22,8 +20,8 @@ except ModuleNotFoundError:
 
 class TestMakeDefaultObsPreprocessor(unittest.TestCase):
     def test_box(self):
-        env = gym.make("CartPole-v0")
-        obs_preprocessor = make_default_obs_preprocessor(env)
+        env = Gym(env_name="CartPole-v0")
+        obs_preprocessor = env.get_obs_preprocessor()
         obs = env.reset()
         state = obs_preprocessor(obs)
         self.assertTrue(state.has_float_features_only)
@@ -36,7 +34,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
     def test_box_cuda(self):
         env = gym.make("CartPole-v0")
         device = torch.device("cuda")
-        obs_preprocessor = make_default_obs_preprocessor(env, device=device)
+        obs_preprocessor = env.get_obs_preprocessor(device=device)
         obs = env.reset()
         state = obs_preprocessor(obs)
         self.assertTrue(state.has_float_features_only)
@@ -53,7 +51,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         env = RecSim(
             num_candidates=num_candidate, slate_size=3, resample_documents=False, seed=1
         )
-        obs_preprocessor = make_default_obs_preprocessor(env)
+        obs_preprocessor = env.get_obs_preprocessor()
         obs = env.reset()
         state = obs_preprocessor(obs)
         self.assertFalse(state.has_float_features_only)
@@ -81,7 +79,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
             seed=1,
             is_interest_exploration=True,
         )
-        obs_preprocessor = make_default_obs_preprocessor(env)
+        obs_preprocessor = env.get_obs_preprocessor()
         obs = env.reset()
         state = obs_preprocessor(obs)
         self.assertFalse(state.has_float_features_only)

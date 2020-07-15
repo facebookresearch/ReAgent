@@ -72,9 +72,7 @@ class TestGymOffline(HorizonTestBase):
         logger.info(f"{name} passes!")
 
 
-def evaluate_cem(
-    env: gym.Env, manager, max_steps: Optional[int], num_eval_episodes: int
-):
+def evaluate_cem(env, manager, max_steps: Optional[int], num_eval_episodes: int):
     # NOTE: for CEM, serving isn't implemented
     policy = manager.create_policy(serving=False)
     agent = Agent.create_for_env(env, policy)

@@ -256,7 +256,8 @@ class CEMPlannerNetwork(nn.Module):
         # Pick the first action of the optimal solution
         solution = mean[: self.action_dim]
         raw_action = solution.reshape(-1)
-        low, high = CONTINUOUS_TRAINING_ACTION_RANGE
+        low = torch.tensor(CONTINUOUS_TRAINING_ACTION_RANGE[0])
+        high = torch.tensor(CONTINUOUS_TRAINING_ACTION_RANGE[1])
         # rescale to range (-1, 1) as per canonical output range of continuous agents
         raw_action = rescale_actions(
             raw_action,

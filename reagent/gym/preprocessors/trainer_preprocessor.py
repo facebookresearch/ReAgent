@@ -130,8 +130,11 @@ class DiscreteDqnInputMaker:
 
 class PolicyNetworkInputMaker:
     def __init__(self, action_low: np.ndarray, action_high: np.ndarray):
-        self.action_low = action_low
-        self.action_high = action_high
+        self.action_low = torch.tensor(action_low)
+        self.action_high = torch.tensor(action_high)
+        (train_low, train_high) = CONTINUOUS_TRAINING_ACTION_RANGE
+        self.train_low = torch.tensor(train_low)
+        self.train_high = torch.tensor(train_high)
 
     @classmethod
     def create_for_env(cls, env: gym.Env):
@@ -142,27 +145,22 @@ class PolicyNetworkInputMaker:
     def __call__(self, batch):
         not_terminal = 1.0 - batch.terminal.float()
         # normalize actions
-        (train_low, train_high) = CONTINUOUS_TRAINING_ACTION_RANGE
-        action = torch.tensor(
-            rescale_actions(
-                batch.action.numpy(),
-                new_min=train_low,
-                new_max=train_high,
-                prev_min=self.action_low,
-                prev_max=self.action_high,
-            )
+        action = rescale_actions(
+            batch.action.numpy(),
+            new_min=self.train_low,
+            new_max=self.train_high,
+            prev_min=self.action_low,
+            prev_max=self.action_high,
         )
         # only normalize non-terminal
         non_terminal_indices = (batch.terminal == 0).squeeze(1)
         next_action = torch.zeros_like(action)
-        next_action[non_terminal_indices] = torch.tensor(
-            rescale_actions(
-                batch.next_action[non_terminal_indices].numpy(),
-                new_min=train_low,
-                new_max=train_high,
-                prev_min=self.action_low,
-                prev_max=self.action_high,
-            )
+        next_action[non_terminal_indices] = rescale_actions(
+            batch.next_action[non_terminal_indices],
+            new_min=self.train_low,
+            new_max=self.train_high,
+            prev_min=self.action_low,
+            prev_max=self.action_high,
         )
         return rlt.PolicyNetworkInput(
             state=rlt.FeatureData(float_features=batch.state),
