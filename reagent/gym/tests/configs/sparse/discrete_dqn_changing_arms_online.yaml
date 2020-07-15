@@ -1,4 +1,5 @@
-env_name: ChangingArms-v0
+env:
+  ChangingArms:
 model:
   DiscreteDQN:
     trainer_param:
