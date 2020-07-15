@@ -32,6 +32,43 @@ model:
         embedding_dim: 32
     eval_parameters:
       calc_cpe_in_training: false
+    state_feature_config_provider:
+      raw:
+        float_feature_infos:
+          - name: "arm0_sample"
+            feature_id: 0
+          - name: "arm1_sample"
+            feature_id: 1
+          - name: "arm2_sample"
+            feature_id: 2
+          - name: "arm3_sample"
+            feature_id: 3
+          - name: "arm4_sample"
+            feature_id: 4
+        id_list_feature_configs:
+          - name: "legal"
+            feature_id: 100
+            id_mapping_name: "legal_actions"
+        id_score_list_feature_configs:
+          - name: "mu_changes"
+            feature_id: 1000
+            id_mapping_name: "arms_list"
+        id_mapping_config:
+          legal_actions:
+            ids:
+              - 1000000
+              - 1000001
+              - 1000002
+              - 1000003
+              - 1000004
+              - 1000005
+          arms_list:
+            ids:
+              - 1500000
+              - 1500001
+              - 1500002
+              - 1500003
+              - 1500004
 replay_memory_size: 50000
 train_every_ts: 1
 train_after_ts: 10000

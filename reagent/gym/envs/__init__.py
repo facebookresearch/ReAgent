@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from reagent.workflow import types
+from reagent.core.tagged_union import TaggedUnion
 
 from .changing_arms import ChangingArms  # noqa
 from .dynamics.linear_dynamics import LinDynaEnv  # noqa
@@ -44,5 +44,5 @@ __all__ = list(
 
 
 @EnvWrapper.fill_union()
-class Env__Union(types.TaggedUnion):
+class Env__Union(TaggedUnion):
     pass
