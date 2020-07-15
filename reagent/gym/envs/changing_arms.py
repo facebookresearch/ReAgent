@@ -23,10 +23,8 @@ import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper
-from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.test.base.utils import only_continuous_normalizer
-from reagent.workflow.types import ModelFeatureConfigProvider__Union
 
 
 MAX_STEPS = 100
@@ -142,40 +140,6 @@ class ChangingArms(EnvWrapper):
                 )
             )
         }
-
-    @property
-    def state_feature_config_provider(self) -> ModelFeatureConfigProvider__Union:
-        """ For online gym """
-        raw = RawModelFeatureConfigProvider(
-            float_feature_infos=[
-                rlt.FloatFeatureInfo(name="arm0_sample", feature_id=0),
-                rlt.FloatFeatureInfo(name="arm1_sample", feature_id=1),
-                rlt.FloatFeatureInfo(name="arm2_sample", feature_id=2),
-                rlt.FloatFeatureInfo(name="arm3_sample", feature_id=3),
-                rlt.FloatFeatureInfo(name="arm4_sample", feature_id=4),
-            ],
-            id_list_feature_configs=[
-                rlt.IdListFeatureConfig(
-                    name="legal", feature_id=100, id_mapping_name="legal_actions"
-                )
-            ],
-            id_score_list_feature_configs=[
-                rlt.IdScoreListFeatureConfig(
-                    name="mu_changes", feature_id=1000, id_mapping_name="arms_list"
-                )
-            ],
-            id_mapping_config={
-                "legal_actions": rlt.IdMapping(
-                    ids=[1000000, 1000001, 1000002, 1000003, 1000004, 1000005]
-                ),
-                "arms_list": rlt.IdMapping(
-                    ids=[1500000, 1500001, 1500002, 1500003, 1500004]
-                ),
-            },
-        )
-        # pyre-fixme[16]: `ModelFeatureConfigProvider__Union` has no attribute
-        #  `make_union_instance`.
-        return ModelFeatureConfigProvider__Union.make_union_instance(raw)
 
     def trainer_preprocessor(self, obs: torch.Tensor):
         batch_size = obs.shape[0]

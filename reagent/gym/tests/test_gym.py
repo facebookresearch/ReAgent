@@ -103,15 +103,6 @@ def run_test(
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
     manager = model.value
-    try:
-        manager.state_feature_config_provider = env.state_feature_config_provider
-        logger.info(
-            f"Using environment's state_feature_config_provider.\n"
-            f"{manager.state_feature_config_provider}"
-        )
-    except AttributeError:
-        logger.info("state_feature_config_provider override not applicable")
-
     trainer = manager.initialize_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
