@@ -110,10 +110,8 @@ def run_test(
     )
     training_policy = manager.create_policy(serving=False)
 
-    replay_buffer = ReplayBuffer.create_from_env(
-        env=env,
-        replay_memory_size=replay_memory_size,
-        batch_size=trainer.minibatch_size,
+    replay_buffer = ReplayBuffer(
+        replay_capacity=replay_memory_size, batch_size=trainer.minibatch_size
     )
 
     device = torch.device("cuda") if use_gpu else torch.device("cpu")

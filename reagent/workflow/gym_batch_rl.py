@@ -47,9 +47,7 @@ def offline_gym(
     initialize_seed(seed)
     env = Gym(env_name=env_name)
 
-    replay_buffer = ReplayBuffer.create_from_env(
-        env=env, replay_memory_size=num_train_transitions, batch_size=1
-    )
+    replay_buffer = ReplayBuffer(replay_capacity=num_train_transitions, batch_size=1)
     fill_replay_buffer(env, replay_buffer, num_train_transitions)
     if isinstance(env.action_space, gym.spaces.Discrete):
         is_discrete_action = True

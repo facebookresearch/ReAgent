@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
 
+import logging
 import unittest
 
 import numpy as np
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
+logger = logging.getLogger(__name__)
+
 try:
-    from recsim.environments import interest_exploration, interest_evolution
+    from reagent.gym.envs import RecSim
 
     HAS_RECSIM = True
-except ModuleNotFoundError:
+except ImportError as e:
+    logger.info(f"Exception {e}")
     HAS_RECSIM = False
 
 
 class CreateFromEnvTest(unittest.TestCase):
     @unittest.skipIf(not HAS_RECSIM, "recsim is not installed")
     def test_create_from_recsim_interest_exploration(self):
-        env_config = {
-            "num_candidates": 20,
-            "slate_size": 3,
-            "resample_documents": False,
-            "seed": 1,
-        }
-        env = interest_exploration.create_environment(env_config)
-        replay_buffer = ReplayBuffer.create_from_env(
-            env, replay_memory_size=100, batch_size=10, store_log_prob=True
+        env = RecSim(
+            num_candidates=20,
+            slate_size=3,
+            resample_documents=False,
+            is_interest_exploration=True,
         )
+        replay_buffer = ReplayBuffer(replay_capacity=100, batch_size=10)
         obs = env.reset()
         observation = obs["user"]
         action = env.action_space.sample()
@@ -41,10 +42,10 @@ class CreateFromEnvTest(unittest.TestCase):
         response_quality = np.stack([r["quality"] for r in response], axis=0)
         repsonse_cluster_id = np.array([r["cluster_id"] for r in response])
         replay_buffer.add(
-            observation,
-            action,
-            reward,
-            terminal,
+            observation=observation,
+            action=action,
+            reward=reward,
+            terminal=terminal,
             mdp_id=0,
             sequence_number=0,
             doc_quality=quality,
@@ -57,16 +58,8 @@ class CreateFromEnvTest(unittest.TestCase):
 
     @unittest.skipIf(not HAS_RECSIM, "recsim is not installed")
     def test_create_from_recsim_interest_evolution(self):
-        env_config = {
-            "num_candidates": 20,
-            "slate_size": 3,
-            "resample_documents": False,
-            "seed": 1,
-        }
-        env = interest_evolution.create_environment(env_config)
-        replay_buffer = ReplayBuffer.create_from_env(
-            env, replay_memory_size=100, batch_size=10, store_log_prob=True
-        )
+        env = RecSim(num_candidates=20, slate_size=3, resample_documents=False)
+        replay_buffer = ReplayBuffer(replay_capacity=100, batch_size=10)
         obs = env.reset()
         observation = obs["user"]
         action = env.action_space.sample()
@@ -82,10 +75,10 @@ class CreateFromEnvTest(unittest.TestCase):
         response_watch_time = np.stack([r["watch_time"] for r in response], axis=0)
         response_liked = np.array([r["liked"] for r in response])
         replay_buffer.add(
-            observation,
-            action,
-            reward,
-            terminal,
+            observation=observation,
+            action=action,
+            reward=reward,
+            terminal=terminal,
             mdp_id=0,
             sequence_number=0,
             doc=doc_features,

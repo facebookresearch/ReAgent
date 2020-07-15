@@ -124,9 +124,8 @@ def train_mdnrnn(
     # for optional validation
     test_replay_buffer=None,
 ):
-    train_replay_buffer = ReplayBuffer.create_from_env(
-        env=env,
-        replay_memory_size=num_train_transitions,
+    train_replay_buffer = ReplayBuffer(
+        replay_capacity=num_train_transitions,
         batch_size=batch_size,
         stack_size=seq_len,
         return_everything_as_stack=True,
@@ -180,9 +179,8 @@ def train_mdnrnn_and_compute_feature_stats(
     device = "cuda" if use_gpu else "cpu"
     # pyre-fixme[6]: Expected `device` for 2nd param but got `str`.
     trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device, env)
-    test_replay_buffer = ReplayBuffer.create_from_env(
-        env=env,
-        replay_memory_size=num_test_transitions,
+    test_replay_buffer = ReplayBuffer(
+        replay_capacity=num_test_transitions,
         batch_size=batch_size,
         stack_size=seq_len,
         return_everything_as_stack=True,
@@ -252,11 +250,8 @@ def create_embed_rl_dataset(
     )
     # now create a filled replay buffer of embeddings
     # new obs shape dim = state_dim + hidden_dim
-    embed_rb = ReplayBuffer.create_from_env(
-        env=embed_env,
-        replay_memory_size=num_state_embed_transitions,
-        batch_size=batch_size,
-        stack_size=1,
+    embed_rb = ReplayBuffer(
+        replay_capacity=num_state_embed_transitions, batch_size=batch_size, stack_size=1
     )
     fill_replay_buffer(
         env=embed_env, replay_buffer=embed_rb, desired_size=num_state_embed_transitions

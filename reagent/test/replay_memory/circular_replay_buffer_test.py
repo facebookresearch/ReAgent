@@ -53,88 +53,40 @@ class ReplayBufferTest(unittest.TestCase):
     def tearDown(self):
         self.tmp_dir.cleanup()
 
-    def testWithNontupleObservationShape(self):
-        with self.assertRaises(AssertionError):
-            _ = circular_replay_buffer.ReplayBuffer(
-                observation_shape=84,
-                stack_size=STACK_SIZE,
-                replay_capacity=5,
-                batch_size=BATCH_SIZE,
-            )
-
     def testConstructor(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
+            stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
-        self.assertEqual(memory._observation_shape, OBSERVATION_SHAPE)
-        # Test with non square observation shape
-        memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=(4, 20),
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
-        )
-        self.assertEqual(memory._observation_shape, (4, 20))
         self.assertEqual(memory.add_count, 0)
 
     def testAdd(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
+            stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
         self.assertEqual(memory.cursor(), 0)
         zeros = np.zeros(OBSERVATION_SHAPE)
-        memory.add(zeros, 0, 0, 0)
+        memory.add(observation=zeros, action=0, reward=0, terminal=0)
         # Check if the cursor moved STACK_SIZE -1 padding adds + 1, (the one above).
         self.assertEqual(memory.cursor(), STACK_SIZE)
 
     def testExtraAdd(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
-            extra_storage_types=[
-                circular_replay_buffer.ReplayElement("extra1", [], np.float32),
-                circular_replay_buffer.ReplayElement("extra2", [2], np.int8),
-            ],
+            stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
         self.assertEqual(memory.cursor(), 0)
         zeros = np.zeros(OBSERVATION_SHAPE)
-        memory.add(zeros, 0, 0, 0, 0, [0, 0])
+        memory.add(
+            observation=zeros, action=0, reward=0, terminal=0, extra1=0, extra2=[0, 0]
+        )
 
         with self.assertRaisesRegex(ValueError, "Add expects"):
-            memory.add(zeros, 0, 0, 0)
+            memory.add(observation=zeros, action=0, reward=0, terminal=0)
         # Check if the cursor moved STACK_SIZE -1 zeros adds + 1, (the one above).
         self.assertEqual(memory.cursor(), STACK_SIZE)
-
-    def testCheckAddTypes(self):
-        memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
-            extra_storage_types=[
-                circular_replay_buffer.ReplayElement("extra1", [], np.float32),
-                circular_replay_buffer.ReplayElement("extra2", [2], np.int8),
-            ],
-        )
-        zeros = np.zeros(OBSERVATION_SHAPE)
-
-        memory._check_add_types(zeros, 0, 0, 0, 0, [0, 0])
-
-        with self.assertRaisesRegex(ValueError, "Add expects"):
-            memory._check_add_types(zeros, 0, 0, 0)
 
     def testLowCapacity(self):
         with self.assertRaisesRegex(ValueError, "There is not enough capacity"):
             circular_replay_buffer.ReplayBuffer(
-                observation_shape=OBSERVATION_SHAPE,
                 stack_size=10,
                 replay_capacity=10,
                 batch_size=BATCH_SIZE,
@@ -144,7 +96,6 @@ class ReplayBufferTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "There is not enough capacity"):
             circular_replay_buffer.ReplayBuffer(
-                observation_shape=OBSERVATION_SHAPE,
                 stack_size=5,
                 replay_capacity=10,
                 batch_size=BATCH_SIZE,
@@ -155,7 +106,6 @@ class ReplayBufferTest(unittest.TestCase):
         # We should be able to create a buffer that contains just enough for a
         # transition.
         circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
             stack_size=5,
             replay_capacity=10,
             batch_size=BATCH_SIZE,
@@ -165,7 +115,6 @@ class ReplayBufferTest(unittest.TestCase):
 
     def testNSteprewardum(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
             stack_size=STACK_SIZE,
             replay_capacity=10,
             batch_size=BATCH_SIZE,
@@ -174,7 +123,12 @@ class ReplayBufferTest(unittest.TestCase):
         )
 
         for i in range(50):
-            memory.add(np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE), 0, 2.0, 0)
+            memory.add(
+                observation=np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE),
+                action=0,
+                reward=2.0,
+                terminal=0,
+            )
 
         for _i in range(100):
             batch = memory.sample_transition_batch()
@@ -184,15 +138,15 @@ class ReplayBufferTest(unittest.TestCase):
     def testSampleTransitionBatch(self):
         replay_capacity = 10
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=1,
-            replay_capacity=replay_capacity,
-            batch_size=2,
+            stack_size=1, replay_capacity=replay_capacity, batch_size=2
         )
         num_adds = 50  # The number of transitions to add to the memory.
         for i in range(num_adds):
             memory.add(
-                np.full(OBSERVATION_SHAPE, i, OBS_DTYPE), 0, 0, i % 4
+                observation=np.full(OBSERVATION_SHAPE, i, OBS_DTYPE),
+                action=0,
+                reward=0,
+                terminal=i % 4,
             )  # Every 4 transitions is terminal.
         # Test sampling with default batch size.
         for _i in range(1000):
@@ -237,24 +191,17 @@ class ReplayBufferTest(unittest.TestCase):
     def testSampleTransitionBatchExtra(self):
         replay_capacity = 10
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=1,
-            replay_capacity=replay_capacity,
-            batch_size=2,
-            extra_storage_types=[
-                circular_replay_buffer.ReplayElement("extra1", [], np.float32),
-                circular_replay_buffer.ReplayElement("extra2", [2], np.int8),
-            ],
+            stack_size=1, replay_capacity=replay_capacity, batch_size=2
         )
         num_adds = 50  # The number of transitions to add to the memory.
         for i in range(num_adds):
             memory.add(
-                np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE),
-                0,
-                0,
-                i % 4,
-                i % 2,
-                [i % 2, 0],
+                observation=np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE),
+                action=0,
+                reward=0,
+                terminal=i % 4,
+                extra1=i % 2,
+                extra2=[i % 2, 0],
             )  # Every 4 transitions is terminal.
         # Test sampling with default batch size.
         for _i in range(1000):
@@ -324,7 +271,6 @@ class ReplayBufferTest(unittest.TestCase):
         replay_capacity = 10
         update_horizon = 3
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
             stack_size=1,
             replay_capacity=replay_capacity,
             batch_size=2,
@@ -333,11 +279,11 @@ class ReplayBufferTest(unittest.TestCase):
         )
         for i in range(replay_capacity):
             memory.add(
-                np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE),
-                i * 2,  # action
-                i,  # reward
-                1 if i == 3 else 0,
-            )  # terminal
+                observation=np.full(OBSERVATION_SHAPE, i, dtype=OBS_DTYPE),
+                action=i * 2,
+                reward=i,
+                terminal=1 if i == 3 else 0,
+            )
         indices = [2, 3, 4]
         batch = memory.sample_transition_batch(
             batch_size=len(indices), indices=torch.tensor(indices)
@@ -366,15 +312,27 @@ class ReplayBufferTest(unittest.TestCase):
 
     def testIsTransitionValid(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=10,
-            batch_size=2,
+            stack_size=STACK_SIZE, replay_capacity=10, batch_size=2
         )
 
-        memory.add(np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE), 0, 0, 0)
-        memory.add(np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE), 0, 0, 0)
-        memory.add(np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE), 0, 0, 1)
+        memory.add(
+            observation=np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE),
+            action=0,
+            reward=0,
+            terminal=0,
+        )
+        memory.add(
+            observation=np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE),
+            action=0,
+            reward=0,
+            terminal=0,
+        )
+        memory.add(
+            observation=np.full(OBSERVATION_SHAPE, 0, dtype=OBS_DTYPE),
+            action=0,
+            reward=0,
+            terminal=1,
+        )
 
         # These valids account for the automatically applied padding (3 blanks each
         # episode.
@@ -393,12 +351,12 @@ class ReplayBufferTest(unittest.TestCase):
                 "Index %i should be %s" % (i, bool(correct_valids[i])),
             )
 
+
+"""
+Since we don't use saving, not maintaining for now
     def testSave(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
+            stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
         memory.observation = self._test_observation
         memory.action = self._test_action
@@ -427,12 +385,9 @@ class ReplayBufferTest(unittest.TestCase):
             self.assertFalse(os.path.exists(stale_filename))
 
     def testSaveNonNDArrayAttributes(self):
-        """Tests checkpointing an attribute which is not a numpy array."""
+        # Tests checkpointing an attribute which is not a numpy array.
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
+            stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
 
         # Add some non-numpy data: an int, a string, an object.
@@ -464,10 +419,7 @@ class ReplayBufferTest(unittest.TestCase):
 
     def testLoadFromNonexistentDirectory(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
+            stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
         # We are trying to load from a non-existent directory, so a NotFoundError
         # will be raised.
@@ -481,10 +433,7 @@ class ReplayBufferTest(unittest.TestCase):
 
     def testPartialLoadFails(self):
         memory = circular_replay_buffer.ReplayBuffer(
-            observation_shape=OBSERVATION_SHAPE,
-            stack_size=STACK_SIZE,
-            replay_capacity=5,
-            batch_size=BATCH_SIZE,
+            stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
         self.assertNotEqual(memory._store["observation"], self._test_observation)
         self.assertNotEqual(memory._store["action"], self._test_action)
@@ -544,3 +493,4 @@ class ReplayBufferTest(unittest.TestCase):
         npt.assert_allclose(memory._store["reward"], self._test_reward)
         npt.assert_allclose(memory._store["terminal"], self._test_terminal)
         self.assertEqual(memory.add_count, self._test_add_count)
+"""
