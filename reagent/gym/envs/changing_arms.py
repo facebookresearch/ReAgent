@@ -21,6 +21,8 @@ import gym
 import numpy as np
 import reagent.types as rlt
 import torch
+from reagent.core.dataclasses import dataclass
+from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.test.base.utils import only_continuous_normalizer
@@ -64,61 +66,82 @@ def clamp(x, lo, hi):
     return max(min(x, hi), lo)
 
 
-class ChangingArms(gym.Env):
-    def __init__(self):
-        self.seed(0)
-        self.num_arms = NUM_ARMS
-        self.max_steps = MAX_STEPS
+@dataclass
+class ChangingArms(EnvWrapper):
+    num_arms: int = NUM_ARMS
 
-    def step(self, action):
-        if isinstance(action, np.ndarray):
-            action = action.item()
-        assert (
-            0 <= action and action <= self.num_arms
-        ), f"out-of-bounds action {action}."
-        reached_max_steps = self.num_steps >= self.max_steps
-        self.num_steps += 1
+    def make(self) -> gym.Env:
+        return ChangingArmsEnv(self.num_arms)
 
-        # idle action
-        if action == self.num_arms:
-            # simply return new state, without updating distributions
-            # this is ideal when there aren't any legal actions, this
-            # would generate a new batch of legal actions
-            return self.state, IDLE_PENALTY, reached_max_steps, None
+    def _split_state(self, obs: np.ndarray):
+        assert obs.shape == (3, self.num_arms), f"{obs.shape}."
+        dense_val = torch.tensor(obs[0, :]).view(1, self.num_arms)
+        id_list_val = torch.tensor(obs[1, :]).nonzero(as_tuple=True)[0].to(torch.long)
+        id_score_list_val = torch.tensor(obs[2, :])
+        return dense_val, id_list_val, id_score_list_val
 
-        # illegal action
-        if action not in self.legal_indices:
-            return self.state, INVALID_MOVE_PENALTY, True, None
+    def obs_preprocessor(self, obs: np.ndarray) -> rlt.FeatureData:
+        dense_val, id_list_val, id_score_list_val = self._split_state(obs)
+        return rlt.FeatureData(
+            # dense value
+            float_features=dense_val,
+            # (offset, value)
+            id_list_features={
+                "legal": (torch.tensor([0], dtype=torch.long), id_list_val)
+            },
+            # (offset, key, value)
+            id_score_list_features={
+                "mu_changes": (
+                    torch.tensor([0], dtype=torch.long),
+                    torch.arange(self.num_arms, dtype=torch.long),
+                    id_score_list_val,
+                )
+            },
+        )
 
-        # update states for only the action selected
-        prev = self.mus[action].item()
-        self.mus[action] = clamp(prev + self.mu_changes[action], MU_LOW, MU_HIGH)
-        reward = prev - self.mus[action].item()
-        return self.state, reward, reached_max_steps, None
+    def split_state_transform(self, elem: torch.Tensor):
+        """ For generate data """
+        dense_val, id_list_val, id_score_list_val = self._split_state(elem.numpy())
+        return (
+            {i: s.item() for i, s in enumerate(dense_val.view(-1))},
+            {100: (id_list_val + ID_LIST_OFFSET).tolist()},
+            {
+                1000: {
+                    i + ID_SCORE_LIST_OFFSET: s.item()
+                    for i, s in enumerate(id_score_list_val)
+                }
+            },
+        )
 
-    def seed(self, seed: int):
-        random.seed(seed)
-        torch.manual_seed(seed)
-
-    def reset(self):
-        # initialize the distributions
-        self.num_steps = 0
-        self.mus = get_initial_mus()
-        return self.state
+    def serving_obs_preprocessor(self, obs: np.ndarray) -> rlt.ServingFeatureData:
+        dense_val, id_list_val, id_score_list_val = self._split_state(obs)
+        return rlt.ServingFeatureData(
+            float_features_with_presence=(
+                dense_val,
+                torch.ones_like(dense_val, dtype=torch.uint8),
+            ),
+            id_list_features={
+                100: (torch.tensor([0], dtype=torch.long), id_list_val + ID_LIST_OFFSET)
+            },
+            id_score_list_features={
+                1000: (
+                    torch.tensor([0], dtype=torch.long),
+                    torch.arange(self.num_arms, dtype=torch.long)
+                    + ID_SCORE_LIST_OFFSET,
+                    id_score_list_val,
+                )
+            },
+        )
 
     @property
-    def state(self):
-        """
-        State comprises of:
-        - initial mus
-        - legal_indices mask
-        - randomly-generated mu changes
-        """
-        self.mu_changes = get_mu_changes()
-        legal_indices_mask = get_legal_indices_mask()
-        self.legal_indices = legal_indices_mask.nonzero(as_tuple=True)[0]
-        result = torch.stack([self.mus, legal_indices_mask, self.mu_changes])
-        return result.numpy()
+    def normalization_data(self):
+        return {
+            NormalizationKey.STATE: NormalizationData(
+                dense_normalization_parameters=only_continuous_normalizer(
+                    list(range(self.num_arms)), MU_LOW, MU_HIGH
+                )
+            )
+        }
 
     @property
     def state_feature_config_provider(self) -> ModelFeatureConfigProvider__Union:
@@ -195,75 +218,64 @@ class ChangingArms(gym.Env):
             },
         )
 
-    def _split_state(self, obs: np.ndarray):
-        assert obs.shape == (3, self.num_arms), f"{obs.shape}."
-        dense_val = torch.tensor(obs[0, :]).view(1, self.num_arms)
-        id_list_val = torch.tensor(obs[1, :]).nonzero(as_tuple=True)[0].to(torch.long)
-        id_score_list_val = torch.tensor(obs[2, :])
-        return dense_val, id_list_val, id_score_list_val
 
-    def obs_preprocessor(self, obs: np.ndarray) -> rlt.FeatureData:
-        dense_val, id_list_val, id_score_list_val = self._split_state(obs)
-        return rlt.FeatureData(
-            # dense value
-            float_features=dense_val,
-            # (offset, value)
-            id_list_features={
-                "legal": (torch.tensor([0], dtype=torch.long), id_list_val)
-            },
-            # (offset, key, value)
-            id_score_list_features={
-                "mu_changes": (
-                    torch.tensor([0], dtype=torch.long),
-                    torch.arange(self.num_arms, dtype=torch.long),
-                    id_score_list_val,
-                )
-            },
-        )
+class ChangingArmsEnv(gym.Env):
+    """ This is just the gym environment, without extra functionality """
 
-    def split_state_transform(self, elem: torch.Tensor):
-        """ For generate data """
-        dense_val, id_list_val, id_score_list_val = self._split_state(elem.numpy())
-        return (
-            {i: s.item() for i, s in enumerate(dense_val.view(-1))},
-            {100: (id_list_val + ID_LIST_OFFSET).tolist()},
-            {
-                1000: {
-                    i + ID_SCORE_LIST_OFFSET: s.item()
-                    for i, s in enumerate(id_score_list_val)
-                }
-            },
-        )
+    def __init__(self, num_arms):
+        self.seed(0)
+        self.num_arms = num_arms
+        self.max_steps = MAX_STEPS
 
-    def serving_obs_preprocessor(self, obs: np.ndarray) -> rlt.ServingFeatureData:
-        dense_val, id_list_val, id_score_list_val = self._split_state(obs)
-        return rlt.ServingFeatureData(
-            float_features_with_presence=(
-                dense_val,
-                torch.ones_like(dense_val, dtype=torch.uint8),
-            ),
-            id_list_features={
-                100: (torch.tensor([0], dtype=torch.long), id_list_val + ID_LIST_OFFSET)
-            },
-            id_score_list_features={
-                1000: (
-                    torch.tensor([0], dtype=torch.long),
-                    torch.arange(self.num_arms, dtype=torch.long)
-                    + ID_SCORE_LIST_OFFSET,
-                    id_score_list_val,
-                )
-            },
-        )
+    def step(self, action):
+        if isinstance(action, np.ndarray):
+            action = action.item()
+        assert (
+            0 <= action and action <= self.num_arms
+        ), f"out-of-bounds action {action}."
+        reached_max_steps = self.num_steps >= self.max_steps
+        self.num_steps += 1
+
+        # idle action
+        if action == self.num_arms:
+            # simply return new state, without updating distributions
+            # this is ideal when there aren't any legal actions, this
+            # would generate a new batch of legal actions
+            return self.state, IDLE_PENALTY, reached_max_steps, None
+
+        # illegal action
+        if action not in self.legal_indices:
+            return self.state, INVALID_MOVE_PENALTY, True, None
+
+        # update states for only the action selected
+        prev = self.mus[action].item()
+        self.mus[action] = clamp(prev + self.mu_changes[action], MU_LOW, MU_HIGH)
+        reward = prev - self.mus[action].item()
+        return self.state, reward, reached_max_steps, None
+
+    def seed(self, seed: int):
+        random.seed(seed)
+        torch.manual_seed(seed)
+
+    def reset(self):
+        # initialize the distributions
+        self.num_steps = 0
+        self.mus = get_initial_mus()
+        return self.state
 
     @property
-    def normalization_data(self):
-        return {
-            NormalizationKey.STATE: NormalizationData(
-                dense_normalization_parameters=only_continuous_normalizer(
-                    list(range(self.num_arms)), MU_LOW, MU_HIGH
-                )
-            )
-        }
+    def state(self):
+        """
+        State comprises of:
+        - initial mus
+        - legal_indices mask
+        - randomly-generated mu changes
+        """
+        self.mu_changes = get_mu_changes()
+        legal_indices_mask = get_legal_indices_mask()
+        self.legal_indices = legal_indices_mask.nonzero(as_tuple=True)[0]
+        result = torch.stack([self.mus, legal_indices_mask, self.mu_changes])
+        return result.numpy()
 
     @property
     def observation_space(self):

@@ -11,7 +11,7 @@ import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
-from reagent.gym.envs.env_factory import EnvFactory
+from reagent.gym.envs import Gym
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
@@ -95,7 +95,7 @@ def run_test(
     num_eval_episodes: int,
     use_gpu: bool,
 ):
-    env = EnvFactory.make(env_name)
+    env = Gym(env_name=env_name)
     env.seed(SEED)
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)
@@ -103,7 +103,6 @@ def run_test(
 
     manager = model.value
     try:
-        # pyre-fixme[16]: `Env` has no attribute `state_feature_config_provider`.
         manager.state_feature_config_provider = env.state_feature_config_provider
         logger.info(
             f"Using environment's state_feature_config_provider.\n"
