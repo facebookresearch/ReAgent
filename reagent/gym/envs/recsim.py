@@ -5,9 +5,11 @@ import logging
 
 import gym
 import numpy as np
+import reagent.types as rlt
 from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.wrappers.recsim import ValueWrapper
+from reagent.gym.preprocessors.default_preprocessors import RecsimObsPreprocessor
 from recsim import choice_model, utils
 from recsim.environments import interest_evolution, interest_exploration
 from recsim.simulator import environment, recsim_gym
@@ -57,6 +59,32 @@ class RecSim(EnvWrapper):
         else:
             env = create_multiclick_environment(env_config)
             return ValueWrapper(env, multi_selection_value_fn)
+
+    def make(self) -> gym.Env:
+        env_config = {
+            "slate_size": self.slate_size,
+            "seed": 1,
+            "num_candidates": self.num_candidates,
+            "resample_documents": self.resample_documents,
+        }
+        if self.is_interest_exploration:
+            env = interest_exploration.create_environment(env_config)
+            return ValueWrapper(env, lambda user, doc: 0.0)
+
+        if self.single_selection:
+            env = interest_evolution.create_environment(env_config)
+            return ValueWrapper(env, dot_value_fn)
+        else:
+            env = create_multiclick_environment(env_config)
+            return ValueWrapper(env, multi_selection_value_fn)
+
+    def obs_preprocessor(self, obs: np.ndarray) -> rlt.FeatureData:
+        # TODO: remove RecsimObsPreprocessor and move it here
+        preprocessor = RecsimObsPreprocessor.create_from_env(self)
+        return preprocessor(obs)
+
+    def serving_obs_preprocessor(self, obs: np.ndarray):
+        raise NotImplementedError()
 
 
 class MulticlickIEvUserModel(interest_evolution.IEvUserModel):

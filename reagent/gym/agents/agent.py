@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Any, Optional, Union, Tuple
+from typing import Any, Optional, Tuple, Union
 
 import torch
-from gym import Env
+from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.policies.policy import Policy
-from reagent.gym.preprocessors import (
-    make_default_action_extractor,
-    make_default_obs_preprocessor,
-    make_default_serving_action_extractor,
-    make_default_serving_obs_preprocessor,
-)
 from reagent.gym.types import PostStep, Transition
 
 
@@ -55,7 +49,7 @@ class Agent:
     @classmethod
     def create_for_env(
         cls,
-        env: Env,
+        env: EnvWrapper,
         policy: Policy,
         *,
         device: Union[str, torch.device] = "cpu",
@@ -67,10 +61,10 @@ class Agent:
             device = torch.device(device)
 
         if obs_preprocessor is None:
-            obs_preprocessor = make_default_obs_preprocessor(env, device=device)
+            obs_preprocessor = env.get_obs_preprocessor(device=device)
 
         if action_extractor is None:
-            action_extractor = make_default_action_extractor(env)
+            action_extractor = env.get_action_extractor()
 
         return cls(
             policy,
@@ -83,19 +77,19 @@ class Agent:
     @classmethod
     def create_for_env_with_serving_policy(
         cls,
-        env: Env,
+        env: EnvWrapper,
         serving_policy: Policy,
         *,
-        device: Union[str, torch.device] = "cpu",
         obs_preprocessor=None,
         action_extractor=None,
         **kwargs,
     ):
+        # device shouldn't be provided as serving is CPU only
         if obs_preprocessor is None:
-            obs_preprocessor = make_default_serving_obs_preprocessor(env)
+            obs_preprocessor = env.get_serving_obs_preprocessor()
 
         if action_extractor is None:
-            action_extractor = make_default_serving_action_extractor(env)
+            action_extractor = env.get_serving_action_extractor()
 
         return cls(
             serving_policy,

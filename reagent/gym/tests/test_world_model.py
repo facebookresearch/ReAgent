@@ -362,6 +362,8 @@ def train_mdnrnn_and_train_on_embedded_env(
     # evaluate model
     rewards = []
     policy = agent_manager.create_policy(serving=False)
+    # pyre-fixme[6]: Expected `EnvWrapper` for 1st param but got
+    #  `StateEmbedEnvironment`.
     agent = Agent.create_for_env(embed_env, policy=policy, device=device)
     # num_processes=1 needed to avoid workers from dying on CircleCI tests
     rewards = evaluate_for_n_episodes(

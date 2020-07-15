@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def get_max_steps(env: Env) -> Optional[int]:
+def get_max_steps(env) -> Optional[int]:
     possible_keys = [
         # gym should have _max_episode_steps
         "_max_episode_steps",
@@ -36,7 +36,7 @@ def get_max_steps(env: Env) -> Optional[int]:
     return None
 
 
-def fill_replay_buffer(env: Env, replay_buffer: ReplayBuffer, desired_size: int):
+def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
     """ Fill replay buffer with random transitions until size reaches desired_size. """
     assert (
         0 < desired_size and desired_size <= replay_buffer._replay_capacity

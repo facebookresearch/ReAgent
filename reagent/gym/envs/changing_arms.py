@@ -99,20 +99,6 @@ class ChangingArms(EnvWrapper):
             },
         )
 
-    def split_state_transform(self, elem: torch.Tensor):
-        """ For generate data """
-        dense_val, id_list_val, id_score_list_val = self._split_state(elem.numpy())
-        return (
-            {i: s.item() for i, s in enumerate(dense_val.view(-1))},
-            {100: (id_list_val + ID_LIST_OFFSET).tolist()},
-            {
-                1000: {
-                    i + ID_SCORE_LIST_OFFSET: s.item()
-                    for i, s in enumerate(id_score_list_val)
-                }
-            },
-        )
-
     def serving_obs_preprocessor(self, obs: np.ndarray) -> rlt.ServingFeatureData:
         dense_val, id_list_val, id_score_list_val = self._split_state(obs)
         return rlt.ServingFeatureData(
@@ -130,6 +116,20 @@ class ChangingArms(EnvWrapper):
                     + ID_SCORE_LIST_OFFSET,
                     id_score_list_val,
                 )
+            },
+        )
+
+    def split_state_transform(self, elem: torch.Tensor):
+        """ For generate data """
+        dense_val, id_list_val, id_score_list_val = self._split_state(elem.numpy())
+        return (
+            {i: s.item() for i, s in enumerate(dense_val.view(-1))},
+            {100: (id_list_val + ID_LIST_OFFSET).tolist()},
+            {
+                1000: {
+                    i + ID_SCORE_LIST_OFFSET: s.item()
+                    for i, s in enumerate(id_score_list_val)
+                }
             },
         )
 

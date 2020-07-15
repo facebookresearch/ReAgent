@@ -11,66 +11,14 @@ import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from gym import Env, spaces
-from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
-from reagent.training.utils import rescale_actions
 
 
 logger = logging.getLogger(__name__)
-
-try:
-    from recsim.simulator.recsim_gym import RecSimGymEnv
-
-    HAS_RECSIM = True
-except ImportError:
-    HAS_RECSIM = False
-    logger.warning(f"ReplayBuffer.create_from_env() will not recognize RecSim env")
-
-
-def make_default_obs_preprocessor(env: Env, *, device: Optional[torch.device] = None):
-    """ Returns the default obs preprocessor for the environment """
-    try:
-        # pyre-fixme[16]: `Env` has no attribute `obs_preprocessor`.
-        return env.obs_preprocessor
-    except AttributeError:
-        device = device or torch.device("cpu")
-        observation_space = env.observation_space
-        if HAS_RECSIM and isinstance(env.unwrapped, RecSimGymEnv):
-            return RecsimObsPreprocessor.create_from_env(env, device=device)
-        elif isinstance(observation_space, spaces.Box):
-            return BoxObsPreprocessor(device)
-        else:
-            raise NotImplementedError(
-                f"Unsupport observation space: {observation_space}"
-            )
-
-
-def make_default_action_extractor(env: Env):
-    """ Returns the default action extractor for the environment """
-    action_space = env.action_space
-    if isinstance(action_space, spaces.Discrete):
-        # Canonical rule to return one-hot encoded actions for discrete
-        return discrete_action_extractor
-    elif isinstance(action_space, spaces.MultiDiscrete):
-        return multi_discrete_action_extractor
-    elif isinstance(action_space, spaces.Box):
-        # Canonical rule to scale actions to CONTINUOUS_TRAINING_ACTION_RANGE
-        return make_box_action_extractor(action_space)
-    else:
-        raise NotImplementedError(f"Unsupport action space: {action_space}")
-
 
 #######################################
 ### Default obs preprocessors.
 ### These should operate on single obs.
 #######################################
-class BoxObsPreprocessor:
-    def __init__(self, device: torch.device):
-        self.device = device
-
-    def __call__(self, obs: np.ndarray) -> rlt.FeatureData:
-        return rlt.FeatureData(torch.tensor(obs).float().unsqueeze(0)).to(
-            self.device, non_blocking=True
-        )
 
 
 class RecsimObsPreprocessor:
@@ -80,12 +28,10 @@ class RecsimObsPreprocessor:
         num_docs: int,
         discrete_keys: List[Tuple[str, int]],
         box_keys: List[Tuple[str, int]],
-        device: torch.device,
     ):
         self.num_docs = num_docs
         self.discrete_keys = discrete_keys
         self.box_keys = box_keys
-        self.device = device
 
     @classmethod
     def create_from_env(cls, env: Env, **kwargs):
@@ -179,46 +125,4 @@ class RecsimObsPreprocessor:
             mask=torch.ones(doc_features.shape[:-1], dtype=torch.bool),
             value=value,
         )
-        return rlt.FeatureData(float_features=user, candidate_docs=candidate_docs).to(
-            self.device, non_blocking=True
-        )
-
-
-############################################
-### Default action extractors.
-### These currently operate on single action.
-############################################
-def discrete_action_extractor(actor_output: rlt.ActorOutput):
-    action = actor_output.action
-    assert (
-        # pyre-fixme[16]: `Tensor` has no attribute `ndim`.
-        action.ndim == 2
-        and action.shape[0] == 1
-    ), f"{action} is not a single batch of results!"
-    # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
-    return action.squeeze(0).argmax().cpu().numpy()
-
-
-def multi_discrete_action_extractor(actor_output: rlt.ActorOutput):
-    return actor_output.action.squeeze(0).cpu().numpy()
-
-
-def make_box_action_extractor(action_space: spaces.Box):
-    assert len(action_space.shape) == 1, f"{action_space} not supported."
-
-    model_low, model_high = CONTINUOUS_TRAINING_ACTION_RANGE
-
-    def box_action_extractor(actor_output: rlt.ActorOutput) -> np.ndarray:
-        action = actor_output.action
-        assert (
-            len(action.shape) == 2 and action.shape[0] == 1
-        ), f"{action} (shape: {action.shape}) is not a single action!"
-        return rescale_actions(
-            action.squeeze(0).cpu().numpy(),
-            new_min=action_space.low,
-            new_max=action_space.high,
-            prev_min=model_low,
-            prev_max=model_high,
-        )
-
-    return box_action_extractor
+        return rlt.FeatureData(float_features=user, candidate_docs=candidate_docs)
