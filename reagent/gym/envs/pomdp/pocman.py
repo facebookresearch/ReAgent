@@ -219,7 +219,7 @@ class PocManEnv(Env):
         self.observation_space = Box(low=0, high=1, shape=(STATE_DIM,))
         self._reward_range = 100
         self.step_cnt = 0
-        self._max_episode_steps = self.board["_max_step"]
+        self.max_steps = self.board["_max_step"]
 
     def seed(self, seed=None):
         np.random.seed(seed)

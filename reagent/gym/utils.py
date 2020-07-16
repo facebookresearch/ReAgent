@@ -2,11 +2,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Dict, Optional
+from typing import Dict
 
-from gym import Env, spaces
+from gym import spaces
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import add_replay_buffer_post_step
+from reagent.gym.envs import EnvWrapper
 from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.runners.gymrunner import run_episode
 from reagent.parameters import NormalizationData, NormalizationKey
@@ -28,20 +29,6 @@ except ImportError:
     HAS_RECSIM = False
 
 
-def get_max_steps(env) -> Optional[int]:
-    possible_keys = [
-        # gym should have _max_episode_steps
-        "_max_episode_steps",
-        # Minigrid should have max_steps
-        "max_steps",
-    ]
-    for key in possible_keys:
-        res = getattr(env, key, None)
-        if res is not None:
-            return res
-    return None
-
-
 def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
     """ Fill replay buffer with random transitions until size reaches desired_size. """
     assert (
@@ -57,7 +44,7 @@ def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
     agent = Agent.create_for_env(
         env, policy=random_policy, post_transition_callback=post_step
     )
-    max_episode_steps = get_max_steps(env)
+    max_episode_steps = env.max_steps
     with tqdm(
         total=desired_size - replay_buffer.size,
         desc=f"Filling replay buffer from {replay_buffer.size} to size {desired_size}",
@@ -90,7 +77,7 @@ def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
         )
 
 
-def build_state_normalizer(env: Env):
+def build_state_normalizer(env: EnvWrapper):
     if isinstance(env.observation_space, spaces.Box):
         assert (
             len(env.observation_space.shape) == 1
@@ -107,7 +94,7 @@ def build_state_normalizer(env: Env):
         raise NotImplementedError(f"{env.observation_space} not supported")
 
 
-def build_action_normalizer(env: Env):
+def build_action_normalizer(env: EnvWrapper):
     action_space = env.action_space
     if isinstance(action_space, spaces.Discrete):
         return only_continuous_normalizer(
@@ -128,9 +115,8 @@ def build_action_normalizer(env: Env):
         raise NotImplementedError(f"{action_space} not supported.")
 
 
-def build_normalizer(env: Env) -> Dict[str, NormalizationData]:
+def build_normalizer(env: EnvWrapper) -> Dict[str, NormalizationData]:
     try:
-        # pyre-fixme[16]: `Env` has no attribute `normalization_data`.
         return env.normalization_data
     except AttributeError:
         # TODO: make this a property of EnvWrapper?

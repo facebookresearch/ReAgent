@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Optional, Tuple
+from typing import Tuple
 
 import gym
 import numpy as np
@@ -20,13 +20,9 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Gym(EnvWrapper):
     env_name: str
-    max_steps: Optional[int] = None
 
     def make(self) -> gym.Env:
-        kwargs = {}
-        if self.max_steps is not None:
-            kwargs["max_steps"] = self.max_steps
-        env: gym.Env = gym.make(self.env_name, **kwargs)
+        env: gym.Env = gym.make(self.env_name)
         if self.env_name.startswith("MiniGrid-"):
             # Wrap in minigrid simplifier
             env = SimpleObsWrapper(ReseedWrapper(env))

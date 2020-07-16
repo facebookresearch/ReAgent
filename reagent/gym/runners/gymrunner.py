@@ -7,12 +7,12 @@ from typing import Optional, Sequence
 
 import numpy as np
 import torch.multiprocessing as mp
-from gym import Env
 from reagent.core.multiprocess_utils import (
     unwrap_function_outputs,
     wrap_function_arguments,
 )
 from reagent.gym.agents.agent import Agent
+from reagent.gym.envs import EnvWrapper
 from reagent.gym.types import Trajectory, Transition
 from reagent.tensorboardX import SummaryWriterContext
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_episode(
-    env: Env, agent: Agent, mdp_id: int = 0, max_steps: Optional[int] = None
+    env: EnvWrapper, agent: Agent, mdp_id: int = 0, max_steps: Optional[int] = None
 ) -> Trajectory:
     """
     Return sum of rewards from episode.
@@ -44,8 +44,8 @@ def run_episode(
             sequence_number=num_steps,
             observation=obs,
             action=action,
-            reward=reward,
-            terminal=terminal,
+            reward=float(reward),
+            terminal=bool(terminal),
             log_prob=log_prob,
         )
         agent.post_step(transition)
@@ -58,7 +58,7 @@ def run_episode(
 
 def evaluate_for_n_episodes(
     n: int,
-    env: Env,
+    env: EnvWrapper,
     agent: Agent,
     max_steps: Optional[int] = None,
     gammas: Sequence[float] = (1.0,),
@@ -72,7 +72,7 @@ def evaluate_for_n_episodes(
 
     def evaluate_one_episode(
         mdp_id: int,
-        env: Env,
+        env: EnvWrapper,
         agent: Agent,
         max_steps: Optional[int],
         gammas: Sequence[float],

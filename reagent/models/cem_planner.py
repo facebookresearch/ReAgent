@@ -105,8 +105,8 @@ class CEMPlannerNetwork(nn.Module):
             self.action_lower_bounds = np.tile(
                 action_lower_bounds, self.plan_horizon_length
             )
-            self.orig_action_upper = action_upper_bounds
-            self.orig_action_lower = action_lower_bounds
+            self.orig_action_upper = torch.tensor(action_upper_bounds)
+            self.orig_action_lower = torch.tensor(action_lower_bounds)
 
     @torch.no_grad()
     def forward(self, state: rlt.FeatureData):
@@ -219,7 +219,7 @@ class CEMPlannerNetwork(nn.Module):
         return np.minimum(np.minimum((lb_dist / 2) ** 2, (ub_dist / 2) ** 2), var)
 
     @torch.no_grad()
-    def continuous_planning(self, state: rlt.FeatureData) -> np.ndarray:
+    def continuous_planning(self, state: rlt.FeatureData) -> torch.Tensor:
         # TODO: Warmstarts means and vars using previous solutions (T48841404)
         mean = (self.action_upper_bounds + self.action_lower_bounds) / 2
         var = (self.action_upper_bounds - self.action_lower_bounds) ** 2 / 16
@@ -259,14 +259,13 @@ class CEMPlannerNetwork(nn.Module):
         low = torch.tensor(CONTINUOUS_TRAINING_ACTION_RANGE[0])
         high = torch.tensor(CONTINUOUS_TRAINING_ACTION_RANGE[1])
         # rescale to range (-1, 1) as per canonical output range of continuous agents
-        raw_action = rescale_actions(
-            raw_action,
+        return rescale_actions(
+            torch.tensor(raw_action),
             new_min=low,
             new_max=high,
             prev_min=self.orig_action_lower,
             prev_max=self.orig_action_upper,
         )
-        return torch.tensor(raw_action)
 
     @torch.no_grad()
     def discrete_planning(self, state: rlt.FeatureData) -> Tuple[int, np.ndarray]:

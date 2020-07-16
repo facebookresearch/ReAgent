@@ -1,5 +1,4 @@
 env_name: CartPole-v0
-max_steps: 200
 model:
   CrossEntropyMethod:
     trainer_param:
