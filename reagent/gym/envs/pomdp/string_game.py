@@ -35,7 +35,7 @@ class StringGameEnv(Env):
     def __init__(self, max_steps=MAX_STEP):
         np.random.seed(123)
         torch.manual_seed(123)
-        self._max_episode_steps = max_steps
+        self.max_steps = max_steps
         self.reward_map = {}
         self._init_reward()
         logger.debug(self.reward_map)
@@ -80,7 +80,7 @@ class StringGameEnv(Env):
         self.recent_states.append(self.cur_state)
         self.recent_actions.append(action)
         reward, info = self.get_reward()
-        if self.step_cnt >= self._max_episode_steps:
+        if self.step_cnt >= self.max_steps:
             self.done = True
         ob = self.get_observation()
         self.cur_state = ob

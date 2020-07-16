@@ -16,8 +16,8 @@ import gym
 import numpy as np
 import reagent.types as rlt
 import torch
-from gym import Env
 from gym.spaces import Box
+from reagent.gym.envs import EnvWrapper
 from reagent.models.world_model import MemoryNetwork
 
 
@@ -25,10 +25,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class StateEmbedEnvironment(Env):
+class StateEmbedEnvironment(gym.Env):
     def __init__(
         self,
-        gym_env: Env,
+        gym_env: EnvWrapper,
         mdnrnn: MemoryNetwork,
         max_embed_seq_len: int,
         state_min_value: Optional[float] = None,

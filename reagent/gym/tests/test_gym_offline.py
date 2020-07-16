@@ -6,7 +6,6 @@ import pprint
 import unittest
 from typing import Optional
 
-import gym
 import numpy as np
 import torch
 from parameterized import parameterized
@@ -72,18 +71,17 @@ class TestGymOffline(HorizonTestBase):
         logger.info(f"{name} passes!")
 
 
-def evaluate_cem(env, manager, max_steps: Optional[int], num_eval_episodes: int):
+def evaluate_cem(env, manager, num_eval_episodes: int):
     # NOTE: for CEM, serving isn't implemented
     policy = manager.create_policy(serving=False)
     agent = Agent.create_for_env(env, policy)
     return evaluate_for_n_episodes(
-        n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
+        n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
     )
 
 
 def run_test_offline(
     env_name: str,
-    max_steps: Optional[int],
     model: ModelManager__Union,
     replay_memory_size: int,
     num_batches_per_epoch: int,
@@ -122,14 +120,14 @@ def run_test_offline(
     with summary_writer_context(writer):
         for epoch in range(num_train_epochs):
             logger.info(f"Evaluating before epoch {epoch}: ")
-            eval_rewards = evaluate_cem(env, manager, max_steps, 1)
+            eval_rewards = evaluate_cem(env, manager, 1)
             for _ in tqdm(range(num_batches_per_epoch)):
                 train_batch = replay_buffer.sample_transition_batch()
                 preprocessed_batch = trainer_preprocessor(train_batch)
                 trainer.train(preprocessed_batch)
 
     logger.info(f"Evaluating after training for {num_train_epochs} epochs: ")
-    eval_rewards = evaluate_cem(env, manager, max_steps, num_eval_episodes)
+    eval_rewards = evaluate_cem(env, manager, num_eval_episodes)
     mean_rewards = np.mean(eval_rewards)
     assert (
         mean_rewards >= passing_score_bar

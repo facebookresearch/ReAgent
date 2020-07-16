@@ -101,7 +101,7 @@ class MDNRNNTrainer(Trainer):
         )
 
         next_state = training_batch.next_state.float_features
-        not_terminal = training_batch.not_terminal
+        not_terminal = training_batch.not_terminal.float()
         reward = training_batch.reward
         if self.params.fit_only_one_next_step:
             next_state, not_terminal, reward, mus, sigmas, logpi, nts, rs = tuple(

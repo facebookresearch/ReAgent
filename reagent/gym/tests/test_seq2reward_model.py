@@ -6,9 +6,8 @@ import os
 import unittest
 from typing import Optional
 
-import gym
 import torch
-from reagent.gym.envs import Gym
+from reagent.gym.envs import EnvWrapper, Gym
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
@@ -34,7 +33,7 @@ def print_seq2reward_losses(epoch, batch_num, losses):
 
 
 def train_seq2reward(
-    env: gym.Env,
+    env: EnvWrapper,
     trainer: Seq2RewardTrainer,
     trainer_preprocessor,
     num_train_transitions: int,
@@ -105,7 +104,7 @@ def train_seq2reward_and_compute_reward_mse(
     saved_seq2reward_path: Optional[str] = None,
 ):
     """ Train Seq2Reward Network and compute reward mse. """
-    env: gym.Env = Gym(env_name=env_name)
+    env = Gym(env_name=env_name)
     env.seed(SEED)
 
     manager = model.value

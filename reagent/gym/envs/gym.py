@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Gym(EnvWrapper):
     env_name: str
-    max_steps: Optional[int] = None
+    set_max_steps: Optional[int] = None
 
     def make(self) -> gym.Env:
         kwargs = {}
-        if self.max_steps is not None:
-            kwargs["max_steps"] = self.max_steps
+        if self.set_max_steps is not None:
+            kwargs["max_steps"] = self.set_max_steps
         env: gym.Env = gym.make(self.env_name, **kwargs)
         if self.env_name.startswith("MiniGrid-"):
             # Wrap in minigrid simplifier

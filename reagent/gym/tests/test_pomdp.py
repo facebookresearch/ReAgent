@@ -36,7 +36,7 @@ class TestPOMDPEnvironment(unittest.TestCase):
             start_time = time.time()
             env.reset()
             acc_rw = 0
-            for i in range(env._max_episode_steps):
+            for i in range(env.max_steps):
                 env.print_internal_state()
                 action = env.random_action()
                 ob, rw, done, info = env.step(action)
