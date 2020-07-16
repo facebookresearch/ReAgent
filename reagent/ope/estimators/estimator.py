@@ -131,7 +131,9 @@ class EstimatorResults:
             grt.mean().item(),
             ResultDiffs(ert - grt),
             ResultDiffs(ert - lrt),
-            torch.tensor([res.estimated_weight for res in self.results]).mean().item(),
+            torch.tensor([float(res.estimated_weight) for res in self.results])
+            .mean()
+            .item(),
         )
 
 
@@ -159,22 +161,28 @@ class Estimator(ABC):
         self._device = device
 
     def _compute_metric_data(
-        self, tgt_rewards: Tensor, logged_rewards: Tensor, tgt_score: float
-    ) -> Tuple[float, float, float, float]:
+        self, tgt_rewards: Tensor, logged_score: float
+    ) -> Tuple[float, float, float]:
         """
         Given a sequence of scores, normalizes the target score by the average logged score
         and computes the standard error of the target score. Normalizing by the logged score
         can provide a better metric to compare models against.
         """
-        logged_policy_score = float(torch.mean(logged_rewards))
-        if logged_policy_score < SCORE_THRESHOLD:
+        if len(tgt_rewards.shape) > 1:
+            assert tgt_rewards.shape[1] == 1
+            tgt_rewards = tgt_rewards.reshape((tgt_rewards.shape[0],))
+        if logged_score < SCORE_THRESHOLD:
             normalizer = 0.0
         else:
-            normalizer = 1.0 / logged_policy_score
+            normalizer = 1.0 / logged_score
         std_err = bootstrapped_std_error_of_mean(
             tgt_rewards, num_samples=tgt_rewards.shape[0]
         )
-        return (tgt_score, tgt_score * normalizer, std_err, std_err * normalizer)
+        return (
+            torch.mean(tgt_rewards).item() * normalizer,
+            std_err,
+            std_err * normalizer,
+        )
 
     @abstractmethod
     def evaluate(
