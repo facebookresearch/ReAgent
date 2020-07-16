@@ -70,11 +70,13 @@ class OPEstimatorAdapter:
             log.append(
                 LogSample(
                     context=None if edp.contexts is None else edp.contexts[idx],
-                    log_action=action,
+                    log_action=Action(action),
                     log_reward=edp.logged_rewards[idx],
-                    log_action_probabilities=logged_propensities,
-                    tgt_action_probabilities=edp.model_propensities[idx],
-                    tgt_action=action,
+                    log_action_probabilities=ActionDistribution(logged_propensities),
+                    tgt_action_probabilities=ActionDistribution(
+                        edp.model_propensities[idx]
+                    ),
+                    tgt_action=Action(action),
                     model_outputs=ModelOutputs(
                         tgt_reward_from_log_action=edp.model_rewards_for_logged_action[
                             idx
