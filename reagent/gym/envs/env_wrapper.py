@@ -3,7 +3,7 @@
 
 import abc
 import logging
-from typing import Callable
+from typing import Callable, Optional
 
 import gym
 import numpy as np
@@ -121,3 +121,17 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
     # TODO: add more methods to simplify gym code
     # e.g. normalization, specific preprocessor, etc.
     # This can move a lot of the if statements from create_from_env methods.
+
+    @property
+    def max_steps(self) -> Optional[int]:
+        possible_keys = [
+            # gym should have _max_episode_steps
+            "_max_episode_steps",
+            # Minigrid should have max_steps
+            "max_steps",
+        ]
+        for key in possible_keys:
+            res = getattr(self.env, key, None)
+            if res is not None:
+                return res
+        return None

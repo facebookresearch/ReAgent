@@ -74,6 +74,5 @@ train_every_ts: 1
 train_after_ts: 10000
 num_train_episodes: 20
 num_eval_episodes: 10
-max_steps: 200
 passing_score_bar: 200
 use_gpu: false

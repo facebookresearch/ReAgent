@@ -91,7 +91,6 @@ def run_test(
     train_every_ts: int,
     train_after_ts: int,
     num_train_episodes: int,
-    max_steps: Optional[int],
     passing_score_bar: float,
     num_eval_episodes: int,
     use_gpu: bool,
@@ -139,7 +138,7 @@ def run_test(
         train_rewards = []
         for i in range(num_train_episodes):
             trajectory = run_episode(
-                env=env, agent=agent, mdp_id=i, max_steps=max_steps
+                env=env, agent=agent, mdp_id=i, max_steps=env.max_steps
             )
             ep_reward = trajectory.calculate_cumulative_reward()
             train_rewards.append(ep_reward)
@@ -163,7 +162,7 @@ def run_test(
     agent = Agent.create_for_env_with_serving_policy(env, serving_policy)
 
     eval_rewards = evaluate_for_n_episodes(
-        n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
+        n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
     ).squeeze(1)
 
     logger.info("============Eval rewards==============")

@@ -181,12 +181,16 @@ class RecSimReplayBufferInserter:
             if response is not None:
                 kwargs[f"response_{k}"] = np.stack([v[k] for v in response])
             else:
-                kwargs[f"response_{k}"] = np.zeros((self.num_responses, *d))
+                kwargs[f"response_{k}"] = np.zeros(
+                    (self.num_responses, *d), dtype=np.float32
+                )
         for k, _n in self.response_discrete_keys:
             if response is not None:
                 kwargs[f"response_{k}"] = np.array([v[k] for v in response])
             else:
-                kwargs[f"response_{k}"] = np.zeros((self.num_responses,))
+                kwargs[f"response_{k}"] = np.zeros(
+                    (self.num_responses,), dtype=np.int64
+                )
 
         transition_dict.update(kwargs)
         replay_buffer.add(observation=user, **transition_dict)

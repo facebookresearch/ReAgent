@@ -44,8 +44,9 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ElementMetadata:
-    @abc.abstractclassmethod
-    def create_from_example(cls, example):
+    @classmethod
+    @abc.abstractmethod
+    def create_from_example(cls, name: str, example):
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -53,7 +54,7 @@ class ElementMetadata:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def validate(self, input):
+    def validate(self, name: str, input):
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -71,27 +72,33 @@ class ElementMetadata:
 
 @dataclass
 class DenseMetadata(ElementMetadata):
-    shape: Tuple[int]
+    shape: Tuple[int, ...]
     dtype: np.dtype
 
     @classmethod
-    def create_from_example(cls, example):
+    def create_from_example(cls, name: str, example):
         arr = np.array(example)
-        res = cls(arr.shape, arr.dtype)
-        res.validate(example)
+        dtype = arr.dtype
+        if dtype == np.dtype("float64"):
+            dtype = np.dtype("float32")
+        res = cls(arr.shape, dtype)
+        res.validate(name, example)
         return res
 
     def zero_example(self):
         return np.zeros(self.shape, dtype=self.dtype)
 
-    def validate(self, input):
+    def validate(self, name: str, input):
         assert not isinstance(
             input, (dict, torch.Tensor)
-        ), f"{type(input)} is dict or torch.Tensor"
+        ), f"{name}: {type(input)} is dict or torch.Tensor"
         arr = np.array(input)
+        dtype = arr.dtype
+        if dtype == np.dtype("float64"):
+            dtype = np.dtype("float32")
         assert (
-            arr.shape == self.shape and arr.dtype == self.dtype
-        ), f"Expected {self.shape} {self.dtype}, got {arr.shape} {arr.dtype}"
+            arr.shape == self.shape and dtype == self.dtype
+        ), f"{name}: Expected {self.shape} {self.dtype}, got {arr.shape} {dtype}"
 
     def create_storage(self, capacity: int):
         array_shape = [capacity, *self.shape]
@@ -119,24 +126,24 @@ class IDListMetadata(ElementMetadata):
     keys: List[str]
 
     @classmethod
-    def create_from_example(cls, example):
+    def create_from_example(cls, name: str, example):
         res = cls(list(example.keys()))
-        res.validate(example)
+        res.validate(name, example)
         return res
 
     def zero_example(self):
         return {k: [] for k in self.keys}
 
-    def validate(self, input):
-        assert isinstance(input, dict), f"{type(input)} isn't dict"
+    def validate(self, name: str, input):
+        assert isinstance(input, dict), f"{name}: {type(input)} isn't dict"
         for k, v in input.items():
-            assert isinstance(k, str), f"{k} ({type(k)}) is not str"
-            assert k in self.keys, f"{k} not in {self.keys}"
+            assert isinstance(k, str), f"{name}: {k} ({type(k)}) is not str"
+            assert k in self.keys, f"{name}: {k} not in {self.keys}"
             arr = np.array(v)
             if len(arr) > 0:
                 assert (
                     arr.dtype == np.int64
-                ), f"{v} arr has dtype {arr.dtype}, not np.int64"
+                ), f"{name}: {v} arr has dtype {arr.dtype}, not np.int64"
 
     def create_storage(self, capacity: int):
         array_shape = (capacity,)
@@ -172,31 +179,33 @@ class IDScoreListMetadata(ElementMetadata):
     keys: List[str]
 
     @classmethod
-    def create_from_example(cls, example):
+    def create_from_example(cls, name: str, example):
         res = cls(list(example.keys()))
-        res.validate(example)
+        res.validate(name, example)
         return res
 
     def zero_example(self):
         return {k: ([], []) for k in self.keys}
 
-    def validate(self, input):
-        assert isinstance(input, dict), f"{type(input)} isn't dict"
+    def validate(self, name: str, input):
+        assert isinstance(input, dict), f"{name}: {type(input)} isn't dict"
         for k, v in input.items():
-            assert isinstance(k, str), f"{k} ({type(k)}) is not str"
-            assert k in self.keys, f"{k} not in {self.keys}"
+            assert isinstance(k, str), f"{name}: {k} ({type(k)}) is not str"
+            assert k in self.keys, f"{name}: {k} not in {self.keys}"
             assert (
                 isinstance(v, tuple) and len(v) == 2
-            ), f"{v} ({type(v)}) is not len 2 tuple"
+            ), f"{name}: {v} ({type(v)}) is not len 2 tuple"
             ids = np.array(v[0])
             scores = np.array(v[1])
-            assert len(ids) == len(scores), f"{len(ids)} != {len(scores)}"
+            assert len(ids) == len(scores), f"{name}: {len(ids)} != {len(scores)}"
             if len(ids) > 0:
-                assert ids.dtype == np.int64, f"ids dtype {ids.dtype} isn't np.int64"
+                assert (
+                    ids.dtype == np.int64
+                ), f"{name}: ids dtype {ids.dtype} isn't np.int64"
                 assert scores.dtype in (
                     np.float32,
                     np.float64,
-                ), f"scores dtype {scores.dtype} isn't np.float32/64"
+                ), f"{name}: scores dtype {scores.dtype} isn't np.float32/64"
 
     def create_storage(self, capacity: int):
         array_shape = (capacity,)
@@ -244,7 +253,7 @@ def make_replay_element(name, example):
     metadata = None
     for metadata_cls in [DenseMetadata, IDListMetadata, IDScoreListMetadata]:
         try:
-            metadata = metadata_cls.create_from_example(example)
+            metadata = metadata_cls.create_from_example(name, example)
             break
         except Exception as e:
             logger.info(
@@ -531,7 +540,7 @@ class ReplayBuffer(object):
 
         for store_element in self.get_add_args_signature():
             arg_element = kwargs[store_element.name]
-            store_element.metadata.validate(arg_element)
+            store_element.metadata.validate(store_element.name, arg_element)
 
     def is_empty(self) -> bool:
         """Is the Replay Buffer empty?"""

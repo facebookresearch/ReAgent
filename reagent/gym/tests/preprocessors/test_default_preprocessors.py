@@ -32,7 +32,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_box_cuda(self):
-        env = gym.make("CartPole-v0")
+        env = Gym(env_name="CartPole-v0")
         device = torch.device("cuda")
         obs_preprocessor = env.get_obs_preprocessor(device=device)
         obs = env.reset()
@@ -49,7 +49,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
     def test_recsim_interest_evolution(self):
         num_candidate = 10
         env = RecSim(
-            num_candidates=num_candidate, slate_size=3, resample_documents=False, seed=1
+            num_candidates=num_candidate, slate_size=3, resample_documents=False
         )
         obs_preprocessor = env.get_obs_preprocessor()
         obs = env.reset()
@@ -76,7 +76,6 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
             num_candidates=num_candidate,
             slate_size=3,
             resample_documents=False,
-            seed=1,
             is_interest_exploration=True,
         )
         obs_preprocessor = env.get_obs_preprocessor()

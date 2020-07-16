@@ -14,7 +14,7 @@ from reagent.evaluation.world_model_evaluator import (
     FeatureSensitivityEvaluator,
 )
 from reagent.gym.agents.agent import Agent
-from reagent.gym.envs import Gym
+from reagent.gym.envs import EnvWrapper, Gym
 from reagent.gym.envs.pomdp.state_embed_env import StateEmbedEnvironment
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
@@ -85,7 +85,7 @@ def calculate_feature_importance(
 
 
 def calculate_feature_sensitivity(
-    env: gym.Env,
+    env: EnvWrapper,
     trainer: MDNRNNTrainer,
     use_gpu: bool,
     test_batch: rlt.MemoryNetworkInput,
@@ -114,7 +114,7 @@ def calculate_feature_sensitivity(
 
 
 def train_mdnrnn(
-    env: gym.Env,
+    env: EnvWrapper,
     trainer: MDNRNNTrainer,
     trainer_preprocessor,
     num_train_transitions: int,
@@ -228,7 +228,7 @@ def train_mdnrnn_and_compute_feature_stats(
 
 
 def create_embed_rl_dataset(
-    env: gym.Env,
+    env: EnvWrapper,
     memory_network: MemoryNetwork,
     num_state_embed_transitions: int,
     batch_size: int,
@@ -338,6 +338,8 @@ def train_mdnrnn_and_train_on_embedded_env(
     agent_trainer = agent_manager.initialize_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
+        # pyre-fixme[6]: Expected `EnvWrapper` for 1st param but got
+        #  `StateEmbedEnvironment`.
         normalization_data_map=build_normalizer(embed_env),
     )
     device = "cuda" if use_gpu else "cpu"
@@ -362,7 +364,12 @@ def train_mdnrnn_and_train_on_embedded_env(
     agent = Agent.create_for_env(embed_env, policy=policy, device=device)
     # num_processes=1 needed to avoid workers from dying on CircleCI tests
     rewards = evaluate_for_n_episodes(
-        n=num_agent_eval_epochs, env=embed_env, agent=agent, num_processes=1
+        n=num_agent_eval_epochs,
+        # pyre-fixme[6]: Expected `EnvWrapper` for 2nd param but got
+        #  `StateEmbedEnvironment`.
+        env=embed_env,
+        agent=agent,
+        num_processes=1,
     )
     assert (
         np.mean(rewards) >= passing_score_bar
