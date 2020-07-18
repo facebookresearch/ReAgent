@@ -18,11 +18,13 @@ logger = logging.getLogger(__name__)
 
 
 @observable(
-    pg_loss=torch.Tensor,
+    train_ips_score=torch.Tensor,
+    train_clamped_ips_score=torch.Tensor,
     train_baseline_loss=torch.Tensor,
     train_log_probs=torch.Tensor,
-    train_ips=torch.Tensor,
-    train_clamped_ips=torch.Tensor,
+    train_ips_ratio=torch.Tensor,
+    train_clamped_ips_ratio=torch.Tensor,
+    train_advantages=torch.Tensor,
 )
 class Seq2SlateTrainer(Trainer):
     def __init__(
@@ -171,6 +173,11 @@ class Seq2SlateTrainer(Trainer):
         ips_rl_loss = (
             (-1.0 / batch_size * torch.sum(importance_sampling * reward)).cpu().numpy()
         )
+        clamped_ips_rl_loss = (
+            (-1.0 / batch_size * torch.sum(clamped_importance_sampling * reward))
+            .cpu()
+            .numpy()
+        )
         baseline_loss = baseline_loss.detach().cpu().numpy().item()
 
         advantage = (reward - b).detach().cpu().numpy()
@@ -189,23 +196,15 @@ class Seq2SlateTrainer(Trainer):
                     self.parameters.importance_sampling_clamp_max,
                 )
             )
-
-        # ips_rl_loss is the policy_gradient_loss.
         # See RankingTrainingPageHandler.finish() function in page_handler.py
         # pyre-fixme[16]: `Seq2SlateTrainer` has no attribute
         #  `notify_observers`.
         self.notify_observers(
-            pg_loss=torch.tensor(ips_rl_loss).reshape(1),
+            train_ips_score=torch.tensor(ips_rl_loss).reshape(1),
+            train_clamped_ips_score=torch.tensor(clamped_ips_rl_loss).reshape(1),
             train_baseline_loss=torch.tensor(baseline_loss).reshape(1),
             train_log_probs=torch.FloatTensor(log_probs),
-            train_ips=importance_sampling,
-            train_clamped_ips=clamped_importance_sampling,
+            train_ips_ratio=importance_sampling,
+            train_clamped_ips_ratio=clamped_importance_sampling,
+            train_advantages=advantage,
         )
-
-        return {
-            "per_seq_probs": np.exp(log_probs),
-            "advantage": advantage,
-            "obj_rl_loss": obj_rl_loss,
-            "ips_rl_loss": ips_rl_loss,
-            "baseline_loss": baseline_loss,
-        }
