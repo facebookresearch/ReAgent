@@ -181,15 +181,16 @@ class RankingTrainingPageHandler(PageHandler):
 
     def finish(self):
         self.notify_observers(epoch_end=self.epoch)
-        if "ips_rl_loss" in self.results[0]:
+        result_template = self.results[0]
+        if result_template and "ips_rl_loss" in result_template:
             self.policy_gradient_loss.append(
                 float(self.get_mean_loss(loss_name="ips_rl_loss"))
             )
-        if "baseline_loss" in self.results[0]:
+        if result_template and "baseline_loss" in result_template:
             self.baseline_loss.append(
                 float(self.get_mean_loss(loss_name="baseline_loss"))
             )
-        if "per_seq_probs" in self.results[0]:
+        if result_template and "per_seq_probs" in result_template:
             self.per_seq_probs.append(
                 float(self.get_mean_loss(loss_name="per_seq_probs"))
             )

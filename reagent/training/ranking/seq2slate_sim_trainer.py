@@ -60,7 +60,13 @@ def swap_dist(idx: List[int]):
 
 
 @observable(
-    pg_loss=torch.Tensor, train_baseline_loss=torch.Tensor, train_log_probs=torch.Tensor
+    train_ips_score=torch.Tensor,
+    train_clamped_ips_score=torch.Tensor,
+    train_baseline_loss=torch.Tensor,
+    train_log_probs=torch.Tensor,
+    train_ips_ratio=torch.Tensor,
+    train_clamped_ips_ratio=torch.Tensor,
+    train_advantage=torch.Tensor,
 )
 class Seq2SlateSimulationTrainer(Trainer):
     """
@@ -239,24 +245,8 @@ class Seq2SlateSimulationTrainer(Trainer):
                 training_input, sim_tgt_out_idx, sim_distance, self.device
             )
 
-        # data in the results_dict:
-        # {
-        #     "per_seq_probs": np.exp(log_probs),
-        #     "advantage": advantage,
-        #     "obj_rl_loss": obj_rl_loss,
-        #     "ips_rl_loss": ips_rl_loss,
-        #     "baseline_loss": baseline_loss,
-        # }
-        results_dict = self.trainer.train(
+        return self.trainer.train(
             rlt.PreprocessedTrainingBatch(
                 training_input=training_input, extras=training_batch.extras
             )
         )
-        # pyre-fixme[16]: `Seq2SlateSimulationTrainer` has no attribute
-        #  `notify_observers`.
-        self.notify_observers(
-            pg_loss=torch.tensor(results_dict["ips_rl_loss"]).reshape(1),
-            train_baseline_loss=torch.tensor(results_dict["baseline_loss"]).reshape(1),
-            train_log_probs=torch.FloatTensor(np.log(results_dict["per_seq_probs"])),
-        )
-        return results_dict
