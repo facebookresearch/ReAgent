@@ -36,3 +36,5 @@ class InputColumn(object):
     ITEM_PROBABILITY = "item_probability"
     NEXT_ITEM_PROBABILITY = "next_item_probability"
     EXTRAS = "extras"
+    SEQ_LEN = "seq_len"
+    TOTAL_REWARD = "total_reward"
