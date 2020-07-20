@@ -30,9 +30,7 @@ class WorldModel(WorldModelBase):
             state_dim=get_num_output_features(
                 self.state_normalization_data.dense_normalization_parameters
             ),
-            action_dim=get_num_output_features(
-                self.action_normalization_data.dense_normalization_parameters
-            ),
+            action_dim=self.trainer_param.action_dim,
             num_hiddens=self.trainer_param.hidden_size,
             num_hidden_layers=self.trainer_param.num_hidden_layers,
             num_gaussians=self.trainer_param.num_gaussians,

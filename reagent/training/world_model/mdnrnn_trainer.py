@@ -32,10 +32,14 @@ class MDNRNNTrainer(Trainer):
             self.memory_network.mdnrnn.parameters(), lr=params.learning_rate
         )
         self.minibatch = 0
+        self.minibatch_size = params.minibatch_size
         self.cum_loss: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_bce: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
         self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
+
+        # PageHandler must use this to activate evaluator:
+        self.calc_cpe_in_training = True
 
     def train(self, training_batch: rlt.MemoryNetworkInput):
         self.minibatch += 1
@@ -125,3 +129,7 @@ class MDNRNNTrainer(Trainer):
         else:
             loss = gmm + bce + mse
         return {"gmm": gmm, "bce": bce, "mse": mse, "loss": loss}
+
+    def warm_start_components(self):
+        components = ["memory_network"]
+        return components

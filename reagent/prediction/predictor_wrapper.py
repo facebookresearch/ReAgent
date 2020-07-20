@@ -434,7 +434,7 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         preprocessed_state = (
             self.state_preprocessor(state_with_presence[0], state_with_presence[1])
             .repeat(1, self.seq_len * self.num_permut)
-            .reshape(batch_size * self.num_permut, self.seq_len, state_dim)
+            .reshape(batch_size * self.num_permut, self.seq_len, -1)
             .transpose(0, 1)
         )
         state_feature_vector = rlt.FeatureData(preprocessed_state)
@@ -547,3 +547,45 @@ class Seq2SlateRewardWithPreprocessor(ModelBase):
 
         output = self.model(ranking_input)
         return output.predicted_reward
+
+
+class MDNRNNWithPreprocessor(ModelBase):
+    def __init__(
+        self,
+        model: ModelBase,
+        state_preprocessor: Preprocessor,
+        seq_len: int,
+        num_action: int,
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+    ):
+        super().__init__()
+        self.model = model
+        self.state_preprocessor = state_preprocessor
+        self.state_feature_config = state_feature_config or rlt.ModelFeatureConfig()
+        self.sparse_preprocessor = make_sparse_preprocessor(
+            self.state_feature_config, device=torch.device("cpu")
+        )
+        self.seq_len = seq_len
+        self.num_action = num_action
+
+    def forward(
+        self,
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        action: torch.Tensor,
+    ):
+
+        batch_size, state_dim = state_with_presence[0].size()
+        preprocessed_state = (
+            self.state_preprocessor(state_with_presence[0], state_with_presence[1])
+            .reshape(batch_size, self.seq_len, -1)
+            .transpose(0, 1)
+        )
+        result = self.model(action, preprocessed_state)
+
+        return result
+
+    def input_prototype(self):
+        return (
+            self.state_preprocessor.input_prototype(),
+            torch.randn(1, 1, self.num_action, device=self.state_preprocessor.device),
+        )

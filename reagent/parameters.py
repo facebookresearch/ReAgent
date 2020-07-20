@@ -56,6 +56,9 @@ class MDNRNNTrainerParameters(BaseDataClass):
     next_state_loss_weight: float = 1.0
     not_terminal_loss_weight: float = 1.0
     fit_only_one_next_step: bool = False
+    action_dim: int = 2
+    action_names: List[str] = field(default_factory=lambda: [])
+    multi_steps: int = 1
 
 
 @dataclass(frozen=True)
@@ -70,7 +73,7 @@ class Seq2RewardTrainerParameters(BaseDataClass):
     multi_steps: int = 1
     action_names: List[str] = field(default_factory=lambda: [])
     batch_size: int = 32
-    calc_cpe_in_training: bool = True
+    gamma: float = 0.9
 
 
 @dataclass(frozen=True)
