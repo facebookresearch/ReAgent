@@ -53,8 +53,6 @@ class ParametricDQN(ParametricDQNBase):
             reward_network = reward_network.cuda()
 
         q_network_target = self._q_network.get_target_network()
-        # pyre-fixme[29]: `Type[ParametricDQNTrainer]` is not a function.
-        # pyre-fixme[29]: `Type[ParametricDQNTrainer]` is not a function.
         return ParametricDQNTrainer(
             q_network=self._q_network,
             q_network_target=q_network_target,

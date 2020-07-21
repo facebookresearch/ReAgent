@@ -69,10 +69,6 @@ class DiscreteC51DQN(DiscreteDQNBase):
         # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `_q_network`.
         self._q_network = q_network
 
-        # pyre-fixme[29]: `Type[reagent.training.c51_trainer.C51Trainer]` is not a
-        #  function.
-        # pyre-fixme[29]: `Type[reagent.training.c51_trainer.C51Trainer]` is not a
-        #  function.
         return C51Trainer(
             q_network=q_network,
             q_network_target=q_network_target,

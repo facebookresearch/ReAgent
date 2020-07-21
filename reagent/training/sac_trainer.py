@@ -154,6 +154,8 @@ class SACTrainer(RLTrainer):
                 components += ["q2_network_target"]
         return components
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def train(self, training_batch: rlt.PolicyNetworkInput) -> None:
         """

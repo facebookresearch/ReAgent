@@ -256,7 +256,8 @@ class Preprocessor(Module):
             (torch.ones(len(norm_params), device=self.device) - EPS)
             * 2
             / torch.tensor(
-                # pyre-fixme[16]: `Optional` has no attribute `__sub__`.
+                # pyre-fixme[6]: `-` is not supported for operand types
+                #  `Optional[float]` and `Optional[float]`.
                 [p.max_value - p.min_value for p in norm_params],
                 device=self.device,
             ),

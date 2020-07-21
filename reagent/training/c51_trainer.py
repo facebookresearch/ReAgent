@@ -83,6 +83,8 @@ class C51Trainer(RLTrainer):
                 # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
                 self.reward_boosts[0, i] = rl.reward_boost[k]
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput) -> None:
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
@@ -126,9 +128,7 @@ class C51Trainer(RLTrainer):
 
         # rescale to indicies [0, 1, ..., N-1]
         b = (target_Q - self.qmin) / self.scale_support
-        # pyre-fixme[16]: `Tensor` has no attribute `floor`.
         lo = b.floor().to(torch.int64)
-        # pyre-fixme[16]: `Tensor` has no attribute `ceil`.
         up = b.ceil().to(torch.int64)
 
         # handle corner cases of l == b == u
@@ -197,6 +197,8 @@ class C51Trainer(RLTrainer):
             model_action_idxs=model_action_idxs,
         )
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor

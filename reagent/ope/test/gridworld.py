@@ -91,6 +91,7 @@ class GridWorld(Environment):
     def _next_state_reward(self, state: State, action: Action) -> StateReward:
         value = state.value
         assert isinstance(value, tuple), f"got type {type(value)} instead of tuple"
+        # pyre-fixme[23]: Unable to unpack single value, 2 were expected.
         (x, y) = value
         assert isinstance(x, int) and isinstance(
             y, int

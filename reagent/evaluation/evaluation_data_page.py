@@ -55,7 +55,6 @@ class EvaluationDataPage(NamedTuple):
             discrete_training_input = cast(rlt.DiscreteDqnInput, tdb)
 
             return EvaluationDataPage.create_from_tensors_dqn(
-                # pyre-fixme[6]: Expected `DQNTrainer` for 1st param but got `Trainer`.
                 trainer,
                 tdb.extras.mdp_id,
                 tdb.extras.sequence_number,
@@ -68,8 +67,6 @@ class EvaluationDataPage(NamedTuple):
             )
         elif isinstance(tdb, rlt.ParametricDqnInput):
             return EvaluationDataPage.create_from_tensors_parametric_dqn(
-                # pyre-fixme[6]: Expected `ParametricDQNTrainer` for 1st param but
-                #  got `Trainer`.
                 trainer,
                 # pyre-fixme[16]: `Optional` has no attribute `mdp_id`.
                 tdb.extras.mdp_id,
@@ -93,6 +90,8 @@ class EvaluationDataPage(NamedTuple):
             )
 
     @classmethod
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def create_from_tensors_seq2slate(
         cls,
@@ -187,6 +186,8 @@ class EvaluationDataPage(NamedTuple):
         )
 
     @classmethod
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def create_from_tensors_parametric_dqn(
         cls,
@@ -310,6 +311,8 @@ class EvaluationDataPage(NamedTuple):
         )
 
     @classmethod
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def create_from_tensors_dqn(
         cls,
@@ -335,7 +338,6 @@ class EvaluationDataPage(NamedTuple):
         num_actions = trainer.num_actions
         action_mask = actions.float()
 
-        # pyre-fixme[6]: Expected `torch.Tensor` for 2nd positional only parameter
         rewards = trainer.boost_rewards(rewards, actions)
         model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
         optimal_q_values, _ = trainer.get_detached_q_values(states)

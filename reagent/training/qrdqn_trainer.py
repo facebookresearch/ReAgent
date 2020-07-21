@@ -109,6 +109,8 @@ class QRDQNTrainer(DQNTrainerBase):
             ]
         return components
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput):
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
@@ -157,9 +159,7 @@ class QRDQNTrainer(DQNTrainerBase):
             # (batch, atoms) -> (atoms, batch, 1) -> (atoms, batch, atoms)
             td = target_Q.t().unsqueeze(-1) - current_qf
             loss = (
-                self.huber(td)
-                # pyre-fixme[16]: `FloatTensor` has no attribute `abs`.
-                * (self.quantiles - (td.detach() < 0).float()).abs()
+                self.huber(td) * (self.quantiles - (td.detach() < 0).float()).abs()
             ).mean()
 
             loss.backward()
@@ -219,6 +219,8 @@ class QRDQNTrainer(DQNTrainerBase):
             model_action_idxs=model_action_idxs,
         )
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor
@@ -239,6 +241,8 @@ class QRDQNTrainer(DQNTrainerBase):
     def huber(self, x):
         return torch.where(x.abs() < 1, 0.5 * x.pow(2), x.abs() - 0.5)
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def get_detached_q_values(
         self, state: rlt.FeatureData

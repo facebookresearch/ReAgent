@@ -11,6 +11,7 @@ import torch
 logger = logging.getLogger(__name__)
 
 
+# pyre-fixme[56]: Decorator `torch.jit.script` could not be resolved in a global scope.
 @torch.jit.script
 def map_id_list(raw_values: torch.Tensor, id2index: Dict[int, int]) -> torch.Tensor:
     # TODO(kaiwenw): handle case where raw_ids not in mapping
@@ -19,6 +20,7 @@ def map_id_list(raw_values: torch.Tensor, id2index: Dict[int, int]) -> torch.Ten
     return torch.tensor([id2index[x.item()] for x in raw_values], dtype=torch.long)
 
 
+# pyre-fixme[56]: Decorator `torch.jit.script` could not be resolved in a global scope.
 @torch.jit.script
 def map_id_score_list(
     raw_keys: torch.Tensor, raw_values: torch.Tensor, id2index: Dict[int, int]
@@ -69,6 +71,8 @@ class SparsePreprocessor(torch.nn.Module):
         assert set(id2name.keys()) == set(id2mapping.keys())
         self.device = device
 
+    # pyre-fixme[56]: Decorator `torch.jit.export` could not be resolved in a global
+    #  scope.
     @torch.jit.export
     def preprocess_id_list(
         self, id_list: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
@@ -88,6 +92,8 @@ class SparsePreprocessor(torch.nn.Module):
                 )
         return ret
 
+    # pyre-fixme[56]: Decorator `torch.jit.export` could not be resolved in a global
+    #  scope.
     @torch.jit.export
     def preprocess_id_score_list(
         self, id_score_list: Dict[int, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]
