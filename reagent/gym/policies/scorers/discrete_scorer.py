@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Tuple
+from typing import Optional, Tuple
 
+import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.gym.preprocessors.trainer_preprocessor import get_possible_actions_for_gym
@@ -10,9 +11,32 @@ from reagent.gym.types import Scorer
 from reagent.models.base import ModelBase
 
 
+NEG_INF = float("-inf")
+
+
+def apply_possible_actions_mask(
+    scores: torch.Tensor,
+    possible_actions_mask: Optional[np.ndarray] = None,
+    invalid_score: float = NEG_INF,
+) -> torch.Tensor:
+    if possible_actions_mask is None:
+        return scores
+    possible_actions_mask = torch.tensor(
+        possible_actions_mask, dtype=torch.bool
+    ).unsqueeze(0)
+    assert (
+        scores.shape == possible_actions_mask.shape
+    ), f"{scores.shape} != {possible_actions_mask.shape}"
+    scores[~possible_actions_mask] = invalid_score
+    return scores
+
+
 def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
     @torch.no_grad()
-    def score(preprocessed_obs: rlt.FeatureData) -> torch.Tensor:
+    def score(
+        preprocessed_obs: rlt.FeatureData,
+        possible_actions_mask: Optional[np.ndarray] = None,
+    ) -> torch.Tensor:
         q_network.eval()
         scores = q_network(preprocessed_obs)
         # qrdqn returns (batchsize, num_actions, num_atoms)
@@ -20,6 +44,7 @@ def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
             scores = scores.mean(dim=2)
         assert scores.dim() == 2, f"{scores.shape} isn't (batchsize, num_actions)."
         q_network.train()
+        scores = apply_possible_actions_mask(scores, possible_actions_mask)
         return scores
 
     return score
@@ -27,8 +52,12 @@ def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
 
 def discrete_dqn_serving_scorer(q_network: torch.nn.Module) -> Scorer:
     @torch.no_grad()
-    def score(state: rlt.ServingFeatureData) -> torch.Tensor:
+    def score(
+        state: rlt.ServingFeatureData,
+        possible_actions_mask: Optional[np.ndarray] = None,
+    ) -> torch.Tensor:
         action_names, q_values = q_network(*state)
+        q_values = apply_possible_actions_mask(q_values, possible_actions_mask)
         return q_values
 
     return score

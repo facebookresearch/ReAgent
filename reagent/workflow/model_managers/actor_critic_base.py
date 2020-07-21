@@ -4,6 +4,7 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
@@ -49,7 +50,9 @@ class ActorPolicyWrapper(Policy):
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         self.actor_network.eval()
         output = self.actor_network(obs)
         self.actor_network.train()

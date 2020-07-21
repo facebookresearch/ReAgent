@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import List
+from typing import List, Optional
 
 import gym
 import numpy as np
@@ -9,6 +9,7 @@ import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.scorers.discrete_scorer import apply_possible_actions_mask
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 
 
@@ -40,15 +41,21 @@ class DiscreteRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
+        assert obs.shape[0] == 1, f"obs has shape {obs.shape} (0th dim != 1)"
         batch_size = obs.shape[0]
-        weights = torch.ones((batch_size, self.num_actions))
+        scores = torch.ones((batch_size, self.num_actions))
+        scores = apply_possible_actions_mask(
+            scores, possible_actions_mask, invalid_score=0.0
+        )
 
         # sample a random action
-        m = torch.distributions.Categorical(weights)
+        m = torch.distributions.Categorical(scores)
         raw_action = m.sample()
         action = F.one_hot(raw_action, self.num_actions)
         log_prob = m.log_prob(raw_action).float()
@@ -71,7 +78,10 @@ class MultiDiscreteRandomPolicy(Policy):
 
         return cls(action_space.nvec.tolist())
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    # TODO: consider possible_actions_mask
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         obs: torch.Tensor = obs.float_features
         batch_size, _ = obs.shape
 
@@ -116,7 +126,9 @@ class ContinuousRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
