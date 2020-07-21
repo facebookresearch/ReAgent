@@ -107,13 +107,23 @@ class DiscreteDqnInputMaker:
             state = rlt.FeatureData(float_features=batch.state)
             next_state = rlt.FeatureData(float_features=batch.next_state)
 
+        try:
+            possible_actions_mask = batch.possible_actions_mask.float()
+        except AttributeError:
+            possible_actions_mask = torch.ones_like(action).float()
+
+        try:
+            possible_next_actions_mask = batch.next_possible_actions_mask.float()
+        except AttributeError:
+            possible_next_actions_mask = torch.ones_like(next_action).float()
+
         return rlt.DiscreteDqnInput(
             state=state,
             action=action,
             next_state=next_state,
             next_action=next_action,
-            possible_actions_mask=torch.ones_like(action).float(),
-            possible_next_actions_mask=torch.ones_like(next_action).float(),
+            possible_actions_mask=possible_actions_mask,
+            possible_next_actions_mask=possible_next_actions_mask,
             reward=batch.reward,
             not_terminal=not_terminal,
             step=None,

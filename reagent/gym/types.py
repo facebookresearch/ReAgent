@@ -6,8 +6,9 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field, fields
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
+import numpy as np
 import reagent.types as rlt
 import torch
 
@@ -21,8 +22,7 @@ class Transition(rlt.BaseDataClass):
     reward: float
     terminal: bool
     log_prob: Optional[float] = None
-    possible_actions: Optional[List[int]] = None
-    possible_actions_mask: Optional[List[int]] = None
+    possible_actions_mask: Optional[np.ndarray] = None
 
     # Same as asdict but filters out none values.
     def asdict(self):
@@ -101,7 +101,9 @@ class Sampler(ABC):
 
 
 # From preprocessed observation, produce scores for sampler to select action
-Scorer = Callable[[Any], Any]
+DiscreteScorer = Callable[[Any, Optional[np.ndarray]], Any]
+ContinuousScorer = Callable[[Any], Any]
+Scorer = Union[DiscreteScorer, ContinuousScorer]
 
 # Transform ReplayBuffer's transition batch to trainer.train
 TrainerPreprocessor = Callable[[Any], rlt.PreprocessedTrainingBatch]

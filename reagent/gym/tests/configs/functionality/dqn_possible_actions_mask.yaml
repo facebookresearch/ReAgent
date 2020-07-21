@@ -1,0 +1,39 @@
+env:
+  Gym:
+    env_name: PossibleActionsMaskTester-v0
+model:
+  DiscreteDQN:
+    trainer_param:
+      actions:
+      - 0
+      - 1
+      - 2
+      - 3
+      rl:
+        gamma: 1.0
+        target_update_rate: 0.2
+        maxq_learning: true
+        temperature: 1.0
+      double_q_learning: true
+      minibatch_size: 512
+      minibatches_per_step: 1
+      optimizer:
+        Adam:
+          lr: 0.05
+    net_builder:
+      FullyConnected:
+        sizes:
+        - 128
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+    eval_parameters:
+      calc_cpe_in_training: false
+replay_memory_size: 5000
+train_every_ts: 1
+train_after_ts: 500
+num_train_episodes: 5
+num_eval_episodes: 3
+passing_score_bar: 200.0
+use_gpu: false
