@@ -100,10 +100,6 @@ class SAC(ActorCriticBase):
                 value_network.cuda()
             self._actor_network.cuda()
 
-        # pyre-fixme[29]: `Type[reagent.training.sac_trainer.SACTrainer]` is not a
-        #  function.
-        # pyre-fixme[29]: `Type[reagent.training.sac_trainer.SACTrainer]` is not a
-        #  function.
         trainer = SACTrainer(
             actor_network=self._actor_network,
             q1_network=self._q1_network,

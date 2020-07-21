@@ -9,6 +9,8 @@ import torch.nn
 import torch.optim
 from reagent.parameters import EvolutionParameters
 from reagent.training.gradient_free.evolution_pool import EvolutionPool
+
+# pyre-fixme[21]: Could not find name `ProcessGroup` in `torch.distributed`.
 from torch.distributed import ProcessGroup
 
 

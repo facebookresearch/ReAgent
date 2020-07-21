@@ -8,6 +8,9 @@ import reagent.types as rlt
 
 # pyre-fixme[21]: Could not find `petastorm`.
 from petastorm import make_batch_reader
+
+# pyre-fixme[21]: Could not find module `petastorm.pytorch`.
+# pyre-fixme[21]: Could not find module `petastorm.pytorch`.
 from petastorm.pytorch import DataLoader, decimal_friendly_collate
 from reagent.core.tracker import Observer
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage

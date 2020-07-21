@@ -5,6 +5,9 @@ from typing import List, Optional, Tuple
 # pyre-fixme[21]: Could not find `pyspark`.
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, crc32, explode, map_keys, udf
+
+# pyre-fixme[21]: Could not find module `pyspark.sql.types`.
+# pyre-fixme[21]: Could not find module `pyspark.sql.types`.
 from pyspark.sql.types import (
     ArrayType,
     BooleanType,

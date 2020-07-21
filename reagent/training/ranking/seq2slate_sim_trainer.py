@@ -110,7 +110,8 @@ class Seq2SlateSimulationTrainer(Trainer):
         ).long()
 
         if self.parameters.simulation_distance_penalty is not None:
-            # pyre-fixme[16]: `Optional` has no attribute `__gt__`.
+            # pyre-fixme[6]: `>=` is not supported for operand types
+            #  `Optional[float]` and `int`.
             assert self.parameters.simulation_distance_penalty >= 0
             self.permutation_distance = (
                 torch.tensor(

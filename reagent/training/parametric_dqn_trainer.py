@@ -58,6 +58,8 @@ class ParametricDQNTrainer(DQNTrainerBase):
             "reward_network_optimizer",
         ]
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def get_detached_q_values(self, state, action) -> Tuple[torch.Tensor, torch.Tensor]:
         """ Gets the q values from the model and target networks """
@@ -65,6 +67,8 @@ class ParametricDQNTrainer(DQNTrainerBase):
         q_values_target = self.q_network_target(state, action)
         return q_values, q_values_target
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def train(self, training_batch: rlt.ParametricDqnInput) -> None:
         self.minibatch += 1

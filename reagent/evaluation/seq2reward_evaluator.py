@@ -15,6 +15,8 @@ class Seq2RewardEvaluator:
         self.trainer = trainer
         self.reward_net = self.trainer.seq2reward_network
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def evaluate(self, eval_tdp: PreprocessedTrainingBatch):
         reward_net_prev_mode = self.reward_net.training

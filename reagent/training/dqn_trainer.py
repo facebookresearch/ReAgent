@@ -111,6 +111,8 @@ class DQNTrainer(DQNTrainerBase):
             ]
         return components
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def get_detached_q_values(
         self, state
@@ -120,6 +122,8 @@ class DQNTrainer(DQNTrainerBase):
         q_values_target = self.q_network_target(state)
         return q_values, q_values_target
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def train(self, training_batch: rlt.DiscreteDqnInput):
         assert isinstance(training_batch, rlt.DiscreteDqnInput)

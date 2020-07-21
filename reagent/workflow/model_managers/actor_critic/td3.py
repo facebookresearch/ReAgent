@@ -81,10 +81,6 @@ class TD3(ActorCriticBase):
                 q2_network.cuda()
             self._actor_network.cuda()
 
-        # pyre-fixme[29]: `Type[reagent.training.td3_trainer.TD3Trainer]` is not a
-        #  function.
-        # pyre-fixme[29]: `Type[reagent.training.td3_trainer.TD3Trainer]` is not a
-        #  function.
         trainer = TD3Trainer(
             actor_network=self._actor_network,
             q1_network=self._q1_network,

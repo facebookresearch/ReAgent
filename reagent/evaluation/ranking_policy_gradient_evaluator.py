@@ -44,6 +44,8 @@ class RankingPolicyGradientEvaluator:
         self.eval_data_pages_g: Optional[EvaluationDataPage] = None
         self.eval_data_pages_ng: Optional[EvaluationDataPage] = None
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def evaluate(self, eval_tdp: PreprocessedTrainingBatch) -> None:
         seq2slate_net = self.trainer.seq2slate_net
@@ -78,7 +80,8 @@ class RankingPolicyGradientEvaluator:
             b = torch.zeros_like(eval_tdp.training_input.slate_reward)
 
         eval_advantage = (
-            # pyre-fixme[16]: `Optional` has no attribute `__sub__`.
+            # pyre-fixme[6]: `-` is not supported for operand types
+            #  `Optional[torch.Tensor]` and `Any`.
             (eval_tdp.training_input.slate_reward - b)
             .flatten()
             .cpu()
@@ -103,8 +106,6 @@ class RankingPolicyGradientEvaluator:
 
         edp_g = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
-            # pyre-fixme[6]: Expected `Module` for 2nd param but got
-            #  `Optional[nn.Module]`.
             self.reward_network,
             eval_tdp.training_input,
             eval_greedy=True,
@@ -117,8 +118,6 @@ class RankingPolicyGradientEvaluator:
 
         edp_ng = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
-            # pyre-fixme[6]: Expected `Module` for 2nd param but got
-            #  `Optional[nn.Module]`.
             self.reward_network,
             eval_tdp.training_input,
             eval_greedy=False,

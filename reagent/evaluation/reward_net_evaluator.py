@@ -23,6 +23,8 @@ class RewardNetEvaluator:
         self.best_model = None
         self.best_model_loss = 1e9
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def evaluate(self, eval_tdp: PreprocessedTrainingBatch):
         reward_net = self.trainer.reward_net

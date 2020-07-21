@@ -45,7 +45,8 @@ class Postprocessor(nn.Module):
             self.scaling_factor = torch.tensor(
                 [
                     (
-                        # pyre-fixme[16]: Optional type has no attribute `__sub__`.
+                        # pyre-fixme[6]: `-` is not supported for operand types
+                        #  `Optional[float]` and `Optional[float]`.
                         normalization_parameters[f].max_value
                         - normalization_parameters[f].min_value
                     )

@@ -233,6 +233,8 @@ class DocList(TensorDataClass):
             len(self.float_features.shape) == 3
         ), f"Unexpected shape: {self.float_features.shape}"
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def select_slate(self, action: torch.Tensor):
         row_idx = torch.repeat_interleave(

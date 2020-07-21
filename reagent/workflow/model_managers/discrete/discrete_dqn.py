@@ -95,10 +95,6 @@ class DiscreteDQN(DiscreteDQNBase):
         # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
         # pyre-fixme[16]: `DiscreteDQN` has no attribute `_q_network`.
         self._q_network = q_network
-        # pyre-fixme[29]: `Type[reagent.training.dqn_trainer.DQNTrainer]` is not a
-        #  function.
-        # pyre-fixme[29]: `Type[reagent.training.dqn_trainer.DQNTrainer]` is not a
-        #  function.
         trainer = DQNTrainer(
             q_network=q_network,
             q_network_target=q_network_target,

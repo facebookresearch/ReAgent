@@ -74,6 +74,8 @@ class SlateQTrainer(DQNTrainerBase):
             state.repeat_interleave(slate_size, dim=0), slate.as_feature_data()
         ).view(batch_size, slate_size)
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def train(self, training_batch: rlt.SlateQInput):
         assert isinstance(

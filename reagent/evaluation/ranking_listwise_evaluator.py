@@ -56,6 +56,8 @@ class RankingListwiseEvaluator:
         self.log_softmax = nn.LogSoftmax(dim=1)
         self.kl_loss = nn.KLDivLoss(reduction="batchmean")
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def evaluate(self, eval_tdp: PreprocessedTrainingBatch) -> None:
         seq2slate_net_prev_mode = self.seq2slate_net.training
