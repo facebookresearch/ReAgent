@@ -87,6 +87,21 @@ class RecSim(EnvWrapper):
         preprocessor = RecsimObsPreprocessor.create_from_env(self)
         return preprocessor(obs)
 
+    """
+    state["user"] is shared across all output dicts
+    this is confusing, and should be deepcopied instead
+    """
+
+    def reset(self, **kwargs):
+        state = self.env.reset(**kwargs)
+        state["user"] = np.copy(state["user"])
+        return state
+
+    def step(self, action):
+        state, r, t, i = self.env.step(action)
+        state["user"] = np.copy(state["user"])
+        return state, r, t, i
+
 
 class MulticlickIEvUserModel(interest_evolution.IEvUserModel):
     def simulate_response(self, documents):
