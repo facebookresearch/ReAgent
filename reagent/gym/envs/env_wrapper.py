@@ -135,3 +135,7 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
             if res is not None:
                 return res
         return None
+
+    @property
+    def possible_actions_mask(self) -> Optional[np.ndarray]:
+        return getattr(self.env, "possible_actions_mask", None)

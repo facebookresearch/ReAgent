@@ -30,11 +30,13 @@ def run_episode(
     """
     trajectory = Trajectory()
     obs = env.reset()
+    possible_actions_mask = env.possible_actions_mask
     terminal = False
     num_steps = 0
     while not terminal:
-        action, log_prob = agent.act(obs)
+        action, log_prob = agent.act(obs, possible_actions_mask)
         next_obs, reward, terminal, _ = env.step(action)
+        next_possible_actions_mask = env.possible_actions_mask
         if max_steps is not None and num_steps >= max_steps:
             terminal = True
 
@@ -47,11 +49,13 @@ def run_episode(
             reward=float(reward),
             terminal=bool(terminal),
             log_prob=log_prob,
+            possible_actions_mask=possible_actions_mask,
         )
         agent.post_step(transition)
         trajectory.add_transition(transition)
         SummaryWriterContext.increase_global_step()
         obs = next_obs
+        possible_actions_mask = next_possible_actions_mask
         num_steps += 1
     return trajectory
 

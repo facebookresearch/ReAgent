@@ -19,6 +19,10 @@ ENV_CLASSES = [
     ("Pocman-v0", ".pomdp.pocman:PocManEnv"),
     ("StringGame-v0", ".pomdp.string_game:StringGameEnv"),
     ("LinearDynamics-v0", ".dynamics.linear_dynamics:LinDynaEnv"),
+    (
+        "PossibleActionsMaskTester-v0",
+        ".functionality.possible_actions_mask_tester:PossibleActionsMaskTester",
+    ),
 ]
 
 for env_name, rel_module_path in ENV_CLASSES:
