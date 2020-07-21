@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Optional
 
 import numpy as np
 import reagent.types as rlt
@@ -24,7 +25,9 @@ class CEMPolicy(Policy):
         self.cem_planner_network = cem_planner_network
         self.discrete_action = discrete_action
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         greedy = self.cem_planner_network(obs)
         if self.discrete_action:
             _, onehot = greedy

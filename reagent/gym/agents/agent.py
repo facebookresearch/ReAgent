@@ -3,6 +3,7 @@
 
 from typing import Any, Optional, Tuple, Union
 
+import numpy as np
 import torch
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.policies.policy import Policy
@@ -36,15 +37,6 @@ class Agent:
         self.obs_preprocessor = obs_preprocessor
         self.action_extractor = action_extractor
         self.post_transition_callback = post_transition_callback
-        self._reset_internal_states()
-
-        if isinstance(device, str):
-            device = torch.device(device)
-        self.device: torch.device = device
-
-    def _reset_internal_states(self):
-        # intermediate state between act and post_step
-        self._log_prob: float = 0.0
 
     @classmethod
     def create_for_env(
@@ -70,7 +62,6 @@ class Agent:
             policy,
             obs_preprocessor=obs_preprocessor,
             action_extractor=action_extractor,
-            device=device,
             **kwargs,
         )
 
@@ -98,19 +89,18 @@ class Agent:
             **kwargs,
         )
 
-    def act(self, obs: Any) -> Tuple[Any, float]:
+    def act(
+        self, obs: Any, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> Tuple[Any, Optional[float]]:
         """ Act on a single observation """
         # preprocess and convert to batch data
         preprocessed_obs = self.obs_preprocessor(obs)
 
         # store intermediate actor output for post_step
-        actor_output = self.policy.act(preprocessed_obs)
-        log_prob = (
-            0.0
-            if actor_output.log_prob is None
-            # pyre-fixme[16]: `Optional` has no attribute `cpu`.
-            else actor_output.log_prob.cpu().squeeze(0).item()
-        )
+        actor_output = self.policy.act(preprocessed_obs, possible_actions_mask)
+        log_prob = actor_output.log_prob
+        if log_prob is not None:
+            log_prob = log_prob.cpu().squeeze(0).item()
         return self.action_extractor(actor_output), log_prob
 
     def post_step(self, transition: Transition):
@@ -119,4 +109,3 @@ class Agent:
             # pyre-fixme[29]: `Optional[typing.Callable[[Transition], None]]` is not
             #  a function.
             self.post_transition_callback(transition)
-        self._reset_internal_states()

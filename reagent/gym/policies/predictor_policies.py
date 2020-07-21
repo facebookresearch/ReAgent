@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Any, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
+import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.gym.policies import Policy
@@ -75,7 +76,9 @@ class DiscreteDQNPredictorPolicy(Policy):
 
     @torch.no_grad()
     def act(
-        self, obs: Union[rlt.ServingFeatureData, Tuple[torch.Tensor, torch.Tensor]]
+        self,
+        obs: Union[rlt.ServingFeatureData, Tuple[torch.Tensor, torch.Tensor]],
+        possible_actions_mask: Optional[np.ndarray],
     ) -> rlt.ActorOutput:
         """ Input is either state_with_presence, or
         ServingFeatureData (in the case of sparse features) """
@@ -88,7 +91,7 @@ class DiscreteDQNPredictorPolicy(Policy):
                 id_list_features={},
                 id_score_list_features={},
             )
-        scores = self.scorer(state)
+        scores = self.scorer(state, possible_actions_mask)
         return self.sampler.sample_action(scores).cpu().detach()
 
 
@@ -97,7 +100,9 @@ class ActorPredictorPolicy(Policy):
         self.predictor = predictor
 
     @torch.no_grad()
-    def act(self, obs: Any) -> rlt.ActorOutput:
+    def act(
+        self, obs: Any, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         action = self.predictor(obs).cpu()
         # TODO: return log_probs as well
         return rlt.ActorOutput(action=action)

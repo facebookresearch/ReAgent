@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import List
+from typing import List, Optional
 
 import gym
 import numpy as np
@@ -40,7 +40,9 @@ class DiscreteRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
@@ -71,7 +73,9 @@ class MultiDiscreteRandomPolicy(Policy):
 
         return cls(action_space.nvec.tolist())
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         obs: torch.Tensor = obs.float_features
         batch_size, _ = obs.shape
 
@@ -116,7 +120,9 @@ class ContinuousRandomPolicy(Policy):
         else:
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
-    def act(self, obs: rlt.FeatureData) -> rlt.ActorOutput:
+    def act(
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+    ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
