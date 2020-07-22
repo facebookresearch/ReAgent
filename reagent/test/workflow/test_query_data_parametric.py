@@ -5,11 +5,16 @@ import logging
 import unittest
 
 import numpy as np
-import pandas
+
+# pyre-fixme[21]: Could not find `pytest`.
 import pytest
+
+# pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import asc
-from reagent.test.environment.environment import MultiStepSamples
+
+# pyre-fixme[21]: Could not find `workflow`.
 from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
+from reagent.test.workflow.test_data.ex_mdps import generate_parametric_mdp_pandas_df
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.types import Dataset, TableSpec
 
@@ -18,87 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 def generate_data_parametric(sqlCtx, multi_steps: bool, table_name: str):
-    # Simulate the following MDP:
-    # state: 0, action: 7 ('L'), reward: 0,
-    # state: 1, action: 8 ('R'), reward: 1,
-    # state: 4, action: 9 ('U'), reward: 4,
-    # state: 5, action: 10 ('D'), reward: 5,
-    # state: 6 (terminal)
-    actions = [{7: 1}, {8: 1}, {9: 1}, {10: 1}]
-    possible_actions = [
-        [{7: 1}, {8: 1}],
-        [{8: 1}, {9: 1}],
-        [{9: 1}, {10: 1}],
-        [{10: 1}],
-    ]
-
-    # assume multi_step=2
-    if multi_steps:
-        rewards = [[0, 1], [1, 4], [4, 5], [5]]
-        metrics = [
-            [{"reward": 0}, {"reward": 1}],
-            [{"reward": 1}, {"reward": 4}],
-            [{"reward": 4}, {"reward": 5}],
-            [{"reward": 5}],
-        ]
-        next_states = [[{1: 1}, {4: 1}], [{4: 1}, {5: 1}], [{5: 1}, {6: 1}], [{6: 1}]]
-        next_actions = [[{8: 1}, {9: 1}], [{9: 1}, {10: 1}], [{10: 1}, {}], [{}]]
-        possible_next_actions = [
-            [[{8: 1}, {9: 1}], [{9: 1}, {10: 1}]],
-            [[{9: 1}, {10: 1}], [{10: 1}]],
-            [[{10: 1}], [{}]],
-            [[{}]],
-        ]
-        terminals = [[0, 0], [0, 0], [0, 1], [1]]
-        time_diffs = [[1, 1], [1, 1], [1, 1], [1]]
-    else:
-        rewards = [[0], [1], [4], [5]]
-        metrics = [{"reward": 0}, {"reward": 1}, {"reward": 4}, {"reward": 5}]  # noqa
-        next_states = [[{1: 1}], [{4: 1}], [{5: 1}], [{6: 1}]]
-        next_actions = [[{8: 1}], [{9: 1}], [{10: 1}], [{}]]
-        possible_next_actions = [
-            [[{8: 1}, {9: 1}]],
-            [[{9: 1}, {10: 1}]],
-            [[{10: 1}]],
-            [[{}]],
-        ]
-        terminals = [[0], [0], [0], [1]]
-        time_diffs = [1, 3, 1, 1]  # noqa
-
-    samples = MultiStepSamples(
-        mdp_ids=["0", "0", "0", "0"],
-        sequence_numbers=[0, 1, 4, 5],
-        sequence_number_ordinals=[1, 2, 3, 4],
-        states=[{0: 1}, {1: 1}, {4: 1}, {5: 1}],
-        actions=actions,
-        action_probabilities=[0.3, 0.4, 0.5, 0.6],
-        rewards=rewards,
-        possible_actions=possible_actions,
-        next_states=next_states,
-        next_actions=next_actions,
-        terminals=terminals,
-        possible_next_actions=possible_next_actions,
-    )
-    if not multi_steps:
-        samples = samples.to_single_step()
-
-    next_state_features = samples.next_states
-    next_actions = samples.next_actions
-
-    df = pandas.DataFrame(
-        {
-            "mdp_id": samples.mdp_ids,
-            "sequence_number": samples.sequence_numbers,
-            "sequence_number_ordinal": samples.sequence_number_ordinals,
-            "state_features": samples.states,
-            "action": samples.actions,
-            "action_probability": samples.action_probabilities,
-            "reward": samples.rewards,
-            "next_state_features": next_state_features,
-            "next_action": next_actions,
-            "time_diff": time_diffs,
-            "metrics": metrics,
-        }
+    # pyre-fixme[16]: Module `test` has no attribute `workflow`.
+    df, _ = generate_parametric_mdp_pandas_df(
+        multi_steps=multi_steps, use_seq_num_diff_as_time_diff=False
     )
     df = sqlCtx.createDataFrame(df)
     logger.info("Created dataframe")
@@ -106,6 +33,7 @@ def generate_data_parametric(sqlCtx, multi_steps: bool, table_name: str):
     df.createOrReplaceTempView(table_name)
 
 
+# pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
 class TestQueryDataParametric(ReagentSQLTestBase):
     def setUp(self):
         super().setUp()

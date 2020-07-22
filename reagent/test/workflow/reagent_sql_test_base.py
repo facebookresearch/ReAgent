@@ -8,8 +8,12 @@ import shutil
 
 import numpy as np
 import torch
+
+# pyre-fixme[21]: Could not find `pyspark`.
 from pyspark import SparkConf
 from reagent.workflow.spark_utils import DEFAULT_SPARK_CONFIG
+
+# pyre-fixme[21]: Could not find `sparktestingbase`.
 from sparktestingbase.sqltestcase import SQLTestCase
 
 
@@ -24,6 +28,7 @@ HIVE_METASTORE = "metastore_db"
 GLOBAL_TEST_CLASS_COUNTER = 0
 
 
+# pyre-fixme[11]: Annotation `SQLTestCase` is not defined as a type.
 class ReagentSQLTestBase(SQLTestCase):
     def getConf(self):
         conf = SparkConf()
