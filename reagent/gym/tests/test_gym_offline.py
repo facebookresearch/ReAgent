@@ -4,9 +4,11 @@ import logging
 import os
 import pprint
 import unittest
-from typing import Optional
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `pytest`.
+import pytest
 import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
@@ -61,6 +63,7 @@ class TestGymOffline(HorizonTestBase):
 
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
+    @pytest.mark.serial
     # pyre-fixme[56]: Argument `not torch.cuda.is_available()` to decorator factory
     #  `unittest.skipIf` could not be resolved in a global scope.
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")

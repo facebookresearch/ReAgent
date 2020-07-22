@@ -42,5 +42,7 @@ except ImportError:
             selected_fields = [
                 field.name for field in fields(self) if getattr(self, field.name, None)
             ]
-            assert len(selected_fields) == 1, f"Expecting one selected field"
+            assert (
+                len(selected_fields) == 1
+            ), f"{self} Expecting one selected field, got {selected_fields}"
             return getattr(self, selected_fields[0])
