@@ -4,9 +4,9 @@ import logging
 import os
 import pprint
 import unittest
-from typing import Optional
 
 import numpy as np
+import pytest
 import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
@@ -49,11 +49,10 @@ GYM_TESTS = [
         "Parametric SARSA Cartpole",
         "configs/cartpole/parametric_sarsa_cartpole_online.yaml",
     ),
-    # TODO: fix this for GPU
-    # (
-    #     "Sparse DQN Changing Arms",
-    #     "configs/sparse/discrete_dqn_changing_arms_online.yaml",
-    # ),
+    (
+        "Sparse DQN Changing Arms",
+        "configs/sparse/discrete_dqn_changing_arms_online.yaml",
+    ),
     ("SlateQ RecSim", "configs/recsim/slate_q_recsim_online.yaml"),
     ("PossibleActionsMask DQN", "configs/functionality/dqn_possible_actions_mask.yaml"),
 ]
@@ -66,6 +65,7 @@ class TestGym(HorizonTestBase):
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
     def test_gym_cpu(self, name: str, config_path: str):
+        logger.info(f"Starting {name} on CPU")
         self.run_from_config(
             run_test=run_test,
             config_path=os.path.join(curr_dir, config_path),
@@ -75,10 +75,10 @@ class TestGym(HorizonTestBase):
 
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
-    # pyre-fixme[56]: Argument `not torch.cuda.is_available()` to decorator factory
-    #  `unittest.skipIf` could not be resolved in a global scope.
+    @pytest.mark.serial
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_gym_gpu(self, name: str, config_path: str):
+        logger.info(f"Starting {name} on GPU")
         self.run_from_config(
             run_test=run_test,
             config_path=os.path.join(curr_dir, config_path),
@@ -170,11 +170,11 @@ def run_test(
 
     logger.info("============Eval rewards==============")
     logger.info(eval_rewards)
-    logger.info(f"average: {np.mean(eval_rewards)};\tmax: {np.max(eval_rewards)}")
-    assert np.mean(eval_rewards) >= passing_score_bar, (
-        f"Predictor reward is {np.mean(eval_rewards)},"
-        f"less than < {passing_score_bar}.\n"
-    )
+    mean_eval = np.mean(eval_rewards)
+    logger.info(f"average: {mean_eval};\tmax: {np.max(eval_rewards)}")
+    assert (
+        mean_eval >= passing_score_bar
+    ), f"Eval reward is {mean_eval}, less than < {passing_score_bar}.\n"
 
 
 if __name__ == "__main__":
