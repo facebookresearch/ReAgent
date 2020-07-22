@@ -5,8 +5,12 @@ import logging
 import unittest
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find `pytest`.
 import pytest
 from reagent.preprocessing.identify_types import CONTINUOUS
+
+# pyre-fixme[21]: Could not find `workflow`.
 from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import PreprocessingOptions, TableSpec
@@ -19,6 +23,7 @@ COL_NAME = "states"
 TABLE_NAME = "test_table"
 
 
+# pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
 class TestPreprocessing(ReagentSQLTestBase):
     def setUp(self):
         super().setUp()
