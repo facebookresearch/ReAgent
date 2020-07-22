@@ -124,30 +124,26 @@ class FloatFeatureInfo(BaseDataClass):
     feature_id: int
 
 
-@dataclass
+@pydantic_dataclass
 class IdMapping(object):
     __hash__ = param_hash
 
-    def __init__(self, ids: List[int]):
-        self._ids: List[int] = ids
+    ids: List[int] = field(default_factory=list)
 
-    @property
-    def ids(self) -> List[int]:
-        return self._ids
-
-    @property
-    def id2index(self) -> Dict[int, int]:
+    def __post_init_post_parse__(self):
         """
         used in preprocessing
         ids list represents mapping from idx -> value
         we want the reverse: from feature to embedding table indices
         """
-        try:
-            # pyre-fixme[16]: `IdMapping` has no attribute `_id2index`.
-            return self._id2index
-        except AttributeError:
+        self._id2index: Dict[int, int] = {}
+
+    @property
+    def id2index(self) -> Dict[int, int]:
+        # pyre-fixme[16]: `IdMapping` has no attribute `_id2index`.
+        if not self._id2index:
             self._id2index = {id: i for i, id in enumerate(self.ids)}
-            return self._id2index
+        return self._id2index
 
     @property
     def table_size(self):

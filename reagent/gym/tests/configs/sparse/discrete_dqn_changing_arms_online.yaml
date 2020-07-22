@@ -1,5 +1,6 @@
 env:
   ChangingArms:
+    num_arms: 5
 model:
   DiscreteDQN:
     trainer_param:
@@ -12,14 +13,14 @@ model:
       - 5
       rl:
         gamma: 1.0
-        target_update_rate: 0.2
+        target_update_rate: 0.1
         maxq_learning: true
-        temperature: 1.0
+        temperature: 10.0
       double_q_learning: true
-      minibatch_size: 512
+      minibatch_size: 256
       minibatches_per_step: 1
       optimizer:
-        Adam:
+        AdamW:
           lr: 0.01
     net_builder:
       FullyConnectedWithEmbedding:
@@ -69,10 +70,10 @@ model:
               - 1500002
               - 1500003
               - 1500004
-replay_memory_size: 50000
+replay_memory_size: 100000
 train_every_ts: 1
-train_after_ts: 10000
-num_train_episodes: 20
+train_after_ts: 20000
+num_train_episodes: 10
 num_eval_episodes: 10
 passing_score_bar: 200
 use_gpu: false
