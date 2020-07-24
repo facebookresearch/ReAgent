@@ -31,9 +31,11 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         policy_optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        print_interval: int = 100,
     ) -> None:
         self.parameters = parameters
         self.use_gpu = use_gpu
+        self.print_interval = print_interval
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
@@ -70,7 +72,8 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         loss = loss.detach().cpu().numpy()
         log_probs = log_probs.detach()
         self.minibatch += 1
-        logger.info(f"{self.minibatch} batch: loss={loss}")
+        if self.minibatch % self.print_interval == 0:
+            logger.info(f"{self.minibatch} batch: loss={loss}")
 
         return log_probs, loss
 
