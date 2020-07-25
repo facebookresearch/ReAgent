@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
-from typing import Optional
 
 import reagent.types as rlt
 import torch
@@ -15,6 +14,7 @@ from reagent.models.seq2slate import (
 )
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
+from reagent.training.ranking.helper import ips_clamp
 from reagent.training.trainer import Trainer
 
 
@@ -73,12 +73,9 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
             importance_sampling = (
                 torch.exp(per_seq_log_probs) / training_input.tgt_out_probs
             )
-            if self.parameters.importance_sampling_clamp_max is not None:
-                importance_sampling = torch.clamp(
-                    importance_sampling,
-                    0,
-                    self.parameters.importance_sampling_clamp_max,
-                )
+            importance_sampling = ips_clamp(
+                importance_sampling, self.parameters.ips_clamp
+            )
         else:
             importance_sampling = (
                 torch.exp(per_seq_log_probs) / torch.exp(per_seq_log_probs).detach()

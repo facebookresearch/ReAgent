@@ -6,8 +6,7 @@ from typing import Dict, List, Optional
 from reagent.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass, field
-from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters_seq2slate import LearningMethod, RewardClamp
+from reagent.parameters_seq2slate import IPSClamp, LearningMethod, RewardClamp
 
 
 # For TD3 and SAC: actions are normalized in this range for training and
@@ -172,7 +171,7 @@ class BaselineParameters(BaseDataClass):
 class Seq2SlateParameters(BaseDataClass):
     on_policy: bool = True
     learning_method: LearningMethod = LearningMethod.REINFORCEMENT_LEARNING
-    importance_sampling_clamp_max: Optional[float] = None
+    ips_clamp: Optional[IPSClamp] = None
     simulation_reward_clamp: Optional[RewardClamp] = None
     # penalize sequences far away from prod
     simulation_distance_penalty: Optional[float] = None

@@ -3,7 +3,6 @@
 import logging
 from typing import Optional, Tuple
 
-import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import field
@@ -11,6 +10,7 @@ from reagent.core.tracker import observable
 from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
+from reagent.training.ranking.helper import ips_clamp
 from reagent.training.trainer import Trainer
 
 
@@ -79,11 +79,8 @@ class Seq2SlateTrainer(Trainer):
             and model_propensities.shape[1] == 1
         ), f"{model_propensities.shape} {logged_propensities.shape}"
 
-        clamped_impt_smpl = impt_smpl = model_propensities / logged_propensities
-        if self.parameters.importance_sampling_clamp_max is not None:
-            clamped_impt_smpl = torch.clamp(
-                impt_smpl, 0, self.parameters.importance_sampling_clamp_max
-            )
+        impt_smpl = model_propensities / logged_propensities
+        clamped_impt_smpl = ips_clamp(impt_smpl, self.parameters.ips_clamp)
         return impt_smpl, clamped_impt_smpl
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
@@ -169,14 +166,13 @@ class Seq2SlateTrainer(Trainer):
         self.minibatch += 1
         if self.minibatch % self.print_interval == 0:
             logger.info(
-                "{} batch: obj_rl_loss={}, ips_rl_loss={}, baseline_loss={}, max_ips={}, mean_ips={}, clamp={}".format(
+                "{} batch: obj_rl_loss={}, ips_rl_loss={}, baseline_loss={}, max_ips={}, mean_ips={}".format(
                     self.minibatch,
                     obj_rl_loss,
                     ips_rl_loss,
                     baseline_loss,
                     torch.max(impt_smpl),
                     torch.mean(impt_smpl),
-                    self.parameters.importance_sampling_clamp_max,
                 )
             )
         # See RankingTrainingPageHandler.finish() function in page_handler.py
