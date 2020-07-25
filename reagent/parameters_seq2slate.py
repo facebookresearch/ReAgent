@@ -26,3 +26,18 @@ class LearningMethod(Enum):
 class RewardClamp:
     clamp_min: Optional[float] = None
     clamp_max: Optional[float] = None
+
+
+class IPSClampMethod(Enum):
+    # set tgt_propensity / log_propensity <= clamp_max
+    UNIVERSAL = "universal"
+
+    # set tgt_propensity / log_propensity = 0 if >= clamp_max
+    # Bottou et. al JMLR 2013 (Counterfactual Reasoning and Learning Systems)
+    AGGRESSIVE = "aggressive"
+
+
+@dataclass(frozen=True)
+class IPSClamp:
+    clamp_method: IPSClampMethod
+    clamp_max: float
