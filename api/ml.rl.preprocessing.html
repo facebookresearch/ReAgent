@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ml.rl.preprocessing package &mdash; Horizon 1.0 documentation</title>
+  <title>ml.rl.preprocessing package &mdash; ReAgent 1.0 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ml.rl.simulators package" href="ml.rl.simulators.html" />
-    <link rel="prev" title="ml.rl.workflow package" href="ml.rl.workflow.html" /> 
+    <link rel="next" title="ml.rl.readers package" href="ml.rl.readers.html" />
+    <link rel="prev" title="ml.rl.prediction package" href="ml.rl.prediction.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +50,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> Horizon
+            <a href="../index.html" class="icon icon-home"> ReAgent
           
 
           
@@ -89,26 +89,30 @@
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.batch_preprocessor">ml.rl.preprocessing.batch_preprocessor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.feature_extractor">ml.rl.preprocessing.feature_extractor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.identify_types">ml.rl.preprocessing.identify_types module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.normalization">ml.rl.preprocessing.normalization module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.postprocessor">ml.rl.preprocessing.postprocessor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.preprocessor">ml.rl.preprocessing.preprocessor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.preprocessor_net">ml.rl.preprocessing.preprocessor_net module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing.sparse_to_dense">ml.rl.preprocessing.sparse_to_dense module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-batch-preprocessor-module">ml.rl.preprocessing.batch_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-feature-extractor-module">ml.rl.preprocessing.feature_extractor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-identify-types-module">ml.rl.preprocessing.identify_types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-normalization-module">ml.rl.preprocessing.normalization module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-postprocessor-module">ml.rl.preprocessing.postprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-preprocessor-module">ml.rl.preprocessing.preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-preprocessor-net-module">ml.rl.preprocessing.preprocessor_net module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-preprocessing-sparse-to-dense-module">ml.rl.preprocessing.sparse_to_dense module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.preprocessing">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Others</span></p>
@@ -129,7 +133,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">Horizon</a>
+          <a href="../index.html">ReAgent</a>
         
       </nav>
 
@@ -184,676 +188,29 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.preprocessing.batch_preprocessor">
-<span id="ml-rl-preprocessing-batch-preprocessor-module"></span><h2>ml.rl.preprocessing.batch_preprocessor module<a class="headerlink" href="#module-ml.rl.preprocessing.batch_preprocessor" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.batch_preprocessor.</code><code class="sig-name descname">BatchPreprocessor</code><a class="headerlink" href="#ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.batch_preprocessor.</code><code class="sig-name descname">DiscreteDqnBatchPreprocessor</code><span class="sig-paren">(</span><em class="sig-param">state_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor" title="ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.batch_preprocessor.</code><code class="sig-name descname">ParametricDqnBatchPreprocessor</code><span class="sig-paren">(</span><em class="sig-param">state_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em>, <em class="sig-param">action_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor" title="ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.batch_preprocessor.</code><code class="sig-name descname">PolicyNetworkBatchPreprocessor</code><span class="sig-paren">(</span><em class="sig-param">state_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em>, <em class="sig-param">action_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor" title="ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.batch_preprocessor.BatchPreprocessor</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.batch_preprocessor.SequentialDiscreteDqnBatchPreprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.batch_preprocessor.</code><code class="sig-name descname">SequentialDiscreteDqnBatchPreprocessor</code><span class="sig-paren">(</span><em class="sig-param">state_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em>, <em class="sig-param">action_dim: int</em>, <em class="sig-param">seq_len: int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.batch_preprocessor.SequentialDiscreteDqnBatchPreprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor" title="ml.rl.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.batch_preprocessor.SequentialParametricDqnBatchPreprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.batch_preprocessor.</code><code class="sig-name descname">SequentialParametricDqnBatchPreprocessor</code><span class="sig-paren">(</span><em class="sig-param">state_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em>, <em class="sig-param">action_preprocessor: ml.rl.preprocessing.preprocessor.Preprocessor</em>, <em class="sig-param">seq_len: int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.batch_preprocessor.SequentialParametricDqnBatchPreprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor" title="ml.rl.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor</span></code></a></p>
-</dd></dl>
-
+<div class="section" id="ml-rl-preprocessing-batch-preprocessor-module">
+<h2>ml.rl.preprocessing.batch_preprocessor module<a class="headerlink" href="#ml-rl-preprocessing-batch-preprocessor-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.preprocessing.feature_extractor">
-<span id="ml-rl-preprocessing-feature-extractor-module"></span><h2>ml.rl.preprocessing.feature_extractor module<a class="headerlink" href="#module-ml.rl.preprocessing.feature_extractor" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">FeatureExtractorBase</code><span class="sig-paren">(</span><em class="sig-param">model_feature_config: Optional[ml.rl.types.ModelFeatureConfig] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>This is not a transformer because Caffe2 has a weird API. We cannot directly
-call functions. It’s easier to handle separately.</p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_const">
-<code class="sig-name descname">create_const</code><span class="sig-paren">(</span><em class="sig-param">init_net</em>, <em class="sig-param">name</em>, <em class="sig-param">value</em>, <em class="sig-param">dtype=caffe2.python.core.DataType.FLOAT</em><span class="sig-paren">)</span> &#x2192; caffe2.python.core.BlobReference<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_const" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_empty_range">
-<code class="sig-name descname">create_empty_range</code><span class="sig-paren">(</span><em class="sig-param">init_net: caffe2.python.core.Net</em><span class="sig-paren">)</span> &#x2192; caffe2.python.core.BlobReference<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_empty_range" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_id_mapping">
-<code class="sig-name descname">create_id_mapping</code><span class="sig-paren">(</span><em class="sig-param">init_net: caffe2.python.core.Net, name: str, mapping: List[int]</em><span class="sig-paren">)</span> &#x2192; caffe2.python.core.BlobReference<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_id_mapping" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given the ID list in the mapping, create index from ID to its (1-base) index.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_id_mappings">
-<code class="sig-name descname">create_id_mappings</code><span class="sig-paren">(</span><em class="sig-param">init_net: caffe2.python.core.Net, id_mapping_configs: Dict[str, ml.rl.types.IdMapping]</em><span class="sig-paren">)</span> &#x2192; Dict[str, caffe2.python.core.BlobReference]<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_id_mappings" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_net">
-<em class="property">abstract </em><code class="sig-name descname">create_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ml.rl.preprocessing.feature_extractor.FeatureExtractorNet<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.create_net" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns FeatureExtractorNet to perform feature extraction.</p>
-<p>The returned net must have input &amp; output record set so that it can be
-bound to actual inputs/outputs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract">
-<code class="sig-name descname">extract</code><span class="sig-paren">(</span><em class="sig-param">ws</em>, <em class="sig-param">extract_record</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract" title="Permalink to this definition">¶</a></dt>
-<dd><p>If the extractor is to be run, e.g., by the reader, then subclass should
-implement</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>extract_record</strong> (<em>schema.Field</em>) – the output the net</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_float_features">
-<code class="sig-name descname">extract_float_features</code><span class="sig-paren">(</span><em class="sig-param">net</em>, <em class="sig-param">name</em>, <em class="sig-param">field</em>, <em class="sig-param">keys_to_extract</em>, <em class="sig-param">missing_scalar</em><span class="sig-paren">)</span> &#x2192; Tuple[str, str]<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_float_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to extract matrix from stacked  sparse tensors</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_id_list_features_ranges">
-<code class="sig-name descname">extract_id_list_features_ranges</code><span class="sig-paren">(</span><em class="sig-param">net: caffe2.python.core.Net, name: str, field: caffe2.python.schema.List, feature_names: List[str], feature_ids: List[int], empty_range: caffe2.python.core.BlobReference</em><span class="sig-paren">)</span> &#x2192; Dict[str, Dict[str, caffe2.python.core.BlobReference]]<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_id_list_features_ranges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the CSR-like format of ID-list to ranges and values.
-See <a class="reference external" href="https://caffe2.ai/docs/operators-catalogue#gatherranges">https://caffe2.ai/docs/operators-catalogue#gatherranges</a></p>
-<p>The return value is keyed by ID-list name</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_id_score_list_features_ranges">
-<code class="sig-name descname">extract_id_score_list_features_ranges</code><span class="sig-paren">(</span><em class="sig-param">net: caffe2.python.core.Net, name: str, field: caffe2.python.schema.List, feature_names: List[str], feature_ids: List[int], empty_range: caffe2.python.core.BlobReference</em><span class="sig-paren">)</span> &#x2192; Dict[str, Dict[str, caffe2.python.core.BlobReference]]<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_id_score_list_features_ranges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the CSR-like format of ID-score-list to ranges and values.
-See <a class="reference external" href="https://caffe2.ai/docs/operators-catalogue#gatherranges">https://caffe2.ai/docs/operators-catalogue#gatherranges</a></p>
-<p>The return value is keyed by ID-score-list name</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_sequence_float_features">
-<code class="sig-name descname">extract_sequence_float_features</code><span class="sig-paren">(</span><em class="sig-param">net: caffe2.python.core.Net, name: str, sequence_feature_types: Dict[str, Type[ml.rl.types.SequenceFeatureBase]], field: caffe2.python.schema.List, empty_range: caffe2.python.schema.BlobReference, zero_float: caffe2.python.schema.BlobReference</em><span class="sig-paren">)</span> &#x2192; Dict[str, caffe2.python.core.BlobReference]<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_sequence_float_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert CSR-like format of MAP&lt;BIGINT, MAP&lt;BIGINT, FLOAT&gt;&gt; to dictionary from
-sequence name to the blob containing the fixed-length sequence of vector of
-float features of each element. Each blob will be 3-D tensor. The first
-dimension is the batch size. The second dimension is each element in the list.
-The third dimension is ordered by the order given by
-<cite>SequenceFeatureBase.get_float_feature_infos()</cite>. These float features are not
-normalized.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_sequence_id_features">
-<code class="sig-name descname">extract_sequence_id_features</code><span class="sig-paren">(</span><em class="sig-param">net: caffe2.python.core.Net, name: str, sequence_feature_types: Dict[str, Type[ml.rl.types.SequenceFeatureBase]], sequence_id_features: Dict[str, Dict[str, ml.rl.types.IdFeatureConfig]], field: caffe2.python.schema.List, empty_range: caffe2.python.schema.BlobReference, zero_int64: caffe2.python.schema.BlobReference</em><span class="sig-paren">)</span> &#x2192; Dict[str, Dict[str, caffe2.python.core.BlobReference]]<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.extract_sequence_id_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert CSR-like format of MAP&lt;BIGINT, LIST&lt;BIGINT&gt;&gt; to dictionary from
-sequence name to dictionary from ID-list name to the blob containing the
-fixed-length sequence of IDs. Each blob will be 2-D tensor. The first dimension
-is the batch size. The second dimension is each element in the list.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.fetch">
-<em class="property">static </em><code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param">ws</em>, <em class="sig-param">b</em>, <em class="sig-param">to_torch=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.fetch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.fetch_state_sequence_features">
-<code class="sig-name descname">fetch_state_sequence_features</code><span class="sig-paren">(</span><em class="sig-param">record: caffe2.python.schema.Struct</em>, <em class="sig-param">fetch_func</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.SequenceFeatures<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.fetch_state_sequence_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pull the values from Caffe2’s blobs into PyTorch’s tensors.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.get_state_sequence_features_schema">
-<code class="sig-name descname">get_state_sequence_features_schema</code><span class="sig-paren">(</span><em class="sig-param">sequence_id_features: Dict[str, Dict[str, caffe2.python.core.BlobReference]], sequence_float_features: Dict[str, caffe2.python.core.BlobReference]</em><span class="sig-paren">)</span> &#x2192; caffe2.python.schema.Struct<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.get_state_sequence_features_schema" title="Permalink to this definition">¶</a></dt>
-<dd><p>Layout the record to match SequenceFeatures type. This is necessary to make ONNX
-exporting works.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.map_ids">
-<code class="sig-name descname">map_ids</code><span class="sig-paren">(</span><em class="sig-param">net: caffe2.python.core.Net</em>, <em class="sig-param">name: str</em>, <em class="sig-param">map_handler: caffe2.python.core.BlobReference</em>, <em class="sig-param">raw_ids: caffe2.python.core.BlobReference</em><span class="sig-paren">)</span> &#x2192; caffe2.python.core.BlobReference<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.map_ids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map raw ID to index (into embedding lookup table, usually)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.map_sequence_id_features">
-<code class="sig-name descname">map_sequence_id_features</code><span class="sig-paren">(</span><em class="sig-param">net: caffe2.python.core.Net, name: str, map_handlers: Dict[str, caffe2.python.core.BlobReference], raw_sequence_id_features: Dict[str, Dict[str, caffe2.python.core.BlobReference]], sequence_id_feature_configs: Dict[str, Dict[str, ml.rl.types.IdFeatureConfig]]</em><span class="sig-paren">)</span> &#x2192; Dict[str, Dict[str, caffe2.python.core.BlobReference]]<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.map_sequence_id_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map raw IDs of all sequences’ ID features to index (into embedding lookup table)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.range_to_dense">
-<code class="sig-name descname">range_to_dense</code><span class="sig-paren">(</span><em class="sig-param">net: caffe2.python.core.Net</em>, <em class="sig-param">name: str</em>, <em class="sig-param">ranges: caffe2.python.core.BlobReference</em>, <em class="sig-param">values: caffe2.python.core.BlobReference</em>, <em class="sig-param">max_length: int</em>, <em class="sig-param">zero_val: caffe2.python.core.BlobReference</em><span class="sig-paren">)</span> &#x2192; caffe2.python.core.BlobReference<a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.range_to_dense" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert batch of variable-length lists (in range format) to fixed-length lists.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.read_actions_to_mask">
-<code class="sig-name descname">read_actions_to_mask</code><span class="sig-paren">(</span><em class="sig-param">net</em>, <em class="sig-param">name</em>, <em class="sig-param">num_actions</em>, <em class="sig-param">action</em>, <em class="sig-param">action_size_plus_one</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase.read_actions_to_mask" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorNet">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">FeatureExtractorNet</code><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorNet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
-<p><cite>init_net</cite> will only be run once. The external outputs of <cite>init_net</cite> are
-assumed to be parameters of <cite>net</cite> and will be saved in the predictor file.
-<cite>net</cite> should not use any parameters not initialized by <cite>init_net</cite>.</p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorNet.init_net">
-<em class="property">property </em><code class="sig-name descname">init_net</code><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorNet.init_net" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.FeatureExtractorNet.net">
-<em class="property">property </em><code class="sig-name descname">net</code><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorNet.net" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">InputColumn</code><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.ACTION">
-<code class="sig-name descname">ACTION</code><em class="property"> = 'action'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.ACTION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.ACTION_PRESENCE">
-<code class="sig-name descname">ACTION_PRESENCE</code><em class="property"> = 'action_presence'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.ACTION_PRESENCE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.ACTION_PROBABILITY">
-<code class="sig-name descname">ACTION_PROBABILITY</code><em class="property"> = 'action_probability'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.ACTION_PROBABILITY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.MDP_ID">
-<code class="sig-name descname">MDP_ID</code><em class="property"> = 'mdp_id'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.MDP_ID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.METRICS">
-<code class="sig-name descname">METRICS</code><em class="property"> = 'metrics'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.METRICS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_ACTION">
-<code class="sig-name descname">NEXT_ACTION</code><em class="property"> = 'next_action'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_ACTION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_ACTION_PRESENCE">
-<code class="sig-name descname">NEXT_ACTION_PRESENCE</code><em class="property"> = 'next_action_presence'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_ACTION_PRESENCE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_FEATURES">
-<code class="sig-name descname">NEXT_STATE_FEATURES</code><em class="property"> = 'next_state_features'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_FEATURES_PRESENCE">
-<code class="sig-name descname">NEXT_STATE_FEATURES_PRESENCE</code><em class="property"> = 'next_state_features_presence'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_FEATURES_PRESENCE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_ID_LIST_FEATURES">
-<code class="sig-name descname">NEXT_STATE_ID_LIST_FEATURES</code><em class="property"> = 'next_state_id_list_features'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_ID_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES">
-<code class="sig-name descname">NEXT_STATE_ID_SCORE_LIST_FEATURES</code><em class="property"> = 'next_state_id_score_list_features'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.NOT_TERMINAL">
-<code class="sig-name descname">NOT_TERMINAL</code><em class="property"> = 'not_terminal'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.NOT_TERMINAL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_ACTIONS">
-<code class="sig-name descname">POSSIBLE_ACTIONS</code><em class="property"> = 'possible_actions'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_ACTIONS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_ACTIONS_MASK">
-<code class="sig-name descname">POSSIBLE_ACTIONS_MASK</code><em class="property"> = 'possible_actions_mask'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_ACTIONS_MASK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_ACTIONS_PRESENCE">
-<code class="sig-name descname">POSSIBLE_ACTIONS_PRESENCE</code><em class="property"> = 'possible_actions_presence'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_ACTIONS_PRESENCE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_NEXT_ACTIONS">
-<code class="sig-name descname">POSSIBLE_NEXT_ACTIONS</code><em class="property"> = 'possible_next_actions'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_NEXT_ACTIONS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_NEXT_ACTIONS_MASK">
-<code class="sig-name descname">POSSIBLE_NEXT_ACTIONS_MASK</code><em class="property"> = 'possible_next_actions_mask'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_NEXT_ACTIONS_MASK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_NEXT_ACTIONS_PRESENCE">
-<code class="sig-name descname">POSSIBLE_NEXT_ACTIONS_PRESENCE</code><em class="property"> = 'possible_next_actions_presence'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.POSSIBLE_NEXT_ACTIONS_PRESENCE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.REWARD">
-<code class="sig-name descname">REWARD</code><em class="property"> = 'reward'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.REWARD" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.SEQUENCE_NUMBER">
-<code class="sig-name descname">SEQUENCE_NUMBER</code><em class="property"> = 'sequence_number'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.SEQUENCE_NUMBER" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.STATE_FEATURES">
-<code class="sig-name descname">STATE_FEATURES</code><em class="property"> = 'state_features'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.STATE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.STATE_FEATURES_PRESENCE">
-<code class="sig-name descname">STATE_FEATURES_PRESENCE</code><em class="property"> = 'state_features_presence'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.STATE_FEATURES_PRESENCE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.STATE_ID_LIST_FEATURES">
-<code class="sig-name descname">STATE_ID_LIST_FEATURES</code><em class="property"> = 'state_id_list_features'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.STATE_ID_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.STATE_ID_SCORE_LIST_FEATURES">
-<code class="sig-name descname">STATE_ID_SCORE_LIST_FEATURES</code><em class="property"> = 'state_id_score_list_features'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.STATE_ID_SCORE_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.STEP">
-<code class="sig-name descname">STEP</code><em class="property"> = 'step'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.STEP" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.TIME_DIFF">
-<code class="sig-name descname">TIME_DIFF</code><em class="property"> = 'time_diff'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.TIME_DIFF" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ml.rl.preprocessing.feature_extractor.InputColumn.TIME_SINCE_FIRST">
-<code class="sig-name descname">TIME_SINCE_FIRST</code><em class="property"> = 'time_since_first'</em><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.InputColumn.TIME_SINCE_FIRST" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.feature_extractor.PredictorFeatureExtractor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">PredictorFeatureExtractor</code><span class="sig-paren">(</span><em class="sig-param">state_normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], action_normalization_parameters: Optional[Dict[int, ml.rl.parameters.NormalizationParameters]] = None, normalize: bool = True, set_missing_value_to_zero: bool = False, model_feature_config: Optional[ml.rl.types.ModelFeatureConfig] = None, use_time_since_first: Optional[bool] = None, time_since_first_normalization_parameters: Optional[ml.rl.parameters.NormalizationParameters] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.PredictorFeatureExtractor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase" title="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.feature_extractor.FeatureExtractorBase</span></code></a></p>
-<p>This class assumes that action is not in the input unless it’s parametric
-action.</p>
-<p>The features (of both states &amp; actions, if any) are expected to come in the
-following blobs:
-- input/float_features.keys
-- input/float_features.values
-- input/float_features.lengths</p>
-<p>TODO: Support int features</p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.PredictorFeatureExtractor.create_net">
-<code class="sig-name descname">create_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.PredictorFeatureExtractor.create_net" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns FeatureExtractorNet to perform feature extraction.</p>
-<p>The returned net must have input &amp; output record set so that it can be
-bound to actual inputs/outputs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.PredictorFeatureExtractor.extract">
-<code class="sig-name descname">extract</code><span class="sig-paren">(</span><em class="sig-param">ws</em>, <em class="sig-param">extract_record</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.PredictorFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
-<dd><p>If the extractor is to be run, e.g., by the reader, then subclass should
-implement</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>extract_record</strong> (<em>schema.Field</em>) – the output the net</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.feature_extractor.TrainingFeatureExtractor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">TrainingFeatureExtractor</code><span class="sig-paren">(</span><em class="sig-param">state_normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], action_normalization_parameters: Optional[Dict[int, ml.rl.parameters.NormalizationParameters]] = None, include_possible_actions: bool = True, normalize: bool = True, max_num_actions: int = None, set_missing_value_to_zero: bool = None, multi_steps: Optional[int] = None, metrics_to_score: Optional[List[str]] = None, model_feature_config: Optional[ml.rl.types.ModelFeatureConfig] = None, use_time_since_first: Optional[bool] = None, time_since_first_normalization_parameters: Optional[ml.rl.parameters.NormalizationParameters] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.TrainingFeatureExtractor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase" title="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.feature_extractor.FeatureExtractorBase</span></code></a></p>
-<p>Extract:
-- State
-- Action
-- Next state
-- Possible next actions/Next actions</p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.TrainingFeatureExtractor.create_net">
-<code class="sig-name descname">create_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.TrainingFeatureExtractor.create_net" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns FeatureExtractorNet to perform feature extraction.</p>
-<p>The returned net must have input &amp; output record set so that it can be
-bound to actual inputs/outputs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.TrainingFeatureExtractor.extract">
-<code class="sig-name descname">extract</code><span class="sig-paren">(</span><em class="sig-param">ws</em>, <em class="sig-param">extract_record</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.TrainingFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
-<dd><p>If the extractor is to be run, e.g., by the reader, then subclass should
-implement</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>extract_record</strong> (<em>schema.Field</em>) – the output the net</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.feature_extractor.WorldModelFeatureExtractor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">WorldModelFeatureExtractor</code><span class="sig-paren">(</span><em class="sig-param">seq_len, state_normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], action_normalization_parameters: Optional[Dict[int, ml.rl.parameters.NormalizationParameters]] = None, discrete_action_names: Optional[List[str]] = None, normalize: Optional[bool] = True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.WorldModelFeatureExtractor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.feature_extractor.FeatureExtractorBase" title="ml.rl.preprocessing.feature_extractor.FeatureExtractorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.feature_extractor.FeatureExtractorBase</span></code></a></p>
-<p>Extract:
-- State
-- Action
-- Next state
-- Reward
-- Not terminal</p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.WorldModelFeatureExtractor.create_net">
-<code class="sig-name descname">create_net</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.WorldModelFeatureExtractor.create_net" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns FeatureExtractorNet to perform feature extraction.</p>
-<p>The returned net must have input &amp; output record set so that it can be
-bound to actual inputs/outputs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.feature_extractor.WorldModelFeatureExtractor.extract">
-<code class="sig-name descname">extract</code><span class="sig-paren">(</span><em class="sig-param">ws</em>, <em class="sig-param">extract_record</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.WorldModelFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
-<dd><p>If the extractor is to be run, e.g., by the reader, then subclass should
-implement</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>extract_record</strong> (<em>schema.Field</em>) – the output the net</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.feature_extractor.id_list_schema">
-<code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">id_list_schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.id_list_schema" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.feature_extractor.id_score_list_schema">
-<code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">id_score_list_schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.id_score_list_schema" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.feature_extractor.map_schema">
-<code class="sig-prename descclassname">ml.rl.preprocessing.feature_extractor.</code><code class="sig-name descname">map_schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.feature_extractor.map_schema" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="ml-rl-preprocessing-feature-extractor-module">
+<h2>ml.rl.preprocessing.feature_extractor module<a class="headerlink" href="#ml-rl-preprocessing-feature-extractor-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.preprocessing.identify_types">
-<span id="ml-rl-preprocessing-identify-types-module"></span><h2>ml.rl.preprocessing.identify_types module<a class="headerlink" href="#module-ml.rl.preprocessing.identify_types" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ml.rl.preprocessing.identify_types.identify_type">
-<code class="sig-prename descclassname">ml.rl.preprocessing.identify_types.</code><code class="sig-name descname">identify_type</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">enum_threshold=100</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.identify_types.identify_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="ml-rl-preprocessing-identify-types-module">
+<h2>ml.rl.preprocessing.identify_types module<a class="headerlink" href="#ml-rl-preprocessing-identify-types-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.preprocessing.normalization">
-<span id="ml-rl-preprocessing-normalization-module"></span><h2>ml.rl.preprocessing.normalization module<a class="headerlink" href="#module-ml.rl.preprocessing.normalization" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.preprocessing.normalization.NumpyEncoder">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">NumpyEncoder</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">skipkeys=False</em>, <em class="sig-param">ensure_ascii=True</em>, <em class="sig-param">check_circular=True</em>, <em class="sig-param">allow_nan=True</em>, <em class="sig-param">sort_keys=False</em>, <em class="sig-param">indent=None</em>, <em class="sig-param">separators=None</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.NumpyEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.normalization.NumpyEncoder.default">
-<code class="sig-name descname">default</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.NumpyEncoder.default" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implement this method in a subclass such that it returns
-a serializable object for <code class="docutils literal notranslate"><span class="pre">o</span></code>, or calls the base implementation
-(to raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>).</p>
-<p>For example, to support arbitrary iterators, you could
-implement default like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">iterable</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-        <span class="k">pass</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
-    <span class="c1"># Let the base class default method raise the TypeError</span>
-    <span class="k">return</span> <span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
-</pre></div>
+<div class="section" id="ml-rl-preprocessing-normalization-module">
+<h2>ml.rl.preprocessing.normalization module<a class="headerlink" href="#ml-rl-preprocessing-normalization-module" title="Permalink to this headline">¶</a></h2>
 </div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.construct_action_scale_tensor">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">construct_action_scale_tensor</code><span class="sig-paren">(</span><em class="sig-param">action_norm_params</em>, <em class="sig-param">action_scale_overrides</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.construct_action_scale_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct tensors that will rescale each action value on each dimension i
-from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.deserialize">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">deserialize</code><span class="sig-paren">(</span><em class="sig-param">parameters_json</em><span class="sig-paren">)</span> &#x2192; Dict[int, ml.rl.parameters.NormalizationParameters]<a class="headerlink" href="#ml.rl.preprocessing.normalization.deserialize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.get_action_output_parameters">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">get_action_output_parameters</code><span class="sig-paren">(</span><em class="sig-param">action_normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_action_output_parameters" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.get_feature_norm_metadata">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">get_feature_norm_metadata</code><span class="sig-paren">(</span><em class="sig-param">feature_name</em>, <em class="sig-param">feature_value_list</em>, <em class="sig-param">norm_params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_feature_norm_metadata" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.get_feature_start_indices">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">get_feature_start_indices</code><span class="sig-paren">(</span><em class="sig-param">sorted_features</em>, <em class="sig-param">normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_feature_start_indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the starting index for each feature in the output feature vector</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.get_num_output_features">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">get_num_output_features</code><span class="sig-paren">(</span><em class="sig-param">normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.get_num_output_features" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.identify_parameter">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">identify_parameter</code><span class="sig-paren">(</span><em class="sig-param">feature_name</em>, <em class="sig-param">values</em>, <em class="sig-param">max_unique_enum_values=100</em>, <em class="sig-param">quantile_size=20</em>, <em class="sig-param">quantile_k2_threshold=1000.0</em>, <em class="sig-param">skip_box_cox=False</em>, <em class="sig-param">skip_quantiles=False</em>, <em class="sig-param">feature_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.identify_parameter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.no_op_feature">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">no_op_feature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.no_op_feature" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.serialize">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">serialize</code><span class="sig-paren">(</span><em class="sig-param">parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.serialize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.serialize_one">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">serialize_one</code><span class="sig-paren">(</span><em class="sig-param">feature_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.serialize_one" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.preprocessing.normalization.sort_features_by_normalization">
-<code class="sig-prename descclassname">ml.rl.preprocessing.normalization.</code><code class="sig-name descname">sort_features_by_normalization</code><span class="sig-paren">(</span><em class="sig-param">normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.normalization.sort_features_by_normalization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to return a sorted list from a normalization map.
-Also returns the starting index for each feature type</p>
-</dd></dl>
-
+<div class="section" id="ml-rl-preprocessing-postprocessor-module">
+<h2>ml.rl.preprocessing.postprocessor module<a class="headerlink" href="#ml-rl-preprocessing-postprocessor-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.preprocessing.postprocessor">
-<span id="ml-rl-preprocessing-postprocessor-module"></span><h2>ml.rl.preprocessing.postprocessor module<a class="headerlink" href="#module-ml.rl.preprocessing.postprocessor" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.preprocessing.postprocessor.Postprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.postprocessor.</code><code class="sig-name descname">Postprocessor</code><span class="sig-paren">(</span><em class="sig-param">normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.postprocessor.Postprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
-<p>Inverting action</p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.postprocessor.Postprocessor.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">input: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#ml.rl.preprocessing.postprocessor.Postprocessor.forward" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.postprocessor.Postprocessor.input_prototype">
-<code class="sig-name descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor]<a class="headerlink" href="#ml.rl.preprocessing.postprocessor.Postprocessor.input_prototype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="ml-rl-preprocessing-preprocessor-module">
+<h2>ml.rl.preprocessing.preprocessor module<a class="headerlink" href="#ml-rl-preprocessing-preprocessor-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.preprocessing.preprocessor">
-<span id="ml-rl-preprocessing-preprocessor-module"></span><h2>ml.rl.preprocessing.preprocessor module<a class="headerlink" href="#module-ml.rl.preprocessing.preprocessor" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.preprocessing.preprocessor.Preprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.preprocessor.</code><code class="sig-name descname">Preprocessor</code><span class="sig-paren">(</span><em class="sig-param">normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.preprocessor.Preprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.preprocessor.Preprocessor.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">input: torch.Tensor</em>, <em class="sig-param">input_presence_byte: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#ml.rl.preprocessing.preprocessor.Preprocessor.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Preprocess the input matrix
-:param input tensor</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.preprocessor.Preprocessor.input_prototype">
-<code class="sig-name descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor]<a class="headerlink" href="#ml.rl.preprocessing.preprocessor.Preprocessor.input_prototype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="ml-rl-preprocessing-preprocessor-net-module">
+<h2>ml.rl.preprocessing.preprocessor_net module<a class="headerlink" href="#ml-rl-preprocessing-preprocessor-net-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.preprocessing.preprocessor_net">
-<span id="ml-rl-preprocessing-preprocessor-net-module"></span><h2>ml.rl.preprocessing.preprocessor_net module<a class="headerlink" href="#module-ml.rl.preprocessing.preprocessor_net" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.preprocessing.preprocessor_net.PreprocessorNet">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.preprocessor_net.</code><code class="sig-name descname">PreprocessorNet</code><a class="headerlink" href="#ml.rl.preprocessing.preprocessor_net.PreprocessorNet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.preprocessor_net.PreprocessorNet.normalize_dense_matrix">
-<code class="sig-name descname">normalize_dense_matrix</code><span class="sig-paren">(</span><em class="sig-param">input_matrix: str, features: List[int], normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], blobname_prefix: str, split_expensive_feature_groups: bool</em><span class="sig-paren">)</span> &#x2192; Tuple[str, List[str]]<a class="headerlink" href="#ml.rl.preprocessing.preprocessor_net.PreprocessorNet.normalize_dense_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Normalizes inputs according to parameters. Expects a dense matrix whose ith
-column corresponds to feature i.</p>
-<p>Note that the Caffe2 BatchBoxCox operator isn’t implemented on CUDA GPU so
-we need to use a CPU context.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>input_matrix</strong> – Input matrix to normalize.</p></li>
-<li><p><strong>features</strong> – Array that maps feature ids to column indices.</p></li>
-<li><p><strong>normalization_parameters</strong> – Mapping from feature names to
-NormalizationParameters.</p></li>
-<li><p><strong>blobname_prefix</strong> – Prefix for input blobs to norm_net.</p></li>
-<li><p><strong>num_output_features</strong> – The number of features in an output processed
-datapoint. If set to None, this function will compute it.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.preprocessing.preprocessor_net.PreprocessorNet.preprocess_blob">
-<code class="sig-name descname">preprocess_blob</code><span class="sig-paren">(</span><em class="sig-param">blob</em>, <em class="sig-param">normalization_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.preprocessor_net.PreprocessorNet.preprocess_blob" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes in a blob and its normalization parameters. Outputs a tuple
-whose first element is a blob containing the normalized input blob
-and whose second element contains all the parameter blobs used to
-create it.</p>
-<p>Call this from a CPU context and ensure the input blob exists in it.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-ml.rl.preprocessing.sparse_to_dense">
-<span id="ml-rl-preprocessing-sparse-to-dense-module"></span><h2>ml.rl.preprocessing.sparse_to_dense module<a class="headerlink" href="#module-ml.rl.preprocessing.sparse_to_dense" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.preprocessing.sparse_to_dense.Caffe2SparseToDenseProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.sparse_to_dense.</code><code class="sig-name descname">Caffe2SparseToDenseProcessor</code><span class="sig-paren">(</span><em class="sig-param">sorted_features: List[int], set_missing_value_to_zero: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.sparse_to_dense.Caffe2SparseToDenseProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor" title="ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.sparse_to_dense.Caffe2SparseToDenseProcessor.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param">sparse_data: ml.rl.caffe_utils.StackedAssociativeArray</em><span class="sig-paren">)</span> &#x2192; Tuple[str, str, List[str]]<a class="headerlink" href="#ml.rl.preprocessing.sparse_to_dense.Caffe2SparseToDenseProcessor.process" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.sparse_to_dense.PandasSparseToDenseProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.sparse_to_dense.</code><code class="sig-name descname">PandasSparseToDenseProcessor</code><span class="sig-paren">(</span><em class="sig-param">sorted_features: List[int], set_missing_value_to_zero: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.sparse_to_dense.PandasSparseToDenseProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor" title="ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.sparse_to_dense.PandasSparseToDenseProcessor.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param">sparse_data</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor]<a class="headerlink" href="#ml.rl.preprocessing.sparse_to_dense.PandasSparseToDenseProcessor.process" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.sparse_to_dense.</code><code class="sig-name descname">PythonSparseToDenseProcessor</code><span class="sig-paren">(</span><em class="sig-param">sorted_features: List[int], set_missing_value_to_zero: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor" title="ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param">sparse_data: List[Dict[int, float]]</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor]<a class="headerlink" href="#ml.rl.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor.process" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.preprocessing.sparse_to_dense.</code><code class="sig-name descname">SparseToDenseProcessor</code><span class="sig-paren">(</span><em class="sig-param">sorted_features: List[int], set_missing_value_to_zero: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
+<div class="section" id="ml-rl-preprocessing-sparse-to-dense-module">
+<h2>ml.rl.preprocessing.sparse_to_dense module<a class="headerlink" href="#ml-rl-preprocessing-sparse-to-dense-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-ml.rl.preprocessing">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.preprocessing" title="Permalink to this headline">¶</a></h2>
@@ -868,10 +225,10 @@ create it.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ml.rl.simulators.html" class="btn btn-neutral float-right" title="ml.rl.simulators package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ml.rl.readers.html" class="btn btn-neutral float-right" title="ml.rl.readers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ml.rl.workflow.html" class="btn btn-neutral float-left" title="ml.rl.workflow package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ml.rl.prediction.html" class="btn btn-neutral float-left" title="ml.rl.prediction package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

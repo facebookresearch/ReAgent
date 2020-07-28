@@ -1,0 +1,474 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>reagent.workflow package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="License" href="../license.html" />
+    <link rel="prev" title="reagent.training.world_model package" href="reagent.training.world_model.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+        
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+        
+      <li>reagent.workflow package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reagent.workflow.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reagent-workflow-package">
+<h1>reagent.workflow package<a class="headerlink" href="#reagent-workflow-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.workflow.cli">
+<span id="reagent-workflow-cli-module"></span><h2>reagent.workflow.cli module<a class="headerlink" href="#module-reagent.workflow.cli" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="reagent.workflow.cli.select_relevant_params">
+<code class="sig-prename descclassname">reagent.workflow.cli.</code><code class="sig-name descname">select_relevant_params</code><span class="sig-paren">(</span><em class="sig-param">config_dict</em>, <em class="sig-param">ConfigClass</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.cli.select_relevant_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="reagent-workflow-data-fetcher-module">
+<h2>reagent.workflow.data_fetcher module<a class="headerlink" href="#reagent-workflow-data-fetcher-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.workflow.env">
+<span id="reagent-workflow-env-module"></span><h2>reagent.workflow.env module<a class="headerlink" href="#module-reagent.workflow.env" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="reagent.workflow.env.get_workflow_id">
+<code class="sig-prename descclassname">reagent.workflow.env.</code><code class="sig-name descname">get_workflow_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.workflow.env.get_workflow_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="reagent-workflow-gym-batch-rl-module">
+<h2>reagent.workflow.gym_batch_rl module<a class="headerlink" href="#reagent-workflow-gym-batch-rl-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-workflow-identify-types-flow-module">
+<h2>reagent.workflow.identify_types_flow module<a class="headerlink" href="#reagent-workflow-identify-types-flow-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.workflow.result_registries">
+<span id="reagent-workflow-result-registries-module"></span><h2>reagent.workflow.result_registries module<a class="headerlink" href="#module-reagent.workflow.result_registries" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.workflow.result_registries.PublishingResult">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_registries.</code><code class="sig-name descname">PublishingResult</code><span class="sig-paren">(</span><em class="sig-param">success: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.PublishingResult.REGISTRY">
+<code class="sig-name descname">REGISTRY</code><em class="property"> = {'no_publishing_results': &lt;class 'reagent.workflow.result_types.NoPublishingResults'&gt;}</em><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult.REGISTRY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.PublishingResult.REGISTRY_FROZEN">
+<code class="sig-name descname">REGISTRY_FROZEN</code><em class="property"> = False</em><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult.REGISTRY_FROZEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.PublishingResult.REGISTRY_NAME">
+<code class="sig-name descname">REGISTRY_NAME</code><em class="property"> = 'PublishingResult'</em><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult.REGISTRY_NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.workflow.result_registries.TrainingReport">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_registries.</code><code class="sig-name descname">TrainingReport</code><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.TrainingReport.REGISTRY">
+<code class="sig-name descname">REGISTRY</code><em class="property"> = {'actor_critic_report': &lt;class 'reagent.workflow.training_reports.ActorCriticTrainingReport'&gt;, 'dqn_report': &lt;class 'reagent.workflow.training_reports.DQNTrainingReport'&gt;, 'parametric_dqn_report': &lt;class 'reagent.workflow.training_reports.ParametricDQNTrainingReport'&gt;}</em><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport.REGISTRY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.TrainingReport.REGISTRY_FROZEN">
+<code class="sig-name descname">REGISTRY_FROZEN</code><em class="property"> = False</em><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport.REGISTRY_FROZEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.TrainingReport.REGISTRY_NAME">
+<code class="sig-name descname">REGISTRY_NAME</code><em class="property"> = 'TrainingReport'</em><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport.REGISTRY_NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.workflow.result_registries.ValidationResult">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_registries.</code><code class="sig-name descname">ValidationResult</code><span class="sig-paren">(</span><em class="sig-param">should_publish: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.ValidationResult.REGISTRY">
+<code class="sig-name descname">REGISTRY</code><em class="property"> = {'no_validation_results': &lt;class 'reagent.workflow.result_types.NoValidationResults'&gt;}</em><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult.REGISTRY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.ValidationResult.REGISTRY_FROZEN">
+<code class="sig-name descname">REGISTRY_FROZEN</code><em class="property"> = False</em><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult.REGISTRY_FROZEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.result_registries.ValidationResult.REGISTRY_NAME">
+<code class="sig-name descname">REGISTRY_NAME</code><em class="property"> = 'ValidationResult'</em><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult.REGISTRY_NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.workflow.result_types">
+<span id="reagent-workflow-result-types-module"></span><h2>reagent.workflow.result_types module<a class="headerlink" href="#module-reagent.workflow.result_types" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.workflow.result_types.NoPublishingResults">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_types.</code><code class="sig-name descname">NoPublishingResults</code><span class="sig-paren">(</span><em class="sig-param">success: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_types.NoPublishingResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.PublishingResult" title="reagent.workflow.result_registries.PublishingResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.PublishingResult</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.workflow.result_types.NoValidationResults">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_types.</code><code class="sig-name descname">NoValidationResults</code><span class="sig-paren">(</span><em class="sig-param">should_publish: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_types.NoValidationResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.ValidationResult" title="reagent.workflow.result_registries.ValidationResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.ValidationResult</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.workflow.spark_utils">
+<span id="reagent-workflow-spark-utils-module"></span><h2>reagent.workflow.spark_utils module<a class="headerlink" href="#module-reagent.workflow.spark_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="reagent.workflow.spark_utils.SPARK_JAR_FROM_ROOT_DIR">
+<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">SPARK_JAR_FROM_ROOT_DIR</code><em class="property"> = 'preprocessing/target/rl-preprocessing-1.1.jar'</em><a class="headerlink" href="#reagent.workflow.spark_utils.SPARK_JAR_FROM_ROOT_DIR" title="Permalink to this definition">¶</a></dt>
+<dd><p>SPARK_JAR is abspath to the above jar file.</p>
+<p>Assume file structure
+ReAgent/</p>
+<blockquote>
+<div><p>preprocessing/…
+reagent/…</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.workflow.spark_utils.call_spark_class">
+<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">call_spark_class</code><span class="sig-paren">(</span><em class="sig-param">spark</em>, <em class="sig-param">class_name: str</em>, <em class="sig-param">args: str</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.spark_utils.call_spark_class" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.workflow.spark_utils.get_spark_session">
+<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">get_spark_session</code><span class="sig-paren">(</span><em class="sig-param">config: Optional[Dict[str</em>, <em class="sig-param">str]] = {'spark.app.name': 'ReAgent'</em>, <em class="sig-param">'spark.driver.extraClassPath': '/Users/jjg/github/ReAgent/reagent/../preprocessing/target/rl-preprocessing-1.1.jar'</em>, <em class="sig-param">'spark.driver.host': '127.0.0.1'</em>, <em class="sig-param">'spark.master': 'local[*]'</em>, <em class="sig-param">'spark.sql.catalogImplementation': 'hive'</em>, <em class="sig-param">'spark.sql.execution.arrow.enabled': 'true'</em>, <em class="sig-param">'spark.sql.session.timeZone': 'UTC'</em>, <em class="sig-param">'spark.sql.shuffle.partitions': '12'</em>, <em class="sig-param">'spark.sql.warehouse.dir': '/Users/jjg/github/ReAgent/docs/spark-warehouse'}</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.spark_utils.get_spark_session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.workflow.spark_utils.get_table_url">
+<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">get_table_url</code><span class="sig-paren">(</span><em class="sig-param">table_name: str</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#reagent.workflow.spark_utils.get_table_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent.workflow.tagged_union">
+<span id="reagent-workflow-tagged-union-module"></span><h2>reagent.workflow.tagged_union module<a class="headerlink" href="#module-reagent.workflow.tagged_union" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-workflow-training-module">
+<h2>reagent.workflow.training module<a class="headerlink" href="#reagent-workflow-training-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.workflow.training_reports">
+<span id="reagent-workflow-training-reports-module"></span><h2>reagent.workflow.training_reports module<a class="headerlink" href="#module-reagent.workflow.training_reports" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.workflow.training_reports.ActorCriticTrainingReport">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.training_reports.</code><code class="sig-name descname">ActorCriticTrainingReport</code><a class="headerlink" href="#reagent.workflow.training_reports.ActorCriticTrainingReport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.TrainingReport" title="reagent.workflow.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.TrainingReport</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.training_reports.</code><code class="sig-name descname">DQNTrainingReport</code><span class="sig-paren">(</span><em class="sig-param">td_loss: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">mc_loss: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">reward_ips: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">reward_dm: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">reward_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">value_sequential_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">value_weighted_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">value_magic_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.TrainingReport" title="reagent.workflow.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.TrainingReport</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.mc_loss">
+<code class="sig-name descname">mc_loss</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.mc_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.reward_dm">
+<code class="sig-name descname">reward_dm</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_dm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.reward_dr">
+<code class="sig-name descname">reward_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_dr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.reward_ips">
+<code class="sig-name descname">reward_ips</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_ips" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.td_loss">
+<code class="sig-name descname">td_loss</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.td_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.value_magic_dr">
+<code class="sig-name descname">value_magic_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_magic_dr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.value_sequential_dr">
+<code class="sig-name descname">value_sequential_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_sequential_dr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.workflow.training_reports.DQNTrainingReport.value_weighted_dr">
+<code class="sig-name descname">value_weighted_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_weighted_dr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.workflow.training_reports.ParametricDQNTrainingReport">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.training_reports.</code><code class="sig-name descname">ParametricDQNTrainingReport</code><a class="headerlink" href="#reagent.workflow.training_reports.ParametricDQNTrainingReport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.TrainingReport" title="reagent.workflow.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.TrainingReport</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reagent-workflow-types-module">
+<h2>reagent.workflow.types module<a class="headerlink" href="#reagent-workflow-types-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-workflow-utils-module">
+<h2>reagent.workflow.utils module<a class="headerlink" href="#reagent-workflow-utils-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.workflow">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.workflow" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="reagent.training.world_model.html" class="btn btn-neutral float-left" title="reagent.training.world_model package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

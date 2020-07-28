@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Usage &mdash; Horizon 1.0 documentation</title>
+  <title>Usage &mdash; ReAgent 1.0 documentation</title>
   
 
   
@@ -50,7 +50,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> Horizon
+            <a href="index.html" class="icon icon-home"> ReAgent
           
 
           
@@ -85,11 +85,12 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#on-policy-rl-training">1 - On-Policy RL Training</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#offline-rl-training-batch-rl">2- Offline RL Training (Batch RL)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#step-1-create-training-data">Step 1 - Create training data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#step-2-convert-the-data-to-the-timeline-format">Step 2 - Convert the data to the <code class="docutils literal notranslate"><span class="pre">timeline</span></code> format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#step-3-create-the-normalization-parameters">Step 3 - Create the normalization parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-convert-the-data-to-the-timeline-format">Step 2 - Convert the data to the <code class="docutils literal notranslate"><span class="pre">Timeline</span></code> format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-determine-normalization-parameters">Step 3 - Determine normalization parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#step-4-train-model">Step 4 - Train model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#step-5-evaluate-the-model">Step 5 - Evaluate the Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#step-6-visualize-results-via-tensorboard">Step 6 - Visualize Results via Tensorboard</a></li>
@@ -101,14 +102,18 @@
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.prediction.html">Prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.readers.html">Readers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Others</span></p>
@@ -129,7 +134,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Horizon</a>
+          <a href="index.html">ReAgent</a>
         
       </nav>
 
@@ -181,20 +186,47 @@
             
   <div class="section" id="usage">
 <span id="id1"></span><h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
-<p>Horizon is designed for large-scale, distributed recommendation/optimization tasks where we don’t
+<p>ReAgent is designed for large-scale, distributed recommendation/optimization tasks where we don’t
 have access to a simulator.  In this environment, it’s typically better to train offline on batches
 of data, and release new policies slowly over time.  Because the policy updates slowly and in
 batches, we use <em>off-policy</em> algorithms.  To test a new policy without deploying it, we rely on
 <em>counter-factual policy evaluation (CPE)</em>, a set of techniques for estimating a policy based on the
 actions of another policy.</p>
-<p>Before we get started using Horizon as it is intended, let’s begin with a traditional RL setup with a simulator where we can trivially evaluate new policies:</p>
-<div class="section" id="on-policy-rl-training">
-<h2>1 - On-Policy RL Training<a class="headerlink" href="#on-policy-rl-training" title="Permalink to this headline">¶</a></h2>
-<p>Open AI Gym is a set of environments: simulators that can run policies for a given task and generate rewards.  If a simulator is accessible, on-policy training (where the latest version of the policy makes new decisions in real-time) can give better results. To train a model on OpenAI Gym, simply run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">gym</span><span class="o">/</span><span class="n">run_gym</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">gym</span><span class="o">/</span><span class="n">discrete_dqn_cartpole_v0</span><span class="o">.</span><span class="n">json</span>
+<div class="section" id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<p>We have set up <a class="reference external" href="https://click.palletsprojects.com/en/7.x/">Click</a> commands to run our RL workflow. The basic usage pattern is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">reagent</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">cli</span><span class="o">.</span><span class="n">py</span> <span class="n">run</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">.</span><span class="n">function</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">config</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>Configs for different environments and algorithms can be found in <code class="docutils literal notranslate"><span class="pre">ml/rl/test/gym/</span></code>.</p>
+<p>To train a model online with OpenAI Gym, simply run the Click command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> # set the config
+ export CONFIG=reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
+ # train and evaluate model on gym environment
+./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test $CONFIG
+</pre></div>
+</div>
+<p>To train a batch RL model, run the following commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># set the config
+export CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
+# gather some random transitions (can replace with your own)
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
+# convert data to timeline format
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
+# train model based on timeline data
+./reagent/workflow/cli.py run reagent.workflow.training.identify_and_train_network $CONFIG
+# evaluate the model
+./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.evaluate_gym &quot;$CONFIG&quot;
+</pre></div>
+</div>
+<p>Now we will describe how the above commands work, starting with a traditional RL setup with a simulator where we can trivially evaluate new policies:</p>
+</div>
+<div class="section" id="on-policy-rl-training">
+<h2>1 - On-Policy RL Training<a class="headerlink" href="#on-policy-rl-training" title="Permalink to this headline">¶</a></h2>
+<p>OpenAI Gym is a set of environments: simulators that can run policies for a given task and generate rewards.  If a simulator is accessible, on-policy training (where the latest version of the policy makes new decisions in real-time) can give better results. We have a suite of benchmarks on OpenAI Gym, which is listed in <code class="docutils literal notranslate"><span class="pre">reagent/gym/tests/test_gym.py</span></code>’s <code class="docutils literal notranslate"><span class="pre">GYM_TESTS</span></code>. To train a model on OpenAI Gym, simply run the Click command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">reagent</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">cli</span><span class="o">.</span><span class="n">py</span> <span class="n">run</span> <span class="n">reagent</span><span class="o">.</span><span class="n">gym</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">test_gym</span><span class="o">.</span><span class="n">run_test</span> <span class="n">reagent</span><span class="o">/</span><span class="n">gym</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">configs</span><span class="o">/</span><span class="n">cartpole</span><span class="o">/</span><span class="n">discrete_dqn_cartpole_online</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>Configs for different environments and algorithms can be found in <code class="docutils literal notranslate"><span class="pre">reagent/gym/tests/configs/&lt;env_name&gt;/&lt;algorithm&gt;_&lt;env_name&gt;_online.yaml</span></code>.</p>
 <p>While this is typically the set up for people conducting RL research, it isn’t always practical to deploy on-policy RL for several reasons:</p>
 <ol class="arabic simple">
 <li><p>We don’t have a simulator and the problem may be so complex that building an accurate simulator is non-trivial.</p></li>
@@ -202,44 +234,34 @@ actions of another policy.</p>
 <li><p>We want to evaluate the behavior of the policy offline and then keep the policy constant afterwards to reduce the risk that the policy will degrade at odd hours.</p></li>
 <li><p>We are building on top of traditional recommender systems that typically rely on a fixed, stochastic policy.</p></li>
 </ol>
-<p>For these reasons, Horizon is designed to support batch, off-policy RL.  Let’s now walk though how to train a model with Horizon:</p>
+<p>For these reasons, ReAgent is designed to support batch, off-policy RL.  Let’s now walk though how to train a model with ReAgent:</p>
 </div>
 <div class="section" id="offline-rl-training-batch-rl">
 <h2>2- Offline RL Training (Batch RL)<a class="headerlink" href="#offline-rl-training-batch-rl" title="Permalink to this headline">¶</a></h2>
-<p>The main use case of Horizon is to train RL models in the <strong>batch</strong> setting. In batch reinforcement learning the data collection and policy learning steps are decoupled. Specifically, we try to learn the best possible policy given the input data. In batch RL, being able to handle thousands of varying feature types and distributions and algorithm performance estimates before deployment are of key importance.</p>
-<p>In this example, we will train a DQN model on Offline <code class="docutils literal notranslate"><span class="pre">Cartpole-v0</span></code> data:</p>
+<p>The main use case of ReAgent is to train RL models in the <strong>batch</strong> setting. In batch reinforcement learning the data collection and policy learning steps are decoupled. Specifically, we try to learn the best possible policy given the input data. In batch RL, being able to handle thousands of varying feature types and distributions and algorithm performance estimates before deployment are of key importance.</p>
+<p>In this example, we will train a DQN model on Offline <code class="docutils literal notranslate"><span class="pre">CartPole-v0</span></code> data, where Click command config should be set to</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CONFIG</span><span class="o">=</span><span class="n">reagent</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">sample_configs</span><span class="o">/</span><span class="n">discrete_dqn_cartpole_offline</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>We now proceed to give pseudo-code to sketch out the main ideas of our batch RL workflow.</p>
 <div class="section" id="step-1-create-training-data">
 <h3>Step 1 - Create training data<a class="headerlink" href="#step-1-create-training-data" title="Permalink to this headline">¶</a></h3>
-<p>First we need to generate the data required to train our RL models. For this example we generate data from the <code class="docutils literal notranslate"><span class="pre">Cartpole-v0</span></code> environment in OpenAI Gym. In practice, end users would generate a dataset in a similar format from their production system.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="n">cartpole_discrete</span>
-
-<span class="n">python</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">gym</span><span class="o">/</span><span class="n">run_gym</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">gym</span><span class="o">/</span><span class="n">discrete_dqn_cartpole_v0</span><span class="o">.</span><span class="n">json</span> <span class="o">-</span><span class="n">f</span> <span class="n">cartpole_discrete</span><span class="o">/</span><span class="n">training_data</span><span class="o">.</span><span class="n">json</span>
+<p>We first generate data from a random policy (chooses random actions) run on the <code class="docutils literal notranslate"><span class="pre">CartPole-v0</span></code> environment.
+In particular, the following Click command runs 150 episodes of <code class="docutils literal notranslate"><span class="pre">CartPole-v0</span></code> (max steps of 200) and stored the pickled dataframe in <code class="docutils literal notranslate"><span class="pre">/tmp/tmp_pickle.pkl</span></code>, which you may inspect via <code class="docutils literal notranslate"><span class="pre">pd_df</span> <span class="pre">=</span> <span class="pre">pd.read_pickle(pkl_path)</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
 </pre></div>
 </div>
-<p>Let’s look at one row of data to see the expected input format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">cartpole_discrete</span><span class="o">/</span><span class="n">training_data</span><span class="o">.</span><span class="n">json</span> <span class="o">|</span> <span class="n">head</span> <span class="o">-</span><span class="n">n1</span> <span class="o">|</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">json</span><span class="o">.</span><span class="n">tool</span>
+<p>The command essentially performs the following pseudo-code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">ReplayBuffer</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_episodes_for_data_batch</span><span class="p">):</span>
+  <span class="n">run_episode</span> <span class="o">&amp;</span> <span class="n">store</span> <span class="n">transitions</span>
 
-<span class="p">{</span>
-    <span class="s2">&quot;mdp_id&quot;</span><span class="p">:</span> <span class="s2">&quot;10&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sequence_number&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;state_features&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">0.0021880944</span><span class="p">,</span>
-        <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.015781501</span><span class="p">,</span>
-        <span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.031933542</span><span class="p">,</span>
-        <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mf">0.04611974</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;reward&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s2">&quot;possible_actions&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;0&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;1&quot;</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;action_probability&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
-    <span class="s2">&quot;ds&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-06-25&quot;</span>
-<span class="p">}</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">to_pandas_df</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">pkl_path</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The input data is a flat file containing a JSON object per-line separated by newlines (the first line is pretty-printed here for readability).  This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data is parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:</p>
+<p>In practice, end users would generate a dataset in a similar format from their production system. For this example, the data is stored as a pickled Pandas dataframe.</p>
+<p>This is human-readable, but not the most efficient way to store tabular data.  Other ways to store input data are parquet, CSV, or any other format that can be read by Apache Spark.  All of these formats are fine, as long as the following schema is maintained:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 33%" />
@@ -287,13 +309,12 @@ actions of another policy.</p>
 </tr>
 </tbody>
 </table>
-<p>Note that JSON does not support integer keys in objects so in our JSON format we replace the <code class="docutils literal notranslate"><span class="pre">map&lt;integer,float&gt;</span></code> with <code class="docutils literal notranslate"><span class="pre">map&lt;string,float&gt;</span></code>, but even in this case the keys must be strings of integers.</p>
-<p>Once you have data on this format (or you have generated data using our gym script) you can move on to step 2:</p>
+<p>Once you have data on this format, you can move on to Step 2.</p>
 </div>
 <div class="section" id="step-2-convert-the-data-to-the-timeline-format">
-<h3>Step 2 - Convert the data to the <code class="docutils literal notranslate"><span class="pre">timeline</span></code> format<a class="headerlink" href="#step-2-convert-the-data-to-the-timeline-format" title="Permalink to this headline">¶</a></h3>
+<h3>Step 2 - Convert the data to the <code class="docutils literal notranslate"><span class="pre">Timeline</span></code> format<a class="headerlink" href="#step-2-convert-the-data-to-the-timeline-format" title="Permalink to this headline">¶</a></h3>
 <p>Models are trained on consecutive pairs of state/action tuples. To assist in creating this table, we have an <code class="docutils literal notranslate"><span class="pre">RLTimelineOperator</span></code> spark operator. Let’s build and run the timeline operator on the data:</p>
-<p>First, we need to build the Spark library that will execute the timeline.  Apache Spark is a platform for doing massively-parallel processing.  Although we are running this on a single file, Spark is designed to work on thousands of files distribued across many machines.  Explaining HDFS, Hive, and Spark are beyond the scope of this tutorial, but for large datasets it’s important to understand these concepts and that it’s possible to run Horizon in a distributed environment by simply changing the location of the input from a file to an HDFS folder.</p>
+<p>First, we need to build the Spark library that will execute the timeline.  Apache Spark is a platform for doing massively-parallel processing.  Although we are running this on a single file, Spark is designed to work on thousands of files distribued across many machines.  Explaining HDFS, Hive, and Spark are beyond the scope of this tutorial, but for large datasets it’s important to understand these concepts and that it’s possible to run ReAgent in a distributed environment by simply changing the location of the input from a file to an HDFS folder.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build timeline package (only need to do this first time)</span>
 <span class="n">mvn</span> <span class="o">-</span><span class="n">f</span> <span class="n">preprocessing</span><span class="o">/</span><span class="n">pom</span><span class="o">.</span><span class="n">xml</span> <span class="n">clean</span> <span class="n">package</span>
 </pre></div>
@@ -303,40 +324,40 @@ actions of another policy.</p>
 <span class="n">rm</span> <span class="o">-</span><span class="n">Rf</span> <span class="n">spark</span><span class="o">-</span><span class="n">warehouse</span> <span class="n">derby</span><span class="o">.</span><span class="n">log</span> <span class="n">metastore_db</span> <span class="n">preprocessing</span><span class="o">/</span><span class="n">spark</span><span class="o">-</span><span class="n">warehouse</span> <span class="n">preprocessing</span><span class="o">/</span><span class="n">metastore_db</span> <span class="n">preprocessing</span><span class="o">/</span><span class="n">derby</span><span class="o">.</span><span class="n">log</span>
 </pre></div>
 </div>
-<p>Now that we are ready, let’s run our spark job on our local machine.  This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run timelime on pre-timeline data</span>
-<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">spark</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">spark</span><span class="o">-</span><span class="n">submit</span> \
-  <span class="o">--</span><span class="k">class</span> <span class="nc">com</span><span class="o">.</span><span class="n">facebook</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">rl</span><span class="o">.</span><span class="n">Preprocessor</span> <span class="n">preprocessing</span><span class="o">/</span><span class="n">target</span><span class="o">/</span><span class="n">rl</span><span class="o">-</span><span class="n">preprocessing</span><span class="o">-</span><span class="mf">1.1</span><span class="o">.</span><span class="n">jar</span> \
-  <span class="s2">&quot;`cat ml/rl/workflow/sample_configs/discrete_action/timeline.json`&quot;</span>
-
-<span class="c1"># Look at the first row of training &amp; eval</span>
-<span class="n">head</span> <span class="o">-</span><span class="n">n1</span> <span class="n">cartpole_discrete_training</span><span class="o">/</span><span class="n">part</span><span class="o">*</span>
-
-<span class="n">head</span> <span class="o">-</span><span class="n">n1</span> <span class="n">cartpole_discrete_eval</span><span class="o">/</span><span class="n">part</span><span class="o">*</span>
+<p>Now that we are ready, let’s run our spark job on our local machine. This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated. To do so, run the following Click command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
 </pre></div>
 </div>
-<p>There are many output files.  The reason for this is that Spark expects many input &amp; output files: otherwise it wouldn’t be able to efficiently run on many machines and output data in parallel.  For this tutorial, we will merge all of this data into a single file, but in a production use-case we would be streaming data from HDFS during training.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Merge output data to single file</span>
-<span class="n">mkdir</span> <span class="n">training_data</span>
-<span class="n">cat</span> <span class="n">cartpole_discrete_training</span><span class="o">/</span><span class="n">part</span><span class="o">*</span> <span class="o">&gt;</span> <span class="n">training_data</span><span class="o">/</span><span class="n">cartpole_discrete_timeline</span><span class="o">.</span><span class="n">json</span>
-<span class="n">cat</span> <span class="n">cartpole_discrete_eval</span><span class="o">/</span><span class="n">part</span><span class="o">*</span> <span class="o">&gt;</span> <span class="n">training_data</span><span class="o">/</span><span class="n">cartpole_discrete_timeline_eval</span><span class="o">.</span><span class="n">json</span>
+<p>The command essentially performs the following pseudo-code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># load pandas dataframe</span>
+<span class="n">pd_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">pkl_path</span><span class="p">)</span>
 
-<span class="c1"># Remove the output data folder</span>
-<span class="n">rm</span> <span class="o">-</span><span class="n">Rf</span> <span class="n">cartpole_discrete_training</span> <span class="n">cartpole_discrete_eval</span>
+<span class="c1"># convert to Spark dataframe</span>
+<span class="n">spark</span> <span class="o">=</span> <span class="n">get_spark_session</span><span class="p">()</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span><span class="n">pd_df</span><span class="p">)</span>
+
+<span class="c1"># run timelime operator</span>
+<span class="n">json_params</span> <span class="o">=</span> <span class="n">make_input_to_timeline_operator</span><span class="p">()</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">_jvm</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">facebook</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">rl</span><span class="o">.</span><span class="n">Timeline</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">json_params</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now that all of our data has been grouped into consecutive pairs, we can run the normalization pipeline.</p>
-</div>
-<div class="section" id="step-3-create-the-normalization-parameters">
-<h3>Step 3 - Create the normalization parameters<a class="headerlink" href="#step-3-create-the-normalization-parameters" title="Permalink to this headline">¶</a></h3>
-<p>Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. Horizon includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We can run this workflow on the post timeline data:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">create_normalization_metadata</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">sample_configs</span><span class="o">/</span><span class="n">discrete_action</span><span class="o">/</span><span class="n">dqn_example</span><span class="o">.</span><span class="n">json</span>
+<p>Now that our data is a Spark table in Hive storage, we’re ready to run the training workflow (Steps 3-4). These steps are altogether accomplished with the following Click command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>./reagent/workflow/cli.py run reagent.workflow.training.identify_and_train_network $CONFIG
 </pre></div>
 </div>
-<p>Now we can look at the normalization file.  It’s a JSON file where each key is a feature id and each value is a string-encoded JSON object describing the normalization:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">training_data</span><span class="o">/</span><span class="n">state_features_norm</span><span class="o">.</span><span class="n">json</span> <span class="o">|</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">json</span><span class="o">.</span><span class="n">tool</span>
-
-<span class="p">{</span>
+<p>We now proceed to describing this command and present some pseudo-code.</p>
+</div>
+<div class="section" id="step-3-determine-normalization-parameters">
+<h3>Step 3 - Determine normalization parameters<a class="headerlink" href="#step-3-determine-normalization-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Data from production systems is often sparse, noisy and arbitrarily distributed. Literature has shown that neural networks learn faster and better when operating on batches of features that are normally distributed. ReAgent includes a workflow that automatically analyzes the training dataset and determines the best transformation function and corresponding normalization parameters for each feature. We do this via <code class="docutils literal notranslate"><span class="pre">ModelManager.run_feature_identification</span></code>, where <code class="docutils literal notranslate"><span class="pre">input_table_spec</span></code> points to a Spark table with the timeline data.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="p">:</span> <span class="n">ModelManager__Union</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">value</span>
+<span class="n">manager</span><span class="o">.</span><span class="n">run_feature_identification</span><span class="p">(</span><span class="n">input_table_spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The normalization is a Python dictionary where each key is a feature id and each value is NormalizationData.
+An example of this, in JSON format, is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">feature_type</span><span class="se">\&quot;</span><span class="s2">:</span><span class="se">\&quot;</span><span class="s2">CONTINUOUS</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">mean</span><span class="se">\&quot;</span><span class="s2">:0.5675003528594971,</span><span class="se">\&quot;</span><span class="s2">stddev</span><span class="se">\&quot;</span><span class="s2">:1.0,</span><span class="se">\&quot;</span><span class="s2">min_value</span><span class="se">\&quot;</span><span class="s2">:-0.1467551738023758,</span><span class="se">\&quot;</span><span class="s2">max_value</span><span class="se">\&quot;</span><span class="s2">:2.1779561042785645}&quot;</span><span class="p">,</span>
     <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">feature_type</span><span class="se">\&quot;</span><span class="s2">:</span><span class="se">\&quot;</span><span class="s2">CONTINUOUS</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">mean</span><span class="se">\&quot;</span><span class="s2">:0.42259514331817627,</span><span class="se">\&quot;</span><span class="s2">stddev</span><span class="se">\&quot;</span><span class="s2">:1.0,</span><span class="se">\&quot;</span><span class="s2">min_value</span><span class="se">\&quot;</span><span class="s2">:-1.3586808443069458,</span><span class="se">\&quot;</span><span class="s2">max_value</span><span class="se">\&quot;</span><span class="s2">:1.8529225587844849}&quot;</span><span class="p">,</span>
     <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">feature_type</span><span class="se">\&quot;</span><span class="s2">:</span><span class="se">\&quot;</span><span class="s2">CONTINUOUS</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">mean</span><span class="se">\&quot;</span><span class="s2">:0.028220390900969505,</span><span class="se">\&quot;</span><span class="s2">stddev</span><span class="se">\&quot;</span><span class="s2">:1.0,</span><span class="se">\&quot;</span><span class="s2">min_value</span><span class="se">\&quot;</span><span class="s2">:-0.14581388235092163,</span><span class="se">\&quot;</span><span class="s2">max_value</span><span class="se">\&quot;</span><span class="s2">:0.19483095407485962}&quot;</span><span class="p">,</span>
@@ -344,24 +365,56 @@ actions of another policy.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>NB: <code class="docutils literal notranslate"><span class="pre">reagent/workflow/training.py</span></code> is what the pseudo-code in Steps 3 and 4 are trying to depict. Models should subclass <code class="docutils literal notranslate"><span class="pre">ModelManager</span></code> and implement all abstract methods (including <code class="docutils literal notranslate"><span class="pre">run_feature_identification</span></code> and <code class="docutils literal notranslate"><span class="pre">query_data</span></code>) to be added to our registry of models.</p>
 </div>
 <div class="section" id="step-4-train-model">
 <h3>Step 4 - Train model<a class="headerlink" href="#step-4-train-model" title="Permalink to this headline">¶</a></h3>
+<p>To train the model, we first save our Spark table to Parquet format, and use <a class="reference external" href="https://github.com/uber/petastorm">Petastorm</a>’s PyTorch DataLoader, which can efficiently read Parquet formatted data. We do this via <code class="docutils literal notranslate"><span class="pre">ModelManager.query_data</span></code>, which each <code class="docutils literal notranslate"><span class="pre">ModelManager</span></code> in our registry of models must implement. In this step, we also process the rewards, i.e. computing multi-step rewards or computing the reward from <code class="docutils literal notranslate"><span class="pre">metrics</span></code> columns directly.</p>
 <p>Now we are ready to train a model by running:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Store model outputs here</span>
-<span class="n">mkdir</span> <span class="n">outputs</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># make preprocessor from the normalization parameters of Step 3</span>
+<span class="n">batch_preprocessor</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">build_batch_preprocessor</span><span class="p">()</span>
 
-<span class="n">python</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">dqn_workflow</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">sample_configs</span><span class="o">/</span><span class="n">discrete_action</span><span class="o">/</span><span class="n">dqn_example</span><span class="o">.</span><span class="n">json</span>
+<span class="c1"># read preprocessed data</span>
+<span class="n">data_reader</span> <span class="o">=</span> <span class="n">petastorm</span><span class="o">.</span><span class="n">make_batch_reader</span><span class="p">(</span><span class="n">train_dataset</span><span class="o">.</span><span class="n">parquet_url</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_reader</span><span class="p">,</span> <span class="n">batch_preprocessor</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataloader</span><span class="p">:</span>
+  <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+    <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="c1"># Store model outputs</span>
+<span class="n">torchscript_output_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;model_</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="si">}</span><span class="s2">.torchscript&quot;</span>
+<span class="n">serving_module</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">build_serving_module</span><span class="p">()</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">serving_module</span><span class="p">,</span> <span class="n">torchscript_output_path</span><span class="p">)</span>
+
+<span class="c1"># store for later use</span>
+<span class="n">training_output</span><span class="o">.</span><span class="n">output_path</span> <span class="o">=</span> <span class="n">torchscript_output_path</span>
 </pre></div>
 </div>
-<p>Note that, even in the OpenAI Gym case, we aren’t running the gym at this step.  We are taking a batch of data that we generated previously and training by looping over that data and interatively learning a better policy than the policy that generated the data.</p>
+<p>Note that the model is trained purely on the randomly generated data we collected in Step 1.
+We are taking a batch of data that we generated previously and training by looping over that data and interatively learning a better policy than the policy that generated the data.
+Effectively, this is learning to perform a task by observing completely random transitions from an environment! While doing so, we are not even building a dynamics model of the environment.</p>
+<p>NB: We can do the same for the <code class="docutils literal notranslate"><span class="pre">eval_dataset</span></code> if we want to perform CPE during training as a diagnosis tool.</p>
 </div>
 <div class="section" id="step-5-evaluate-the-model">
 <h3>Step 5 - Evaluate the Model<a class="headerlink" href="#step-5-evaluate-the-model" title="Permalink to this headline">¶</a></h3>
-<p>Now that we have trained a new policy on the offline <code class="docutils literal notranslate"><span class="pre">Cartpole-v0</span></code> data, we can try it out to see how it does:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">ml</span><span class="o">/</span><span class="n">rl</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">workflow</span><span class="o">/</span><span class="n">eval_cartpole</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">m</span> <span class="n">outputs</span><span class="o">/</span><span class="n">predictor</span><span class="o">*</span>
+<p>Now that we have trained a new policy on the offline <code class="docutils literal notranslate"><span class="pre">CartPole-v0</span></code> data, we can try it out to see how it does:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.evaluate_gym $CONFIG
 </pre></div>
 </div>
+<p>which performs the following pseudo-code</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># load our previous serving module</span>
+<span class="n">jit_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">saved_serving_module</span><span class="p">)</span>
+
+<span class="c1"># wrap around module to fit our gymrunner interface</span>
+<span class="n">policy</span> <span class="o">=</span> <span class="n">create_predictor_policy_from_model</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">jit_model</span><span class="p">)</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="o">.</span><span class="n">create_for_env_with_serving_policy</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">)</span>
+
+<span class="c1"># run Agent on environment, and record rewards</span>
+<span class="n">rewards</span> <span class="o">=</span> <span class="n">evaluate_for_n_episodes</span><span class="p">(</span>
+    <span class="n">n</span><span class="o">=</span><span class="n">num_eval_episodes</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">agent</span><span class="o">=</span><span class="n">agent</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Even on completely random data, DQN can learn a policy that obtains scores close to the maximum possible score of 200!</p>
 </div>
 <div class="section" id="step-6-visualize-results-via-tensorboard">
 <h3>Step 6 - Visualize Results via Tensorboard<a class="headerlink" href="#step-6-visualize-results-via-tensorboard" title="Permalink to this headline">¶</a></h3>

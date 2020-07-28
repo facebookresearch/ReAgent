@@ -1,0 +1,507 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>reagent.ope.trainers package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.optimizer package" href="reagent.optimizer.html" />
+    <link rel="prev" title="reagent.ope.test.unit_tests package" href="reagent.ope.test.unit_tests.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+        
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+        
+          <li><a href="reagent.ope.html">reagent.ope package</a> &raquo;</li>
+        
+      <li>reagent.ope.trainers package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reagent.ope.trainers.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reagent-ope-trainers-package">
+<h1>reagent.ope.trainers package<a class="headerlink" href="#reagent-ope-trainers-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.ope.trainers.linear_trainers">
+<span id="reagent-ope-trainers-linear-trainers-module"></span><h2>reagent.ope.trainers.linear_trainers module<a class="headerlink" href="#module-reagent.ope.trainers.linear_trainers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.DecisionTreeClassifierTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">DecisionTreeClassifierTrainer</code><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.DecisionTreeClassifierTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.trainers.linear_trainers.LinearTrainer" title="reagent.ope.trainers.linear_trainers.LinearTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.trainers.linear_trainers.LinearTrainer</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.DecisionTreeClassifierTrainer.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.DecisionTreeClassifierTrainer.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.DecisionTreeClassifierTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">data: reagent.ope.estimators.types.TrainingData</em>, <em class="sig-param">iterations: int = 1</em>, <em class="sig-param">num_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.DecisionTreeClassifierTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.DecisionTreeTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">DecisionTreeTrainer</code><span class="sig-paren">(</span><em class="sig-param">is_classifier: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.DecisionTreeTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.trainers.linear_trainers.LinearTrainer" title="reagent.ope.trainers.linear_trainers.LinearTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.trainers.linear_trainers.LinearTrainer</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.DecisionTreeTrainer.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.DecisionTreeTrainer.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.DecisionTreeTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">data: reagent.ope.estimators.types.TrainingData</em>, <em class="sig-param">iterations: int = 1</em>, <em class="sig-param">num_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.DecisionTreeTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.LassoTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">LassoTrainer</code><span class="sig-paren">(</span><em class="sig-param">is_classifier: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LassoTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.trainers.linear_trainers.LinearTrainer" title="reagent.ope.trainers.linear_trainers.LinearTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.trainers.linear_trainers.LinearTrainer</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.LassoTrainer.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LassoTrainer.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.LassoTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">data: reagent.ope.estimators.types.TrainingData</em>, <em class="sig-param">iterations: int = 1</em>, <em class="sig-param">num_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LassoTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.LinearNet">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">LinearNet</code><span class="sig-paren">(</span><em class="sig-param">D_in</em>, <em class="sig-param">H</em>, <em class="sig-param">D_out</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LinearNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.LinearNet.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">x: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LinearNet.forward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.LinearTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">LinearTrainer</code><span class="sig-paren">(</span><em class="sig-param">is_classifier: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LinearTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.Trainer" title="reagent.ope.estimators.types.Trainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Trainer</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.LinearTrainer.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">x: torch.Tensor</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.PredictResults<a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LinearTrainer.predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.LinearTrainer.score">
+<code class="sig-name descname">score</code><span class="sig-paren">(</span><em class="sig-param">x: torch.Tensor</em>, <em class="sig-param">y: torch.Tensor</em>, <em class="sig-param">weight: Optional[torch.Tensor] = None</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LinearTrainer.score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.LogisticRegressionTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">LogisticRegressionTrainer</code><span class="sig-paren">(</span><em class="sig-param">solver: str = 'lbfgs'</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LogisticRegressionTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.trainers.linear_trainers.LinearTrainer" title="reagent.ope.trainers.linear_trainers.LinearTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.trainers.linear_trainers.LinearTrainer</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.LogisticRegressionTrainer.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LogisticRegressionTrainer.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.LogisticRegressionTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">data: reagent.ope.estimators.types.TrainingData</em>, <em class="sig-param">iterations: int = 1</em>, <em class="sig-param">num_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.LogisticRegressionTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.NNTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">NNTrainer</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.NNTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.Trainer" title="reagent.ope.estimators.types.Trainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Trainer</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.NNTrainer.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.NNTrainer.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.NNTrainer.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">x: torch.Tensor</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.PredictResults<a class="headerlink" href="#reagent.ope.trainers.linear_trainers.NNTrainer.predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.NNTrainer.score">
+<code class="sig-name descname">score</code><span class="sig-paren">(</span><em class="sig-param">x: torch.Tensor</em>, <em class="sig-param">y: torch.Tensor</em>, <em class="sig-param">weight: Optional[torch.Tensor] = None</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.trainers.linear_trainers.NNTrainer.score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.NNTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">data: reagent.ope.estimators.types.TrainingData</em>, <em class="sig-param">iterations: int = 1</em>, <em class="sig-param">num_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.NNTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.linear_trainers.SGDClassifierTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.linear_trainers.</code><code class="sig-name descname">SGDClassifierTrainer</code><span class="sig-paren">(</span><em class="sig-param">loss: str = 'log'</em>, <em class="sig-param">max_iter: int = 1000</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.SGDClassifierTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.trainers.linear_trainers.LinearTrainer" title="reagent.ope.trainers.linear_trainers.LinearTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.trainers.linear_trainers.LinearTrainer</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.SGDClassifierTrainer.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.SGDClassifierTrainer.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.linear_trainers.SGDClassifierTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">data: reagent.ope.estimators.types.TrainingData</em>, <em class="sig-param">iterations: int = 1</em>, <em class="sig-param">num_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.linear_trainers.SGDClassifierTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.ope.trainers.rl_tabular_trainers">
+<span id="reagent-ope-trainers-rl-tabular-trainers-module"></span><h2>reagent.ope.trainers.rl_tabular_trainers module<a class="headerlink" href="#module-reagent.ope.trainers.rl_tabular_trainers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.DPTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.rl_tabular_trainers.</code><code class="sig-name descname">DPTrainer</code><span class="sig-paren">(</span><em class="sig-param">env: reagent.ope.test.envs.Environment</em>, <em class="sig-param">policy: reagent.ope.trainers.rl_tabular_trainers.TabularPolicy</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.DPTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.DPTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">gamma: float = 0.9</em>, <em class="sig-param">threshold: float = 0.0001</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.DPTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.DPValueFunction">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.rl_tabular_trainers.</code><code class="sig-name descname">DPValueFunction</code><span class="sig-paren">(</span><em class="sig-param">policy: reagent.ope.estimators.sequential_estimators.RLPolicy</em>, <em class="sig-param">env: reagent.ope.test.envs.Environment</em>, <em class="sig-param">gamma: float = 0.99</em>, <em class="sig-param">threshold: float = 0.0001</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.DPValueFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction" title="reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.DPValueFunction.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param">clear_state_values: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.DPValueFunction.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.DPValueFunction.state_value">
+<code class="sig-name descname">state_value</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State</em>, <em class="sig-param">horizon: int = -1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.DPValueFunction.state_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.MonteCarloTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.rl_tabular_trainers.</code><code class="sig-name descname">MonteCarloTrainer</code><span class="sig-paren">(</span><em class="sig-param">env: reagent.ope.test.envs.Environment</em>, <em class="sig-param">policy: reagent.ope.trainers.rl_tabular_trainers.TabularPolicy</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.MonteCarloTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.MonteCarloTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">iterations: int</em>, <em class="sig-param">gamma: float = 0.9</em>, <em class="sig-param">first_visit: bool = True</em>, <em class="sig-param">update_interval: int = 20</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.MonteCarloTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.MonteCarloValueFunction">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.rl_tabular_trainers.</code><code class="sig-name descname">MonteCarloValueFunction</code><span class="sig-paren">(</span><em class="sig-param">policy: reagent.ope.estimators.sequential_estimators.RLPolicy</em>, <em class="sig-param">env: reagent.ope.test.envs.Environment</em>, <em class="sig-param">gamma: float = 0.99</em>, <em class="sig-param">first_visit: bool = True</em>, <em class="sig-param">count_threshold: int = 100</em>, <em class="sig-param">max_iteration: int = 200</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.MonteCarloValueFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction" title="reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.MonteCarloValueFunction.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param">clear_state_values: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.MonteCarloValueFunction.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.MonteCarloValueFunction.state_value">
+<code class="sig-name descname">state_value</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.MonteCarloValueFunction.state_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularPolicy">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.rl_tabular_trainers.</code><code class="sig-name descname">TabularPolicy</code><span class="sig-paren">(</span><em class="sig-param">action_space: reagent.ope.estimators.types.ActionSpace</em>, <em class="sig-param">epsilon: float = 0.0</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.RLPolicy" title="reagent.ope.estimators.sequential_estimators.RLPolicy"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.RLPolicy</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.action_dist">
+<code class="sig-name descname">action_dist</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.ActionDistribution<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.action_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State, actions: Sequence[float]</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularPolicy.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.trainers.rl_tabular_trainers.</code><code class="sig-name descname">TabularValueFunction</code><span class="sig-paren">(</span><em class="sig-param">policy: reagent.ope.estimators.sequential_estimators.RLPolicy</em>, <em class="sig-param">model: reagent.ope.estimators.sequential_estimators.Model</em>, <em class="sig-param">gamma=0.99</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.ValueFunction" title="reagent.ope.estimators.sequential_estimators.ValueFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.ValueFunction</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param">clear_state_values: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction.state_action_value">
+<code class="sig-name descname">state_action_value</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State, action: reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]]</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction.state_action_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction.state_value">
+<code class="sig-name descname">state_value</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.trainers.rl_tabular_trainers.TabularValueFunction.state_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.ope.trainers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.ope.trainers" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reagent.optimizer.html" class="btn btn-neutral float-right" title="reagent.optimizer package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="reagent.ope.test.unit_tests.html" class="btn btn-neutral float-left" title="reagent.ope.test.unit_tests package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

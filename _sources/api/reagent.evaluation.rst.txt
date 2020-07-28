@@ -1,0 +1,110 @@
+reagent.evaluation package
+==========================
+
+Submodules
+----------
+
+reagent.evaluation.cpe module
+-----------------------------
+
+.. automodule:: reagent.evaluation.cpe
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.doubly\_robust\_estimator module
+---------------------------------------------------
+
+.. automodule:: reagent.evaluation.doubly_robust_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.evaluation\_data\_page module
+------------------------------------------------
+
+.. automodule:: reagent.evaluation.evaluation_data_page
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.evaluator module
+-----------------------------------
+
+.. automodule:: reagent.evaluation.evaluator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.ope\_adapter module
+--------------------------------------
+
+.. automodule:: reagent.evaluation.ope_adapter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.ranking\_listwise\_evaluator module
+------------------------------------------------------
+
+.. automodule:: reagent.evaluation.ranking_listwise_evaluator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.ranking\_policy\_gradient\_evaluator module
+--------------------------------------------------------------
+
+.. automodule:: reagent.evaluation.ranking_policy_gradient_evaluator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.reward\_net\_evaluator module
+------------------------------------------------
+
+.. automodule:: reagent.evaluation.reward_net_evaluator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.seq2reward\_evaluator module
+-----------------------------------------------
+
+.. automodule:: reagent.evaluation.seq2reward_evaluator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.sequential\_doubly\_robust\_estimator module
+---------------------------------------------------------------
+
+.. automodule:: reagent.evaluation.sequential_doubly_robust_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.weighted\_sequential\_doubly\_robust\_estimator module
+-------------------------------------------------------------------------
+
+.. automodule:: reagent.evaluation.weighted_sequential_doubly_robust_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.evaluation.world\_model\_evaluator module
+-------------------------------------------------
+
+.. automodule:: reagent.evaluation.world_model_evaluator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: reagent.evaluation
+   :members:
+   :undoc-members:
+   :show-inheritance:

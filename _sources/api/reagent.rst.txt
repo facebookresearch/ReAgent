@@ -1,0 +1,94 @@
+reagent package
+===============
+
+Subpackages
+-----------
+
+.. toctree::
+
+   reagent.evaluation
+   reagent.gym
+   reagent.models
+   reagent.ope
+   reagent.optimizer
+   reagent.prediction
+   reagent.preprocessing
+   reagent.replay_memory
+   reagent.training
+   reagent.workflow
+
+Submodules
+----------
+
+reagent.base\_dataclass module
+------------------------------
+
+.. automodule:: reagent.base_dataclass
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.debug\_on\_error module
+-------------------------------
+
+.. automodule:: reagent.debug_on_error
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.json\_serialize module
+------------------------------
+
+.. automodule:: reagent.json_serialize
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.parameters module
+-------------------------
+
+.. automodule:: reagent.parameters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.parameters\_seq2slate module
+------------------------------------
+
+.. automodule:: reagent.parameters_seq2slate
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.tensorboardX module
+---------------------------
+
+.. automodule:: reagent.tensorboardX
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.torch\_utils module
+---------------------------
+
+.. automodule:: reagent.torch_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.types module
+--------------------
+
+.. automodule:: reagent.types
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: reagent
+   :members:
+   :undoc-members:
+   :show-inheritance:

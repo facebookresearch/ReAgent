@@ -1,0 +1,561 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>reagent.optimizer package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.prediction package" href="reagent.prediction.html" />
+    <link rel="prev" title="reagent.ope.trainers package" href="reagent.ope.trainers.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+        
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+        
+      <li>reagent.optimizer package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reagent.optimizer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reagent-optimizer-package">
+<h1>reagent.optimizer package<a class="headerlink" href="#reagent-optimizer-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-optimizer-optimizer-module">
+<h2>reagent.optimizer.optimizer module<a class="headerlink" href="#reagent-optimizer-optimizer-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.optimizer.scheduler">
+<span id="reagent-optimizer-scheduler-module"></span><h2>reagent.optimizer.scheduler module<a class="headerlink" href="#module-reagent.optimizer.scheduler" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.optimizer.scheduler.LearningRateSchedulerConfig">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.scheduler.</code><code class="sig-name descname">LearningRateSchedulerConfig</code><a class="headerlink" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler.LearningRateSchedulerConfig.REGISTRY">
+<code class="sig-name descname">REGISTRY</code><em class="property"> = {'CosineAnnealingLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR'&gt;, 'CosineAnnealingWarmRestarts': &lt;class 'reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts'&gt;, 'CyclicLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.CyclicLR'&gt;, 'ExponentialLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.ExponentialLR'&gt;, 'LambdaLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.LambdaLR'&gt;, 'MultiStepLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.MultiStepLR'&gt;, 'MultiplicativeLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.MultiplicativeLR'&gt;, 'OneCycleLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.OneCycleLR'&gt;, 'StepLR': &lt;class 'reagent.optimizer.uninferrable_schedulers.StepLR'&gt;}</em><a class="headerlink" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig.REGISTRY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler.LearningRateSchedulerConfig.REGISTRY_FROZEN">
+<code class="sig-name descname">REGISTRY_FROZEN</code><em class="property"> = True</em><a class="headerlink" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig.REGISTRY_FROZEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler.LearningRateSchedulerConfig.REGISTRY_NAME">
+<code class="sig-name descname">REGISTRY_NAME</code><em class="property"> = 'LearningRateSchedulerConfig'</em><a class="headerlink" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig.REGISTRY_NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.optimizer.scheduler.LearningRateSchedulerConfig.make_from_optimizer">
+<code class="sig-name descname">make_from_optimizer</code><span class="sig-paren">(</span><em class="sig-param">optimizer: torch.optim.Optimizer</em><span class="sig-paren">)</span> &#x2192; torch.optim.lr_scheduler._LRScheduler<a class="headerlink" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig.make_from_optimizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.optimizer.scheduler_union">
+<span id="reagent-optimizer-scheduler-union-module"></span><h2>reagent.optimizer.scheduler_union module<a class="headerlink" href="#module-reagent.optimizer.scheduler_union" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.scheduler_union.</code><code class="sig-name descname">LearningRateScheduler__Union</code><span class="sig-paren">(</span><em class="sig-param">LambdaLR: Union[reagent.optimizer.uninferrable_schedulers.LambdaLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">MultiplicativeLR: Union[reagent.optimizer.uninferrable_schedulers.MultiplicativeLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">StepLR: Union[reagent.optimizer.uninferrable_schedulers.StepLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">MultiStepLR: Union[reagent.optimizer.uninferrable_schedulers.MultiStepLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">ExponentialLR: Union[reagent.optimizer.uninferrable_schedulers.ExponentialLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">CosineAnnealingLR: Union[reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">CyclicLR: Union[reagent.optimizer.uninferrable_schedulers.CyclicLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">OneCycleLR: Union[reagent.optimizer.uninferrable_schedulers.OneCycleLR</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">CosineAnnealingWarmRestarts: Union[reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.CosineAnnealingLR">
+<code class="sig-name descname">CosineAnnealingLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.CosineAnnealingLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.CosineAnnealingWarmRestarts">
+<code class="sig-name descname">CosineAnnealingWarmRestarts</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.CosineAnnealingWarmRestarts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.CyclicLR">
+<code class="sig-name descname">CyclicLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.CyclicLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.ExponentialLR">
+<code class="sig-name descname">ExponentialLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.ExponentialLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.LambdaLR">
+<code class="sig-name descname">LambdaLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.LambdaLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.MultiStepLR">
+<code class="sig-name descname">MultiStepLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.MultiStepLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.MultiplicativeLR">
+<code class="sig-name descname">MultiplicativeLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.MultiplicativeLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.OneCycleLR">
+<code class="sig-name descname">OneCycleLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.OneCycleLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.StepLR">
+<code class="sig-name descname">StepLR</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.StepLR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.make_from_optimizer">
+<code class="sig-name descname">make_from_optimizer</code><span class="sig-paren">(</span><em class="sig-param">optimizer: torch.optim.Optimizer</em><span class="sig-paren">)</span> &#x2192; torch.optim.lr_scheduler._LRScheduler<a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.make_from_optimizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.optimizer.scheduler_union.LearningRateScheduler__Union.make_union_instance">
+<code class="sig-name descname">make_union_instance</code><span class="sig-paren">(</span><em class="sig-param">instance_class=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.scheduler_union.LearningRateScheduler__Union.make_union_instance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.optimizer.scheduler_union.get_torch_lr_schedulers">
+<code class="sig-prename descclassname">reagent.optimizer.scheduler_union.</code><code class="sig-name descname">get_torch_lr_schedulers</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#reagent.optimizer.scheduler_union.get_torch_lr_schedulers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="reagent-optimizer-uninferrable-optimizers-module">
+<h2>reagent.optimizer.uninferrable_optimizers module<a class="headerlink" href="#reagent-optimizer-uninferrable-optimizers-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.optimizer.uninferrable_schedulers">
+<span id="reagent-optimizer-uninferrable-schedulers-module"></span><h2>reagent.optimizer.uninferrable_schedulers module<a class="headerlink" href="#module-reagent.optimizer.uninferrable_schedulers" title="Permalink to this headline">¶</a></h2>
+<p>This file contains configs that could not be inferred from the default values
+provided by PyTorch. If PyTorch optimizers and lr_schedulers had type annotations
+then we could infer everything.
+default values that cannot be inferred:
+- tuple
+- None
+- required parameters (no default value)</p>
+<p>Sometimes there are no defaults to infer from, so we got to include those here.
+TODO: remove this file once we can infer everything.</p>
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">CosineAnnealingLR</code><span class="sig-paren">(</span><em class="sig-param">T_max: int</em>, <em class="sig-param">eta_min: float = 0</em>, <em class="sig-param">last_epoch: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR.eta_min">
+<code class="sig-name descname">eta_min</code><em class="property"> = 0</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR.eta_min" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR.last_epoch">
+<code class="sig-name descname">last_epoch</code><em class="property"> = -1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR.last_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">CosineAnnealingWarmRestarts</code><span class="sig-paren">(</span><em class="sig-param">T_0: int</em>, <em class="sig-param">T_mult: int = 1</em>, <em class="sig-param">eta_min: float = 0</em>, <em class="sig-param">last_epoch: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts.T_mult">
+<code class="sig-name descname">T_mult</code><em class="property"> = 1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts.T_mult" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts.eta_min">
+<code class="sig-name descname">eta_min</code><em class="property"> = 0</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts.eta_min" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts.last_epoch">
+<code class="sig-name descname">last_epoch</code><em class="property"> = -1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CosineAnnealingWarmRestarts.last_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.CyclicLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">CyclicLR</code><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.CyclicLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.ExponentialLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">ExponentialLR</code><span class="sig-paren">(</span><em class="sig-param">gamma: float</em>, <em class="sig-param">last_epoch: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.ExponentialLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.ExponentialLR.last_epoch">
+<code class="sig-name descname">last_epoch</code><em class="property"> = -1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.ExponentialLR.last_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.LambdaLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">LambdaLR</code><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.LambdaLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.MultiStepLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">MultiStepLR</code><span class="sig-paren">(</span><em class="sig-param">milestones: List[int], gamma: float = 0.1, last_epoch: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.MultiStepLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.MultiStepLR.gamma">
+<code class="sig-name descname">gamma</code><em class="property"> = 0.1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.MultiStepLR.gamma" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.MultiStepLR.last_epoch">
+<code class="sig-name descname">last_epoch</code><em class="property"> = -1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.MultiStepLR.last_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.MultiplicativeLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">MultiplicativeLR</code><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.MultiplicativeLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">OneCycleLR</code><span class="sig-paren">(</span><em class="sig-param">max_lr: Union[float, List[float]], total_steps: Union[int, NoneType] = None, epochs: Union[int, NoneType] = None, steps_per_epoch: Union[int, NoneType] = None, pct_start: float = 0.3, anneal_strategy: str = 'cos', cycle_momentum: bool = True, base_momentum: float = 0.85, max_momentum: float = 0.95, div_factor: float = 25.0, final_div_factor: float = 10000.0, last_epoch: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.anneal_strategy">
+<code class="sig-name descname">anneal_strategy</code><em class="property"> = 'cos'</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.anneal_strategy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.base_momentum">
+<code class="sig-name descname">base_momentum</code><em class="property"> = 0.85</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.base_momentum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.cycle_momentum">
+<code class="sig-name descname">cycle_momentum</code><em class="property"> = True</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.cycle_momentum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.div_factor">
+<code class="sig-name descname">div_factor</code><em class="property"> = 25.0</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.div_factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.epochs">
+<code class="sig-name descname">epochs</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.epochs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.final_div_factor">
+<code class="sig-name descname">final_div_factor</code><em class="property"> = 10000.0</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.final_div_factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.last_epoch">
+<code class="sig-name descname">last_epoch</code><em class="property"> = -1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.last_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.max_momentum">
+<code class="sig-name descname">max_momentum</code><em class="property"> = 0.95</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.max_momentum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.pct_start">
+<code class="sig-name descname">pct_start</code><em class="property"> = 0.3</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.pct_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.steps_per_epoch">
+<code class="sig-name descname">steps_per_epoch</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.steps_per_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.OneCycleLR.total_steps">
+<code class="sig-name descname">total_steps</code><em class="property"> = None</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.OneCycleLR.total_steps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.optimizer.uninferrable_schedulers.StepLR">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.optimizer.uninferrable_schedulers.</code><code class="sig-name descname">StepLR</code><span class="sig-paren">(</span><em class="sig-param">step_size: int</em>, <em class="sig-param">gamma: float = 0.1</em>, <em class="sig-param">last_epoch: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.StepLR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.optimizer.scheduler.LearningRateSchedulerConfig" title="reagent.optimizer.scheduler.LearningRateSchedulerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.optimizer.scheduler.LearningRateSchedulerConfig</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.StepLR.gamma">
+<code class="sig-name descname">gamma</code><em class="property"> = 0.1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.StepLR.gamma" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.optimizer.uninferrable_schedulers.StepLR.last_epoch">
+<code class="sig-name descname">last_epoch</code><em class="property"> = -1</em><a class="headerlink" href="#reagent.optimizer.uninferrable_schedulers.StepLR.last_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="reagent-optimizer-union-module">
+<h2>reagent.optimizer.union module<a class="headerlink" href="#reagent-optimizer-union-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.optimizer.utils">
+<span id="reagent-optimizer-utils-module"></span><h2>reagent.optimizer.utils module<a class="headerlink" href="#module-reagent.optimizer.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="reagent.optimizer.utils.is_strict_subclass">
+<code class="sig-prename descclassname">reagent.optimizer.utils.</code><code class="sig-name descname">is_strict_subclass</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.utils.is_strict_subclass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.optimizer.utils.is_torch_lr_scheduler">
+<code class="sig-prename descclassname">reagent.optimizer.utils.</code><code class="sig-name descname">is_torch_lr_scheduler</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.utils.is_torch_lr_scheduler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.optimizer.utils.is_torch_optimizer">
+<code class="sig-prename descclassname">reagent.optimizer.utils.</code><code class="sig-name descname">is_torch_optimizer</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.optimizer.utils.is_torch_optimizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent.optimizer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.optimizer" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reagent.prediction.html" class="btn btn-neutral float-right" title="reagent.prediction package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="reagent.ope.trainers.html" class="btn btn-neutral float-left" title="reagent.ope.trainers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

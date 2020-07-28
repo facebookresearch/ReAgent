@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ml.rl.training.world_model package &mdash; Horizon 1.0 documentation</title>
+  <title>ml.rl.training.world_model package &mdash; ReAgent 1.0 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ml" href="modules.html" />
-    <link rel="prev" title="ml.rl.training package" href="ml.rl.training.html" /> 
+    <link rel="next" title="ml.rl.workflow package" href="ml.rl.workflow.html" />
+    <link rel="prev" title="ml.rl.training.ranking package" href="ml.rl.training.ranking.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +50,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> Horizon
+            <a href="../index.html" class="icon icon-home"> ReAgent
           
 
           
@@ -89,47 +89,50 @@
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="ml.rl.training.html">Training</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ml.rl.training.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.training.gradient_free.html">ml.rl.training.gradient_free package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ml.rl.training.ranking.html">ml.rl.training.ranking package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ml.rl.training.world_model package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ml.rl.training.world_model.mdnrnn_trainer">ml.rl.training.world_model.mdnrnn_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ml-rl-training-world-model-mdnrnn-trainer-module">ml.rl.training.world_model.mdnrnn_trainer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ml.rl.training.world_model">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.actor_predictor">ml.rl.training.actor_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.c51_trainer">ml.rl.training.c51_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.cem_trainer">ml.rl.training.cem_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.dqn_predictor">ml.rl.training.dqn_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.dqn_trainer">ml.rl.training.dqn_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.dqn_trainer_base">ml.rl.training.dqn_trainer_base module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.imitator_training">ml.rl.training.imitator_training module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.loss_reporter">ml.rl.training.loss_reporter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.off_policy_predictor">ml.rl.training.off_policy_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.on_policy_predictor">ml.rl.training.on_policy_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.parametric_dqn_predictor">ml.rl.training.parametric_dqn_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.parametric_dqn_trainer">ml.rl.training.parametric_dqn_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.qrdqn_trainer">ml.rl.training.qrdqn_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.rl_dataset">ml.rl.training.rl_dataset module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.rl_exporter">ml.rl.training.rl_exporter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.rl_trainer_pytorch">ml.rl.training.rl_trainer_pytorch module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.sac_trainer">ml.rl.training.sac_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.sandboxed_predictor">ml.rl.training.sandboxed_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.td3_trainer">ml.rl.training.td3_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training.training_data_page">ml.rl.training.training_data_page module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-c51-trainer-module">ml.rl.training.c51_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-cem-trainer-module">ml.rl.training.cem_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-dqn-predictor-module">ml.rl.training.dqn_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-dqn-trainer-module">ml.rl.training.dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-dqn-trainer-base-module">ml.rl.training.dqn_trainer_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-imitator-training-module">ml.rl.training.imitator_training module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-loss-reporter-module">ml.rl.training.loss_reporter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-off-policy-predictor-module">ml.rl.training.off_policy_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-on-policy-predictor-module">ml.rl.training.on_policy_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-parametric-dqn-trainer-module">ml.rl.training.parametric_dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-qrdqn-trainer-module">ml.rl.training.qrdqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-rl-dataset-module">ml.rl.training.rl_dataset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-rl-trainer-pytorch-module">ml.rl.training.rl_trainer_pytorch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-sac-trainer-module">ml.rl.training.sac_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-sandboxed-predictor-module">ml.rl.training.sandboxed_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-td3-trainer-module">ml.rl.training.td3_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#ml-rl-training-training-data-page-module">ml.rl.training.training_data_page module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ml.rl.training.html#module-ml.rl.training">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Others</span></p>
@@ -150,7 +153,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">Horizon</a>
+          <a href="../index.html">ReAgent</a>
         
       </nav>
 
@@ -207,57 +210,8 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.training.world_model.mdnrnn_trainer">
-<span id="ml-rl-training-world-model-mdnrnn-trainer-module"></span><h2>ml.rl.training.world_model.mdnrnn_trainer module<a class="headerlink" href="#module-ml.rl.training.world_model.mdnrnn_trainer" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.training.world_model.mdnrnn_trainer.</code><code class="sig-name descname">MDNRNNTrainer</code><span class="sig-paren">(</span><em class="sig-param">mdnrnn_network: ml.rl.models.world_model.MemoryNetwork</em>, <em class="sig-param">params: ml.rl.parameters.MDNRNNParameters</em>, <em class="sig-param">cum_loss_hist: int = 100</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Trainer for MDN-RNN</p>
-<dl class="method">
-<dt id="ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer.get_loss">
-<code class="sig-name descname">get_loss</code><span class="sig-paren">(</span><em class="sig-param">training_batch: ml.rl.types.PreprocessedTrainingBatch</em>, <em class="sig-param">state_dim: Optional[int] = None</em>, <em class="sig-param">batch_first: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer.get_loss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Compute losses:</dt><dd><p>GMMLoss(next_state, GMMPredicted) / (STATE_DIM + 2)
-+ MSE(reward, predicted_reward)
-+ BCE(not_terminal, logit_not_terminal)</p>
-</dd>
-<dt>The STATE_DIM + 2 factor is here to counteract the fact that the GMMLoss scales</dt><dd><p>approximately linearily with STATE_DIM, the feature size of states. All losses
-are averaged both on the batch and the sequence dimensions (the two first
-dimensions).</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>training_batch</strong> – training_batch.learning_input has these fields:
-- state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
-- action: (BATCH_SIZE, SEQ_LEN, ACTION_DIM) torch tensor
-- reward: (BATCH_SIZE, SEQ_LEN) torch tensor
-- not-terminal: (BATCH_SIZE, SEQ_LEN) torch tensor
-- next_state: (BATCH_SIZE, SEQ_LEN, STATE_DIM) torch tensor
-the first two dimensions may be swapped depending on batch_first</p></li>
-<li><p><strong>state_dim</strong> – the dimension of states. If provided, use it to normalize
-gmm loss</p></li>
-<li><p><strong>batch_first</strong> – whether data’s first dimension represents batch size. If
-FALSE, state, action, reward, not-terminal, and next_state’s first
-two dimensions are SEQ_LEN and BATCH_SIZE.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>dictionary of losses, containing the gmm, the mse, the bce and
-the averaged loss.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer.train">
-<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">training_batch: ml.rl.types.PreprocessedTrainingBatch</em>, <em class="sig-param">batch_first: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer.train" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="ml-rl-training-world-model-mdnrnn-trainer-module">
+<h2>ml.rl.training.world_model.mdnrnn_trainer module<a class="headerlink" href="#ml-rl-training-world-model-mdnrnn-trainer-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-ml.rl.training.world_model">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.training.world_model" title="Permalink to this headline">¶</a></h2>
@@ -272,10 +226,10 @@ the averaged loss.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="modules.html" class="btn btn-neutral float-right" title="ml" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ml.rl.workflow.html" class="btn btn-neutral float-right" title="ml.rl.workflow package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ml.rl.training.html" class="btn btn-neutral float-left" title="ml.rl.training package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ml.rl.training.ranking.html" class="btn btn-neutral float-left" title="ml.rl.training.ranking package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -1,0 +1,1315 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>reagent package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.evaluation package" href="reagent.evaluation.html" />
+    <link rel="prev" title="reagent" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">reagent package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+        
+      <li>reagent package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reagent.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reagent-package">
+<h1>reagent package<a class="headerlink" href="#reagent-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#module-reagent.evaluation.cpe">reagent.evaluation.cpe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-doubly-robust-estimator-module">reagent.evaluation.doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-evaluation-data-page-module">reagent.evaluation.evaluation_data_page module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-evaluator-module">reagent.evaluation.evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-ope-adapter-module">reagent.evaluation.ope_adapter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-ranking-listwise-evaluator-module">reagent.evaluation.ranking_listwise_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-ranking-policy-gradient-evaluator-module">reagent.evaluation.ranking_policy_gradient_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-reward-net-evaluator-module">reagent.evaluation.reward_net_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-seq2reward-evaluator-module">reagent.evaluation.seq2reward_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-sequential-doubly-robust-estimator-module">reagent.evaluation.sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-weighted-sequential-doubly-robust-estimator-module">reagent.evaluation.weighted_sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#reagent-evaluation-world-model-evaluator-module">reagent.evaluation.world_model_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.html#module-reagent.evaluation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.agents.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.agents.html#reagent-gym-agents-agent-module">reagent.gym.agents.agent module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.agents.html#reagent-gym-agents-post-step-module">reagent.gym.agents.post_step module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.agents.html#module-reagent.gym.agents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#reagent-gym-envs-changing-arms-module">reagent.gym.envs.changing_arms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.env_factory">reagent.gym.envs.env_factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.recsim">reagent.gym.envs.recsim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.simple_minigrid">reagent.gym.envs.simple_minigrid module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.utils">reagent.gym.envs.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reagent.gym.policies.samplers.html">reagent.gym.policies.samplers package</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.samplers.html#submodules">Submodules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.continuous_sampler">reagent.gym.policies.samplers.continuous_sampler module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.discrete_sampler">reagent.gym.policies.samplers.discrete_sampler module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.top_k_sampler">reagent.gym.policies.samplers.top_k_sampler module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="reagent.gym.policies.scorers.html">reagent.gym.policies.scorers package</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.scorers.html#submodules">Submodules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.continuous_scorer">reagent.gym.policies.scorers.continuous_scorer module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.scorers.html#reagent-gym-policies-scorers-discrete-scorer-module">reagent.gym.policies.scorers.discrete_scorer module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.slate_q_scorer">reagent.gym.policies.scorers.slate_q_scorer module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.policy">reagent.gym.policies.policy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#reagent-gym-policies-predictor-policies-module">reagent.gym.policies.predictor_policies module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#reagent-gym-policies-random-policies-module">reagent.gym.policies.random_policies module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.preprocessors.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-preprocessors-module">reagent.gym.preprocessors.default_preprocessors module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-serving-preprocessors-module">reagent.gym.preprocessors.default_serving_preprocessors module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-replay-buffer-inserters-module">reagent.gym.preprocessors.replay_buffer_inserters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-trainer-preprocessor-module">reagent.gym.preprocessors.trainer_preprocessor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.preprocessors.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.runners.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.runners.html#reagent-gym-runners-gymrunner-module">reagent.gym.runners.gymrunner module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.runners.html#module-reagent.gym.runners">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.html">reagent.gym.tests package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reagent.gym.tests.preprocessors.html">reagent.gym.tests.preprocessors package</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#submodules">Submodules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-default-preprocessors-module">reagent.gym.tests.preprocessors.test_default_preprocessors module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-replay-buffer-inserters-module">reagent.gym.tests.preprocessors.test_replay_buffer_inserters module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-gym-module">reagent.gym.tests.test_gym module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-gym-offline-module">reagent.gym.tests.test_gym_offline module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_linear_dynamics">reagent.gym.tests.test_linear_dynamics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_pomdp">reagent.gym.tests.test_pomdp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-seq2reward-model-module">reagent.gym.tests.test_seq2reward_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-world-model-module">reagent.gym.tests.test_world_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#reagent-gym-utils-module">reagent.gym.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">reagent.models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-actor-module">reagent.models.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#module-reagent.models.base">reagent.models.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-bcq-module">reagent.models.bcq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-categorical-dqn-module">reagent.models.categorical_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-cem-planner-module">reagent.models.cem_planner module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-containers-module">reagent.models.containers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-convolutional-network-module">reagent.models.convolutional_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-critic-module">reagent.models.critic module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-dqn-module">reagent.models.dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-dueling-q-network-module">reagent.models.dueling_q_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-embedding-bag-concat-module">reagent.models.embedding_bag_concat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#module-reagent.models.fully_connected_network">reagent.models.fully_connected_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-mdn-rnn-module">reagent.models.mdn_rnn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-model-feature-config-provider-module">reagent.models.model_feature_config_provider module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-no-soft-update-embedding-module">reagent.models.no_soft_update_embedding module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-seq2reward-model-module">reagent.models.seq2reward_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-seq2slate-module">reagent.models.seq2slate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-seq2slate-reward-module">reagent.models.seq2slate_reward module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#reagent-models-world-model-module">reagent.models.world_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.models.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.ope.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.ope.datasets.html">reagent.ope.datasets package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.datasets.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.datasets.html#module-reagent.ope.datasets.logged_dataset">reagent.ope.datasets.logged_dataset module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.datasets.html#module-reagent.ope.datasets">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.ope.estimators.html">reagent.ope.estimators package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.estimators.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.estimators.html#module-reagent.ope.estimators.contextual_bandits_estimators">reagent.ope.estimators.contextual_bandits_estimators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.estimators.html#module-reagent.ope.estimators.estimator">reagent.ope.estimators.estimator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.estimators.html#module-reagent.ope.estimators.sequential_estimators">reagent.ope.estimators.sequential_estimators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.estimators.html#module-reagent.ope.estimators.slate_estimators">reagent.ope.estimators.slate_estimators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.estimators.html#module-reagent.ope.estimators.types">reagent.ope.estimators.types module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.estimators.html#module-reagent.ope.estimators">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.ope.test.html">reagent.ope.test package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="reagent.ope.test.unit_tests.html">reagent.ope.test.unit_tests package</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="reagent.ope.test.unit_tests.html#submodules">Submodules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.ope.test.unit_tests.html#module-reagent.ope.test.unit_tests.test_slate_estimators">reagent.ope.test.unit_tests.test_slate_estimators module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.ope.test.unit_tests.html#reagent-ope-test-unit-tests-test-types-module">reagent.ope.test.unit_tests.test_types module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.ope.test.unit_tests.html#module-reagent.ope.test.unit_tests.test_utils">reagent.ope.test.unit_tests.test_utils module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="reagent.ope.test.unit_tests.html#module-reagent.ope.test.unit_tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#module-reagent.ope.test.envs">reagent.ope.test.envs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#module-reagent.ope.test.gridworld">reagent.ope.test.gridworld module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#module-reagent.ope.test.mslr_slate">reagent.ope.test.mslr_slate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#module-reagent.ope.test.multiclass_bandits">reagent.ope.test.multiclass_bandits module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#module-reagent.ope.test.yandex_web_search">reagent.ope.test.yandex_web_search module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.test.html#module-reagent.ope.test">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.ope.trainers.html">reagent.ope.trainers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.trainers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.trainers.html#module-reagent.ope.trainers.linear_trainers">reagent.ope.trainers.linear_trainers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.trainers.html#module-reagent.ope.trainers.rl_tabular_trainers">reagent.ope.trainers.rl_tabular_trainers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.trainers.html#module-reagent.ope.trainers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.ope.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.ope.html#module-reagent.ope.utils">reagent.ope.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.ope.html#module-reagent.ope">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#reagent-optimizer-optimizer-module">reagent.optimizer.optimizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#module-reagent.optimizer.scheduler">reagent.optimizer.scheduler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#module-reagent.optimizer.scheduler_union">reagent.optimizer.scheduler_union module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#reagent-optimizer-uninferrable-optimizers-module">reagent.optimizer.uninferrable_optimizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#module-reagent.optimizer.uninferrable_schedulers">reagent.optimizer.uninferrable_schedulers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#reagent-optimizer-union-module">reagent.optimizer.union module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#module-reagent.optimizer.utils">reagent.optimizer.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.optimizer.html#module-reagent.optimizer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.html#reagent-prediction-predictor-wrapper-module">reagent.prediction.predictor_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.html#module-reagent.prediction">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#reagent-preprocessing-batch-preprocessor-module">reagent.preprocessing.batch_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#module-reagent.preprocessing.identify_types">reagent.preprocessing.identify_types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#reagent-preprocessing-normalization-module">reagent.preprocessing.normalization module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#reagent-preprocessing-postprocessor-module">reagent.preprocessing.postprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#reagent-preprocessing-preprocessor-module">reagent.preprocessing.preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#module-reagent.preprocessing.sparse_preprocessor">reagent.preprocessing.sparse_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#reagent-preprocessing-sparse-to-dense-module">reagent.preprocessing.sparse_to_dense module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#reagent-preprocessing-transforms-module">reagent.preprocessing.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#module-reagent.preprocessing.types">reagent.preprocessing.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.preprocessing.html#module-reagent.preprocessing">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.replay_memory.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.replay_memory.html#module-reagent.replay_memory.circular_replay_buffer">reagent.replay_memory.circular_replay_buffer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.replay_memory.html#module-reagent.replay_memory.prioritized_replay_buffer">reagent.replay_memory.prioritized_replay_buffer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.replay_memory.html#module-reagent.replay_memory.sum_tree">reagent.replay_memory.sum_tree module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.replay_memory.html#module-reagent.replay_memory.utils">reagent.replay_memory.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.replay_memory.html#module-reagent.replay_memory">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">reagent.training package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.training.gradient_free.html">reagent.training.gradient_free package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.gradient_free.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.gradient_free.html#reagent-training-gradient-free-es-worker-module">reagent.training.gradient_free.es_worker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.gradient_free.html#reagent-training-gradient-free-evolution-pool-module">reagent.training.gradient_free.evolution_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.gradient_free.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.training.ranking.html">reagent.training.ranking package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.ranking.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.ranking.html#reagent-training-ranking-seq2slate-attn-trainer-module">reagent.training.ranking.seq2slate_attn_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.ranking.html#reagent-training-ranking-seq2slate-dr-trainer-module">reagent.training.ranking.seq2slate_dr_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.ranking.html#reagent-training-ranking-seq2slate-sim-trainer-module">reagent.training.ranking.seq2slate_sim_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.ranking.html#reagent-training-ranking-seq2slate-tf-trainer-module">reagent.training.ranking.seq2slate_tf_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.ranking.html#reagent-training-ranking-seq2slate-trainer-module">reagent.training.ranking.seq2slate_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.ranking.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.training.world_model.html">reagent.training.world_model package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.world_model.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.world_model.html#reagent-training-world-model-mdnrnn-trainer-module">reagent.training.world_model.mdnrnn_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.world_model.html#reagent-training-world-model-seq2reward-trainer-module">reagent.training.world_model.seq2reward_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.world_model.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-c51-trainer-module">reagent.training.c51_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-cem-trainer-module">reagent.training.cem_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-dqn-trainer-module">reagent.training.dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-dqn-trainer-base-module">reagent.training.dqn_trainer_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-imitator-training-module">reagent.training.imitator_training module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-loss-reporter-module">reagent.training.loss_reporter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-parameters-module">reagent.training.parameters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-parametric-dqn-trainer-module">reagent.training.parametric_dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-qrdqn-trainer-module">reagent.training.qrdqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-reinforce-module">reagent.training.reinforce module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-reward-network-trainer-module">reagent.training.reward_network_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-rl-trainer-pytorch-module">reagent.training.rl_trainer_pytorch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-sac-trainer-module">reagent.training.sac_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-slate-q-trainer-module">reagent.training.slate_q_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-td3-trainer-module">reagent.training.td3_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-trainer-module">reagent.training.trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#reagent-training-utils-module">reagent.training.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow.cli">reagent.workflow.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#reagent-workflow-data-fetcher-module">reagent.workflow.data_fetcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow.env">reagent.workflow.env module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#reagent-workflow-gym-batch-rl-module">reagent.workflow.gym_batch_rl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#reagent-workflow-identify-types-flow-module">reagent.workflow.identify_types_flow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow.result_registries">reagent.workflow.result_registries module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow.result_types">reagent.workflow.result_types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow.spark_utils">reagent.workflow.spark_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow.tagged_union">reagent.workflow.tagged_union module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#reagent-workflow-training-module">reagent.workflow.training module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow.training_reports">reagent.workflow.training_reports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#reagent-workflow-types-module">reagent.workflow.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#reagent-workflow-utils-module">reagent.workflow.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.workflow.html#module-reagent.workflow">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.base_dataclass">
+<span id="reagent-base-dataclass-module"></span><h2>reagent.base_dataclass module<a class="headerlink" href="#module-reagent.base_dataclass" title="Permalink to this headline">¶</a></h2>
+<p>We should revisit this at some point. Config classes shouldn’t subclass from this.</p>
+<dl class="class">
+<dt id="reagent.base_dataclass.BaseDataClass">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.base_dataclass.</code><code class="sig-name descname">BaseDataClass</code><a class="headerlink" href="#reagent.base_dataclass.BaseDataClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.debug_on_error">
+<span id="reagent-debug-on-error-module"></span><h2>reagent.debug_on_error module<a class="headerlink" href="#module-reagent.debug_on_error" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="reagent.debug_on_error.start">
+<code class="sig-prename descclassname">reagent.debug_on_error.</code><code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.debug_on_error.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent.json_serialize">
+<span id="reagent-json-serialize-module"></span><h2>reagent.json_serialize module<a class="headerlink" href="#module-reagent.json_serialize" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="reagent.json_serialize.from_json">
+<code class="sig-prename descclassname">reagent.json_serialize.</code><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">j_obj: Any</em>, <em class="sig-param">to_type: Type</em><span class="sig-paren">)</span> &#x2192; Any<a class="headerlink" href="#reagent.json_serialize.from_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.json_serialize.json_to_object">
+<code class="sig-prename descclassname">reagent.json_serialize.</code><code class="sig-name descname">json_to_object</code><span class="sig-paren">(</span><em class="sig-param">j: str</em>, <em class="sig-param">to_type: Type</em><span class="sig-paren">)</span> &#x2192; Any<a class="headerlink" href="#reagent.json_serialize.json_to_object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.json_serialize.object_to_json">
+<code class="sig-prename descclassname">reagent.json_serialize.</code><code class="sig-name descname">object_to_json</code><span class="sig-paren">(</span><em class="sig-param">o: Any</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#reagent.json_serialize.object_to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.json_serialize.prepare_for_json">
+<code class="sig-prename descclassname">reagent.json_serialize.</code><code class="sig-name descname">prepare_for_json</code><span class="sig-paren">(</span><em class="sig-param">o: Any</em><span class="sig-paren">)</span> &#x2192; Any<a class="headerlink" href="#reagent.json_serialize.prepare_for_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="reagent-parameters-module">
+<h2>reagent.parameters module<a class="headerlink" href="#reagent-parameters-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.parameters_seq2slate">
+<span id="reagent-parameters-seq2slate-module"></span><h2>reagent.parameters_seq2slate module<a class="headerlink" href="#module-reagent.parameters_seq2slate" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.parameters_seq2slate.LearningMethod">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.parameters_seq2slate.</code><code class="sig-name descname">LearningMethod</code><a class="headerlink" href="#reagent.parameters_seq2slate.LearningMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="reagent.parameters_seq2slate.LearningMethod.DIFFERENTIABLE_REWARD">
+<code class="sig-name descname">DIFFERENTIABLE_REWARD</code><em class="property"> = 'differentiable_reward'</em><a class="headerlink" href="#reagent.parameters_seq2slate.LearningMethod.DIFFERENTIABLE_REWARD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.parameters_seq2slate.LearningMethod.PAIRWISE_ATTENTION">
+<code class="sig-name descname">PAIRWISE_ATTENTION</code><em class="property"> = 'pairwise_attention'</em><a class="headerlink" href="#reagent.parameters_seq2slate.LearningMethod.PAIRWISE_ATTENTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.parameters_seq2slate.LearningMethod.REINFORCEMENT_LEARNING">
+<code class="sig-name descname">REINFORCEMENT_LEARNING</code><em class="property"> = 'reinforcement_learning'</em><a class="headerlink" href="#reagent.parameters_seq2slate.LearningMethod.REINFORCEMENT_LEARNING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.parameters_seq2slate.LearningMethod.SIMULATION">
+<code class="sig-name descname">SIMULATION</code><em class="property"> = 'simulation'</em><a class="headerlink" href="#reagent.parameters_seq2slate.LearningMethod.SIMULATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.parameters_seq2slate.LearningMethod.TEACHER_FORCING">
+<code class="sig-name descname">TEACHER_FORCING</code><em class="property"> = 'teacher_forcing'</em><a class="headerlink" href="#reagent.parameters_seq2slate.LearningMethod.TEACHER_FORCING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.parameters_seq2slate.LearningMethod.expect_slate_wise_reward">
+<em class="property">property </em><code class="sig-name descname">expect_slate_wise_reward</code><a class="headerlink" href="#reagent.parameters_seq2slate.LearningMethod.expect_slate_wise_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.parameters_seq2slate.RewardClamp">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.parameters_seq2slate.</code><code class="sig-name descname">RewardClamp</code><span class="sig-paren">(</span><em class="sig-param">clamp_min: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">clamp_max: Union[float</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.parameters_seq2slate.RewardClamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.parameters_seq2slate.RewardClamp.clamp_max">
+<code class="sig-name descname">clamp_max</code><em class="property"> = None</em><a class="headerlink" href="#reagent.parameters_seq2slate.RewardClamp.clamp_max" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.parameters_seq2slate.RewardClamp.clamp_min">
+<code class="sig-name descname">clamp_min</code><em class="property"> = None</em><a class="headerlink" href="#reagent.parameters_seq2slate.RewardClamp.clamp_min" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.tensorboardX">
+<span id="reagent-tensorboardx-module"></span><h2>reagent.tensorboardX module<a class="headerlink" href="#module-reagent.tensorboardX" title="Permalink to this headline">¶</a></h2>
+<p>Context library to allow dropping tensorboardX anywhere in the codebase.
+If there is no SummaryWriter in the context, function calls will be no-op.</p>
+<p>Usage:</p>
+<blockquote>
+<div><p>writer = SummaryWriter()</p>
+<dl class="simple">
+<dt>with summary_writer_context(writer):</dt><dd><p>some_func()</p>
+</dd>
+<dt>def some_func():</dt><dd><p>SummaryWriterContext.add_scalar(“foo”, tensor)</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="class">
+<dt id="reagent.tensorboardX.SummaryWriterContext">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.tensorboardX.</code><code class="sig-name descname">SummaryWriterContext</code><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="reagent.tensorboardX.SummaryWriterContext.add_custom_scalars">
+<em class="property">classmethod </em><code class="sig-name descname">add_custom_scalars</code><span class="sig-paren">(</span><em class="sig-param">writer</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContext.add_custom_scalars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call this once you are satisfied setting up custom scalar</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.tensorboardX.SummaryWriterContext.add_custom_scalars_multilinechart">
+<em class="property">classmethod </em><code class="sig-name descname">add_custom_scalars_multilinechart</code><span class="sig-paren">(</span><em class="sig-param">tags</em>, <em class="sig-param">category=None</em>, <em class="sig-param">title=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContext.add_custom_scalars_multilinechart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.tensorboardX.SummaryWriterContext.add_histogram">
+<em class="property">classmethod </em><code class="sig-name descname">add_histogram</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">val</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContext.add_histogram" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.tensorboardX.SummaryWriterContext.increase_global_step">
+<em class="property">classmethod </em><code class="sig-name descname">increase_global_step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContext.increase_global_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.tensorboardX.SummaryWriterContext.pop">
+<em class="property">classmethod </em><code class="sig-name descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContext.pop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.tensorboardX.SummaryWriterContext.push">
+<em class="property">classmethod </em><code class="sig-name descname">push</code><span class="sig-paren">(</span><em class="sig-param">writer</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContext.push" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.tensorboardX.SummaryWriterContextMeta">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.tensorboardX.</code><code class="sig-name descname">SummaryWriterContextMeta</code><a class="headerlink" href="#reagent.tensorboardX.SummaryWriterContextMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.tensorboardX.summary_writer_context">
+<code class="sig-prename descclassname">reagent.tensorboardX.</code><code class="sig-name descname">summary_writer_context</code><span class="sig-paren">(</span><em class="sig-param">writer</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.tensorboardX.summary_writer_context" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent.torch_utils">
+<span id="reagent-torch-utils-module"></span><h2>reagent.torch_utils module<a class="headerlink" href="#module-reagent.torch_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="reagent.torch_utils.dict_to_tensor">
+<code class="sig-prename descclassname">reagent.torch_utils.</code><code class="sig-name descname">dict_to_tensor</code><span class="sig-paren">(</span><em class="sig-param">batch: Dict[str, numpy.ndarray], device: str = 'cpu'</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.torch_utils.dict_to_tensor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.torch_utils.export_module_to_buffer">
+<code class="sig-prename descclassname">reagent.torch_utils.</code><code class="sig-name descname">export_module_to_buffer</code><span class="sig-paren">(</span><em class="sig-param">module</em><span class="sig-paren">)</span> &#x2192; _io.BytesIO<a class="headerlink" href="#reagent.torch_utils.export_module_to_buffer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="reagent.torch_utils.gather">
+<code class="sig-prename descclassname">reagent.torch_utils.</code><code class="sig-name descname">gather</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">index_2d</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.torch_utils.gather" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather data alongs the second dim. Assume data’s shape as (batch_size, dim1, dim2, …),
+and index_2d’s shape is (batch_size, dim1).
+output[i][j] = data[i][index_2d[i][j]]</p>
+<dl class="simple">
+<dt>This function does not require data, output, or index_2d having the same shape, which</dt><dd><p>is mandated by torch.gather.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.torch_utils.masked_softmax">
+<code class="sig-prename descclassname">reagent.torch_utils.</code><code class="sig-name descname">masked_softmax</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">mask</em>, <em class="sig-param">temperature</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.torch_utils.masked_softmax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute softmax values for each sets of scores in x.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.torch_utils.rescale_torch_tensor">
+<code class="sig-prename descclassname">reagent.torch_utils.</code><code class="sig-name descname">rescale_torch_tensor</code><span class="sig-paren">(</span><em class="sig-param">tensor: torch.Tensor</em>, <em class="sig-param">new_min: torch.Tensor</em>, <em class="sig-param">new_max: torch.Tensor</em>, <em class="sig-param">prev_min: torch.Tensor</em>, <em class="sig-param">prev_max: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.torch_utils.rescale_torch_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rescale column values in N X M torch tensor to be in new range.
+Each column m in input tensor will be rescaled from range
+[prev_min[m], prev_max[m]] to [new_min[m], new_max[m]]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.torch_utils.softmax">
+<code class="sig-prename descclassname">reagent.torch_utils.</code><code class="sig-name descname">softmax</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">temperature</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.torch_utils.softmax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute softmax values for each sets of scores in x.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.torch_utils.stack">
+<code class="sig-prename descclassname">reagent.torch_utils.</code><code class="sig-name descname">stack</code><span class="sig-paren">(</span><em class="sig-param">mems</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.torch_utils.stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stack a list of tensors
+Could use torch.stack here but torch.stack is much slower
+than torch.cat + view
+Submitted an issue for investigation:
+<a class="reference external" href="https://github.com/pytorch/pytorch/issues/22462">https://github.com/pytorch/pytorch/issues/22462</a></p>
+<p>FIXME: Remove this function after the issue above is resolved</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.types">
+<span id="reagent-types-module"></span><h2>reagent.types module<a class="headerlink" href="#module-reagent.types" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.types.ActorOutput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">ActorOutput</code><span class="sig-paren">(</span><em class="sig-param">action: torch.Tensor</em>, <em class="sig-param">log_prob: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">action_mean: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ActorOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.types.ActorOutput.action_mean">
+<code class="sig-name descname">action_mean</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ActorOutput.action_mean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.ActorOutput.log_prob">
+<code class="sig-name descname">log_prob</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ActorOutput.log_prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.BaseInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">BaseInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData, next_state: reagent.types.FeatureData, reward: torch.Tensor, time_diff: torch.Tensor, step: Optional[torch.Tensor], not_terminal: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.BaseInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<p>Base class for all inputs, both raw and preprocessed</p>
+<dl class="method">
+<dt id="reagent.types.BaseInput.batch_size">
+<code class="sig-name descname">batch_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.BaseInput.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.BaseInput.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.BaseInput.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.DiscreteDqnInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">DiscreteDqnInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData, next_state: reagent.types.FeatureData, reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, action: torch.Tensor, next_action: torch.Tensor, possible_actions_mask: torch.Tensor, possible_next_actions_mask: torch.Tensor, extras: reagent.types.ExtraData</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.DiscreteDqnInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.BaseInput" title="reagent.types.BaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.BaseInput</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.DiscreteDqnInput.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.DiscreteDqnInput.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.DocList">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">DocList</code><span class="sig-paren">(</span><em class="sig-param">float_features: torch.Tensor</em>, <em class="sig-param">mask: torch.Tensor</em>, <em class="sig-param">value: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.DocList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.DocList.as_feature_data">
+<code class="sig-name descname">as_feature_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.DocList.as_feature_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.DocList.select_slate">
+<code class="sig-name descname">select_slate</code><span class="sig-paren">(</span><em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.DocList.select_slate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.DqnPolicyActionSet">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">DqnPolicyActionSet</code><span class="sig-paren">(</span><em class="sig-param">greedy: int</em>, <em class="sig-param">softmax: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">greedy_act_name: Union[str</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">softmax_act_name: Union[str</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">softmax_act_prob: Union[float</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.DqnPolicyActionSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.types.DqnPolicyActionSet.greedy_act_name">
+<code class="sig-name descname">greedy_act_name</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.DqnPolicyActionSet.greedy_act_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.DqnPolicyActionSet.softmax">
+<code class="sig-name descname">softmax</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.DqnPolicyActionSet.softmax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.DqnPolicyActionSet.softmax_act_name">
+<code class="sig-name descname">softmax_act_name</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.DqnPolicyActionSet.softmax_act_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.DqnPolicyActionSet.softmax_act_prob">
+<code class="sig-name descname">softmax_act_prob</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.DqnPolicyActionSet.softmax_act_prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.ExtraData">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">ExtraData</code><span class="sig-paren">(</span><em class="sig-param">mdp_id: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">sequence_number: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">action_probability: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">max_num_actions: Union[int</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">metrics: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ExtraData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.types.ExtraData.action_probability">
+<code class="sig-name descname">action_probability</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ExtraData.action_probability" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ExtraData.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ExtraData.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.ExtraData.max_num_actions">
+<code class="sig-name descname">max_num_actions</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ExtraData.max_num_actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.ExtraData.mdp_id">
+<code class="sig-name descname">mdp_id</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ExtraData.mdp_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.ExtraData.metrics">
+<code class="sig-name descname">metrics</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ExtraData.metrics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.ExtraData.sequence_number">
+<code class="sig-name descname">sequence_number</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ExtraData.sequence_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.FeatureData">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">FeatureData</code><span class="sig-paren">(</span><em class="sig-param">float_features: torch.Tensor</em>, <em class="sig-param">id_list_features: Dict[str</em>, <em class="sig-param">Tuple[torch.Tensor</em>, <em class="sig-param">torch.Tensor]] = &lt;factory&gt;</em>, <em class="sig-param">id_score_list_features: Dict[str</em>, <em class="sig-param">Tuple[torch.Tensor</em>, <em class="sig-param">torch.Tensor</em>, <em class="sig-param">torch.Tensor]] = &lt;factory&gt;</em>, <em class="sig-param">stacked_float_features: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">candidate_docs: Union[reagent.types.DocList</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">time_since_first: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.FeatureData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.types.FeatureData.candidate_docs">
+<code class="sig-name descname">candidate_docs</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.FeatureData.candidate_docs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.FeatureData.get_tiled_batch">
+<code class="sig-name descname">get_tiled_batch</code><span class="sig-paren">(</span><em class="sig-param">num_tiles: int</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.FeatureData.get_tiled_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.FeatureData.has_float_features_only">
+<em class="property">property </em><code class="sig-name descname">has_float_features_only</code><a class="headerlink" href="#reagent.types.FeatureData.has_float_features_only" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.FeatureData.stacked_float_features">
+<code class="sig-name descname">stacked_float_features</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.FeatureData.stacked_float_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.FeatureData.time_since_first">
+<code class="sig-name descname">time_since_first</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.FeatureData.time_since_first" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.FloatFeatureInfo">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">FloatFeatureInfo</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">feature_id: int</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.FloatFeatureInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.IdListFeatureConfig">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">IdListFeatureConfig</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">feature_id: int</em>, <em class="sig-param">id_mapping_name: str</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.IdListFeatureConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.IdMapping">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">IdMapping</code><span class="sig-paren">(</span><em class="sig-param">ids: List[int]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.IdMapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="reagent.types.IdMapping.id2index">
+<em class="property">property </em><code class="sig-name descname">id2index</code><a class="headerlink" href="#reagent.types.IdMapping.id2index" title="Permalink to this definition">¶</a></dt>
+<dd><p>used in preprocessing
+ids list represents mapping from idx -&gt; value
+we want the reverse: from feature to embedding table indices</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.IdMapping.ids">
+<em class="property">property </em><code class="sig-name descname">ids</code><a class="headerlink" href="#reagent.types.IdMapping.ids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.IdMapping.table_size">
+<em class="property">property </em><code class="sig-name descname">table_size</code><a class="headerlink" href="#reagent.types.IdMapping.table_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.IdScoreListFeatureConfig">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">IdScoreListFeatureConfig</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">feature_id: int</em>, <em class="sig-param">id_mapping_name: str</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.IdScoreListFeatureConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.MemoryNetworkInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">MemoryNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData, next_state: reagent.types.FeatureData, reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, action: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.MemoryNetworkInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.BaseInput" title="reagent.types.BaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.BaseInput</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.MemoryNetworkInput.batch_size">
+<code class="sig-name descname">batch_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.MemoryNetworkInput.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.MemoryNetworkOutput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">MemoryNetworkOutput</code><span class="sig-paren">(</span><em class="sig-param">mus: torch.Tensor</em>, <em class="sig-param">sigmas: torch.Tensor</em>, <em class="sig-param">logpi: torch.Tensor</em>, <em class="sig-param">reward: torch.Tensor</em>, <em class="sig-param">not_terminal: torch.Tensor</em>, <em class="sig-param">last_step_lstm_hidden: torch.Tensor</em>, <em class="sig-param">last_step_lstm_cell: torch.Tensor</em>, <em class="sig-param">all_steps_lstm_hidden: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.MemoryNetworkOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.ModelFeatureConfig">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">ModelFeatureConfig</code><span class="sig-paren">(</span><em class="sig-param">float_feature_infos: List[reagent.types.FloatFeatureInfo] = &lt;factory&gt;</em>, <em class="sig-param">id_mapping_config: Dict[str</em>, <em class="sig-param">reagent.types.IdMapping] = &lt;factory&gt;</em>, <em class="sig-param">id_list_feature_configs: List[reagent.types.IdListFeatureConfig] = &lt;factory&gt;</em>, <em class="sig-param">id_score_list_feature_configs: List[reagent.types.IdScoreListFeatureConfig] = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ModelFeatureConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.ModelFeatureConfig.id2config">
+<em class="property">property </em><code class="sig-name descname">id2config</code><a class="headerlink" href="#reagent.types.ModelFeatureConfig.id2config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ModelFeatureConfig.id2name">
+<em class="property">property </em><code class="sig-name descname">id2name</code><a class="headerlink" href="#reagent.types.ModelFeatureConfig.id2name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ModelFeatureConfig.name2config">
+<em class="property">property </em><code class="sig-name descname">name2config</code><a class="headerlink" href="#reagent.types.ModelFeatureConfig.name2config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ModelFeatureConfig.name2id">
+<em class="property">property </em><code class="sig-name descname">name2id</code><a class="headerlink" href="#reagent.types.ModelFeatureConfig.name2id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ModelFeatureConfig.only_dense">
+<em class="property">property </em><code class="sig-name descname">only_dense</code><a class="headerlink" href="#reagent.types.ModelFeatureConfig.only_dense" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.NoDuplicatedWarningLogger">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">NoDuplicatedWarningLogger</code><span class="sig-paren">(</span><em class="sig-param">logger</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.NoDuplicatedWarningLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="reagent.types.NoDuplicatedWarningLogger.warning">
+<code class="sig-name descname">warning</code><span class="sig-paren">(</span><em class="sig-param">msg</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.NoDuplicatedWarningLogger.warning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.ParametricDqnInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">ParametricDqnInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData, next_state: reagent.types.FeatureData, reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, action: reagent.types.FeatureData, next_action: reagent.types.FeatureData, possible_actions: reagent.types.FeatureData, possible_actions_mask: torch.Tensor, possible_next_actions: reagent.types.FeatureData, possible_next_actions_mask: torch.Tensor, extras: Union[reagent.types.ExtraData, NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ParametricDqnInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.BaseInput" title="reagent.types.BaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.BaseInput</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.types.ParametricDqnInput.extras">
+<code class="sig-name descname">extras</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.ParametricDqnInput.extras" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ParametricDqnInput.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ParametricDqnInput.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.PlanningPolicyOutput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">PlanningPolicyOutput</code><span class="sig-paren">(</span><em class="sig-param">next_best_continuous_action: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">next_best_discrete_action_one_hot: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">next_best_discrete_action_idx: Union[int</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PlanningPolicyOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.types.PlanningPolicyOutput.next_best_continuous_action">
+<code class="sig-name descname">next_best_continuous_action</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PlanningPolicyOutput.next_best_continuous_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PlanningPolicyOutput.next_best_discrete_action_idx">
+<code class="sig-name descname">next_best_discrete_action_idx</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PlanningPolicyOutput.next_best_discrete_action_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PlanningPolicyOutput.next_best_discrete_action_one_hot">
+<code class="sig-name descname">next_best_discrete_action_one_hot</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PlanningPolicyOutput.next_best_discrete_action_one_hot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.PolicyGradientInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">PolicyGradientInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData</em>, <em class="sig-param">action: torch.Tensor</em>, <em class="sig-param">reward: torch.Tensor</em>, <em class="sig-param">log_prob: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PolicyGradientInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.PolicyGradientInput.input_prototype">
+<em class="property">classmethod </em><code class="sig-name descname">input_prototype</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PolicyGradientInput.input_prototype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.PolicyNetworkInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">PolicyNetworkInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData, next_state: reagent.types.FeatureData, reward: torch.Tensor, time_diff: torch.Tensor, step: Union[torch.Tensor, NoneType], not_terminal: torch.Tensor, action: reagent.types.FeatureData, next_action: reagent.types.FeatureData, extras: Union[reagent.types.ExtraData, NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PolicyNetworkInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.BaseInput" title="reagent.types.BaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.BaseInput</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.PolicyNetworkInput.batch_size">
+<code class="sig-name descname">batch_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.types.PolicyNetworkInput.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PolicyNetworkInput.extras">
+<code class="sig-name descname">extras</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PolicyNetworkInput.extras" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.PolicyNetworkInput.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PolicyNetworkInput.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.PreprocessedRankingInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">PreprocessedRankingInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData</em>, <em class="sig-param">src_seq: reagent.types.FeatureData</em>, <em class="sig-param">src_src_mask: torch.Tensor</em>, <em class="sig-param">tgt_in_seq: Union[reagent.types.FeatureData</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">tgt_out_seq: Union[reagent.types.FeatureData</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">tgt_tgt_mask: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">slate_reward: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">position_reward: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">src_in_idx: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">tgt_in_idx: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">tgt_out_idx: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">tgt_out_probs: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">optim_tgt_in_idx: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">optim_tgt_out_idx: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">optim_tgt_in_seq: Union[reagent.types.FeatureData</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">optim_tgt_out_seq: Union[reagent.types.FeatureData</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PreprocessedRankingInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.PreprocessedRankingInput.batch_size">
+<code class="sig-name descname">batch_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.types.PreprocessedRankingInput.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.PreprocessedRankingInput.from_tensors">
+<em class="property">classmethod </em><code class="sig-name descname">from_tensors</code><span class="sig-paren">(</span><em class="sig-param">state: torch.Tensor</em>, <em class="sig-param">src_seq: torch.Tensor</em>, <em class="sig-param">src_src_mask: torch.Tensor</em>, <em class="sig-param">tgt_in_seq: Optional[torch.Tensor] = None</em>, <em class="sig-param">tgt_out_seq: Optional[torch.Tensor] = None</em>, <em class="sig-param">tgt_tgt_mask: Optional[torch.Tensor] = None</em>, <em class="sig-param">slate_reward: Optional[torch.Tensor] = None</em>, <em class="sig-param">position_reward: Optional[torch.Tensor] = None</em>, <em class="sig-param">src_in_idx: Optional[torch.Tensor] = None</em>, <em class="sig-param">tgt_in_idx: Optional[torch.Tensor] = None</em>, <em class="sig-param">tgt_out_idx: Optional[torch.Tensor] = None</em>, <em class="sig-param">tgt_out_probs: Optional[torch.Tensor] = None</em>, <em class="sig-param">optim_tgt_in_idx: Optional[torch.Tensor] = None</em>, <em class="sig-param">optim_tgt_out_idx: Optional[torch.Tensor] = None</em>, <em class="sig-param">optim_tgt_in_seq: Optional[torch.Tensor] = None</em>, <em class="sig-param">optim_tgt_out_seq: Optional[torch.Tensor] = None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.from_tensors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.optim_tgt_in_idx">
+<code class="sig-name descname">optim_tgt_in_idx</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.optim_tgt_in_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.optim_tgt_in_seq">
+<code class="sig-name descname">optim_tgt_in_seq</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.optim_tgt_in_seq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.optim_tgt_out_idx">
+<code class="sig-name descname">optim_tgt_out_idx</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.optim_tgt_out_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.optim_tgt_out_seq">
+<code class="sig-name descname">optim_tgt_out_seq</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.optim_tgt_out_seq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.position_reward">
+<code class="sig-name descname">position_reward</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.position_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.slate_reward">
+<code class="sig-name descname">slate_reward</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.slate_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.src_in_idx">
+<code class="sig-name descname">src_in_idx</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.src_in_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.tgt_in_idx">
+<code class="sig-name descname">tgt_in_idx</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.tgt_in_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.tgt_in_seq">
+<code class="sig-name descname">tgt_in_seq</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.tgt_in_seq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.tgt_out_idx">
+<code class="sig-name descname">tgt_out_idx</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.tgt_out_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.tgt_out_probs">
+<code class="sig-name descname">tgt_out_probs</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.tgt_out_probs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.tgt_out_seq">
+<code class="sig-name descname">tgt_out_seq</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.tgt_out_seq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.PreprocessedRankingInput.tgt_tgt_mask">
+<code class="sig-name descname">tgt_tgt_mask</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.PreprocessedRankingInput.tgt_tgt_mask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.PreprocessedTrainingBatch">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">PreprocessedTrainingBatch</code><span class="sig-paren">(</span><em class="sig-param">training_input: reagent.types.PreprocessedRankingInput</em>, <em class="sig-param">extras: reagent.types.ExtraData = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PreprocessedTrainingBatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.PreprocessedTrainingBatch.batch_size">
+<code class="sig-name descname">batch_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.PreprocessedTrainingBatch.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.RankingOutput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">RankingOutput</code><span class="sig-paren">(</span><em class="sig-param">ranked_tgt_out_idx: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">ranked_tgt_out_probs: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">log_probs: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">encoder_scores: Union[torch.Tensor</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.RankingOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.types.RankingOutput.encoder_scores">
+<code class="sig-name descname">encoder_scores</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.RankingOutput.encoder_scores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.RankingOutput.log_probs">
+<code class="sig-name descname">log_probs</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.RankingOutput.log_probs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.RankingOutput.ranked_tgt_out_idx">
+<code class="sig-name descname">ranked_tgt_out_idx</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.RankingOutput.ranked_tgt_out_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.types.RankingOutput.ranked_tgt_out_probs">
+<code class="sig-name descname">ranked_tgt_out_probs</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.RankingOutput.ranked_tgt_out_probs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.RewardNetworkOutput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">RewardNetworkOutput</code><span class="sig-paren">(</span><em class="sig-param">predicted_reward: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.RewardNetworkOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.Seq2RewardOutput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">Seq2RewardOutput</code><span class="sig-paren">(</span><em class="sig-param">acc_reward: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.Seq2RewardOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.ServingFeatureData">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">ServingFeatureData</code><span class="sig-paren">(</span><em class="sig-param">float_features_with_presence</em>, <em class="sig-param">id_list_features</em>, <em class="sig-param">id_score_list_features</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ServingFeatureData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="reagent.types.ServingFeatureData.float_features_with_presence">
+<em class="property">property </em><code class="sig-name descname">float_features_with_presence</code><a class="headerlink" href="#reagent.types.ServingFeatureData.float_features_with_presence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ServingFeatureData.id_list_features">
+<em class="property">property </em><code class="sig-name descname">id_list_features</code><a class="headerlink" href="#reagent.types.ServingFeatureData.id_list_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.ServingFeatureData.id_score_list_features">
+<em class="property">property </em><code class="sig-name descname">id_score_list_features</code><a class="headerlink" href="#reagent.types.ServingFeatureData.id_score_list_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.SlateQInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">SlateQInput</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.types.FeatureData, next_state: reagent.types.FeatureData, reward: torch.Tensor, time_diff: torch.Tensor, step: Optional[torch.Tensor], not_terminal: torch.Tensor, action: torch.Tensor, next_action: torch.Tensor, reward_mask: torch.Tensor, extras: Optional[reagent.types.ExtraData] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.SlateQInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.BaseInput" title="reagent.types.BaseInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.BaseInput</span></code></a></p>
+<p>The shapes of <cite>reward</cite>, <cite>reward_mask</cite>, &amp; <cite>next_item_mask</cite> are
+<cite>(batch_size, slate_size)</cite>.</p>
+<p><cite>reward_mask</cite> indicated whether the reward could be observed, e.g.,
+the item got into viewport or not.</p>
+<dl class="attribute">
+<dt id="reagent.types.SlateQInput.extras">
+<code class="sig-name descname">extras</code><em class="property"> = None</em><a class="headerlink" href="#reagent.types.SlateQInput.extras" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.types.SlateQInput.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.SlateQInput.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.TensorDataClass">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">TensorDataClass</code><a class="headerlink" href="#reagent.types.TensorDataClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.types.TensorDataClass.cuda">
+<code class="sig-name descname">cuda</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.TensorDataClass.cuda" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.TensorFeatureData">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">TensorFeatureData</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.TensorFeatureData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Primarily for using in nn.Sequential</p>
+<dl class="method">
+<dt id="reagent.types.TensorFeatureData.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">input: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; reagent.types.FeatureData<a class="headerlink" href="#reagent.types.TensorFeatureData.forward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.types.ValuePresence">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">ValuePresence</code><span class="sig-paren">(</span><em class="sig-param">value: torch.Tensor, presence: Union[torch.Tensor, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.ValuePresence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.types.TensorDataClass" title="reagent.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.types.TensorDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.types.isinstance_namedtuple">
+<code class="sig-prename descclassname">reagent.types.</code><code class="sig-name descname">isinstance_namedtuple</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.types.isinstance_namedtuple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reagent.evaluation.html" class="btn btn-neutral float-right" title="reagent.evaluation package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral float-left" title="reagent" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

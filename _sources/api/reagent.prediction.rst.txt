@@ -1,0 +1,22 @@
+reagent.prediction package
+==========================
+
+Submodules
+----------
+
+reagent.prediction.predictor\_wrapper module
+--------------------------------------------
+
+.. automodule:: reagent.prediction.predictor_wrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: reagent.prediction
+   :members:
+   :undoc-members:
+   :show-inheritance:

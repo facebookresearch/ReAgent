@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ReAgent Serving Platform (RASP) &mdash; Horizon 1.0 documentation</title>
+  <title>ReAgent Serving Platform (RASP) &mdash; ReAgent 1.0 documentation</title>
   
 
   
@@ -50,7 +50,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> Horizon
+            <a href="index.html" class="icon icon-home"> ReAgent
           
 
           
@@ -97,14 +97,18 @@
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.prediction.html">Prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.readers.html">Readers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Others</span></p>
@@ -125,7 +129,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Horizon</a>
+          <a href="index.html">ReAgent</a>
         
       </nav>
 
@@ -212,7 +216,7 @@ we will always show bacon (with it’s score of 1.1) and never show ribs
 (with a score of 0.9). This means we will never know the true
 performance of recommending ribs and can’t improve our system in the
 future. This is known as the cold-start or explore-exploit problem
-(TODO: Citations).</p>
+( <a class="reference external" href="https://arxiv.org/abs/1812.00116">https://arxiv.org/abs/1812.00116</a> ).</p>
 <p>To avoid that problem, we will use the SoftmaxRanker, which will show
 bacon 52% of the time and ribs 48% of the time. The SoftmaxRanker
 operator is based on the softmax function:</p>
@@ -284,14 +288,11 @@ simulator has a few rules:</p>
 <p>We will be using the built-in web service directly for this tutorial.
 The simulator code can be found at:
 serving/examples/ecommerce/customer_simulator.py</p>
-<p>Here is our RP config file. This tells RP where to find decision plans
-and models (coming later):</p>
-<p>(RP config)</p>
 </div>
 <div class="section" id="makin-bacon">
 <h2>Makin’ bacon<a class="headerlink" href="#makin-bacon" title="Permalink to this headline">¶</a></h2>
 <p>In one terminal window, start the RP server:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ ./serving/build/RaspCli --logtostderr
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ./serving/build/RaspCli --logtostderr
 I1014 17:23:19.736086 457250240 DiskConfigProvider.cpp:10] READING CONFIGS FROM serving/examples/ecommerce/plans
 I1014 17:23:19.738142 457250240 DiskConfigProvider.cpp:42] GOT CONFIG multi_armed_bandit.json AT serving/examples/ecommerce/plans/multi_armed_bandit.json
 I1014 17:23:19.738286 457250240 DiskConfigProvider.cpp:46] Registered decision config: multi_armed_bandit.json
@@ -303,9 +304,8 @@ I1014 17:23:19.739843 131715072 Server.cpp:58] STARTING SERVER
 </pre></div>
 </div>
 <p>Then in another, run our simulator. The simulator will spawn many
-threads and call RASP 10,000 times (this will take a few minutes to
-complete):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py heuristic.json
+threads and call RASP 1,000 times:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  python serving/examples/ecommerce/customer_simulator.py heuristic.json
 0
 200
 100
@@ -321,17 +321,16 @@ Action Distribution: {&#39;Ribs&#39;: 471, &#39;Bacon&#39;: 529}
 </pre></div>
 </div>
 <p>As expected, we recommend Bacon 52% of the time and Ribs 48% of the
-time. We get an average reward (in this case, average # of clicks) of
-0.3555.</p>
+time. We get an average reward (in this case, average # of clicks) of about 0.36.</p>
 <p>This is our baseline performance, but can we do better? From the log, we
 can see that more bacon recommendations were clicked on:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Ribs&quot;}]&#39; | grep &#39;&quot;reward&quot;:0.0&#39; | wc -l
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Ribs&quot;}]&#39; | grep &#39;&quot;reward&quot;:0.0&#39; | wc -l
     390 # Ribs not clicked
-➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Ribs&quot;}]&#39; | grep &#39;&quot;reward&quot;:1.0&#39; | wc -l
+➜  cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Ribs&quot;}]&#39; | grep &#39;&quot;reward&quot;:1.0&#39; | wc -l
      88 # Ribs clicked
-➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Bacon&quot;}]&#39; | grep &#39;&quot;reward&quot;:1.0&#39; | wc -l
+➜  cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Bacon&quot;}]&#39; | grep &#39;&quot;reward&quot;:1.0&#39; | wc -l
     266 # Bacon clicked
-➜  ReAgent git:(master) ✗ cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Bacon&quot;}]&#39; | grep &#39;&quot;reward&quot;:0.0&#39; | wc -l
+➜  cat /tmp/rasp_logging/log.txt | grep &#39;&quot;name&quot;:&quot;Bacon&quot;}]&#39; | grep &#39;&quot;reward&quot;:0.0&#39; | wc -l
     253 # Bacon not clicked
 </pre></div>
 </div>
@@ -346,7 +345,7 @@ ranker. Passing this to the plan generator:</p>
 </pre></div>
 </div>
 <p>Generates this plan:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ cat serving/examples/ecommerce/plans/multi_armed_bandit.json
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  cat serving/examples/ecommerce/plans/multi_armed_bandit.json
 {
     &quot;operators&quot;: [
         {
@@ -379,7 +378,7 @@ ranker. Passing this to the plan generator:</p>
 </pre></div>
 </div>
 <p>Running with this new plan gives:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
 0
 200
 100
@@ -397,7 +396,7 @@ Action Distribution: {&#39;Ribs&#39;: 184, &#39;Bacon&#39;: 816}
 <p>This is already better than our previous score of 0.363. While we were
 running, the bandit was learning and adapting the scores. Let’s run
 again:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  python serving/examples/ecommerce/customer_simulator.py multi_armed_bandit.json
 0
 200
 100
@@ -432,8 +431,8 @@ instance of RaspCli:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>…
 I1014 17:45:36.613893 6602752 Server.cpp:58] STARTING SERVER
 ^C
-➜  ReAgent git:(master) ✗ rm /tmp/rasp_logging/log.txt
-➜  ReAgent git:(master) ✗ ./serving/build/RaspCli --logtostderr
+➜  rm /tmp/rasp_logging/log.txt
+➜  ./serving/build/RaspCli --logtostderr
 I1014 17:48:49.674149 144418240 DiskConfigProvider.cpp:10] READING CONFIGS FROM serving/examples/ecommerce/plans
 I1014 17:48:49.678155 144418240 DiskConfigProvider.cpp:42] GOT CONFIG multi_armed_bandit.json AT serving/examples/ecommerce/plans/multi_armed_bandit.json
 I1014 17:48:49.679606 144418240 DiskConfigProvider.cpp:46] Registered decision config: multi_armed_bandit.json
@@ -447,76 +446,52 @@ I1014 17:48:49.682667 65638400 Server.cpp:58] STARTING SERVER
 <p>Now let’s run the heuristic model a few times to generate enough data
 (this may take a few minutes). At the end there should be 10000 samples
 (we can verify this with the wc command):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ for run in {1..10}; do python serving/examples/ecommerce/customer_simulator.py heuristic.json; done
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  for run in {1..10}; do python serving/examples/ecommerce/customer_simulator.py heuristic.json; done
 0
 200
 ...
 900
 Average reward: 0.36
 Action Distribution: {&#39;Bacon&#39;: 516, &#39;Ribs&#39;: 484}
-➜  ReAgent git:(master) ✗ wc -l /tmp/rasp_logging/log.txt
+➜  wc -l /tmp/rasp_logging/log.txt
    10000 /tmp/rasp_logging/log.txt
 </pre></div>
 </div>
 <p>RASP’s logging format and the ReAgent models’ input format is slightly
 different. Fortunately, there’s a tool to convert from one to the other:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ python serving/scripts/rasp_to_model.py /tmp/rasp_logging/log.txt ecom_cb_input_data/input.json
-➜  ReAgent git:(master) ✗ wc -l ecom_cb_input_data/input.json
-   10000 ecom_cb_input_data/input.json
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  python serving/scripts/rasp_to_model.py /tmp/rasp_logging/log.txt /tmp/input_df.pkl
+ ...
+ INFO:__main__:           ds               mdp_id  sequence_number    state_features action  reward  action_probability possible_actions          metrics
+ 0  2019-01-01  1287515757457242569                0  {0: 0.0, 1: 1.0}   Ribs     0.0            0.475021    [Bacon, Ribs]  {&#39;reward&#39;: 0.0}
+ 1  2019-01-01 -1441171268272508658                0  {0: 0.0, 1: 1.0}   Ribs     0.0            0.475021    [Bacon, Ribs]  {&#39;reward&#39;: 0.0}
+ 2  2019-01-01  -267723109738500267                0  {0: 0.0, 1: 1.0}  Bacon     1.0            0.524979    [Bacon, Ribs]  {&#39;reward&#39;: 1.0}
+ 3  2019-01-01  7619952535038766490                0  {0: 0.0, 1: 1.0}   Ribs     0.0            0.475021    [Bacon, Ribs]  {&#39;reward&#39;: 0.0}
+ 4  2019-01-01 -2393212434904546228                0  {0: 0.0, 1: 1.0}  Bacon     0.0            0.524979    [Bacon, Ribs]  {&#39;reward&#39;: 0.0}
 </pre></div>
 </div>
 <p>Since we are using the contextual bandit or RL model, we need to build a
 timeline:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log ; /usr/local/spark/bin/spark-submit \
-  --class com.facebook.spark.rl.Preprocessor preprocessing/target/rl-preprocessing-1.1.jar \
-  &quot;`cat serving/examples/ecommerce/training/timeline.json`&quot;
-...
-2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Shutdown hook called
-2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Deleting directory /private/var/folders/jm/snmq7xfn7llc1tpnjgn7889h6l6pkw/T/spark-2b6a4171-cb60-4d5e-8052-87620a0677a2
-2019-10-14 19:04:18 INFO  ShutdownHookManager:54 - Deleting directory /private/var/folders/jm/snmq7xfn7llc1tpnjgn7889h6l6pkw/T/spark-927dae4a-6613-4a28-9d88-4d43a03d1cf3
-➜  ReAgent git:(master) ✗
-</pre></div>
-</div>
-<p>The spark job creates a directory full of files, so we must merge into
-one file for training &amp; evaluation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ mkdir -p training_data
-➜  ReAgent git:(master) ✗ cat ecom_cb_training/part* &gt; training_data/train.json
-➜  ReAgent git:(master) ✗ cat ecom_cb_eval/part* &gt; training_data/eval.json
-</pre></div>
-</div>
-<p>Now we run our normalization. Any time we use a deep neural network, we
-need normalization to prevent some large features from drowning others.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ python ml/rl/workflow/create_normalization_metadata.py -p serving/examples/ecommerce/training/cb_train.json
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Set the config
+➜  export CONFIG=serving/examples/ecommerce/training/contextual_bandit.yaml
 
-WARNING:root:This caffe2 python run does not have GPU support. Will run in CPU only mode.
-INFO:ml.rl.preprocessing.normalization:Got feature: 0
-INFO:ml.rl.preprocessing.normalization:Feature 0 normalization: NormalizationParameters(feature_type=&#39;BINARY&#39;, boxcox_lambda=None, boxcox_shift=0.0, mean=0.0, stddev=1.0, possible_values=None, quantiles=None, min_value=0.0, max_value=1.0)
-INFO:ml.rl.preprocessing.normalization:Got feature: 1
-INFO:ml.rl.preprocessing.normalization:Feature 1 normalization: NormalizationParameters(feature_type=&#39;BINARY&#39;, boxcox_lambda=None, boxcox_shift=0.0, mean=0.0, stddev=1.0, possible_values=None, quantiles=None, min_value=1.0, max_value=1.0)
-INFO:__main__:`state_features` normalization metadata written to training_data/state_features_norm.json
+# First clean up derby database from last run
+➜  rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log
+
+# Run timeline operator
+➜  ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator &quot;$CONFIG&quot;
 </pre></div>
 </div>
-<p>Now we can train our contextual bandit:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ rm -Rf &quot;outputs/*&quot; ; python ml/rl/workflow/dqn_workflow.py -p serving/examples/ecommerce/training/cb_train.json
-INFO:ml.rl.json_serialize:TYPE:
-INFO:ml.rl.json_serialize:{&#39;gamma&#39;: 0.0, &#39;target_update_rate&#39;: 1.0, &#39;maxq_learning&#39;: True, &#39;epsilon&#39;: 0.2, &#39;temperature&#39;: 0.35, &#39;softmax_policy&#39;: 0}
+<p>The <a class="reference external" href="https://click.palletsprojects.com/en/7.x/">Click</a> command submits a Spark job that uploads the timeline table to Hive.
+Now we can train the contextual bandit.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ./reagent/workflow/cli.py run reagent.workflow.training.identify_and_train_network &quot;$CONFIG&quot;
 ...
-INFO:ml.rl.workflow.page_handler:CPE evaluation took 0.26366519927978516 seconds.
-INFO:ml.rl.workflow.base_workflow:Training finished. Processed ~6555 examples / s.
-INFO:ml.rl.preprocessing.preprocessor:CUDA availability: False
-INFO:ml.rl.preprocessing.preprocessor:NOT Using GPU: GPU not requested or not available.
-/Users/jjg/github/Horizon/ml/rl/preprocessing/preprocessor.py:546: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  elif max_value.gt(MAX_FEATURE_VALUE):
-/Users/jjg/github/Horizon/ml/rl/preprocessing/preprocessor.py:552: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  elif min_value.lt(MIN_FEATURE_VALUE):
-INFO:__main__:Saving PyTorch trainer to outputs/trainer_1571105504.pt
-INFO:ml.rl.workflow.base_workflow:Saving TorchScript predictor to outputs/model_1571105504.torchscript
+I0524 112136.208 model_manager.py:213] Saved torchscript model to model_1590344496.torchscript
 </pre></div>
 </div>
-<p>At this point, we have a model in <code class="docutils literal notranslate"><span class="pre">outputs/model_*.torchscript</span></code>. We
-are going to combine this scoring model with an e-greedy ranker. The
-e-greedy ranker chooses the best actions most of the time, but sometimes
-chooses random actions to explore:</p>
+<p>At this point, we have a model saved at <code class="docutils literal notranslate"><span class="pre">model_*.torchscript</span></code>. We
+are going to combine this scoring model with an Softmax ranker. The
+ranker chooses the best actions most of the time, but rarely
+chooses other actions to explore:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;operators&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
@@ -564,12 +539,12 @@ chooses random actions to explore:</p>
 </div>
 <p>The “model_id” and “snapshot_id” tell us where to find the model. Let’s
 put the model there so we can find it:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ mkdir -p /tmp/0
-➜  ReAgent git:(master) ✗ cp outputs/model_*.torchscript /tmp/0/0
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  mkdir -p /tmp/0
+➜  cp model_*.torchscript /tmp/0/0
 </pre></div>
 </div>
 <p>Let’s run with our model:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ReAgent git:(master) ✗ python serving/examples/ecommerce/customer_simulator.py contextual_bandit.json
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  python serving/examples/ecommerce/customer_simulator.py contextual_bandit.json
 0
 200
 100

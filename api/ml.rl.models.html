@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ml.rl.models package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ml.rl.prediction package" href="ml.rl.prediction.html" />
+    <link rel="prev" title="ml.rl.evaluation package" href="ml.rl.evaluation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-actor-module">ml.rl.models.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-base-module">ml.rl.models.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-bcq-module">ml.rl.models.bcq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-categorical-dqn-module">ml.rl.models.categorical_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-cem-planner-module">ml.rl.models.cem_planner module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-convolutional-network-module">ml.rl.models.convolutional_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-dqn-module">ml.rl.models.dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-dueling-q-network-module">ml.rl.models.dueling_q_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-dueling-quantile-dqn-module">ml.rl.models.dueling_quantile_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-example-sequence-model-module">ml.rl.models.example_sequence_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-fully-connected-network-module">ml.rl.models.fully_connected_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-mdn-rnn-module">ml.rl.models.mdn_rnn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-no-soft-update-embedding-module">ml.rl.models.no_soft_update_embedding module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-parametric-dqn-module">ml.rl.models.parametric_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-quantile-dqn-module">ml.rl.models.quantile_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-seq2slate-module">ml.rl.models.seq2slate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-models-world-model-module">ml.rl.models.world_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.models">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ml.rl.models package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/ml.rl.models.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ml-rl-models-package">
+<h1>ml.rl.models package<a class="headerlink" href="#ml-rl-models-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-actor-module">
+<h2>ml.rl.models.actor module<a class="headerlink" href="#ml-rl-models-actor-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-base-module">
+<h2>ml.rl.models.base module<a class="headerlink" href="#ml-rl-models-base-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-bcq-module">
+<h2>ml.rl.models.bcq module<a class="headerlink" href="#ml-rl-models-bcq-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-categorical-dqn-module">
+<h2>ml.rl.models.categorical_dqn module<a class="headerlink" href="#ml-rl-models-categorical-dqn-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-cem-planner-module">
+<h2>ml.rl.models.cem_planner module<a class="headerlink" href="#ml-rl-models-cem-planner-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-convolutional-network-module">
+<h2>ml.rl.models.convolutional_network module<a class="headerlink" href="#ml-rl-models-convolutional-network-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-dqn-module">
+<h2>ml.rl.models.dqn module<a class="headerlink" href="#ml-rl-models-dqn-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-dueling-q-network-module">
+<h2>ml.rl.models.dueling_q_network module<a class="headerlink" href="#ml-rl-models-dueling-q-network-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-dueling-quantile-dqn-module">
+<h2>ml.rl.models.dueling_quantile_dqn module<a class="headerlink" href="#ml-rl-models-dueling-quantile-dqn-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-example-sequence-model-module">
+<h2>ml.rl.models.example_sequence_model module<a class="headerlink" href="#ml-rl-models-example-sequence-model-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-fully-connected-network-module">
+<h2>ml.rl.models.fully_connected_network module<a class="headerlink" href="#ml-rl-models-fully-connected-network-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-mdn-rnn-module">
+<h2>ml.rl.models.mdn_rnn module<a class="headerlink" href="#ml-rl-models-mdn-rnn-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-no-soft-update-embedding-module">
+<h2>ml.rl.models.no_soft_update_embedding module<a class="headerlink" href="#ml-rl-models-no-soft-update-embedding-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-parametric-dqn-module">
+<h2>ml.rl.models.parametric_dqn module<a class="headerlink" href="#ml-rl-models-parametric-dqn-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-quantile-dqn-module">
+<h2>ml.rl.models.quantile_dqn module<a class="headerlink" href="#ml-rl-models-quantile-dqn-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-seq2slate-module">
+<h2>ml.rl.models.seq2slate module<a class="headerlink" href="#ml-rl-models-seq2slate-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ml-rl-models-world-model-module">
+<h2>ml.rl.models.world_model module<a class="headerlink" href="#ml-rl-models-world-model-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ml.rl.models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.models" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ml.rl.prediction.html" class="btn btn-neutral float-right" title="ml.rl.prediction package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ml.rl.evaluation.html" class="btn btn-neutral float-left" title="ml.rl.evaluation package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

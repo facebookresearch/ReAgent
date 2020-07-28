@@ -1,0 +1,443 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>reagent.gym package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.gym.agents package" href="reagent.gym.agents.html" />
+    <link rel="prev" title="reagent.evaluation package" href="reagent.evaluation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+        
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+        
+      <li>reagent.gym package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reagent.gym.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reagent-gym-package">
+<h1>reagent.gym package<a class="headerlink" href="#reagent-gym-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#reagent-gym-agents-agent-module">reagent.gym.agents.agent module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#reagent-gym-agents-post-step-module">reagent.gym.agents.post_step module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#module-reagent.gym.agents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#reagent-gym-envs-changing-arms-module">reagent.gym.envs.changing_arms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.env_factory">reagent.gym.envs.env_factory module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.recsim">reagent.gym.envs.recsim module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.simple_minigrid">reagent.gym.envs.simple_minigrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.utils">reagent.gym.envs.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.samplers.html">reagent.gym.policies.samplers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.samplers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.continuous_sampler">reagent.gym.policies.samplers.continuous_sampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.discrete_sampler">reagent.gym.policies.samplers.discrete_sampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.top_k_sampler">reagent.gym.policies.samplers.top_k_sampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.scorers.html">reagent.gym.policies.scorers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.continuous_scorer">reagent.gym.policies.scorers.continuous_scorer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#reagent-gym-policies-scorers-discrete-scorer-module">reagent.gym.policies.scorers.discrete_scorer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.slate_q_scorer">reagent.gym.policies.scorers.slate_q_scorer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.policy">reagent.gym.policies.policy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#reagent-gym-policies-predictor-policies-module">reagent.gym.policies.predictor_policies module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#reagent-gym-policies-random-policies-module">reagent.gym.policies.random_policies module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-preprocessors-module">reagent.gym.preprocessors.default_preprocessors module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-serving-preprocessors-module">reagent.gym.preprocessors.default_serving_preprocessors module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-replay-buffer-inserters-module">reagent.gym.preprocessors.replay_buffer_inserters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-trainer-preprocessor-module">reagent.gym.preprocessors.trainer_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.runners.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.runners.html#reagent-gym-runners-gymrunner-module">reagent.gym.runners.gymrunner module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.runners.html#module-reagent.gym.runners">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.tests.html">reagent.gym.tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.preprocessors.html">reagent.gym.tests.preprocessors package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-default-preprocessors-module">reagent.gym.tests.preprocessors.test_default_preprocessors module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-replay-buffer-inserters-module">reagent.gym.tests.preprocessors.test_replay_buffer_inserters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-gym-module">reagent.gym.tests.test_gym module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-gym-offline-module">reagent.gym.tests.test_gym_offline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_linear_dynamics">reagent.gym.tests.test_linear_dynamics module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_pomdp">reagent.gym.tests.test_pomdp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-seq2reward-model-module">reagent.gym.tests.test_seq2reward_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-world-model-module">reagent.gym.tests.test_world_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.gym.types">
+<span id="reagent-gym-types-module"></span><h2>reagent.gym.types module<a class="headerlink" href="#module-reagent.gym.types" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.gym.types.GaussianSamplerScore">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">GaussianSamplerScore</code><span class="sig-paren">(</span><em class="sig-param">loc: torch.Tensor</em>, <em class="sig-param">scale_log: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.GaussianSamplerScore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.html#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.gym.types.Sampler">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">Sampler</code><a class="headerlink" href="#reagent.gym.types.Sampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Given scores, select the action.</p>
+<dl class="method">
+<dt id="reagent.gym.types.Sampler.log_prob">
+<em class="property">abstract </em><code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param">scores: Any</em>, <em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.gym.types.Sampler.log_prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.gym.types.Sampler.sample_action">
+<em class="property">abstract </em><code class="sig-name descname">sample_action</code><span class="sig-paren">(</span><em class="sig-param">scores: Any</em><span class="sig-paren">)</span> &#x2192; reagent.types.ActorOutput<a class="headerlink" href="#reagent.gym.types.Sampler.sample_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.gym.types.Sampler.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.gym.types.Sampler.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call to update internal parameters (e.g. decay epsilon)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="reagent.gym.types.TrainerPreprocessor">
+<code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">TrainerPreprocessor</code><em class="property"> = typing.Callable[[typing.Any], reagent.types.PreprocessedTrainingBatch]</em><a class="headerlink" href="#reagent.gym.types.TrainerPreprocessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after env.step(action)
+Args: (state, action, reward, terminal, log_prob)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.gym.types.Trajectory">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">Trajectory</code><span class="sig-paren">(</span><em class="sig-param">transitions: List[reagent.gym.types.Transition] = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.html#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.gym.types.Trajectory.add_transition">
+<code class="sig-name descname">add_transition</code><span class="sig-paren">(</span><em class="sig-param">transition: reagent.gym.types.Transition</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory.add_transition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.gym.types.Trajectory.calculate_cumulative_reward">
+<code class="sig-name descname">calculate_cumulative_reward</code><span class="sig-paren">(</span><em class="sig-param">gamma: float = 1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory.calculate_cumulative_reward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return (discounted) sum of rewards.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.gym.types.Transition">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">Transition</code><span class="sig-paren">(</span><em class="sig-param">mdp_id: int, sequence_number: int, observation: Any, action: Any, reward: float, terminal: bool, log_prob: Union[float, NoneType] = None, possible_actions: Union[List[int], NoneType] = None, possible_actions_mask: Union[List[int], NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Transition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.html#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="method">
+<dt id="reagent.gym.types.Transition.asdict">
+<code class="sig-name descname">asdict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Transition.asdict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.gym.types.Transition.log_prob">
+<code class="sig-name descname">log_prob</code><em class="property"> = None</em><a class="headerlink" href="#reagent.gym.types.Transition.log_prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.gym.types.Transition.possible_actions">
+<code class="sig-name descname">possible_actions</code><em class="property"> = None</em><a class="headerlink" href="#reagent.gym.types.Transition.possible_actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.gym.types.Transition.possible_actions_mask">
+<code class="sig-name descname">possible_actions_mask</code><em class="property"> = None</em><a class="headerlink" href="#reagent.gym.types.Transition.possible_actions_mask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.gym.types.get_optional_fields">
+<code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">get_optional_fields</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#reagent.gym.types.get_optional_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>return list of optional annotated fields</p>
+</dd></dl>
+
+</div>
+<div class="section" id="reagent-gym-utils-module">
+<h2>reagent.gym.utils module<a class="headerlink" href="#reagent-gym-utils-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.gym">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reagent.gym.agents.html" class="btn btn-neutral float-right" title="reagent.gym.agents package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="reagent.evaluation.html" class="btn btn-neutral float-left" title="reagent.evaluation package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ReAgent: Applied Reinforcement Learning Platform &mdash; Horizon 1.0 documentation</title>
+  <title>ReAgent: Applied Reinforcement Learning Platform &mdash; ReAgent 1.0 documentation</title>
   
 
   
@@ -49,7 +49,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> Horizon
+            <a href="#" class="icon icon-home"> ReAgent
           
 
           
@@ -88,14 +88,18 @@
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.prediction.html">Prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.readers.html">Readers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.thrift.html">Thrift</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Others</span></p>
@@ -116,7 +120,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">Horizon</a>
+          <a href="#">ReAgent</a>
         
       </nav>
 
@@ -166,10 +170,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <img alt="Banner" src="_images/horizon_banner.png" />
+  <img alt="Banner" src="_images/reagent_banner.png" />
 <div class="section" id="reagent-applied-reinforcement-learning-platform">
 <h1>ReAgent: Applied Reinforcement Learning Platform<a class="headerlink" href="#reagent-applied-reinforcement-learning-platform" title="Permalink to this headline">¶</a></h1>
-<a class="reference external image-reference" href="https://ci.pytorch.org/jenkins/job/horizon-master/"><img alt="Build Status" src="https://ci.pytorch.org/jenkins/buildStatus/icon?job=horizon-master" /></a>
+<a class="reference external image-reference" href="https://circleci.com/gh/facebookresearch/ReAgent/tree/master"><img alt="https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=svg" src="https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=svg" /></a>
 </div>
 <hr class="docutils" />
 <div class="section" id="overview">
@@ -179,7 +183,7 @@ ReAgent is built in Python and uses PyTorch for modeling and training and TorchS
 workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training,
 counterfactual policy evaluation, and optimized serving. For more detailed information about ReAgent see the white
 paper here: <a class="reference external" href="https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/">Platform</a>.</p>
-<p>The source code is available here: <a class="reference external" href="https://github.com/facebookresearch/Horizon">Source code</a>.</p>
+<p>The source code is available here: <a class="reference external" href="https://github.com/facebookresearch/ReAgent">Source code</a>.</p>
 <p>The platform was once named “Horizon” but we have adopted the name “ReAgent” recently to emphasize its broader scope in decision making and reasoning.</p>
 </div>
 <div class="section" id="algorithms-supported">
@@ -206,7 +210,17 @@ here: <a class="reference internal" href="installation.html#installation"><span 
 <div class="section" id="license">
 <h1>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h1>
 <p>ReAgent is released under a BSD license.  Find out more about it here: <a class="reference internal" href="license.html#license"><span class="std std-ref">License</span></a>.</p>
-<a class="reference internal image-reference" href="_images/horizon_logo.png"><img alt="Logo" src="_images/horizon_logo.png" style="width: 200px;" /></a>
+</div>
+<div class="section" id="citing">
+<h1>Citing<a class="headerlink" href="#citing" title="Permalink to this headline">¶</a></h1>
+<dl class="simple">
+<dt>&#64;article{gauci2018horizon,</dt><dd><p>title={Horizon: Facebook’s Open Source Applied Reinforcement Learning Platform},
+author={Gauci, Jason and Conti, Edoardo and Liang, Yitao and Virochsiri, Kittipat and Chen, Zhengxing and He, Yuchen and Kaden, Zachary and Narayanan, Vivek and Ye, Xiaohui},
+journal={arXiv preprint arXiv:1811.00260},
+year={2018}</p>
+</dd>
+</dl>
+<p>}</p>
 </div>
 <div class="section" id="table-of-contents">
 <h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
@@ -214,8 +228,9 @@ here: <a class="reference internal" href="installation.html#installation"><span 
 <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#anaconda">Anaconda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#docker">Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#reagent-cli-python-api">ReAgent CLI &amp; Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#spark-preprocessing-jar">Spark preprocessing JAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#rasp">RASP</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a><ul>
@@ -228,11 +243,12 @@ here: <a class="reference internal" href="installation.html#installation"><span 
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#quick-start">Quick Start</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage.html#on-policy-rl-training">1 - On-Policy RL Training</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage.html#offline-rl-training-batch-rl">2- Offline RL Training (Batch RL)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="usage.html#step-1-create-training-data">Step 1 - Create training data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage.html#step-2-convert-the-data-to-the-timeline-format">Step 2 - Convert the data to the <code class="docutils literal notranslate"><span class="pre">timeline</span></code> format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage.html#step-3-create-the-normalization-parameters">Step 3 - Create the normalization parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#step-2-convert-the-data-to-the-timeline-format">Step 2 - Convert the data to the <code class="docutils literal notranslate"><span class="pre">Timeline</span></code> format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#step-3-determine-normalization-parameters">Step 3 - Determine normalization parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="usage.html#step-4-train-model">Step 4 - Train model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="usage.html#step-5-evaluate-the-model">Step 5 - Evaluate the Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="usage.html#step-6-visualize-results-via-tensorboard">Step 6 - Visualize Results via Tensorboard</a></li>
@@ -251,178 +267,447 @@ here: <a class="reference internal" href="installation.html#installation"><span 
 <li class="toctree-l2"><a class="reference internal" href="distributed.html#training-on-multiple-nodes">Training on multiple nodes</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.base_workflow">ml.rl.workflow.base_workflow module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.create_normalization_metadata">ml.rl.workflow.create_normalization_metadata module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.dqn_workflow">ml.rl.workflow.dqn_workflow module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.helpers">ml.rl.workflow.helpers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.page_handler">ml.rl.workflow.page_handler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.parametric_dqn_workflow">ml.rl.workflow.parametric_dqn_workflow module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.preprocess_handler">ml.rl.workflow.preprocess_handler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.transitional">ml.rl.workflow.transitional module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.evaluation.html">Evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-cpe-module">ml.rl.evaluation.cpe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-doubly-robust-estimator-module">ml.rl.evaluation.doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-evaluation-data-page-module">ml.rl.evaluation.evaluation_data_page module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-evaluator-module">ml.rl.evaluation.evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-ranking-evaluator-module">ml.rl.evaluation.ranking_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-sequential-doubly-robust-estimator-module">ml.rl.evaluation.sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-weighted-sequential-doubly-robust-estimator-module">ml.rl.evaluation.weighted_sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#ml-rl-evaluation-world-model-evaluator-module">ml.rl.evaluation.world_model_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.evaluation.html#module-ml.rl.evaluation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-actor-module">ml.rl.models.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-base-module">ml.rl.models.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-bcq-module">ml.rl.models.bcq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-categorical-dqn-module">ml.rl.models.categorical_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-cem-planner-module">ml.rl.models.cem_planner module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-convolutional-network-module">ml.rl.models.convolutional_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-dqn-module">ml.rl.models.dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-dueling-q-network-module">ml.rl.models.dueling_q_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-dueling-quantile-dqn-module">ml.rl.models.dueling_quantile_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-example-sequence-model-module">ml.rl.models.example_sequence_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-fully-connected-network-module">ml.rl.models.fully_connected_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-mdn-rnn-module">ml.rl.models.mdn_rnn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-no-soft-update-embedding-module">ml.rl.models.no_soft_update_embedding module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-parametric-dqn-module">ml.rl.models.parametric_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-quantile-dqn-module">ml.rl.models.quantile_dqn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-seq2slate-module">ml.rl.models.seq2slate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#ml-rl-models-world-model-module">ml.rl.models.world_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.models.html#module-ml.rl.models">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.prediction.html">Prediction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.prediction.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.prediction.html#ml-rl-prediction-dqn-torch-predictor-module">ml.rl.prediction.dqn_torch_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.prediction.html#ml-rl-prediction-predictor-wrapper-module">ml.rl.prediction.predictor_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.prediction.html#module-ml.rl.prediction">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.batch_preprocessor">ml.rl.preprocessing.batch_preprocessor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.feature_extractor">ml.rl.preprocessing.feature_extractor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.identify_types">ml.rl.preprocessing.identify_types module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.normalization">ml.rl.preprocessing.normalization module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.postprocessor">ml.rl.preprocessing.postprocessor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.preprocessor">ml.rl.preprocessing.preprocessor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.preprocessor_net">ml.rl.preprocessing.preprocessor_net module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.sparse_to_dense">ml.rl.preprocessing.sparse_to_dense module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-batch-preprocessor-module">ml.rl.preprocessing.batch_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-feature-extractor-module">ml.rl.preprocessing.feature_extractor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-identify-types-module">ml.rl.preprocessing.identify_types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-normalization-module">ml.rl.preprocessing.normalization module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-postprocessor-module">ml.rl.preprocessing.postprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-preprocessor-module">ml.rl.preprocessing.preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-preprocessor-net-module">ml.rl.preprocessing.preprocessor_net module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#ml-rl-preprocessing-sparse-to-dense-module">ml.rl.preprocessing.sparse_to_dense module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.readers.html">Readers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.readers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.readers.html#ml-rl-readers-base-module">ml.rl.readers.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.readers.html#ml-rl-readers-data-streamer-module">ml.rl.readers.data_streamer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.readers.html#ml-rl-readers-json-dataset-reader-module">ml.rl.readers.json_dataset_reader module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.readers.html#ml-rl-readers-nparray-reader-module">ml.rl.readers.nparray_reader module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.readers.html#module-ml.rl.readers">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.simulators.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.simulators.html#module-ml.rl.simulators.recsim">ml.rl.simulators.recsim module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.simulators.html#ml-rl-simulators-recsim-module">ml.rl.simulators.recsim module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.simulators.html#module-ml.rl.simulators">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.thrift.html">Thrift</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.thrift.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/ml.rl.thrift.core.html">ml.rl.thrift.core package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.thrift.core.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.thrift.core.html#module-ml.rl.thrift.core.constants">ml.rl.thrift.core.constants module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.thrift.core.html#module-ml.rl.thrift.core.ttypes">ml.rl.thrift.core.ttypes module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.thrift.core.html#module-ml.rl.thrift.core">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.thrift.html#module-ml.rl.thrift">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/ml.rl.training.gradient_free.html">ml.rl.training.gradient_free package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.gradient_free.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.gradient_free.html#ml-rl-training-gradient-free-es-worker-module">ml.rl.training.gradient_free.es_worker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.gradient_free.html#ml-rl-training-gradient-free-evolution-pool-module">ml.rl.training.gradient_free.evolution_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.gradient_free.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ml.rl.training.ranking.html">ml.rl.training.ranking package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.ranking.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.ranking.html#ml-rl-training-ranking-ranking-trainer-module">ml.rl.training.ranking.ranking_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.ranking.html#ml-rl-training-ranking-seq2slate-trainer-module">ml.rl.training.ranking.seq2slate_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.ranking.html#module-ml.rl.training.ranking">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="api/ml.rl.training.world_model.html">ml.rl.training.world_model package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.world_model.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.world_model.html#module-ml.rl.training.world_model.mdnrnn_trainer">ml.rl.training.world_model.mdnrnn_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.world_model.html#ml-rl-training-world-model-mdnrnn-trainer-module">ml.rl.training.world_model.mdnrnn_trainer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/ml.rl.training.world_model.html#module-ml.rl.training.world_model">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.actor_predictor">ml.rl.training.actor_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.c51_trainer">ml.rl.training.c51_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.cem_trainer">ml.rl.training.cem_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.dqn_predictor">ml.rl.training.dqn_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.dqn_trainer">ml.rl.training.dqn_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.dqn_trainer_base">ml.rl.training.dqn_trainer_base module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.imitator_training">ml.rl.training.imitator_training module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.loss_reporter">ml.rl.training.loss_reporter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.off_policy_predictor">ml.rl.training.off_policy_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.on_policy_predictor">ml.rl.training.on_policy_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.parametric_dqn_predictor">ml.rl.training.parametric_dqn_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.parametric_dqn_trainer">ml.rl.training.parametric_dqn_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.qrdqn_trainer">ml.rl.training.qrdqn_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.rl_dataset">ml.rl.training.rl_dataset module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.rl_exporter">ml.rl.training.rl_exporter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.rl_trainer_pytorch">ml.rl.training.rl_trainer_pytorch module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.sac_trainer">ml.rl.training.sac_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.sandboxed_predictor">ml.rl.training.sandboxed_predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.td3_trainer">ml.rl.training.td3_trainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.training_data_page">ml.rl.training.training_data_page module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-c51-trainer-module">ml.rl.training.c51_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-cem-trainer-module">ml.rl.training.cem_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-dqn-predictor-module">ml.rl.training.dqn_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-dqn-trainer-module">ml.rl.training.dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-dqn-trainer-base-module">ml.rl.training.dqn_trainer_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-imitator-training-module">ml.rl.training.imitator_training module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-loss-reporter-module">ml.rl.training.loss_reporter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-off-policy-predictor-module">ml.rl.training.off_policy_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-on-policy-predictor-module">ml.rl.training.on_policy_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-parametric-dqn-trainer-module">ml.rl.training.parametric_dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-qrdqn-trainer-module">ml.rl.training.qrdqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-rl-dataset-module">ml.rl.training.rl_dataset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-rl-trainer-pytorch-module">ml.rl.training.rl_trainer_pytorch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-sac-trainer-module">ml.rl.training.sac_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-sandboxed-predictor-module">ml.rl.training.sandboxed_predictor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-td3-trainer-module">ml.rl.training.td3_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#ml-rl-training-training-data-page-module">ml.rl.training.training_data_page module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-base-workflow-module">ml.rl.workflow.base_workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-create-normalization-metadata-module">ml.rl.workflow.create_normalization_metadata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-dqn-workflow-module">ml.rl.workflow.dqn_workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-helpers-module">ml.rl.workflow.helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-page-handler-module">ml.rl.workflow.page_handler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-parametric-dqn-workflow-module">ml.rl.workflow.parametric_dqn_workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-preprocess-handler-module">ml.rl.workflow.preprocess_handler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#ml-rl-workflow-transitional-module">ml.rl.workflow.transitional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/ml.html">ml package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/ml.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/ml.rl.html">ml.rl package</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l6"><a class="reference internal" href="api/ml.rl.preprocessing.html">ml.rl.preprocessing package</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.batch_preprocessor">ml.rl.preprocessing.batch_preprocessor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.feature_extractor">ml.rl.preprocessing.feature_extractor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.identify_types">ml.rl.preprocessing.identify_types module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.normalization">ml.rl.preprocessing.normalization module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.postprocessor">ml.rl.preprocessing.postprocessor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.preprocessor">ml.rl.preprocessing.preprocessor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.preprocessor_net">ml.rl.preprocessing.preprocessor_net module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing.sparse_to_dense">ml.rl.preprocessing.sparse_to_dense module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.preprocessing.html#module-ml.rl.preprocessing">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/reagent.html">reagent package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.evaluation.html">reagent.evaluation package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#module-reagent.evaluation.cpe">reagent.evaluation.cpe module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-doubly-robust-estimator-module">reagent.evaluation.doubly_robust_estimator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-evaluation-data-page-module">reagent.evaluation.evaluation_data_page module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-evaluator-module">reagent.evaluation.evaluator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-ope-adapter-module">reagent.evaluation.ope_adapter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-ranking-listwise-evaluator-module">reagent.evaluation.ranking_listwise_evaluator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-ranking-policy-gradient-evaluator-module">reagent.evaluation.ranking_policy_gradient_evaluator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-reward-net-evaluator-module">reagent.evaluation.reward_net_evaluator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-seq2reward-evaluator-module">reagent.evaluation.seq2reward_evaluator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-sequential-doubly-robust-estimator-module">reagent.evaluation.sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-weighted-sequential-doubly-robust-estimator-module">reagent.evaluation.weighted_sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#reagent-evaluation-world-model-evaluator-module">reagent.evaluation.world_model_evaluator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.evaluation.html#module-reagent.evaluation">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l6"><a class="reference internal" href="api/ml.rl.simulators.html">ml.rl.simulators package</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.simulators.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.simulators.html#module-ml.rl.simulators.recsim">ml.rl.simulators.recsim module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.simulators.html#module-ml.rl.simulators">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.gym.html">reagent.gym package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.gym.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.gym.agents.html">reagent.gym.agents package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.agents.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.agents.html#reagent-gym-agents-agent-module">reagent.gym.agents.agent module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.agents.html#reagent-gym-agents-post-step-module">reagent.gym.agents.post_step module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.agents.html#module-reagent.gym.agents">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l6"><a class="reference internal" href="api/ml.rl.training.html">ml.rl.training package</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l8"><a class="reference internal" href="api/ml.rl.training.world_model.html">ml.rl.training.world_model package</a><ul>
-<li class="toctree-l9"><a class="reference internal" href="api/ml.rl.training.world_model.html#submodules">Submodules</a></li>
-<li class="toctree-l9"><a class="reference internal" href="api/ml.rl.training.world_model.html#module-ml.rl.training.world_model.mdnrnn_trainer">ml.rl.training.world_model.mdnrnn_trainer module</a></li>
-<li class="toctree-l9"><a class="reference internal" href="api/ml.rl.training.world_model.html#module-ml.rl.training.world_model">Module contents</a></li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.gym.envs.html">reagent.gym.envs package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.envs.html#reagent-gym-envs-changing-arms-module">reagent.gym.envs.changing_arms module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.envs.html#module-reagent.gym.envs.env_factory">reagent.gym.envs.env_factory module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.envs.html#module-reagent.gym.envs.recsim">reagent.gym.envs.recsim module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.envs.html#module-reagent.gym.envs.simple_minigrid">reagent.gym.envs.simple_minigrid module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.envs.html#module-reagent.gym.envs.utils">reagent.gym.envs.utils module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.envs.html#module-reagent.gym.envs">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.gym.policies.html">reagent.gym.policies package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.policies.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api/reagent.gym.policies.samplers.html">reagent.gym.policies.samplers package</a><ul>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.samplers.html#submodules">Submodules</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.continuous_sampler">reagent.gym.policies.samplers.continuous_sampler module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.discrete_sampler">reagent.gym.policies.samplers.discrete_sampler module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers.top_k_sampler">reagent.gym.policies.samplers.top_k_sampler module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.samplers.html#module-reagent.gym.policies.samplers">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.actor_predictor">ml.rl.training.actor_predictor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.c51_trainer">ml.rl.training.c51_trainer module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.cem_trainer">ml.rl.training.cem_trainer module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.dqn_predictor">ml.rl.training.dqn_predictor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.dqn_trainer">ml.rl.training.dqn_trainer module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.dqn_trainer_base">ml.rl.training.dqn_trainer_base module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.imitator_training">ml.rl.training.imitator_training module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.loss_reporter">ml.rl.training.loss_reporter module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.off_policy_predictor">ml.rl.training.off_policy_predictor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.on_policy_predictor">ml.rl.training.on_policy_predictor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.parametric_dqn_predictor">ml.rl.training.parametric_dqn_predictor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.parametric_dqn_trainer">ml.rl.training.parametric_dqn_trainer module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.qrdqn_trainer">ml.rl.training.qrdqn_trainer module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.rl_dataset">ml.rl.training.rl_dataset module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.rl_exporter">ml.rl.training.rl_exporter module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.rl_trainer_pytorch">ml.rl.training.rl_trainer_pytorch module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.sac_trainer">ml.rl.training.sac_trainer module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.sandboxed_predictor">ml.rl.training.sandboxed_predictor module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.td3_trainer">ml.rl.training.td3_trainer module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training.training_data_page">ml.rl.training.training_data_page module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.training.html#module-ml.rl.training">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l6"><a class="reference internal" href="api/ml.rl.workflow.html">ml.rl.workflow package</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.base_workflow">ml.rl.workflow.base_workflow module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.create_normalization_metadata">ml.rl.workflow.create_normalization_metadata module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.dqn_workflow">ml.rl.workflow.dqn_workflow module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.helpers">ml.rl.workflow.helpers module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.page_handler">ml.rl.workflow.page_handler module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.parametric_dqn_workflow">ml.rl.workflow.parametric_dqn_workflow module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.preprocess_handler">ml.rl.workflow.preprocess_handler module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow.transitional">ml.rl.workflow.transitional module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="api/ml.rl.workflow.html#module-ml.rl.workflow">Module contents</a></li>
+<li class="toctree-l8"><a class="reference internal" href="api/reagent.gym.policies.scorers.html">reagent.gym.policies.scorers package</a><ul>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.scorers.html#submodules">Submodules</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.continuous_scorer">reagent.gym.policies.scorers.continuous_scorer module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.scorers.html#reagent-gym-policies-scorers-discrete-scorer-module">reagent.gym.policies.scorers.discrete_scorer module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.slate_q_scorer">reagent.gym.policies.scorers.slate_q_scorer module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#submodules">Submodules</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl.caffe_utils">ml.rl.caffe_utils module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl.debug_on_error">ml.rl.debug_on_error module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl.json_serialize">ml.rl.json_serialize module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl.parameters">ml.rl.parameters module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl.tensorboardX">ml.rl.tensorboardX module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl.torch_utils">ml.rl.torch_utils module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl.types">ml.rl.types module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="api/ml.rl.html#module-ml.rl">Module contents</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.policies.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.policies.html#module-reagent.gym.policies.policy">reagent.gym.policies.policy module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.policies.html#reagent-gym-policies-predictor-policies-module">reagent.gym.policies.predictor_policies module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.policies.html#reagent-gym-policies-random-policies-module">reagent.gym.policies.random_policies module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.policies.html#module-reagent.gym.policies">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.preprocessors.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-preprocessors-module">reagent.gym.preprocessors.default_preprocessors module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-serving-preprocessors-module">reagent.gym.preprocessors.default_serving_preprocessors module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.preprocessors.html#reagent-gym-preprocessors-replay-buffer-inserters-module">reagent.gym.preprocessors.replay_buffer_inserters module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.preprocessors.html#reagent-gym-preprocessors-trainer-preprocessor-module">reagent.gym.preprocessors.trainer_preprocessor module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.preprocessors.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.gym.runners.html">reagent.gym.runners package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.runners.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.runners.html#reagent-gym-runners-gymrunner-module">reagent.gym.runners.gymrunner module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.runners.html#module-reagent.gym.runners">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.gym.tests.html">reagent.gym.tests package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api/reagent.gym.tests.preprocessors.html">reagent.gym.tests.preprocessors package</a><ul>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.tests.preprocessors.html#submodules">Submodules</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-default-preprocessors-module">reagent.gym.tests.preprocessors.test_default_preprocessors module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-replay-buffer-inserters-module">reagent.gym.tests.preprocessors.test_replay_buffer_inserters module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="api/ml.html#module-ml">Module contents</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#reagent-gym-tests-test-gym-module">reagent.gym.tests.test_gym module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#reagent-gym-tests-test-gym-offline-module">reagent.gym.tests.test_gym_offline module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#module-reagent.gym.tests.test_linear_dynamics">reagent.gym.tests.test_linear_dynamics module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#module-reagent.gym.tests.test_pomdp">reagent.gym.tests.test_pomdp module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#reagent-gym-tests-test-seq2reward-model-module">reagent.gym.tests.test_seq2reward_model module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#reagent-gym-tests-test-world-model-module">reagent.gym.tests.test_world_model module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.gym.tests.html#module-reagent.gym.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.gym.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.gym.html#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.gym.html#reagent-gym-utils-module">reagent.gym.utils module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.gym.html#module-reagent.gym">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.models.html">reagent.models package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-actor-module">reagent.models.actor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.base">reagent.models.base module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-bcq-module">reagent.models.bcq module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-categorical-dqn-module">reagent.models.categorical_dqn module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-cem-planner-module">reagent.models.cem_planner module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-containers-module">reagent.models.containers module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-convolutional-network-module">reagent.models.convolutional_network module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-critic-module">reagent.models.critic module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-dqn-module">reagent.models.dqn module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-dueling-q-network-module">reagent.models.dueling_q_network module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-embedding-bag-concat-module">reagent.models.embedding_bag_concat module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.fully_connected_network">reagent.models.fully_connected_network module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-mdn-rnn-module">reagent.models.mdn_rnn module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-model-feature-config-provider-module">reagent.models.model_feature_config_provider module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-no-soft-update-embedding-module">reagent.models.no_soft_update_embedding module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-seq2reward-model-module">reagent.models.seq2reward_model module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-seq2slate-module">reagent.models.seq2slate module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-seq2slate-reward-module">reagent.models.seq2slate_reward module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#reagent-models-world-model-module">reagent.models.world_model module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.ope.html">reagent.ope package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.ope.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.ope.datasets.html">reagent.ope.datasets package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.datasets.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.datasets.html#module-reagent.ope.datasets.logged_dataset">reagent.ope.datasets.logged_dataset module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.datasets.html#module-reagent.ope.datasets">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.ope.estimators.html">reagent.ope.estimators package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.estimators.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.estimators.html#module-reagent.ope.estimators.contextual_bandits_estimators">reagent.ope.estimators.contextual_bandits_estimators module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.estimators.html#module-reagent.ope.estimators.estimator">reagent.ope.estimators.estimator module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.estimators.html#module-reagent.ope.estimators.sequential_estimators">reagent.ope.estimators.sequential_estimators module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.estimators.html#module-reagent.ope.estimators.slate_estimators">reagent.ope.estimators.slate_estimators module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.estimators.html#module-reagent.ope.estimators.types">reagent.ope.estimators.types module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.estimators.html#module-reagent.ope.estimators">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.ope.test.html">reagent.ope.test package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="api/reagent.ope.test.unit_tests.html">reagent.ope.test.unit_tests package</a><ul>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.ope.test.unit_tests.html#submodules">Submodules</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.ope.test.unit_tests.html#module-reagent.ope.test.unit_tests.test_slate_estimators">reagent.ope.test.unit_tests.test_slate_estimators module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.ope.test.unit_tests.html#reagent-ope-test-unit-tests-test-types-module">reagent.ope.test.unit_tests.test_types module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.ope.test.unit_tests.html#module-reagent.ope.test.unit_tests.test_utils">reagent.ope.test.unit_tests.test_utils module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="api/reagent.ope.test.unit_tests.html#module-reagent.ope.test.unit_tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#module-reagent.ope.test.envs">reagent.ope.test.envs module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#module-reagent.ope.test.gridworld">reagent.ope.test.gridworld module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#module-reagent.ope.test.mslr_slate">reagent.ope.test.mslr_slate module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#module-reagent.ope.test.multiclass_bandits">reagent.ope.test.multiclass_bandits module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#module-reagent.ope.test.yandex_web_search">reagent.ope.test.yandex_web_search module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.test.html#module-reagent.ope.test">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.ope.trainers.html">reagent.ope.trainers package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.trainers.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.trainers.html#module-reagent.ope.trainers.linear_trainers">reagent.ope.trainers.linear_trainers module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.trainers.html#module-reagent.ope.trainers.rl_tabular_trainers">reagent.ope.trainers.rl_tabular_trainers module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.ope.trainers.html#module-reagent.ope.trainers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.ope.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.ope.html#module-reagent.ope.utils">reagent.ope.utils module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.ope.html#module-reagent.ope">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.optimizer.html">reagent.optimizer package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#reagent-optimizer-optimizer-module">reagent.optimizer.optimizer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#module-reagent.optimizer.scheduler">reagent.optimizer.scheduler module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#module-reagent.optimizer.scheduler_union">reagent.optimizer.scheduler_union module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#reagent-optimizer-uninferrable-optimizers-module">reagent.optimizer.uninferrable_optimizers module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#module-reagent.optimizer.uninferrable_schedulers">reagent.optimizer.uninferrable_schedulers module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#reagent-optimizer-union-module">reagent.optimizer.union module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#module-reagent.optimizer.utils">reagent.optimizer.utils module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.optimizer.html#module-reagent.optimizer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.prediction.html">reagent.prediction package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.prediction.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.prediction.html#reagent-prediction-predictor-wrapper-module">reagent.prediction.predictor_wrapper module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.prediction.html#module-reagent.prediction">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.preprocessing.html">reagent.preprocessing package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#reagent-preprocessing-batch-preprocessor-module">reagent.preprocessing.batch_preprocessor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#module-reagent.preprocessing.identify_types">reagent.preprocessing.identify_types module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#reagent-preprocessing-normalization-module">reagent.preprocessing.normalization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#reagent-preprocessing-postprocessor-module">reagent.preprocessing.postprocessor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#reagent-preprocessing-preprocessor-module">reagent.preprocessing.preprocessor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#module-reagent.preprocessing.sparse_preprocessor">reagent.preprocessing.sparse_preprocessor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#reagent-preprocessing-sparse-to-dense-module">reagent.preprocessing.sparse_to_dense module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#reagent-preprocessing-transforms-module">reagent.preprocessing.transforms module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#module-reagent.preprocessing.types">reagent.preprocessing.types module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.preprocessing.html#module-reagent.preprocessing">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.replay_memory.html">reagent.replay_memory package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.replay_memory.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.replay_memory.html#module-reagent.replay_memory.circular_replay_buffer">reagent.replay_memory.circular_replay_buffer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.replay_memory.html#module-reagent.replay_memory.prioritized_replay_buffer">reagent.replay_memory.prioritized_replay_buffer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.replay_memory.html#module-reagent.replay_memory.sum_tree">reagent.replay_memory.sum_tree module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.replay_memory.html#module-reagent.replay_memory.utils">reagent.replay_memory.utils module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.replay_memory.html#module-reagent.replay_memory">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.training.html">reagent.training package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.training.gradient_free.html">reagent.training.gradient_free package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.gradient_free.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.gradient_free.html#reagent-training-gradient-free-es-worker-module">reagent.training.gradient_free.es_worker module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.gradient_free.html#reagent-training-gradient-free-evolution-pool-module">reagent.training.gradient_free.evolution_pool module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.gradient_free.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.training.ranking.html">reagent.training.ranking package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.ranking.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.ranking.html#reagent-training-ranking-seq2slate-attn-trainer-module">reagent.training.ranking.seq2slate_attn_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.ranking.html#reagent-training-ranking-seq2slate-dr-trainer-module">reagent.training.ranking.seq2slate_dr_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.ranking.html#reagent-training-ranking-seq2slate-sim-trainer-module">reagent.training.ranking.seq2slate_sim_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.ranking.html#reagent-training-ranking-seq2slate-tf-trainer-module">reagent.training.ranking.seq2slate_tf_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.ranking.html#reagent-training-ranking-seq2slate-trainer-module">reagent.training.ranking.seq2slate_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.ranking.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.training.world_model.html">reagent.training.world_model package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.world_model.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.world_model.html#reagent-training-world-model-mdnrnn-trainer-module">reagent.training.world_model.mdnrnn_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.world_model.html#reagent-training-world-model-seq2reward-trainer-module">reagent.training.world_model.seq2reward_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.world_model.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-c51-trainer-module">reagent.training.c51_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-cem-trainer-module">reagent.training.cem_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-dqn-trainer-module">reagent.training.dqn_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-dqn-trainer-base-module">reagent.training.dqn_trainer_base module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-imitator-training-module">reagent.training.imitator_training module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-loss-reporter-module">reagent.training.loss_reporter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-parameters-module">reagent.training.parameters module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-parametric-dqn-trainer-module">reagent.training.parametric_dqn_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-qrdqn-trainer-module">reagent.training.qrdqn_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-reinforce-module">reagent.training.reinforce module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-reward-network-trainer-module">reagent.training.reward_network_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-rl-trainer-pytorch-module">reagent.training.rl_trainer_pytorch module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-sac-trainer-module">reagent.training.sac_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-slate-q-trainer-module">reagent.training.slate_q_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-td3-trainer-module">reagent.training.td3_trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-trainer-module">reagent.training.trainer module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#reagent-training-utils-module">reagent.training.utils module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.workflow.html">reagent.workflow package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow.cli">reagent.workflow.cli module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#reagent-workflow-data-fetcher-module">reagent.workflow.data_fetcher module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow.env">reagent.workflow.env module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#reagent-workflow-gym-batch-rl-module">reagent.workflow.gym_batch_rl module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#reagent-workflow-identify-types-flow-module">reagent.workflow.identify_types_flow module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow.result_registries">reagent.workflow.result_registries module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow.result_types">reagent.workflow.result_types module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow.spark_utils">reagent.workflow.spark_utils module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow.tagged_union">reagent.workflow.tagged_union module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#reagent-workflow-training-module">reagent.workflow.training module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow.training_reports">reagent.workflow.training_reports module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#reagent-workflow-types-module">reagent.workflow.types module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#reagent-workflow-utils-module">reagent.workflow.utils module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.workflow.html#module-reagent.workflow">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.html#module-reagent">Module contents</a></li>
 </ul>
 </li>
 </ul>

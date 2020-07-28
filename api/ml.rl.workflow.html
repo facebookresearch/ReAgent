@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ml.rl.workflow package &mdash; Horizon 1.0 documentation</title>
+  <title>ml.rl.workflow package &mdash; ReAgent 1.0 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ml.rl.preprocessing package" href="ml.rl.preprocessing.html" />
-    <link rel="prev" title="Training a model across multiple GPUs" href="../distributed.html" /> 
+    <link rel="next" title="reagent" href="modules.html" />
+    <link rel="prev" title="ml.rl.training.world_model package" href="ml.rl.training.world_model.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +50,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> Horizon
+            <a href="../index.html" class="icon icon-home"> ReAgent
           
 
           
@@ -89,26 +89,30 @@
 <p class="caption"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Workflow</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.base_workflow">ml.rl.workflow.base_workflow module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.create_normalization_metadata">ml.rl.workflow.create_normalization_metadata module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.dqn_workflow">ml.rl.workflow.dqn_workflow module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.helpers">ml.rl.workflow.helpers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.page_handler">ml.rl.workflow.page_handler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.parametric_dqn_workflow">ml.rl.workflow.parametric_dqn_workflow module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.preprocess_handler">ml.rl.workflow.preprocess_handler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow.transitional">ml.rl.workflow.transitional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-base-workflow-module">ml.rl.workflow.base_workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-create-normalization-metadata-module">ml.rl.workflow.create_normalization_metadata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-dqn-workflow-module">ml.rl.workflow.dqn_workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-helpers-module">ml.rl.workflow.helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-page-handler-module">ml.rl.workflow.page_handler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-parametric-dqn-workflow-module">ml.rl.workflow.parametric_dqn_workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-preprocess-handler-module">ml.rl.workflow.preprocess_handler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-workflow-transitional-module">ml.rl.workflow.transitional module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.workflow">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.thrift.html">Thrift</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Others</span></p>
@@ -129,7 +133,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">Horizon</a>
+          <a href="../index.html">ReAgent</a>
         
       </nav>
 
@@ -184,389 +188,29 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.base_workflow">
-<span id="ml-rl-workflow-base-workflow-module"></span><h2>ml.rl.workflow.base_workflow module<a class="headerlink" href="#module-ml.rl.workflow.base_workflow" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.workflow.base_workflow.BaseWorkflow">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.base_workflow.</code><code class="sig-name descname">BaseWorkflow</code><span class="sig-paren">(</span><em class="sig-param">batch_preprocessor</em>, <em class="sig-param">trainer</em>, <em class="sig-param">evaluator</em>, <em class="sig-param">minibatch_size</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="ml.rl.workflow.base_workflow.BaseWorkflow.init_multiprocessing">
-<em class="property">static </em><code class="sig-name descname">init_multiprocessing</code><span class="sig-paren">(</span><em class="sig-param">num_processes_per_node</em>, <em class="sig-param">num_nodes</em>, <em class="sig-param">node_index</em>, <em class="sig-param">gpu_index</em>, <em class="sig-param">init_method</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.init_multiprocessing" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.base_workflow.BaseWorkflow.read_norm_file">
-<em class="property">static </em><code class="sig-name descname">read_norm_file</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span> &#x2192; Dict[int, ml.rl.parameters.NormalizationParameters]<a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.read_norm_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.base_workflow.BaseWorkflow.report">
-<code class="sig-name descname">report</code><span class="sig-paren">(</span><em class="sig-param">evaluation_details</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.report" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.base_workflow.BaseWorkflow.save_models">
-<code class="sig-name descname">save_models</code><span class="sig-paren">(</span><em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.save_models" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.base_workflow.BaseWorkflow.save_torchscript_model">
-<code class="sig-name descname">save_torchscript_model</code><span class="sig-paren">(</span><em class="sig-param">module: torch.nn.Module</em>, <em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.save_torchscript_model" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.base_workflow.BaseWorkflow.train_network">
-<code class="sig-name descname">train_network</code><span class="sig-paren">(</span><em class="sig-param">train_dataset</em>, <em class="sig-param">eval_dataset</em>, <em class="sig-param">epochs: int</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.base_workflow.BaseWorkflow.train_network" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="ml-rl-workflow-base-workflow-module">
+<h2>ml.rl.workflow.base_workflow module<a class="headerlink" href="#ml-rl-workflow-base-workflow-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.create_normalization_metadata">
-<span id="ml-rl-workflow-create-normalization-metadata-module"></span><h2>ml.rl.workflow.create_normalization_metadata module<a class="headerlink" href="#module-ml.rl.workflow.create_normalization_metadata" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ml.rl.workflow.create_normalization_metadata.check_samples_per_feature">
-<code class="sig-prename descclassname">ml.rl.workflow.create_normalization_metadata.</code><code class="sig-name descname">check_samples_per_feature</code><span class="sig-paren">(</span><em class="sig-param">samples_per_feature</em>, <em class="sig-param">num_samples</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.create_normalization_metadata.check_samples_per_feature" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.create_normalization_metadata.create_norm_table">
-<code class="sig-prename descclassname">ml.rl.workflow.create_normalization_metadata.</code><code class="sig-name descname">create_norm_table</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.create_normalization_metadata.create_norm_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.create_normalization_metadata.get_norm_metadata">
-<code class="sig-prename descclassname">ml.rl.workflow.create_normalization_metadata.</code><code class="sig-name descname">get_norm_metadata</code><span class="sig-paren">(</span><em class="sig-param">dataset</em>, <em class="sig-param">norm_params</em>, <em class="sig-param">norm_col</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.create_normalization_metadata.get_norm_metadata" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.create_normalization_metadata.get_norm_params">
-<code class="sig-prename descclassname">ml.rl.workflow.create_normalization_metadata.</code><code class="sig-name descname">get_norm_params</code><span class="sig-paren">(</span><em class="sig-param">norm_params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.create_normalization_metadata.get_norm_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="ml-rl-workflow-create-normalization-metadata-module">
+<h2>ml.rl.workflow.create_normalization_metadata module<a class="headerlink" href="#ml-rl-workflow-create-normalization-metadata-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.dqn_workflow">
-<span id="ml-rl-workflow-dqn-workflow-module"></span><h2>ml.rl.workflow.dqn_workflow module<a class="headerlink" href="#module-ml.rl.workflow.dqn_workflow" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.workflow.dqn_workflow.DqnWorkflow">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.dqn_workflow.</code><code class="sig-name descname">DqnWorkflow</code><span class="sig-paren">(</span><em class="sig-param">model_params: ml.rl.parameters.DiscreteActionModelParameters, state_normalization: Dict[int, ml.rl.parameters.NormalizationParameters], use_gpu: bool, use_all_avail_gpus: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.dqn_workflow.DqnWorkflow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.base_workflow.BaseWorkflow" title="ml.rl.workflow.base_workflow.BaseWorkflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.base_workflow.BaseWorkflow</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.dqn_workflow.DqnWorkflow.save_models">
-<code class="sig-name descname">save_models</code><span class="sig-paren">(</span><em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.dqn_workflow.DqnWorkflow.save_models" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.dqn_workflow.main">
-<code class="sig-prename descclassname">ml.rl.workflow.dqn_workflow.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.dqn_workflow.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.dqn_workflow.single_process_main">
-<code class="sig-prename descclassname">ml.rl.workflow.dqn_workflow.</code><code class="sig-name descname">single_process_main</code><span class="sig-paren">(</span><em class="sig-param">gpu_index</em>, <em class="sig-param">*args</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.dqn_workflow.single_process_main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="ml-rl-workflow-dqn-workflow-module">
+<h2>ml.rl.workflow.dqn_workflow module<a class="headerlink" href="#ml-rl-workflow-dqn-workflow-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.helpers">
-<span id="ml-rl-workflow-helpers-module"></span><h2>ml.rl.workflow.helpers module<a class="headerlink" href="#module-ml.rl.workflow.helpers" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ml.rl.workflow.helpers.minibatch_size_multiplier">
-<code class="sig-prename descclassname">ml.rl.workflow.helpers.</code><code class="sig-name descname">minibatch_size_multiplier</code><span class="sig-paren">(</span><em class="sig-param">use_gpu</em>, <em class="sig-param">use_all_avail_gpus</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.minibatch_size_multiplier" title="Permalink to this definition">¶</a></dt>
-<dd><p>Increase size of minibatch if using PyTorch DataParallel.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.helpers.parse_args">
-<code class="sig-prename descclassname">ml.rl.workflow.helpers.</code><code class="sig-name descname">parse_args</code><span class="sig-paren">(</span><em class="sig-param">args</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.parse_args" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.helpers.save_model_to_file">
-<code class="sig-prename descclassname">ml.rl.workflow.helpers.</code><code class="sig-name descname">save_model_to_file</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.save_model_to_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save network parameters and optimizer parameters to file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>model</strong> – one of (DQNTrainer, ParametricDQNTrainer) object.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.helpers.update_model_for_warm_start">
-<code class="sig-prename descclassname">ml.rl.workflow.helpers.</code><code class="sig-name descname">update_model_for_warm_start</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">path=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.helpers.update_model_for_warm_start" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load network parameters and optimizer parameters into trainer object
-to warm start it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>model</strong> – one of (DQNTrainer, ParametricDQNTrainer) object.</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="ml-rl-workflow-helpers-module">
+<h2>ml.rl.workflow.helpers module<a class="headerlink" href="#ml-rl-workflow-helpers-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.page_handler">
-<span id="ml-rl-workflow-page-handler-module"></span><h2>ml.rl.workflow.page_handler module<a class="headerlink" href="#module-ml.rl.workflow.page_handler" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">EvaluationPageHandler</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">evaluator</em>, <em class="sig-param">reporter</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler.finish">
-<code class="sig-name descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler.finish" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler.get_last_cpe_results">
-<code class="sig-name descname">get_last_cpe_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler.get_last_cpe_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.EvaluationPageHandler.handle">
-<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param">tdp: ml.rl.types.PreprocessedTrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.EvaluationPageHandler.handle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.ImitatorPageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">ImitatorPageHandler</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">train=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.ImitatorPageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.ImitatorPageHandler.finish">
-<code class="sig-name descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.ImitatorPageHandler.finish" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.ImitatorPageHandler.handle">
-<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param">tdp: ml.rl.types.PreprocessedTrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.ImitatorPageHandler.handle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.PageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">PageHandler</code><a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.PageHandler.finish">
-<code class="sig-name descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler.finish" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.PageHandler.handle">
-<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param">tdp: ml.rl.types.PreprocessedTrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler.handle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.PageHandler.set_epoch">
-<code class="sig-name descname">set_epoch</code><span class="sig-paren">(</span><em class="sig-param">epoch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.PageHandler.set_epoch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.TrainingPageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">TrainingPageHandler</code><span class="sig-paren">(</span><em class="sig-param">trainer</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.TrainingPageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.TrainingPageHandler.finish">
-<code class="sig-name descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.TrainingPageHandler.finish" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.TrainingPageHandler.handle">
-<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param">tdp: ml.rl.types.PreprocessedTrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.TrainingPageHandler.handle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">WorldModelEvaluationPageHandler</code><span class="sig-paren">(</span><em class="sig-param">trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="ml.rl.workflow.page_handler.WorldModelPageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.WorldModelPageHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler.handle">
-<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param">tdp: ml.rl.types.PreprocessedTrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelEvaluationPageHandler.handle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">WorldModelPageHandler</code><span class="sig-paren">(</span><em class="sig-param">trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.PageHandler" title="ml.rl.workflow.page_handler.PageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.PageHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler.finish">
-<code class="sig-name descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler.finish" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler.get_mean_loss">
-<code class="sig-name descname">get_mean_loss</code><span class="sig-paren">(</span><em class="sig-param">loss_name='loss'</em>, <em class="sig-param">axis=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler.get_mean_loss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>loss_name</strong> – possible loss names: ‘loss’ (referring to total loss),
-‘bce’ (loss for predicting not_terminal), ‘gmm’ (loss for next state
-prediction), ‘mse’ (loss for predicting reward)</p></li>
-<li><p><strong>axis</strong> – axis to perform mean function.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.WorldModelPageHandler.refresh_results">
-<code class="sig-name descname">refresh_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelPageHandler.refresh_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">WorldModelRandomTrainingPageHandler</code><span class="sig-paren">(</span><em class="sig-param">trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="ml.rl.workflow.page_handler.WorldModelPageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.WorldModelPageHandler</span></code></a></p>
-<p>Train a baseline model based on randomly shuffled data</p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler.handle">
-<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param">tdp: ml.rl.types.PreprocessedTrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelRandomTrainingPageHandler.handle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.page_handler.WorldModelTrainingPageHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">WorldModelTrainingPageHandler</code><span class="sig-paren">(</span><em class="sig-param">trainer_or_evaluator</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelTrainingPageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.page_handler.WorldModelPageHandler" title="ml.rl.workflow.page_handler.WorldModelPageHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.page_handler.WorldModelPageHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.page_handler.WorldModelTrainingPageHandler.handle">
-<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param">tdp: ml.rl.types.PreprocessedTrainingBatch</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ml.rl.workflow.page_handler.WorldModelTrainingPageHandler.handle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.page_handler.feed_pages">
-<code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">feed_pages</code><span class="sig-paren">(</span><em class="sig-param">data_streamer</em>, <em class="sig-param">dataset_num_rows</em>, <em class="sig-param">epoch</em>, <em class="sig-param">minibatch_size</em>, <em class="sig-param">use_gpu</em>, <em class="sig-param">page_handler</em>, <em class="sig-param">batch_preprocessor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.feed_pages" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.page_handler.get_actual_minibatch_size">
-<code class="sig-prename descclassname">ml.rl.workflow.page_handler.</code><code class="sig-name descname">get_actual_minibatch_size</code><span class="sig-paren">(</span><em class="sig-param">batch</em>, <em class="sig-param">minibatch_size_preset</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.page_handler.get_actual_minibatch_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="ml-rl-workflow-page-handler-module">
+<h2>ml.rl.workflow.page_handler module<a class="headerlink" href="#ml-rl-workflow-page-handler-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.parametric_dqn_workflow">
-<span id="ml-rl-workflow-parametric-dqn-workflow-module"></span><h2>ml.rl.workflow.parametric_dqn_workflow module<a class="headerlink" href="#module-ml.rl.workflow.parametric_dqn_workflow" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.workflow.parametric_dqn_workflow.ParametricDqnWorkflow">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.parametric_dqn_workflow.</code><code class="sig-name descname">ParametricDqnWorkflow</code><span class="sig-paren">(</span><em class="sig-param">model_params: ml.rl.parameters.ContinuousActionModelParameters, state_normalization: Dict[int, ml.rl.parameters.NormalizationParameters], action_normalization: Dict[int, ml.rl.parameters.NormalizationParameters], use_gpu: bool, use_all_avail_gpus: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.parametric_dqn_workflow.ParametricDqnWorkflow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.base_workflow.BaseWorkflow" title="ml.rl.workflow.base_workflow.BaseWorkflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.base_workflow.BaseWorkflow</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.parametric_dqn_workflow.ParametricDqnWorkflow.save_models">
-<code class="sig-name descname">save_models</code><span class="sig-paren">(</span><em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.parametric_dqn_workflow.ParametricDqnWorkflow.save_models" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.parametric_dqn_workflow.main">
-<code class="sig-prename descclassname">ml.rl.workflow.parametric_dqn_workflow.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.parametric_dqn_workflow.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.parametric_dqn_workflow.single_process_main">
-<code class="sig-prename descclassname">ml.rl.workflow.parametric_dqn_workflow.</code><code class="sig-name descname">single_process_main</code><span class="sig-paren">(</span><em class="sig-param">gpu_index</em>, <em class="sig-param">*args</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.parametric_dqn_workflow.single_process_main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="ml-rl-workflow-parametric-dqn-workflow-module">
+<h2>ml.rl.workflow.parametric_dqn_workflow module<a class="headerlink" href="#ml-rl-workflow-parametric-dqn-workflow-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.preprocess_handler">
-<span id="ml-rl-workflow-preprocess-handler-module"></span><h2>ml.rl.workflow.preprocess_handler module<a class="headerlink" href="#module-ml.rl.workflow.preprocess_handler" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ml.rl.workflow.preprocess_handler.ContinuousPreprocessHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.preprocess_handler.</code><code class="sig-name descname">ContinuousPreprocessHandler</code><span class="sig-paren">(</span><em class="sig-param">state_sparse_to_dense: ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</em>, <em class="sig-param">action_sparse_to_dense: ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.preprocess_handler.ContinuousPreprocessHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.preprocess_handler.PreprocessHandler" title="ml.rl.workflow.preprocess_handler.PreprocessHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.preprocess_handler.PreprocessHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.preprocess_handler.ContinuousPreprocessHandler.preprocess">
-<code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.RawTrainingBatch<a class="headerlink" href="#ml.rl.workflow.preprocess_handler.ContinuousPreprocessHandler.preprocess" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.preprocess_handler.DiscreteDqnPreprocessHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.preprocess_handler.</code><code class="sig-name descname">DiscreteDqnPreprocessHandler</code><span class="sig-paren">(</span><em class="sig-param">num_actions: int</em>, <em class="sig-param">sparse_to_dense_processor: ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.preprocess_handler.DiscreteDqnPreprocessHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.preprocess_handler.PreprocessHandler" title="ml.rl.workflow.preprocess_handler.PreprocessHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.preprocess_handler.PreprocessHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.preprocess_handler.DiscreteDqnPreprocessHandler.preprocess">
-<code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.RawTrainingBatch<a class="headerlink" href="#ml.rl.workflow.preprocess_handler.DiscreteDqnPreprocessHandler.preprocess" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ml.rl.workflow.preprocess_handler.DiscreteDqnPreprocessHandler.read_actions">
-<code class="sig-name descname">read_actions</code><span class="sig-paren">(</span><em class="sig-param">actions</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.preprocess_handler.DiscreteDqnPreprocessHandler.read_actions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.preprocess_handler.ParametricDqnPreprocessHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.preprocess_handler.</code><code class="sig-name descname">ParametricDqnPreprocessHandler</code><span class="sig-paren">(</span><em class="sig-param">state_sparse_to_dense: ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</em>, <em class="sig-param">action_sparse_to_dense: ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.preprocess_handler.ParametricDqnPreprocessHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ml.rl.workflow.preprocess_handler.PreprocessHandler" title="ml.rl.workflow.preprocess_handler.PreprocessHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.workflow.preprocess_handler.PreprocessHandler</span></code></a></p>
-<dl class="method">
-<dt id="ml.rl.workflow.preprocess_handler.ParametricDqnPreprocessHandler.preprocess">
-<code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.RawTrainingBatch<a class="headerlink" href="#ml.rl.workflow.preprocess_handler.ParametricDqnPreprocessHandler.preprocess" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ml.rl.workflow.preprocess_handler.PreprocessHandler">
-<em class="property">class </em><code class="sig-prename descclassname">ml.rl.workflow.preprocess_handler.</code><code class="sig-name descname">PreprocessHandler</code><span class="sig-paren">(</span><em class="sig-param">sparse_to_dense_processor: ml.rl.preprocessing.sparse_to_dense.SparseToDenseProcessor</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.preprocess_handler.PreprocessHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="ml.rl.workflow.preprocess_handler.PreprocessHandler.preprocess">
-<code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span> &#x2192; ml.rl.types.RawTrainingBatch<a class="headerlink" href="#ml.rl.workflow.preprocess_handler.PreprocessHandler.preprocess" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="ml-rl-workflow-preprocess-handler-module">
+<h2>ml.rl.workflow.preprocess_handler module<a class="headerlink" href="#ml-rl-workflow-preprocess-handler-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ml.rl.workflow.transitional">
-<span id="ml-rl-workflow-transitional-module"></span><h2>ml.rl.workflow.transitional module<a class="headerlink" href="#module-ml.rl.workflow.transitional" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ml.rl.workflow.transitional.create_dqn_trainer_from_params">
-<code class="sig-prename descclassname">ml.rl.workflow.transitional.</code><code class="sig-name descname">create_dqn_trainer_from_params</code><span class="sig-paren">(</span><em class="sig-param">model: ml.rl.parameters.DiscreteActionModelParameters, normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], use_gpu: bool = False, use_all_avail_gpus: bool = False, metrics_to_score=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.transitional.create_dqn_trainer_from_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.transitional.create_parametric_dqn_trainer_from_params">
-<code class="sig-prename descclassname">ml.rl.workflow.transitional.</code><code class="sig-name descname">create_parametric_dqn_trainer_from_params</code><span class="sig-paren">(</span><em class="sig-param">model: ml.rl.parameters.ContinuousActionModelParameters, state_normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], action_normalization_parameters: Dict[int, ml.rl.parameters.NormalizationParameters], use_gpu: bool = False, use_all_avail_gpus: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.transitional.create_parametric_dqn_trainer_from_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.transitional.create_world_model_trainer">
-<code class="sig-prename descclassname">ml.rl.workflow.transitional.</code><code class="sig-name descname">create_world_model_trainer</code><span class="sig-paren">(</span><em class="sig-param">env: ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment</em>, <em class="sig-param">mdnrnn_params: ml.rl.parameters.MDNRNNParameters</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span> &#x2192; ml.rl.training.world_model.mdnrnn_trainer.MDNRNNTrainer<a class="headerlink" href="#ml.rl.workflow.transitional.create_world_model_trainer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.transitional.get_cem_trainer">
-<code class="sig-prename descclassname">ml.rl.workflow.transitional.</code><code class="sig-name descname">get_cem_trainer</code><span class="sig-paren">(</span><em class="sig-param">env: ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment</em>, <em class="sig-param">params: ml.rl.parameters.CEMParameters</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span> &#x2192; ml.rl.training.cem_trainer.CEMTrainer<a class="headerlink" href="#ml.rl.workflow.transitional.get_cem_trainer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.transitional.get_sac_trainer">
-<code class="sig-prename descclassname">ml.rl.workflow.transitional.</code><code class="sig-name descname">get_sac_trainer</code><span class="sig-paren">(</span><em class="sig-param">env: ml.rl.test.gym.open_ai_gym_environment.OpenAIGymEnvironment</em>, <em class="sig-param">parameters: ml.rl.parameters.SACModelParameters</em>, <em class="sig-param">use_gpu: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.transitional.get_sac_trainer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ml.rl.workflow.transitional.get_td3_trainer">
-<code class="sig-prename descclassname">ml.rl.workflow.transitional.</code><code class="sig-name descname">get_td3_trainer</code><span class="sig-paren">(</span><em class="sig-param">env</em>, <em class="sig-param">parameters</em>, <em class="sig-param">use_gpu</em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.workflow.transitional.get_td3_trainer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="ml-rl-workflow-transitional-module">
+<h2>ml.rl.workflow.transitional module<a class="headerlink" href="#ml-rl-workflow-transitional-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-ml.rl.workflow">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.workflow" title="Permalink to this headline">¶</a></h2>
@@ -581,10 +225,10 @@ prediction), ‘mse’ (loss for predicting reward)</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ml.rl.preprocessing.html" class="btn btn-neutral float-right" title="ml.rl.preprocessing package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="reagent" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../distributed.html" class="btn btn-neutral float-left" title="Training a model across multiple GPUs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ml.rl.training.world_model.html" class="btn btn-neutral float-left" title="ml.rl.training.world_model package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

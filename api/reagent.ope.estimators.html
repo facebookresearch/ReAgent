@@ -1,0 +1,1556 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>reagent.ope.estimators package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.ope.test package" href="reagent.ope.test.html" />
+    <link rel="prev" title="reagent.ope.datasets package" href="reagent.ope.datasets.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+        
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+        
+          <li><a href="reagent.ope.html">reagent.ope package</a> &raquo;</li>
+        
+      <li>reagent.ope.estimators package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reagent.ope.estimators.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reagent-ope-estimators-package">
+<h1>reagent.ope.estimators package<a class="headerlink" href="#reagent-ope-estimators-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.ope.estimators.contextual_bandits_estimators">
+<span id="reagent-ope-estimators-contextual-bandits-estimators-module"></span><h2>reagent.ope.estimators.contextual_bandits_estimators module<a class="headerlink" href="#module-reagent.ope.estimators.contextual_bandits_estimators" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.ActionRewards">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">ActionRewards</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[KeyType, float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.ActionRewards" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Values" title="reagent.ope.estimators.types.Values"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Values</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">BanditsEstimatorInput</code><span class="sig-paren">(</span><em class="sig-param">action_space: reagent.ope.estimators.types.ActionSpace, samples: Sequence[reagent.ope.estimators.contextual_bandits_estimators.LogSample], has_model_outputs: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.BanditsModel">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">BanditsModel</code><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.BanditsModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.DMEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">DMEstimator</code><span class="sig-paren">(</span><em class="sig-param">trainer: Optional[reagent.ope.estimators.types.Trainer] = None</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.DMEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.estimator.Estimator" title="reagent.ope.estimators.estimator.Estimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.estimator.Estimator</span></code></a></p>
+<p>Estimating using Direct Method (DM), assuming a reward model is trained</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.DMEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.DMEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.DoublyRobustEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">DoublyRobustEstimator</code><span class="sig-paren">(</span><em class="sig-param">trainer: Optional[reagent.ope.estimators.types.Trainer] = None</em>, <em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.DoublyRobustEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.contextual_bandits_estimators.DMEstimator" title="reagent.ope.estimators.contextual_bandits_estimators.DMEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.contextual_bandits_estimators.DMEstimator</span></code></a></p>
+<dl class="simple">
+<dt>Doubly Robust (DR) estimator:</dt><dd><dl class="simple">
+<dt>reference: <a class="reference external" href="https://arxiv.org/abs/1103.4601">https://arxiv.org/abs/1103.4601</a> (deterministic reward model)</dt><dd><p><a class="reference external" href="https://arxiv.org/abs/1612.01205">https://arxiv.org/abs/1612.01205</a> (distributed reward model)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.DoublyRobustEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.DoublyRobustEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.IPSEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">IPSEstimator</code><span class="sig-paren">(</span><em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">weighted: bool = False</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.IPSEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.estimator.Estimator" title="reagent.ope.estimators.estimator.Estimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.estimator.Estimator</span></code></a></p>
+<p>Inverse Propensity Scoring (IPS) estimator</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.IPSEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.IPSEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.LogSample">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">LogSample</code><span class="sig-paren">(</span><em class="sig-param">context: object, log_action: reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]], log_reward: float, log_action_probabilities: reagent.ope.estimators.types.ActionDistribution, tgt_action_probabilities: reagent.ope.estimators.types.ActionDistribution, tgt_action: reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]], model_outputs: Union[reagent.ope.estimators.contextual_bandits_estimators.ModelOutputs, NoneType] = None, ground_truth_reward: float = nan, item_feature: Union[torch.Tensor, NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.LogSample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.LogSample.ground_truth_reward">
+<code class="sig-name descname">ground_truth_reward</code><em class="property"> = nan</em><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.LogSample.ground_truth_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.LogSample.item_feature">
+<code class="sig-name descname">item_feature</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.LogSample.item_feature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.LogSample.model_outputs">
+<code class="sig-name descname">model_outputs</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.LogSample.model_outputs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.contextual_bandits_estimators.ModelOutputs">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.contextual_bandits_estimators.</code><code class="sig-name descname">ModelOutputs</code><span class="sig-paren">(</span><em class="sig-param">tgt_reward_from_log_action: float</em>, <em class="sig-param">tgt_rewards: float</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.contextual_bandits_estimators.ModelOutputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.ope.estimators.estimator">
+<span id="reagent-ope-estimators-estimator-module"></span><h2>reagent.ope.estimators.estimator module<a class="headerlink" href="#module-reagent.ope.estimators.estimator" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.ope.estimators.estimator.Estimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.estimator.</code><code class="sig-name descname">Estimator</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.Estimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Estimator interface</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.Estimator.evaluate">
+<em class="property">abstract </em><code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Union[reagent.ope.estimators.estimator.EstimatorResult, reagent.ope.estimators.estimator.EstimatorResults, None]<a class="headerlink" href="#reagent.ope.estimators.estimator.Estimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.estimator.EstimatorResult">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.estimator.</code><code class="sig-name descname">EstimatorResult</code><span class="sig-paren">(</span><em class="sig-param">log_reward: float</em>, <em class="sig-param">estimated_reward: float</em>, <em class="sig-param">ground_truth_reward: Union[float</em>, <em class="sig-param">NoneType] = 0.0</em>, <em class="sig-param">estimated_weight: float = 1.0</em>, <em class="sig-param">estimated_reward_normalized: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">estimated_reward_std_error: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">estimated_reward_normalized_std_error: Union[float</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.estimator.EstimatorResult.estimated_reward_normalized">
+<code class="sig-name descname">estimated_reward_normalized</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResult.estimated_reward_normalized" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.estimator.EstimatorResult.estimated_reward_normalized_std_error">
+<code class="sig-name descname">estimated_reward_normalized_std_error</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResult.estimated_reward_normalized_std_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.estimator.EstimatorResult.estimated_reward_std_error">
+<code class="sig-name descname">estimated_reward_std_error</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResult.estimated_reward_std_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.estimator.EstimatorResult.estimated_weight">
+<code class="sig-name descname">estimated_weight</code><em class="property"> = 1.0</em><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResult.estimated_weight" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.estimator.EstimatorResult.ground_truth_reward">
+<code class="sig-name descname">ground_truth_reward</code><em class="property"> = 0.0</em><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResult.ground_truth_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.estimator.EstimatorResults">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.estimator.</code><code class="sig-name descname">EstimatorResults</code><span class="sig-paren">(</span><em class="sig-param">results: List[reagent.ope.estimators.estimator.EstimatorResult] = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Estimator results</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.EstimatorResults.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param">result: reagent.ope.estimators.estimator.EstimatorResult</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResults.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a data point</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>result</strong> – result from an experimental run</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.estimator.EstimatorResults.device">
+<code class="sig-name descname">device</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResults.device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.EstimatorResults.report">
+<code class="sig-name descname">report</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorResults.report" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.estimator.EstimatorSampleResult">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.estimator.</code><code class="sig-name descname">EstimatorSampleResult</code><span class="sig-paren">(</span><em class="sig-param">log_reward: float</em>, <em class="sig-param">target_reward: float</em>, <em class="sig-param">ground_truth_reward: float</em>, <em class="sig-param">weight: float</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.EstimatorSampleResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.estimator.Evaluator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.estimator.</code><code class="sig-name descname">Evaluator</code><span class="sig-paren">(</span><em class="sig-param">experiments: Iterable[Tuple[Iterable[reagent.ope.estimators.estimator.Estimator], object]], max_num_workers: int</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.Evaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Multiprocessing evaluator</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.Evaluator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Mapping[str, reagent.ope.estimators.estimator.EstimatorResults]<a class="headerlink" href="#reagent.ope.estimators.estimator.Evaluator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.Evaluator.report_results">
+<em class="property">static </em><code class="sig-name descname">report_results</code><span class="sig-paren">(</span><em class="sig-param">results: Mapping[str, reagent.ope.estimators.estimator.EstimatorResults]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.Evaluator.report_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.estimator.ResultDiffs">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.estimator.</code><code class="sig-name descname">ResultDiffs</code><span class="sig-paren">(</span><em class="sig-param">diffs: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.estimator.ResultDiffs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Statistics for differences, e.g., estimates vs ground truth</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.ResultDiffs.bias">
+<em class="property">property </em><code class="sig-name descname">bias</code><a class="headerlink" href="#reagent.ope.estimators.estimator.ResultDiffs.bias" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.ResultDiffs.rmse">
+<em class="property">property </em><code class="sig-name descname">rmse</code><a class="headerlink" href="#reagent.ope.estimators.estimator.ResultDiffs.rmse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.estimator.ResultDiffs.variance">
+<em class="property">property </em><code class="sig-name descname">variance</code><a class="headerlink" href="#reagent.ope.estimators.estimator.ResultDiffs.variance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.ope.estimators.estimator.run_evaluation">
+<code class="sig-prename descclassname">reagent.ope.estimators.estimator.</code><code class="sig-name descname">run_evaluation</code><span class="sig-paren">(</span><em class="sig-param">file_name: str</em><span class="sig-paren">)</span> &#x2192; Optional[Mapping[str, Iterable[reagent.ope.estimators.estimator.EstimatorResults]]]<a class="headerlink" href="#reagent.ope.estimators.estimator.run_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent.ope.estimators.sequential_estimators">
+<span id="reagent-ope-estimators-sequential-estimators-module"></span><h2>reagent.ope.estimators.sequential_estimators module<a class="headerlink" href="#module-reagent.ope.estimators.sequential_estimators" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.DMEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">DMEstimator</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.DMEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.sequential_estimators.RLEstimator" title="reagent.ope.estimators.sequential_estimators.RLEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.RLEstimator</span></code></a></p>
+<p>Direct Method estimator</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.DMEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.sequential_estimators.RLEstimatorInput</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.estimator.EstimatorResults<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.DMEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.DoublyRobustEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">DoublyRobustEstimator</code><span class="sig-paren">(</span><em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">weighted: bool = True</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.DoublyRobustEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.sequential_estimators.IPSEstimator" title="reagent.ope.estimators.sequential_estimators.IPSEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.IPSEstimator</span></code></a></p>
+<p>Doubly Robust estimator</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.DoublyRobustEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.sequential_estimators.RLEstimatorInput</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.estimator.EstimatorResults<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.DoublyRobustEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.EpsilonGreedyRLPolicy">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">EpsilonGreedyRLPolicy</code><span class="sig-paren">(</span><em class="sig-param">policy: reagent.ope.estimators.sequential_estimators.RLPolicy</em>, <em class="sig-param">epsilon: float = 0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.EpsilonGreedyRLPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.sequential_estimators.RLPolicy" title="reagent.ope.estimators.sequential_estimators.RLPolicy"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.RLPolicy</span></code></a></p>
+<dl class="simple">
+<dt>A wrapper policy:</dt><dd><p>Skewing the wrapped policy action distribution by epsilon
+Number of total actions must be given, and wrapped policy should
+calculate probabilities for all actions</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.EpsilonGreedyRLPolicy.action_dist">
+<code class="sig-name descname">action_dist</code><span class="sig-paren">(</span><em class="sig-param">state</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.ActionDistribution<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.EpsilonGreedyRLPolicy.action_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.IPSEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">IPSEstimator</code><span class="sig-paren">(</span><em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">weighted: bool = True</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.IPSEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.sequential_estimators.RLEstimator" title="reagent.ope.estimators.sequential_estimators.RLEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.RLEstimator</span></code></a></p>
+<p>IPS estimator</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.IPSEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.sequential_estimators.RLEstimatorInput</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.estimator.EstimatorResults<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.IPSEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.MAGICEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">MAGICEstimator</code><span class="sig-paren">(</span><em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.MAGICEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.sequential_estimators.IPSEstimator" title="reagent.ope.estimators.sequential_estimators.IPSEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.IPSEstimator</span></code></a></p>
+<p>Algorithm from <a class="reference external" href="https://arxiv.org/abs/1604.00923">https://arxiv.org/abs/1604.00923</a>, appendix G.3</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.MAGICEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.sequential_estimators.RLEstimatorInput</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.estimator.EstimatorResults<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.MAGICEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.Model">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">Model</code><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Model interface</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.Model.next_state_reward_dist">
+<em class="property">abstract </em><code class="sig-name descname">next_state_reward_dist</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State, action: reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]]</em><span class="sig-paren">)</span> &#x2192; Mapping[reagent.ope.estimators.sequential_estimators.State, reagent.ope.estimators.sequential_estimators.RewardProbability]<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Model.next_state_reward_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.RLEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">RLEstimator</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.estimator.Estimator" title="reagent.ope.estimators.estimator.Estimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.estimator.Estimator</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.RLEstimatorInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">RLEstimatorInput</code><span class="sig-paren">(</span><em class="sig-param">gamma: float, log: Mapping[reagent.ope.estimators.sequential_estimators.State, Sequence[Sequence[reagent.ope.estimators.sequential_estimators.Transition]]], target_policy: reagent.ope.estimators.sequential_estimators.RLPolicy, value_function: Union[reagent.ope.estimators.sequential_estimators.ValueFunction, NoneType] = None, ground_truth: Union[reagent.ope.estimators.sequential_estimators.ValueFunction, NoneType] = None, horizon: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLEstimatorInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.RLEstimatorInput.ground_truth">
+<code class="sig-name descname">ground_truth</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLEstimatorInput.ground_truth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.RLEstimatorInput.horizon">
+<code class="sig-name descname">horizon</code><em class="property"> = -1</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLEstimatorInput.horizon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.RLEstimatorInput.value_function">
+<code class="sig-name descname">value_function</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLEstimatorInput.value_function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.RLPolicy">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">RLPolicy</code><span class="sig-paren">(</span><em class="sig-param">action_space: reagent.ope.estimators.types.ActionSpace</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Policy interface</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.RLPolicy.action_dist">
+<em class="property">abstract </em><code class="sig-name descname">action_dist</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.ActionDistribution<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLPolicy.action_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.RLPolicy.action_space">
+<em class="property">property </em><code class="sig-name descname">action_space</code><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RLPolicy.action_space" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.RandomRLPolicy">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">RandomRLPolicy</code><span class="sig-paren">(</span><em class="sig-param">action_space: reagent.ope.estimators.types.ActionSpace</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RandomRLPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.sequential_estimators.RLPolicy" title="reagent.ope.estimators.sequential_estimators.RLPolicy"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.RLPolicy</span></code></a></p>
+<p>A random policy which return an action according to uniform distribution</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.RandomRLPolicy.action_dist">
+<code class="sig-name descname">action_dist</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.ActionDistribution<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RandomRLPolicy.action_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.RewardProbability">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">RewardProbability</code><span class="sig-paren">(</span><em class="sig-param">reward: float = 0.0</em>, <em class="sig-param">prob: float = 0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RewardProbability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.RewardProbability.prob">
+<code class="sig-name descname">prob</code><em class="property"> = 0.0</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RewardProbability.prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.RewardProbability.reward">
+<code class="sig-name descname">reward</code><em class="property"> = 0.0</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.RewardProbability.reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.State">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">State</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.State" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.TypeWrapper" title="reagent.ope.estimators.types.TypeWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.TypeWrapper</span></code></a></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.State.is_terminal">
+<code class="sig-name descname">is_terminal</code><em class="property"> = False</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.State.is_terminal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.StateReward">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">StateReward</code><span class="sig-paren">(</span><em class="sig-param">state: Union[reagent.ope.estimators.sequential_estimators.State</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">reward: float = 0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.StateReward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.StateReward.reward">
+<code class="sig-name descname">reward</code><em class="property"> = 0.0</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.StateReward.reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.StateReward.state">
+<code class="sig-name descname">state</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.StateReward.state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">Transition</code><span class="sig-paren">(</span><em class="sig-param">last_state: Union[reagent.ope.estimators.sequential_estimators.State, NoneType] = None, action: Union[reagent.ope.estimators.types.TypeWrapper[Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], NoneType] = None, action_prob: float = 0.0, state: Union[reagent.ope.estimators.sequential_estimators.State, NoneType] = None, reward: float = 0.0, status: reagent.ope.estimators.sequential_estimators.Transition.Status = &lt;Status.NORMAL: 1&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.Status">
+<em class="property">class </em><code class="sig-name descname">Status</code><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.Status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.Status.NOOP">
+<code class="sig-name descname">NOOP</code><em class="property"> = 0</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.Status.NOOP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.Status.NORMAL">
+<code class="sig-name descname">NORMAL</code><em class="property"> = 1</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.Status.NORMAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.Status.TERMINATED">
+<code class="sig-name descname">TERMINATED</code><em class="property"> = 2</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.Status.TERMINATED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.action">
+<code class="sig-name descname">action</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.action_prob">
+<code class="sig-name descname">action_prob</code><em class="property"> = 0.0</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.action_prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.last_state">
+<code class="sig-name descname">last_state</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.last_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.reward">
+<code class="sig-name descname">reward</code><em class="property"> = 0.0</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.state">
+<code class="sig-name descname">state</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.sequential_estimators.Transition.status">
+<code class="sig-name descname">status</code><em class="property"> = 1</em><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.Transition.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.sequential_estimators.ValueFunction">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.sequential_estimators.</code><code class="sig-name descname">ValueFunction</code><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.ValueFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Value function to calculate state and state-action values</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.ValueFunction.reset">
+<em class="property">abstract </em><code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.ValueFunction.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.ValueFunction.state_action_value">
+<em class="property">abstract </em><code class="sig-name descname">state_action_value</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State, action: reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]]</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.ValueFunction.state_action_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.sequential_estimators.ValueFunction.state_value">
+<em class="property">abstract </em><code class="sig-name descname">state_value</code><span class="sig-paren">(</span><em class="sig-param">state: reagent.ope.estimators.sequential_estimators.State</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.sequential_estimators.ValueFunction.state_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-reagent.ope.estimators.slate_estimators">
+<span id="reagent-ope-estimators-slate-estimators-module"></span><h2>reagent.ope.estimators.slate_estimators module<a class="headerlink" href="#module-reagent.ope.estimators.slate_estimators" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.DCGSlateMetric">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">DCGSlateMetric</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.DCGSlateMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateMetric" title="reagent.ope.estimators.slate_estimators.SlateMetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateMetric</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.DCGSlateMetric.slot_values">
+<code class="sig-name descname">slot_values</code><span class="sig-paren">(</span><em class="sig-param">rewards: reagent.ope.estimators.slate_estimators.SlateSlotValues</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.DCGSlateMetric.slot_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.DCGSlateMetric.slot_weights">
+<code class="sig-name descname">slot_weights</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.DCGSlateMetric.slot_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.DMEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">DMEstimator</code><span class="sig-paren">(</span><em class="sig-param">trainer: reagent.ope.estimators.types.Trainer</em>, <em class="sig-param">training_sample_ratio: float</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.DMEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateEstimator" title="reagent.ope.estimators.slate_estimators.SlateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateEstimator</span></code></a></p>
+<p>Direct Method estimator</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.DMEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.slate_estimators.SlateEstimatorInput</em>, <em class="sig-param">*kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.DMEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.DoublyRobustEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">DoublyRobustEstimator</code><span class="sig-paren">(</span><em class="sig-param">trainer: reagent.ope.estimators.types.Trainer</em>, <em class="sig-param">training_sample_ratio: float</em>, <em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">weighted: bool = False</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.DoublyRobustEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.DMEstimator" title="reagent.ope.estimators.slate_estimators.DMEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.DMEstimator</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.DoublyRobustEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.slate_estimators.SlateEstimatorInput</em>, <em class="sig-param">*kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.DoublyRobustEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.ERRSlateMetric">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">ERRSlateMetric</code><span class="sig-paren">(</span><em class="sig-param">max_reward: float</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.ERRSlateMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateMetric" title="reagent.ope.estimators.slate_estimators.SlateMetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateMetric</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.ERRSlateMetric.slot_values">
+<code class="sig-name descname">slot_values</code><span class="sig-paren">(</span><em class="sig-param">rewards: reagent.ope.estimators.slate_estimators.SlateSlotValues</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.ERRSlateMetric.slot_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.ERRSlateMetric.slot_weights">
+<code class="sig-name descname">slot_weights</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.ERRSlateMetric.slot_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.FrechetDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">FrechetDistribution</code><span class="sig-paren">(</span><em class="sig-param">shape: float</em>, <em class="sig-param">deterministic: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.FrechetDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.RewardDistribution" title="reagent.ope.estimators.slate_estimators.RewardDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.RewardDistribution</span></code></a></p>
+<p>Frechet distribution</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.FrechetDistribution.distribution">
+<code class="sig-name descname">distribution</code><span class="sig-paren">(</span><em class="sig-param">rewards: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.FrechetDistribution.distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.FrechetDistribution.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.FrechetDistribution.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.IPSEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">IPSEstimator</code><span class="sig-paren">(</span><em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">weighted: bool = True</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.IPSEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateEstimator" title="reagent.ope.estimators.slate_estimators.SlateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateEstimator</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.IPSEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.slate_estimators.SlateEstimatorInput</em>, <em class="sig-param">*kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.IPSEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">LogSample</code><span class="sig-paren">(</span><em class="sig-param">context: reagent.ope.estimators.slate_estimators.SlateContext</em>, <em class="sig-param">metric: reagent.ope.estimators.slate_estimators.SlateMetric</em>, <em class="sig-param">log_slate: reagent.ope.estimators.slate_estimators.Slate</em>, <em class="sig-param">log_reward: float</em>, <em class="sig-param">_log_slate_probability: float = nan</em>, <em class="sig-param">_log_slot_item_probabilities: Union[reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">_log_item_probabilities: Union[reagent.ope.estimators.slate_estimators.SlateItemProbabilities</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">_tgt_slate_probability: float = nan</em>, <em class="sig-param">_tgt_slot_item_probabilities: Union[reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">_tgt_item_probabilities: Union[reagent.ope.estimators.slate_estimators.SlateItemProbabilities</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">ground_truth_reward: float = nan</em>, <em class="sig-param">slot_weights: Union[reagent.ope.estimators.slate_estimators.SlateSlotValues</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">slot_probabilities: Union[reagent.ope.estimators.slate_estimators.SlateSlotValues</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">item_features: Union[reagent.ope.estimators.slate_estimators.SlateItemFeatures</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.ground_truth_reward">
+<code class="sig-name descname">ground_truth_reward</code><em class="property"> = nan</em><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.ground_truth_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.item_features">
+<code class="sig-name descname">item_features</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.item_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.items">
+<em class="property">property </em><code class="sig-name descname">items</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.log_slate_probability">
+<code class="sig-name descname">log_slate_probability</code><span class="sig-paren">(</span><em class="sig-param">slate: Optional[reagent.ope.estimators.slate_estimators.Slate] = None</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.log_slate_probability" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.log_slot_item_expectations">
+<code class="sig-name descname">log_slot_item_expectations</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.log_slot_item_expectations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.slot_probabilities">
+<code class="sig-name descname">slot_probabilities</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.slot_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.slot_weights">
+<code class="sig-name descname">slot_weights</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.slot_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.tgt_slate_probability">
+<code class="sig-name descname">tgt_slate_probability</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.tgt_slate_probability" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.tgt_slate_space">
+<code class="sig-name descname">tgt_slate_space</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; Iterable[Tuple[Sequence[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]]], float]]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.tgt_slate_space" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.tgt_slot_expectations">
+<code class="sig-name descname">tgt_slot_expectations</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.tgt_slot_expectations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.LogSample.validate">
+<code class="sig-name descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.LogSample.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.NDCGSlateMetric">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">NDCGSlateMetric</code><span class="sig-paren">(</span><em class="sig-param">item_rewards: reagent.ope.estimators.slate_estimators.SlateItemValues</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.NDCGSlateMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.DCGSlateMetric" title="reagent.ope.estimators.slate_estimators.DCGSlateMetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.DCGSlateMetric</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.NDCGSlateMetric.slot_weights">
+<code class="sig-name descname">slot_weights</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.NDCGSlateMetric.slot_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.PBMEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">PBMEstimator</code><span class="sig-paren">(</span><em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">weighted: bool = True</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.PBMEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateEstimator" title="reagent.ope.estimators.slate_estimators.SlateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateEstimator</span></code></a></p>
+<p>Estimator from reference 1: Position-Based Click Model</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.PBMEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.slate_estimators.SlateEstimatorInput</em>, <em class="sig-param">*kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.PBMEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.PassThruDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">PassThruDistribution</code><span class="sig-paren">(</span><em class="sig-param">deterministic: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.PassThruDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.RewardDistribution" title="reagent.ope.estimators.slate_estimators.RewardDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.RewardDistribution</span></code></a></p>
+<p>No-op distribution, probability determined by reward</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.PassThruDistribution.distribution">
+<code class="sig-name descname">distribution</code><span class="sig-paren">(</span><em class="sig-param">rewards: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.PassThruDistribution.distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.PassThruDistribution.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.PassThruDistribution.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.PseudoInverseEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">PseudoInverseEstimator</code><span class="sig-paren">(</span><em class="sig-param">weight_clamper: Optional[reagent.ope.utils.Clamper] = None</em>, <em class="sig-param">weighted: bool = True</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.PseudoInverseEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateEstimator" title="reagent.ope.estimators.slate_estimators.SlateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateEstimator</span></code></a></p>
+<p>Estimator from reference 2</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.PseudoInverseEstimator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">input: reagent.ope.estimators.slate_estimators.SlateEstimatorInput</em>, <em class="sig-param">*kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[reagent.ope.estimators.estimator.EstimatorResult]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.PseudoInverseEstimator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.RankingDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">RankingDistribution</code><span class="sig-paren">(</span><em class="sig-param">alpha: float = -1.0</em>, <em class="sig-param">deterministic: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.RankingDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.RewardDistribution" title="reagent.ope.estimators.slate_estimators.RewardDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.RewardDistribution</span></code></a></p>
+<p>Ranking distribution according to <a class="reference external" href="https://arxiv.org/abs/1605.04812">https://arxiv.org/abs/1605.04812</a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.RankingDistribution.distribution">
+<code class="sig-name descname">distribution</code><span class="sig-paren">(</span><em class="sig-param">rewards: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.RankingDistribution.distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.RankingDistribution.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.RankingDistribution.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.RewardDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">RewardDistribution</code><span class="sig-paren">(</span><em class="sig-param">deterministic: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.RewardDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Return customized probability distribution according to rewards</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.RewardDistribution.distribution">
+<em class="property">abstract </em><code class="sig-name descname">distribution</code><span class="sig-paren">(</span><em class="sig-param">rewards: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.RewardDistribution.distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.RewardDistribution.name">
+<em class="property">abstract property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.RewardDistribution.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.Slate">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">Slate</code><span class="sig-paren">(</span><em class="sig-param">values: Union[MutableMapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], ValueType], MutableSequence[ValueType]]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.Slate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateSlotObjects" title="reagent.ope.estimators.slate_estimators.SlateSlotObjects"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateSlotObjects</span></code></a></p>
+<p>Class represents a slate: map from slots to items/docs</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.Slate.items">
+<em class="property">property </em><code class="sig-name descname">items</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.Slate.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.Slate.one_hots">
+<code class="sig-name descname">one_hots</code><span class="sig-paren">(</span><em class="sig-param">items: reagent.ope.estimators.slate_estimators.SlateItems</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.Slate.one_hots" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.Slate.slot_features">
+<code class="sig-name descname">slot_features</code><span class="sig-paren">(</span><em class="sig-param">item_features: reagent.ope.estimators.slate_estimators.SlateItemFeatures</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotFeatures<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.Slate.slot_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map items in the slate to given values
+:param item_values: Map from all items to some values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of values in the slate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.Slate.slot_values">
+<code class="sig-name descname">slot_values</code><span class="sig-paren">(</span><em class="sig-param">item_values: reagent.ope.estimators.slate_estimators.SlateItemValues</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.Slate.slot_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map items in the slate to given values
+:param item_values: Map from all items to some values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of values in the slate</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateContext">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateContext</code><span class="sig-paren">(</span><em class="sig-param">query: reagent.ope.estimators.types.TypeWrapper[typing.Union[typing.Tuple[int], typing.Tuple[float], numpy.ndarray, torch.Tensor, typing.Tuple[int, int]]], slots: reagent.ope.estimators.slate_estimators.SlateSlots, params: object = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.slate_estimators.SlateContext.params">
+<code class="sig-name descname">params</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateContext.params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateEstimator</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.estimator.Estimator" title="reagent.ope.estimators.estimator.Estimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.estimator.Estimator</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateEstimatorInput">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateEstimatorInput</code><span class="sig-paren">(</span><em class="sig-param">samples: Sequence[reagent.ope.estimators.slate_estimators.LogSample]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateEstimatorInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateEstimatorInput.validate">
+<code class="sig-name descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateEstimatorInput.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemFeatures">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateItemFeatures</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], torch.Tensor], Sequence[torch.Tensor], torch.Tensor, numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemFeatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Objects" title="reagent.ope.estimators.types.Objects"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Objects</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemFeatures.items">
+<em class="property">property </em><code class="sig-name descname">items</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemFeatures.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemProbabilities">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateItemProbabilities</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], float], Sequence[float], numpy.ndarray, torch.Tensor], greedy: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemProbabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateItemValues" title="reagent.ope.estimators.slate_estimators.SlateItemValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateItemValues</span></code></a></p>
+<p>Probabilities of each item being selected into the slate</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemProbabilities.is_deterministic">
+<em class="property">property </em><code class="sig-name descname">is_deterministic</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemProbabilities.is_deterministic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemProbabilities.sample_slate">
+<code class="sig-name descname">sample_slate</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.Slate<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemProbabilities.sample_slate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemProbabilities.slate_probability">
+<code class="sig-name descname">slate_probability</code><span class="sig-paren">(</span><em class="sig-param">slate: reagent.ope.estimators.slate_estimators.Slate</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemProbabilities.slate_probability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate probability of a slate under this distribution
+:param slate:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>probability</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemProbabilities.slate_space">
+<code class="sig-name descname">slate_space</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em>, <em class="sig-param">max_size: int = -1</em><span class="sig-paren">)</span> &#x2192; Iterable[Tuple[Sequence[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]]], float]]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemProbabilities.slate_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all possible slates and their probabilities</p>
+<p>The algorithm is similar to <code class="xref py py-func docutils literal notranslate"><span class="pre">_calculate_expectations()</span></code>, but has
+less value to cache thus save both space and computation
+:param slots: slots to be filled
+:param max_size: max number of samples to be returned</p>
+<blockquote>
+<div><p>&lt;= 0 return all samples</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemProbabilities.slot_item_expectations">
+<code class="sig-name descname">slot_item_expectations</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemProbabilities.slot_item_expectations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemValues">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateItemValues</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[KeyType, float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Values" title="reagent.ope.estimators.types.Values"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Values</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItemValues.items">
+<em class="property">property </em><code class="sig-name descname">items</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItemValues.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateItems">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateItems</code><span class="sig-paren">(</span><em class="sig-param">items: Union[Sequence[ValueType], int]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Items" title="reagent.ope.estimators.types.Items"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Items</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateMetric">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateMetric</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Metric calculator for a slate: weights (dot) rewards</p>
+<p>Base class is just sum of the all item rewards</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateMetric.calculate_reward">
+<code class="sig-name descname">calculate_reward</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em>, <em class="sig-param">rewards: Optional[reagent.ope.estimators.slate_estimators.SlateSlotValues] = None</em>, <em class="sig-param">slot_values: Optional[reagent.ope.estimators.slate_estimators.SlateSlotValues] = None</em>, <em class="sig-param">slot_weights: Optional[reagent.ope.estimators.slate_estimators.SlateSlotValues] = None</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateMetric.calculate_reward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateMetric.slot_values">
+<code class="sig-name descname">slot_values</code><span class="sig-paren">(</span><em class="sig-param">rewards: reagent.ope.estimators.slate_estimators.SlateSlotValues</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateMetric.slot_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateMetric.slot_weights">
+<code class="sig-name descname">slot_weights</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateMetric.slot_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateModel">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateModel</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Model providing item relevance/reward, slot examination (click) distribution</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateModel.item_rewards">
+<em class="property">abstract </em><code class="sig-name descname">item_rewards</code><span class="sig-paren">(</span><em class="sig-param">context: reagent.ope.estimators.slate_estimators.SlateContext</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateItemValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateModel.item_rewards" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns each item’s relevance under the context
+:param context:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Item relevances</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateModel.slot_probabilities">
+<code class="sig-name descname">slot_probabilities</code><span class="sig-paren">(</span><em class="sig-param">context: reagent.ope.estimators.slate_estimators.SlateContext</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateModel.slot_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns each slot/positions’s probability independent of showing item,
+used in PBM estimator
+:param context:</p>
+<p>Returns:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlatePolicy">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlatePolicy</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlatePolicy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Policy interface</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotFeatures">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateSlotFeatures</code><span class="sig-paren">(</span><em class="sig-param">values: Union[MutableMapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], ValueType], MutableSequence[ValueType]]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotFeatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateSlotObjects" title="reagent.ope.estimators.slate_estimators.SlateSlotObjects"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateSlotObjects</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotFeatures.features">
+<em class="property">property </em><code class="sig-name descname">features</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotFeatures.features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateSlotItemExpectations</code><span class="sig-paren">(</span><em class="sig-param">values: Union[MutableMapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], reagent.ope.estimators.slate_estimators.SlateItemValues], MutableSequence[reagent.ope.estimators.slate_estimators.SlateItemValues]]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemValues" title="reagent.ope.estimators.slate_estimators.SlateSlotItemValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateSlotItemValues</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations.expectations">
+<em class="property">property </em><code class="sig-name descname">expectations</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations.expectations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations.expected_rewards">
+<code class="sig-name descname">expected_rewards</code><span class="sig-paren">(</span><em class="sig-param">item_rewards: reagent.ope.estimators.slate_estimators.SlateItemValues</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations.expected_rewards" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate expected relevances of each slot, given each item’s
+relevances, under this distribution
+:param item_rewards:
+:param device:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Map of slots to their expected relevance</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateSlotItemProbabilities</code><span class="sig-paren">(</span><em class="sig-param">values: Union[MutableMapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], reagent.ope.estimators.slate_estimators.SlateItemValues], MutableSequence[reagent.ope.estimators.slate_estimators.SlateItemValues]], greedy: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemValues" title="reagent.ope.estimators.slate_estimators.SlateSlotItemValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateSlotItemValues</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities.sample_slate">
+<code class="sig-name descname">sample_slate</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.Slate<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities.sample_slate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities.slate_probability">
+<code class="sig-name descname">slate_probability</code><span class="sig-paren">(</span><em class="sig-param">slate: reagent.ope.estimators.slate_estimators.Slate</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities.slate_probability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate probability of a slate under this distribution
+:param slate:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>probability</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities.slot_item_expectations">
+<code class="sig-name descname">slot_item_expectations</code><span class="sig-paren">(</span><em class="sig-param">samples: int = 20000</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemProbabilities.slot_item_expectations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemValues">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateSlotItemValues</code><span class="sig-paren">(</span><em class="sig-param">values: Union[MutableMapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], reagent.ope.estimators.slate_estimators.SlateItemValues], MutableSequence[reagent.ope.estimators.slate_estimators.SlateItemValues]]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.slate_estimators.SlateSlotObjects" title="reagent.ope.estimators.slate_estimators.SlateSlotObjects"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.slate_estimators.SlateSlotObjects</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotItemValues.values_tensor">
+<code class="sig-name descname">values_tensor</code><span class="sig-paren">(</span><em class="sig-param">device=None</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotItemValues.values_tensor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotObjects">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateSlotObjects</code><span class="sig-paren">(</span><em class="sig-param">values: Union[MutableMapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], ValueType], MutableSequence[ValueType]]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Objects" title="reagent.ope.estimators.types.Objects"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Objects</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotObjects.fill">
+<code class="sig-name descname">fill</code><span class="sig-paren">(</span><em class="sig-param">values: Sequence[ValueType]</em><span class="sig-paren">)</span> &#x2192; Union[Mapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], ValueType], Sequence[ValueType]]<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotObjects.fill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotObjects.objects">
+<em class="property">property </em><code class="sig-name descname">objects</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotObjects.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotObjects.slots">
+<em class="property">property </em><code class="sig-name descname">slots</code><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotObjects.slots" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlotValues">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateSlotValues</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[KeyType, float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlotValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Values" title="reagent.ope.estimators.types.Values"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Values</span></code></a></p>
+<p>Map from a slot to a value</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlots">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">SlateSlots</code><span class="sig-paren">(</span><em class="sig-param">items: Union[Sequence[ValueType], int]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Items" title="reagent.ope.estimators.types.Items"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Items</span></code></a></p>
+<p>List of slot</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.slate_estimators.SlateSlots.fill">
+<code class="sig-name descname">fill</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotValues<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.SlateSlots.fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map slots to given values
+:param values: given values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Map from slots to given values</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.ope.estimators.slate_estimators.is_to_calculate_expectation">
+<code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">is_to_calculate_expectation</code><span class="sig-paren">(</span><em class="sig-param">slate_size: int</em>, <em class="sig-param">item_size: int</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.is_to_calculate_expectation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switch between calculating and sampling expectations, balanced by execution
+time and accuracy
+:returns: True to calculate</p>
+<blockquote>
+<div><p>False to sample</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.ope.estimators.slate_estimators.make_slate">
+<code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">make_slate</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots, items: Sequence[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]]]</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.Slate<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.make_slate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign items to slots to make a slate</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.ope.estimators.slate_estimators.make_slot_item_distributions">
+<code class="sig-prename descclassname">reagent.ope.estimators.slate_estimators.</code><code class="sig-name descname">make_slot_item_distributions</code><span class="sig-paren">(</span><em class="sig-param">slots: reagent.ope.estimators.slate_estimators.SlateSlots, dists: Sequence[reagent.ope.estimators.slate_estimators.SlateItemValues]</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.slate_estimators.SlateSlotItemExpectations<a class="headerlink" href="#reagent.ope.estimators.slate_estimators.make_slot_item_distributions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent.ope.estimators.types">
+<span id="reagent-ope-estimators-types-module"></span><h2>reagent.ope.estimators.types module<a class="headerlink" href="#module-reagent.ope.estimators.types" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.ope.estimators.types.ActionDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">ActionDistribution</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[KeyType, float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.ActionDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Values" title="reagent.ope.estimators.types.Values"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Values</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.ActionSpace">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">ActionSpace</code><span class="sig-paren">(</span><em class="sig-param">items: Union[Sequence[ValueType], int]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.ActionSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Items" title="reagent.ope.estimators.types.Items"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Items</span></code></a></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.types.ActionSpace.distribution">
+<code class="sig-name descname">distribution</code><span class="sig-paren">(</span><em class="sig-param">dist: Union[Mapping[reagent.ope.estimators.types.TypeWrapper[typing.Union[int, typing.Tuple[int], float, typing.Tuple[float], numpy.ndarray, torch.Tensor]][Union[int, Tuple[int], float, Tuple[float], numpy.ndarray, torch.Tensor]], float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.ActionDistribution<a class="headerlink" href="#reagent.ope.estimators.types.ActionSpace.distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.ActionSpace.space">
+<em class="property">property </em><code class="sig-name descname">space</code><a class="headerlink" href="#reagent.ope.estimators.types.ActionSpace.space" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.Items">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">Items</code><span class="sig-paren">(</span><em class="sig-param">items: Union[Sequence[ValueType], int]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>List of items</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Items.fill">
+<code class="sig-name descname">fill</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[ValueType, float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span> &#x2192; Union[Sequence[float], Mapping[ValueType, float]]<a class="headerlink" href="#reagent.ope.estimators.types.Items.fill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Items.index_of">
+<code class="sig-name descname">index_of</code><span class="sig-paren">(</span><em class="sig-param">item: ValueType</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.ope.estimators.types.Items.index_of" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Items.is_sequence">
+<em class="property">property </em><code class="sig-name descname">is_sequence</code><a class="headerlink" href="#reagent.ope.estimators.types.Items.is_sequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.Objects">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">Objects</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[KeyType, ValueType], Sequence[ValueType]]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Generic class for a map from item to its value.
+It supports [] indexing, and iterator protocol</p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.types.Objects.items">
+<code class="sig-name descname">items</code><a class="headerlink" href="#reagent.ope.estimators.types.Objects.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of items</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.types.Objects.values">
+<code class="sig-name descname">values</code><a class="headerlink" href="#reagent.ope.estimators.types.Objects.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of their values</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Objects.index_of">
+<code class="sig-name descname">index_of</code><span class="sig-paren">(</span><em class="sig-param">key: KeyType</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.ope.estimators.types.Objects.index_of" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Objects.is_sequence">
+<em class="property">property </em><code class="sig-name descname">is_sequence</code><a class="headerlink" href="#reagent.ope.estimators.types.Objects.is_sequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Objects.keys">
+<em class="property">property </em><code class="sig-name descname">keys</code><a class="headerlink" href="#reagent.ope.estimators.types.Objects.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<em class="property">property </em><code class="sig-name descname">values</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.Policy">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">Policy</code><span class="sig-paren">(</span><em class="sig-param">action_space: reagent.ope.estimators.types.ActionSpace</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Policy interface</p>
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Policy.action_space">
+<em class="property">property </em><code class="sig-name descname">action_space</code><a class="headerlink" href="#reagent.ope.estimators.types.Policy.action_space" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.PredictResults">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">PredictResults</code><span class="sig-paren">(</span><em class="sig-param">predictions: Union[torch.Tensor, NoneType], scores: torch.Tensor, probabilities: Union[torch.Tensor, NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.PredictResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.types.PredictResults.probabilities">
+<code class="sig-name descname">probabilities</code><em class="property"> = None</em><a class="headerlink" href="#reagent.ope.estimators.types.PredictResults.probabilities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.Trainer">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">Trainer</code><a class="headerlink" href="#reagent.ope.estimators.types.Trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.is_trained">
+<em class="property">property </em><code class="sig-name descname">is_trained</code><a class="headerlink" href="#reagent.ope.estimators.types.Trainer.is_trained" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.load_model">
+<code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param">file: str</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Trainer.load_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.name">
+<em class="property">abstract property </em><code class="sig-name descname">name</code><a class="headerlink" href="#reagent.ope.estimators.types.Trainer.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.predict">
+<em class="property">abstract </em><code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">x: torch.Tensor</em>, <em class="sig-param">device=None</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.PredictResults<a class="headerlink" href="#reagent.ope.estimators.types.Trainer.predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Trainer.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.save_model">
+<code class="sig-name descname">save_model</code><span class="sig-paren">(</span><em class="sig-param">file: str</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Trainer.save_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.score">
+<em class="property">abstract </em><code class="sig-name descname">score</code><span class="sig-paren">(</span><em class="sig-param">x: torch.Tensor</em>, <em class="sig-param">y: torch.Tensor</em>, <em class="sig-param">weight: Optional[torch.Tensor] = None</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.types.Trainer.score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Trainer.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">data: reagent.ope.estimators.types.TrainingData</em>, <em class="sig-param">iterations: int = 1</em>, <em class="sig-param">num_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Trainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.TrainingData">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">TrainingData</code><span class="sig-paren">(</span><em class="sig-param">train_x: torch.Tensor, train_y: torch.Tensor, train_weight: Union[torch.Tensor, NoneType], validation_x: torch.Tensor, validation_y: torch.Tensor, validation_weight: Union[torch.Tensor, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.TrainingData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.TypeWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">TypeWrapper</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.TypeWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.ope.estimators.types.Values">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">Values</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[KeyType, float], Sequence[float], numpy.ndarray, torch.Tensor]</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.Values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.ope.estimators.types.Objects" title="reagent.ope.estimators.types.Objects"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Objects</span></code></a></p>
+<p>Generic class for a map from item to its value.
+It supports [] indexing, and iterator protocol</p>
+<dl class="attribute">
+<dt id="reagent.ope.estimators.types.Values.items">
+<code class="sig-name descname">items</code><a class="headerlink" href="#reagent.ope.estimators.types.Values.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of items</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="reagent.ope.estimators.types.Values.values">
+<code class="sig-name descname">values</code><a class="headerlink" href="#reagent.ope.estimators.types.Values.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of their values</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Values.greedy">
+<code class="sig-name descname">greedy</code><span class="sig-paren">(</span><em class="sig-param">size=1</em><span class="sig-paren">)</span> &#x2192; Union[Sequence[KeyType], KeyType]<a class="headerlink" href="#reagent.ope.estimators.types.Values.greedy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Values.probability">
+<code class="sig-name descname">probability</code><span class="sig-paren">(</span><em class="sig-param">key: ValueType</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.ope.estimators.types.Values.probability" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Values.replace">
+<code class="sig-name descname">replace</code><span class="sig-paren">(</span><em class="sig-param">values: Union[Mapping[ValueType, float], Sequence[float], torch.Tensor, numpy.ndarray]</em><span class="sig-paren">)</span> &#x2192; reagent.ope.estimators.types.Values<a class="headerlink" href="#reagent.ope.estimators.types.Values.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace current values with new values, and returns the new copy.
+Current Values object is not changed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>values</strong> – new value</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Values object with new values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Values.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">size=1</em><span class="sig-paren">)</span> &#x2192; Union[Sequence[KeyType], KeyType]<a class="headerlink" href="#reagent.ope.estimators.types.Values.sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.ope.estimators.types.Values.sort">
+<code class="sig-name descname">sort</code><span class="sig-paren">(</span><em class="sig-param">descending: bool = True</em><span class="sig-paren">)</span> &#x2192; Tuple[Sequence[KeyType], torch.Tensor]<a class="headerlink" href="#reagent.ope.estimators.types.Values.sort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort based on values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>descending</strong> – sorting order</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Tuple of sorted indices and values</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.ope.estimators.types.is_array">
+<code class="sig-prename descclassname">reagent.ope.estimators.types.</code><code class="sig-name descname">is_array</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.estimators.types.is_array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-reagent.ope.estimators">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.ope.estimators" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reagent.ope.test.html" class="btn btn-neutral float-right" title="reagent.ope.test package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="reagent.ope.datasets.html" class="btn btn-neutral float-left" title="reagent.ope.datasets package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

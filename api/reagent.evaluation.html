@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>reagent.evaluation package &mdash; ReAgent 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.gym package" href="reagent.gym.html" />
+    <link rel="prev" title="reagent package" href="reagent.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+        
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+        
+      <li>reagent.evaluation package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reagent.evaluation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reagent-evaluation-package">
+<h1>reagent.evaluation package<a class="headerlink" href="#reagent-evaluation-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.evaluation.cpe">
+<span id="reagent-evaluation-cpe-module"></span><h2>reagent.evaluation.cpe module<a class="headerlink" href="#module-reagent.evaluation.cpe" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reagent.evaluation.cpe.CpeDetails">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">CpeDetails</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeDetails.log">
+<code class="sig-name descname">log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeDetails.log_to_tensorboard">
+<code class="sig-name descname">log_to_tensorboard</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails.log_to_tensorboard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.evaluation.cpe.CpeEstimate">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">CpeEstimate</code><span class="sig-paren">(</span><em class="sig-param">raw</em>, <em class="sig-param">normalized</em>, <em class="sig-param">raw_std_error</em>, <em class="sig-param">normalized_std_error</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimate.normalized">
+<em class="property">property </em><code class="sig-name descname">normalized</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.normalized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimate.normalized_std_error">
+<em class="property">property </em><code class="sig-name descname">normalized_std_error</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.normalized_std_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimate.raw">
+<em class="property">property </em><code class="sig-name descname">raw</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimate.raw_std_error">
+<em class="property">property </em><code class="sig-name descname">raw_std_error</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.raw_std_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet">
+<em class="property">class </em><code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">CpeEstimateSet</code><span class="sig-paren">(</span><em class="sig-param">direct_method</em>, <em class="sig-param">inverse_propensity</em>, <em class="sig-param">doubly_robust</em>, <em class="sig-param">sequential_doubly_robust</em>, <em class="sig-param">weighted_doubly_robust</em>, <em class="sig-param">magic</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.check_estimates_exist">
+<code class="sig-name descname">check_estimates_exist</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.check_estimates_exist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.direct_method">
+<em class="property">property </em><code class="sig-name descname">direct_method</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.direct_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.doubly_robust">
+<em class="property">property </em><code class="sig-name descname">doubly_robust</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.doubly_robust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero">
+<code class="sig-name descname">fill_empty_with_zero</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.inverse_propensity">
+<em class="property">property </em><code class="sig-name descname">inverse_propensity</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.inverse_propensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.log">
+<code class="sig-name descname">log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.log_to_tensorboard">
+<code class="sig-name descname">log_to_tensorboard</code><span class="sig-paren">(</span><em class="sig-param">metric_name: str</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.log_to_tensorboard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.magic">
+<em class="property">property </em><code class="sig-name descname">magic</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.magic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust">
+<em class="property">property </em><code class="sig-name descname">sequential_doubly_robust</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reagent.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust">
+<em class="property">property </em><code class="sig-name descname">weighted_doubly_robust</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="reagent.evaluation.cpe.bootstrapped_std_error_of_mean">
+<code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">bootstrapped_std_error_of_mean</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">sample_percent=0.25</em>, <em class="sig-param">num_samples=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.bootstrapped_std_error_of_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute bootstrapped standard error of mean of input data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – Input data (1D torch tensor or numpy array).</p></li>
+<li><p><strong>sample_percent</strong> – Size of sample to use to calculate bootstrap statistic.</p></li>
+<li><p><strong>num_samples</strong> – Number of times to sample.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="reagent-evaluation-doubly-robust-estimator-module">
+<h2>reagent.evaluation.doubly_robust_estimator module<a class="headerlink" href="#reagent-evaluation-doubly-robust-estimator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-evaluation-data-page-module">
+<h2>reagent.evaluation.evaluation_data_page module<a class="headerlink" href="#reagent-evaluation-evaluation-data-page-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-evaluator-module">
+<h2>reagent.evaluation.evaluator module<a class="headerlink" href="#reagent-evaluation-evaluator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-ope-adapter-module">
+<h2>reagent.evaluation.ope_adapter module<a class="headerlink" href="#reagent-evaluation-ope-adapter-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-ranking-listwise-evaluator-module">
+<h2>reagent.evaluation.ranking_listwise_evaluator module<a class="headerlink" href="#reagent-evaluation-ranking-listwise-evaluator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-ranking-policy-gradient-evaluator-module">
+<h2>reagent.evaluation.ranking_policy_gradient_evaluator module<a class="headerlink" href="#reagent-evaluation-ranking-policy-gradient-evaluator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-reward-net-evaluator-module">
+<h2>reagent.evaluation.reward_net_evaluator module<a class="headerlink" href="#reagent-evaluation-reward-net-evaluator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-seq2reward-evaluator-module">
+<h2>reagent.evaluation.seq2reward_evaluator module<a class="headerlink" href="#reagent-evaluation-seq2reward-evaluator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-sequential-doubly-robust-estimator-module">
+<h2>reagent.evaluation.sequential_doubly_robust_estimator module<a class="headerlink" href="#reagent-evaluation-sequential-doubly-robust-estimator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-weighted-sequential-doubly-robust-estimator-module">
+<h2>reagent.evaluation.weighted_sequential_doubly_robust_estimator module<a class="headerlink" href="#reagent-evaluation-weighted-sequential-doubly-robust-estimator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reagent-evaluation-world-model-evaluator-module">
+<h2>reagent.evaluation.world_model_evaluator module<a class="headerlink" href="#reagent-evaluation-world-model-evaluator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-reagent.evaluation">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.evaluation" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reagent.gym.html" class="btn btn-neutral float-right" title="reagent.gym package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="reagent.html" class="btn btn-neutral float-left" title="reagent package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Facebook Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

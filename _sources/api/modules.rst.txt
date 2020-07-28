@@ -1,7 +1,7 @@
-ml
-==
+reagent
+=======
 
 .. toctree::
    :maxdepth: 4
 
-   ml
+   reagent
