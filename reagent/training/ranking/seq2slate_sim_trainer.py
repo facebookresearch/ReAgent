@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
+from functools import reduce
 from itertools import permutations
 from typing import List, Optional
 
@@ -23,11 +24,14 @@ from reagent.training.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
-def _load_reward_net(path, use_gpu):
-    reward_network = torch.jit.load(path)
-    if use_gpu:
-        reward_network = reward_network.cuda()
-    return reward_network
+def _load_reward_net(name_and_path, use_gpu):
+    reward_name_and_net = {}
+    for name, path in name_and_path.items():
+        reward_network = torch.jit.load(path)
+        if use_gpu:
+            reward_network = reward_network.cuda()
+        reward_name_and_net[name] = reward_network
+    return reward_name_and_net
 
 
 def swap_dist_in_slate(idx_):
@@ -77,7 +81,6 @@ class Seq2SlateSimulationTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
-        reward_net_path: str,
         minibatch_size: int,
         parameters: Seq2SlateParameters,
         baseline_net: Optional[BaselineNet] = None,
@@ -91,9 +94,10 @@ class Seq2SlateSimulationTrainer(Trainer):
         ),
         print_interval: int = 100,
     ) -> None:
-        self.reward_net_path = reward_net_path
+        self.sim_param = parameters.simulation
+        assert self.sim_param is not None
         # loaded when used
-        self.reward_net = None
+        self.reward_name_and_net = {}
         self.parameters = parameters
         self.minibatch_size = minibatch_size
         self.use_gpu = use_gpu
@@ -111,10 +115,8 @@ class Seq2SlateSimulationTrainer(Trainer):
             device=self.device,
         ).long()
 
-        if self.parameters.simulation_distance_penalty is not None:
-            # pyre-fixme[6]: `>=` is not supported for operand types
-            #  `Optional[float]` and `int`.
-            assert self.parameters.simulation_distance_penalty >= 0
+        if self.sim_param.distance_penalty is not None:
+            assert self.sim_param.distance_penalty >= 0
             self.permutation_distance = (
                 torch.tensor(
                     [swap_dist(x.tolist()) for x in self.permutation_index],
@@ -184,34 +186,38 @@ class Seq2SlateSimulationTrainer(Trainer):
             [1.0 / len(self.permutation_index)], device=self.device
         ).repeat(batch_size)
 
-        if self.reward_net is None:
-            self.reward_net = _load_reward_net(self.reward_net_path, self.use_gpu)
-        slate_reward = self.reward_net(
-            training_input.state.float_features,
-            training_input.src_seq.float_features,
-            sim_tgt_out_seq.float_features,
-            training_input.src_src_mask,
-            sim_tgt_out_idx,
-        ).detach()
-        if slate_reward.ndim == 1:
-            logger.warning(f"Slate reward should be 2-D tensor, unsqueezing")
-            slate_reward = slate_reward.unsqueeze(1)
-        elif slate_reward.ndim != 2:
-            raise RuntimeError("Expect slate reward to be 2-D tensor")
+        if not self.reward_name_and_net:
+            self.reward_name_and_net = _load_reward_net(
+                self.sim_param.reward_name_path, self.use_gpu
+            )
+
+        sim_slate_reward = torch.zeros_like(training_input.slate_reward)
+        for name, reward_net in self.reward_name_and_net.items():
+            weight = self.sim_param.reward_name_weight[name]
+            sr = reward_net(
+                training_input.state.float_features,
+                training_input.src_seq.float_features,
+                sim_tgt_out_seq.float_features,
+                training_input.src_src_mask,
+                sim_tgt_out_idx,
+            ).detach()
+            assert sr.ndim == 2, f"Slate reward {name} output should be 2-D tensor"
+            sim_slate_reward += weight * sr
+
         # guard-rail reward prediction range
-        reward_clamp = self.parameters.simulation_reward_clamp
+        reward_clamp = self.sim_param.reward_clamp
         if reward_clamp is not None:
-            slate_reward = torch.clamp(
-                slate_reward, min=reward_clamp.clamp_min, max=reward_clamp.clamp_max
+            sim_slate_reward = torch.clamp(
+                sim_slate_reward, min=reward_clamp.clamp_min, max=reward_clamp.clamp_max
             )
         # guard-rail sequence similarity
-        distance_penalty = self.parameters.simulation_distance_penalty
+        distance_penalty = self.sim_param.distance_penalty
         if distance_penalty is not None:
-            slate_reward += distance_penalty * (self.MAX_DISTANCE - sim_distance)
+            sim_slate_reward += distance_penalty * (self.MAX_DISTANCE - sim_distance)
 
         assert (
-            len(slate_reward.shape) == 2 and slate_reward.shape[1] == 1
-        ), f"{slate_reward.shape}"
+            len(sim_slate_reward.shape) == 2 and sim_slate_reward.shape[1] == 1
+        ), f"{sim_slate_reward.shape}"
 
         on_policy_input = rlt.PreprocessedRankingInput(
             state=training_input.state,
@@ -220,7 +226,7 @@ class Seq2SlateSimulationTrainer(Trainer):
             tgt_in_seq=sim_tgt_in_seq,
             tgt_out_seq=sim_tgt_out_seq,
             tgt_tgt_mask=training_input.tgt_tgt_mask,
-            slate_reward=slate_reward,
+            slate_reward=sim_slate_reward,
             src_in_idx=training_input.src_in_idx,
             tgt_in_idx=sim_tgt_in_idx,
             tgt_out_idx=sim_tgt_out_idx,
@@ -238,7 +244,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         # randomly pick a permutation for every slate
         random_indices = torch.randint(0, len(self.permutation_index), (batch_size,))
         sim_tgt_out_idx = self.permutation_index[random_indices] + 2
-        if self.parameters.simulation_distance_penalty is not None:
+        if self.sim_param.distance_penalty is not None:
             sim_distance = self.permutation_distance[random_indices]
         else:
             sim_distance = None
