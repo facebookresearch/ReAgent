@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from reagent.core.configuration import make_config_class
+from reagent.types import BaseDataClass
 
 from .c51_trainer import C51Trainer
 from .dqn_trainer import DQNTrainer
@@ -108,5 +109,5 @@ class RewardNetworkTrainerParameters:
         "baseline_warmup_num_batches",
     ],
 )
-class Seq2SlateTrainerParameters:
+class Seq2SlateTrainerParameters(BaseDataClass):
     pass
