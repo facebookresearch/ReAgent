@@ -19,6 +19,7 @@ class GaussianFullyConnected(ContinuousActorNetBuilder):
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     use_batch_norm: bool = False
     use_layer_norm: bool = False
+    use_l2_normalization: bool = False
 
     def __post_init_post_parse__(self):
         super().__init__()
@@ -49,4 +50,5 @@ class GaussianFullyConnected(ContinuousActorNetBuilder):
             activations=self.activations,
             use_batch_norm=self.use_batch_norm,
             use_layer_norm=self.use_layer_norm,
+            use_l2_normalization=self.use_l2_normalization,
         )

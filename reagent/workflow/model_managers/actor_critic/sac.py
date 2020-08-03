@@ -55,6 +55,7 @@ class SAC(ActorCriticBase):
         )
     )
     use_2_q_functions: bool = True
+    serve_mean_policy: bool = True
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
@@ -119,4 +120,5 @@ class SAC(ActorCriticBase):
             self._actor_network,
             self.state_normalization_data,
             self.action_normalization_data,
+            serve_mean_policy=self.serve_mean_policy,
         )
