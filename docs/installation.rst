@@ -49,7 +49,7 @@ To build from source, you'll need JDK, Scala, & Maven. We will use `SDKMAN! <htt
    curl -s "https://get.sdkman.io" | bash
    source "$HOME/.sdkman/bin/sdkman-init.sh"
    sdk version
-   sdk install java 8.0.262.hs-adpt
+   sdk install java 8.0.265.hs-adpt
    sdk install scala
    sdk install maven
 
