@@ -42,6 +42,7 @@ class ContinuousActorNetBuilder(metaclass=RegistryMeta):
         actor: ModelBase,
         state_normalization_data: NormalizationData,
         action_normalization_data: NormalizationData,
+        serve_mean_policy: bool = False,
     ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
@@ -54,7 +55,10 @@ class ContinuousActorNetBuilder(metaclass=RegistryMeta):
             action_normalization_data.dense_normalization_parameters, use_gpu=False
         )
         actor_with_preprocessor = ActorWithPreprocessor(
-            actor.cpu_model().eval(), state_preprocessor, postprocessor
+            actor.cpu_model().eval(),
+            state_preprocessor,
+            postprocessor,
+            serve_mean_policy=serve_mean_policy,
         )
         action_features = Preprocessor(
             action_normalization_data.dense_normalization_parameters, use_gpu=False

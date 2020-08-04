@@ -273,8 +273,8 @@ class SACTrainer(RLTrainer):
 
             if self.add_kld_to_loss:
                 if self.apply_kld_on_mean:
-                    action_batch_m = torch.mean(actor_output.action_mean, axis=0)
-                    action_batch_v = torch.var(actor_output.action_mean, axis=0)
+                    action_batch_m = torch.mean(actor_output.squashed_mean, axis=0)
+                    action_batch_v = torch.var(actor_output.squashed_mean, axis=0)
                 else:
                     action_batch_m = torch.mean(actor_output.action, axis=0)
                     action_batch_v = torch.var(actor_output.action, axis=0)

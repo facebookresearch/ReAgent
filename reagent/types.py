@@ -213,7 +213,7 @@ class ValuePresence(TensorDataClass):
 class ActorOutput(TensorDataClass):
     action: torch.Tensor
     log_prob: Optional[torch.Tensor] = None
-    action_mean: Optional[torch.Tensor] = None
+    squashed_mean: Optional[torch.Tensor] = None
 
 
 @dataclass

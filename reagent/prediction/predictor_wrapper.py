@@ -240,11 +240,13 @@ class ActorWithPreprocessor(ModelBase):
         model: ModelBase,
         state_preprocessor: Preprocessor,
         action_postprocessor: Optional[Postprocessor] = None,
+        serve_mean_policy: bool = False,
     ):
         super().__init__()
         self.model = model
         self.state_preprocessor = state_preprocessor
         self.action_postprocessor = action_postprocessor
+        self.serve_mean_policy = serve_mean_policy
 
     def forward(self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]):
         preprocessed_state = self.state_preprocessor(
@@ -252,7 +254,15 @@ class ActorWithPreprocessor(ModelBase):
         )
         state_feature_vector = rlt.FeatureData(preprocessed_state)
         # TODO: include log_prob in the output
-        action = self.model(state_feature_vector).action
+        model_output = self.model(state_feature_vector)
+        if self.serve_mean_policy:
+            assert (
+                model_output.squashed_mean is not None
+            ), "action mean is None and serve_mean_policy=True"
+            action = model_output.squashed_mean
+        else:
+            action = model_output.action
+
         if self.action_postprocessor:
             # pyre-fixme[29]: `Optional[Postprocessor]` is not a function.
             action = self.action_postprocessor(action)
