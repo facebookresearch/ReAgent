@@ -5,7 +5,7 @@ from datetime import datetime as RecurringPeriod  # noqa
 from typing import Dict, List, Optional
 
 # Triggering registration to registries
-import reagent.workflow.result_types  # noqa
+import reagent.core.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
 from reagent.core.dataclasses import dataclass
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
