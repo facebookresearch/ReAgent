@@ -3,9 +3,9 @@
 from typing import Optional
 
 from reagent.core.dataclasses import dataclass
+from reagent.core.result_types import NoPublishingResults
 from reagent.publishers.model_publisher import ModelPublisher
 from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.result_types import NoPublishingResults
 from reagent.workflow.types import RecurringPeriod, RLTrainingOutput
 
 
