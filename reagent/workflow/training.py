@@ -7,6 +7,7 @@ from typing import Dict, NamedTuple, Optional, Tuple
 import torch
 from reagent.parameters import NormalizationData
 from reagent.publishers.union import ModelPublisher__Union
+from reagent.validators.union import ModelValidator__Union
 from reagent.workflow.env import get_workflow_id
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import (
@@ -17,7 +18,6 @@ from reagent.workflow.types import (
     RLTrainingOutput,
     TableSpec,
 )
-from reagent.workflow.validators.union import ModelValidator__Union
 
 
 logger = logging.getLogger(__name__)
