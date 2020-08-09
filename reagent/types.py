@@ -8,12 +8,20 @@ import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
+# Triggering registration to registries
+import reagent.core.result_types  # noqa
 import torch
 import torch.nn.functional as F
 from reagent.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.preprocessing.types import InputColumn
+
+
+try:
+    import reagent.core.fb.fb_result_types  # noqa
+except ImportError:
+    pass
 
 
 class NoDuplicatedWarningLogger:
