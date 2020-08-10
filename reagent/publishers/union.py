@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from reagent.workflow.types import TaggedUnion
+from reagent.core.tagged_union import TaggedUnion
 
 from .file_system_publisher import FileSystemPublisher  # noqa
 from .model_publisher import ModelPublisher

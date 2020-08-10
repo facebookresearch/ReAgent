@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from reagent.workflow.types import TaggedUnion
+from reagent.core.tagged_union import TaggedUnion
 
 from .model_validator import ModelValidator
 from .no_validation import NoValidation  # noqa
