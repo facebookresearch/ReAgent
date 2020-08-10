@@ -4,17 +4,17 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 from reagent.core.dataclasses import dataclass
-from reagent.gym.policies.policy import Policy
-from reagent.parameters import NormalizationData, NormalizationKey
-from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
-from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.types import (
+from reagent.core.types import (
     Dataset,
     ReaderOptions,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
 )
+from reagent.gym.policies.policy import Policy
+from reagent.parameters import NormalizationData, NormalizationKey
+from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+from reagent.workflow.model_managers.model_manager import ModelManager
 
 
 logger = logging.getLogger(__name__)

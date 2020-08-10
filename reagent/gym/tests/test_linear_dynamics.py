@@ -7,7 +7,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg as linalg
-from reagent.gym.envs import Gym
+from reagent.gym.envs.gym import Gym
 
 
 logger = logging.getLogger(__name__)

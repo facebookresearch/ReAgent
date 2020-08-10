@@ -5,6 +5,14 @@ from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
 from reagent.core.dataclasses import dataclass
+from reagent.core.types import (
+    Dataset,
+    PreprocessingOptions,
+    ReaderOptions,
+    RewardOptions,
+    RLTrainingOutput,
+    TableSpec,
+)
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
@@ -15,14 +23,6 @@ from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.types import (
-    Dataset,
-    PreprocessingOptions,
-    ReaderOptions,
-    RewardOptions,
-    RLTrainingOutput,
-    TableSpec,
-)
 
 
 logger = logging.getLogger(__name__)

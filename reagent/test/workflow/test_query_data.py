@@ -11,6 +11,7 @@ import pytest
 
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import asc
+from reagent.core.types import Dataset, TableSpec
 
 # pyre-fixme[21]: Could not find `workflow`.
 from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
@@ -18,13 +19,12 @@ from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
 # pyre-fixme[21]: Could not find module `reagent.test.workflow.test_data.ex_mdps`.
 from reagent.test.workflow.test_data.ex_mdps import generate_discrete_mdp_pandas_df
 from reagent.workflow.data_fetcher import query_data
-from reagent.workflow.types import Dataset, TableSpec
 
 
 logger = logging.getLogger(__name__)
 
 
-def generate_data_discrete(sqlCtx, multi_steps: bool, table_name: str):
+def generate_data_discrete(sqlCtx, multi_steps: bool, table: str):
     # pyre-fixme[16]: Module `test` has no attribute `workflow`.
     df, _ = generate_discrete_mdp_pandas_df(
         multi_steps=multi_steps, use_seq_num_diff_as_time_diff=False
@@ -32,7 +32,7 @@ def generate_data_discrete(sqlCtx, multi_steps: bool, table_name: str):
     df = sqlCtx.createDataFrame(df)
     logger.info("Created dataframe")
     df.show()
-    df.createOrReplaceTempView(table_name)
+    df.createOrReplaceTempView(table)
 
 
 # pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
@@ -40,18 +40,16 @@ class TestQueryData(ReagentSQLTestBase):
     def setUp(self):
         super().setUp()
         logging.getLogger(__name__).setLevel(logging.INFO)
-        self.table_name = "test_table"
-        logger.info(f"Table name is {self.table_name}")
+        self.table = "test_table"
+        logger.info(f"Table name is {self.table}")
 
     def generate_data(self, multi_steps=False):
-        generate_data_discrete(
-            self.sqlCtx, multi_steps=multi_steps, table_name=self.table_name
-        )
+        generate_data_discrete(self.sqlCtx, multi_steps=multi_steps, table=self.table)
 
     def _discrete_read_data(
         self, custom_reward_expression=None, gamma=None, multi_steps=None
     ):
-        ts = TableSpec(table_name=self.table_name)
+        ts = TableSpec(table=self.table)
         dataset: Dataset = query_data(
             input_table_spec=ts,
             discrete_action=True,

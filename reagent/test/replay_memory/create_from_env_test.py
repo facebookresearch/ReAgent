@@ -10,7 +10,7 @@ from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 logger = logging.getLogger(__name__)
 
 try:
-    from reagent.gym.envs import RecSim
+    from reagent.gym.envs.recsim import RecSim
 
     HAS_RECSIM = True
 except ImportError as e:
