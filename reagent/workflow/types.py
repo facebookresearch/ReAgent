@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 import reagent.core.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
 from reagent.core.dataclasses import dataclass
+from reagent.core.tagged_union import TaggedUnion
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
@@ -21,7 +22,6 @@ from reagent.workflow.result_registries import (
     TrainingReport,
     ValidationResult,
 )
-from reagent.workflow.tagged_union import TaggedUnion  # noqa F401
 
 
 try:

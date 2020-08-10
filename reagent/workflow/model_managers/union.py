@@ -3,7 +3,7 @@
 
 """ Register all ModelManagers. Must import them before filling union. """
 
-from reagent.workflow import types
+from reagent.core.tagged_union import TaggedUnion
 from reagent.workflow.model_managers.model_manager import ModelManager
 
 from .actor_critic import *  # noqa
@@ -14,5 +14,5 @@ from .ranking import *  # noqa
 
 
 @ModelManager.fill_union()
-class ModelManager__Union(types.TaggedUnion):
+class ModelManager__Union(TaggedUnion):
     pass
