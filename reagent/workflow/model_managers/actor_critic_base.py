@@ -8,6 +8,15 @@ import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.types import (
+    Dataset,
+    PreprocessingOptions,
+    ReaderOptions,
+    RewardOptions,
+    RLTrainingOutput,
+    RLTrainingReport,
+    TableSpec,
+)
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -24,15 +33,6 @@ from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.reporters.actor_critic_reporter import ActorCriticReporter
-from reagent.workflow.types import (
-    Dataset,
-    PreprocessingOptions,
-    ReaderOptions,
-    RewardOptions,
-    RLTrainingOutput,
-    RLTrainingReport,
-    TableSpec,
-)
 from reagent.workflow.utils import train_and_evaluate_generic
 
 

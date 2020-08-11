@@ -10,8 +10,9 @@ import gym
 import numpy as np
 import pandas as pd
 import torch
+from reagent.core.types import TableSpec
 from reagent.gym.agents.agent import Agent
-from reagent.gym.envs import Gym
+from reagent.gym.envs.gym import Gym
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import fill_replay_buffer
@@ -20,7 +21,6 @@ from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.replay_memory.utils import replay_buffer_to_pre_timeline_df
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.spark_utils import call_spark_class, get_spark_session
-from reagent.workflow.types import TableSpec
 
 
 logger = logging.getLogger(__name__)
@@ -70,10 +70,10 @@ def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
     pd_df = pd.read_pickle(pkl_path)
     spark = get_spark_session()
     df = spark.createDataFrame(pd_df)
-    input_name = f"{input_table_spec.table_name}{PRE_TIMELINE_SUFFIX}"
+    input_name = f"{input_table_spec.table}{PRE_TIMELINE_SUFFIX}"
     df.createTempView(input_name)
 
-    output_name = input_table_spec.table_name
+    output_name = input_table_spec.table
     include_possible_actions = "possible_actions" in pd_df
     arg = {
         "startDs": "2019-01-01",

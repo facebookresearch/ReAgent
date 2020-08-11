@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 import reagent.core.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
 from reagent.core.dataclasses import dataclass
-from reagent.core.tagged_union import TaggedUnion
+from reagent.core.tagged_union import TaggedUnion  # noqa F401
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
@@ -17,29 +17,32 @@ from reagent.preprocessing.normalization import (
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
 from reagent.types import BaseDataClass
-from reagent.workflow.result_registries import (
-    PublishingResult,
-    TrainingReport,
-    ValidationResult,
-)
+from reagent.workflow.result_registries import PublishingResult, ValidationResult
+from reagent.workflow.training_reports import TrainingReport
 
 
 try:
     from reagent.fb.models.model_feature_config_builder import (  # noqa
         ConfigeratorModelFeatureConfigProvider,
     )
+    import reagent.core.fb.fb_types  # noqa
 except ImportError:
     pass
 
 
 @dataclass
 class Dataset:
+    pass
+
+
+@dataclass
+class OssDataset(Dataset):
     parquet_url: str
 
 
 @dataclass
 class TableSpec:
-    table_name: str
+    table: str
     table_sample: Optional[float] = None
     eval_table_sample: Optional[float] = None
 
@@ -48,16 +51,50 @@ class TableSpec:
 class RewardOptions:
     custom_reward_expression: Optional[str] = None
     metric_reward_values: Optional[Dict[str, float]] = None
+    additional_reward_expression: Optional[str] = None
+
+    # for ranking
+    # key: feature id in slate_reward column, value: linear coefficient
+    slate_reward_values: Optional[Dict[str, float]] = None
+    # key: feature id in item_reward column, value: linear coefficient
+    item_reward_values: Optional[Dict[str, float]] = None
 
 
 @dataclass
 class ReaderOptions:
+    num_threads: int = 32
+    skip_smaller_batches: bool = True
+    num_workers: int = 0
+    koski_logging_level: int = 2
+    # distributed reader
+    distributed_reader: bool = False
+    distributed_master_mem: str = "20G"
+    distributed_worker_mem: str = "20G"
+    distributed_num_workers: int = 2
+    gang_name: str = ""
+
+
+@dataclass
+class OssReaderOptions(ReaderOptions):
     petastorm_reader_pool_type: str = "thread"
 
 
 @dataclass
 class ResourceOptions:
-    pass
+    cpu: Optional[int] = None
+    # "-1" or "xxG" where "xx" is a positive integer
+    memory: Optional[str] = "40g"
+    gpu: int = 1
+
+
+@dataclass
+class VarianceThreshold:
+    avg: float = 1.0
+    var: float = 10.0
+    non_zero_ratio: float = 1.0
+
+
+IGNORE_SANITY_CHECK_FAILURE = True
 
 
 @dataclass
@@ -73,6 +110,20 @@ class PreprocessingOptions(BaseDataClass):
     set_missing_value_to_zero: Optional[bool] = False
     whitelist_features: Optional[List[int]] = None
     assert_whitelist_feature_coverage: bool = True
+    ignore_sanity_check_failure: bool = IGNORE_SANITY_CHECK_FAILURE
+    ignore_sanity_check_task: bool = False
+    variance_threshold: VarianceThreshold = VarianceThreshold()
+    load_from_operator_id: Optional[int] = None
+    skip_sanity_check: bool = False
+    sequence_feature_id: Optional[int] = None
+
+    ### below here for preprocessing sparse features ###
+    # If the number of occurrences of any raw features ids is lower than this, we
+    # ignore those feature ids when constructing the IdMapping
+    sparse_threshold: int = 0
+    # IdMappings are stored in manifold folder:
+    # "tree/{namespace}/{tablename}/{ds}/{base_mapping_name}/{embedding_table_name}"
+    base_mapping_name: str = "DefaultMappingName"
 
 
 @ModelFeatureConfigProvider.fill_union()
@@ -97,7 +148,7 @@ class RLTrainingReport(TaggedUnion):
 
 @dataclass
 class RLTrainingOutput:
-    output_path: Optional[str] = None
     validation_result: Optional[ValidationResult__Union] = None
     publishing_result: Optional[PublishingResult__Union] = None
     training_report: Optional[RLTrainingReport] = None
+    output_path: Optional[str] = None

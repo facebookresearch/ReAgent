@@ -13,13 +13,13 @@ from petastorm import make_batch_reader
 # pyre-fixme[21]: Could not find module `petastorm.pytorch`.
 from petastorm.pytorch import DataLoader, decimal_friendly_collate
 from reagent.core.tracker import Observer
+from reagent.core.types import Dataset, OssReaderOptions, ReaderOptions
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.evaluator import Evaluator
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.torch_utils import dict_to_tensor
 from reagent.training import RLTrainer, SACTrainer, TD3Trainer
 from reagent.workflow.spark_utils import get_spark_session
-from reagent.workflow.types import Dataset, ReaderOptions
 from reagent.workflow_utils.iterators import DataLoaderWrapper, EpochIterator
 
 
@@ -119,7 +119,7 @@ def train_and_evaluate_generic(
     evaluator: Evaluator,
     reader_options: Optional[ReaderOptions] = None,
 ) -> None:
-    reader_options = reader_options or ReaderOptions()
+    reader_options = reader_options or OssReaderOptions()
     epoch_iterator = EpochIterator(num_epochs=num_epochs)
     train_dataset_size = get_table_row_count(train_dataset.parquet_url)
     # pyre-fixme[16]: `EpochIterator` has no attribute `add_observer`.

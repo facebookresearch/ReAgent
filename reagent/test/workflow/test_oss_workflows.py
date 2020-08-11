@@ -12,9 +12,9 @@ import reagent
 import reagent.workflow.cli as cli
 import torch
 from click.testing import CliRunner
+from reagent.core.types import Dataset, OssDataset
 from reagent.parameters import NormalizationParameters
 from reagent.test.base.horizon_test_base import HorizonTestBase
-from reagent.workflow.types import Dataset
 from ruamel.yaml import YAML
 
 
@@ -88,7 +88,7 @@ class TestOSSWorkflows(HorizonTestBase):
             # patch the two calls to spark
             # dataset points to the unzipped parquet folder
             # normalization points to mocked norm extracted from json
-            mock_dataset = Dataset(
+            mock_dataset = OssDataset(
                 parquet_url=f"file://{os.path.abspath(DQN_WORKFLOW_PARQUET_REL_PATH)}"
             )
             mock_normalization = mock_cartpole_normalization()
