@@ -2,7 +2,7 @@ env_name: CartPole-v0
 model_path: "cartpole_batch_rl_model.torchscript"
 pkl_path: "/tmp/tmp_pickle.pkl"
 input_table_spec:
-  table_name: test_table
+  table: test_table
   table_sample: 90
   eval_table_sample: 10
 model:

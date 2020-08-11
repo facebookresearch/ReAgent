@@ -5,6 +5,16 @@ from typing import Dict, List, Optional, Tuple
 
 from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.types import (
+    Dataset,
+    ModelFeatureConfigProvider__Union,
+    PreprocessingOptions,
+    ReaderOptions,
+    RewardOptions,
+    RLTrainingOutput,
+    RLTrainingReport,
+    TableSpec,
+)
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -23,16 +33,6 @@ from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
-from reagent.workflow.types import (
-    Dataset,
-    ModelFeatureConfigProvider__Union,
-    PreprocessingOptions,
-    ReaderOptions,
-    RewardOptions,
-    RLTrainingOutput,
-    RLTrainingReport,
-    TableSpec,
-)
 from reagent.workflow.utils import train_and_evaluate_generic
 
 
@@ -49,9 +49,9 @@ class DiscreteDQNBase(ModelManager):
             raw=RawModelFeatureConfigProvider(float_feature_infos=[])
         )
     )
+    eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
     preprocessing_options: Optional[PreprocessingOptions] = None
     reader_options: Optional[ReaderOptions] = None
-    eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
     def __post_init_post_parse__(self):
         super().__init__()

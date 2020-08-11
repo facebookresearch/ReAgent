@@ -17,7 +17,7 @@ import numpy as np
 import reagent.types as rlt
 import torch
 from gym.spaces import Box
-from reagent.gym.envs import EnvWrapper
+from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.models.world_model import MemoryNetwork
 
 

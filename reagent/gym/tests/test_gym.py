@@ -11,16 +11,16 @@ import numpy as np
 import pytest
 import torch
 from parameterized import parameterized
+from reagent.core.types import RewardOptions
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
-from reagent.gym.envs import Env__Union
+from reagent.gym.envs.union import Env__Union
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.model_managers.union import ModelManager__Union
-from reagent.workflow.types import RewardOptions
 from torch.utils.tensorboard import SummaryWriter
 
 

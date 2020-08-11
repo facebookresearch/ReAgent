@@ -2,7 +2,7 @@ env_name: Pendulum-v0
 model_path: "pendulum_batch_rl_model.torchscript"
 pkl_path: "/tmp/tmp_pickle.pkl"
 input_table_spec:
-  table_name: test_table
+  table: test_table
   table_sample: 100
   eval_table_sample: 0
 model:
