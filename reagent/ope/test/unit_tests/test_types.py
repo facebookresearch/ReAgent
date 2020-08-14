@@ -5,13 +5,15 @@ from typing import Tuple, Union
 
 import numpy as np
 import torch
-from torch import Tensor
-
-from reagent.ope.estimators.types import TypeWrapper, Values
+from reagent.ope.estimators.types import (
+    ActionDistribution as Distribution,
+    TypeWrapper,
+    Values,
+)
 
 
 class TestTypes(unittest.TestCase):
-    TestType = Union[int, Tuple[int], float, Tuple[float], np.ndarray, Tensor]
+    TestType = Union[int, Tuple[int], float, Tuple[float], np.ndarray, torch.Tensor]
     TestClass = TypeWrapper[TestType]
 
     def setUp(self) -> None:
@@ -313,7 +315,7 @@ class TestDistribution(unittest.TestCase):
         counts = [0] * 4
         total = 100000
         for _ in range(total):
-            counts[distribution.sample()] += 1
+            counts[distribution.sample()[0]] += 1
         self.assertAlmostEqual(counts[0] / total, 0.1, places=2)
         self.assertAlmostEqual(counts[1] / total, 0.2, places=2)
         self.assertAlmostEqual(counts[2] / total, 0.3, places=2)

@@ -399,7 +399,6 @@ class SlateItemProbabilities(SlateItemValues):
         """
         if self._greedy:
             items = super().greedy(len(slate))
-            assert isinstance(items, Sequence)
             for i1, i2 in zip(items, slate.items):
                 if i1 != i2:
                     return 0.0
@@ -492,8 +491,6 @@ class SlateItemProbabilities(SlateItemValues):
             items = super().greedy(slate_size)
         else:
             items = super().sample(slate_size)
-        if slate_size == 1:
-            items = [items]
         # pyre-fixme[6]: Expected `Sequence[TypeWrapper[Union[Tuple[float],
         #  Tuple[int], Tensor, float, int, np.ndarray]]]` for 2nd param but got
         #  `Union[Sequence[Union[Sequence[TypeWrapper[Union[Tuple[float], Tuple[int],
@@ -524,7 +521,6 @@ class SlateItemProbabilities(SlateItemValues):
         assert item_size >= slate_size
         if self._greedy:
             items = super().greedy(slate_size)
-            assert isinstance(items, Sequence)
             return [(items, 1.0)]
         else:
             buffer = [([], 1.0, 0.0)]
