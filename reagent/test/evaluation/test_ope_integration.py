@@ -50,31 +50,30 @@ def rlestimator_input_to_edp(
     model_propensities = []
     model_values = []
 
-    for _, mdps in input.log.items():
-        for mdp in mdps:
-            mdp_id = len(mdp_ids)
-            for t in mdp:
-                mdp_ids.append(mdp_id)
-                logged_propensities.append(t.action_prob)
-                logged_rewards.append(t.reward)
-                assert t.action is not None
-                action_mask.append(
-                    [1 if x == t.action.value else 0 for x in range(num_actions)]
-                )
-                assert t.last_state is not None
-                model_propensities.append(
-                    [
-                        input.target_policy(t.last_state)[Action(x)]
-                        for x in range(num_actions)
-                    ]
-                )
-                assert input.value_function is not None
-                model_values.append(
-                    [
-                        input.value_function(t.last_state, Action(x))
-                        for x in range(num_actions)
-                    ]
-                )
+    for mdp in input.log:
+        mdp_id = len(mdp_ids)
+        for t in mdp:
+            mdp_ids.append(mdp_id)
+            logged_propensities.append(t.action_prob)
+            logged_rewards.append(t.reward)
+            assert t.action is not None
+            action_mask.append(
+                [1 if x == t.action.value else 0 for x in range(num_actions)]
+            )
+            assert t.last_state is not None
+            model_propensities.append(
+                [
+                    input.target_policy(t.last_state)[Action(x)]
+                    for x in range(num_actions)
+                ]
+            )
+            assert input.value_function is not None
+            model_values.append(
+                [
+                    input.value_function(t.last_state, Action(x))
+                    for x in range(num_actions)
+                ]
+            )
 
     return EvaluationDataPage(
         mdp_id=torch.tensor(mdp_ids).reshape(len(mdp_ids), 1),
@@ -154,14 +153,12 @@ class TestOPEModuleAlgs(unittest.TestCase):
             target_policy, gridworld, TestOPEModuleAlgs.GAMMA
         )
 
-        log = {}
+        log = []
         log_generator = PolicyLogGenerator(gridworld, behavivor_policy)
         num_episodes = TestOPEModuleAlgs.EPISODES
         for state in gridworld.states:
-            mdps = []
             for _ in range(num_episodes):
-                mdps.append(log_generator.generate_log(state))
-            log[state] = mdps
+                log.append(log_generator.generate_log(state))
 
         estimator_input = RLEstimatorInput(
             gamma=TestOPEModuleAlgs.GAMMA,

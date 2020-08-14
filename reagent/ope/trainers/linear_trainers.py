@@ -244,19 +244,32 @@ class SGDClassifierTrainer(LinearTrainer):
 
 
 class LinearNet(torch.nn.Module):
-    def __init__(self, D_in, H, D_out):
-        super().__init__()
-        self.linear1 = torch.nn.Linear(D_in, H)
-        self.nonlinear = torch.nn.ReLU()
-        self.linear2 = torch.nn.Linear(H, D_out)
+    def __init__(
+        self,
+        D_in: int,
+        H: int,
+        D_out: int,
+        hidden_layers: int = 2,
+        activation=torch.nn.ReLU,
+    ):
+        super(LinearNet, self).__init__()
+        self._hidden_dim = H
+        self._hidden_layers = hidden_layers
+        self._activation = activation
+        self._out_dim = D_out
+
+        self.layers = []
+        dim = D_in
+        for _ in range(self._hidden_layers):
+            self.layers.append(torch.nn.Linear(dim, self._hidden_dim))
+            self.layers.append(self._activation())
+            dim = self._hidden_dim
+        self.layers.append(torch.nn.Linear(dim, self._out_dim))
+        self.model = torch.nn.Sequential(*self.layers)
 
     def forward(self, x: torch.Tensor):
         x = x.requires_grad_(True)
-        x = torch.nn.functional.normalize(x)
-        x = self.linear1(x)
-        x = self.nonlinear(x)
-        x = self.linear2(x)
-        return x
+        return self.model(x)
 
 
 class NNTrainer(Trainer):

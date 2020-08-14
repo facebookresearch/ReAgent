@@ -342,7 +342,7 @@ class Values(Objects[KeyType, float]):
         else:
             return 0.0
 
-    def sample(self, size=1) -> Union[Sequence[KeyType], KeyType]:
+    def sample(self, size=1) -> Sequence[KeyType]:
         self._normalize()
         if self._index_to_key is not None:
             l = [
@@ -355,17 +355,11 @@ class Values(Objects[KeyType, float]):
                 self._to_key(k.item())
                 for k in torch.multinomial(self._probabilities, size)
             ]
-        if size == 1:
-            return l[0]
-        else:
-            return l
+        return l
 
-    def greedy(self, size=1) -> Union[Sequence[KeyType], KeyType]:
+    def greedy(self, size=1) -> Sequence[KeyType]:
         sorted_keys, _ = self.sort()
-        if size == 1:
-            return sorted_keys[0]
-        else:
-            return sorted_keys[:size]
+        return sorted_keys[:size]
 
 
 class Items(Generic[ValueType], ABC):

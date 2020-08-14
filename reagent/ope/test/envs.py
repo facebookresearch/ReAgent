@@ -35,9 +35,7 @@ class Environment(Model):
 
     def step(self, policy: RLPolicy):
         a_dist = policy(self.current_state)
-        a = a_dist.sample()
-        if isinstance(a, list):
-            a = a[0]
+        a = a_dist.sample()[0]
         s_dist = self(self.current_state, a)
         srs = []
         probs = []
@@ -90,10 +88,12 @@ class PolicyLogGenerator(object):
         self._env = env
         self._policy = policy
 
-    def generate_log(self, init_state: State) -> Mdp:
+    def generate_log(self, init_state: State, max_horizon: int = -1) -> Mdp:
         transition = Transition(state=self._env.reset(state=init_state))
         mpd = []
         while transition.status != Transition.Status.TERMINATED:
+            if max_horizon > 0 and len(mpd) > max_horizon:
+                break
             transition = self._env.step(self._policy)
             mpd.append(transition)
         return mpd

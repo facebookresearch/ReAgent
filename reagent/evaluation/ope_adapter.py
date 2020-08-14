@@ -173,11 +173,9 @@ class SequentialOPEstimatorAdapter:
         num_examples = logged_propensities.shape[0]
         horizon = logged_propensities.shape[1]
 
-        log = {}
+        log = []
         for traj in range(num_examples):
-            if State(0) not in log:
-                log[State(0)] = []
-            log[State(0)].append(
+            log.append(
                 [
                     Transition(
                         last_state=State((traj, i)),

@@ -13,6 +13,7 @@ from reagent.ope.estimators.sequential_estimators import (
 )
 from reagent.ope.estimators.types import Action, ActionDistribution, ActionSpace
 from reagent.ope.test.envs import Environment, PolicyLogGenerator
+from reagent.ope.utils import RunningAverage
 
 
 class TabularPolicy(RLPolicy):
@@ -96,6 +97,47 @@ class TabularValueFunction(ValueFunction):
 
     def reset(self, clear_state_values: bool = False):
         pass
+
+
+class EstimatedStateValueFunction(ValueFunction):
+    def __init__(
+        self, policy: RLPolicy, env: Environment, gamma: float, num_episodes: int = 100
+    ):
+        self._policy = policy
+        self._env = env
+        self._gamma = gamma
+        self._num_episodes = num_episodes
+        self._state_values = {}
+        self._estimate_value()
+
+    def _estimate_value(self):
+        tgt_generator = PolicyLogGenerator(self._env, self._policy)
+        log = {}
+        for state in self._env.states:
+            mdps = []
+            for _ in range(self._num_episodes):
+                mdps.append(tgt_generator.generate_log(state))
+            log[state] = mdps
+
+        for state, mdps in log.items():
+            avg = RunningAverage()
+            for mdp in mdps:
+                discount = 1.0
+                r = 0.0
+                for t in mdp:
+                    r += discount * t.reward
+                    discount *= self._gamma
+                avg.add(r)
+            self._state_values[state] = avg.average
+
+    def state_action_value(self, state: State, action: Action) -> float:
+        return 0.0
+
+    def state_value(self, state: State) -> float:
+        return self._state_values[state]
+
+    def reset(self):
+        self._state_values = {}
 
 
 class DPValueFunction(TabularValueFunction):
