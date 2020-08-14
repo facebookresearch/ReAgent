@@ -88,13 +88,15 @@ class DMEstimator(Estimator):
         super().__init__(device)
         self._trainer = trainer
 
-    def _train_model(self, samples: Sequence[LogSample]) -> bool:
+    def _train_model(
+        self, samples: Sequence[LogSample], force_train: bool = False
+    ) -> bool:
         if self._trainer is None:
             logger.error("Target model trainer not set")
             return False
         trainer = self._trainer
         assert trainer is not None
-        if trainer.is_trained:
+        if trainer.is_trained and not force_train:
             return True
         logger.info("  training direct model...")
         st = time.perf_counter()
@@ -121,7 +123,7 @@ class DMEstimator(Estimator):
             logger.error("Item features not provided, DM is not available")
             return False
         train_x = torch.stack(train_x)
-        train_y = torch.tensor(train_y, dtype=torch.double, device=train_x.device)
+        train_y = torch.tensor(train_y, dtype=torch.float, device=train_x.device)
         vali_x = []
         vali_y = []
         for i in range(training_size, sample_size):
@@ -144,7 +146,7 @@ class DMEstimator(Estimator):
             vali_y = train_y.detach().clone()
         else:
             vali_x = torch.stack(vali_x)
-            vali_y = torch.tensor(vali_y, dtype=torch.double, device=vali_x.device)
+            vali_y = torch.tensor(vali_y, dtype=torch.float, device=vali_x.device)
         training_data = TrainingData(train_x, train_y, None, vali_x, vali_y, None)
         trainer.train(training_data)
         logger.info(f"  training direct model done: {time.perf_counter() - st}s")
@@ -158,13 +160,13 @@ class DMEstimator(Estimator):
                 sample.model_outputs.tgt_reward_from_log_action,
                 torch.tensor(
                     sample.model_outputs.tgt_rewards,
-                    dtype=torch.double,
+                    dtype=torch.float,
                     device=self._device,
                 ),
                 torch.tensor(
                     # pyre-fixme[16]: `ActionDistribution` has no attribute `_values`.
                     sample.tgt_action_probabilities._values,
-                    dtype=torch.double,
+                    dtype=torch.float,
                     device=self._device,
                 ),
             )
@@ -188,11 +190,11 @@ class DMEstimator(Estimator):
                 )
             )
             probs.append(sample.tgt_action_probabilities[action])
-        preds = trainer.predict(torch.stack(features), device=self._device)
+        preds = trainer.predict(torch.stack(features).float(), device=self._device)
         return (
             preds.scores[idx].item(),
             preds.scores,
-            torch.tensor(probs, dtype=torch.double, device=self._device),
+            torch.tensor(probs, dtype=torch.float, device=self._device),
         )
 
     def _evaluate(
@@ -200,9 +202,14 @@ class DMEstimator(Estimator):
         input: BanditsEstimatorInput,
         train_samples: Sequence[LogSample],
         eval_samples: Sequence[LogSample],
+        force_train: bool = False,
         **kwargs,
     ) -> Optional[EstimatorResult]:
-        if not self._train_model(train_samples) and not input.has_model_outputs:
+        logger.info("OPE DM Evaluating")
+        if (
+            not self._train_model(train_samples, force_train)
+            and not input.has_model_outputs
+        ):
             return None
         log_avg = RunningAverage()
         tgt_avg = RunningAverage()
@@ -211,7 +218,7 @@ class DMEstimator(Estimator):
         for sample in eval_samples:
             log_avg.add(sample.log_reward)
             _, tgt_scores, tgt_probs = self._calc_dm_reward(input.action_space, sample)
-            tgt_reward = torch.dot(tgt_scores, tgt_probs).item()
+            tgt_reward = torch.dot(tgt_scores.reshape(-1), tgt_probs.reshape(-1)).item()
             tgt_avg.add(tgt_reward)
             tgt_vals.append(tgt_reward)
             gt_avg.add(sample.ground_truth_reward)
@@ -239,7 +246,9 @@ class DMEstimator(Estimator):
         self, input: BanditsEstimatorInput, **kwargs
     ) -> Optional[EstimatorResult]:
         if input.has_model_outputs:
-            return self._evaluate(input, input.samples, input.samples)
+            return self._evaluate(
+                input, input.samples, input.samples, force_train=True, **kwargs
+            )
         log_avg = RunningAverage()
         gt_avg = RunningAverage()
         for sample in input.samples:
@@ -251,8 +260,12 @@ class DMEstimator(Estimator):
         np.random.shuffle(shuffled)
         lower_half = shuffled[: len(shuffled) // 2]
         upper_half = shuffled[len(shuffled) // 2 :]
-        er_lower = self._evaluate(input, lower_half, upper_half)
-        er_upper = self._evaluate(input, upper_half, lower_half)
+        er_lower = self._evaluate(
+            input, lower_half, upper_half, force_train=True, **kwargs
+        )
+        er_upper = self._evaluate(
+            input, upper_half, lower_half, force_train=True, **kwargs
+        )
         if er_lower is None or er_upper is None:
             return None
         return EstimatorResult(
@@ -282,7 +295,7 @@ class DMEstimator(Estimator):
         )
 
     def __repr__(self):
-        return f"DMEstimator(trainer({self._trainer.name},device({self._device}))"
+        return f"DMEstimator(trainer({None if self._trainer is None else self._trainer.name},device({self._device}))"
 
 
 class IPSEstimator(Estimator):
@@ -303,6 +316,7 @@ class IPSEstimator(Estimator):
     def evaluate(
         self, input: BanditsEstimatorInput, **kwargs
     ) -> Optional[EstimatorResult]:
+        logger.info("OPE IPS Evaluating")
         log_avg = RunningAverage()
         logged_vals = []
         tgt_avg = RunningAverage()
@@ -373,9 +387,11 @@ class DoublyRobustEstimator(DMEstimator):
         input: BanditsEstimatorInput,
         train_samples: Sequence[LogSample],
         eval_samples: Sequence[LogSample],
+        force_train: bool = False,
         **kwargs,
     ) -> Optional[EstimatorResult]:
-        self._train_model(train_samples)
+        logger.info("OPE DR Evaluating")
+        self._train_model(train_samples, force_train)
         log_avg = RunningAverage()
         tgt_avg = RunningAverage()
         tgt_vals = []
@@ -385,7 +401,7 @@ class DoublyRobustEstimator(DMEstimator):
             dm_action_reward, dm_scores, dm_probs = self._calc_dm_reward(
                 input.action_space, sample
             )
-            dm_reward = torch.dot(dm_scores, dm_probs).item()
+            dm_reward = torch.dot(dm_scores.reshape(-1), dm_probs.reshape(-1)).item()
             tgt_result = 0.0
             weight = 0.0
             if sample.log_action.value is not None:
@@ -424,7 +440,7 @@ class DoublyRobustEstimator(DMEstimator):
 
     def __repr__(self):
         return (
-            f"DoublyRobustEstimator(trainer({self._trainer.name})"
+            f"DoublyRobustEstimator(trainer({None if self._trainer is None else self._trainer.name})"
             f",weight_clamper({self._weight_clamper}),device({self._device}))"
         )
 
@@ -433,6 +449,7 @@ class SwitchEstimator(DMEstimator):
     # For details, visit https://arxiv.org/abs/1612.01205 sections 4, 5
     CANDIDATES = 21
     EXP_BASE = 1.5
+    EPSILON = 1e-6
 
     def __init__(
         self,
@@ -468,6 +485,7 @@ class SwitchEstimator(DMEstimator):
         torch.Tensor,
         torch.Tensor,
         torch.Tensor,
+        torch.Tensor,
         RunningAverage,
         RunningAverage,
     ]:
@@ -475,6 +493,7 @@ class SwitchEstimator(DMEstimator):
         ws = torch.ones((n, len(input.action_space)))
         rs = torch.zeros((n, 1))
         r_est = torch.zeros((n, len(input.action_space)))
+        r_est_for_logged_action = torch.zeros((n, 1))
         actions = torch.zeros((n, len(input.action_space)))
         expected_rmax = torch.zeros((n, len(input.action_space)))
         propensities = torch.zeros((n, len(input.action_space)))
@@ -486,7 +505,9 @@ class SwitchEstimator(DMEstimator):
         assert priori_rmax is not None
 
         for i, sample in enumerate(eval_samples):
-            _, dm_scores, dm_probs = self._calc_dm_reward(input.action_space, sample)
+            dm_score_for_logged_action, dm_scores, dm_probs = self._calc_dm_reward(
+                input.action_space, sample
+            )
             for a in input.action_space:
                 weight = (
                     0.0
@@ -500,11 +521,22 @@ class SwitchEstimator(DMEstimator):
                 actions[i, a] = float(a == sample.log_action)
 
             rs[i, 0] = sample.log_reward
-            r_est[i] = dm_scores
+            r_est[i] = dm_scores.reshape(-1)
+            r_est_for_logged_action[i] = dm_score_for_logged_action
             log_avg.add(sample.log_reward)
             gt_avg.add(sample.ground_truth_reward)
 
-        return actions, ws, rs, r_est, propensities, expected_rmax, log_avg, gt_avg
+        return (
+            actions,
+            ws,
+            rs,
+            r_est,
+            r_est_for_logged_action,
+            propensities,
+            expected_rmax,
+            log_avg,
+            gt_avg,
+        )
 
     def _calc_estimated_values(
         self,
@@ -513,6 +545,7 @@ class SwitchEstimator(DMEstimator):
         actions: torch.Tensor,
         threshold: float,
         est_rewards: torch.Tensor,
+        est_rewards_for_logged_action: torch.Tensor,
         tgt_props: torch.Tensor,
     ) -> torch.Tensor:
         ips_scores = (weights * actions).sum(dim=1, keepdim=True)
@@ -525,41 +558,48 @@ class SwitchEstimator(DMEstimator):
         input: BanditsEstimatorInput,
         train_samples: Sequence[LogSample],
         eval_samples: Sequence[LogSample],
+        force_train: bool = False,
         **kwargs,
     ) -> Optional[EstimatorResult]:
-        self._train_model(train_samples)
+        logger.info("OPE Switch Evaluating")
+        self._train_model(train_samples, force_train)
+
+        if "exp_base" in kwargs:
+            exp_base = kwargs["exp_base"]
+        else:
+            exp_base = SwitchEstimator.EXP_BASE
+        if "candidates" in kwargs:
+            num_candidates = kwargs["candidates"]
+        else:
+            num_candidates = SwitchEstimator.CANDIDATES
 
         (
             actions,
             ws,
             rs,
             r_est,
+            r_est_for_logged_action,
             propensities,
             expected_rmax,
             log_avg,
             gt_avg,
         ) = self._calc_weight_reward_tensors(input, eval_samples)
-
         min_w, max_w = float(torch.min(ws).item()), float(torch.max(ws).item())
         diff = max_w - min_w
-
         # The threshold lies in the range [min ips, max ips]
         # Picking a small threshold -> using mainly the model-based estimator
         # Picking a large threshold -> using mainly the ips-based estimator
         candidates = [
-            min_w
-            + (
-                (SwitchEstimator.EXP_BASE ** x)
-                / (SwitchEstimator.EXP_BASE ** (SwitchEstimator.CANDIDATES - 1))
-            )
-            * diff
-            for x in range(SwitchEstimator.CANDIDATES)
+            min_w + ((exp_base ** x) / (exp_base ** (num_candidates - 1))) * diff
+            for x in range(num_candidates)
         ]
-        tau = min_w
+        # This prevents the edge case where nearly all scores being min_w prevents
+        # switch from trying a purely DM estimate
+        tau = min_w - SwitchEstimator.EPSILON
         loss = float("inf")
         for candidate in candidates:
             estimated_values = self._calc_estimated_values(
-                rs, ws, actions, candidate, r_est, propensities
+                rs, ws, actions, candidate, r_est, r_est_for_logged_action, propensities
             )
             var = (1.0 / (estimated_values.shape[0] ** 2)) * torch.sum(
                 (estimated_values - torch.mean(estimated_values)) ** 2
@@ -573,13 +613,13 @@ class SwitchEstimator(DMEstimator):
                 loss = cand_loss
 
         estimated_values = self._calc_estimated_values(
-            rs, ws, actions, tau, r_est, propensities
+            rs, ws, actions, tau, r_est, r_est_for_logged_action, propensities
         )
         (
             tgt_score_normalized,
             tgt_std_err,
             tgt_std_err_normalized,
-        ) = self._compute_metric_data(estimated_values, log_avg.average)
+        ) = self._compute_metric_data(estimated_values.detach(), log_avg.average)
         return EstimatorResult(
             log_reward=log_avg.average,
             estimated_reward=torch.mean(estimated_values).item(),
@@ -592,7 +632,7 @@ class SwitchEstimator(DMEstimator):
 
     def __repr__(self):
         return (
-            f"SwitchEstimator(trainer({self._trainer.name})"
+            f"SwitchEstimator(trainer({None if self._trainer is None else self._trainer.name})"
             f",weight_clamper({self._weight_clamper}),device({self._device}))"
         )
 
@@ -607,18 +647,19 @@ class SwitchDREstimator(SwitchEstimator):
         actions: torch.Tensor,
         threshold: float,
         est_rewards: torch.Tensor,
+        est_rewards_for_logged_action: torch.Tensor,
         tgt_props: torch.Tensor,
     ) -> torch.Tensor:
         ips_scores = (weights * actions).sum(dim=1, keepdim=True)
-        dr = ips_scores * (
-            logged_rewards - (est_rewards * actions).sum(dim=1, keepdim=True)
-        ) + (tgt_props * est_rewards).sum(dim=1, keepdim=True)
-        return dr * (ips_scores <= threshold) + (
+        dr = ips_scores * (logged_rewards - est_rewards_for_logged_action) + (
+            tgt_props * est_rewards
+        ).sum(dim=1, keepdim=True)
+        return dr * (ips_scores <= threshold).float() + (
             est_rewards * tgt_props * (weights > threshold).float()
         ).sum(dim=1, keepdim=True)
 
     def __repr__(self):
         return (
-            f"SwitchDREstimator(trainer({self._trainer.name})"
+            f"SwitchDREstimator(trainer({None if self._trainer is None else self._trainer.name})"
             f",weight_clamper({self._weight_clamper}),device({self._device}))"
         )

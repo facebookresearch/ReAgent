@@ -11,7 +11,12 @@ import torch.nn as nn
 from reagent import types as rlt
 from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.evaluation.ope_adapter import OPEstimatorAdapter
 from reagent.models.seq2slate import Seq2SlateMode
+from reagent.ope.estimators.contextual_bandits_estimators import (
+    SwitchDREstimator,
+    SwitchEstimator,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -161,6 +166,20 @@ class TestEvaluationDataPage(unittest.TestCase):
             inverse_propensity,
             doubly_robust,
         ) = doubly_robust_estimator.estimate(edp)
+        switch_estimator, switch_dr_estimator = (
+            OPEstimatorAdapter(SwitchEstimator()),
+            OPEstimatorAdapter(SwitchDREstimator()),
+        )
+
+        # Verify that Switch with low exponent is equivalent to IPS
+        switch_ips = switch_estimator.estimate(edp, exp_base=1)
+        # Verify that Switch with no candidates is equivalent to DM
+        switch_dm = switch_estimator.estimate(edp, candidates=0)
+        # Verify that SwitchDR with low exponent is equivalent to DR
+        switch_dr_dr = switch_dr_estimator.estimate(edp, exp_base=1)
+        # Verify that SwitchDR with no candidates is equivalent to DM
+        switch_dr_dm = switch_dr_estimator.estimate(edp, candidates=0)
+
         logger.info(f"{direct_method}, {inverse_propensity}, {doubly_robust}")
 
         avg_logged_reward = (4 + 5 + 7) / 3
@@ -180,6 +199,10 @@ class TestEvaluationDataPage(unittest.TestCase):
         self.assertAlmostEqual(
             doubly_robust.normalized, doubly_robust.raw / avg_logged_reward, delta=1e-6
         )
+        self.assertAlmostEqual(switch_ips.raw, inverse_propensity.raw, delta=1e-6)
+        self.assertAlmostEqual(switch_dm.raw, direct_method.raw, delta=1e-6)
+        self.assertAlmostEqual(switch_dr_dr.raw, doubly_robust.raw, delta=1e-6)
+        self.assertAlmostEqual(switch_dr_dm.raw, direct_method.raw, delta=1e-6)
         logger.info("---------- Finish evaluating eval_greedy=True -----------------")
 
         logger.info("---------- Start evaluating eval_greedy=False -----------------")
