@@ -14,6 +14,8 @@ from reagent.ope.estimators.contextual_bandits_estimators import (
     DMEstimator,
     DoublyRobustEstimator,
     IPSEstimator,
+    SwitchDREstimator,
+    SwitchEstimator,
 )
 from reagent.ope.estimators.sequential_estimators import (
     DoublyRobustEstimator as SeqDREstimator,
@@ -271,10 +273,21 @@ class TestOPEModuleAlgs(unittest.TestCase):
         doubly_robust_estimator = OPEstimatorAdapter(DoublyRobustEstimator())
         dm_estimator = OPEstimatorAdapter(DMEstimator())
         ips_estimator = OPEstimatorAdapter(IPSEstimator())
+        switch_estimator = OPEstimatorAdapter(SwitchEstimator())
+        switch_dr_estimator = OPEstimatorAdapter(SwitchDREstimator())
 
         doubly_robust = doubly_robust_estimator.estimate(edp)
         inverse_propensity = ips_estimator.estimate(edp)
         direct_method = dm_estimator.estimate(edp)
+
+        # Verify that Switch with low exponent is equivalent to IPS
+        switch_ips = switch_estimator.estimate(edp, exp_base=1)
+        # Verify that Switch with no candidates is equivalent to DM
+        switch_dm = switch_estimator.estimate(edp, candidates=0)
+        # Verify that SwitchDR with low exponent is equivalent to DR
+        switch_dr_dr = switch_dr_estimator.estimate(edp, exp_base=1)
+        # Verify that SwitchDR with no candidates is equivalent to DM
+        switch_dr_dm = switch_dr_estimator.estimate(edp, candidates=0)
 
         logger.info(f"{direct_method}, {inverse_propensity}, {doubly_robust}")
 
@@ -295,6 +308,10 @@ class TestOPEModuleAlgs(unittest.TestCase):
         self.assertAlmostEqual(
             doubly_robust.normalized, doubly_robust.raw / avg_logged_reward, delta=1e-6
         )
+        self.assertAlmostEqual(switch_ips.raw, inverse_propensity.raw, delta=1e-6)
+        self.assertAlmostEqual(switch_dm.raw, direct_method.raw, delta=1e-6)
+        self.assertAlmostEqual(switch_dr_dr.raw, doubly_robust.raw, delta=1e-6)
+        self.assertAlmostEqual(switch_dr_dm.raw, direct_method.raw, delta=1e-6)
         logger.info("---------- Finish evaluating eval_greedy=True -----------------")
 
         logger.info("---------- Start evaluating eval_greedy=False -----------------")

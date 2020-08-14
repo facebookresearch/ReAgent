@@ -23,7 +23,7 @@ class LinearTrainer(Trainer):
         if self._model is not None:
             if hasattr(self._model, "predict_proba"):
                 proba = torch.as_tensor(
-                    self._model.predict_proba(x), dtype=torch.double, device=device
+                    self._model.predict_proba(x), dtype=torch.float, device=device
                 )
                 score = (proba * torch.arange(proba.shape[1])).sum(dim=1)
                 return PredictResults(torch.argmax(proba, 1), score, proba)
@@ -31,7 +31,7 @@ class LinearTrainer(Trainer):
                 return PredictResults(
                     None,
                     torch.as_tensor(
-                        self._model.predict(x), dtype=torch.double, device=device
+                        self._model.predict(x), dtype=torch.float, device=device
                     ),
                     None,
                 )
@@ -269,8 +269,17 @@ class NNTrainer(Trainer):
     def name(self) -> str:
         return "linear_net"
 
-    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
-        d_in, d_out = data.train_x.shape[1], data.train_y.shape[1]
+    def train(
+        self,
+        data: TrainingData,
+        iterations: int = 100,
+        epochs: int = 1,
+        num_samples: int = 0,
+    ):
+        d_in, d_out = (
+            data.train_x.shape[1],
+            data.train_y.shape[1] if len(data.train_y.shape) > 1 else 1,
+        )
         if d_in == 0 or d_out == 0:
             return None
         h = 500
@@ -289,28 +298,31 @@ class NNTrainer(Trainer):
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, "min", patience=5, verbose=True, threshold=1e-5
         )
-        for t in range(iterations):
-            x, y, _ = super()._sample(
-                data.train_x, data.train_y, data.train_weight, num_samples, True
-            )
-            x = torch.as_tensor(x, device=self._device)
-            y = torch.as_tensor(y, device=self._device)
-            y_pred = self._model(x)
-            loss = self._loss_fn(y_pred, y)
-            if (t + 1) % 10 == 0:
-                scheduler.step(loss.item())
-                logging.info(f"  step [{t + 1}]: loss={loss.item()}")
+        for _ in range(epochs):
+            for t in range(iterations):
+                x, y, _ = super()._sample(
+                    data.train_x, data.train_y, data.train_weight, num_samples, True
+                )
+                x = torch.as_tensor(x, device=self._device)
+                y = torch.as_tensor(y, device=self._device)
+                if len(y.shape) == 1:
+                    y = y.reshape(-1, 1)
+                y_pred = self._model(x)
+                loss = self._loss_fn(y_pred, y)
+                if (t + 1) % 10 == 0:
+                    scheduler.step(loss.item())
+                    logging.info(f"  step [{t + 1}]: loss={loss.item()}")
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
         logging.info(f"  training time {time.process_time() - st}")
 
     def predict(self, x: Tensor, device=None) -> PredictResults:
         if self._model is not None:
             self._model.eval()
-            proba = torch.as_tensor(self._model(x), dtype=torch.double, device=device)
+            proba = torch.as_tensor(self._model(x), dtype=torch.float, device=device)
             return PredictResults(torch.argmax(proba, 1), proba)
         else:
             raise Exception("mode not trained")

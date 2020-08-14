@@ -101,11 +101,12 @@ class OPEstimatorAdapter:
             normalized_std_error=result.estimated_reward_normalized_std_error,
         )
 
-    def estimate(self, edp: EvaluationDataPage) -> CpeEstimate:
+    def estimate(self, edp: EvaluationDataPage, **kwargs) -> CpeEstimate:
         result = self._ope_estimator.evaluate(
-            OPEstimatorAdapter.edp_to_contextual_bandit_log(edp)
+            OPEstimatorAdapter.edp_to_contextual_bandit_log(edp), **kwargs
         )
         assert isinstance(result, EstimatorResult)
+        logging.info(f"Got estimator result {result}, turning into cpe estimate")
         return OPEstimatorAdapter.estimator_result_to_cpe_estimate(result)
 
 

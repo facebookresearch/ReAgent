@@ -6,7 +6,6 @@ import logging
 import os
 import random
 import sys
-import time
 from dataclasses import dataclass
 from pathlib import PurePath
 from typing import Iterable, Tuple
@@ -160,6 +159,7 @@ class UCIMultiClassDataset:
             torch.as_tensor(test_x, dtype=torch.float, device=device),
             torch.as_tensor(test_y, dtype=torch.float, device=device),
             torch.as_tensor(test_r, dtype=torch.float, device=device),
+            train_choices,
         )
 
 
@@ -192,6 +192,12 @@ class MultiClassPolicy(Policy):
 
     def _query(self, context: int) -> Tuple[Action, ActionDistribution]:
         dist = self._action_distributions[context]
+        if len(dist.shape) > 1 and dist.shape[0] == 1:
+            dist = dist[0]
+        if dist.shape[0] < len(self.action_space):
+            dist = torch.cat(
+                (dist, torch.zeros([len(self.action_space) - dist.shape[0]]))
+            )
         dist = dist * self._exploitation_prob + self._exploration_prob
         action = torch.multinomial(dist, 1).item()
         return Action(action), ActionDistribution(dist)
@@ -205,6 +211,7 @@ def evaluate_all(
     tgt_trainer: Trainer,
     tgt_epsilon: float,
     max_num_workers: int,
+    random_reward_prob: float = 0.0,
     device=None,
 ):
     action_space = ActionSpace(dataset.num_actions)
@@ -228,7 +235,8 @@ def evaluate_all(
             test_x,
             test_y,
             test_r,
-        ) = dataset.train_val_test_split((0.8, 0.8))
+            train_choices,
+        ) = dataset.train_val_test_split((0.2, 0.8))
         trainer_data = TrainingData(train_x, train_y, None, val_x, val_y, None)
         if not log_trainer.is_trained:
             log_trainer.train(trainer_data)
@@ -246,22 +254,23 @@ def evaluate_all(
     tgt_policy = MultiClassPolicy(action_space, tgt_results.probabilities, tgt_epsilon)
 
     tasks = []
-    total_queries = len(dataset)
+    test_queries = list(set(range(len(dataset))) - set(train_choices))
     for estimators, num_samples in experiments:
         samples = []
         for _ in range(num_samples):
-            qid = random.randrange(total_queries)
+            qid = random.sample(test_queries, 1)
             label = int(dataset.labels[qid].item())
             log_action, log_action_probabilities = log_policy(qid)
             log_reward = 1.0 if log_action.value == label else 0.0
             tgt_action, tgt_action_probabilities = tgt_policy(qid)
             ground_truth_reward = 1.0 if tgt_action.value == label else 0.0
             item_feature = dataset.features[qid]
+            random_reward = random.random() < random_reward_prob
             samples.append(
                 LogSample(
                     context=qid,
                     log_action=log_action,
-                    log_reward=log_reward,
+                    log_reward=random.randint(0, 1) if random_reward else log_reward,
                     log_action_probabilities=log_action_probabilities,
                     tgt_action_probabilities=tgt_action_probabilities,
                     tgt_action=tgt_action,
@@ -271,12 +280,9 @@ def evaluate_all(
             )
         tasks.append((estimators, BanditsEstimatorInput(action_space, samples, False)))
 
-    logging.info("start evaluating...")
-    st = time.perf_counter()
     evaluator = Evaluator(tasks, max_num_workers)
     results = evaluator.evaluate()
     Evaluator.report_results(results)
-    logging.info(f"evaluating done in {time.perf_counter() - st}s")
     return results
 
 

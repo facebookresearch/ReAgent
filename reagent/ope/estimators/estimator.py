@@ -175,9 +175,7 @@ class Estimator(ABC):
             normalizer = 0.0
         else:
             normalizer = 1.0 / logged_score
-        std_err = bootstrapped_std_error_of_mean(
-            tgt_rewards, num_samples=tgt_rewards.shape[0]
-        )
+        std_err = bootstrapped_std_error_of_mean(tgt_rewards)
         return (
             torch.mean(tgt_rewards).item() * normalizer,
             std_err,

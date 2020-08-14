@@ -30,6 +30,9 @@ class CpeEstimateSet(NamedTuple):
     weighted_doubly_robust: Optional[CpeEstimate] = None
     magic: Optional[CpeEstimate] = None
 
+    switch: Optional[CpeEstimate] = None
+    switch_dr: Optional[CpeEstimate] = None
+
     def check_estimates_exist(self):
         assert self.direct_method is not None
         assert self.inverse_propensity is not None
