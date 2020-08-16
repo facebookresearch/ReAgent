@@ -5,6 +5,7 @@ from typing import List
 
 import reagent.types as rlt
 import torch
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData
@@ -13,11 +14,11 @@ from reagent.preprocessing.normalization import get_num_output_features
 from reagent.preprocessing.preprocessor import Preprocessor
 
 
-try:
+if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
         FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
     )
-except ImportError:
+else:
     from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
 
 

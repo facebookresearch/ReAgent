@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 import reagent.core.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
 from reagent.core.dataclasses import dataclass
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.tagged_union import TaggedUnion  # noqa F401
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
@@ -21,13 +22,11 @@ from reagent.workflow.result_registries import PublishingResult, ValidationResul
 from reagent.workflow.training_reports import TrainingReport
 
 
-try:
+if IS_FB_ENVIRONMENT:
     from reagent.fb.models.model_feature_config_builder import (  # noqa
         ConfigeratorModelFeatureConfigProvider,
     )
     import reagent.core.fb.fb_types  # noqa
-except ImportError:
-    pass
 
 
 @dataclass

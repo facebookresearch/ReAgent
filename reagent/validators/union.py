@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.tagged_union import TaggedUnion
 
 from .model_validator import ModelValidator
 from .no_validation import NoValidation  # noqa
 
 
-try:
+if IS_FB_ENVIRONMENT:
     import fblearner.flow.projects.rl.validation.clients  # noqa
-except ImportError:
-    pass
 
 
 @ModelValidator.fill_union()

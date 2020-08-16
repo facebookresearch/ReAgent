@@ -6,6 +6,7 @@ from typing import Any, Optional, Tuple, Union
 import numpy as np
 import reagent.types as rlt
 import torch
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.gym.policies import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
@@ -16,13 +17,13 @@ from reagent.gym.policies.scorers.discrete_scorer import (
 from reagent.gym.policies.scorers.slate_q_scorer import slate_q_serving_scorer
 
 
-try:
+if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
         FbActorPredictorUnwrapper as ActorPredictorUnwrapper,
         FbDiscreteDqnPredictorUnwrapper as DiscreteDqnPredictorUnwrapper,
         FbParametricPredictorUnwrapper as ParametricDqnPredictorUnwrapper,
     )
-except ImportError:
+else:
     from reagent.prediction.predictor_wrapper import (
         ActorPredictorUnwrapper,
         DiscreteDqnPredictorUnwrapper,
