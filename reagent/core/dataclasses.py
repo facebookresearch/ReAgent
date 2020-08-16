@@ -7,12 +7,13 @@ import os
 
 # Redirection to make import simpler
 from dataclasses import field  # noqa
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import pydantic
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
 
-try:
+if IS_FB_ENVIRONMENT:
     import fblearner.flow.api  # noqa
 
     """
@@ -20,9 +21,7 @@ try:
     validator. This necessary to avoid pydantic complaining about validators.
     """
     USE_VANILLA_DATACLASS = True
-
-except ImportError:
-
+else:
     USE_VANILLA_DATACLASS = False
 
 
@@ -58,9 +57,7 @@ if TYPE_CHECKING:
 
 else:
 
-    def dataclass(
-        _cls: Optional[Any] = None, *, config=None, **kwargs
-    ):
+    def dataclass(_cls: Optional[Any] = None, *, config=None, **kwargs):
         def wrap(cls):
             # We don't want to look at parent class
             if "__post_init__" in cls.__dict__:

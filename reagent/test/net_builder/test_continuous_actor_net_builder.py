@@ -3,17 +3,18 @@
 
 import unittest
 
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.net_builder import continuous_actor
 from reagent.net_builder.unions import ContinuousActorNetBuilder__Union
 from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS
 
 
-try:
+if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
         FbActorPredictorWrapper as ActorPredictorWrapper,
     )
-except ImportError:
+else:
     from reagent.prediction.predictor_wrapper import ActorPredictorWrapper
 
 

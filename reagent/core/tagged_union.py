@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-try:
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+
+
+if IS_FB_ENVIRONMENT:
     from fblearner.flow.core.types_lib.union import TaggedUnion as FlowTaggedUnion
 
     INTERNAL_TAGGED_UNION = True
@@ -25,7 +28,7 @@ try:
             return cls(**{key: cls.__annotations__[key](**v[key])})
 
 
-except ImportError:
+else:
 
     from dataclasses import fields
 

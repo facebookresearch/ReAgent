@@ -3,17 +3,18 @@
 
 import unittest
 
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.net_builder import parametric_dqn
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS
 
 
-try:
+if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
         FbParametricDqnPredictorWrapper as ParametricDqnPredictorWrapper,
     )
-except ImportError:
+else:
     from reagent.prediction.predictor_wrapper import ParametricDqnPredictorWrapper
 
 

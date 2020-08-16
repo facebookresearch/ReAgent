@@ -15,13 +15,12 @@ import torch.nn.functional as F
 from reagent.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.preprocessing.types import InputColumn
 
 
-try:
+if IS_FB_ENVIRONMENT:
     import reagent.core.fb.fb_result_types  # noqa
-except ImportError:
-    pass
 
 
 class NoDuplicatedWarningLogger:

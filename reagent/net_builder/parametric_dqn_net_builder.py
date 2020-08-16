@@ -3,6 +3,7 @@
 import abc
 
 import torch
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData
@@ -10,11 +11,11 @@ from reagent.prediction.predictor_wrapper import ParametricDqnWithPreprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
 
 
-try:
+if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
         FbParametricDqnPredictorWrapper as ParametricDqnPredictorWrapper,
     )
-except ImportError:
+else:
     from reagent.prediction.predictor_wrapper import ParametricDqnPredictorWrapper
 
 
