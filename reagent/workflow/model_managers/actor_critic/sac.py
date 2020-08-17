@@ -3,10 +3,18 @@
 
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.types import (
+    Dataset,
+    PreprocessingOptions,
+    ReaderOptions,
+    RewardOptions,
+    RLTrainingOutput,
+    TableSpec,
+)
 from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor.gaussian_fully_connected import (
     GaussianFullyConnected,
@@ -20,7 +28,7 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
-from reagent.parameters import param_hash
+from reagent.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.training import SACTrainer, SACTrainerParameters
 from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
 
@@ -59,26 +67,28 @@ class SAC(ActorCriticBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self._actor_network: Optional[ModelBase] = None
-        self.rl_parameters = self.trainer_param.rl
 
-    def build_trainer(self) -> SACTrainer:
+    def build_trainer(
+        self,
+        use_gpu: bool,
+        normalization_data_map: Dict[str, NormalizationData],
+        reward_options: RewardOptions,
+    ) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
-        # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
-        # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
-        self._actor_network = actor_net_builder.build_actor(
-            self.state_normalization_data, self.action_normalization_data
+        actor_network = actor_net_builder.build_actor(
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
         )
 
         critic_net_builder = self.critic_net_builder.value
-        # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
-        # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
-        self._q1_network = critic_net_builder.build_q_network(
-            self.state_normalization_data, self.action_normalization_data
+        q1_network = critic_net_builder.build_q_network(
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
         )
         q2_network = (
             critic_net_builder.build_q_network(
-                self.state_normalization_data, self.action_normalization_data
+                normalization_data_map[NormalizationKey.STATE],
+                normalization_data_map[NormalizationKey.ACTION],
             )
             if self.use_2_q_functions
             else None
@@ -90,35 +100,36 @@ class SAC(ActorCriticBase):
             # pyre-fixme[16]: `Optional` has no attribute `value`.
             value_net_builder = self.value_net_builder.value
             value_network = value_net_builder.build_value_network(
-                self.state_normalization_data
+                normalization_data_map[NormalizationKey.STATE]
             )
 
-        if self.use_gpu:
-            self._q1_network.cuda()
+        if use_gpu:
+            q1_network.cuda()
             if q2_network:
                 q2_network.cuda()
             if value_network:
                 value_network.cuda()
-            self._actor_network.cuda()
+            actor_network.cuda()
 
         trainer = SACTrainer(
-            actor_network=self._actor_network,
-            q1_network=self._q1_network,
+            actor_network=actor_network,
+            q1_network=q1_network,
             value_network=value_network,
             q2_network=q2_network,
-            use_gpu=self.use_gpu,
+            use_gpu=use_gpu,
             # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
         return trainer
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self, normalization_data_map: Dict[str, NormalizationData], trainer: SACTrainer
+    ) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
-        assert self._actor_network is not None
         return net_builder.build_serving_module(
-            self._actor_network,
-            self.state_normalization_data,
-            self.action_normalization_data,
+            trainer.actor_network,
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
             serve_mean_policy=self.serve_mean_policy,
         )

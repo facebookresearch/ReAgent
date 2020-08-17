@@ -4,7 +4,7 @@
 import logging
 import os
 import unittest
-from typing import Optional
+from typing import Optional, cast
 
 import torch
 from reagent.core.types import RewardOptions
@@ -13,9 +13,17 @@ from reagent.gym.envs.gym import Gym
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
+from reagent.runners.oss_batch_runner import OssBatchRunner
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
 from reagent.workflow.model_managers.union import ModelManager__Union
+
+
+try:
+    # Use internal runner or OSS otherwise
+    from reagent.runners.fb.fb_batch_runner import FbBatchRunner as BatchRunner
+except ImportError:
+    from reagent.runners.oss_batch_runner import OssBatchRunner as BatchRunner
 
 
 logging.basicConfig(level=logging.INFO)
@@ -71,8 +79,8 @@ def train_seq2reward(
                 )
                 preprocessed_test_batch = trainer_preprocessor(test_batch)
                 adhoc_action_padding(preprocessed_test_batch, state_dim=state_dim)
-                valid_losses = trainer.get_loss(preprocessed_test_batch)
-                print_seq2reward_losses(epoch, "validation", valid_losses)
+                # valid_losses = trainer.get_loss(preprocessed_test_batch)
+                # print_seq2reward_losses(epoch, "validation", valid_losses)
                 trainer.seq2reward_network.train()
     return trainer
 
@@ -109,11 +117,13 @@ def train_seq2reward_and_compute_reward_mse(
     env.seed(SEED)
 
     manager = model.value
-    trainer = manager.initialize_trainer(
-        use_gpu=use_gpu,
+    runner = OssBatchRunner(
+        use_gpu,
+        manager,
         reward_options=RewardOptions(),
         normalization_data_map=build_normalizer(env),
     )
+    trainer = cast(Seq2RewardTrainer, runner.initialize_trainer())
 
     device = "cuda" if use_gpu else "cpu"
     # pyre-fixme[6]: Expected `device` for 2nd param but got `str`.
@@ -149,7 +159,7 @@ def train_seq2reward_and_compute_reward_mse(
         )
         preprocessed_test_batch = trainer_preprocessor(test_batch)
         adhoc_action_padding(preprocessed_test_batch, state_dim=state_dim)
-        losses = trainer.get_loss(preprocessed_test_batch)
+        losses = trainer.compute_loss(preprocessed_test_batch)
         detached_losses = losses.cpu().detach().item()
         trainer.seq2reward_network.train()
     return detached_losses

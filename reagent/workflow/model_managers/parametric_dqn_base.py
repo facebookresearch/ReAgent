@@ -13,6 +13,7 @@ from reagent.core.types import (
     RLTrainingOutput,
     TableSpec,
 )
+from reagent.data_fetchers.data_fetcher import DataFetcher
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -26,7 +27,8 @@ from reagent.preprocessing.normalization import (
     get_num_output_features,
 )
 from reagent.preprocessing.types import InputColumn
-from reagent.workflow.identify_types_flow import identify_normalization_parameters
+from reagent.reporting.parametric_dqn_reporter import ParametricDQNReporter
+from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 from reagent.workflow.model_managers.model_manager import ModelManager
 
 
@@ -58,32 +60,32 @@ class ParametricDQNBase(ModelManager):
             "Please set action whitelist features in action_float_features field of "
             "config instead"
         )
-        self._state_preprocessing_options = self.state_preprocessing_options
-        self._action_preprocessing_options = self.action_preprocessing_options
-        self._q_network: Optional[ModelBase] = None
-        self._metrics_to_score: Optional[List[str]] = None
 
-    def create_policy(self, serving: bool) -> Policy:
-        """ Create an online DiscreteDQN Policy from env. """
-
+    def create_policy(self, trainer: ParametricDQNTrainer) -> Policy:
         # FIXME: this only works for one-hot encoded actions
-        action_dim = get_num_output_features(
-            self.action_normalization_data.dense_normalization_parameters
+        action_dim = trainer.num_gym_actions
+        sampler = SoftmaxActionSampler(temperature=self.trainer_param.rl.temperature)
+        scorer = parametric_dqn_scorer(
+            max_num_actions=action_dim, q_network=trainer.q_network
         )
-        if serving:
-            return create_predictor_policy_from_model(
-                self.build_serving_module(), max_num_actions=action_dim
-            )
-        else:
-            sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
-            scorer = parametric_dqn_scorer(
-                max_num_actions=action_dim, q_network=self._q_network
-            )
-            return Policy(scorer=scorer, sampler=sampler)
+        return Policy(scorer=scorer, sampler=sampler)
+
+    def create_serving_policy(
+        self, normalization_data_map: Dict[str, NormalizationData], trainer
+    ) -> Policy:
+        # FIXME: this only works for one-hot encoded actions
+        action_dim = trainer.num_gym_actions
+        return create_predictor_policy_from_model(
+            self.build_serving_module(normalization_data_map, trainer),
+            max_num_actions=action_dim,
+        )
+
+    def get_reporter(self):
+        return ParametricDQNReporter()
 
     @property
     def should_generate_eval_dataset(self) -> bool:
-        return self.eval_parameters.calc_cpe_in_training
+        return False  # Parametric DQN CPE not supported yet
 
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
@@ -94,11 +96,11 @@ class ParametricDQNBase(ModelManager):
         return get_feature_config(self.action_float_features)
 
     def run_feature_identification(
-        self, input_table_spec: TableSpec
+        self, data_fetcher: DataFetcher, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
         # Run state feature identification
         state_preprocessing_options = (
-            self._state_preprocessing_options or PreprocessingOptions()
+            self.state_preprocessing_options or PreprocessingOptions()
         )
         state_features = [
             ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
@@ -108,13 +110,13 @@ class ParametricDQNBase(ModelManager):
             whitelist_features=state_features
         )
 
-        state_normalization_parameters = identify_normalization_parameters(
+        state_normalization_parameters = data_fetcher.identify_normalization_parameters(
             input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
         )
 
         # Run action feature identification
         action_preprocessing_options = (
-            self._action_preprocessing_options or PreprocessingOptions()
+            self.action_preprocessing_options or PreprocessingOptions()
         )
         action_features = [
             ffi.feature_id for ffi in self.action_feature_config.float_feature_infos
@@ -123,7 +125,7 @@ class ParametricDQNBase(ModelManager):
         action_preprocessing_options = action_preprocessing_options._replace(
             whitelist_features=action_features
         )
-        action_normalization_parameters = identify_normalization_parameters(
+        action_normalization_parameters = data_fetcher.identify_normalization_parameters(
             input_table_spec, InputColumn.ACTION, action_preprocessing_options
         )
         return {
@@ -141,26 +143,24 @@ class ParametricDQNBase(ModelManager):
 
     def query_data(
         self,
+        data_fetcher: DataFetcher,
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
     ) -> Dataset:
         raise NotImplementedError()
 
-    @property
-    def metrics_to_score(self) -> List[str]:
-        assert self.reward_options is not None
-        if self._metrics_to_score is None:
-            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
-            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
-            self._metrics_to_score = get_metrics_to_score(
-                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
-                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
-                self._reward_options.metric_reward_values
-            )
-        return self._metrics_to_score
+    def metrics_to_score(self, reward_options: RewardOptions) -> List[str]:
+        return get_metrics_to_score(reward_options.metric_reward_values)
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
+    def build_batch_preprocessor(
+        self,
+        reader_options: ReaderOptions,
+        use_gpu: bool,
+        batch_size: int,
+        normalization_data_map: Dict[str, NormalizationData],
+        reward_options: RewardOptions,
+    ) -> BatchPreprocessor:
         raise NotImplementedError()
 
     def train(

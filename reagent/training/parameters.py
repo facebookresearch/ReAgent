@@ -57,7 +57,8 @@ class ParametricDQNTrainerParameters:
         "q_network_cpe_target",
         "metrics_to_score",
         "imitator",
-        "loss_reporter",
+        "reporter",
+        "evaluation",
     ],
 )
 class DQNTrainerParameters:
@@ -74,7 +75,8 @@ class DQNTrainerParameters:
         "reward_network",
         "q_network_cpe",
         "q_network_cpe_target",
-        "loss_reporter",
+        "reporter",
+        "evaluation",
     ],
 )
 class QRDQNTrainerParameters:
@@ -88,7 +90,8 @@ class QRDQNTrainerParameters:
         "q_network",
         "q_network_target",
         "metrics_to_score",
-        "loss_reporter",
+        "reporter",
+        "evaluation",
     ],
 )
 class C51TrainerParameters:

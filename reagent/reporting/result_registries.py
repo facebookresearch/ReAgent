@@ -5,10 +5,6 @@ from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
 
 
-class TrainingReport(metaclass=RegistryMeta):
-    pass
-
-
 @dataclass
 class PublishingResult(metaclass=RegistryMeta):
     success: bool

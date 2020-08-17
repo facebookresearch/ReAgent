@@ -16,7 +16,7 @@ class RegistryMeta(abc.ABCMeta):
     def __init__(cls, name, bases, attrs):
         if not hasattr(cls, "REGISTRY"):
             # Put REGISTRY on cls. This only happens once on the base class
-            logger.info("Adding REGISTRY to type {}".format(name))
+            logger.debug("Adding REGISTRY to type {}".format(name))
             cls.REGISTRY: Dict[str, Type] = {}
             cls.REGISTRY_NAME = name
             cls.REGISTRY_FROZEN = False
@@ -28,11 +28,14 @@ class RegistryMeta(abc.ABCMeta):
 
         if not cls.__abstractmethods__ and name != cls.REGISTRY_NAME:
             # Only register fully-defined classes
-            logger.info(f"Registering {name} to {cls.REGISTRY_NAME}")
             if hasattr(cls, "__registry_name__"):
                 registry_name = cls.__registry_name__
-                logger.info(f"Using {registry_name} instead of {name}")
+                logger.info(
+                    f"Registering {name} with alias {registry_name} to {cls.REGISTRY_NAME}"
+                )
                 name = registry_name
+            else:
+                logger.info(f"Registering {name} to {cls.REGISTRY_NAME}")
             assert name not in cls.REGISTRY
             cls.REGISTRY[name] = cls
         else:

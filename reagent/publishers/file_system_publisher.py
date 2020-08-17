@@ -72,7 +72,7 @@ if HAS_TINYDB:
             child_workflow_id: int,
             recurring_period: Optional[RecurringPeriod],
         ) -> NoPublishingResults:
-            path = training_output.output_path
+            path = training_output.local_output_path
             assert path is not None, f"Given path is None."
             assert os.path.exists(path), f"Given path {path} doesn't exist."
             Model = Query()

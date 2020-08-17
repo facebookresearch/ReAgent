@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import collections
 import json
 import logging
-from dataclasses import asdict, dataclass, fields, is_dataclass
+from dataclasses import asdict, fields, is_dataclass
 from typing import Any, NamedTuple, Type, Union
 
 

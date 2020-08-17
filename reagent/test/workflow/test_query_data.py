@@ -14,11 +14,11 @@ from pyspark.sql.functions import asc
 from reagent.core.types import Dataset, TableSpec
 
 # pyre-fixme[21]: Could not find `workflow`.
+from reagent.data_fetchers.oss_data_fetcher import query_data
 from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
 
 # pyre-fixme[21]: Could not find module `reagent.test.workflow.test_data.ex_mdps`.
 from reagent.test.workflow.test_data.ex_mdps import generate_discrete_mdp_pandas_df
-from reagent.workflow.data_fetcher import query_data
 
 
 logger = logging.getLogger(__name__)

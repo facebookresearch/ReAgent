@@ -10,7 +10,6 @@ import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
-from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import RLParameters
 from reagent.tensorboardX import SummaryWriterContext
@@ -20,17 +19,6 @@ from reagent.training.rl_trainer_pytorch import RLTrainer
 logger = logging.getLogger(__name__)
 
 
-@observable(
-    td_loss=torch.Tensor,
-    reward_loss=torch.Tensor,
-    logged_actions=torch.Tensor,
-    logged_propensities=torch.Tensor,
-    logged_rewards=torch.Tensor,
-    model_propensities=torch.Tensor,
-    model_rewards=torch.Tensor,
-    model_values=torch.Tensor,
-    model_action_idxs=torch.Tensor,
-)
 class SACTrainer(RLTrainer):
     """
     Soft Actor-Critic trainer as described in https://arxiv.org/pdf/1801.01290
@@ -80,9 +68,8 @@ class SACTrainer(RLTrainer):
             # alpha in the paper; controlling explore & exploit
             # TODO: finish
         """
-        super().__init__(rl, use_gpu=use_gpu)
+        super().__init__(rl, use_gpu=use_gpu, minibatch_size=minibatch_size)
 
-        self.minibatch_size = minibatch_size
         self.minibatches_per_step = 1
 
         self.q1_network = q1_network
@@ -379,9 +366,8 @@ class SACTrainer(RLTrainer):
                 SummaryWriterContext.add_histogram("kld/var", action_batch_v)
                 SummaryWriterContext.add_scalar("kld/kld", kld)
 
-        self.loss_reporter.report(
+        self.reporter.report(
             td_loss=float(q1_loss),
-            reward_loss=None,
             logged_rewards=reward,
             model_values_on_logged_actions=q1_value,
             model_propensities=actor_output.log_prob.exp(),
