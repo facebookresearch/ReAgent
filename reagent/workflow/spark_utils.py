@@ -3,8 +3,9 @@
 import logging
 import os
 import pprint
+import tempfile
 from os.path import abspath, dirname, join
-from typing import Dict, Optional
+from typing import Dict
 
 import reagent
 
@@ -33,6 +34,29 @@ ReAgent/
 SPARK_JAR = join(dirname(reagent.__file__), os.pardir, SPARK_JAR_FROM_ROOT_DIR)
 
 
+def create_and_return(path: str):
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+    return path
+
+
+def create_and_return(path: str):
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+    return path
+
+
+SPARK_DIRECTORY = "file://" + abspath(
+    tempfile.mkdtemp(
+        suffix=None,
+        prefix=None,
+        dir=create_and_return(join(tempfile.gettempdir(), "reagent_spark_warehouse")),
+    )
+)
 DEFAULT_SPARK_CONFIG = {
     "spark.app.name": "ReAgent",
     "spark.sql.session.timeZone": "UTC",
@@ -41,7 +65,7 @@ DEFAULT_SPARK_CONFIG = {
     # use as many worker threads as possible on machine
     "spark.master": "local[*]",
     # default local warehouse for Hive
-    "spark.sql.warehouse.dir": abspath("spark-warehouse"),
+    "spark.sql.warehouse.dir": SPARK_DIRECTORY,
     # Set shuffle partitions to a low number, e.g. <= cores * 2 to speed
     # things up, otherwise the tests will use the default 200 partitions
     # and it will take a lot more time to complete
@@ -54,12 +78,16 @@ DEFAULT_SPARK_CONFIG = {
 }
 
 
-def get_spark_session(config: Optional[Dict[str, str]] = DEFAULT_SPARK_CONFIG):
+TEST_SPARK_SESSION = None
+
+
+def get_spark_session(config: Dict[str, str] = DEFAULT_SPARK_CONFIG):
+    if TEST_SPARK_SESSION is not None:
+        return TEST_SPARK_SESSION
     logger.info(f"Building with config: \n{pprint.pformat(config)}")
     spark = SparkSession.builder.enableHiveSupport()
-    if config is not None:
-        for k, v in config.items():
-            spark = spark.config(k, v)
+    for k, v in config.items():
+        spark = spark.config(k, v)
     spark = spark.getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     return spark

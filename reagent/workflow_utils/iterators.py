@@ -4,7 +4,6 @@
 import logging
 from collections import OrderedDict
 
-from reagent.core.tracker import observable
 from reagent.tensorboardX import SummaryWriterContext
 from torch.utils.data import IterableDataset
 from tqdm import tqdm
@@ -12,21 +11,6 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-@observable(epoch_start=int, epoch_end=int)
-class EpochIterator:
-    def __init__(self, num_epochs: int):
-        assert num_epochs > 0
-        self.num_epochs = num_epochs
-
-    def __iter__(self):
-        SummaryWriterContext._reset_globals()
-        for epoch in range(self.num_epochs):
-            self.notify_observers(epoch_start=epoch)
-            yield epoch
-            self.notify_observers(epoch_end=epoch)
-            # TODO: flush at end of epoch?
 
 
 def get_batch_size(batch):
@@ -43,7 +27,12 @@ def get_batch_size(batch):
 
 
 class DataLoaderWrapper(IterableDataset):
-    def __init__(self, dataloader: IterableDataset, dataloader_size: int):
+    def __init__(
+        self,
+        dataloader: IterableDataset,
+        dataloader_size: int,
+        post_dataloader_preprocessor=None,
+    ):
         """ Wraps around an Iterable Dataloader to report progress bars and
         increase global step of SummaryWriter. At last iteration, will call
         dataloader.__exit__ if needed (e.g. Petastorm DataLoader).
@@ -56,10 +45,13 @@ class DataLoaderWrapper(IterableDataset):
         self.dataloader = dataloader
         self.dataloader_iter = iter(dataloader)
         self.dataloader_size = dataloader_size
+        self.post_dataloader_preprocessor = post_dataloader_preprocessor
 
     def __iter__(self):
         t = tqdm(total=self.dataloader_size, desc="iterating dataloader")
         for batch in self.dataloader:
+            if self.post_dataloader_preprocessor is not None:
+                batch = self.post_dataloader_preprocessor(batch)
             batch_size = get_batch_size(batch)
             yield batch
             t.update(batch_size)

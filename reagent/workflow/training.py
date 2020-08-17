@@ -7,7 +7,6 @@ from typing import Dict, NamedTuple, Optional, Tuple
 import torch
 from reagent.core.types import (
     OssReaderOptions,
-    ReaderOptions,
     RecurringPeriod,
     ResourceOptions,
     RewardOptions,
@@ -16,8 +15,8 @@ from reagent.core.types import (
 )
 from reagent.parameters import NormalizationData
 from reagent.publishers.union import ModelPublisher__Union
+from reagent.runners.oss_batch_runner import OssBatchRunner
 from reagent.validators.union import ModelValidator__Union
-from reagent.workflow.env import get_workflow_id
 from reagent.workflow.model_managers.union import ModelManager__Union
 
 
@@ -30,7 +29,7 @@ def identify_and_train_network(
     num_epochs: int,
     use_gpu: Optional[bool] = None,
     reward_options: Optional[RewardOptions] = None,
-    reader_options: Optional[ReaderOptions] = None,
+    reader_options: Optional[OssReaderOptions] = None,
     resource_options: Optional[ResourceOptions] = None,
     warmstart_path: Optional[str] = None,
     validator: Optional[ModelValidator__Union] = None,
@@ -40,7 +39,8 @@ def identify_and_train_network(
         use_gpu: bool = torch.cuda.is_available()
 
     manager = model.value
-    normalization_data_map = manager.run_feature_identification(input_table_spec)
+    batch_runner = OssBatchRunner(use_gpu, manager, reward_options, {}, warmstart_path)
+    normalization_data_map = batch_runner.run_feature_identification(input_table_spec)
 
     return query_and_train(
         input_table_spec,
@@ -105,7 +105,7 @@ def query_and_train(
     num_epochs: int,
     use_gpu: bool,
     reward_options: Optional[RewardOptions] = None,
-    reader_options: Optional[ReaderOptions] = None,
+    reader_options: Optional[OssReaderOptions] = None,
     resource_options: Optional[ResourceOptions] = None,
     warmstart_path: Optional[str] = None,
     validator: Optional[ModelValidator__Union] = None,
@@ -113,49 +113,39 @@ def query_and_train(
     parent_workflow_id: Optional[int] = None,
     recurring_period: Optional[RecurringPeriod] = None,
 ) -> RLTrainingOutput:
-    child_workflow_id = get_workflow_id()
-    if parent_workflow_id is None:
-        parent_workflow_id = child_workflow_id
-
     logger.info("Starting query")
 
     reward_options = reward_options or RewardOptions()
     reader_options = reader_options or OssReaderOptions()
     resource_options = resource_options or ResourceOptions()
     manager = model.value
+    batch_runner = OssBatchRunner(
+        use_gpu, manager, reward_options, normalization_data_map, warmstart_path
+    )
+    child_workflow_id = batch_runner.get_workflow_id()
+    if parent_workflow_id is None:
+        parent_workflow_id = child_workflow_id
 
     calc_cpe_in_training = manager.should_generate_eval_dataset
     sample_range_output = get_sample_range(input_table_spec, calc_cpe_in_training)
-    train_dataset = manager.query_data(
+    train_dataset, eval_dataset = batch_runner.query(
         input_table_spec=input_table_spec,
-        sample_range=sample_range_output.train_sample_range,
-        reward_options=reward_options,
+        reader_options=reader_options,
+        resource_options=resource_options,
     )
-    eval_dataset = None
-    if calc_cpe_in_training:
-        eval_dataset = manager.query_data(
-            input_table_spec=input_table_spec,
-            sample_range=sample_range_output.eval_sample_range,
-            reward_options=reward_options,
-        )
 
     logger.info("Starting training")
-    results = manager.train_workflow(
+    results = batch_runner.train(
         train_dataset,
         eval_dataset,
         normalization_data_map,
         num_epochs,
-        use_gpu,
-        parent_workflow_id=parent_workflow_id,
-        child_workflow_id=child_workflow_id,
-        reward_options=reward_options,
         reader_options=reader_options,
+        parent_workflow_id=parent_workflow_id,
         resource_options=resource_options,
         warmstart_path=warmstart_path,
+        validator=validator,
     )
-
-    if validator is not None:
-        results = run_validator(validator, results)
 
     if publisher is not None:
         results = run_publisher(

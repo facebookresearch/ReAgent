@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-import logging
-from typing import List, Optional, Tuple
 
-# pyre-fixme[21]: Could not find `pyspark`.
+import logging
+from typing import Dict, List, Optional, Tuple
+
+import reagent.types as rlt
+
+# pyre-fixme[21]: Could not find `petastorm`.
+from petastorm import make_batch_reader
+from petastorm.pytorch import DataLoader, decimal_friendly_collate
+
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, crc32, explode, map_keys, udf
 
@@ -17,8 +23,32 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
-from reagent.core.types import Dataset, OssDataset, TableSpec
+from reagent.core.types import (
+    Dataset,
+    OssDataset,
+    PreprocessingOptions,
+    ReaderOptions,
+    RewardOptions,
+    RLTrainingOutput,
+    TableSpec,
+)
+from reagent.data_fetchers.data_fetcher import DataFetcher
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
+from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
+from reagent.parameters import (
+    NormalizationData,
+    NormalizationKey,
+    NormalizationParameters,
+    RankingParameters,
+)
+from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+from reagent.runners.batch_runner import BatchRunner
+from reagent.tensorboardX import SummaryWriterContext
+from reagent.torch_utils import dict_to_tensor
+from reagent.training import RLTrainer, SACTrainer, TD3Trainer
+from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.spark_utils import get_spark_session, get_table_url
+from reagent.workflow_utils.iterators import DataLoaderWrapper
 
 
 logger = logging.getLogger(__name__)
@@ -377,8 +407,9 @@ def rand_string(length):
     import random
 
     """Generate a random string of fixed length """
+    r = random.SystemRandom()
     letters = string.ascii_lowercase
-    return "".join(random.choice(letters) for _ in range(length))
+    return "".join(r.choice(letters) for _ in range(length))
 
 
 def upload_as_parquet(df) -> Dataset:
@@ -451,3 +482,108 @@ def query_data(
         include_possible_actions=include_possible_actions,
     )
     return upload_as_parquet(df)
+
+
+def collate_and_preprocess(batch_preprocessor: BatchPreprocessor, use_gpu: bool):
+    """ Helper for Petastorm's DataLoader to preprocess.
+    TODO(kaiwenw): parallelize preprocessing by using transform of Petastorm reader
+    Should pin memory and preprocess in reader and convert to gpu in collate_fn.
+    """
+
+    def collate_fn(batch_list: List[Dict]):
+        batch = decimal_friendly_collate(batch_list)
+        preprocessed_batch = batch_preprocessor(batch)
+        if use_gpu:
+            preprocessed_batch = preprocessed_batch.cuda()
+        return preprocessed_batch
+
+    return collate_fn
+
+
+class OssDataFetcher(DataFetcher):
+    def query_data(self, **kwargs):
+        return query_data(**kwargs)
+
+    def query_data_parametric(self, **kwargs):
+        return query_data(**kwargs)
+
+    def identify_normalization_parameters(
+        self,
+        table_spec: TableSpec,
+        column_name: str,
+        preprocessing_options: PreprocessingOptions,
+        seed: Optional[int] = None,
+    ) -> Dict[int, NormalizationParameters]:
+        return identify_normalization_parameters(
+            table_spec, column_name, preprocessing_options, seed
+        )
+
+    def get_table_row_count(self, dataset: OssDataset):
+        spark = get_spark_session()
+        return spark.read.parquet(dataset.parquet_url).count()
+
+    def gather_and_sort_eval_data(
+        self,
+        trainer: RLTrainer,
+        eval_dataset: Dataset,
+        batch_preprocessor: BatchPreprocessor,
+        use_gpu: bool,
+        reader_options: ReaderOptions,
+    ) -> EvaluationDataPage:
+        """ Sorts, computes logged values and validates the EvaluationDataPage """
+        if isinstance(trainer, (SACTrainer, TD3Trainer)):
+            raise NotImplementedError("TODO: Implement CPE for continuous algos")
+        assert (
+            trainer.calc_cpe_in_training
+        ), "this function should only be called when this is true."
+
+        # first read the eval_dataset as EvaluationDataPages
+        device = "cuda" if use_gpu else "cpu"
+        eval_data = None
+        with make_batch_reader(
+            eval_dataset.parquet_url,
+            num_epochs=1,
+            reader_pool_type=reader_options.petastorm_reader_pool_type,
+        ) as reader:
+            for batch in reader:
+                assert rlt.isinstance_namedtuple(batch)
+                tensor_batch = dict_to_tensor(batch._asdict(), device=device)
+                tdp: rlt.PreprocessedTrainingBatch = batch_preprocessor(tensor_batch)
+                edp = EvaluationDataPage.create_from_training_batch(tdp, trainer)
+                if eval_data is None:
+                    eval_data = edp
+                else:
+                    eval_data = eval_data.append(edp)
+
+        eval_data = eval_data.sort()
+        eval_data = eval_data.compute_values(trainer.gamma)
+        eval_data.validate()
+        return eval_data
+
+    def get_dataloader(
+        self,
+        dataset: Dataset,
+        batch_size: int,
+        batch_preprocessor: Optional[BatchPreprocessor],
+        use_gpu: bool,
+        reader_options: ReaderOptions,
+    ):
+        """ get petastorm loader for dataset (with preprocessor) """
+        data_reader = make_batch_reader(
+            dataset.parquet_url,
+            num_epochs=1,
+            reader_pool_type=reader_options.petastorm_reader_pool_type,
+        )
+        # NOTE: must be wrapped by DataLoaderWrapper to call __exit__() on end of epoch
+        return DataLoader(
+            data_reader,
+            batch_size=batch_size,
+            collate_fn=collate_and_preprocess(
+                batch_preprocessor=batch_preprocessor, use_gpu=use_gpu
+            ),
+        )
+
+    def get_post_dataloader_preprocessor(
+        self, reader_options: ReaderOptions, use_gpu: bool
+    ):
+        return None

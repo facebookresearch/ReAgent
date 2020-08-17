@@ -12,7 +12,7 @@ import reagent
 import reagent.workflow.cli as cli
 import torch
 from click.testing import CliRunner
-from reagent.core.types import Dataset, OssDataset
+from reagent.core.types import OssDataset
 from reagent.parameters import NormalizationParameters
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from ruamel.yaml import YAML
@@ -36,7 +36,7 @@ DQN_WORKFLOW_YAML = os.path.join(
 NEW_CONFIG_NAME = "config.yaml"
 
 # module to patch
-DISCRETE_DQN_BASE = "reagent.workflow.model_managers.discrete_dqn_base"
+OSS_DATA_FECTHER = "reagent.data_fetchers.oss_data_fetcher"
 
 
 def get_test_workflow_config(path_to_config: str, use_gpu: bool):
@@ -93,9 +93,9 @@ class TestOSSWorkflows(HorizonTestBase):
             )
             mock_normalization = mock_cartpole_normalization()
             with patch(
-                f"{DISCRETE_DQN_BASE}.query_data", return_value=mock_dataset
+                f"{OSS_DATA_FECTHER}.query_data", return_value=mock_dataset
             ), patch(
-                f"{DISCRETE_DQN_BASE}.identify_normalization_parameters",
+                f"{OSS_DATA_FECTHER}.identify_normalization_parameters",
                 return_value=mock_normalization,
             ):
                 # call the cli test

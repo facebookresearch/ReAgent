@@ -27,13 +27,14 @@ class RLTrainer(Trainer):
         self,
         rl_parameters: RLParameters,
         use_gpu: bool,
+        minibatch_size: int,
         metrics_to_score=None,
         actions: Optional[List[str]] = None,
         evaluation_parameters: Optional[EvaluationParameters] = None,
-        loss_reporter=None,
+        reporter=None,
     ) -> None:
+        super().__init__(minibatch_size)
         self.minibatch = 0
-        self.minibatch_size: Optional[int] = None
         self.minibatches_per_step: Optional[int] = None
         self.rl_parameters = rl_parameters
         self.rl_temperature = float(rl_parameters.temperature)
@@ -75,7 +76,8 @@ class RLTrainer(Trainer):
             self.use_gpu = False
             self.device = torch.device("cpu")
 
-        self.loss_reporter = loss_reporter or LossReporter(actions)
+        self.reporter = reporter
+        self.loss_reporter = LossReporter(actions)
         self._actions = actions
 
     @property

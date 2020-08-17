@@ -21,14 +21,6 @@ from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 logger = logging.getLogger(__name__)
 
 
-def print_mdnrnn_losses(minibatch, model_index, losses) -> None:
-    logger.info(
-        f"{minibatch}-th minibatch {model_index}-th model: \n"
-        f'loss={losses["loss"]}, bce={losses["bce"]}, '
-        f'gmm={losses["gmm"]}, mse={losses["mse"]}\n'
-    )
-
-
 class CEMTrainer(RLTrainer):
     def __init__(
         self,
@@ -37,15 +29,15 @@ class CEMTrainer(RLTrainer):
         parameters: CEMTrainerParameters,
         use_gpu: bool = False,
     ) -> None:
-        super().__init__(parameters.rl, use_gpu=use_gpu)
+        super().__init__(
+            parameters.rl,
+            use_gpu=use_gpu,
+            minibatch_size=parameters.mdnrnn.minibatch_size,
+        )
         self.cem_planner_network = cem_planner_network
         self.world_model_trainers = world_model_trainers
-        self.minibatch_size = parameters.mdnrnn.minibatch_size
 
     def train(self, training_batch: rlt.MemoryNetworkInput) -> None:
-        for i, trainer in enumerate(self.world_model_trainers):
-            losses = trainer.train(training_batch)
-            # TODO: report losses instead of printing them
-            # print_mdnrnn_losses(self.minibatch, i, losses)
-
+        for _, trainer in enumerate(self.world_model_trainers):
+            trainer.train(training_batch)
         self.minibatch += 1

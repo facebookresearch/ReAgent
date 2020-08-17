@@ -6,7 +6,7 @@ import logging
 
 from reagent.core.registry_meta import RegistryMeta
 from reagent.core.types import RLTrainingOutput
-from reagent.workflow.result_registries import ValidationResult
+from reagent.reporting.result_registries import ValidationResult
 
 
 logger = logging.getLogger(__name__)

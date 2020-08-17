@@ -3,7 +3,7 @@
 import logging
 import os
 import unittest
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, cast
 
 import gym
 import numpy as np
@@ -27,6 +27,13 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from reagent.workflow.model_managers.union import ModelManager__Union
 from tqdm import tqdm
+
+
+try:
+    # Use internal runner or OSS otherwise
+    from reagent.runners.fb.fb_batch_runner import FbBatchRunner as BatchRunner
+except ImportError:
+    from reagent.runners.oss_batch_runner import OssBatchRunner as BatchRunner
 
 
 logging.basicConfig(level=logging.INFO)
@@ -149,7 +156,7 @@ def train_mdnrnn(
                     batch_size=batch_size
                 )
                 preprocessed_test_batch = trainer_preprocessor(test_batch)
-                valid_losses = trainer.get_loss(preprocessed_test_batch)
+                valid_losses = trainer.compute_loss(preprocessed_test_batch)
                 print_mdnrnn_losses(epoch, "validation", valid_losses)
                 trainer.memory_network.mdnrnn.train()
     return trainer
@@ -171,11 +178,13 @@ def train_mdnrnn_and_compute_feature_stats(
     env.seed(SEED)
 
     manager = model.value
-    trainer = manager.initialize_trainer(
-        use_gpu=use_gpu,
+    runner = BatchRunner(
+        use_gpu,
+        manager,
         reward_options=RewardOptions(),
         normalization_data_map=build_normalizer(env),
     )
+    trainer = cast(MDNRNNTrainer, runner.initialize_trainer())
 
     device = "cuda" if use_gpu else "cpu"
     # pyre-fixme[6]: Expected `device` for 2nd param but got `str`.
@@ -288,11 +297,13 @@ def train_mdnrnn_and_train_on_embedded_env(
     env.seed(SEED)
 
     embedding_manager = embedding_model.value
-    embedding_trainer = embedding_manager.initialize_trainer(
-        use_gpu=use_gpu,
+    embedding_runner = BatchRunner(
+        use_gpu,
+        embedding_manager,
         reward_options=RewardOptions(),
         normalization_data_map=build_normalizer(env),
     )
+    embedding_trainer = cast(MDNRNNTrainer, embedding_runner.initialize_trainer())
 
     device = "cuda" if use_gpu else "cpu"
     embedding_trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
@@ -336,13 +347,14 @@ def train_mdnrnn_and_train_on_embedded_env(
         state_max_value=state_max,
     )
     agent_manager = train_model.value
-    agent_trainer = agent_manager.initialize_trainer(
+    agent_trainer = agent_manager.build_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
         # pyre-fixme[6]: Expected `EnvWrapper` for 1st param but got
         #  `StateEmbedEnvironment`.
         normalization_data_map=build_normalizer(embed_env),
     )
+    agent_trainer.reporter = agent_manager.get_reporter()
     device = "cuda" if use_gpu else "cpu"
     agent_trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
         agent_trainer,
@@ -359,7 +371,7 @@ def train_mdnrnn_and_train_on_embedded_env(
 
     # evaluate model
     rewards = []
-    policy = agent_manager.create_policy(serving=False)
+    policy = agent_manager.create_policy(agent_trainer)
     # pyre-fixme[6]: Expected `EnvWrapper` for 1st param but got
     #  `StateEmbedEnvironment`.
     agent = Agent.create_for_env(embed_env, policy=policy, device=device)

@@ -3,21 +3,101 @@
 
 import logging
 from collections import deque
-from typing import Callable, Deque, Dict, List, Optional
+from typing import Any, Callable, Deque, Dict, List, Optional
 
 import numpy as np
 import torch
-from reagent.core.tracker import Aggregator
 from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)
 
 
-class TensorAggregator(Aggregator):
+class Aggregator:
+    def __init__(self, key: str, interval: Optional[int] = None):
+        super().__init__()
+        self.key = key
+        self.iteration = 0
+        self.interval = interval
+        self.aggregate_epoch = interval is None
+        self.intermediate_values: List[Any] = []
+
+    def update(self, key: str, value):
+        self.intermediate_values.append(value)
+        self.iteration += 1
+        # pyre-fixme[6]: Expected `int` for 1st param but got `Optional[int]`.
+        if self.interval and self.iteration % self.interval == 0:
+            logger.info(
+                f"Interval Agg. Update: {self.key}; iteration {self.iteration}; "
+                f"aggregator: {self.__class__.__name__}"
+            )
+            self(self.key, self.intermediate_values)
+            self.intermediate_values = []
+
+    def finish_epoch(self):
+        # We need to reset iteration here to avoid aggregating on the same data multiple
+        # times
+        logger.info(
+            f"Epoch finished. Flushing: {self.key}; "
+            f"aggregator: {self.__class__.__name__}; points: {len(self.intermediate_values)}"
+        )
+        self.iteration = 0
+        if self.aggregate_epoch:
+            self(self.key, self.intermediate_values)
+        # If not aggregating by epoch, we still clear intermediate values to avoid aggregating partial information
+        self.intermediate_values = []
+
     def __call__(self, key: str, values):
+        assert key == self.key, f"Got {key}; expected {self.key}"
+        self.aggregate(values)
+
+    def aggregate(self, intermediate_values):
+        pass
+
+    def get_recent(self, count):
+        raise NotImplementedError()
+
+    def get_all(self):
+        raise NotImplementedError()
+
+
+class AppendAggregator(Aggregator):
+    def __init__(self, key: str, interval: Optional[int] = None):
+        super().__init__(key, interval)
+        self.values = []
+
+    def __call__(self, key: str, values):
+        assert key == self.key, f"Got {key}; expected {self.key}"
+        self.aggregate(values)
+
+    def aggregate(self, intermediate_values):
+        self.values.extend(intermediate_values)
+
+    def get_recent(self, count):
+        if len(self.values) == 0:
+            return []
+        return self.values[-count:]
+
+    def get_all(self):
+        return self.values
+
+
+class TensorAggregator(Aggregator):
+    def __call__(self, key: str, values, interval: Optional[int] = None):
+        if len(values) == 0:
+            return super().__call__(key, torch.tensor([0.0]))
         # Ensure that tensor is on cpu before aggregation.
-        values = torch.cat(values, dim=0).cpu()
+        reshaped_values = []
+        for value in values:
+            if isinstance(value, list):
+                reshaped_values.append(torch.tensor(value))
+            elif not hasattr(value, "size"):
+                reshaped_values.append(torch.tensor(value).unsqueeze(0))
+            elif len(value.size()) == 0:
+                reshaped_values.append(value.unsqueeze(0))
+            else:
+                reshaped_values.append(value)
+        values = torch.cat(reshaped_values, dim=0).cpu()
         return super().__call__(key, values)
 
 
@@ -35,8 +115,8 @@ def _log_histogram_and_mean(log_key, val):
 
 
 class TensorBoardHistogramAndMeanAggregator(TensorAggregator):
-    def __init__(self, key: str, log_key: str):
-        super().__init__(key)
+    def __init__(self, key: str, log_key: str, interval: Optional[int] = None):
+        super().__init__(key, interval)
         self.log_key = log_key
 
     def aggregate(self, values):
@@ -54,8 +134,9 @@ class TensorBoardActionHistogramAndMeanAggregator(TensorAggregator):
         title: str,
         actions: List[str],
         log_key_prefix: Optional[str] = None,
+        interval: Optional[int] = None,
     ):
-        super().__init__(key)
+        super().__init__(key, interval)
         self.log_key_prefix = log_key_prefix or f"{category}/{title}"
         self.actions = actions
         SummaryWriterContext.add_custom_scalars_multilinechart(
@@ -77,8 +158,10 @@ class TensorBoardActionHistogramAndMeanAggregator(TensorAggregator):
 
 
 class TensorBoardActionCountAggregator(TensorAggregator):
-    def __init__(self, key: str, title: str, actions: List[str]):
-        super().__init__(key)
+    def __init__(
+        self, key: str, title: str, actions: List[str], interval: Optional[int] = None
+    ):
+        super().__init__(key, interval)
         self.log_key = f"actions/{title}"
         self.actions = actions
         SummaryWriterContext.add_custom_scalars_multilinechart(
@@ -95,14 +178,22 @@ class TensorBoardActionCountAggregator(TensorAggregator):
 
 
 class MeanAggregator(TensorAggregator):
-    def __init__(self, key: str):
-        super().__init__(key)
+    def __init__(self, key: str, interval: Optional[int] = None):
+        super().__init__(key, interval)
         self.values: List[float] = []
 
     def aggregate(self, values):
         mean = values.mean().item()
         logger.info(f"{self.key}: {mean}")
         self.values.append(mean)
+
+    def get_recent(self, count):
+        if len(self.values) == 0:
+            return []
+        return self.values[-count:]
+
+    def get_all(self):
+        return self.values
 
 
 class FunctionsByActionAggregator(TensorAggregator):
@@ -144,8 +235,14 @@ class FunctionsByActionAggregator(TensorAggregator):
         }
     """
 
-    def __init__(self, key: str, actions: List[str], fns: Dict[str, Callable]):
-        super().__init__(key)
+    def __init__(
+        self,
+        key: str,
+        actions: List[str],
+        fns: Dict[str, Callable],
+        interval: Optional[int] = None,
+    ):
+        super().__init__(key, interval)
         self.actions = actions
         self.values: Dict[str, Dict[str, List[float]]] = {
             fn: {action: [] for action in self.actions} for fn in fns
@@ -172,8 +269,8 @@ class ActionCountAggregator(TensorAggregator):
     `len(actions) - 1`. The input is assumed to contain action index.
     """
 
-    def __init__(self, key: str, actions: List[str]):
-        super().__init__(key)
+    def __init__(self, key: str, actions: List[str], interval: Optional[int] = None):
+        super().__init__(key, interval)
         self.actions = actions
         self.values: Dict[str, List[int]] = {action: [] for action in actions}
 
@@ -190,7 +287,7 @@ class ActionCountAggregator(TensorAggregator):
         """
         totals = np.array([sum(counts) for counts in zip(*self.values.values())])
         return {
-            action: (np.array(counts) / totals).tolist()
+            action: (np.array(counts) / np.clip(totals, 1, None)).tolist()
             for action, counts in self.values.items()
         }
 
@@ -198,7 +295,7 @@ class ActionCountAggregator(TensorAggregator):
         """
         Returns the cumulative distributions in each aggregating step
         """
-        totals = sum(sum(counts) for counts in zip(*self.values.values()))
+        totals = max(1, sum(sum(counts) for counts in zip(*self.values.values())))
         return {action: sum(counts) / totals for action, counts in self.values.items()}
 
 
@@ -206,10 +303,20 @@ _RECENT_DEFAULT_SIZE = int(1e6)
 
 
 class RecentValuesAggregator(TensorAggregator):
-    def __init__(self, key: str, size: int = _RECENT_DEFAULT_SIZE):
-        super().__init__(key)
+    def __init__(
+        self, key: str, size: int = _RECENT_DEFAULT_SIZE, interval: Optional[int] = None
+    ):
+        super().__init__(key, interval)
         self.values: Deque[float] = deque(maxlen=size)
 
     def aggregate(self, values):
         flattened = torch.flatten(values).tolist()
         self.values.extend(flattened)
+
+    def get_recent(self, count):
+        if len(self.values) == 0:
+            return []
+        return self.values[-count:]
+
+    def get_all(self):
+        return self.values

@@ -34,7 +34,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
             default_factory=Optimizer__Union.default
         ),
     ) -> None:
-        super().__init__(rl, use_gpu=use_gpu)
+        super().__init__(rl, minibatch_size=minibatch_size, use_gpu=use_gpu)
 
         self.double_q_learning = double_q_learning
         self.minibatch_size = minibatch_size
@@ -161,7 +161,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
                 self.reward_network_optimizer, self.minibatches_per_step
             )
 
-        self.loss_reporter.report(
+        self.reporter.report(
             td_loss=td_loss.detach().cpu(),
             reward_loss=reward_loss.detach().cpu(),
             logged_rewards=reward,

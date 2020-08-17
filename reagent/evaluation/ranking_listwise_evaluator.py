@@ -7,7 +7,6 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.nn as nn
-from reagent.core.tracker import observable
 from reagent.models.seq2slate import Seq2SlateMode
 from reagent.types import PreprocessedTrainingBatch
 from sklearn.metrics import (
@@ -29,17 +28,6 @@ class ListwiseRankingMetrics:
     cross_entropy_loss: Optional[float] = 0.0
 
 
-@observable(
-    cross_entropy_loss=torch.Tensor,
-    dcg=torch.Tensor,
-    ndcg=torch.Tensor,
-    mean_ap=torch.Tensor,
-    auc=torch.Tensor,
-    base_dcg=torch.Tensor,
-    base_ndcg=torch.Tensor,
-    base_map=torch.Tensor,
-    base_auc=torch.Tensor,
-)
 class RankingListwiseEvaluator:
     """ Evaluate listwise ranking models on common ranking metrics """
 
@@ -55,6 +43,7 @@ class RankingListwiseEvaluator:
         self.base_map = []
         self.log_softmax = nn.LogSoftmax(dim=1)
         self.kl_loss = nn.KLDivLoss(reduction="batchmean")
+        self.reporter = None
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
@@ -83,9 +72,7 @@ class RankingListwiseEvaluator:
         self.seq2slate_net.train(seq2slate_net_prev_mode)
 
         if not self.calc_cpe:
-            # pyre-fixme[16]: `RankingListwiseEvaluator` has no attribute
-            #  `notify_observers`.
-            self.notify_observers(cross_entropy_loss=ce_loss)
+            self.reporter.report_evaluation_minibatch(cross_entropy_loss=ce_loss)
             return
 
         # shape: batch_size, tgt_seq_len
@@ -132,7 +119,7 @@ class RankingListwiseEvaluator:
             batch_base_dcg.append(dcg_score(truth_scores, base_scores))
             batch_base_ndcg.append(ndcg_score(truth_scores, base_scores))
 
-        self.notify_observers(
+        self.reporter.report_evaluation_minibatch(
             cross_entropy_loss=ce_loss,
             dcg=torch.mean(torch.tensor(batch_dcg)).reshape(1),
             ndcg=torch.mean(torch.tensor(batch_ndcg)).reshape(1),
@@ -145,5 +132,5 @@ class RankingListwiseEvaluator:
         )
 
     @torch.no_grad()
-    def evaluate_post_training(self):
+    def evaluate_one_shot(self):
         pass
