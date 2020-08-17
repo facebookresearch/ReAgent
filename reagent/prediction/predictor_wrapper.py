@@ -6,7 +6,6 @@ from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
 import torch
-import torch.nn.functional as F
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.models.seq2slate_reward import Seq2SlateRewardNetBase
@@ -17,6 +16,7 @@ from reagent.preprocessing.sparse_preprocessor import (
     make_sparse_preprocessor,
 )
 from reagent.torch_utils import gather
+from reagent.training.utils import gen_permutations
 from torch import nn
 
 
@@ -417,17 +417,6 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         super().__init__(model, state_preprocessor, rlt.ModelFeatureConfig())
         self.seq_len = seq_len
         self.num_action = num_action
-
-        def gen_permutations(seq_len: int, num_action: int) -> torch.Tensor:
-            """
-            generate all seq_len permutations for a given action set
-            the return shape is (SEQ_LEN, PERM_NUM, ACTION_DIM)
-            """
-            all_permut = torch.cartesian_prod(*[torch.arange(num_action)] * seq_len)
-            all_permut = F.one_hot(all_permut, num_action).transpose(0, 1)
-
-            return all_permut.float()
-
         self.all_permut = gen_permutations(seq_len, num_action)
         self.num_permut = self.all_permut.size(1)
 
@@ -607,3 +596,13 @@ class MDNRNNWithPreprocessor(ModelBase):
             self.state_preprocessor.input_prototype(),
             torch.randn(1, 1, self.num_action, device=self.state_preprocessor.device),
         )
+
+
+class CompressModelWithPreprocessor(DiscreteDqnWithPreprocessor):
+    def forward(self, state: rlt.ServingFeatureData):
+        state_feature_data = serving_to_feature_data(
+            state, self.state_preprocessor, self.sparse_preprocessor
+        )
+        # TODO: model is a fully connected network which only takes in Tensor now.
+        q_values = self.model(state_feature_data.float_features)
+        return q_values

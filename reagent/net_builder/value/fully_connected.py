@@ -26,13 +26,13 @@ class FullyConnected(ValueNetBuilder):
         )
 
     def build_value_network(
-        self, state_normalization_data: NormalizationData
+        self, state_normalization_data: NormalizationData, output_dim: int = 1
     ) -> torch.nn.Module:
         state_dim = get_num_output_features(
             state_normalization_data.dense_normalization_parameters
         )
         return FullyConnectedNetwork(
-            [state_dim] + self.sizes + [1],
+            [state_dim] + self.sizes + [output_dim],
             self.activations + ["linear"],
             use_layer_norm=self.use_layer_norm,
         )
