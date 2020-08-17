@@ -5,6 +5,7 @@ from typing import Union
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 
 EPS = np.finfo(float).eps.item()
@@ -48,3 +49,13 @@ def discounted_returns(rewards: torch.Tensor, gamma: float = 0) -> torch.Tensor:
             R = r + gamma * R
             returns.insert(0, R)
         return torch.tensor(returns).float()
+
+
+def gen_permutations(seq_len: int, num_action: int) -> torch.Tensor:
+    """
+    generate all seq_len permutations for a given action set
+    the return shape is (SEQ_LEN, PERM_NUM, ACTION_DIM)
+    """
+    all_permut = torch.cartesian_prod(*[torch.arange(num_action)] * seq_len)
+    all_permut = F.one_hot(all_permut, num_action).transpose(0, 1)
+    return all_permut.float()

@@ -73,6 +73,7 @@ class Seq2RewardTrainerParameters(BaseDataClass):
     action_names: List[str] = field(default_factory=lambda: [])
     batch_size: int = 32
     gamma: float = 0.9
+    view_q_value: bool = False
 
 
 @dataclass(frozen=True)

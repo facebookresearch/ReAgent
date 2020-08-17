@@ -5,6 +5,7 @@ import logging
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.unions import ValueNetBuilder__Union
+from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
 from reagent.parameters import Seq2RewardTrainerParameters, param_hash
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
@@ -23,6 +24,12 @@ class Seq2RewardModel(WorldModelBase):
         default_factory=lambda: ValueNetBuilder__Union(
             Seq2RewardNetBuilder=Seq2RewardNetBuilder()
         )
+    )
+
+    compress_net_builder: ValueNetBuilder__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        default_factory=lambda: ValueNetBuilder__Union(FullyConnected=FullyConnected())
     )
 
     trainer_param: Seq2RewardTrainerParameters = field(
