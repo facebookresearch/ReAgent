@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.parameters import Seq2RewardTrainerParameters
-from reagent.training.loss_reporter import NoOpLossReporter
+from reagent.reporting.world_model_reporter import WorldModelReporter
 from reagent.training.trainer import Trainer
 from reagent.training.utils import gen_permutations
 
@@ -28,7 +28,7 @@ class Seq2RewardTrainer(Trainer):
             self.seq2reward_network.parameters(), lr=params.learning_rate
         )
         self.minibatch_size = self.params.batch_size
-        self.loss_reporter = NoOpLossReporter()
+        self.reporter = WorldModelReporter()
 
         # PageHandler must use this to activate evaluator:
         self.calc_cpe_in_training = True
@@ -37,7 +37,7 @@ class Seq2RewardTrainer(Trainer):
 
     def train(self, training_batch: rlt.MemoryNetworkInput):
         self.optimizer.zero_grad()
-        loss = self.get_loss(training_batch)
+        loss = self.compute_loss(training_batch)
         loss.backward()
         self.optimizer.step()
         detached_loss = loss.cpu().detach().item()
@@ -51,10 +51,11 @@ class Seq2RewardTrainer(Trainer):
             .mean(0)
             .tolist()
         )
+        self.reporter.report(mse=detached_loss)
 
         return (detached_loss, q_values)
 
-    def get_loss(self, training_batch: rlt.MemoryNetworkInput):
+    def compute_loss(self, training_batch: rlt.MemoryNetworkInput):
         """
         Compute losses:
             MSE(predicted_acc_reward, target_acc_reward)

@@ -64,7 +64,7 @@ ml.rl.training.imitator\_training module
 ml.rl.training.loss\_reporter module
 ------------------------------------
 
-.. automodule:: ml.rl.training.loss_reporter
+.. automodule:: ml.rl.training.rl_reporter
    :members:
    :undoc-members:
    :show-inheritance:

@@ -7,20 +7,11 @@ import reagent.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
-from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
 
 
-@observable(
-    td_loss=torch.Tensor,
-    logged_actions=torch.Tensor,
-    logged_propensities=torch.Tensor,
-    logged_rewards=torch.Tensor,
-    model_values=torch.Tensor,
-    model_action_idxs=torch.Tensor,
-)
 class C51Trainer(RLTrainer):
     """
     Implementation of 51 Categorical DQN (C51)
@@ -34,7 +25,7 @@ class C51Trainer(RLTrainer):
         q_network,
         q_network_target,
         metrics_to_score=None,
-        loss_reporter=None,
+        reporter=None,
         use_gpu: bool = False,
         actions: List[str] = field(default_factory=list),  # noqa: B008
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
@@ -55,9 +46,10 @@ class C51Trainer(RLTrainer):
             self,
             rl,
             use_gpu=use_gpu,
+            minibatch_size=minibatch_size,
             metrics_to_score=metrics_to_score,
             actions=actions,
-            loss_reporter=loss_reporter,
+            reporter=reporter,
         )
 
         self.double_q_learning = double_q_learning
@@ -177,8 +169,7 @@ class C51Trainer(RLTrainer):
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )
 
-        # pyre-fixme[16]: `C51Trainer` has no attribute `notify_observers`.
-        self.notify_observers(
+        self.reporter.report(
             td_loss=loss,
             logged_actions=torch.argmax(training_batch.action, dim=1, keepdim=True),
             logged_propensities=training_batch.extras.action_probability,

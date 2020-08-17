@@ -47,7 +47,7 @@ class TD3Trainer(RLTrainer):
         """
         Args: TODO: fill in
         """
-        super().__init__(rl, use_gpu=use_gpu)
+        super().__init__(rl, use_gpu=use_gpu, minibatch_size=minibatch_size)
 
         self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step or 1
@@ -180,9 +180,8 @@ class TD3Trainer(RLTrainer):
                 SummaryWriterContext.add_histogram(k, v.numpy())
                 SummaryWriterContext.add_scalar(f"{k}_mean", v.mean().item())
 
-        self.loss_reporter.report(
+        self.reporter.report(
             td_loss=float(q1_loss),
-            reward_loss=None,
             logged_rewards=reward,
             model_values_on_logged_actions=q1_value,
         )

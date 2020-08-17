@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 # Triggering registration to registries
 import reagent.core.result_types  # noqa
-import reagent.workflow.training_reports  # noqa
+import reagent.reporting.oss_training_reports  # noqa
 from reagent.core.dataclasses import dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.tagged_union import TaggedUnion  # noqa F401
@@ -17,16 +17,9 @@ from reagent.preprocessing.normalization import (
     DEFAULT_NUM_SAMPLES,
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
+from reagent.reporting.result_registries import PublishingResult, ValidationResult
+from reagent.reporting.training_reports import TrainingReport
 from reagent.types import BaseDataClass
-from reagent.workflow.result_registries import PublishingResult, ValidationResult
-from reagent.workflow.training_reports import TrainingReport
-
-
-if IS_FB_ENVIRONMENT:
-    from reagent.fb.models.model_feature_config_builder import (  # noqa
-        ConfigeratorModelFeatureConfigProvider,
-    )
-    import reagent.core.fb.fb_types  # noqa
 
 
 @dataclass
@@ -50,27 +43,11 @@ class TableSpec:
 class RewardOptions:
     custom_reward_expression: Optional[str] = None
     metric_reward_values: Optional[Dict[str, float]] = None
-    additional_reward_expression: Optional[str] = None
-
-    # for ranking
-    # key: feature id in slate_reward column, value: linear coefficient
-    slate_reward_values: Optional[Dict[str, float]] = None
-    # key: feature id in item_reward column, value: linear coefficient
-    item_reward_values: Optional[Dict[str, float]] = None
 
 
 @dataclass
 class ReaderOptions:
-    num_threads: int = 32
-    skip_smaller_batches: bool = True
-    num_workers: int = 0
-    koski_logging_level: int = 2
-    # distributed reader
-    distributed_reader: bool = False
-    distributed_master_mem: str = "20G"
-    distributed_worker_mem: str = "20G"
-    distributed_num_workers: int = 2
-    gang_name: str = ""
+    pass
 
 
 @dataclass
@@ -80,10 +57,7 @@ class OssReaderOptions(ReaderOptions):
 
 @dataclass
 class ResourceOptions:
-    cpu: Optional[int] = None
-    # "-1" or "xxG" where "xx" is a positive integer
-    memory: Optional[str] = "40g"
-    gpu: int = 1
+    pass
 
 
 @dataclass
@@ -109,20 +83,22 @@ class PreprocessingOptions(BaseDataClass):
     set_missing_value_to_zero: Optional[bool] = False
     whitelist_features: Optional[List[int]] = None
     assert_whitelist_feature_coverage: bool = True
+    variance_threshold: VarianceThreshold = VarianceThreshold()
+    sequence_feature_id: Optional[int] = None
+
     ignore_sanity_check_failure: bool = IGNORE_SANITY_CHECK_FAILURE
     ignore_sanity_check_task: bool = False
-    variance_threshold: VarianceThreshold = VarianceThreshold()
     load_from_operator_id: Optional[int] = None
     skip_sanity_check: bool = False
-    sequence_feature_id: Optional[int] = None
+
+    # IdMappings are stored in manifold folder:
+    # "tree/{namespace}/{tablename}/{ds}/{base_mapping_name}/{embedding_table_name}"
+    base_mapping_name: str = "DefaultMappingName"
 
     ### below here for preprocessing sparse features ###
     # If the number of occurrences of any raw features ids is lower than this, we
     # ignore those feature ids when constructing the IdMapping
     sparse_threshold: int = 0
-    # IdMappings are stored in manifold folder:
-    # "tree/{namespace}/{tablename}/{ds}/{base_mapping_name}/{embedding_table_name}"
-    base_mapping_name: str = "DefaultMappingName"
 
 
 @ModelFeatureConfigProvider.fill_union()
@@ -141,7 +117,7 @@ class ValidationResult__Union(TaggedUnion):
 
 
 @TrainingReport.fill_union()
-class RLTrainingReport(TaggedUnion):
+class TrainingReport__Union(TaggedUnion):
     pass
 
 
@@ -149,5 +125,5 @@ class RLTrainingReport(TaggedUnion):
 class RLTrainingOutput:
     validation_result: Optional[ValidationResult__Union] = None
     publishing_result: Optional[PublishingResult__Union] = None
-    training_report: Optional[RLTrainingReport] = None
-    output_path: Optional[str] = None
+    training_report: Optional[TrainingReport__Union] = None
+    local_output_path: Optional[str] = None

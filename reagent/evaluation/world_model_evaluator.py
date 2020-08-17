@@ -4,6 +4,10 @@ import logging
 from typing import Dict, List
 
 import torch
+from reagent.reporting.world_model_reporter import (
+    DebugToolsReporter,
+    WorldModelReporter,
+)
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from reagent.types import FeatureData, MemoryNetworkInput
 
@@ -11,16 +15,17 @@ from reagent.types import FeatureData, MemoryNetworkInput
 logger = logging.getLogger(__name__)
 
 
-class LossEvaluator(object):
+class WorldModelLossEvaluator(object):
     """ Evaluate losses on data pages """
 
     def __init__(self, trainer: MDNRNNTrainer, state_dim: int) -> None:
         self.trainer = trainer
         self.state_dim = state_dim
+        self.reporter = WorldModelReporter(1)
 
-    def evaluate(self, tdp: MemoryNetworkInput) -> Dict[str, float]:
+    def evaluate(self, tdp: MemoryNetworkInput) -> None:
         self.trainer.memory_network.mdnrnn.eval()
-        losses = self.trainer.get_loss(tdp, state_dim=self.state_dim)
+        losses = self.trainer.compute_loss(tdp, state_dim=self.state_dim)
         detached_losses = {
             "loss": losses["loss"].cpu().detach().item(),
             "gmm": losses["gmm"].cpu().detach().item(),
@@ -29,7 +34,10 @@ class LossEvaluator(object):
         }
         del losses
         self.trainer.memory_network.mdnrnn.train()
-        return detached_losses
+        self.reporter.report(**detached_losses)
+
+    def finish(self):
+        pass
 
 
 class FeatureImportanceEvaluator(object):
@@ -57,6 +65,7 @@ class FeatureImportanceEvaluator(object):
         self.action_feature_num = action_feature_num
         self.sorted_action_feature_start_indices = sorted_action_feature_start_indices
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
+        self.reporter = DebugToolsReporter()
 
     def evaluate(self, batch: MemoryNetworkInput):
         """ Calculate feature importance: setting each state/action feature to
@@ -71,7 +80,7 @@ class FeatureImportanceEvaluator(object):
         state_feature_num = self.state_feature_num
         feature_importance = torch.zeros(action_feature_num + state_feature_num)
 
-        orig_losses = self.trainer.get_loss(batch, state_dim=state_dim)
+        orig_losses = self.trainer.compute_loss(batch, state_dim=state_dim)
         orig_loss = orig_losses["loss"].cpu().detach().item()
         del orig_losses
 
@@ -115,7 +124,7 @@ class FeatureImportanceEvaluator(object):
                 not_terminal=batch.not_terminal,
                 step=None,
             )
-            losses = self.trainer.get_loss(new_batch, state_dim=state_dim)
+            losses = self.trainer.compute_loss(new_batch, state_dim=state_dim)
             feature_importance[i] = losses["loss"].cpu().detach().item() - orig_loss
             del losses
 
@@ -142,7 +151,7 @@ class FeatureImportanceEvaluator(object):
                 not_terminal=batch.not_terminal,
                 step=None,
             )
-            losses = self.trainer.get_loss(new_batch, state_dim=state_dim)
+            losses = self.trainer.compute_loss(new_batch, state_dim=state_dim)
             feature_importance[i + action_feature_num] = (
                 losses["loss"].cpu().detach().item() - orig_loss
             )
@@ -152,6 +161,7 @@ class FeatureImportanceEvaluator(object):
         logger.info(
             "**** Debug tool feature importance ****: {}".format(feature_importance)
         )
+        self.reporter.report(feature_importance=feature_importance.numpy())
         return {"feature_loss_increase": feature_importance.numpy()}
 
     def compute_median_feature_value(self, features):
@@ -170,6 +180,9 @@ class FeatureImportanceEvaluator(object):
             median_feature = features.mean(dim=0)
         return median_feature
 
+    def finish(self):
+        pass
+
 
 class FeatureSensitivityEvaluator(object):
     """ Evaluate state feature sensitivity caused by varying actions """
@@ -183,6 +196,7 @@ class FeatureSensitivityEvaluator(object):
         self.trainer = trainer
         self.state_feature_num = state_feature_num
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
+        self.reporter = DebugToolsReporter()
 
     def evaluate(self, batch: MemoryNetworkInput):
         """ Calculate state feature sensitivity due to actions:
@@ -240,4 +254,8 @@ class FeatureSensitivityEvaluator(object):
         logger.info(
             "**** Debug tool feature sensitivity ****: {}".format(feature_sensitivity)
         )
+        self.reporter.report(feature_sensitivity=feature_sensitivity.numpy())
         return {"feature_sensitivity": feature_sensitivity.numpy()}
+
+    def finish(self):
+        pass

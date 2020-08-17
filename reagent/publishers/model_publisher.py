@@ -6,8 +6,8 @@ from typing import Optional
 
 from reagent.core.registry_meta import RegistryMeta
 from reagent.core.types import RecurringPeriod, RLTrainingOutput
+from reagent.reporting.result_registries import PublishingResult
 from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.result_registries import PublishingResult
 
 
 class ModelPublisher(metaclass=RegistryMeta):

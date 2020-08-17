@@ -9,7 +9,6 @@ import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import field
-from reagent.core.tracker import observable
 from reagent.models.seq2slate import (
     DECODER_START_SYMBOL,
     BaselineNet,
@@ -63,15 +62,6 @@ def swap_dist(idx: List[int]):
     return swap_dist_in_slate(idx) + swap_dist_out_slate(idx)
 
 
-@observable(
-    train_ips_score=torch.Tensor,
-    train_clamped_ips_score=torch.Tensor,
-    train_baseline_loss=torch.Tensor,
-    train_log_probs=torch.Tensor,
-    train_ips_ratio=torch.Tensor,
-    train_clamped_ips_ratio=torch.Tensor,
-    train_advantage=torch.Tensor,
-)
 class Seq2SlateSimulationTrainer(Trainer):
     """
     Seq2Slate learned with simulation data, with the action
@@ -234,7 +224,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         )
         return on_policy_input
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
+    def train(self, training_batch: rlt.PreprocessedTrainingBatch) -> None:
         assert type(training_batch) is rlt.PreprocessedTrainingBatch
         training_input = training_batch.training_input
         assert isinstance(training_input, rlt.PreprocessedRankingInput)

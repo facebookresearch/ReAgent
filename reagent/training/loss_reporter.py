@@ -43,9 +43,10 @@ class BatchStats(NamedTuple):
                 for i, action in enumerate(actions):
                     # pyre-fixme[16]: `SummaryWriterContext` has no attribute
                     #  `add_scalar`.
-                    SummaryWriterContext.add_scalar(
-                        "{}/{}".format(log_key, action), (val == i).sum().item()
-                    )
+                    # SummaryWriterContext.add_scalar(
+                    #    "{}/{}".format(log_key, action), (val == i).sum().item()
+                    # )
+                    pass
 
         for field, log_key in [
             ("td_loss", "td_loss"),
@@ -88,8 +89,9 @@ class BatchStats(NamedTuple):
 
     def _log_histogram_and_mean(self, log_key, val):
         try:
-            SummaryWriterContext.add_histogram(log_key, val)
-            SummaryWriterContext.add_scalar(f"{log_key}/mean", val.mean())
+            # SummaryWriterContext.add_histogram(log_key, val)
+            # SummaryWriterContext.add_scalar(f"{log_key}/mean", val.mean())
+            pass
         except ValueError:
             logger.warning(
                 f"Cannot create histogram for key: {log_key}; "
@@ -103,32 +105,32 @@ class BatchStats(NamedTuple):
         if not action_names:
             return
 
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            [
-                "propensities/model/{}/mean".format(action_name)
-                for action_name in action_names
-            ],
-            category="propensities",
-            title="model",
-        )
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            [
-                "propensities/logged/{}/mean".format(action_name)
-                for action_name in action_names
-            ],
-            category="propensities",
-            title="logged",
-        )
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            ["actions/logged/{}".format(action_name) for action_name in action_names],
-            category="actions",
-            title="logged",
-        )
-        SummaryWriterContext.add_custom_scalars_multilinechart(
-            ["actions/model/{}".format(action_name) for action_name in action_names],
-            category="actions",
-            title="model",
-        )
+        # SummaryWriterContext.add_custom_scalars_multilinechart(
+        #    [
+        #        "propensities/model/{}/mean".format(action_name)
+        #        for action_name in action_names
+        #    ],
+        #    category="propensities",
+        #    title="model",
+        # )
+        # SummaryWriterContext.add_custom_scalars_multilinechart(
+        #    [
+        #        "propensities/logged/{}/mean".format(action_name)
+        #        for action_name in action_names
+        #    ],
+        #    category="propensities",
+        #    title="logged",
+        # )
+        # SummaryWriterContext.add_custom_scalars_multilinechart(
+        #    ["actions/logged/{}".format(action_name) for action_name in action_names],
+        #    category="actions",
+        #    title="logged",
+        # )
+        # SummaryWriterContext.add_custom_scalars_multilinechart(
+        #    ["actions/model/{}".format(action_name) for action_name in action_names],
+        #    category="actions",
+        #    title="model",
+        # )
 
 
 def merge_tensor_namedtuple_list(l, cls):
@@ -348,7 +350,8 @@ class LossReporter(object):
             ("Training/imitator_loss", self.get_recent_imitator_loss()),
         ]:
             # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
-            SummaryWriterContext.add_scalar(name, none_to_zero(value), epoch)
+            # SummaryWriterContext.add_scalar(name, none_to_zero(value), epoch)
+            pass
 
     @staticmethod
     def calculate_recent_window_average(arr, window_size, num_entries):

@@ -8,7 +8,6 @@ import reagent.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
-from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
@@ -17,16 +16,6 @@ from reagent.training.dqn_trainer_base import DQNTrainerBase
 logger = logging.getLogger(__name__)
 
 
-@observable(
-    td_loss=torch.Tensor,
-    logged_actions=torch.Tensor,
-    logged_propensities=torch.Tensor,
-    logged_rewards=torch.Tensor,
-    model_propensities=torch.Tensor,
-    model_rewards=torch.Tensor,
-    model_values=torch.Tensor,
-    model_action_idxs=torch.Tensor,
-)
 class QRDQNTrainer(DQNTrainerBase):
     """
     Implementation of QR-DQN (Quantile Regression Deep Q-Network)
@@ -43,7 +32,7 @@ class QRDQNTrainer(DQNTrainerBase):
         reward_network=None,
         q_network_cpe=None,
         q_network_cpe_target=None,
-        loss_reporter=None,
+        reporter=None,
         use_gpu: bool = False,
         actions: List[str] = field(default_factory=list),  # noqa: B008
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
@@ -67,11 +56,11 @@ class QRDQNTrainer(DQNTrainerBase):
             metrics_to_score=metrics_to_score,
             actions=actions,
             evaluation_parameters=evaluation,
-            loss_reporter=loss_reporter,
+            reporter=reporter,
+            minibatch_size=minibatch_size,
         )
 
         self.double_q_learning = double_q_learning
-        self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step
         self._actions = actions
 
@@ -194,30 +183,21 @@ class QRDQNTrainer(DQNTrainerBase):
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )
 
-        # pyre-fixme[16]: `QRDQNTrainer` has no attribute `notify_observers`.
-        self.notify_observers(
+        self.reporter.report(
             td_loss=loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,
-            model_propensities=model_propensities,
-            model_rewards=model_rewards,
             model_values=all_q_values,
             model_action_idxs=model_action_idxs,
         )
 
-        self.loss_reporter.report(
-            td_loss=loss,
-            logged_actions=logged_action_idxs,
-            logged_propensities=training_batch.extras.action_probability,
-            logged_rewards=rewards,
-            logged_values=None,  # Compute at end of each epoch for CPE
-            model_propensities=model_propensities,
-            model_rewards=model_rewards,
-            model_values=all_q_values,
-            model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
-            model_action_idxs=model_action_idxs,
-        )
+        if reward_loss is not None:
+            self.reporter.report(
+                reward_loss=reward_loss,
+                model_propensities=model_propensities,
+                model_rewards=model_rewards,
+            )
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.

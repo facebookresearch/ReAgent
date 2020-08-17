@@ -2,15 +2,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from collections import deque
-from typing import Deque, Optional
+from typing import Optional
 
+import numpy as np
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.models.mdn_rnn import gmm_loss
 from reagent.models.world_model import MemoryNetwork
 from reagent.parameters import MDNRNNTrainerParameters
+from reagent.reporting.world_model_reporter import WorldModelReporter
 from reagent.training.trainer import Trainer
 
 
@@ -20,48 +21,54 @@ logger = logging.getLogger(__name__)
 class MDNRNNTrainer(Trainer):
     """ Trainer for MDN-RNN """
 
-    def __init__(
-        self,
-        memory_network: MemoryNetwork,
-        params: MDNRNNTrainerParameters,
-        cum_loss_hist: int = 100,
-    ):
+    def __init__(self, memory_network: MemoryNetwork, params: MDNRNNTrainerParameters):
+        super().__init__(params.minibatch_size)
         self.memory_network = memory_network
         self.params = params
         self.optimizer = torch.optim.Adam(
             self.memory_network.mdnrnn.parameters(), lr=params.learning_rate
         )
         self.minibatch = 0
-        self.minibatch_size = params.minibatch_size
-        self.cum_loss: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_bce: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
+        self.reporter = WorldModelReporter()
+
+    def train(self, training_batch: rlt.MemoryNetworkInput) -> None:
+        if self.params.shuffle_training_data:
+            _, batch_size, _ = training_batch.next_state.float_features.size()
+
+            training_batch = rlt.MemoryNetworkInput(
+                state=training_batch.state,
+                action=training_batch.action,
+                time_diff=torch.ones_like(training_batch.reward),
+                # shuffle the data
+                next_state=training_batch.next_state._replace(
+                    float_features=training_batch.next_state.float_features[
+                        :, torch.randperm(batch_size), :
+                    ]
+                ),
+                reward=training_batch.reward[:, torch.randperm(batch_size)],
+                not_terminal=training_batch.not_terminal[  # type: ignore
+                    :, torch.randperm(batch_size)
+                ],
+                step=None,
+            )
 
         # PageHandler must use this to activate evaluator:
         self.calc_cpe_in_training = True
-
-    def train(self, training_batch: rlt.MemoryNetworkInput):
         self.minibatch += 1
 
         (seq_len, batch_size, state_dim) = training_batch.state.float_features.shape
 
         self.memory_network.mdnrnn.train()
         self.optimizer.zero_grad()
-        losses = self.get_loss(training_batch, state_dim)
+        losses = self.compute_loss(training_batch, state_dim)
         losses["loss"].backward()
         self.optimizer.step()
 
         detached_losses = {k: loss.cpu().detach().item() for k, loss in losses.items()}
-        self.cum_loss.append(detached_losses["loss"])
-        self.cum_gmm.append(detached_losses["gmm"])
-        self.cum_bce.append(detached_losses["bce"])
-        self.cum_mse.append(detached_losses["mse"])
-        del losses
-
+        self.reporter.report(**detached_losses)
         return detached_losses
 
-    def get_loss(
+    def compute_loss(
         self, training_batch: rlt.MemoryNetworkInput, state_dim: Optional[int] = None
     ):
         """

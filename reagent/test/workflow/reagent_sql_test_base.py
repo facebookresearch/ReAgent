@@ -11,7 +11,7 @@ import torch
 
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark import SparkConf
-from reagent.workflow.spark_utils import DEFAULT_SPARK_CONFIG
+from reagent.workflow.spark_utils import DEFAULT_SPARK_CONFIG, TEST_SPARK_SESSION
 
 # pyre-fixme[21]: Could not find `sparktestingbase`.
 from sparktestingbase.sqltestcase import SQLTestCase
@@ -49,6 +49,7 @@ class ReagentSQLTestBase(SQLTestCase):
 
     def setUp(self):
         super().setUp()
+        TEST_SPARK_SESSION = self.sc
         assert not os.path.isdir(
             HIVE_METASTORE
         ), f"{HIVE_METASTORE} already exists! Try deleting it."

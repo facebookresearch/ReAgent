@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from reagent import types as rlt
+from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.training.reward_network_trainer import RewardNetTrainer
 from reagent.types import PreprocessedTrainingBatch
 
@@ -21,7 +22,7 @@ class RewardNetEvaluator:
         self.trainer = trainer
         self.mse_loss = []
         self.rewards = []
-        self.best_model = None
+        self.trainer.best_model = None
         self.best_model_loss = 1e9
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
@@ -47,7 +48,7 @@ class RewardNetEvaluator:
         reward_net.train(reward_net_prev_mode)
 
     @torch.no_grad()
-    def evaluate_post_training(self):
+    def finish(self):
         mean_mse_loss = np.mean(self.mse_loss)
         logger.info(f"Evaluation MSE={mean_mse_loss}")
         eval_res = {"mse": mean_mse_loss, "rewards": torch.cat(self.rewards)}
@@ -56,6 +57,9 @@ class RewardNetEvaluator:
 
         if mean_mse_loss < self.best_model_loss:
             self.best_model_loss = mean_mse_loss
-            self.best_model = copy.deepcopy(self.trainer.reward_net)
+            self.trainer.best_model = copy.deepcopy(self.trainer.reward_net)
 
         return eval_res
+
+    def evaluate_one_shot(self, edp: EvaluationDataPage):
+        pass

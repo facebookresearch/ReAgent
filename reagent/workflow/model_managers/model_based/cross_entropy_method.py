@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.types import RewardOptions
 from reagent.gym.policies.policy import Policy
 from reagent.models.cem_planner import CEMPlannerNetwork
-from reagent.parameters import CEMTrainerParameters, param_hash
+from reagent.parameters import (
+    CEMTrainerParameters,
+    NormalizationData,
+    NormalizationKey,
+    param_hash,
+)
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.cem_trainer import CEMTrainer
@@ -54,31 +60,27 @@ class CrossEntropyMethod(WorldModelBase):
     def create_policy(self, serving: bool = False) -> Policy:
         return CEMPolicy(self.cem_planner_network, self.discrete_action)
 
-    def build_trainer(self) -> CEMTrainer:
+    def build_trainer(
+        self,
+        use_gpu: bool,
+        normalization_data_map: Dict[str, NormalizationData],
+        reward_options: RewardOptions,
+    ) -> CEMTrainer:
         world_model_manager: WorldModel = WorldModel(
             trainer_param=self.trainer_param.mdnrnn
         )
-        world_model_manager.initialize_trainer(
-            self.use_gpu,
-            self.reward_options,
-            # pyre-fixme[6]: Expected `Dict[str,
-            #  reagent.parameters.NormalizationData]` for 3rd param but got
-            #  `Optional[typing.Dict[str, reagent.parameters.NormalizationData]]`.
-            # pyre-fixme[6]: Expected `Dict[str,
-            #  reagent.parameters.NormalizationData]` for 3rd param but got
-            #  `Optional[typing.Dict[str, reagent.parameters.NormalizationData]]`.
-            self._normalization_data_map,
-        )
         world_model_trainers = [
-            world_model_manager.build_trainer()
+            world_model_manager.build_trainer(
+                use_gpu, normalization_data_map, reward_options
+            )
             for _ in range(self.trainer_param.num_world_models)
         ]
         world_model_nets = [trainer.memory_network for trainer in world_model_trainers]
         terminal_effective = self.trainer_param.mdnrnn.not_terminal_loss_weight > 0
 
-        action_normalization_parameters = (
-            self.action_normalization_data.dense_normalization_parameters
-        )
+        action_normalization_parameters = normalization_data_map[
+            NormalizationKey.ACTION
+        ].dense_normalization_parameters
         sorted_action_norm_vals = list(action_normalization_parameters.values())
         discrete_action = sorted_action_norm_vals[0].feature_type != CONTINUOUS_ACTION
         action_upper_bounds, action_lower_bounds = None, None
@@ -98,10 +100,14 @@ class CrossEntropyMethod(WorldModelBase):
             num_elites=self.trainer_param.num_elites,
             plan_horizon_length=self.trainer_param.plan_horizon_length,
             state_dim=get_num_output_features(
-                self.state_normalization_data.dense_normalization_parameters
+                normalization_data_map[
+                    NormalizationKey.STATE
+                ].dense_normalization_parameters
             ),
             action_dim=get_num_output_features(
-                self.action_normalization_data.dense_normalization_parameters
+                normalization_data_map[
+                    NormalizationKey.ACTION
+                ].dense_normalization_parameters
             ),
             discrete_action=discrete_action,
             terminal_effective=terminal_effective,
@@ -125,10 +131,12 @@ class CrossEntropyMethod(WorldModelBase):
             cem_planner_network=cem_planner_network,
             world_model_trainers=world_model_trainers,
             parameters=self.trainer_param,
-            use_gpu=self.use_gpu,
+            use_gpu=use_gpu,
         )
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self, normalization_data_map: Dict[str, NormalizationData], trainer
+    ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """

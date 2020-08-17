@@ -11,9 +11,10 @@ from reagent.core.types import (
     RLTrainingOutput,
     TableSpec,
 )
-from reagent.gym.policies.policy import Policy
+from reagent.data_fetchers.data_fetcher import DataFetcher
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+from reagent.reporting.world_model_reporter import WorldModelReporter
 from reagent.workflow.model_managers.model_manager import ModelManager
 
 
@@ -29,10 +30,6 @@ class WorldModelBase(ModelManager):
     def normalization_key(cls) -> str:
         raise NotImplementedError()
 
-    def create_policy(self) -> Policy:
-        """ Create a WorldModel Policy from env. """
-        raise NotImplementedError()
-
     @property
     def should_generate_eval_dataset(self) -> bool:
         return False
@@ -42,19 +39,30 @@ class WorldModelBase(ModelManager):
         return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
     def run_feature_identification(
-        self, input_table_spec: TableSpec
+        self, data_fetcher: DataFetcher, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
         raise NotImplementedError()
 
+    def get_reporter(self):
+        return WorldModelReporter()
+
     def query_data(
         self,
+        data_fetcher: DataFetcher,
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
     ) -> Dataset:
         raise NotImplementedError()
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
+    def build_batch_preprocessor(
+        self,
+        reader_options: ReaderOptions,
+        use_gpu: bool,
+        batch_size: int,
+        normalization_data_map: Dict[str, NormalizationData],
+        reward_options: RewardOptions,
+    ) -> BatchPreprocessor:
         raise NotImplementedError()
 
     def train(
