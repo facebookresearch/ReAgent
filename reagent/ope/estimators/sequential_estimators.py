@@ -687,15 +687,27 @@ class NeuralDualDICE(RLEstimator):
                 ), "Expected all fields to be present"
                 tgt_dist = input.target_policy.action_dist(t.state)
                 tgt_action = tgt_dist.sample()[0]
-                samples["init_state"].append(state.value)
+                samples["init_state"].append(
+                    state.value.cpu().numpy()
+                    if isinstance(state.value, torch.Tensor)
+                    else state.value
+                )
                 samples["init_action"].append(
                     torch.nn.functional.one_hot(
                         torch.tensor(tgt_init_action.value, dtype=torch.long),
                         self.action_dim,
                     ).float()
                 )
-                samples["last_state"].append(t.last_state.value)
-                samples["state"].append(t.state.value)
+                samples["last_state"].append(
+                    t.last_state.value.cpu().numpy()
+                    if isinstance(t.last_state.value, torch.Tensor)
+                    else t.last_state.value
+                )
+                samples["state"].append(
+                    t.state.value.cpu().numpy()
+                    if isinstance(t.state.value, torch.Tensor)
+                    else t.state.value
+                )
                 samples["log_action"].append(
                     torch.nn.functional.one_hot(
                         torch.tensor(t.action.value, dtype=torch.long), self.action_dim

@@ -10,6 +10,15 @@ import torch
 import torch.nn as nn
 from reagent import types as rlt
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.ope.estimators.sequential_estimators import (
+    Action,
+    ActionSpace,
+    RLEstimatorInput,
+    RLPolicy,
+    State,
+    Transition,
+    ValueFunction,
+)
 from reagent.torch_utils import masked_softmax
 from reagent.training import ParametricDQNTrainer
 from reagent.training.dqn_trainer import DQNTrainer
@@ -42,6 +51,7 @@ class EvaluationDataPage(NamedTuple):
     model_metrics_values_for_logged_action: Optional[torch.Tensor] = None
     possible_actions_state_concat: Optional[torch.Tensor] = None
     contexts: Optional[torch.Tensor] = None
+    sequential_estimator_input: Optional[RLEstimatorInput] = None
 
     @classmethod
     def create_from_training_batch(
@@ -310,6 +320,83 @@ class EvaluationDataPage(NamedTuple):
             eval_action_idxs=eval_action_idxs,
         )
 
+    @staticmethod
+    def create_rl_estimator_input_from_tensors_dqn(
+        trainer: DQNTrainer,
+        mdp_ids: torch.Tensor,
+        states: rlt.FeatureData,
+        actions: rlt.FeatureData,
+        propensities: torch.Tensor,
+        rewards: torch.Tensor,
+    ):
+        class DQNRLPolicy(RLPolicy):
+            def __init__(self, trainer: DQNTrainer):
+                super().__init__(ActionSpace(trainer.num_actions))
+                self._trainer = trainer
+
+            def action_dist(self, state: State):
+                feat_data = rlt.FeatureData(float_features=state.value.reshape(1, -1))
+                # Only 1 batch
+                q_values = self._trainer.get_detached_q_values(feat_data)[0][0]
+                return self._action_space.distribution(
+                    torch.nn.Softmax(dim=0)(q_values)
+                )
+
+        class CPEValueFunction(ValueFunction):
+            def __init__(self, trainer: DQNTrainer):
+                self._trainer = trainer
+
+            def state_action_value(self, state: State, action: Action) -> float:
+                feat_data = rlt.FeatureData(float_features=state.value.reshape(1, -1))
+                model_values = self._trainer.q_network_cpe(feat_data)[
+                    :, 0 : self._trainer.num_actions
+                ][0]
+                return model_values[action.value].item()
+
+            def state_value(self, state: State) -> float:
+                feat_data = rlt.FeatureData(float_features=state.value.reshape(1, -1))
+                model_values = self._trainer.q_network_cpe(feat_data)[
+                    :, 0 : self._trainer.num_actions
+                ][0]
+                q_values = self._trainer.get_detached_q_values(feat_data)[0][0]
+                dist = torch.nn.Softmax(dim=0)(q_values)
+                assert dist.shape == model_values.shape
+                return torch.dot(dist, model_values).item()
+
+            def reset(self):
+                pass
+
+        states_tensor = states.float_features
+        logged_actions = torch.argmax(actions.float(), dim=1)
+        log = []
+        cur_mdp = []
+        i = 0
+        while i < mdp_ids.shape[0]:
+            if i + 1 < mdp_ids.shape[0] and mdp_ids[i, 0] == mdp_ids[i + 1, 0]:
+                cur_mdp.append(
+                    Transition(
+                        last_state=State(states_tensor[i]),
+                        action=Action(logged_actions[i].item()),
+                        action_prob=propensities[i, 0].item(),
+                        state=State(states_tensor[i + 1]),
+                        reward=rewards[i, 0].item(),
+                        status=Transition.Status.NORMAL,
+                    )
+                )
+            elif len(cur_mdp) > 0:
+                log.append(cur_mdp)
+                cur_mdp = []
+            i += 1
+
+        # Temporary value of gamma
+        return RLEstimatorInput(
+            gamma=1.0,
+            log=log,
+            target_policy=DQNRLPolicy(trainer),
+            value_function=CPEValueFunction(trainer),
+            discrete_states=False,
+        )
+
     @classmethod
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
@@ -454,6 +541,9 @@ class EvaluationDataPage(NamedTuple):
             possible_actions_mask=possible_actions_mask,
             optimal_q_values=optimal_q_values,
             eval_action_idxs=eval_action_idxs,
+            sequential_estimator_input=EvaluationDataPage.create_rl_estimator_input_from_tensors_dqn(
+                trainer, mdp_ids, states, actions, propensities, rewards
+            ),
         )
 
     def append(self, edp):
@@ -470,6 +560,15 @@ class EvaluationDataPage(NamedTuple):
                     new_edp[x] = torch.cat((t, other_t), dim=0)
                 elif isinstance(t, np.ndarray):
                     new_edp[x] = np.concatenate((t, other_t), axis=0)
+                elif isinstance(t, RLEstimatorInput):
+                    t.log.extend(other_t.log)
+                    new_edp[x] = RLEstimatorInput(
+                        gamma=t.gamma,
+                        log=t.log,
+                        target_policy=t.target_policy,
+                        value_function=t.value_function,
+                        discrete_states=t.discrete_states,
+                    )
                 else:
                     raise Exception("Invalid type in training data page")
             else:
@@ -484,7 +583,10 @@ class EvaluationDataPage(NamedTuple):
         new_edp = {}
         for x in EvaluationDataPage._fields:
             t = getattr(self, x)
-            new_edp[x] = t[sorted_idxs] if t is not None else None
+            if hasattr(t, "__getitem__"):
+                new_edp[x] = t[sorted_idxs] if t is not None else None
+            else:
+                new_edp[x] = t
 
         return EvaluationDataPage(**new_edp)
 
