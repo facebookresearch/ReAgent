@@ -18,13 +18,13 @@ from reagent.core.types import (
 )
 from reagent.data_fetchers.data_fetcher import DataFetcher
 from reagent.evaluation.evaluator import Evaluator
+from reagent.model_managers.model_manager import ModelManager
 from reagent.parameters import NormalizationData
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.publishers.model_publisher import ModelPublisher
 from reagent.tensorboardX import SummaryWriterContext, summary_writer_context
 from reagent.training.trainer import Trainer
 from reagent.validators.model_validator import ModelValidator
-from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow_utils.iterators import DataLoaderWrapper
 from torch.utils.tensorboard import SummaryWriter
 

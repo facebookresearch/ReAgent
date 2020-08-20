@@ -13,11 +13,11 @@ from reagent.core.types import (
     RLTrainingOutput,
     TableSpec,
 )
+from reagent.model_managers.union import ModelManager__Union
 from reagent.parameters import NormalizationData
 from reagent.publishers.union import ModelPublisher__Union
 from reagent.runners.oss_batch_runner import OssBatchRunner
 from reagent.validators.union import ModelValidator__Union
-from reagent.workflow.model_managers.union import ModelManager__Union
 
 
 logger = logging.getLogger(__name__)

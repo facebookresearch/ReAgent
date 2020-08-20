@@ -1,32 +1,26 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.types import RewardOptions
+from reagent.model_managers.slate_q_base import SlateQBase
+from reagent.models.base import ModelBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.parameters import NormalizationData, NormalizationKey, param_hash
-from reagent.preprocessing.normalization import (
-    get_feature_config,
-    get_num_output_features,
-)
-from reagent.training import ParametricDQNTrainer, ParametricDQNTrainerParameters
-from reagent.workflow.model_managers.parametric_dqn_base import ParametricDQNBase
+from reagent.training import SlateQTrainer, SlateQTrainerParameters
 
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class ParametricDQN(ParametricDQNBase):
+class SlateQ(SlateQBase):
     __hash__ = param_hash
 
-    trainer_param: ParametricDQNTrainerParameters = field(
-        default_factory=ParametricDQNTrainerParameters
-    )
     net_builder: ParametricDQNNetBuilder__Union = field(
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
@@ -37,60 +31,47 @@ class ParametricDQN(ParametricDQNBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
+        assert (
+            self.slate_size > 0
+        ), f"Please set valid slate_size (currently {self.slate_size})"
+        assert (
+            self.num_candidates > 0
+        ), f"Please set valid num_candidates (currently {self.num_candidates})"
 
     def build_trainer(
         self,
         use_gpu: bool,
         normalization_data_map: Dict[str, NormalizationData],
         reward_options: RewardOptions,
-    ) -> ParametricDQNTrainer:
+    ) -> SlateQTrainer:
         net_builder = self.net_builder.value
+        # pyre-fixme[16]: `SlateQ` has no attribute `_q_network`.
+        # pyre-fixme[16]: `SlateQ` has no attribute `_q_network`.
         q_network = net_builder.build_q_network(
             normalization_data_map[NormalizationKey.STATE],
-            normalization_data_map[NormalizationKey.ACTION],
+            normalization_data_map[NormalizationKey.ITEM],
         )
-        # Metrics + reward
-        reward_output_dim = len(self.metrics_to_score(reward_options)) + 1
-        reward_network = net_builder.build_q_network(
-            normalization_data_map[NormalizationKey.STATE],
-            normalization_data_map[NormalizationKey.ACTION],
-            output_dim=reward_output_dim,
-        )
-
         if use_gpu:
             q_network = q_network.cuda()
-            reward_network = reward_network.cuda()
 
         q_network_target = q_network.get_target_network()
-        trainer = ParametricDQNTrainer(
+        return SlateQTrainer(
             q_network=q_network,
             q_network_target=q_network_target,
-            reward_network=reward_network,
             use_gpu=use_gpu,
-            # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
-            #  `asdict`.
-            # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
-            #  `asdict`.
+            # pyre-fixme[16]: `SlateQTrainerParameters` has no attribute `asdict`.
+            # pyre-fixme[16]: `SlateQTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
-
-        # HACK: injecting num_actions to build policies for gym
-        trainer.num_gym_actions = get_num_output_features(
-            normalization_data_map[
-                NormalizationKey.ACTION
-            ].dense_normalization_parameters
-        )
-
-        return trainer
 
     def build_serving_module(
         self,
         normalization_data_map: Dict[str, NormalizationData],
-        trainer: ParametricDQNTrainer,
+        trainer: SlateQTrainer,
     ) -> torch.nn.Module:
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             trainer.q_network,
             normalization_data_map[NormalizationKey.STATE],
-            normalization_data_map[NormalizationKey.ACTION],
+            normalization_data_map[NormalizationKey.ITEM],
         )

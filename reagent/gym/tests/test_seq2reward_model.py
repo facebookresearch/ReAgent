@@ -12,11 +12,11 @@ from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.gym import Gym
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
+from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.runners.oss_batch_runner import OssBatchRunner
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
-from reagent.workflow.model_managers.union import ModelManager__Union
 
 
 try:

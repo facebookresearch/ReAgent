@@ -19,6 +19,7 @@ from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
 from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
+from reagent.model_managers.model_manager import ModelManager
 from reagent.models.base import ModelBase
 from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
@@ -29,7 +30,6 @@ from reagent.preprocessing.batch_preprocessor import (
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
-from reagent.workflow.model_managers.model_manager import ModelManager
 
 
 logger = logging.getLogger(__name__)
