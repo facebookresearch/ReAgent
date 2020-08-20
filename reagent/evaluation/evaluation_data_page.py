@@ -8,7 +8,7 @@ from typing import NamedTuple, Optional, cast
 import numpy as np
 import torch
 import torch.nn as nn
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.ope.estimators.sequential_estimators import (
     Action,

@@ -8,7 +8,7 @@ from typing import Any
 
 import torch
 import torch.nn as nn
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 from reagent.test.models.test_utils import check_save_load
 

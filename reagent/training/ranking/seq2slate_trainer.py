@@ -3,7 +3,7 @@
 import logging
 from typing import Optional, Tuple
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet

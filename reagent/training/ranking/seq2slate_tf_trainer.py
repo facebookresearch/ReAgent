@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

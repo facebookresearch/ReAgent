@@ -4,7 +4,8 @@ from typing import Optional
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoPublishingResults
-from reagent.core.types import RecurringPeriod, RLTrainingOutput
+from reagent.core.rl_training_output import RLTrainingOutput
+from reagent.core.types import RecurringPeriod
 from reagent.model_managers.model_manager import ModelManager
 from reagent.publishers.model_publisher import ModelPublisher
 

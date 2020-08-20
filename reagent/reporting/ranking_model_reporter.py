@@ -3,7 +3,8 @@
 import logging
 
 from reagent.core import aggregators as agg
-from reagent.core.types import RLTrainingOutput, TrainingReport__Union
+from reagent.core.rl_training_output import RLTrainingOutput
+from reagent.core.union import TrainingReport__Union
 from reagent.reporting.oss_training_reports import OssRankingModelTrainingReport
 from reagent.reporting.reporter_base import ReporterBase
 

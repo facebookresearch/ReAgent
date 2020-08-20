@@ -3,7 +3,7 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 
 # pyre-fixme[21]: Could not find `petastorm`.
 from petastorm import make_batch_reader
@@ -28,27 +28,16 @@ from reagent.core.types import (
     OssDataset,
     PreprocessingOptions,
     ReaderOptions,
-    RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 from reagent.data_fetchers.data_fetcher import DataFetcher
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
-from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
-from reagent.parameters import (
-    NormalizationData,
-    NormalizationKey,
-    NormalizationParameters,
-    RankingParameters,
-)
+from reagent.parameters import NormalizationParameters
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
-from reagent.runners.batch_runner import BatchRunner
-from reagent.tensorboardX import SummaryWriterContext
 from reagent.torch_utils import dict_to_tensor
 from reagent.training import RLTrainer, SACTrainer, TD3Trainer
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.spark_utils import get_spark_session, get_table_url
-from reagent.workflow_utils.iterators import DataLoaderWrapper
 
 
 logger = logging.getLogger(__name__)

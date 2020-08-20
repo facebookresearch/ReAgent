@@ -14,7 +14,7 @@ from typing import Optional
 
 import gym
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from gym.spaces import Box
 from reagent.gym.envs.env_wrapper import EnvWrapper

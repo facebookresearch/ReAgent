@@ -3,17 +3,16 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.types import (
     Dataset,
-    ModelFeatureConfigProvider__Union,
     PreprocessingOptions,
     ReaderOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
+from reagent.core.union import ModelFeatureConfigProvider__Union
 from reagent.data_fetchers.data_fetcher import DataFetcher
 from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
 from reagent.gym.policies.policy import Policy

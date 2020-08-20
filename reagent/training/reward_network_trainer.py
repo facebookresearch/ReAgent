@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.models.base import ModelBase
@@ -31,6 +31,7 @@ class RewardNetTrainer(Trainer):
         self.loss_fn = torch.nn.MSELoss(reduction="mean")
         self.opt = optimizer.make_optimizer(self.reward_net.parameters())
         self.reporter = WorldModelReporter()
+        self.best_model = reward_net
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch) -> None:
         training_input = training_batch.training_input

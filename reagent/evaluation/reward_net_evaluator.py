@@ -6,10 +6,10 @@ import logging
 import numpy as np
 import torch
 import torch.nn.functional as F
-from reagent import types as rlt
+from reagent.core import types as rlt
+from reagent.core.types import PreprocessedTrainingBatch
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.training.reward_network_trainer import RewardNetTrainer
-from reagent.types import PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,6 @@ class RewardNetEvaluator:
         self.trainer = trainer
         self.mse_loss = []
         self.rewards = []
-        self.trainer.best_model = None
         self.best_model_loss = 1e9
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because

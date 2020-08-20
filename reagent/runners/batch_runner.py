@@ -7,13 +7,13 @@ from contextlib import contextmanager
 from typing import Dict, NamedTuple, Optional, Tuple
 
 import torch
+from reagent.core.rl_training_output import RLTrainingOutput
 from reagent.core.types import (
     Dataset,
     ReaderOptions,
     RecurringPeriod,
     ResourceOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 from reagent.data_fetchers.data_fetcher import DataFetcher

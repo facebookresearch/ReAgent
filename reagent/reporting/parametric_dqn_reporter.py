@@ -5,7 +5,8 @@ import logging
 from typing import List, Optional
 
 from reagent.core import aggregators as agg
-from reagent.core.types import RLTrainingOutput, TrainingReport__Union
+from reagent.core.rl_training_output import RLTrainingOutput
+from reagent.core.union import TrainingReport__Union
 from reagent.reporting.oss_training_reports import OssParametricDQNTrainingReport
 from reagent.reporting.reporter_base import ReporterBase
 
@@ -22,10 +23,7 @@ class ParametricDQNReporter(ReporterBase):
     ):
         aggregators = itertools.chain(
             [
-                (
-                    "cpe_results",
-                    agg.AppendAggregator("cpe_results", interval=report_interval),
-                ),
+                ("cpe_results", agg.AppendAggregator("cpe_results")),
                 ("td_loss", agg.MeanAggregator("td_loss", interval=report_interval)),
                 (
                     "reward_loss",

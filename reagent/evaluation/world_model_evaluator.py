@@ -4,12 +4,12 @@ import logging
 from typing import Dict, List
 
 import torch
+from reagent.core.types import FeatureData, MemoryNetworkInput
 from reagent.reporting.world_model_reporter import (
     DebugToolsReporter,
     WorldModelReporter,
 )
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-from reagent.types import FeatureData, MemoryNetworkInput
 
 
 logger = logging.getLogger(__name__)
@@ -161,7 +161,7 @@ class FeatureImportanceEvaluator(object):
         logger.info(
             "**** Debug tool feature importance ****: {}".format(feature_importance)
         )
-        self.reporter.report(feature_importance=feature_importance.numpy())
+        self.reporter.report(feature_importance=feature_importance.tolist())
         return {"feature_loss_increase": feature_importance.numpy()}
 
     def compute_median_feature_value(self, features):
@@ -254,7 +254,7 @@ class FeatureSensitivityEvaluator(object):
         logger.info(
             "**** Debug tool feature sensitivity ****: {}".format(feature_sensitivity)
         )
-        self.reporter.report(feature_sensitivity=feature_sensitivity.numpy())
+        self.reporter.report(feature_sensitivity=feature_sensitivity.tolist())
         return {"feature_sensitivity": feature_sensitivity.numpy()}
 
     def finish(self):

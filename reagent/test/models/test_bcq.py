@@ -7,7 +7,7 @@ import unittest
 import numpy.testing as npt
 import torch
 import torch.nn.init as init
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.models.bcq import BatchConstrainedDQN
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.fully_connected_network import FullyConnectedNetwork

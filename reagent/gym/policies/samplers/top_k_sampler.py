@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.gym.types import Sampler
 

@@ -8,10 +8,10 @@ from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from reagent.core.types import PreprocessedTrainingBatch
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.models.seq2slate import Seq2SlateMode
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
-from reagent.types import PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)

@@ -3,14 +3,14 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.rl_training_output import RLTrainingOutput
 from reagent.core.types import (
     Dataset,
     PreprocessingOptions,
     ReaderOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 from reagent.data_fetchers.data_fetcher import DataFetcher

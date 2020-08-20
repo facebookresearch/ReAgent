@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Dict, Optional
 
 from reagent.core.dataclasses import dataclass
-from reagent.types import BaseDataClass
+from reagent.core.types import BaseDataClass
 
 
 class LearningMethod(Enum):

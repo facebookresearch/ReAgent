@@ -44,8 +44,7 @@ class Aggregator:
         self.iteration = 0
         if self.aggregate_epoch:
             self(self.key, self.intermediate_values)
-        # If not aggregating by epoch, we still clear intermediate values to avoid aggregating partial information
-        self.intermediate_values = []
+            self.intermediate_values = []
 
     def __call__(self, key: str, values):
         assert key == self.key, f"Got {key}; expected {self.key}"

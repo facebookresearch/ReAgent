@@ -2,7 +2,7 @@
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoValidationResults
-from reagent.core.types import RLTrainingOutput
+from reagent.core.rl_training_output import RLTrainingOutput
 from reagent.validators.model_validator import ModelValidator
 
 

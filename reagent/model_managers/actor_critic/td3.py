@@ -7,12 +7,12 @@ from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.rl_training_output import RLTrainingOutput
 from reagent.core.types import (
     Dataset,
     PreprocessingOptions,
     ReaderOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 from reagent.model_managers.actor_critic_base import ActorCriticBase

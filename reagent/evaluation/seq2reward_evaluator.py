@@ -3,8 +3,8 @@
 import logging
 
 import torch
+from reagent.core.types import PreprocessedTrainingBatch
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
-from reagent.types import PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@
 from typing import List
 
 import torch
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 

@@ -4,13 +4,14 @@ import dataclasses
 import logging
 from typing import Dict, NamedTuple, Optional, Tuple
 
+import reagent.register  # noqa
 import torch
+from reagent.core.rl_training_output import RLTrainingOutput
 from reagent.core.types import (
     OssReaderOptions,
     RecurringPeriod,
     ResourceOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 from reagent.model_managers.union import ModelManager__Union
@@ -90,7 +91,10 @@ def get_sample_range(
     )
     assert table_sample is not None, error_msg
     assert eval_table_sample is not None, error_msg
+    assert table_sample > 0, error_msg
+    assert eval_table_sample > 0, error_msg
     assert (eval_table_sample + table_sample) <= (100.0 + 1e-3), error_msg
+    assert (eval_table_sample + table_sample) >= (100.0 - 1e-3), error_msg
 
     return TrainEvalSampleRanges(
         train_sample_range=(0.0, table_sample),

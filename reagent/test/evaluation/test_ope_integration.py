@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 import torch
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.ope_adapter import OPEstimatorAdapter
 from reagent.ope.estimators.contextual_bandits_estimators import (
