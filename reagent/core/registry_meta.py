@@ -36,7 +36,11 @@ class RegistryMeta(abc.ABCMeta):
                 name = registry_name
             else:
                 logger.info(f"Registering {name} to {cls.REGISTRY_NAME}")
-            assert name not in cls.REGISTRY
+            # assert name not in cls.REGISTRY
+            # TODO: Combine FB and OSS model managers and then bring back this assert.
+            # For now this works because FB model managers inherit from their OSS counterparts
+            if name in cls.REGISTRY:
+                logger.warning(f"Overwriting open source {name} with internal version")
             cls.REGISTRY[name] = cls
         else:
             logger.info(
