@@ -6,7 +6,7 @@ from typing import Dict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.preprocessing.preprocessor import Preprocessor
 
 

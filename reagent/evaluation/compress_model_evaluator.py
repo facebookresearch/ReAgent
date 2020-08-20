@@ -3,8 +3,8 @@
 import logging
 
 import torch
+from reagent.core.types import MemoryNetworkInput
 from reagent.training.world_model.compress_model_trainer import CompressModelTrainer
-from reagent.types import MemoryNetworkInput
 
 
 logger = logging.getLogger(__name__)

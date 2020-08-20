@@ -3,7 +3,7 @@
 
 import logging
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.models.seq2reward_model import Seq2RewardNetwork

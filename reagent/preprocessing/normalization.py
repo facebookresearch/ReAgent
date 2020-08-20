@@ -7,29 +7,29 @@ from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import six
 import torch
 from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
+from reagent.preprocessing.normalization_constants import (
+    BOX_COX_MARGIN,
+    BOX_COX_MAX_STDDEV,
+    DEFAULT_MAX_QUANTILE_SIZE,
+    DEFAULT_NUM_SAMPLES,
+    DEFAULT_QUANTILE_K2_THRESHOLD,
+    EPS,
+    MAX_FEATURE_VALUE,
+    MIN_FEATURE_VALUE,
+    MINIMUM_SAMPLES_TO_IDENTIFY,
+    MISSING_VALUE,
+)
 from scipy import stats
 from scipy.stats.mstats import mquantiles
 
 
 logger = logging.getLogger(__name__)
-
-
-BOX_COX_MAX_STDDEV = 1e8
-BOX_COX_MARGIN = 1e-4
-MISSING_VALUE = -1337.1337
-DEFAULT_QUANTILE_K2_THRESHOLD = 1000.0
-MINIMUM_SAMPLES_TO_IDENTIFY = 20
-DEFAULT_MAX_QUANTILE_SIZE = 20
-DEFAULT_NUM_SAMPLES = 100000
-MAX_FEATURE_VALUE = 6.0
-MIN_FEATURE_VALUE = MAX_FEATURE_VALUE * -1
-EPS = 1e-6
 
 
 def no_op_feature():

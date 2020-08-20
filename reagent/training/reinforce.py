@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.optim
 from reagent.optimizer.union import Optimizer__Union

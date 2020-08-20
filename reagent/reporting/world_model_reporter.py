@@ -5,7 +5,8 @@ import logging
 from typing import List, Tuple
 
 from reagent.core import aggregators as agg
-from reagent.core.types import RLTrainingOutput, TrainingReport__Union
+from reagent.core.rl_training_output import RLTrainingOutput
+from reagent.core.union import TrainingReport__Union
 from reagent.reporting.oss_training_reports import (
     DebugToolsReport,
     OssWorldModelTrainingReport,
@@ -69,20 +70,22 @@ class DebugToolsReporter(ReporterBase):
         For debug tools: feature_importance, feature_sensitivity
         """
         aggregators: List[Tuple[str, agg.Aggregator]] = [
-            (
-                "feature_importance",
-                agg.AppendAggregator("feature_importance", interval=report_interval),
-            ),
-            (
-                "feature_sensitivity",
-                agg.AppendAggregator("feature_sensitivity", interval=report_interval),
-            ),
+            ("feature_importance", agg.AppendAggregator("feature_importance")),
+            ("feature_sensitivity", agg.AppendAggregator("feature_sensitivity")),
         ]
         super().__init__(aggregators)
 
     def publish(self) -> RLTrainingOutput:
-        feature_importance = self.feature_importance.values
-        feature_sensitivity = self.feature_sensitivity.values
+        feature_importance = (
+            []
+            if len(self.feature_importance.values) == 0
+            else self.feature_importance.values[-1]
+        )
+        feature_sensitivity = (
+            []
+            if len(self.feature_sensitivity.values) == 0
+            else self.feature_sensitivity.values[-1]
+        )
         report = DebugToolsReport(
             feature_importance=feature_importance,
             feature_sensitivity=feature_sensitivity,

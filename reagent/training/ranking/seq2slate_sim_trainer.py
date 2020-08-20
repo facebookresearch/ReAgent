@@ -6,7 +6,7 @@ from itertools import permutations
 from typing import List, Optional
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.models.seq2slate import (

@@ -4,7 +4,7 @@ import logging
 from typing import Dict, Optional
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.types import RewardOptions

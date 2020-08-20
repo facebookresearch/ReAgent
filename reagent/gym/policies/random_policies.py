@@ -5,7 +5,7 @@ from typing import List, Optional
 
 import gym
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.gym.policies.policy import Policy

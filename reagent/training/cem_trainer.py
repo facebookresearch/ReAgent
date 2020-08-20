@@ -11,7 +11,7 @@ The idea is inspired by: https://arxiv.org/abs/1805.12114
 import logging
 from typing import List
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 from reagent.models.cem_planner import CEMPlannerNetwork
 from reagent.parameters import CEMTrainerParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer

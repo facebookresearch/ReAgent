@@ -6,7 +6,7 @@ import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import (
     DECODER_START_SYMBOL,

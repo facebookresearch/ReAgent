@@ -4,13 +4,8 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 from reagent.core.dataclasses import dataclass
-from reagent.core.types import (
-    Dataset,
-    ReaderOptions,
-    RewardOptions,
-    RLTrainingOutput,
-    TableSpec,
-)
+from reagent.core.rl_training_output import RLTrainingOutput
+from reagent.core.types import Dataset, ReaderOptions, RewardOptions, TableSpec
 from reagent.data_fetchers.data_fetcher import DataFetcher
 from reagent.model_managers.model_manager import ModelManager
 from reagent.parameters import NormalizationData, NormalizationKey

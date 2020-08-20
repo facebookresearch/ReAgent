@@ -5,7 +5,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.types import (
@@ -13,7 +13,6 @@ from reagent.core.types import (
     PreprocessingOptions,
     ReaderOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 from reagent.data_fetchers.data_fetcher import DataFetcher

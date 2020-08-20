@@ -3,7 +3,7 @@
 
 from typing import List
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field

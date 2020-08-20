@@ -5,7 +5,7 @@ import logging
 from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.parameters import NormalizationData

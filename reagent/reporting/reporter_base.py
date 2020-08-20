@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Tuple
 
 import torch
 from reagent.core import aggregators as agg
-from reagent.core.types import RLTrainingOutput
+from reagent.core.rl_training_output import RLTrainingOutput
 
 
 logger = logging.getLogger(__name__)

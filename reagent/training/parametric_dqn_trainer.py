@@ -4,8 +4,8 @@
 import logging
 from typing import Tuple
 
+import reagent.core.types as rlt
 import reagent.parameters as rlp
-import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
