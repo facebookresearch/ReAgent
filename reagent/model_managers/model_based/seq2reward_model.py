@@ -6,6 +6,7 @@ from typing import Dict
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.types import RewardOptions
+from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.net_builder.unions import ValueNetBuilder__Union
 from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
@@ -16,7 +17,6 @@ from reagent.parameters import (
     param_hash,
 )
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
-from reagent.workflow.model_managers.world_model_base import WorldModelBase
 
 
 logger = logging.getLogger(__name__)

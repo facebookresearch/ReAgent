@@ -7,9 +7,9 @@ from typing import Dict, Optional
 
 from reagent.core.types import RewardOptions
 from reagent.data_fetchers.oss_data_fetcher import OssDataFetcher
+from reagent.model_managers.model_manager import ModelManager
 from reagent.parameters import NormalizationData
 from reagent.runners.batch_runner import BatchRunner
-from reagent.workflow.model_managers.model_manager import ModelManager
 
 
 logger = logging.getLogger(__name__)

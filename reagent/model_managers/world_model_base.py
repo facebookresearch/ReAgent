@@ -12,10 +12,10 @@ from reagent.core.types import (
     TableSpec,
 )
 from reagent.data_fetchers.data_fetcher import DataFetcher
+from reagent.model_managers.model_manager import ModelManager
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.reporting.world_model_reporter import WorldModelReporter
-from reagent.workflow.model_managers.model_manager import ModelManager
 
 
 logger = logging.getLogger(__name__)

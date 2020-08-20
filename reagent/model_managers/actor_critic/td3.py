@@ -15,55 +15,51 @@ from reagent.core.types import (
     RLTrainingOutput,
     TableSpec,
 )
+from reagent.model_managers.actor_critic_base import ActorCriticBase
 from reagent.models.base import ModelBase
-from reagent.net_builder.continuous_actor.gaussian_fully_connected import (
-    GaussianFullyConnected,
+from reagent.net_builder.continuous_actor.fully_connected import (
+    FullyConnected as ContinuousFullyConnected,
 )
-from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
+from reagent.net_builder.parametric_dqn.fully_connected import (
+    FullyConnected as ParametricFullyConnected,
+)
 from reagent.net_builder.unions import (
     ContinuousActorNetBuilder__Union,
     ParametricDQNNetBuilder__Union,
-    ValueNetBuilder__Union,
 )
-from reagent.net_builder.value.fully_connected import (
-    FullyConnected as ValueFullyConnected,
+from reagent.parameters import (
+    EvaluationParameters,
+    NormalizationData,
+    NormalizationKey,
+    param_hash,
 )
-from reagent.parameters import NormalizationData, NormalizationKey, param_hash
-from reagent.training import SACTrainer, SACTrainerParameters
-from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
+from reagent.training import TD3Trainer, TD3TrainerParameters
 
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class SAC(ActorCriticBase):
+class TD3(ActorCriticBase):
     __hash__ = param_hash
 
-    trainer_param: SACTrainerParameters = field(default_factory=SACTrainerParameters)
+    trainer_param: TD3TrainerParameters = field(default_factory=TD3TrainerParameters)
     actor_net_builder: ContinuousActorNetBuilder__Union = field(
-        # pyre-fixme[28]: Unexpected keyword argument `GaussianFullyConnected`.
-        # pyre-fixme[28]: Unexpected keyword argument `GaussianFullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ContinuousActorNetBuilder__Union(
-            GaussianFullyConnected=GaussianFullyConnected()
+            FullyConnected=ContinuousFullyConnected()
         )
     )
     critic_net_builder: ParametricDQNNetBuilder__Union = field(
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ParametricDQNNetBuilder__Union(
-            FullyConnected=FullyConnected()
-        )
-    )
-    value_net_builder: Optional[ValueNetBuilder__Union] = field(
-        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
-        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
-        default_factory=lambda: ValueNetBuilder__Union(
-            FullyConnected=ValueFullyConnected()
+            FullyConnected=ParametricFullyConnected()
         )
     )
     use_2_q_functions: bool = True
-    serve_mean_policy: bool = True
+    eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
@@ -73,7 +69,7 @@ class SAC(ActorCriticBase):
         use_gpu: bool,
         normalization_data_map: Dict[str, NormalizationData],
         reward_options: RewardOptions,
-    ) -> SACTrainer:
+    ) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
         actor_network = actor_net_builder.build_actor(
             normalization_data_map[NormalizationKey.STATE],
@@ -94,42 +90,29 @@ class SAC(ActorCriticBase):
             else None
         )
 
-        value_network = None
-        if self.value_net_builder:
-            # pyre-fixme[16]: `Optional` has no attribute `value`.
-            # pyre-fixme[16]: `Optional` has no attribute `value`.
-            value_net_builder = self.value_net_builder.value
-            value_network = value_net_builder.build_value_network(
-                normalization_data_map[NormalizationKey.STATE]
-            )
-
         if use_gpu:
             q1_network.cuda()
             if q2_network:
                 q2_network.cuda()
-            if value_network:
-                value_network.cuda()
             actor_network.cuda()
 
-        trainer = SACTrainer(
+        trainer = TD3Trainer(
             actor_network=actor_network,
             q1_network=q1_network,
-            value_network=value_network,
             q2_network=q2_network,
             use_gpu=use_gpu,
-            # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
-            # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
+            # pyre-fixme[16]: `TD3TrainerParameters` has no attribute `asdict`.
+            # pyre-fixme[16]: `TD3TrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
         return trainer
 
     def build_serving_module(
-        self, normalization_data_map: Dict[str, NormalizationData], trainer: SACTrainer
+        self, normalization_data_map: Dict[str, NormalizationData], trainer: TD3Trainer
     ) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
         return net_builder.build_serving_module(
             trainer.actor_network,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
-            serve_mean_policy=self.serve_mean_policy,
         )

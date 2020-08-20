@@ -18,13 +18,13 @@ from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
 from reagent.gym.policies.scorers.slate_q_scorer import slate_q_scorer
+from reagent.model_managers.model_manager import ModelManager
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.ranking_model_reporter import RankingModelReporter
 from reagent.training import SlateQTrainerParameters
-from reagent.workflow.model_managers.model_manager import ModelManager
 
 
 logger = logging.getLogger(__name__)
