@@ -58,7 +58,6 @@ class MDNRNNTrainerParameters(BaseDataClass):
     action_dim: int = 2
     action_names: List[str] = field(default_factory=lambda: [])
     multi_steps: int = 1
-    shuffle_training_data: bool = False
 
 
 @dataclass(frozen=True)

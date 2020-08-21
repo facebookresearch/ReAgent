@@ -5,7 +5,7 @@ import math
 from typing import List, Optional
 
 import torch
-from reagent.core import types as rlt
+from reagent import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE

@@ -2,7 +2,7 @@
 
 import abc
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
 

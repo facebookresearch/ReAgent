@@ -4,7 +4,7 @@
 from typing import Dict, List
 
 import torch
-from reagent.core import types as rlt
+from reagent import types as rlt
 from reagent.models.base import ModelBase
 
 

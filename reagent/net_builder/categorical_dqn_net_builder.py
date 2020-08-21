@@ -3,7 +3,7 @@
 import abc
 from typing import List
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.registry_meta import RegistryMeta

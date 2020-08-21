@@ -3,7 +3,7 @@
 
 from typing import Dict, List, Optional
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 
 # pyre-fixme[21]: Could not find `pyspark`.
 # pyre-fixme[21]: Could not find `pyspark`.

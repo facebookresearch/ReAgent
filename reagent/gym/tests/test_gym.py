@@ -17,19 +17,11 @@ from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.envs.union import Env__Union
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
-from reagent.model_managers.model_manager import ModelManager
-from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.workflow.model_managers.union import ModelManager__Union
 from torch.utils.tensorboard import SummaryWriter
-
-
-try:
-    # Use internal runner or OSS otherwise
-    from reagent.runners.fb.fb_batch_runner import FbBatchRunner as BatchRunner
-except ImportError:
-    from reagent.runners.oss_batch_runner import OssBatchRunner as BatchRunner
 
 
 # for seeding the environment
@@ -116,12 +108,13 @@ def run_test(
     normalization = build_normalizer(env)
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
-    manager: ModelManager = model.value
-    runner = BatchRunner(use_gpu, manager, RewardOptions(), normalization)
-    trainer = runner.initialize_trainer()
-    reporter = manager.get_reporter()
-    trainer.reporter = reporter
-    training_policy = manager.create_policy(trainer)
+    manager = model.value
+    trainer = manager.initialize_trainer(
+        use_gpu=use_gpu,
+        reward_options=RewardOptions(),
+        normalization_data_map=normalization,
+    )
+    training_policy = manager.create_policy(serving=False)
 
     replay_buffer = ReplayBuffer(
         replay_capacity=replay_memory_size, batch_size=trainer.minibatch_size
@@ -172,7 +165,7 @@ def run_test(
         f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
     )
 
-    serving_policy = manager.create_serving_policy(normalization, trainer)
+    serving_policy = manager.create_policy(serving=True)
     agent = Agent.create_for_env_with_serving_policy(env, serving_policy)
 
     eval_rewards = evaluate_for_n_episodes(

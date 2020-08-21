@@ -4,7 +4,7 @@
 from typing import Any, Optional
 
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 from reagent.gym.types import Sampler, Scorer
 
 

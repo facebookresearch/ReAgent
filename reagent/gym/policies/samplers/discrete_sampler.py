@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.gym.types import Sampler
@@ -41,9 +41,6 @@ class SoftmaxActionSampler(Sampler):
         assert raw_action.shape == (
             batch_size,
         ), f"{raw_action.shape} != ({batch_size}, )"
-        assert (
-            int(raw_action.max().item()) < num_actions
-        ), f"Invalid action: {int(raw_action.max().item())}"
         action = F.one_hot(raw_action, num_actions)
         assert action.ndim == 2
         log_prob = m.log_prob(raw_action)

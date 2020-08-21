@@ -9,10 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class Trainer:
-    def __init__(self, minibatch_size: int):
-        self.reporter = None
-        self.minibatch_size = minibatch_size
-
     def train(self, training_batch) -> None:
         raise NotImplementedError()
 

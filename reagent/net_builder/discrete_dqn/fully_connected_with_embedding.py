@@ -3,7 +3,7 @@
 from typing import List
 
 import reagent.models as models
-from reagent.core import types as rlt
+from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from reagent.parameters import NormalizationData, param_hash

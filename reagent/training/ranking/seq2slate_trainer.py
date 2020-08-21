@@ -3,13 +3,13 @@
 import logging
 from typing import Optional, Tuple
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import field
+from reagent.core.tracker import observable
 from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
-from reagent.reporting.ranking_model_reporter import RankingModelReporter
 from reagent.training.ranking.helper import ips_clamp
 from reagent.training.trainer import Trainer
 
@@ -17,6 +17,15 @@ from reagent.training.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
+@observable(
+    train_ips_score=torch.Tensor,
+    train_clamped_ips_score=torch.Tensor,
+    train_baseline_loss=torch.Tensor,
+    train_log_probs=torch.Tensor,
+    train_ips_ratio=torch.Tensor,
+    train_clamped_ips_ratio=torch.Tensor,
+    train_advantages=torch.Tensor,
+)
 class Seq2SlateTrainer(Trainer):
     def __init__(
         self,
@@ -54,8 +63,6 @@ class Seq2SlateTrainer(Trainer):
                 self.baseline_net.parameters()
             )
 
-        self.reporter = RankingModelReporter()
-
     def warm_start_components(self):
         components = ["seq2slate_net"]
         if self.baseline_net:
@@ -76,7 +83,7 @@ class Seq2SlateTrainer(Trainer):
         clamped_impt_smpl = ips_clamp(impt_smpl, self.parameters.ips_clamp)
         return impt_smpl, clamped_impt_smpl
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch) -> None:
+    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
         assert type(training_batch) is rlt.PreprocessedTrainingBatch
         training_input = training_batch.training_input
         assert isinstance(training_input, rlt.PreprocessedRankingInput)
@@ -168,8 +175,10 @@ class Seq2SlateTrainer(Trainer):
                     torch.mean(impt_smpl),
                 )
             )
-
-        self.reporter.report(
+        # See RankingTrainingPageHandler.finish() function in page_handler.py
+        # pyre-fixme[16]: `Seq2SlateTrainer` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(
             train_ips_score=torch.tensor(ips_rl_loss).reshape(1),
             train_clamped_ips_score=torch.tensor(clamped_ips_rl_loss).reshape(1),
             train_baseline_loss=torch.tensor(baseline_loss).reshape(1),

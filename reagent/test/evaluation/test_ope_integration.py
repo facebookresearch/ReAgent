@@ -1,17 +1,35 @@
 import logging
+import random
 import unittest
 
 import numpy as np
 import torch
-from reagent.core import types as rlt
+from reagent import types as rlt
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
-from reagent.evaluation.ope_adapter import OPEstimatorAdapter
+from reagent.evaluation.ope_adapter import (
+    OPEstimatorAdapter,
+    SequentialOPEstimatorAdapter,
+)
 from reagent.ope.estimators.contextual_bandits_estimators import (
     DMEstimator,
     DoublyRobustEstimator,
     IPSEstimator,
     SwitchDREstimator,
     SwitchEstimator,
+)
+from reagent.ope.estimators.sequential_estimators import (
+    DoublyRobustEstimator as SeqDREstimator,
+    EpsilonGreedyRLPolicy,
+    RandomRLPolicy,
+    RLEstimatorInput,
+)
+from reagent.ope.estimators.types import Action, ActionSpace
+from reagent.ope.test.envs import PolicyLogGenerator
+from reagent.ope.test.gridworld import GridWorld, NoiseGridWorldModel
+from reagent.ope.trainers.rl_tabular_trainers import (
+    DPTrainer,
+    DPValueFunction,
+    TabularPolicy,
 )
 from reagent.test.evaluation.test_evaluation_data_page import (
     FakeSeq2SlateRewardNetwork,
@@ -22,6 +40,56 @@ from reagent.test.evaluation.test_evaluation_data_page import (
 logger = logging.getLogger(__name__)
 
 
+def rlestimator_input_to_edp(
+    input: RLEstimatorInput, num_actions: int
+) -> EvaluationDataPage:
+    mdp_ids = []
+    logged_propensities = []
+    logged_rewards = []
+    action_mask = []
+    model_propensities = []
+    model_values = []
+
+    for mdp in input.log:
+        mdp_id = len(mdp_ids)
+        for t in mdp:
+            mdp_ids.append(mdp_id)
+            logged_propensities.append(t.action_prob)
+            logged_rewards.append(t.reward)
+            assert t.action is not None
+            action_mask.append(
+                [1 if x == t.action.value else 0 for x in range(num_actions)]
+            )
+            assert t.last_state is not None
+            model_propensities.append(
+                [
+                    input.target_policy(t.last_state)[Action(x)]
+                    for x in range(num_actions)
+                ]
+            )
+            assert input.value_function is not None
+            model_values.append(
+                [
+                    input.value_function(t.last_state, Action(x))
+                    for x in range(num_actions)
+                ]
+            )
+
+    return EvaluationDataPage(
+        mdp_id=torch.tensor(mdp_ids).reshape(len(mdp_ids), 1),
+        logged_propensities=torch.tensor(logged_propensities).reshape(
+            (len(logged_propensities), 1)
+        ),
+        logged_rewards=torch.tensor(logged_rewards).reshape((len(logged_rewards), 1)),
+        action_mask=torch.tensor(action_mask),
+        model_propensities=torch.tensor(model_propensities),
+        model_values=torch.tensor(model_values),
+        sequence_number=torch.tensor([]),
+        model_rewards=torch.tensor([]),
+        model_rewards_for_logged_action=torch.tensor([]),
+    )
+
+
 class TestOPEModuleAlgs(unittest.TestCase):
     GAMMA = 0.9
     CPE_PASS_BAR = 1.0
@@ -29,6 +97,98 @@ class TestOPEModuleAlgs(unittest.TestCase):
     MAX_HORIZON = 1000
     NOISE_EPSILON = 0.3
     EPISODES = 2
+
+    def test_gridworld_sequential_adapter(self):
+        """
+        Create a gridworld environment, logging policy, and target policy
+        Evaluates target policy using the direct OPE sequential doubly robust estimator,
+        then transforms the log into an evaluation data page which is passed to the ope adapter.
+
+        This test is meant to verify the adaptation of EDPs into RLEstimatorInputs as employed
+        by ReAgent since ReAgent provides EDPs to Evaluators. Going from EDP -> RLEstimatorInput
+        is more involved than RLEstimatorInput -> EDP since the EDP does not store the state
+        at each timestep in each MDP, only the corresponding logged outputs & model outputs.
+        Thus, the adapter must do some tricks to represent these timesteps as states so the
+        ope module can extract the correct outputs.
+
+        Note that there is some randomness in the model outputs since the model is purposefully
+        noisy. However, the same target policy is being evaluated on the same logged walks through
+        the gridworld, so the two results should be close in value (within 1).
+
+        """
+        random.seed(0)
+        np.random.seed(0)
+        torch.random.manual_seed(0)
+
+        device = torch.device("cuda") if torch.cuda.is_available() else None
+
+        gridworld = GridWorld.from_grid(
+            [
+                ["s", "0", "0", "0", "0"],
+                ["0", "0", "0", "W", "0"],
+                ["0", "0", "0", "0", "0"],
+                ["0", "W", "0", "0", "0"],
+                ["0", "0", "0", "0", "g"],
+            ],
+            max_horizon=TestOPEModuleAlgs.MAX_HORIZON,
+        )
+
+        action_space = ActionSpace(4)
+        opt_policy = TabularPolicy(action_space)
+        trainer = DPTrainer(gridworld, opt_policy)
+        value_func = trainer.train(gamma=TestOPEModuleAlgs.GAMMA)
+
+        behavivor_policy = RandomRLPolicy(action_space)
+        target_policy = EpsilonGreedyRLPolicy(
+            opt_policy, TestOPEModuleAlgs.NOISE_EPSILON
+        )
+        model = NoiseGridWorldModel(
+            gridworld,
+            action_space,
+            epsilon=TestOPEModuleAlgs.NOISE_EPSILON,
+            max_horizon=TestOPEModuleAlgs.MAX_HORIZON,
+        )
+        value_func = DPValueFunction(target_policy, model, TestOPEModuleAlgs.GAMMA)
+        ground_truth = DPValueFunction(
+            target_policy, gridworld, TestOPEModuleAlgs.GAMMA
+        )
+
+        log = []
+        log_generator = PolicyLogGenerator(gridworld, behavivor_policy)
+        num_episodes = TestOPEModuleAlgs.EPISODES
+        for state in gridworld.states:
+            for _ in range(num_episodes):
+                log.append(log_generator.generate_log(state))
+
+        estimator_input = RLEstimatorInput(
+            gamma=TestOPEModuleAlgs.GAMMA,
+            log=log,
+            target_policy=target_policy,
+            value_function=value_func,
+            ground_truth=ground_truth,
+        )
+
+        edp = rlestimator_input_to_edp(estimator_input, len(model.action_space))
+
+        dr_estimator = SeqDREstimator(
+            weight_clamper=None, weighted=False, device=device
+        )
+
+        module_results = SequentialOPEstimatorAdapter.estimator_results_to_cpe_estimate(
+            dr_estimator.evaluate(estimator_input)
+        )
+        adapter_results = SequentialOPEstimatorAdapter(
+            dr_estimator, TestOPEModuleAlgs.GAMMA, device=device
+        ).estimate(edp)
+
+        self.assertAlmostEqual(
+            adapter_results.raw,
+            module_results.raw,
+            delta=TestOPEModuleAlgs.CPE_PASS_BAR,
+        ), f"OPE adapter results differed too much from underlying module (Diff: {abs(adapter_results.raw - module_results.raw)} > {TestOPEModuleAlgs.CPE_PASS_BAR})"
+        self.assertLess(
+            adapter_results.raw, TestOPEModuleAlgs.CPE_MAX_VALUE
+        ), f"OPE adapter results are too large ({adapter_results.raw} > {TestOPEModuleAlgs.CPE_MAX_VALUE})"
 
     def test_seq2slate_eval_data_page(self):
         """

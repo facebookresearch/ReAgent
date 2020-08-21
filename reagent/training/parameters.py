@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from reagent.core.configuration import make_config_class
-from reagent.core.types import BaseDataClass
+from reagent.types import BaseDataClass
 
 from .c51_trainer import C51Trainer
 from .dqn_trainer import DQNTrainer
@@ -57,8 +57,7 @@ class ParametricDQNTrainerParameters:
         "q_network_cpe_target",
         "metrics_to_score",
         "imitator",
-        "reporter",
-        "evaluation",
+        "loss_reporter",
     ],
 )
 class DQNTrainerParameters:
@@ -75,8 +74,7 @@ class DQNTrainerParameters:
         "reward_network",
         "q_network_cpe",
         "q_network_cpe_target",
-        "reporter",
-        "evaluation",
+        "loss_reporter",
     ],
 )
 class QRDQNTrainerParameters:
@@ -90,8 +88,7 @@ class QRDQNTrainerParameters:
         "q_network",
         "q_network_target",
         "metrics_to_score",
-        "reporter",
-        "evaluation",
+        "loss_reporter",
     ],
 )
 class C51TrainerParameters:

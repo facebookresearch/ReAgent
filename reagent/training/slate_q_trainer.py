@@ -4,8 +4,8 @@
 import logging
 from typing import List, Optional
 
-import reagent.core.types as rlt
 import reagent.parameters as rlp
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.dataclasses import field
@@ -35,7 +35,7 @@ class SlateQTrainer(DQNTrainerBase):
             default_factory=lambda: rlp.EvaluationParameters(calc_cpe_in_training=False)
         ),
     ) -> None:
-        super().__init__(rl, use_gpu=use_gpu, minibatch_size=minibatch_size)
+        super().__init__(rl, use_gpu=use_gpu)
         self.minibatches_per_step = 1
         self.minibatch_size = minibatch_size
         self.single_selection = single_selection
@@ -148,6 +148,6 @@ class SlateQTrainer(DQNTrainerBase):
         if not self.single_selection:
             all_action_scores = all_action_scores.sum(dim=1, keepdim=True)
 
-        self.reporter.report(
+        self.loss_reporter.report(
             td_loss=td_loss, model_values_on_logged_actions=all_action_scores
         )

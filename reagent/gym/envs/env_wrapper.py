@@ -7,7 +7,7 @@ from typing import Callable, Optional
 
 import gym
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from gym import spaces
 from reagent.core.dataclasses import dataclass

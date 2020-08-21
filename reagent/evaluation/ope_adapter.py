@@ -11,6 +11,9 @@ from reagent.evaluation.cpe import (
 )
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.evaluator import Evaluator
+from reagent.evaluation.weighted_sequential_doubly_robust_estimator import (
+    WeightedSequentialDoublyRobustEstimator,
+)
 from reagent.ope.estimators.contextual_bandits_estimators import (
     BanditsEstimatorInput,
     DMEstimator,
@@ -31,6 +34,10 @@ from reagent.ope.estimators.sequential_estimators import (
     MAGICEstimator,
     RLEstimator,
     RLEstimatorInput,
+    RLPolicy,
+    State,
+    Transition,
+    ValueFunction,
 )
 from reagent.ope.estimators.types import ActionSpace
 
@@ -109,6 +116,92 @@ class SequentialOPEstimatorAdapter:
         self.gamma = gamma
         self._device = device
 
+    class EDPSeqPolicy(RLPolicy):
+        def __init__(
+            self, num_actions: int, model_propensities: torch.Tensor, device=None
+        ):
+            super().__init__(ActionSpace(num_actions), device)
+            self.model_propensities = model_propensities
+
+        def action_dist(self, state: State) -> ActionDistribution:
+            # "state" is (trajectory, step)
+            return self.model_propensities[state.value]
+
+    class EDPValueFunc(ValueFunction):
+        def __init__(
+            self, model_values: torch.Tensor, target_propensities: torch.Tensor
+        ):
+            self.model_values = model_values
+            self.target_propensities = target_propensities
+
+        def state_action_value(self, state: State, action: Action) -> float:
+            return self.model_values[state.value][action].item()
+
+        def state_value(self, state: State) -> float:
+            return torch.dot(
+                self.model_values[state.value], self.target_propensities[state.value]
+            ).item()
+
+        def reset(self):
+            pass
+
+    @staticmethod
+    def edp_to_rl_input(
+        edp: EvaluationDataPage, gamma, device=None
+    ) -> RLEstimatorInput:
+        assert edp.model_values is not None
+        eq_len = WeightedSequentialDoublyRobustEstimator.transform_to_equal_length_trajectories(
+            edp.mdp_id,
+            edp.action_mask.cpu().numpy(),
+            edp.logged_rewards.cpu().numpy().flatten(),
+            edp.logged_propensities.cpu().numpy().flatten(),
+            edp.model_propensities.cpu().numpy(),
+            edp.model_values.cpu().numpy(),
+        )
+
+        (
+            actions,
+            rewards,
+            logged_propensities,
+            target_propensities,
+            estimated_q_values,
+        ) = (
+            torch.tensor(x, dtype=torch.double, device=device, requires_grad=True)
+            for x in eq_len
+        )
+
+        num_examples = logged_propensities.shape[0]
+        horizon = logged_propensities.shape[1]
+
+        log = []
+        for traj in range(num_examples):
+            log.append(
+                [
+                    Transition(
+                        last_state=State((traj, i)),
+                        action=torch.argmax(actions[traj, i]).item(),
+                        action_prob=logged_propensities[traj, i].item(),
+                        state=State((traj, i + 1)),
+                        reward=rewards[traj, i].item(),
+                    )
+                    for i in range(horizon - 1)
+                    if actions[traj, i][torch.argmax(actions[traj, i]).item()] != 0.0
+                ]
+            )
+
+        return RLEstimatorInput(
+            gamma=gamma,
+            log=log,
+            target_policy=SequentialOPEstimatorAdapter.EDPSeqPolicy(
+                actions.shape[2], target_propensities
+            ),
+            value_function=SequentialOPEstimatorAdapter.EDPValueFunc(
+                estimated_q_values, target_propensities
+            ),
+            ground_truth=None,
+            horizon=horizon,
+        )
+
     @staticmethod
     def estimator_results_to_cpe_estimate(
         estimator_results: EstimatorResults,
@@ -144,16 +237,8 @@ class SequentialOPEstimatorAdapter:
         )
 
     def estimate(self, edp: EvaluationDataPage) -> CpeEstimate:
-        est_input = edp.sequential_estimator_input
-        assert est_input is not None, "EDP does not contain sequential estimator inputs"
         estimator_results = self.seq_ope_estimator.evaluate(
-            RLEstimatorInput(
-                gamma=self.gamma,
-                log=est_input.log,
-                target_policy=est_input.target_policy,
-                value_function=est_input.value_function,
-                discrete_states=est_input.discrete_states,
-            )
+            SequentialOPEstimatorAdapter.edp_to_rl_input(edp, self.gamma, self._device)
         )
         assert isinstance(estimator_results, EstimatorResults)
         return SequentialOPEstimatorAdapter.estimator_results_to_cpe_estimate(

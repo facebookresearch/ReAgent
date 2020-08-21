@@ -19,7 +19,7 @@ import random
 
 import gym
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper

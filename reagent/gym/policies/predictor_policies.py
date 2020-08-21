@@ -4,7 +4,7 @@
 from typing import Any, Optional, Tuple, Union
 
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.gym.policies import Policy

@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 
 import torch
 import torch.nn.functional as F
-from reagent.core import types as rlt
+from reagent.core.tracker import observable
 from reagent.evaluation.cpe import CpeDetails, CpeEstimateSet
 from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
@@ -53,6 +53,7 @@ def get_metrics_to_score(metric_reward_values: Optional[Dict[str, float]]) -> Li
     return sorted([*metric_reward_values.keys()])
 
 
+@observable(cpe_details=CpeDetails)
 class Evaluator:
     NUM_J_STEPS_FOR_MAGIC_ESTIMATOR = 25
 
@@ -69,15 +70,7 @@ class Evaluator:
             gamma
         )
 
-        self.reporter = None
-
-    def evaluate(self, eval_input: rlt.TensorDataClass) -> None:
-        pass
-
-    def finish(self):
-        pass
-
-    def evaluate_one_shot(self, edp: EvaluationDataPage) -> CpeDetails:
+    def evaluate_post_training(self, edp: EvaluationDataPage) -> CpeDetails:
         cpe_details = CpeDetails()
 
         cpe_details.reward_estimates = self.score_cpe("Reward", edp)
@@ -123,9 +116,8 @@ class Evaluator:
         cpe_details.mc_loss = float(
             F.mse_loss(edp.logged_values, edp.model_values_for_logged_action)
         )
-
-        assert self.reporter is not None, "Missing reporter"
-        self.reporter.report(cpe_results=cpe_details)
+        # pyre-fixme[16]: `Evaluator` has no attribute `notify_observers`.
+        self.notify_observers(cpe_details=cpe_details)
         return cpe_details
 
     def score_cpe(self, metric_name, edp: EvaluationDataPage):

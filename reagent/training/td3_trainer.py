@@ -3,7 +3,7 @@
 import copy
 import logging
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
@@ -47,7 +47,7 @@ class TD3Trainer(RLTrainer):
         """
         Args: TODO: fill in
         """
-        super().__init__(rl, use_gpu=use_gpu, minibatch_size=minibatch_size)
+        super().__init__(rl, use_gpu=use_gpu)
 
         self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step or 1
@@ -180,8 +180,9 @@ class TD3Trainer(RLTrainer):
                 SummaryWriterContext.add_histogram(k, v.numpy())
                 SummaryWriterContext.add_scalar(f"{k}_mean", v.mean().item())
 
-        self.reporter.report(
+        self.loss_reporter.report(
             td_loss=float(q1_loss),
+            reward_loss=None,
             logged_rewards=reward,
             model_values_on_logged_actions=q1_value,
         )

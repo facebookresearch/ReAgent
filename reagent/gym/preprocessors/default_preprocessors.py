@@ -7,7 +7,7 @@ import logging
 from typing import List, Optional, Tuple
 
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from gym import Env, spaces
