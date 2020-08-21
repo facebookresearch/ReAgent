@@ -16,7 +16,7 @@ class RegistryMeta(abc.ABCMeta):
     def __init__(cls, name, bases, attrs):
         if not hasattr(cls, "REGISTRY"):
             # Put REGISTRY on cls. This only happens once on the base class
-            logger.debug("Adding REGISTRY to type {}".format(name))
+            logger.info("Adding REGISTRY to type {}".format(name))
             cls.REGISTRY: Dict[str, Type] = {}
             cls.REGISTRY_NAME = name
             cls.REGISTRY_FROZEN = False
@@ -28,19 +28,12 @@ class RegistryMeta(abc.ABCMeta):
 
         if not cls.__abstractmethods__ and name != cls.REGISTRY_NAME:
             # Only register fully-defined classes
+            logger.info(f"Registering {name} to {cls.REGISTRY_NAME}")
             if hasattr(cls, "__registry_name__"):
                 registry_name = cls.__registry_name__
-                logger.info(
-                    f"Registering {name} with alias {registry_name} to {cls.REGISTRY_NAME}"
-                )
+                logger.info(f"Using {registry_name} instead of {name}")
                 name = registry_name
-            else:
-                logger.info(f"Registering {name} to {cls.REGISTRY_NAME}")
-            # assert name not in cls.REGISTRY
-            # TODO: Combine FB and OSS model managers and then bring back this assert.
-            # For now this works because FB model managers inherit from their OSS counterparts
-            if name in cls.REGISTRY:
-                logger.warning(f"Overwriting open source {name} with internal version")
+            assert name not in cls.REGISTRY
             cls.REGISTRY[name] = cls
         else:
             logger.info(

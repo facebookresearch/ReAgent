@@ -4,7 +4,7 @@
 import logging
 from typing import Dict, Tuple
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 
 

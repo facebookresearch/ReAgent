@@ -4,7 +4,7 @@
 import unittest
 from typing import Optional
 
-from reagent.core import types as rlt
+from reagent import types as rlt
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.net_builder import discrete_dqn
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union

@@ -4,10 +4,11 @@
 import logging
 from typing import List, Optional, Tuple
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.tracker import observable
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
@@ -23,6 +24,17 @@ class BCQConfig:
     drop_threshold: float = 0.1
 
 
+@observable(
+    td_loss=torch.Tensor,
+    reward_loss=torch.Tensor,
+    logged_actions=torch.Tensor,
+    logged_propensities=torch.Tensor,
+    logged_rewards=torch.Tensor,
+    model_propensities=torch.Tensor,
+    model_rewards=torch.Tensor,
+    model_values=torch.Tensor,
+    model_action_idxs=torch.Tensor,
+)
 class DQNTrainer(DQNTrainerBase):
     @resolve_defaults
     def __init__(
@@ -34,7 +46,7 @@ class DQNTrainer(DQNTrainerBase):
         q_network_cpe_target=None,
         metrics_to_score=None,
         imitator=None,
-        reporter=None,
+        loss_reporter=None,
         use_gpu: bool = False,
         actions: List[str] = field(default_factory=list),  # noqa: B008
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
@@ -55,8 +67,7 @@ class DQNTrainer(DQNTrainerBase):
             metrics_to_score=metrics_to_score,
             actions=actions,
             evaluation_parameters=evaluation,
-            reporter=reporter,
-            minibatch_size=minibatch_size,
+            loss_reporter=loss_reporter,
         )
         assert self._actions is not None, "Discrete-action DQN needs action names"
         self.double_q_learning = double_q_learning
@@ -213,20 +224,29 @@ class DQNTrainer(DQNTrainerBase):
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )[1]
 
-        self.reporter.report(
+        # pyre-fixme[16]: `DQNTrainer` has no attribute `notify_observers`.
+        self.notify_observers(
             td_loss=self.loss,
+            reward_loss=reward_loss,
+            logged_actions=logged_action_idxs,
+            logged_propensities=training_batch.extras.action_probability,
+            logged_rewards=rewards,
+            model_propensities=model_propensities,
+            model_rewards=model_rewards,
+            model_values=self.all_action_scores,
+            model_action_idxs=model_action_idxs,
+        )
+
+        self.loss_reporter.report(
+            td_loss=self.loss,
+            reward_loss=reward_loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,
             logged_values=None,  # Compute at end of each epoch for CPE
+            model_propensities=model_propensities,
+            model_rewards=model_rewards,
             model_values=self.all_action_scores,
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=model_action_idxs,
         )
-
-        if reward_loss is not None:
-            self.reporter.report(
-                reward_loss=reward_loss,
-                model_propensities=model_propensities,
-                model_rewards=model_rewards,
-            )

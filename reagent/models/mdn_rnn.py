@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
-from reagent.core import types as rlt
+from reagent import types as rlt
 from reagent.torch_utils import stack
 from torch.distributions.normal import Normal
 

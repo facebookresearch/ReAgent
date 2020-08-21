@@ -17,20 +17,12 @@ from reagent.gym.envs.gym import Gym
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
-from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-from reagent.runners.oss_batch_runner import OssBatchRunner
 from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.workflow.model_managers.union import ModelManager__Union
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-
-
-try:
-    # Use internal runner or OSS otherwise
-    from reagent.runners.fb.fb_batch_runner import FbBatchRunner as BatchRunner
-except ImportError:
-    from reagent.runners.oss_batch_runner import OssBatchRunner as BatchRunner
 
 
 # for seeding the environment
@@ -86,7 +78,7 @@ class TestGymOffline(HorizonTestBase):
 
 def evaluate_cem(env, manager, num_eval_episodes: int):
     # NOTE: for CEM, serving isn't implemented
-    policy = manager.create_policy()
+    policy = manager.create_policy(serving=False)
     agent = Agent.create_for_env(env, policy)
     return evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
@@ -110,13 +102,11 @@ def run_test_offline(
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
     manager = model.value
-    runner = OssBatchRunner(
-        use_gpu,
-        manager,
+    trainer = manager.initialize_trainer(
+        use_gpu=use_gpu,
         reward_options=RewardOptions(),
         normalization_data_map=normalization,
     )
-    trainer = runner.initialize_trainer()
 
     # first fill the replay buffer to burn_in
     replay_buffer = ReplayBuffer(

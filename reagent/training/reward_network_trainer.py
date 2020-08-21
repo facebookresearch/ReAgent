@@ -2,12 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.models.base import ModelBase
 from reagent.optimizer.union import Optimizer__Union
-from reagent.reporting.world_model_reporter import WorldModelReporter
 from reagent.training.trainer import Trainer
 
 
@@ -30,10 +29,8 @@ class RewardNetTrainer(Trainer):
         self.minibatch = 0
         self.loss_fn = torch.nn.MSELoss(reduction="mean")
         self.opt = optimizer.make_optimizer(self.reward_net.parameters())
-        self.reporter = WorldModelReporter()
-        self.best_model = reward_net
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch) -> None:
+    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
         training_input = training_batch.training_input
         if isinstance(training_input, rlt.PreprocessedRankingInput):
             target_reward = training_input.slate_reward
@@ -51,7 +48,7 @@ class RewardNetTrainer(Trainer):
         if self.minibatch % 10 == 0:
             logger.info("{}-th batch: mse_loss={}".format(self.minibatch, mse_loss))
 
-        self.reporter.report(mse=mse_loss)
+        return mse_loss
 
     def warm_start_components(self):
         return ["reward_net"]

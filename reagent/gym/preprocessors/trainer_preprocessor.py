@@ -9,7 +9,7 @@ from typing import Optional
 
 import gym
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE

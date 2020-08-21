@@ -3,8 +3,8 @@
 
 import unittest
 
-import reagent.core.types as rlt
 import reagent.models as models
+import reagent.types as rlt
 import torch
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.prediction.predictor_wrapper import (

@@ -4,7 +4,7 @@
 from typing import Optional, Tuple
 
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.gym.preprocessors.trainer_preprocessor import get_possible_actions_for_gym
 from reagent.gym.types import Scorer

@@ -2,19 +2,22 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 import torch.nn as nn
 from reagent.core.dataclasses import field
+from reagent.core.tracker import observable
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import TransformerParameters
+from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
 
 
+@observable(cross_entropy_loss=torch.Tensor)
 class Seq2SlatePairwiseAttnTrainer(Trainer):
     """
     Seq2Slate without a decoder learned in a supervised learning fashion (
@@ -25,13 +28,13 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
         self,
         seq2slate_net: Seq2SlateTransformerNet,
         minibatch_size: int = 1024,
-        reporter=None,
+        loss_reporter=None,
         use_gpu: bool = False,
         policy_optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
     ) -> None:
-        self.reporter = reporter
+        self.loss_reporter = loss_reporter
         self.use_gpu = use_gpu
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
@@ -41,6 +44,8 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
         )
         self.log_softmax = nn.LogSoftmax(dim=1)
         self.kl_loss = nn.KLDivLoss(reduction="batchmean")
+        if self.loss_reporter is None:
+            self.loss_reporter = NoOpLossReporter()
 
     def warm_start_components(self):
         components = ["seq2slate_net"]
@@ -67,6 +72,8 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
         loss = loss.detach()
         self.minibatch += 1
 
-        self.reporter.report(cross_entropy_loss=loss)
+        # pyre-fixme[16]: `Seq2SlatePairwiseAttnTrainer` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(cross_entropy_loss=loss)
 
         return {"cross_entropy_loss": loss}

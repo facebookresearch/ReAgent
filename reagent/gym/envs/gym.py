@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import gym
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from gym import spaces
 from gym_minigrid.wrappers import ReseedWrapper

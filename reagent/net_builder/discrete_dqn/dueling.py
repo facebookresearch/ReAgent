@@ -2,7 +2,7 @@
 
 from typing import List
 
-from reagent.core import types as rlt
+from reagent import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.models.base import ModelBase
 from reagent.models.dueling_q_network import DuelingQNetwork

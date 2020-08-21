@@ -43,9 +43,7 @@ class TestNoSoftUpdteEmbedding(unittest.TestCase):
         self.assertEqual(1, len(params))
         param = params[0].detach().numpy()
 
-        trainer = RLTrainer(
-            rl_parameters=RLParameters(), minibatch_size=1024, use_gpu=False
-        )
+        trainer = RLTrainer(rl_parameters=RLParameters(), use_gpu=False)
         trainer._soft_update(model, target_model, 0.1)
 
         target_params = list(target_model.parameters())

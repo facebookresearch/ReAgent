@@ -6,10 +6,9 @@ from typing import Optional
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoPublishingResults
-from reagent.core.rl_training_output import RLTrainingOutput
-from reagent.core.types import RecurringPeriod
-from reagent.model_managers.model_manager import ModelManager
+from reagent.core.types import RecurringPeriod, RLTrainingOutput
 from reagent.publishers.model_publisher import ModelPublisher
+from reagent.workflow.model_managers.model_manager import ModelManager
 
 
 try:
@@ -73,7 +72,7 @@ if HAS_TINYDB:
             child_workflow_id: int,
             recurring_period: Optional[RecurringPeriod],
         ) -> NoPublishingResults:
-            path = training_output.local_output_path
+            path = training_output.output_path
             assert path is not None, f"Given path is None."
             assert os.path.exists(path), f"Given path {path} doesn't exist."
             Model = Query()

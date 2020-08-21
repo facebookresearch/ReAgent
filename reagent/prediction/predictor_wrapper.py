@@ -4,7 +4,7 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet

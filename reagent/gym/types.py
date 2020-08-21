@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field, fields
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
-import reagent.core.types as rlt
+import reagent.types as rlt
 import torch
 
 

@@ -8,15 +8,24 @@ from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from reagent.core.types import PreprocessedTrainingBatch
+from reagent.core.tracker import observable
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.models.seq2slate import Seq2SlateMode
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
+from reagent.types import PreprocessedTrainingBatch
 
 
 logger = logging.getLogger(__name__)
 
 
+@observable(
+    eval_baseline_loss=torch.Tensor,
+    eval_advantages=torch.Tensor,
+    logged_slate_rank_probs=torch.Tensor,
+    ranked_slate_rank_probs=torch.Tensor,
+    eval_data_pages_g=EvaluationDataPage,
+    eval_data_pages_ng=EvaluationDataPage,
+)
 class RankingPolicyGradientEvaluator:
     """ Evaluate ranking models that are learned through policy gradient """
 
@@ -30,12 +39,13 @@ class RankingPolicyGradientEvaluator:
         self.trainer = trainer
         self.calc_cpe = calc_cpe
         self.reward_network = reward_network
-        self.reporter = None
 
         # Evaluate greedy/non-greedy version of the ranking model
         self.eval_data_pages_g: Optional[EvaluationDataPage] = None
         self.eval_data_pages_ng: Optional[EvaluationDataPage] = None
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def evaluate(self, eval_tdp: PreprocessedTrainingBatch) -> None:
         seq2slate_net = self.trainer.seq2slate_net
@@ -117,7 +127,9 @@ class RankingPolicyGradientEvaluator:
         else:
             self.eval_data_pages_ng = self.eval_data_pages_ng.append(edp_ng)
 
-        self.reporter.report_evaluation_minibatch(
+        # pyre-fixme[16]: `RankingPolicyGradientEvaluator` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(
             eval_baseline_loss=eval_baseline_loss,
             eval_advantages=eval_advantage,
             logged_slate_rank_probs=logged_slate_rank_prob,
@@ -125,13 +137,11 @@ class RankingPolicyGradientEvaluator:
         )
 
     @torch.no_grad()
-    def finish(self):
-        self.reporter.report_evaluation_epoch(
+    def evaluate_post_training(self):
+        self.notify_observers(
+            # Use ValueListObserver as aggregating_observers requires input to be Tensor
             eval_data_pages_g=self.eval_data_pages_g,
             eval_data_pages_ng=self.eval_data_pages_ng,
         )
         self.eval_data_pages_g = None
         self.eval_data_pages_ng = None
-
-    def evaluate_one_shot(self, edp: EvaluationDataPage):
-        pass
