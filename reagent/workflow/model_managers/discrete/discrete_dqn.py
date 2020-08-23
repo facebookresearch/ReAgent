@@ -66,7 +66,7 @@ class DiscreteDQN(DiscreteDQNBase):
         reward_network, q_network_cpe, q_network_cpe_target = None, None, None
         # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `evaluation`.
         # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `evaluation`.
-        if self.trainer_param.evaluation.calc_cpe_in_training:
+        if self.eval_parameters.calc_cpe_in_training:
             # Metrics + reward
             num_output_nodes = (len(self.metrics_to_score) + 1) * len(
                 # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `actions`.
@@ -104,6 +104,7 @@ class DiscreteDQN(DiscreteDQNBase):
             metrics_to_score=self.metrics_to_score,
             loss_reporter=NoOpLossReporter(),
             use_gpu=self.use_gpu,
+            evaluation=self.eval_parameters,
             # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),

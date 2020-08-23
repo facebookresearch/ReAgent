@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 # Triggering registration to registries
 import reagent.core.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
+from reagent.base_dataclass import BaseDataClass
 from reagent.core.dataclasses import dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.tagged_union import TaggedUnion  # noqa F401
@@ -17,7 +18,6 @@ from reagent.preprocessing.normalization import (
     DEFAULT_NUM_SAMPLES,
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
-from reagent.types import BaseDataClass
 from reagent.workflow.result_registries import PublishingResult, ValidationResult
 from reagent.workflow.training_reports import TrainingReport
 
@@ -26,7 +26,6 @@ if IS_FB_ENVIRONMENT:
     from reagent.fb.models.model_feature_config_builder import (  # noqa
         ConfigeratorModelFeatureConfigProvider,
     )
-    import reagent.core.fb.fb_types  # noqa
 
 
 @dataclass
@@ -40,7 +39,7 @@ class OssDataset(Dataset):
 
 
 @dataclass
-class TableSpec:
+class TableSpec(BaseDataClass):
     table: str
     table_sample: Optional[float] = None
     eval_table_sample: Optional[float] = None

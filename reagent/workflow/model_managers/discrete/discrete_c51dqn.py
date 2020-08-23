@@ -75,6 +75,7 @@ class DiscreteC51DQN(DiscreteDQNBase):
             metrics_to_score=self.metrics_to_score,
             loss_reporter=NoOpLossReporter(),
             use_gpu=self.use_gpu,
+            evaluation=self.eval_parameters,
             # pyre-fixme[16]: `C51TrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `C51TrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
