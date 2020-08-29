@@ -68,7 +68,6 @@ class EvolutionPool:
                 individual_tensor = individual[tensor_name]
 
                 individual_tensor.normal_(0, self.es_params.mutation_power)
-                # pyre-fixme[16]: `Tensor` has no attribute `add_`.
                 individual_tensor.add_(parent_tensor)
 
     def apply_global_reward(self, rewards: torch.Tensor, next_iteration: int):
