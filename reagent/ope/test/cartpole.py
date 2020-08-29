@@ -132,7 +132,6 @@ def generate_logs(episodes: int, max_horizon: int, policy: RLPolicy):
         mdp = []
         for _ in range(max_horizon):
             action_dist = policy(State(cur_state))
-            # pyre-fixme[16]: `typing.Sequence` has no attribute `value`.
             action = action_dist.sample()[0].value
             action_prob = action_dist.probability(Action(action))
             next_state, _, done, _ = env.step(action)
@@ -172,7 +171,6 @@ def estimate_value(episodes: int, max_horizon: int, policy: RLPolicy, gamma: flo
         discount = 1.0
         for _ in range(max_horizon):
             action_dist = policy(State(cur_state))
-            # pyre-fixme[16]: `typing.Sequence` has no attribute `value`.
             action = action_dist.sample()[0].value
             next_state, _, done, _ = env.step(action)
             reward = 1.0

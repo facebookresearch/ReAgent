@@ -491,13 +491,6 @@ class SlateItemProbabilities(SlateItemValues):
             items = super().greedy(slate_size)
         else:
             items = super().sample(slate_size)
-        # pyre-fixme[6]: Expected `Sequence[TypeWrapper[Union[Tuple[float],
-        #  Tuple[int], Tensor, float, int, np.ndarray]]]` for 2nd param but got
-        #  `Union[Sequence[Union[Sequence[TypeWrapper[Union[Tuple[float], Tuple[int],
-        #  Tensor, float, int, np.ndarray]]], TypeWrapper[Union[Tuple[float],
-        #  Tuple[int], Tensor, float, int, np.ndarray]]]],
-        #  TypeWrapper[Union[Tuple[float], Tuple[int], Tensor, float, int,
-        #  np.ndarray]]]`.
         return make_slate(slots, items)
 
     @property

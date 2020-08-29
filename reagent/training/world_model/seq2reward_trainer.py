@@ -109,6 +109,7 @@ class Seq2RewardTrainer(Trainer):
             # pyre-fixme[16]: `Seq2RewardTrainer` has no attribute `num_permut`.
             self.num_permut = self.all_permut.size(1)
 
+        # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
         preprocessed_state = batch.state.float_features.repeat_interleave(
             self.num_permut, dim=1
         )

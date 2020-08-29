@@ -562,6 +562,8 @@ class NeuralDualDICE(RLEstimator):
     def _get_convex_f(self, degree):
         return lambda x: (torch.abs(x) ** degree) / degree
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _mdps_value(self, mdps: Sequence[Mdp], gamma: float) -> float:
         self.zeta_net.eval()
@@ -590,6 +592,8 @@ class NeuralDualDICE(RLEstimator):
         self.zeta_net.train()
         return avg.average
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _compute_estimates(self, input: RLEstimatorInput) -> EstimatorResults:
         results = EstimatorResults()

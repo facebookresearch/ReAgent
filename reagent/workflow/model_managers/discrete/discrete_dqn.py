@@ -64,8 +64,6 @@ class DiscreteDQN(DiscreteDQNBase):
         q_network_target = q_network.get_target_network()
 
         reward_network, q_network_cpe, q_network_cpe_target = None, None, None
-        # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `evaluation`.
-        # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `evaluation`.
         if self.eval_parameters.calc_cpe_in_training:
             # Metrics + reward
             num_output_nodes = (len(self.metrics_to_score) + 1) * len(
