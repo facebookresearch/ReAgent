@@ -321,6 +321,7 @@ class NNTrainer(Trainer):
                 if len(y.shape) == 1:
                     y = y.reshape(-1, 1)
                 y_pred = self._model(x)
+                # pyre-fixme[29]: `Optional[torch.nn.MSELoss]` is not a function.
                 loss = self._loss_fn(y_pred, y)
                 if (t + 1) % 10 == 0:
                     scheduler.step(loss.item())
@@ -342,6 +343,7 @@ class NNTrainer(Trainer):
 
     def score(self, x: Tensor, y: Tensor, weight: Optional[Tensor] = None) -> float:
         if self._loss_fn is not None:
+            # pyre-fixme[29]: `Optional[torch.nn.MSELoss]` is not a function.
             return self._loss_fn(y, x).item()
         else:
             raise Exception("mode not trained")
