@@ -6,8 +6,6 @@ import pprint
 import unittest
 
 import numpy as np
-
-# pyre-fixme[21]: Could not find module `pytest`.
 import pytest
 import torch
 from parameterized import parameterized
