@@ -5,8 +5,6 @@ import logging
 import unittest
 
 import numpy as np
-
-# pyre-fixme[21]: Could not find `pytest`.
 import pytest
 from reagent.core.types import PreprocessingOptions, TableSpec
 from reagent.preprocessing.identify_types import CONTINUOUS
