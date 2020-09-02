@@ -46,7 +46,7 @@ class TableSpec(BaseDataClass):
 
 
 @dataclass
-class RewardOptions:
+class RewardOptions(BaseDataClass):
     custom_reward_expression: Optional[str] = None
     metric_reward_values: Optional[Dict[str, float]] = None
     additional_reward_expression: Optional[str] = None
@@ -59,7 +59,7 @@ class RewardOptions:
 
 
 @dataclass
-class ReaderOptions:
+class ReaderOptions(BaseDataClass):
     num_threads: int = 32
     skip_smaller_batches: bool = True
     num_workers: int = 0
@@ -78,7 +78,7 @@ class OssReaderOptions(ReaderOptions):
 
 
 @dataclass
-class ResourceOptions:
+class ResourceOptions(BaseDataClass):
     cpu: Optional[int] = None
     # "-1" or "xxG" where "xx" is a positive integer
     memory: Optional[str] = "40g"
@@ -145,7 +145,7 @@ class RLTrainingReport(TaggedUnion):
 
 
 @dataclass
-class RLTrainingOutput:
+class RLTrainingOutput(BaseDataClass):
     validation_result: Optional[ValidationResult__Union] = None
     publishing_result: Optional[PublishingResult__Union] = None
     training_report: Optional[RLTrainingReport] = None
