@@ -64,7 +64,7 @@ class Reinforce(Trainer):
             characteristic_eligibility = torch.exp(
                 torch.clamp(
                     target_propensity - training_batch.log_prob.detach(),
-                    max=torch.log(self.params.clip_param),
+                    max=torch.log(torch.tensor(self.params.clip_param)),
                 )
             )
         self.losses.append(-(offset_reinforcement.float()) @ characteristic_eligibility)

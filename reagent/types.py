@@ -621,7 +621,7 @@ class PolicyNetworkInput(BaseInput):
 
 
 @dataclass
-class PolicyGradientInput(BaseDataClass):
+class PolicyGradientInput(TensorDataClass):
     state: FeatureData
     action: torch.Tensor
     reward: torch.Tensor
