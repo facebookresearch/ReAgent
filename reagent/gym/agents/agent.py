@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.policies.policy import Policy
-from reagent.gym.types import PostStep, Transition
+from reagent.gym.types import PostEpisode, PostStep, Trajectory, Transition
 
 
 def _id(x):
@@ -19,6 +19,7 @@ class Agent:
         self,
         policy: Policy,
         post_transition_callback: Optional[PostStep] = None,
+        post_episode_callback: Optional[PostEpisode] = None,
         obs_preprocessor=_id,
         action_extractor=_id,
     ):
@@ -36,6 +37,7 @@ class Agent:
         self.obs_preprocessor = obs_preprocessor
         self.action_extractor = action_extractor
         self.post_transition_callback = post_transition_callback
+        self.post_episode_callback = post_episode_callback
 
     @classmethod
     def create_for_env(
@@ -108,3 +110,10 @@ class Agent:
             # pyre-fixme[29]: `Optional[typing.Callable[[Transition], None]]` is not
             #  a function.
             self.post_transition_callback(transition)
+
+    def post_episode(self, trajectory: Trajectory):
+        """ to be called after step(action) """
+        if self.post_episode_callback is not None:
+            # pyre-fixme[29]: `Optional[typing.Callable[[Trajectory], None]]` is not
+            #  a function.
+            self.post_episode_callback(trajectory)

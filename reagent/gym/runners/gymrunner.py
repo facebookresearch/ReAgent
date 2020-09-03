@@ -57,6 +57,7 @@ def run_episode(
         obs = next_obs
         possible_actions_mask = next_possible_actions_mask
         num_steps += 1
+    agent.post_episode(trajectory)
     return trajectory
 
 
