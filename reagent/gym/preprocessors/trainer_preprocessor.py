@@ -5,13 +5,14 @@
 
 import inspect
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import gym
 import numpy as np
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
+from reagent.gym.types import Trajectory
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.training.trainer import Trainer
 from reagent.training.utils import rescale_actions
@@ -22,11 +23,12 @@ logger.setLevel(logging.INFO)
 
 
 # This is here to make typechecker happpy, sigh
-MAKER_MAP = {}
+ONLINE_MAKER_MAP = {}
+REPLAY_BUFFER_MAKER_MAP = {}
 
 
-def make_replay_buffer_trainer_preprocessor(
-    trainer: Trainer, device: torch.device, env: gym.Env
+def make_trainer_preprocessor(
+    trainer: Trainer, device: torch.device, env: gym.Env, maker_map: Dict
 ):
     sig = inspect.signature(trainer.train)
     logger.info(f"Deriving trainer_preprocessor from {sig.parameters}")
@@ -37,7 +39,7 @@ def make_replay_buffer_trainer_preprocessor(
     training_batch_type = sig.parameters["training_batch"].annotation
     assert training_batch_type != inspect.Parameter.empty
     try:
-        maker = MAKER_MAP[training_batch_type].create_for_env(env)
+        maker = maker_map[training_batch_type].create_for_env(env)
     except KeyError:
         logger.error(f"Unknown type: {training_batch_type}")
         raise
@@ -47,6 +49,18 @@ def make_replay_buffer_trainer_preprocessor(
         return retval.to(device)
 
     return trainer_preprocessor
+
+
+def make_trainer_preprocessor_online(
+    trainer: Trainer, device: torch.device, env: gym.Env
+):
+    return make_trainer_preprocessor(trainer, device, env, ONLINE_MAKER_MAP)
+
+
+def make_replay_buffer_trainer_preprocessor(
+    trainer: Trainer, device: torch.device, env: gym.Env
+):
+    return make_trainer_preprocessor(trainer, device, env, REPLAY_BUFFER_MAKER_MAP)
 
 
 def one_hot_actions(
@@ -376,10 +390,43 @@ class ParametricDqnInputMaker:
         )
 
 
-MAKER_MAP = {
+REPLAY_BUFFER_MAKER_MAP = {
     rlt.DiscreteDqnInput: DiscreteDqnInputMaker,
     rlt.PolicyNetworkInput: PolicyNetworkInputMaker,
     rlt.MemoryNetworkInput: MemoryNetworkInputMaker,
     rlt.ParametricDqnInput: ParametricDqnInputMaker,
     rlt.SlateQInput: SlateQInputMaker,
 }
+
+
+class PolicyGradientInputMaker:
+    def __init__(self, num_actions: Optional[int] = None):
+        self.num_actions = num_actions
+
+    @classmethod
+    def create_for_env(cls, env: gym.Env):
+        action_space = env.action_space
+        if isinstance(action_space, gym.spaces.Discrete):
+            return cls(action_space.n)
+        elif isinstance(action_space, gym.spaces.Box):
+            return cls()
+        else:
+            raise NotImplementedError()
+
+    def __call__(self, trajectory: Trajectory):
+        action = torch.from_numpy(np.stack(trajectory.action).squeeze())
+        if self.num_actions is not None:
+            action = F.one_hot(action, self.num_actions).float()
+            assert len(action.shape) == 2, f"{action.shape}"
+            # one hot makes shape (batch_size, num_actions)
+        return rlt.PolicyGradientInput(
+            state=rlt.FeatureData(
+                torch.from_numpy(np.stack(trajectory.observation)).float()
+            ),
+            action=action,
+            reward=torch.tensor(trajectory.reward),
+            log_prob=torch.tensor(trajectory.log_prob),
+        )
+
+
+ONLINE_MAKER_MAP = {rlt.PolicyGradientInput: PolicyGradientInputMaker}

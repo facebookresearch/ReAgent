@@ -4,6 +4,7 @@ import logging
 import os
 import pprint
 import unittest
+from typing import Optional
 
 import numpy as np
 import pytest
@@ -11,19 +12,28 @@ import torch
 from parameterized import parameterized
 from reagent.core.types import RewardOptions
 from reagent.gym.agents.agent import Agent
+from reagent.gym.agents.post_episode import train_post_episode
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
+from reagent.gym.envs.env_wrapper import EnvWrapper
+from reagent.gym.envs.gym import Gym
 from reagent.gym.envs.union import Env__Union
+from reagent.gym.policies.policy import Policy
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
+from reagent.gym.types import PostEpisode, PostStep
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
+from reagent.training.trainer import Trainer
 from reagent.workflow.model_managers.union import ModelManager__Union
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import trange
 
 
 # for seeding the environment
 SEED = 0
+# exponential moving average parameter for tracking reward progress
+REWARD_DECAY = 0.8
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -88,6 +98,100 @@ class TestGym(HorizonTestBase):
         )
         logger.info(f"{name} passes!")
 
+    def test_cartpole_reinforce(self):
+        # TODO(@badri) Parameterize this test
+        env = Gym("CartPole-v0")
+        norm = build_normalizer(env)
+
+        from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
+
+        net_builder = FullyConnected(sizes=[8], activations=["linear"])
+        cartpole_scorer = net_builder.build_q_network(
+            state_feature_config=None,
+            state_normalization_data=norm["state"],
+            output_dim=len(norm["action"].dense_normalization_parameters),
+        )
+
+        from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+
+        policy = Policy(scorer=cartpole_scorer, sampler=SoftmaxActionSampler())
+
+        from reagent.training.reinforce import Reinforce, ReinforceParams
+        from reagent.optimizer.union import classes
+
+        trainer = Reinforce(
+            policy,
+            ReinforceParams(
+                gamma=0.995, optimizer=classes["Adam"](lr=5e-3, weight_decay=1e-3)
+            ),
+        )
+        run_test_episode_buffer(
+            env,
+            policy,
+            trainer,
+            num_train_episodes=500,
+            passing_score_bar=180,
+            num_eval_episodes=100,
+        )
+
+
+def train_policy(
+    env: EnvWrapper,
+    training_policy: Policy,
+    num_train_episodes: int,
+    post_step: Optional[PostStep] = None,
+    post_episode: Optional[PostEpisode] = None,
+    use_gpu: bool = False,
+) -> np.ndarray:
+    device = torch.device("cuda") if use_gpu else torch.device("cpu")
+    agent = Agent.create_for_env(
+        env,
+        policy=training_policy,
+        post_transition_callback=post_step,
+        post_episode_callback=post_episode,
+        device=device,
+    )
+    running_reward = 0
+    writer = SummaryWriter()
+    with summary_writer_context(writer):
+        train_rewards = []
+        with trange(num_train_episodes, unit=" epoch") as t:
+            for i in t:
+                trajectory = run_episode(env=env, agent=agent, mdp_id=i, max_steps=200)
+                ep_reward = trajectory.calculate_cumulative_reward()
+                train_rewards.append(ep_reward)
+                running_reward *= REWARD_DECAY
+                running_reward += (1 - REWARD_DECAY) * ep_reward
+                t.set_postfix(reward=running_reward)
+
+    logger.info("============Train rewards=============")
+    logger.info(train_rewards)
+    logger.info(f"average: {np.mean(train_rewards)};\tmax: {np.max(train_rewards)}")
+    return np.array(train_rewards)
+
+
+def eval_policy(
+    env: EnvWrapper,
+    serving_policy: Policy,
+    num_eval_episodes: int,
+    serving: bool = True,
+) -> np.ndarray:
+    agent = (
+        Agent.create_for_env_with_serving_policy(env, serving_policy)
+        if serving
+        else Agent.create_for_env(env, serving_policy)
+    )
+
+    eval_rewards = evaluate_for_n_episodes(
+        n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
+    ).squeeze(1)
+
+    logger.info("============Eval rewards==============")
+    logger.info(eval_rewards)
+    mean_eval = np.mean(eval_rewards)
+    logger.info(f"average: {mean_eval};\tmax: {np.max(eval_rewards)}")
+    return np.array(eval_rewards)
+
 
 def run_test(
     env: Env__Union,
@@ -101,8 +205,7 @@ def run_test(
     use_gpu: bool,
 ):
     env = env.value
-    env.seed(SEED)
-    env.action_space.seed(SEED)
+
     normalization = build_normalizer(env)
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
@@ -134,49 +237,70 @@ def run_test(
         device=device,
     )
 
-    agent = Agent.create_for_env(
-        env, policy=training_policy, post_transition_callback=post_step, device=device
+    env.seed(SEED)
+    env.action_space.seed(SEED)
+
+    train_rewards = train_policy(
+        env,
+        training_policy,
+        num_train_episodes,
+        post_step=post_step,
+        post_episode=None,
+        use_gpu=use_gpu,
     )
-
-    writer = SummaryWriter()
-    with summary_writer_context(writer):
-        train_rewards = []
-        for i in range(num_train_episodes):
-            trajectory = run_episode(
-                env=env, agent=agent, mdp_id=i, max_steps=env.max_steps
-            )
-            ep_reward = trajectory.calculate_cumulative_reward()
-            train_rewards.append(ep_reward)
-            logger.info(
-                f"Finished training episode {i} (len {len(trajectory)})"
-                f" with reward {ep_reward}."
-            )
-
-    logger.info("============Train rewards=============")
-    logger.info(train_rewards)
-    logger.info(f"average: {np.mean(train_rewards)};\tmax: {np.max(train_rewards)}")
 
     # Check whether the max score passed the score bar; we explore during training
     # the return could be bad (leading to flakiness in C51 and QRDQN).
     assert np.max(train_rewards) >= passing_score_bar, (
-        f"max reward ({np.max(train_rewards)})after training for "
+        f"max reward ({np.max(train_rewards)}) after training for "
         f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
     )
 
     serving_policy = manager.create_policy(serving=True)
-    agent = Agent.create_for_env_with_serving_policy(env, serving_policy)
 
-    eval_rewards = evaluate_for_n_episodes(
-        n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
-    ).squeeze(1)
-
-    logger.info("============Eval rewards==============")
-    logger.info(eval_rewards)
-    mean_eval = np.mean(eval_rewards)
-    logger.info(f"average: {mean_eval};\tmax: {np.max(eval_rewards)}")
+    eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=True)
     assert (
-        mean_eval >= passing_score_bar
-    ), f"Eval reward is {mean_eval}, less than < {passing_score_bar}.\n"
+        eval_rewards.mean() >= passing_score_bar
+    ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
+
+
+def run_test_episode_buffer(
+    env: EnvWrapper,
+    policy: Policy,
+    trainer: Trainer,
+    num_train_episodes: int,
+    passing_score_bar: float,
+    num_eval_episodes: int,
+    use_gpu: bool = False,
+):
+    training_policy = policy
+
+    post_episode_callback = train_post_episode(env, trainer, use_gpu)
+
+    env.seed(SEED)
+    env.action_space.seed(SEED)
+
+    train_rewards = train_policy(
+        env,
+        training_policy,
+        num_train_episodes,
+        post_step=None,
+        post_episode=post_episode_callback,
+        use_gpu=use_gpu,
+    )
+
+    # Check whether the max score passed the score bar; we explore during training
+    # the return could be bad (leading to flakiness in C51 and QRDQN).
+    assert np.max(train_rewards) >= passing_score_bar, (
+        f"max reward ({np.max(train_rewards)}) after training for "
+        f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
+    )
+
+    serving_policy = policy
+    eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=False)
+    assert (
+        eval_rewards.mean() >= passing_score_bar
+    ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
 
 
 if __name__ == "__main__":

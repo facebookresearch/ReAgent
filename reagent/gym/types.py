@@ -114,6 +114,10 @@ Args: (state, action, reward, terminal, log_prob)
 """
 PostStep = Callable[[Transition], None]
 
+""" Called after end of episode
+"""
+PostEpisode = Callable[[Trajectory], None]
+
 
 @dataclass
 class GaussianSamplerScore(rlt.BaseDataClass):
