@@ -38,3 +38,4 @@ class InputColumn(object):
     EXTRAS = "extras"
     SEQ_LEN = "seq_len"
     TOTAL_REWARD = "total_reward"
+    SCORES = "scores"
