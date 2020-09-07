@@ -664,6 +664,14 @@ class PreprocessedTrainingBatch(TensorDataClass):
 
 
 @dataclass
+class SlateScoreBatch:
+    mdp_id: torch.Tensor
+    sequence_number: torch.Tensor
+    scores: torch.Tensor
+    training_input: PolicyGradientInput
+
+
+@dataclass
 class MemoryNetworkOutput(TensorDataClass):
     mus: torch.Tensor
     sigmas: torch.Tensor
