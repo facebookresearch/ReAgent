@@ -5,9 +5,6 @@ from typing import List, Optional, Tuple
 # pyre-fixme[21]: Could not find `pyspark`.
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, crc32, explode, map_keys, udf
-
-# pyre-fixme[21]: Could not find module `pyspark.sql.types`.
-# pyre-fixme[21]: Could not find module `pyspark.sql.types`.
 from pyspark.sql.types import (
     ArrayType,
     BooleanType,
@@ -82,10 +79,16 @@ def hash_mdp_id_and_subsample(df, sample_range: Optional[Tuple[float, float]] = 
             and sample_range[1] <= 100.0
         ), f"{sample_range} is invalid."
 
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
     df = df.withColumn("mdp_id", crc32(col("mdp_id")))
     if sample_range:
         lower_bound = sample_range[0] / 100.0 * MAX_UINT32
         upper_bound = sample_range[1] / 100.0 * MAX_UINT32
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         df = df.filter((lower_bound <= col("mdp_id")) & (col("mdp_id") <= upper_bound))
     return df
 
@@ -119,7 +122,11 @@ def make_sparse2dense(df, col_name: str, possible_keys: List):
 
     sparse2dense_udf = udf(sparse2dense, output_type)
     df = df.withColumn(col_name, sparse2dense_udf(col_name))
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
     df = df.withColumn(f"{col_name}_presence", col(f"{col_name}.presence"))
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
     df = df.withColumn(col_name, col(f"{col_name}.dense"))
     return df
 
@@ -189,6 +196,8 @@ def misc_column_preprocessing(df, multi_steps: Optional[int]):
     df = df.withColumn("time_diff", next_long_udf("time_diff"))
 
     # assuming use_seq_num_diff_as_time_diff = False for now
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
+    # pyre-fixme[16]: Module `functions` has no attribute `col`.
     df = df.withColumn("sequence_number", col("sequence_number_ordinal"))
 
     return df
@@ -297,37 +306,79 @@ def select_relevant_columns(
         raise NotImplementedError("currently we don't support include_possible_actions")
 
     select_col_list = [
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("reward").cast(FloatType()),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("state_features").cast(ArrayType(FloatType())),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("state_features_presence").cast(ArrayType(BooleanType())),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("next_state_features").cast(ArrayType(FloatType())),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("next_state_features_presence").cast(ArrayType(BooleanType())),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("not_terminal").cast(BooleanType()),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("action_probability").cast(FloatType()),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("mdp_id").cast(LongType()),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("sequence_number").cast(LongType()),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("step").cast(LongType()),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("time_diff").cast(LongType()),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("metrics").cast(ArrayType(FloatType())),
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
+        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         col("metrics_presence").cast(ArrayType(BooleanType())),
     ]
 
     if discrete_action:
         select_col_list += [
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("action").cast(LongType()),
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("next_action").cast(LongType()),
         ]
     else:
         select_col_list += [
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("action").cast(ArrayType(FloatType())),
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("next_action").cast(ArrayType(FloatType())),
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("action_presence").cast(ArrayType(BooleanType())),
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("next_action_presence").cast(ArrayType(BooleanType())),
         ]
 
     if include_possible_actions:
         select_col_list += [
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("possible_actions_mask").cast(ArrayType(LongType())),
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
+            # pyre-fixme[16]: Module `functions` has no attribute `col`.
             col("possible_next_actions_mask").cast(ArrayType(LongType())),
         ]
 
