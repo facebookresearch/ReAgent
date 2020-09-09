@@ -227,14 +227,25 @@ class ActorOutput(TensorDataClass):
 class DocList(TensorDataClass):
     # the shape is (batch_size, num_candidates, num_document_features)
     float_features: torch.Tensor
-    # the shapes are (batch_size, num_candidates)
-    mask: torch.Tensor
-    value: torch.Tensor
+    # the shapes below are (batch_size, num_candidates)
+    # mask indicates whether the candidate is present or not; its dtype is torch.bool
+    # pyre-fixme[8]: Attribute has type `Tensor`; used as `None`.
+    mask: torch.Tensor = None
+    # value is context dependent; it could be action probability or the score
+    # of the document from another model
+    # pyre-fixme[8]: Attribute has type `Tensor`; used as `None`.
+    value: torch.Tensor = None
 
     def __post_init__(self):
         assert (
             len(self.float_features.shape) == 3
         ), f"Unexpected shape: {self.float_features.shape}"
+        if self.mask is None:
+            self.mask = self.float_features.new_ones(
+                self.float_features.shape[:2], dtype=torch.bool
+            )
+        if self.value is None:
+            self.value = self.float_features.new_ones(self.float_features.shape[:2])
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
