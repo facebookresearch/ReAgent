@@ -121,9 +121,5 @@ class RecsimObsPreprocessor:
             .unsqueeze(0)
         )
 
-        candidate_docs = rlt.DocList(
-            float_features=doc_features,
-            mask=torch.ones(doc_features.shape[:-1], dtype=torch.bool),
-            value=value,
-        )
+        candidate_docs = rlt.DocList(float_features=doc_features, value=value)
         return rlt.FeatureData(float_features=user, candidate_docs=candidate_docs)
