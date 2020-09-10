@@ -55,7 +55,7 @@ class Optimizer__Union(TaggedUnion):
         return (
             cls(Adam=classes["Adam"]())
             if kwargs == {}
-            else lambda: cls(Adam=classes["Adam"](**kwargs))
+            else cls(Adam=classes["Adam"](**kwargs))
         )
 
     def make_optimizer(self, params):

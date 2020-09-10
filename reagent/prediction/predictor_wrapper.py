@@ -6,8 +6,9 @@ from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
 import torch
+from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.base import ModelBase
-from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.models.seq2slate import Seq2SlateTransformerNet
 from reagent.models.seq2slate_reward import Seq2SlateRewardNetBase
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
