@@ -7,11 +7,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from reagent.core.dataclasses import field
-from reagent.models.seq2slate import (
+from reagent.model_utils.seq2slate_utils import (
     Seq2SlateMode,
-    Seq2SlateTransformerModel,
-    Seq2SlateTransformerNet,
+    per_symbol_to_per_seq_log_probs,
 )
+from reagent.models.seq2slate import Seq2SlateTransformerModel, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
 from reagent.training.ranking.helper import ips_clamp
@@ -62,7 +62,7 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
         per_symbol_log_probs = self.seq2slate_net(
             training_input, mode=Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE
         ).log_probs
-        per_seq_log_probs = Seq2SlateTransformerModel.per_symbol_to_per_seq_log_probs(
+        per_seq_log_probs = per_symbol_to_per_seq_log_probs(
             per_symbol_log_probs, training_input.tgt_out_idx
         )
         assert per_symbol_log_probs.requires_grad and per_seq_log_probs.requires_grad

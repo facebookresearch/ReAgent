@@ -12,7 +12,7 @@ from reagent import types as rlt
 from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.ope_adapter import OPEstimatorAdapter
-from reagent.models.seq2slate import Seq2SlateMode
+from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.ope.estimators.contextual_bandits_estimators import (
     SwitchDREstimator,
     SwitchEstimator,

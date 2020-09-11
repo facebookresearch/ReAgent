@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from reagent.core.tracker import observable
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
-from reagent.models.seq2slate import Seq2SlateMode
+from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 from reagent.types import PreprocessedTrainingBatch
 

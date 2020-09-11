@@ -7,7 +7,8 @@ import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
-from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.model_utils.seq2slate_utils import Seq2SlateMode
+from reagent.models.seq2slate import BaselineNet, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
 from reagent.training.ranking.helper import ips_clamp
@@ -126,12 +127,13 @@ class Seq2SlateTrainer(Trainer):
         # gradient is only w.r.t log_probs
         assert (
             not reward.requires_grad
+            # pyre-fixme[16]: `Optional` has no attribute `requires_grad`.
+            and not training_input.tgt_out_probs.requires_grad
             and not impt_smpl.requires_grad
             and not clamped_impt_smpl.requires_grad
             and not b.requires_grad
             and log_probs.requires_grad
         )
-
         # add negative sign because we take gradient descent but we want to
         # maximize rewards
         batch_loss = -log_probs * (reward - b)

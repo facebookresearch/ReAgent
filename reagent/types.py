@@ -16,7 +16,12 @@ from reagent.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+from reagent.model_utils.seq2slate_utils import (
+    DECODER_START_SYMBOL,
+    subsequent_and_padding_mask,
+)
 from reagent.preprocessing.types import InputColumn
+from reagent.torch_utils import gather
 
 
 if IS_FB_ENVIRONMENT:
@@ -362,6 +367,90 @@ class PreprocessedRankingInput(TensorDataClass):
 
     def batch_size(self) -> int:
         return self.state.float_features.size()[0]
+
+    @classmethod
+    def from_input(
+        cls,
+        state: torch.Tensor,
+        candidates: torch.Tensor,
+        device: torch.device,
+        action: Optional[torch.Tensor] = None,
+        logged_propensities: Optional[torch.Tensor] = None,
+        slate_reward: Optional[torch.Tensor] = None,
+        position_reward: Optional[torch.Tensor] = None,
+    ):
+        """
+        Build derived fields (indices & masks) from raw input
+        """
+        # Shape checking
+        assert len(state.shape) == 2
+        assert len(candidates.shape) == 3
+        if action is not None:
+            assert len(action.shape) == 2
+        if logged_propensities is not None:
+            assert (
+                len(logged_propensities.shape) == 2
+                and logged_propensities.shape[1] == 1
+            )
+
+        batch_size, candidate_num, candidate_dim = candidates.shape
+        if slate_reward is not None:
+            assert len(slate_reward.shape) == 2 and slate_reward.shape[1] == 1
+        if position_reward is not None:
+            # pyre-fixme[16]: `Optional` has no attribute `shape`.
+            assert position_reward.shape == action.shape
+
+        state = state.to(device)
+        candidates = candidates.to(device)
+
+        src_in_idx = (
+            torch.arange(candidate_num, device=device).repeat(batch_size, 1) + 2
+        )
+        src_src_mask = (
+            (torch.ones(batch_size, candidate_num, candidate_num))
+            .type(torch.int8)
+            .to(device)
+        )
+
+        if action is not None:
+            _, output_size = action.shape
+            # Account for decoder starting symbol and padding symbol
+            candidates_augment = torch.cat(
+                (torch.zeros(batch_size, 2, candidate_dim, device=device), candidates),
+                dim=1,
+            )
+            tgt_out_idx = action + 2
+            tgt_in_idx = torch.full(
+                (batch_size, output_size), DECODER_START_SYMBOL, device=device
+            )
+            tgt_in_idx[:, 1:] = tgt_out_idx[:, :-1]
+            tgt_out_seq = gather(candidates_augment, tgt_out_idx)
+            tgt_in_seq = torch.zeros(
+                batch_size, output_size, candidate_dim, device=device
+            )
+            tgt_in_seq[:, 1:] = tgt_out_seq[:, :-1]
+            tgt_tgt_mask = subsequent_and_padding_mask(tgt_in_idx)
+        else:
+            tgt_in_idx = None
+            tgt_out_idx = None
+            tgt_in_seq = None
+            tgt_out_seq = None
+            tgt_tgt_mask = None
+
+        return cls.from_tensors(
+            state=state,
+            src_seq=candidates,
+            src_src_mask=src_src_mask,
+            tgt_in_seq=tgt_in_seq,
+            tgt_out_seq=tgt_out_seq,
+            tgt_tgt_mask=tgt_tgt_mask,
+            slate_reward=slate_reward,
+            position_reward=position_reward,
+            src_in_idx=src_in_idx,
+            tgt_in_idx=tgt_in_idx,
+            tgt_out_idx=tgt_out_idx,
+            tgt_out_probs=logged_propensities,
+        )
 
     @classmethod
     def from_tensors(
