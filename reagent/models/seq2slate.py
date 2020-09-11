@@ -3,80 +3,28 @@
 import copy
 import logging
 import math
-from enum import Enum
 from typing import Optional
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from reagent import types as rlt
+from reagent.core.configuration import param_hash
+from reagent.core.dataclasses import dataclass
+from reagent.model_utils.seq2slate_utils import (
+    DECODER_START_SYMBOL,
+    PADDING_SYMBOL,
+    Seq2SlateMode,
+    attention,
+    clones,
+    per_symbol_to_per_seq_log_probs,
+    subsequent_mask,
+)
 from reagent.models.base import ModelBase
 from torch.nn.parallel.distributed import DistributedDataParallel
 
 
 logger = logging.getLogger(__name__)
-
-
-class Seq2SlateMode(Enum):
-    RANK_MODE = "rank"
-    PER_SEQ_LOG_PROB_MODE = "per_sequence_log_prob"
-    PER_SYMBOL_LOG_PROB_DIST_MODE = "per_symbol_log_prob_dist"
-    DECODE_ONE_STEP_MODE = "decode_one_step"
-    ENCODER_SCORE_MODE = "encoder_score_mode"
-
-
-PADDING_SYMBOL = 0
-DECODER_START_SYMBOL = 1
-
-
-def subsequent_mask(size, device):
-    """
-    Mask out subsequent positions. Mainly used in the decoding process,
-    in which an item should not attend subsequent items.
-    """
-    attn_shape = (1, size, size)
-    subsequent_mask = (
-        1 - torch.triu(torch.ones(*attn_shape, device=device), diagonal=1)
-    ).type(torch.int8)
-    return subsequent_mask
-
-
-def subsequent_and_padding_mask(tgt_in_idx):
-    """ Create a mask to hide padding and future items """
-    # tgt_in_idx shape: batch_size, seq_len
-
-    # tgt_tgt_mask shape: batch_size, 1, seq_len
-    tgt_tgt_mask = (tgt_in_idx != PADDING_SYMBOL).unsqueeze(-2).type(torch.int8)
-    # subseq_mask shape: 1, seq_len, seq_len
-    subseq_mask = subsequent_mask(tgt_in_idx.size(-1), tgt_in_idx.device)
-    # tgt_tgt_mask shape: batch_size, seq_len, seq_len
-    tgt_tgt_mask = tgt_tgt_mask & subseq_mask
-    return tgt_tgt_mask
-
-
-def clones(module, N):
-    """
-    Produce N identical layers.
-
-    :param module: nn.Module class
-    :param N: number of copies
-    """
-    return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
-
-
-def attention(query, key, value, mask, d_k):
-    """ Scaled Dot Product Attention """
-    # mask shape: batch_size x 1 x seq_len x seq_len
-
-    # scores shape: batch_size x num_heads x seq_len x seq_len
-    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
-    scores = scores.masked_fill(mask == 0, -1e9)
-    # p_attn shape: batch_size x num_heads x seq_len x seq_len
-    p_attn = F.softmax(scores, dim=3)
-    # attn shape: batch_size x num_heads x seq_len x d_k
-    attn = torch.matmul(p_attn, value)
-    return attn, p_attn
 
 
 class Generator(nn.Module):
@@ -119,13 +67,12 @@ class Generator(nn.Module):
         # so they should never be a possible output label
         logits[:, :, :2] = float("-inf")
 
-        if mode == Seq2SlateMode.PER_SEQ_LOG_PROB_MODE:
-            batch_size, seq_len = tgt_in_idx.shape
-            mask_indices = torch.tril(
-                tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
-                diagonal=0,
-            )
-            logits.scatter_(2, mask_indices, float("-inf"))
+        batch_size, seq_len = tgt_in_idx.shape
+        mask_indices = torch.tril(
+            tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
+            diagonal=0,
+        )
+        logits.scatter_(2, mask_indices, float("-inf"))
 
         # log_probs shape: batch_size, seq_len, candidate_size
         log_probs = F.log_softmax(logits, dim=2)
@@ -693,19 +640,7 @@ class Seq2SlateTransformerModel(nn.Module):
             return per_symbol_log_probs
 
         # shape: batch_size, 1
-        return self.per_symbol_to_per_seq_log_probs(per_symbol_log_probs, tgt_out_idx)
-
-    @staticmethod
-    def per_symbol_to_per_seq_log_probs(per_symbol_log_probs, tgt_out_idx):
-        device = per_symbol_log_probs.device
-        batch_size, seq_len, candidate_size = per_symbol_log_probs.shape
-        # log_probs: log probability of each symbol in the tgt_out_idx
-        # shape: batch_size, seq_len
-        log_probs = per_symbol_log_probs.view(-1, candidate_size)[
-            torch.arange(batch_size * seq_len, device=device), tgt_out_idx.flatten()
-        ].view(batch_size, seq_len)
-        # shape: batch_size, 1
-        return log_probs.sum(dim=1, keepdim=True)
+        return per_symbol_to_per_seq_log_probs(per_symbol_log_probs, tgt_out_idx)
 
     def encoder_output_to_scores(self, state, src_seq, src_src_mask, tgt_out_idx):
         # encoder_output shape: batch_size, src_seq_len, dim_model
@@ -779,44 +714,25 @@ class Seq2SlateTransformerModel(nn.Module):
         return self.decoder(tgt_embed, memory, tgt_src_mask, tgt_tgt_mask)
 
 
-class Seq2SlateTransformerNet(ModelBase):
-    def __init__(
-        self,
-        state_dim: int,
-        candidate_dim: int,
-        num_stacked_layers: int,
-        num_heads: int,
-        dim_model: int,
-        dim_feedforward: int,
-        max_src_seq_len: int,
-        max_tgt_seq_len: int,
-        encoder_only: bool,
-    ):
-        super().__init__()
-        self.state_dim = state_dim
-        self.candidate_dim = candidate_dim
-        self.num_stacked_layers = num_stacked_layers
-        self.num_heads = num_heads
-        self.dim_model = dim_model
-        self.dim_feedforward = dim_feedforward
-        self.max_src_seq_len = max_src_seq_len
-        self.max_tgt_seq_len = max_tgt_seq_len
-        self.encoder_only = encoder_only
+@dataclass
+class Seq2SlateNet(ModelBase):
+    __hash__ = param_hash
 
-        self.seq2slate_transformer = Seq2SlateTransformerModel(
-            state_dim=state_dim,
-            candidate_dim=candidate_dim,
-            num_stacked_layers=num_stacked_layers,
-            num_heads=num_heads,
-            dim_model=dim_model,
-            dim_feedforward=dim_feedforward,
-            max_src_seq_len=max_src_seq_len,
-            max_tgt_seq_len=max_tgt_seq_len,
-            encoder_only=encoder_only,
-        )
+    state_dim: int
+    candidate_dim: int
+    num_stacked_layers: int
+    dim_model: int
+    max_src_seq_len: int
+    max_tgt_seq_len: int
+    encoder_only: bool
 
-    def get_distributed_data_parallel_model(self):
-        return _DistributedSeq2SlateTransformerNet(self)
+    def __post_init_post_parse__(self) -> None:
+        super(Seq2SlateNet, self).__init__()
+        # pyre-fixme[16]: `Seq2SlateNet` has no attribute `seq2slate`.
+        self.seq2slate = self._build_model()
+
+    def _build_model(self):
+        return None
 
     def input_prototype(self):
         return rlt.PreprocessedRankingInput.from_tensors(
@@ -836,9 +752,8 @@ class Seq2SlateTransformerNet(ModelBase):
         tgt_seq_len: Optional[int] = None,
         greedy: Optional[bool] = None,
     ):
-        res = self.seq2slate_transformer(
-            input, mode=mode, tgt_seq_len=tgt_seq_len, greedy=greedy
-        )
+        # pyre-fixme[16]: `Seq2SlateNet` has no attribute `seq2slate`.
+        res = self.seq2slate(input, mode=mode, tgt_seq_len=tgt_seq_len, greedy=greedy)
         if mode == Seq2SlateMode.RANK_MODE:
             return rlt.RankingOutput(
                 ranked_tgt_out_idx=res[1], ranked_tgt_out_probs=res[0]
@@ -853,33 +768,49 @@ class Seq2SlateTransformerNet(ModelBase):
         else:
             raise NotImplementedError()
 
+    def get_distributed_data_parallel_model(self):
+        return _DistributedSeq2SlateNet(self)
 
-class _DistributedSeq2SlateTransformerNet(ModelBase):
-    def __init__(self, seq2slate_transformer_net: Seq2SlateTransformerNet):
+
+@dataclass
+class Seq2SlateTransformerNet(Seq2SlateNet):
+    __hash__ = param_hash
+
+    num_heads: int
+    dim_feedforward: int
+
+    def _build_model(self):
+        return Seq2SlateTransformerModel(
+            state_dim=self.state_dim,
+            candidate_dim=self.candidate_dim,
+            num_stacked_layers=self.num_stacked_layers,
+            num_heads=self.num_heads,
+            dim_model=self.dim_model,
+            dim_feedforward=self.dim_feedforward,
+            max_src_seq_len=self.max_src_seq_len,
+            max_tgt_seq_len=self.max_tgt_seq_len,
+            encoder_only=self.encoder_only,
+        )
+
+
+class _DistributedSeq2SlateNet(ModelBase):
+    def __init__(self, seq2slate_net: Seq2SlateNet):
         super().__init__()
-        self.state_dim = seq2slate_transformer_net.state_dim
-        self.candidate_dim = seq2slate_transformer_net.candidate_dim
-        self.num_stacked_layers = seq2slate_transformer_net.num_stacked_layers
-        self.num_heads = seq2slate_transformer_net.num_heads
-        self.dim_model = seq2slate_transformer_net.dim_model
-        self.dim_feedforward = seq2slate_transformer_net.dim_feedforward
-        self.max_src_seq_len = seq2slate_transformer_net.max_src_seq_len
-        self.max_tgt_seq_len = seq2slate_transformer_net.max_tgt_seq_len
-        self.encoder_only = seq2slate_transformer_net.encoder_only
 
         current_device = torch.cuda.current_device()
         self.data_parallel = DistributedDataParallel(
-            seq2slate_transformer_net.seq2slate_transformer,
+            # pyre-fixme[16]: `Seq2SlateNet` has no attribute `seq2slate`.
+            seq2slate_net.seq2slate,
             device_ids=[current_device],
             output_device=current_device,
         )
-        self.seq2slate_transformer_net = seq2slate_transformer_net
+        self.seq2slate_net = seq2slate_net
 
     def input_prototype(self):
-        return self.seq2slate_transformer_net.input_prototype()
+        return self.seq2slate_net.input_prototype()
 
     def cpu_model(self):
-        return self.seq2slate_transformer_net.cpu_model()
+        return self.seq2slate_net.cpu_model()
 
     def forward(
         self,

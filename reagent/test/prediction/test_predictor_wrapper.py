@@ -6,7 +6,8 @@ import unittest
 import reagent.models as models
 import reagent.types as rlt
 import torch
-from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.model_utils.seq2slate_utils import Seq2SlateMode
+from reagent.models.seq2slate import Seq2SlateTransformerNet
 from reagent.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
@@ -183,22 +184,31 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.assertTrue((expected_output == action).all())
 
-    def test_seq2slate_wrapper(self):
+    def test_seq2slate_transformer_wrapper(self):
+        self._test_seq2slate_wrapper(model="transformer")
+
+    def _test_seq2slate_wrapper(self, model: str):
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         candidate_normalization_parameters = {i: _cont_norm() for i in range(101, 106)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         candidate_preprocessor = Preprocessor(candidate_normalization_parameters, False)
-        seq2slate = Seq2SlateTransformerNet(
-            state_dim=len(state_normalization_parameters),
-            candidate_dim=len(candidate_normalization_parameters),
-            num_stacked_layers=2,
-            num_heads=2,
-            dim_model=10,
-            dim_feedforward=10,
-            max_src_seq_len=10,
-            max_tgt_seq_len=4,
-            encoder_only=False,
-        )
+
+        seq2slate = None
+        if model == "transformer":
+            seq2slate = Seq2SlateTransformerNet(
+                state_dim=len(state_normalization_parameters),
+                candidate_dim=len(candidate_normalization_parameters),
+                num_stacked_layers=2,
+                num_heads=2,
+                dim_model=10,
+                dim_feedforward=10,
+                max_src_seq_len=10,
+                max_tgt_seq_len=4,
+                encoder_only=False,
+            )
+        else:
+            raise NotImplementedError(f"model type {model} is unknown")
+
         seq2slate_with_preprocessor = Seq2SlateWithPreprocessor(
             seq2slate, state_preprocessor, candidate_preprocessor, greedy=True
         )

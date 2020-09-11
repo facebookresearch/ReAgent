@@ -7,7 +7,8 @@ import torch
 import torch.nn as nn
 from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
-from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
+from reagent.model_utils.seq2slate_utils import Seq2SlateMode
+from reagent.models.seq2slate import Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import TransformerParameters
 from reagent.training.loss_reporter import NoOpLossReporter

@@ -7,9 +7,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from reagent import types as rlt
+from reagent.model_utils.seq2slate_utils import (
+    DECODER_START_SYMBOL,
+    subsequent_and_padding_mask,
+)
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import (
-    DECODER_START_SYMBOL,
     Decoder,
     DecoderLayer,
     Embedder,
@@ -18,7 +21,6 @@ from reagent.models.seq2slate import (
     MultiHeadedAttention,
     PositionalEncoding,
     PositionwiseFeedForward,
-    subsequent_and_padding_mask,
 )
 from reagent.torch_utils import gather
 

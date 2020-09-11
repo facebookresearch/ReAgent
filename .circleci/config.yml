@@ -227,6 +227,20 @@ jobs:
           is_ubuntu_gpu: false
       - end_to_end_test
 
+  seq2slate_e2e:
+    machine:
+      image: ubuntu-1604-cuda-10.1:201909-23
+    resource_class: gpu.medium
+    environment:
+      - CUDA_LAUNCH_BLOCKING: 1
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: true
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_seq2slate_unittest
+
   sac_pendulum_e2e:
     docker:
       - image: circleci/python:3.7
@@ -280,6 +294,7 @@ jobs:
 workflows:
   build:
     jobs:
+      - seq2slate_e2e
       - dqn_cartpole_e2e
       - sac_pendulum_e2e
       - sac_pendulum_e2e_gpu
