@@ -32,13 +32,17 @@ class ResultDiffs:
     @property
     def rmse(self) -> Tensor:
         if self._rmse is None:
+            # pyre-fixme[8]: Attribute has type `None`; used as `Tensor`.
             self._rmse = (self._diffs ** 2.0).mean().sqrt()
+        # pyre-fixme[7]: Expected `Tensor` but got `None`.
         return self._rmse
 
     @property
     def bias(self) -> Tensor:
         if self._bias is None:
+            # pyre-fixme[8]: Attribute has type `None`; used as `Tensor`.
             self._bias = self._diffs.mean()
+        # pyre-fixme[7]: Expected `Tensor` but got `None`.
         return self._bias
 
     @property
@@ -46,6 +50,7 @@ class ResultDiffs:
         if self._variance is None:
             # pyre-fixme[16]: `Tensor` has no attribute `var`.
             self._variance = self._diffs.var()
+        # pyre-fixme[7]: Expected `Tensor` but got `None`.
         return self._variance
 
     def __repr__(self):

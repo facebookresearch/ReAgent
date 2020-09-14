@@ -52,7 +52,6 @@ class EvaluationDataPage(NamedTuple):
         reward_network: Optional[nn.Module] = None,
     ):
         if isinstance(tdb, rlt.DiscreteDqnInput):
-            # pyre-fixme[22]: The cast is redundant.
             discrete_training_input = cast(rlt.DiscreteDqnInput, tdb)
 
             return EvaluationDataPage.create_from_tensors_dqn(
@@ -69,20 +68,15 @@ class EvaluationDataPage(NamedTuple):
         elif isinstance(tdb, rlt.ParametricDqnInput):
             return EvaluationDataPage.create_from_tensors_parametric_dqn(
                 trainer,
-                # pyre-fixme[16]: `Optional` has no attribute `mdp_id`.
                 tdb.extras.mdp_id,
-                # pyre-fixme[16]: `Optional` has no attribute `sequence_number`.
                 tdb.extras.sequence_number,
                 tdb.state,
                 tdb.action,
-                # pyre-fixme[16]: `Optional` has no attribute `action_probability`.
                 tdb.extras.action_probability,
                 tdb.reward,
                 tdb.possible_actions_mask,
                 tdb.possible_actions,
-                # pyre-fixme[16]: `Optional` has no attribute `max_num_actions`.
                 tdb.extras.max_num_actions,
-                # pyre-fixme[16]: `Optional` has no attribute `metrics`.
                 metrics=tdb.extras.metrics,
             )
         else:

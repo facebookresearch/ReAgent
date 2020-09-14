@@ -106,7 +106,11 @@ class Objects(Generic[KeyType, ValueType], ABC):
             # pyre-fixme[16]: `Objects` has no attribute `_values`.
             self._values = list(values)
         elif isinstance(values, Mapping):
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `Dict[Variable[KeyType], int]`.
             self._key_to_index = dict(zip(values.keys(), range(len(values))))
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `List[Variable[KeyType]]`.
             self._index_to_key = list(values.keys())
             self._values = list(values.values())
         else:
@@ -176,6 +180,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
                 raise ValueError(f"{key} is not valid")
         elif self._key_to_index is not None:
             try:
+                # pyre-fixme[16]: `None` has no attribute `__getitem__`.
                 return self._key_to_index[key]
             except Exception:
                 raise ValueError(f"{key} is not valid")
@@ -186,6 +191,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
     def keys(self) -> Sequence[KeyType]:
         if self._keys is None:
             if self._key_to_index is not None:
+                # pyre-fixme[16]: `None` has no attribute `keys`.
                 self._keys = list(self._key_to_index.keys())
             else:
                 self._keys = [self._to_key(i) for i in range(len(self))]
@@ -231,7 +237,11 @@ class Values(Objects[KeyType, float]):
         elif isinstance(values, Sequence):
             self._values = torch.tensor(values, dtype=torch.double)
         elif isinstance(values, Mapping):
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `Dict[Variable[KeyType], int]`.
             self._key_to_index = dict(zip(values.keys(), range(len(values))))
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `List[Variable[KeyType]]`.
             self._index_to_key = list(values.keys())
             self._values = torch.tensor(list(values.values()), dtype=torch.double)
         else:
@@ -269,6 +279,7 @@ class Values(Objects[KeyType, float]):
             rs, ids = torch.sort(self._values, descending=descending)
             if self._index_to_key is not None:
                 self._sorted = (
+                    # pyre-fixme[16]: `None` has no attribute `__getitem__`.
                     [self._index_to_key[i.item()] for i in ids],
                     rs.detach(),
                 )
@@ -312,6 +323,7 @@ class Values(Objects[KeyType, float]):
                     copy._values[k] = v
             else:
                 for k, v in values.items():
+                    # pyre-fixme[16]: `None` has no attribute `__getitem__`.
                     copy._values[copy._key_to_index[k]] = v
         else:
             raise TypeError(f"Unsupported values type {type(values)}")
@@ -336,6 +348,7 @@ class Values(Objects[KeyType, float]):
         # pyre-fixme[16]: `Values` has no attribute `_probabilities`.
         if self._probabilities is not None:
             if self._key_to_index is not None:
+                # pyre-fixme[16]: `None` has no attribute `__getitem__`.
                 return self._probabilities[self._key_to_index[key]].item()
             else:
                 return self._probabilities[key].item()
@@ -346,6 +359,7 @@ class Values(Objects[KeyType, float]):
         self._normalize()
         if self._index_to_key is not None:
             l = [
+                # pyre-fixme[16]: `None` has no attribute `__getitem__`.
                 self._index_to_key[k.item()]
                 # pyre-fixme[16]: `Values` has no attribute `_probabilities`.
                 for k in torch.multinomial(self._probabilities, size)

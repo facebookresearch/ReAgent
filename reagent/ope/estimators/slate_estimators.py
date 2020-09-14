@@ -103,6 +103,7 @@ class SlateSlotObjects(Objects[SlateSlot, ValueType]):
             # pyre-fixme[16]: `SlateSlotObjects` has no attribute `_values`.
             return SlateSlots(len(self._values))
         else:
+            # pyre-fixme[16]: `None` has no attribute `keys`.
             return SlateSlots(list(self._key_to_index.keys()))
 
     @property
@@ -167,7 +168,13 @@ class SlateItemFeatures(Objects[SlateItem, Tensor]):
             #  typing.Tuple[Tensor, ...]]` for 1st param but got `Sequence[Tensor]`.
             self._values = torch.stack(values).to(dtype=torch.double)
         elif isinstance(values, Mapping):
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `Dict[TypeWrapper[Union[Tuple[float], Tuple[int], Tensor, float, int,
+            #  np.ndarray]], int]`.
             self._key_to_index = dict(zip(values.keys(), range(len(values))))
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `List[TypeWrapper[Union[Tuple[float], Tuple[int], Tensor, float, int,
+            #  np.ndarray]]]`.
             self._index_to_key = list(values.keys())
             self._values = torch.stack(list(values.values())).to(dtype=torch.double)
         else:
@@ -221,6 +228,7 @@ class Slate(SlateSlotObjects[SlateItem]):
             # pyre-fixme[16]: `Slate` has no attribute `_values`.
             return SlateSlotValues([item_values[i] for i in self._values])
         else:
+            # pyre-fixme[16]: `None` has no attribute `__iter__`.
             return SlateSlotValues({k: item_values[i] for k, i in self._key_to_index})
 
     def slot_features(self, item_features: SlateItemFeatures) -> SlateSlotFeatures:
@@ -239,6 +247,7 @@ class Slate(SlateSlotObjects[SlateItem]):
             )
         else:
             return SlateSlotFeatures(
+                # pyre-fixme[16]: `None` has no attribute `__iter__`.
                 {k: item_features[i].detach().clone() for k, i in self._key_to_index}
             )
 
@@ -417,12 +426,16 @@ class SlateItemProbabilities(SlateItemValues):
         slate_size = len(slots)
         if (
             self._slot_item_expectations is not None
+            # pyre-fixme[6]: Expected `Sized` for 1st param but got `None`.
             and len(self._slot_item_expectations) >= slate_size
         ):
+            # pyre-fixme[7]: Expected `SlateSlotItemExpectations` but got `None`.
             return self._slot_item_expectations
         item_size = len(self)
         assert item_size >= slate_size
         if self._greedy:
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `SlateSlotItemExpectations`.
             self._slot_item_expectations = make_slot_item_distributions(
                 slots,
                 # pyre-fixme[6]: Expected `Sequence[SlateItemValues]` for 2nd param
@@ -434,7 +447,9 @@ class SlateItemProbabilities(SlateItemValues):
             )
             sorted_items, _ = self.sort()
             for item, ds in zip(
-                sorted_items, self._slot_item_expectations.expectations
+                sorted_items,
+                # pyre-fixme[16]: `None` has no attribute `expectations`.
+                self._slot_item_expectations.expectations,
             ):
                 ds[item] = 1.0
         else:
@@ -443,6 +458,7 @@ class SlateItemProbabilities(SlateItemValues):
                 self._calculate_expectations(slots)
             else:
                 self._sample_expectations(slots, 20000)
+        # pyre-fixme[7]: Expected `SlateSlotItemExpectations` but got `None`.
         return self._slot_item_expectations
 
     def _sample_expectations(self, slots: SlateSlots, num_samples: int):
@@ -457,6 +473,7 @@ class SlateItemProbabilities(SlateItemValues):
             for sample in samples:
                 dm[ri, sample] += 1
         dm /= num_samples * item_size
+        # pyre-fixme[8]: Attribute has type `None`; used as `SlateSlotItemExpectations`.
         self._slot_item_expectations = make_slot_item_distributions(
             slots,
             # pyre-fixme[6]: Expected `Sequence[SlateItemValues]` for 2nd param but
@@ -478,6 +495,7 @@ class SlateItemProbabilities(SlateItemValues):
         probs = self._probabilities.tolist()
         for d in dm[1:]:
             buffer = _calculate_slot_expectation(d, probs, buffer)
+        # pyre-fixme[8]: Attribute has type `None`; used as `SlateSlotItemExpectations`.
         self._slot_item_expectations = make_slot_item_distributions(
             slots,
             # pyre-fixme[6]: Expected `Sequence[SlateItemValues]` for 2nd param but
@@ -589,8 +607,10 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
         slate_size = len(self.slots)
         if (
             self._slot_item_expectations is not None
+            # pyre-fixme[6]: Expected `Sized` for 1st param but got `None`.
             and len(self._slot_item_expectations) >= slate_size
         ):
+            # pyre-fixme[7]: Expected `SlateSlotItemExpectations` but got `None`.
             return self._slot_item_expectations
         # pyre-fixme[16]: `SlateSlotItemProbabilities` has no attribute `_values`.
         item_size = len(self._values[0])
@@ -604,6 +624,8 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
                 dist[item] = 1.0
                 dists.append(value.replace(dist))
                 ps[torch.arange(i + 1, slate_size), item] = 0.0
+            # pyre-fixme[8]: Attribute has type `None`; used as
+            #  `SlateSlotItemExpectations`.
             self._slot_item_expectations = make_slot_item_distributions(
                 self.slots, dists
             )
@@ -612,6 +634,7 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
                 self._calculate_expectations()
             else:
                 self._sample_expectations(samples * item_size)
+        # pyre-fixme[7]: Expected `SlateSlotItemExpectations` but got `None`.
         return self._slot_item_expectations
 
     def _sample_expectations(self, num_samples: int):
@@ -629,6 +652,7 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
                 ps[torch.arange(i + 1, slate_size), item] = 0.0
             dm[ri, sample] += 1
         dm /= num_samples
+        # pyre-fixme[8]: Attribute has type `None`; used as `SlateSlotItemExpectations`.
         self._slot_item_expectations = make_slot_item_distributions(
             self.slots, [ivs.replace(vs) for ivs, vs in zip(self._values, dm)]
         )
