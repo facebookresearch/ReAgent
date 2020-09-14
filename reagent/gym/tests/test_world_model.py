@@ -54,8 +54,10 @@ def calculate_feature_importance(
 ):
     assert isinstance(env.action_space, gym.spaces.Discrete)
     assert isinstance(env.observation_space, gym.spaces.Box)
+    # pyre-fixme[16]: `None` has no attribute `shape`.
     assert len(env.observation_space.shape) == 1
     state_dim = env.observation_space.shape[0]
+    # pyre-fixme[16]: `None` has no attribute `n`.
     action_dim = env.action_space.n
 
     feature_importance_evaluator = FeatureImportanceEvaluator(

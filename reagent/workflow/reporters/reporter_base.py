@@ -44,6 +44,8 @@ class ReporterBase(CompositeObserver):
         num_batches = len(self.td_loss.values) - self.last_epoch_end_num_batches
         self.last_epoch_end_num_batches = len(self.td_loss.values)
         if self.num_data_points_per_epoch is None:
+            # pyre-fixme[8]: Attribute has type `None`; used as `int`.
+            # pyre-fixme[8]: Attribute has type `None`; used as `int`.
             self.num_data_points_per_epoch = num_batches
         else:
             assert self.num_data_points_per_epoch == num_batches

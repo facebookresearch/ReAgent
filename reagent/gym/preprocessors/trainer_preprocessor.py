@@ -103,7 +103,6 @@ class DiscreteDqnInputMaker:
         try:
             return cls(
                 num_actions=action_space.n,
-                # pyre-fixme[16]: `Env` has no attribute `trainer_preprocessor`.
                 trainer_preprocessor=env.trainer_preprocessor,
             )
         except AttributeError:
