@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
+import math
 from dataclasses import dataclass, field
 from typing import List
 
@@ -64,9 +65,9 @@ class Reinforce(Trainer):
             characteristic_eligibility = torch.exp(
                 torch.clamp(
                     target_propensity - training_batch.log_prob.detach(),
-                    max=torch.log(torch.tensor(self.params.clip_param)),
+                    max=math.log(float(self.params.clip_param)),
                 )
-            )
+            ).float()
         self.losses.append(-(offset_reinforcement.float()) @ characteristic_eligibility)
         self.step += 1
         if self.step % self.params.update_freq == 0:
