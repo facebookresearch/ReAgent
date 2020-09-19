@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
-from functools import reduce
 from itertools import permutations
 from typing import List, Optional
 
@@ -67,7 +66,7 @@ def swap_dist(idx: List[int]):
     train_ips_score=torch.Tensor,
     train_clamped_ips_score=torch.Tensor,
     train_baseline_loss=torch.Tensor,
-    train_log_probs=torch.Tensor,
+    train_logged_slate_rank_probs=torch.Tensor,
     train_ips_ratio=torch.Tensor,
     train_clamped_ips_ratio=torch.Tensor,
     train_advantage=torch.Tensor,

@@ -18,6 +18,7 @@ from reagent.model_utils.seq2slate_utils import (
     attention,
     clones,
     per_symbol_to_per_seq_log_probs,
+    per_symbol_to_per_seq_probs,
     subsequent_mask,
 )
 from reagent.models.base import ModelBase
@@ -72,7 +73,7 @@ class Generator(nn.Module):
             tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
             diagonal=0,
         )
-        logits.scatter_(2, mask_indices, float("-inf"))
+        logits = logits.scatter(2, mask_indices, float("-inf"))
 
         # log_probs shape: batch_size, seq_len, candidate_size
         log_probs = F.log_softmax(logits, dim=2)
@@ -96,7 +97,7 @@ class Generator(nn.Module):
         # invalidate the padding symbol and decoder-starting symbol
         logits[:, :2] = float("-inf")
         # invalidate symbols already appeared in decoded sequences
-        logits.scatter_(1, tgt_in_idx, float("-inf"))
+        logits = logits.scatter(1, tgt_in_idx, float("-inf"))
         prob = F.softmax(logits, dim=1)
         if greedy:
             _, next_candidate = torch.max(prob, dim=1)
@@ -511,6 +512,11 @@ class Seq2SlateTransformerModel(nn.Module):
         # memory shape: batch_size, src_seq_len, dim_model
         memory = self.encode(state, src_seq, src_src_mask)
 
+        ranked_per_symbol_probs = torch.zeros(
+            batch_size, tgt_seq_len, candidate_size, device=device
+        )
+        ranked_per_seq_probs = torch.zeros(batch_size, 1)
+
         if self.encoder_only:
             # encoder_scores shape: batch_size, tgt_seq_len
             encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
@@ -520,23 +526,21 @@ class Seq2SlateTransformerModel(nn.Module):
             # +2 to account for start symbol and padding symbol
             tgt_out_idx += 2
             # every position has propensity of 1 because we are just using argsort
-            tgt_out_probs = torch.ones(
-                batch_size, tgt_seq_len, candidate_size, device=device
+            ranked_per_symbol_probs = ranked_per_symbol_probs.scatter(
+                2, tgt_out_idx.unsqueeze(2), 1.0
             )
+            ranked_per_seq_probs[:, :] = 1.0
 
             # TODO: T62503033 return encoder_scores so that we can apply
             # frechet policy gradient
-
-            return tgt_out_probs, tgt_out_idx
+            return ranked_per_symbol_probs, ranked_per_seq_probs, tgt_out_idx
 
         tgt_in_idx = (
             torch.ones(batch_size, 1, device=device)
             .fill_(self._DECODER_START_SYMBOL)
             .type(torch.long)
         )
-        tgt_out_probs = torch.zeros(
-            batch_size, tgt_seq_len, candidate_size, device=device
-        )
+
         assert greedy is not None
         for l in range(tgt_seq_len):
             tgt_in_seq = (
@@ -564,14 +568,21 @@ class Seq2SlateTransformerModel(nn.Module):
                 tgt_in_idx=tgt_in_idx,
                 greedy=greedy,
             )
-            tgt_out_probs[:, l, :] = prob
+            ranked_per_symbol_probs[:, l, :] = prob
             tgt_in_idx = torch.cat([tgt_in_idx, next_candidate], dim=1)
 
         # remove the decoder start symbol
         # tgt_out_idx shape: batch_size, tgt_seq_len
         tgt_out_idx = tgt_in_idx[:, 1:]
-        # tgt_out_probs shape: batch_size, tgt_seq_len, candidate_size
-        return tgt_out_probs, tgt_out_idx
+
+        ranked_per_seq_probs = per_symbol_to_per_seq_probs(
+            ranked_per_symbol_probs, tgt_out_idx
+        )
+
+        # ranked_per_symbol_probs shape: batch_size, tgt_seq_len, candidate_size
+        # ranked_per_seq_probs shape: batch_size, 1
+        # tgt_out_idx shape: batch_size, tgt_seq_len
+        return ranked_per_symbol_probs, ranked_per_seq_probs, tgt_out_idx
 
     def _log_probs(
         self,
@@ -608,7 +619,7 @@ class Seq2SlateTransformerModel(nn.Module):
             tgt_seq_len=tgt_seq_len,
         )
         # log_probs shape:
-        # if mode == PER_SEQ_LOG_PROB_MODE: batch_size
+        # if mode == PER_SEQ_LOG_PROB_MODE: batch_size, 1
         # if mode == PER_SYMBOL_LOG_PROB_DIST_MODE: batch_size, tgt_seq_len, candidate_size
         log_probs = self._decoder_output_to_log_probs(
             decoder_output, tgt_in_idx, tgt_out_idx, mode
@@ -756,7 +767,9 @@ class Seq2SlateNet(ModelBase):
         res = self.seq2slate(input, mode=mode, tgt_seq_len=tgt_seq_len, greedy=greedy)
         if mode == Seq2SlateMode.RANK_MODE:
             return rlt.RankingOutput(
-                ranked_tgt_out_idx=res[1], ranked_tgt_out_probs=res[0]
+                ranked_per_symbol_probs=res[0],
+                ranked_per_seq_probs=res[1],
+                ranked_tgt_out_idx=res[2],
             )
         elif mode in (
             Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
@@ -824,7 +837,9 @@ class _DistributedSeq2SlateNet(ModelBase):
         )
         if mode == Seq2SlateMode.RANK_MODE:
             return rlt.RankingOutput(
-                ranked_tgt_out_idx=res[1], ranked_tgt_out_probs=res[0]
+                ranked_per_symbol_probs=res[0],
+                ranked_per_seq_probs=res[1],
+                ranked_tgt_out_idx=res[2],
             )
         elif mode in (
             Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,

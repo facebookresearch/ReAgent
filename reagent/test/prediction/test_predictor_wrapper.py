@@ -245,18 +245,12 @@ class TestPredictorWrapper(unittest.TestCase):
             tgt_seq_len=seq2slate.max_tgt_seq_len,
             greedy=True,
         )
-        ranked_tgt_out_probs, ranked_tgt_out_idx = (
-            expected_output.ranked_tgt_out_probs,
+        ranked_per_seq_probs, ranked_tgt_out_idx = (
+            expected_output.ranked_per_seq_probs,
             expected_output.ranked_tgt_out_idx,
-        )
-        ranked_tgt_out_probs = torch.prod(
-            torch.gather(
-                ranked_tgt_out_probs, 2, ranked_tgt_out_idx.unsqueeze(-1)
-            ).squeeze(),
-            -1,
         )
         # -2 to offset padding symbol and decoder start symbol
         ranked_tgt_out_idx -= 2
 
-        self.assertTrue(ranked_tgt_out_probs == ret_val[0])
+        self.assertTrue(ranked_per_seq_probs == ret_val[0])
         self.assertTrue(torch.all(torch.eq(ret_val[1], ranked_tgt_out_idx)))

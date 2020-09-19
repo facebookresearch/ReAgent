@@ -365,7 +365,11 @@ class Seq2SlateWithPreprocessor(ModelBase):
             tgt_seq_len=self.model.max_tgt_seq_len,
             greedy=self.greedy,
         )
-        return ranking_output.ranked_tgt_out_probs, ranking_output.ranked_tgt_out_idx
+        return (
+            ranking_output.ranked_per_symbol_probs,
+            ranking_output.ranked_per_seq_probs,
+            ranking_output.ranked_tgt_out_idx,
+        )
 
 
 class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
@@ -383,22 +387,14 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
         candidate_with_presence: Tuple[torch.Tensor, torch.Tensor],
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        # ranked_tgt_out_probs shape: batch_size, tgt_seq_len, candidate_size
+        # ranked_per_seq_probs shape: batch_size, 1
         # ranked_tgt_out_idx shape: batch_size, tgt_seq_len
-        ranked_tgt_out_probs, ranked_tgt_out_idx = self.seq2slate_with_preprocessor(
+        _, ranked_per_seq_probs, ranked_tgt_out_idx = self.seq2slate_with_preprocessor(
             state_with_presence, candidate_with_presence
-        )
-        # convert to slate-wise probabilities
-        # ranked_tgt_out_probs shape: batch_size
-        ranked_tgt_out_probs = torch.prod(
-            torch.gather(
-                ranked_tgt_out_probs, 2, ranked_tgt_out_idx.unsqueeze(-1)
-            ).squeeze(),
-            -1,
         )
         # -2 to offset padding symbol and decoder start symbol
         ranked_tgt_out_idx -= 2
-        return ranked_tgt_out_probs, ranked_tgt_out_idx
+        return ranked_per_seq_probs, ranked_tgt_out_idx
 
 
 class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
