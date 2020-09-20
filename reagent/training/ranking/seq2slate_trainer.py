@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
     train_ips_score=torch.Tensor,
     train_clamped_ips_score=torch.Tensor,
     train_baseline_loss=torch.Tensor,
-    train_log_probs=torch.Tensor,
+    train_logged_slate_rank_probs=torch.Tensor,
     train_ips_ratio=torch.Tensor,
     train_clamped_ips_ratio=torch.Tensor,
     train_advantages=torch.Tensor,
@@ -44,11 +44,13 @@ class Seq2SlateTrainer(Trainer):
         baseline_optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        policy_gradient_interval: int = 1,
         print_interval: int = 100,
     ) -> None:
         self.seq2slate_net = seq2slate_net
         self.parameters = parameters
         self.use_gpu = use_gpu
+        self.policy_gradient_interval = policy_gradient_interval
         self.print_interval = print_interval
 
         self.minibatch_size = minibatch_size
@@ -58,6 +60,7 @@ class Seq2SlateTrainer(Trainer):
         self.baseline_warmup_num_batches = baseline_warmup_num_batches
 
         self.rl_opt = policy_optimizer.make_optimizer(self.seq2slate_net.parameters())
+        self.rl_opt.zero_grad()
         if self.baseline_net:
             self.baseline_opt = baseline_optimizer.make_optimizer(
                 # pyre-fixme[16]: `Optional` has no attribute `parameters`.
@@ -88,6 +91,7 @@ class Seq2SlateTrainer(Trainer):
         assert type(training_batch) is rlt.PreprocessedTrainingBatch
         training_input = training_batch.training_input
         assert isinstance(training_input, rlt.PreprocessedRankingInput)
+        self.minibatch += 1
 
         batch_size = training_input.state.float_features.shape[0]
         device = torch.device("cuda") if self.use_gpu else torch.device("cpu")
@@ -110,81 +114,79 @@ class Seq2SlateTrainer(Trainer):
 
         # Train Seq2Slate using REINFORCE
         # log probs of tgt seqs
-        log_probs = self.seq2slate_net(
-            training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
-        ).log_probs
+        model_propensities = torch.exp(
+            self.seq2slate_net(
+                training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
+            ).log_probs
+        )
         b = b.detach()
         assert (
-            b.shape == reward.shape == log_probs.shape
-        ), f"{b.shape} {reward.shape} {log_probs.shape}"
+            b.shape == reward.shape == model_propensities.shape
+        ), f"{b.shape} {reward.shape} {model_propensities.shape}"
 
         impt_smpl, clamped_impt_smpl = self._compute_impt_smpl(
-            torch.exp(log_probs.detach()), training_input.tgt_out_probs
+            model_propensities, training_input.tgt_out_probs
         )
         assert (
             impt_smpl.shape == clamped_impt_smpl.shape == reward.shape
         ), f"{impt_smpl.shape} {clamped_impt_smpl.shape} {reward.shape}"
-        # gradient is only w.r.t log_probs
+        # gradient is only w.r.t model_propensities
         assert (
             not reward.requires_grad
             # pyre-fixme[16]: `Optional` has no attribute `requires_grad`.
             and not training_input.tgt_out_probs.requires_grad
-            and not impt_smpl.requires_grad
-            and not clamped_impt_smpl.requires_grad
+            and impt_smpl.requires_grad
+            and clamped_impt_smpl.requires_grad
             and not b.requires_grad
-            and log_probs.requires_grad
         )
         # add negative sign because we take gradient descent but we want to
         # maximize rewards
-        batch_loss = -log_probs * (reward - b)
-        if not self.parameters.on_policy:
-            batch_loss *= clamped_impt_smpl
-        rl_loss = torch.mean(batch_loss)
+        batch_obj_loss = -clamped_impt_smpl * (reward - b)
+        obj_loss = torch.mean(batch_obj_loss)
 
+        # condition to perform policy gradient update:
+        # 1. no baseline
+        # 2. or baseline is present and it passes the warm up stage
+        # 3. the last policy gradient was performed policy_gradient_interval minibatches ago
         if (
             self.baseline_net is None
             or self.minibatch >= self.baseline_warmup_num_batches
         ):
-            self.rl_opt.zero_grad()
-            rl_loss.backward()
-            self.rl_opt.step()
+            obj_loss.backward()
+            if self.minibatch % self.policy_gradient_interval == 0:
+                self.rl_opt.step()
+                self.rl_opt.zero_grad()
         else:
             logger.info("Not update RL model because now is baseline warmup phase")
 
-        # obj_rl_loss is the objective we take gradient with regard to
-        # ips_rl_loss is the sum of importance sampling weighted rewards, which gives
-        # the same gradient when we don't use baseline or clamp.
-        # obj_rl_loss is used to get gradient becaue it is in the logarithmic form
-        # thus more stable.
-        # ips_rl_loss is more useful as an offline evaluation metric
-        obj_rl_loss = rl_loss.detach().cpu().numpy()
-        ips_rl_loss = torch.mean(-impt_smpl * reward).cpu().numpy()
-        clamped_ips_rl_loss = torch.mean(-clamped_impt_smpl * reward).cpu().numpy()
+        ips_loss = torch.mean(-impt_smpl * reward).cpu().detach().numpy()
+        clamped_ips_loss = (
+            torch.mean(-clamped_impt_smpl * reward).cpu().detach().numpy()
+        )
         baseline_loss = baseline_loss.detach().cpu().numpy().item()
-
         advantage = (reward - b).detach().cpu().numpy()
-        log_probs = log_probs.detach().cpu().numpy()
+        logged_slate_rank_probs = model_propensities.detach().cpu().numpy()
 
-        self.minibatch += 1
         if self.minibatch % self.print_interval == 0:
             logger.info(
-                "{} batch: obj_rl_loss={}, ips_rl_loss={}, baseline_loss={}, max_ips={}, mean_ips={}".format(
+                "{} batch: ips_loss={}, clamped_ips_loss={}, baseline_loss={}, max_ips={}, mean_ips={}, grad_update={}".format(
                     self.minibatch,
-                    obj_rl_loss,
-                    ips_rl_loss,
+                    ips_loss,
+                    clamped_ips_loss,
                     baseline_loss,
                     torch.max(impt_smpl),
                     torch.mean(impt_smpl),
+                    self.minibatch % self.policy_gradient_interval == 0,
                 )
             )
         # See RankingTrainingPageHandler.finish() function in page_handler.py
         # pyre-fixme[16]: `Seq2SlateTrainer` has no attribute
         #  `notify_observers`.
         self.notify_observers(
-            train_ips_score=torch.tensor(ips_rl_loss).reshape(1),
-            train_clamped_ips_score=torch.tensor(clamped_ips_rl_loss).reshape(1),
+            train_ips_score=torch.tensor(ips_loss).reshape(1),
+            train_clamped_ips_score=torch.tensor(clamped_ips_loss).reshape(1),
             train_baseline_loss=torch.tensor(baseline_loss).reshape(1),
-            train_log_probs=torch.FloatTensor(log_probs),
+            train_logged_slate_rank_probs=torch.FloatTensor(logged_slate_rank_probs),
             train_ips_ratio=impt_smpl,
             train_clamped_ips_ratio=clamped_impt_smpl,
             train_advantages=advantage,
