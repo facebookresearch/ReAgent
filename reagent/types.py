@@ -375,6 +375,7 @@ class PreprocessedRankingInput(TensorDataClass):
         candidates: torch.Tensor,
         device: torch.device,
         action: Optional[torch.Tensor] = None,
+        optimal_action: Optional[torch.Tensor] = None,
         logged_propensities: Optional[torch.Tensor] = None,
         slate_reward: Optional[torch.Tensor] = None,
         position_reward: Optional[torch.Tensor] = None,
@@ -412,30 +413,51 @@ class PreprocessedRankingInput(TensorDataClass):
             .to(device)
         )
 
-        if action is not None:
-            _, output_size = action.shape
-            # Account for decoder starting symbol and padding symbol
-            candidates_augment = torch.cat(
-                (torch.zeros(batch_size, 2, candidate_dim, device=device), candidates),
-                dim=1,
-            )
-            tgt_out_idx = action + 2
-            tgt_in_idx = torch.full(
-                (batch_size, output_size), DECODER_START_SYMBOL, device=device
-            )
-            tgt_in_idx[:, 1:] = tgt_out_idx[:, :-1]
-            tgt_out_seq = gather(candidates_augment, tgt_out_idx)
-            tgt_in_seq = torch.zeros(
-                batch_size, output_size, candidate_dim, device=device
-            )
-            tgt_in_seq[:, 1:] = tgt_out_seq[:, :-1]
-            tgt_tgt_mask = subsequent_and_padding_mask(tgt_in_idx)
-        else:
-            tgt_in_idx = None
-            tgt_out_idx = None
-            tgt_in_seq = None
-            tgt_out_seq = None
-            tgt_tgt_mask = None
+        def process_tgt_seq(action):
+            if action is not None:
+                _, output_size = action.shape
+                # Account for decoder starting symbol and padding symbol
+                candidates_augment = torch.cat(
+                    (
+                        torch.zeros(batch_size, 2, candidate_dim, device=device),
+                        candidates,
+                    ),
+                    dim=1,
+                )
+                tgt_out_idx = action + 2
+                tgt_in_idx = torch.full(
+                    (batch_size, output_size), DECODER_START_SYMBOL, device=device
+                )
+                tgt_in_idx[:, 1:] = tgt_out_idx[:, :-1]
+                tgt_out_seq = gather(candidates_augment, tgt_out_idx)
+                tgt_in_seq = torch.zeros(
+                    batch_size, output_size, candidate_dim, device=device
+                )
+                tgt_in_seq[:, 1:] = tgt_out_seq[:, :-1]
+                tgt_tgt_mask = subsequent_and_padding_mask(tgt_in_idx)
+            else:
+                tgt_in_idx = None
+                tgt_out_idx = None
+                tgt_in_seq = None
+                tgt_out_seq = None
+                tgt_tgt_mask = None
+
+            return tgt_in_idx, tgt_out_idx, tgt_in_seq, tgt_out_seq, tgt_tgt_mask
+
+        (
+            tgt_in_idx,
+            tgt_out_idx,
+            tgt_in_seq,
+            tgt_out_seq,
+            tgt_tgt_mask,
+        ) = process_tgt_seq(action)
+        (
+            optim_tgt_in_idx,
+            optim_tgt_out_idx,
+            optim_tgt_in_seq,
+            optim_tgt_out_seq,
+            _,
+        ) = process_tgt_seq(optimal_action)
 
         return cls.from_tensors(
             state=state,
@@ -450,6 +472,10 @@ class PreprocessedRankingInput(TensorDataClass):
             tgt_in_idx=tgt_in_idx,
             tgt_out_idx=tgt_out_idx,
             tgt_out_probs=logged_propensities,
+            optim_tgt_in_idx=optim_tgt_in_idx,
+            optim_tgt_out_idx=optim_tgt_out_idx,
+            optim_tgt_in_seq=optim_tgt_in_seq,
+            optim_tgt_out_seq=optim_tgt_out_seq,
         )
 
     @classmethod
