@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from reagent.model_utils.seq2slate_utils import (
     Seq2SlateMode,
     per_symbol_to_per_seq_log_probs,
+    per_symbol_to_per_seq_probs,
 )
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
@@ -75,15 +76,7 @@ def rank_on_policy(
     rank_output = model(
         batch, mode=Seq2SlateMode.RANK_MODE, tgt_seq_len=tgt_seq_len, greedy=greedy
     )
-    ranked_slate_prob = torch.prod(
-        torch.gather(
-            rank_output.ranked_tgt_out_probs,
-            2,
-            rank_output.ranked_tgt_out_idx.unsqueeze(-1),
-        ).squeeze(),
-        dim=-1,
-        keepdim=True,
-    )
+    ranked_slate_prob = rank_output.ranked_per_seq_probs
     ranked_order = rank_output.ranked_tgt_out_idx - 2
     model.train()
     return ranked_slate_prob, ranked_order
@@ -159,6 +152,32 @@ class TestSeq2Slate(unittest.TestCase):
         )
         np.testing.assert_allclose(
             expect_per_seq_log_probs, computed_per_seq_log_probs, atol=0.001, rtol=0.0
+        )
+
+    def test_per_symbol_to_per_seq_probs(self):
+        batch_size = 1
+        seq_len = 3
+        candidate_size = seq_len + 2
+
+        tgt_out_idx = torch.tensor([[0, 2, 1]]) + 2
+        per_symbol_log_probs = torch.randn(batch_size, seq_len, candidate_size)
+        per_symbol_log_probs[0, :, :2] = float("-inf")
+        per_symbol_log_probs[0, 1, 2] = float("-inf")
+        per_symbol_log_probs[0, 2, 2] = float("-inf")
+        per_symbol_log_probs[0, 2, 4] = float("-inf")
+        per_symbol_log_probs = F.log_softmax(per_symbol_log_probs, dim=2)
+        per_symbol_probs = torch.exp(per_symbol_log_probs)
+
+        expect_per_seq_probs = (
+            per_symbol_probs[0, 0, 2]
+            * per_symbol_probs[0, 1, 4]
+            * per_symbol_probs[0, 2, 3]
+        )
+        computed_per_seq_probs = per_symbol_to_per_seq_probs(
+            per_symbol_probs, tgt_out_idx
+        )
+        np.testing.assert_allclose(
+            expect_per_seq_probs, computed_per_seq_probs, atol=0.001, rtol=0.0
         )
 
     @torch.no_grad()

@@ -808,13 +808,23 @@ class PlanningPolicyOutput(TensorDataClass):
 @dataclass
 class RankingOutput(TensorDataClass):
     # a tensor of integer indices w.r.t. to possible candidates
+    # the values are offset by 2 to account for padding and decoder-starter symbol
     # shape: batch_size, tgt_seq_len
+    # e.g., there are candidates C0, C1, C2, C3, C4, and the ranked order is
+    # C4, C1, C2, C3, C0. Then the ranked_tgt_out_idx = [6, 3, 4, 5, 2]
     ranked_tgt_out_idx: Optional[torch.Tensor] = None
+
     # generative probability of ranked tgt sequences at each decoding step
     # shape: batch_size, tgt_seq_len, candidate_size
-    ranked_tgt_out_probs: Optional[torch.Tensor] = None
+    ranked_per_symbol_probs: Optional[torch.Tensor] = None
+
+    # generative probability of ranked tgt sequences
+    # shape: batch_size, 1
+    ranked_per_seq_probs: Optional[torch.Tensor] = None
+
     # log probabilities of given tgt sequences are used in REINFORCE
-    # shape: batch_size
+    # shape: batch_size, 1 if Seq2SlateMode == PER_SEQ_LOG_PROB_MODE
+    # shape: batch_size, tgt_seq_len if Seq2SlateMode == PER_SYMBOL_LOG_PROB_DIST_MODE
     log_probs: Optional[torch.Tensor] = None
     # encoder scores in tgt_out_idx order
     encoder_scores: Optional[torch.Tensor] = None

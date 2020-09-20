@@ -74,10 +74,22 @@ def per_symbol_to_per_seq_log_probs(per_symbol_log_probs, tgt_out_idx):
     """ Gather per-symbol log probabilities into per-seq log probabilities """
     # per_symbol_log_probs shape: batch_size, seq_len, candidate_size
     # tgt_out_idx shape: batch_size, seq_len
-    # log_probs: log probability of each symbol in the tgt_out_idx
+    # per_symbol_log_probs is log probability of each symbol in the tgt_out_idx
     # shape: batch_size, seq_len
     log_probs = torch.gather(per_symbol_log_probs, 2, tgt_out_idx.unsqueeze(2)).squeeze(
         2
     )
     # shape: batch_size, 1
     return log_probs.sum(dim=1, keepdim=True)
+
+
+def per_symbol_to_per_seq_probs(per_symbol_probs, tgt_out_idx):
+    """ Gather per-symbol probabilities into per-seq probabilities """
+    # per_symbol_probs shape: batch_size, seq_len, candidate_size
+    # tgt_out_idx shape: batch_size, seq_len
+    # output shape: batch_size, 1
+    return torch.prod(
+        torch.gather(per_symbol_probs, 2, tgt_out_idx.unsqueeze(-1)).squeeze(),
+        dim=-1,
+        keepdim=True,
+    )

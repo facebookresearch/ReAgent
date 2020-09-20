@@ -90,14 +90,7 @@ class RankingPolicyGradientEvaluator:
         ranked_slate_output = seq2slate_net(
             eval_tdp.training_input, Seq2SlateMode.RANK_MODE, greedy=True
         )
-        ranked_slate_rank_prob = torch.prod(
-            torch.gather(
-                ranked_slate_output.ranked_tgt_out_probs,
-                2,
-                ranked_slate_output.ranked_tgt_out_idx.unsqueeze(-1),
-            ).squeeze(),
-            -1,
-        ).cpu()
+        ranked_slate_rank_prob = ranked_slate_output.ranked_per_seq_probs.cpu()
 
         seq2slate_net.train(seq2slate_net_prev_mode)
 
