@@ -69,7 +69,7 @@ class ReaderOptions(BaseDataClass):
     distributed_master_mem: str = "20G"
     distributed_worker_mem: str = "20G"
     distributed_num_workers: int = 2
-    gang_name: str = ""
+    gang_name: str = "ReAgent_Gang"
 
 
 @dataclass
