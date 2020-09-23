@@ -21,6 +21,34 @@ class Seq2SlateMode(Enum):
     ENCODER_SCORE_MODE = "encoder_score_mode"
 
 
+class Seq2SlateOutputArch(Enum):
+    # Only output encoder scores
+    ENCODER_SCORE = "encoder_score"
+
+    # A decoder outputs a sequence in an autoregressive way
+    AUTOREGRESSIVE = "autoregressive"
+
+    # Using encoder scores, a decoder outputs a sequence using
+    # frechet sort (equivalent to iterative softmax)
+    FRECHET_SORT = "frechet_sort"
+
+
+def mask_logits_by_idx(logits, tgt_in_idx):
+    # logits shape: batch_size, seq_len, candidate_size
+    # tgt_in_idx shape: batch_size, seq_len
+
+    # the first two symbols are reserved for padding and decoder-starting symbols
+    # so they should never be a possible output label
+    logits[:, :, :2] = float("-inf")
+
+    batch_size, seq_len = tgt_in_idx.shape
+    mask_indices = torch.tril(
+        tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len), diagonal=0
+    )
+    logits = logits.scatter(2, mask_indices, float("-inf"))
+    return logits
+
+
 def subsequent_mask(size, device):
     """
     Mask out subsequent positions. Mainly used in the decoding process,
@@ -33,6 +61,7 @@ def subsequent_mask(size, device):
     return subsequent_mask
 
 
+# TODO (@czxttkl): use when we introduce padding
 def subsequent_and_padding_mask(tgt_in_idx):
     """ Create a mask to hide padding and future items """
     # tgt_in_idx shape: batch_size, seq_len
@@ -89,7 +118,7 @@ def per_symbol_to_per_seq_probs(per_symbol_probs, tgt_out_idx):
     # tgt_out_idx shape: batch_size, seq_len
     # output shape: batch_size, 1
     return torch.prod(
-        torch.gather(per_symbol_probs, 2, tgt_out_idx.unsqueeze(-1)).squeeze(),
-        dim=-1,
+        torch.gather(per_symbol_probs, 2, tgt_out_idx.unsqueeze(-1)).squeeze(2),
+        dim=1,
         keepdim=True,
     )

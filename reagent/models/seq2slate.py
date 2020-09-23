@@ -15,8 +15,10 @@ from reagent.model_utils.seq2slate_utils import (
     DECODER_START_SYMBOL,
     PADDING_SYMBOL,
     Seq2SlateMode,
+    Seq2SlateOutputArch,
     attention,
     clones,
+    mask_logits_by_idx,
     per_symbol_to_per_seq_log_probs,
     per_symbol_to_per_seq_probs,
     subsequent_mask,
@@ -31,28 +33,29 @@ logger = logging.getLogger(__name__)
 class Generator(nn.Module):
     """ Define standard linear + softmax generation step. """
 
-    def __init__(self, dim_model, candidate_size):
+    def __init__(self, dim_model, candidate_size, temperature):
         super(Generator, self).__init__()
         self.dim_model = dim_model
-        self.proj = nn.Linear(dim_model, candidate_size)
+        self.candidate_size = candidate_size
+        self.temperature = temperature
 
-    def forward(self, mode, decoder_output=None, tgt_in_idx=None, greedy=None):
+    def forward(self, mode, logits=None, tgt_in_idx=None, greedy=None):
         if mode in (
             Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
             Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
         ):
-            return self._log_probs(decoder_output, tgt_in_idx, mode)
+            return self._log_probs(logits, tgt_in_idx, mode)
         elif mode == Seq2SlateMode.DECODE_ONE_STEP_MODE:
             assert greedy is not None
-            return self._decode_one_step(decoder_output, tgt_in_idx, greedy)
+            return self._decode_one_step(logits, tgt_in_idx, greedy)
         else:
             raise NotImplementedError()
 
-    def _log_probs(self, x, tgt_in_idx, mode):
+    def _log_probs(self, logits, tgt_in_idx, mode):
         """
         Return the log probability distribution at each decoding step
 
-        :param x: the output of decoder. Shape: batch_size, seq_len, dim_model
+        :param logits: logits of decoder outputs. Shape: batch_size, seq_len, candidate_size
         :param tgt_idx: the indices of candidates in decoder input sequences.
             The first symbol is always DECODER_START_SYMBOL.
             Shape: batch_size, seq_len
@@ -61,44 +64,28 @@ class Generator(nn.Module):
             Seq2SlateMode.PER_SEQ_LOG_PROB_MODE,
             Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE,
         )
-        # logits: the probability distribution of each symbol
-        # batch_size, seq_len, candidate_size
-        logits = self.proj(x)
-        # the first two symbols are reserved for padding and decoder-starting symbols
-        # so they should never be a possible output label
-        logits[:, :, :2] = float("-inf")
-
-        batch_size, seq_len = tgt_in_idx.shape
-        mask_indices = torch.tril(
-            tgt_in_idx.repeat(1, seq_len).reshape(batch_size, seq_len, seq_len),
-            diagonal=0,
-        )
-        logits = logits.scatter(2, mask_indices, float("-inf"))
-
+        logits = mask_logits_by_idx(logits, tgt_in_idx)
         # log_probs shape: batch_size, seq_len, candidate_size
-        log_probs = F.log_softmax(logits, dim=2)
+        log_probs = F.log_softmax(logits / self.temperature, dim=2)
         return log_probs
 
-    def _decode_one_step(self, x, tgt_in_idx, greedy):
+    def _decode_one_step(self, logits, tgt_in_idx, greedy):
         """
         Decode one-step
 
-        :param x: the output of the decoder. Shape: batch_size, seq_len, dim_model
+        :param logits: logits of decoder outputs. Shape: batch_size, seq_len, candidate_size
         :param tgt_in_idx: input to the decoder, the first symbol is always the
             starting symbol. Shape: batch_size, seq_len
         :param greedy: whether to greedily pick or sample the next symbol
         """
-        # get the last step of decoder output
-        last_step_x = x[:, -1, :]
-
-        batch_size = x.shape[0]
-        # logits shape: batch_size, candidate_size
-        logits = self.proj(last_step_x)
+        batch_size = logits.shape[0]
+        # get the last step logits shape: batch_size, candidate_size
+        logits = logits[:, -1, :]
         # invalidate the padding symbol and decoder-starting symbol
         logits[:, :2] = float("-inf")
         # invalidate symbols already appeared in decoded sequences
         logits = logits.scatter(1, tgt_in_idx, float("-inf"))
-        prob = F.softmax(logits, dim=1)
+        prob = F.softmax(logits / self.temperature, dim=1)
         if greedy:
             _, next_candidate = torch.max(prob, dim=1)
         else:
@@ -318,14 +305,18 @@ class Seq2SlateTransformerModel(nn.Module):
     encoder-decoder structure. The encoder inputs a sequence of candidate feature
     vectors and a state feature vector, and the decoder outputs an ordered
     list of candidate indices. The output order is learned through REINFORCE
-    algorithm to optimize some sequence-wise reward which is also specific to
-    the provided state feature.
+    algorithm to optimize sequence-wise reward.
 
     One application example is to rank candidate feeds to a specific user such
     that the final list of feeds as a whole optimizes the user's engagement.
 
     Seq2Slate paper: https://arxiv.org/abs/1810.02019
     Transformer paper: https://arxiv.org/abs/1706.03762
+
+    The model archtecture can also adapt to some variations.
+    (1) The decoder can be autoregressive
+    (2) The decoder can take encoder scores and perform iterative softmax (aka frechet sort)
+    (3) No decoder and the output order is solely based on encoder scores
     """
 
     def __init__(
@@ -338,7 +329,8 @@ class Seq2SlateTransformerModel(nn.Module):
         dim_feedforward: int,
         max_src_seq_len: int,
         max_tgt_seq_len: int,
-        encoder_only: bool,
+        output_arch: Seq2SlateOutputArch,
+        temperature: float = 1.0,
     ):
         """
         :param state_dim: state feature dimension
@@ -350,7 +342,8 @@ class Seq2SlateTransformerModel(nn.Module):
             in Transformer
         :param max_src_seq_len: the maximum length of input sequences
         :param max_tgt_seq_len: the maximum length of output sequences
-        :param encoder_only: if True, the model only has an Encoder but no Decoder.
+        :param output_arch: determines seq2slate output architecture
+        :param temperature: temperature used in decoder sampling
         """
         super().__init__()
         self.state_dim = state_dim
@@ -361,7 +354,7 @@ class Seq2SlateTransformerModel(nn.Module):
         self.dim_feedforward = dim_feedforward
         self.max_src_seq_len = max_src_seq_len
         self.max_tgt_seq_len = max_tgt_seq_len
-        self.encoder_only = encoder_only
+        self.output_arch = output_arch
         self._DECODER_START_SYMBOL = DECODER_START_SYMBOL
         self._PADDING_SYMBOL = PADDING_SYMBOL
         self._RANK_MODE = Seq2SlateMode.RANK_MODE
@@ -378,17 +371,23 @@ class Seq2SlateTransformerModel(nn.Module):
         self.encoder = Encoder(
             EncoderLayer(dim_model, c(attn), c(ff)), num_stacked_layers
         )
-        if self.encoder_only:
-            # score encoder output
+        if self.output_arch == Seq2SlateOutputArch.FRECHET_SORT:
+            # Compute score at each encoder step
             self.encoder_scorer = nn.Linear(dim_model, 1)
-        else:
-            self.decoder = Decoder(
-                DecoderLayer(dim_model, c(attn), c(attn), c(ff)), num_stacked_layers
-            )
             # Generator needs to know the output symbol size,
             # Possible output symbols include candidate indices, decoder-start symbol
             # and padding symbol
-            self.generator = Generator(dim_model, max_src_seq_len + 2)
+            self.generator = Generator(dim_model, max_src_seq_len + 2, temperature)
+        elif self.output_arch == Seq2SlateOutputArch.AUTOREGRESSIVE:
+            self.decoder = Decoder(
+                DecoderLayer(dim_model, c(attn), c(attn), c(ff)), num_stacked_layers
+            )
+            self.decoder_logit_proj = nn.Linear(dim_model, max_src_seq_len + 2)
+            self.generator = Generator(dim_model, max_src_seq_len + 2, temperature)
+        elif self.output_arch == Seq2SlateOutputArch.ENCODER_SCORE:
+            # Compute score at each encoder step
+            self.encoder_scorer = nn.Linear(dim_model, 1)
+
         self.candidate_embedder = Embedder(candidate_dim, dim_model // 2)
         self.state_embedder = Embedder(state_dim, dim_model // 2)
         self.positional_encoding = PositionalEncoding(
@@ -410,7 +409,7 @@ class Seq2SlateTransformerModel(nn.Module):
         "dim_feedforward",
         "max_src_seq_len",
         "max_tgt_seq_len",
-        "encoder_only",
+        "output_path",
         "_DECODER_START_SYMBOL",
         "_PADDING_SYMBOL",
         "_RANK_MODE",
@@ -432,13 +431,19 @@ class Seq2SlateTransformerModel(nn.Module):
         logger.info(
             f"Num of State Embedder params: {_num_of_params(self.state_embedder)}"
         )
-        if self.encoder_only:
+        if self.output_arch == Seq2SlateOutputArch.FRECHET_SORT:
             logger.info(
                 f"Num of Encoder_Scorer params: {_num_of_params(self.encoder_scorer)}"
             )
-        else:
+        elif self.output_arch == Seq2SlateOutputArch.AUTOREGRESSIVE:
             logger.info(f"Num of Decoder params: {_num_of_params(self.decoder)}")
-            logger.info(f"Num of Generator params: {_num_of_params(self.generator)}")
+            logger.info(
+                f"Num of Decoder Projection params: {_num_of_params(self.decoder_logit_proj)}"
+            )
+        elif self.output_arch == Seq2SlateOutputArch.ENCODER_SCORE:
+            logger.info(
+                f"Num of Encoder_Scorer params: {_num_of_params(self.encoder_scorer)}"
+            )
 
     def forward(
         self,
@@ -485,7 +490,7 @@ class Seq2SlateTransformerModel(nn.Module):
                 mode=mode,
             )
         elif mode == self._ENCODER_SCORE_MODE:
-            assert self.encoder_only
+            assert self.output_arch == Seq2SlateOutputArch.ENCODER_SCORE
             return self.encoder_output_to_scores(
                 state=input.state.float_features,
                 src_seq=input.src_seq.float_features,
@@ -517,8 +522,8 @@ class Seq2SlateTransformerModel(nn.Module):
         )
         ranked_per_seq_probs = torch.zeros(batch_size, 1)
 
-        if self.encoder_only:
-            # encoder_scores shape: batch_size, tgt_seq_len
+        if self.output_arch == Seq2SlateOutputArch.ENCODER_SCORE:
+            # encoder_scores shape: batch_size, src_seq_len
             encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
             tgt_out_idx = torch.argsort(encoder_scores, dim=1, descending=True)[
                 :, :tgt_seq_len
@@ -530,9 +535,6 @@ class Seq2SlateTransformerModel(nn.Module):
                 2, tgt_out_idx.unsqueeze(2), 1.0
             )
             ranked_per_seq_probs[:, :] = 1.0
-
-            # TODO: T62503033 return encoder_scores so that we can apply
-            # frechet policy gradient
             return ranked_per_symbol_probs, ranked_per_seq_probs, tgt_out_idx
 
         tgt_in_idx = (
@@ -552,7 +554,8 @@ class Seq2SlateTransformerModel(nn.Module):
                 .to(device)
             )
             tgt_src_mask = src_src_mask[:, : l + 1, :]
-            out = self.decode(
+            # shape batch_size, l + 1, candidate_size
+            logits = self.decode(
                 memory=memory,
                 state=state,
                 tgt_src_mask=tgt_src_mask,
@@ -564,7 +567,7 @@ class Seq2SlateTransformerModel(nn.Module):
             # prob shape: batch_size, candidate_size
             next_candidate, prob = self.generator(
                 mode=self._DECODE_ONE_STEP_MODE,
-                decoder_output=out,
+                logits=logits,
                 tgt_in_idx=tgt_in_idx,
                 greedy=greedy,
             )
@@ -609,8 +612,8 @@ class Seq2SlateTransformerModel(nn.Module):
         # tgt_src_mask shape: batch_size, tgt_seq_len, src_seq_len
         tgt_src_mask = src_src_mask[:, :tgt_seq_len, :]
 
-        # decoder_output shape: batch_size, tgt_seq_len, dim_model
-        decoder_output = self.decode(
+        # decoder_logits shape: batch_size, tgt_seq_len, candidate_size
+        decoder_logits = self.decode(
             memory=encoder_output,
             state=state,
             tgt_src_mask=tgt_src_mask,
@@ -621,18 +624,16 @@ class Seq2SlateTransformerModel(nn.Module):
         # log_probs shape:
         # if mode == PER_SEQ_LOG_PROB_MODE: batch_size, 1
         # if mode == PER_SYMBOL_LOG_PROB_DIST_MODE: batch_size, tgt_seq_len, candidate_size
-        log_probs = self._decoder_output_to_log_probs(
-            decoder_output, tgt_in_idx, tgt_out_idx, mode
+        log_probs = self._decoder_logits_to_log_probs(
+            decoder_logits, tgt_in_idx, tgt_out_idx, mode
         )
 
         return log_probs
 
-    def _decoder_output_to_log_probs(
-        self, decoder_output, tgt_in_idx, tgt_out_idx, mode
-    ):
+    def _decoder_logits_to_log_probs(self, logits, tgt_in_idx, tgt_out_idx, mode):
         """
-        :param decoder_output: the output from the decoder, with shape:
-            (batch_size, seq_len, dim_model)
+        :param logits: the logits from the decoder, with shape:
+            (batch_size, seq_len, candidate_size)
         :param tgt_in_idx: input idx to the decoder, the first symbol is
             always the DECODER_START_SYMBOL. Shape: batch_size x seq_len
         :param tgt_out_idx: output idx of the decoder. Shape: batch_size x seq_len
@@ -645,8 +646,9 @@ class Seq2SlateTransformerModel(nn.Module):
         # per_symbol_log_probs: log probability distribution of each symbol
         # shape: batch_size, seq_len, candidate_size
         per_symbol_log_probs = self.generator(
-            mode=mode, decoder_output=decoder_output, tgt_in_idx=tgt_in_idx
+            mode=mode, logits=logits, tgt_in_idx=tgt_in_idx
         )
+
         if mode == self._PER_SYMBOL_LOG_PROB_DIST_MODE:
             return per_symbol_log_probs
 
@@ -704,25 +706,41 @@ class Seq2SlateTransformerModel(nn.Module):
         # tgt_src_mask shape: batch_size, tgt_seq_len, src_seq_len
         # tgt_seq shape: batch_size, tgt_seq_len, dim_candidate
         # tgt_tgt_mask shape: batch_size, tgt_seq_len, tgt_seq_len
-        batch_size = tgt_in_seq.shape[0]
+        batch_size, src_seq_len, _ = memory.shape
+        candidate_size = src_seq_len + 2
 
-        # candidate_embed shape: batch_size, tgt_seq_len, dim_model/2
-        candidate_embed = self.candidate_embedder(tgt_in_seq)
-        # state_embed: batch_size, dim_model/2
-        state_embed = self.state_embedder(state)
-        # state_embed: batch_size, tgt_seq_len, dim_model/2
-        state_embed = state_embed.repeat(1, tgt_seq_len).reshape(
-            batch_size, tgt_seq_len, -1
-        )
+        if self.output_arch == Seq2SlateOutputArch.FRECHET_SORT:
+            # encoder_scores shape: batch_size, src_seq_len
+            encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
+            logits = torch.zeros(batch_size, tgt_seq_len, candidate_size).to(
+                encoder_scores.device
+            )
+            logits[:, :, :2] = float("-inf")
+            logits[:, :, 2:] = encoder_scores.repeat(1, tgt_seq_len).reshape(
+                batch_size, tgt_seq_len, src_seq_len
+            )
+        elif self.output_arch == Seq2SlateOutputArch.AUTOREGRESSIVE:
+            # candidate_embed shape: batch_size, tgt_seq_len, dim_model/2
+            candidate_embed = self.candidate_embedder(tgt_in_seq)
+            # state_embed: batch_size, dim_model/2
+            state_embed = self.state_embedder(state)
+            # state_embed: batch_size, tgt_seq_len, dim_model/2
+            state_embed = state_embed.repeat(1, tgt_seq_len).reshape(
+                batch_size, tgt_seq_len, -1
+            )
 
-        # tgt_embed: batch_size, tgt_seq_len, dim_model
-        tgt_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=2), tgt_seq_len
-        )
+            # tgt_embed: batch_size, tgt_seq_len, dim_model
+            tgt_embed = self.positional_encoding(
+                torch.cat((state_embed, candidate_embed), dim=2), tgt_seq_len
+            )
 
-        # output of decoder will be later transformed into probabilities over symbols.
-        # shape: batch_size, tgt_seq_len, dim_model
-        return self.decoder(tgt_embed, memory, tgt_src_mask, tgt_tgt_mask)
+            # output of decoder will be later transformed into probabilities over symbols.
+            # shape: batch_size, tgt_seq_len, dim_model
+            decoder_output = self.decoder(tgt_embed, memory, tgt_src_mask, tgt_tgt_mask)
+
+            # logits shape: batch_size, seq_len, candidate_size
+            logits = self.decoder_logit_proj(decoder_output)
+        return logits
 
 
 @dataclass
@@ -735,7 +753,8 @@ class Seq2SlateNet(ModelBase):
     dim_model: int
     max_src_seq_len: int
     max_tgt_seq_len: int
-    encoder_only: bool
+    output_arch: Seq2SlateOutputArch
+    temperature: float
 
     def __post_init_post_parse__(self) -> None:
         super(Seq2SlateNet, self).__init__()
@@ -802,7 +821,8 @@ class Seq2SlateTransformerNet(Seq2SlateNet):
             dim_feedforward=self.dim_feedforward,
             max_src_seq_len=self.max_src_seq_len,
             max_tgt_seq_len=self.max_tgt_seq_len,
-            encoder_only=self.encoder_only,
+            output_arch=self.output_arch,
+            temperature=self.temperature,
         )
 
 

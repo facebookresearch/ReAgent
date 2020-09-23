@@ -16,10 +16,7 @@ from reagent.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
-from reagent.model_utils.seq2slate_utils import (
-    DECODER_START_SYMBOL,
-    subsequent_and_padding_mask,
-)
+from reagent.model_utils.seq2slate_utils import DECODER_START_SYMBOL, subsequent_mask
 from reagent.preprocessing.types import InputColumn
 from reagent.torch_utils import gather
 
@@ -434,7 +431,7 @@ class PreprocessedRankingInput(TensorDataClass):
                     batch_size, output_size, candidate_dim, device=device
                 )
                 tgt_in_seq[:, 1:] = tgt_out_seq[:, :-1]
-                tgt_tgt_mask = subsequent_and_padding_mask(tgt_in_idx)
+                tgt_tgt_mask = subsequent_mask(output_size, device)
             else:
                 tgt_in_idx = None
                 tgt_out_idx = None
