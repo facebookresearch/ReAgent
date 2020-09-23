@@ -1,4 +1,5 @@
 import copy
+import itertools
 import logging
 import random
 import unittest
@@ -6,6 +7,8 @@ import unittest
 import numpy as np
 import reagent.types as rlt
 import torch
+from parameterized import parameterized
+from reagent.model_utils.seq2slate_utils import Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union, classes
 from reagent.parameters import Seq2SlateParameters
@@ -17,6 +20,14 @@ from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.INFO)
+
+
+output_arch_list = [
+    Seq2SlateOutputArch.FRECHET_SORT,
+    Seq2SlateOutputArch.AUTOREGRESSIVE,
+]
+policy_gradient_interval_list = [1, 5]
+clamp_method_list = [IPSClampMethod.UNIVERSAL, IPSClampMethod.UNIVERSAL]
 
 
 def create_trainer(
@@ -40,7 +51,7 @@ def create_trainer(
 
 
 def create_seq2slate_transformer(
-    state_dim, candidate_num, candidate_dim, hidden_size, device
+    state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
 ):
     return Seq2SlateTransformerNet(
         state_dim=state_dim,
@@ -51,7 +62,8 @@ def create_seq2slate_transformer(
         dim_feedforward=hidden_size,
         max_src_seq_len=candidate_num,
         max_tgt_seq_len=candidate_num,
-        encoder_only=False,
+        output_arch=output_arch,
+        temperature=0.5,
     ).to(device)
 
 
@@ -124,7 +136,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
                 w_c - policy_gradient_interval * learning_rate * w_c.grad,
                 w,
                 rtol=1e-4,
-                atol=1e-6,
+                atol=2e-6,
             )
 
     def test_ips_clamp(self):
@@ -140,28 +152,29 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         )
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_seq2slate_trainer_on_policy_one_gradient_update_step_gpu(self):
+    @parameterized.expand(
+        itertools.product(policy_gradient_interval_list, output_arch_list)
+    )
+    def test_seq2slate_trainer_on_policy_gpu(
+        self, policy_gradient_interval, output_arch
+    ):
         self._test_seq2slate_trainer_on_policy(
-            policy_gradient_interval=1, device=torch.device("cuda")
+            policy_gradient_interval, output_arch, device=torch.device("cuda")
         )
 
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_seq2slate_trainer_on_policy_multi_gradient_update_steps_gpu(self):
+    @parameterized.expand(
+        itertools.product(policy_gradient_interval_list, output_arch_list)
+    )
+    def test_seq2slate_trainer_on_policy_cpu(
+        self, policy_gradient_interval, output_arch
+    ):
         self._test_seq2slate_trainer_on_policy(
-            policy_gradient_interval=5, device=torch.device("cuda")
+            policy_gradient_interval, output_arch, device=torch.device("cpu")
         )
 
-    def test_seq2slate_trainer_on_policy_one_gradient_update_step_cpu(self):
-        self._test_seq2slate_trainer_on_policy(
-            policy_gradient_interval=1, device=torch.device("cpu")
-        )
-
-    def test_seq2slate_trainer_on_policy_multi_gradient_update_steps_cpu(self):
-        self._test_seq2slate_trainer_on_policy(
-            policy_gradient_interval=5, device=torch.device("cpu")
-        )
-
-    def _test_seq2slate_trainer_on_policy(self, policy_gradient_interval, device):
+    def _test_seq2slate_trainer_on_policy(
+        self, policy_gradient_interval, output_arch, device
+    ):
         batch_size = 32
         state_dim = 2
         candidate_num = 15
@@ -173,7 +186,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         seq2slate_params = Seq2SlateParameters(on_policy=on_policy)
 
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, device
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
         )
         seq2slate_net_copy = copy.deepcopy(seq2slate_net)
         seq2slate_net_copy_copy = copy.deepcopy(seq2slate_net)
@@ -231,28 +244,29 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         )
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_seq2slate_trainer_off_policy_one_gradient_update_step_gpu(self):
+    @parameterized.expand(
+        itertools.product(policy_gradient_interval_list, output_arch_list)
+    )
+    def test_seq2slate_trainer_off_policy_gpu(
+        self, policy_gradient_interval, output_arch
+    ):
         self._test_seq2slate_trainer_off_policy(
-            policy_gradient_interval=1, device=torch.device("cuda")
+            policy_gradient_interval, output_arch, device=torch.device("cuda")
         )
 
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_seq2slate_trainer_off_policy_multi_gradient_update_steps_gpu(self):
+    @parameterized.expand(
+        itertools.product(policy_gradient_interval_list, output_arch_list)
+    )
+    def test_seq2slate_trainer_off_policy_cpu(
+        self, policy_gradient_interval, output_arch
+    ):
         self._test_seq2slate_trainer_off_policy(
-            policy_gradient_interval=5, device=torch.device("cuda")
+            policy_gradient_interval, output_arch, device=torch.device("cpu")
         )
 
-    def test_seq2slate_trainer_off_policy_one_gradient_update_step_cpu(self):
-        self._test_seq2slate_trainer_off_policy(
-            policy_gradient_interval=1, device=torch.device("cpu")
-        )
-
-    def test_seq2slate_trainer_off_policy_multi_gradient_update_steps_cpu(self):
-        self._test_seq2slate_trainer_off_policy(
-            policy_gradient_interval=5, device=torch.device("cpu")
-        )
-
-    def _test_seq2slate_trainer_off_policy(self, policy_gradient_interval, device):
+    def _test_seq2slate_trainer_off_policy(
+        self, policy_gradient_interval, output_arch, device
+    ):
         batch_size = 32
         state_dim = 2
         candidate_num = 15
@@ -263,7 +277,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         seq2slate_params = Seq2SlateParameters(on_policy=on_policy)
 
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, device
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
         )
         seq2slate_net_copy = copy.deepcopy(seq2slate_net)
         seq2slate_net_copy_copy = copy.deepcopy(seq2slate_net)
@@ -318,13 +332,8 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             learning_rate,
         )
 
-    def test_seq2slate_trainer_off_policy_with_universal_clamp(self):
-        self._test_seq2slate_trainer_off_policy_with_clamp(IPSClampMethod.UNIVERSAL)
-
-    def test_seq2slate_trainer_off_policy_with_aggressive_clamp(self):
-        self._test_seq2slate_trainer_off_policy_with_clamp(IPSClampMethod.AGGRESSIVE)
-
-    def _test_seq2slate_trainer_off_policy_with_clamp(self, clamp_method):
+    @parameterized.expand(itertools.product(clamp_method_list, output_arch_list))
+    def test_seq2slate_trainer_off_policy_with_clamp(self, clamp_method, output_arch):
         batch_size = 32
         state_dim = 2
         candidate_num = 15
@@ -339,7 +348,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         )
 
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, device
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
         )
         seq2slate_net_copy = copy.deepcopy(seq2slate_net)
         trainer = create_trainer(

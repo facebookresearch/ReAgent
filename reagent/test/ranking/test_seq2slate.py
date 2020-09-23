@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-
+import itertools
 import logging
 import random
 import unittest
@@ -12,10 +12,15 @@ import pytest
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
+from parameterized import parameterized
 from reagent.model_utils.seq2slate_utils import (
+    DECODER_START_SYMBOL,
     Seq2SlateMode,
+    Seq2SlateOutputArch,
+    mask_logits_by_idx,
     per_symbol_to_per_seq_log_probs,
     per_symbol_to_per_seq_probs,
+    subsequent_mask,
 )
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
@@ -27,6 +32,12 @@ from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 logger = logging.getLogger(__name__)
 
 MODEL_TRANSFORMER = "transformer"
+
+output_arch_list = [
+    Seq2SlateOutputArch.FRECHET_SORT,
+    Seq2SlateOutputArch.AUTOREGRESSIVE,
+]
+temperature_list = [1.0, 2.0]
 
 
 def create_batch(batch_size, candidate_num, candidate_dim, device, diverse_input=False):
@@ -94,7 +105,9 @@ def rank_on_policy_and_eval(
     return model_propensity, model_action, reward
 
 
-def create_seq2slate_transformer(candidate_num, candidate_dim, hidden_size, device):
+def create_seq2slate_transformer(
+    candidate_num, candidate_dim, hidden_size, output_arch, temperature, device
+):
     return Seq2SlateTransformerNet(
         state_dim=1,
         candidate_dim=candidate_dim,
@@ -104,7 +117,8 @@ def create_seq2slate_transformer(candidate_num, candidate_dim, hidden_size, devi
         dim_feedforward=hidden_size,
         max_src_seq_len=candidate_num,
         max_tgt_seq_len=candidate_num,
-        encoder_only=False,
+        output_arch=output_arch,
+        temperature=temperature,
     ).to(device)
 
 
@@ -180,8 +194,51 @@ class TestSeq2Slate(unittest.TestCase):
             expect_per_seq_probs, computed_per_seq_probs, atol=0.001, rtol=0.0
         )
 
+    def test_subsequent_mask(self):
+        expect_mask = torch.tensor([[1, 0, 0], [1, 1, 0], [1, 1, 1]])
+        mask = subsequent_mask(3, torch.device("cpu"))
+        assert torch.all(torch.eq(mask, expect_mask))
+
+    def test_mask_logits_by_idx(self):
+        logits = torch.tensor(
+            [
+                [
+                    [1.0, 2.0, 3.0, 4.0, 5.0],
+                    [2.0, 3.0, 4.0, 5.0, 6.0],
+                    [3.0, 4.0, 5.0, 6.0, 7.0],
+                ],
+                [
+                    [5.0, 4.0, 3.0, 2.0, 1.0],
+                    [6.0, 5.0, 4.0, 3.0, 2.0],
+                    [7.0, 6.0, 5.0, 4.0, 3.0],
+                ],
+            ]
+        )
+        tgt_in_idx = torch.tensor(
+            [[DECODER_START_SYMBOL, 2, 3], [DECODER_START_SYMBOL, 4, 3]]
+        )
+        masked_logits = mask_logits_by_idx(logits, tgt_in_idx)
+        expected_logits = torch.tensor(
+            [
+                [
+                    [float("-inf"), float("-inf"), 3.0, 4.0, 5.0],
+                    [float("-inf"), float("-inf"), float("-inf"), 5.0, 6.0],
+                    [float("-inf"), float("-inf"), float("-inf"), float("-inf"), 7.0],
+                ],
+                [
+                    [float("-inf"), float("-inf"), 3.0, 2.0, 1.0],
+                    [float("-inf"), float("-inf"), 4.0, 3.0, float("-inf")],
+                    [float("-inf"), float("-inf"), 5.0, float("-inf"), float("-inf")],
+                ],
+            ]
+        )
+        assert torch.all(torch.eq(masked_logits, expected_logits))
+
+    @parameterized.expand(itertools.product(output_arch_list, temperature_list))
     @torch.no_grad()
-    def test_seq2slate_transformer_propensity_computation(self):
+    def test_seq2slate_transformer_propensity_computation(
+        self, output_arch, temperature
+    ):
         """
         Test propensity computation of seq2slate net
         """
@@ -195,7 +252,7 @@ class TestSeq2Slate(unittest.TestCase):
         device = torch.device("cpu")
 
         seq2slate_net = create_seq2slate_transformer(
-            candidate_num, candidate_dim, hidden_size, device
+            candidate_num, candidate_dim, hidden_size, output_arch, temperature, device
         )
         batch = create_batch(
             batch_size, candidate_num, candidate_dim, device, diverse_input=False
@@ -224,7 +281,8 @@ class TestSeq2Slate(unittest.TestCase):
             torch.sum(torch.exp(per_seq_log_prob)), 1.0, atol=0.00001
         )
 
-    def test_seq2slate_transformer_onplicy_basic_logic(self):
+    @parameterized.expand(itertools.product(output_arch_list, temperature_list))
+    def test_seq2slate_transformer_onplicy_basic_logic(self, output_arch, temperature):
         """
         Test basic logic of seq2slate on policy sampling
         """
@@ -234,7 +292,7 @@ class TestSeq2Slate(unittest.TestCase):
         batch_size = 4096
         hidden_size = 32
         seq2slate_net = create_seq2slate_transformer(
-            candidate_num, candidate_dim, hidden_size, device
+            candidate_num, candidate_dim, hidden_size, output_arch, temperature, device
         )
         batch = create_batch(
             batch_size, candidate_num, candidate_dim, device, diverse_input=False
@@ -386,7 +444,12 @@ class TestSeq2Slate(unittest.TestCase):
 
         if model_str == MODEL_TRANSFORMER:
             seq2slate_net = create_seq2slate_transformer(
-                candidate_num, candidate_dim, hidden_size, device
+                candidate_num,
+                candidate_dim,
+                hidden_size,
+                Seq2SlateOutputArch.AUTOREGRESSIVE,
+                1.0,
+                device,
             )
         else:
             raise NotImplementedError(f"unknown model type {model_str}")

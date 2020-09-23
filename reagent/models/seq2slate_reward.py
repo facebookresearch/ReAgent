@@ -7,10 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from reagent import types as rlt
-from reagent.model_utils.seq2slate_utils import (
-    DECODER_START_SYMBOL,
-    subsequent_and_padding_mask,
-)
+from reagent.model_utils.seq2slate_utils import DECODER_START_SYMBOL, subsequent_mask
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import (
     Decoder,
@@ -326,7 +323,7 @@ class Seq2SlateTransformerRewardNet(Seq2SlateRewardNetBase):
             ),
             dim=1,
         )
-        tgt_tgt_mask = subsequent_and_padding_mask(tgt_in_idx)
+        tgt_tgt_mask = subsequent_mask(tgt_seq_len + 1, device)
         # shape: batch_size, tgt_seq_len + 1, candidate_dim
         tgt_in_seq = torch.cat(
             (

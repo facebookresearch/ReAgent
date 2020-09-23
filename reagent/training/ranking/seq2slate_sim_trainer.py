@@ -91,6 +91,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         baseline_optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        policy_gradient_interval: int = 1,
         print_interval: int = 100,
     ) -> None:
         self.sim_param = parameters.simulation
@@ -100,6 +101,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         self.parameters = parameters
         self.minibatch_size = minibatch_size
         self.use_gpu = use_gpu
+        self.policy_gradient_interval = policy_gradient_interval
         self.print_interval = print_interval
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
         self.permutation_index = torch.tensor(
@@ -135,6 +137,7 @@ class Seq2SlateSimulationTrainer(Trainer):
             use_gpu=use_gpu,
             policy_optimizer=policy_optimizer,
             baseline_optimizer=baseline_optimizer,
+            policy_gradient_interval=policy_gradient_interval,
             print_interval=print_interval,
         )
         self.seq2slate_net = self.trainer.seq2slate_net
