@@ -6,7 +6,7 @@ import time
 import unittest
 
 import numpy as np
-from reagent.gym.envs.gym import Gym
+from reagent.gym.envs import Gym
 
 
 logger = logging.getLogger(__name__)

@@ -8,18 +8,17 @@ from typing import Dict, List, Optional, Tuple
 
 import torch
 from reagent.core.registry_meta import RegistryMeta
-from reagent.core.types import (
+from reagent.parameters import NormalizationData
+from reagent.tensorboardX import summary_writer_context
+from reagent.training.trainer import Trainer
+from reagent.workflow.types import (
     Dataset,
-    OssReaderOptions,
     ReaderOptions,
     ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
 )
-from reagent.parameters import NormalizationData
-from reagent.tensorboardX import summary_writer_context
-from reagent.training.trainer import Trainer
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -214,7 +213,7 @@ class ModelManager(metaclass=RegistryMeta):
         )
 
         if not reader_options:
-            reader_options = OssReaderOptions()
+            reader_options = ReaderOptions()
 
         with summary_writer_context(writer):
             train_output = self.train(

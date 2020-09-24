@@ -5,8 +5,12 @@ import logging
 from typing import Dict, NamedTuple, Optional, Tuple
 
 import torch
-from reagent.core.types import (
-    OssReaderOptions,
+from reagent.parameters import NormalizationData
+from reagent.publishers.union import ModelPublisher__Union
+from reagent.validators.union import ModelValidator__Union
+from reagent.workflow.env import get_workflow_id
+from reagent.workflow.model_managers.union import ModelManager__Union
+from reagent.workflow.types import (
     ReaderOptions,
     RecurringPeriod,
     ResourceOptions,
@@ -14,11 +18,6 @@ from reagent.core.types import (
     RLTrainingOutput,
     TableSpec,
 )
-from reagent.parameters import NormalizationData
-from reagent.publishers.union import ModelPublisher__Union
-from reagent.validators.union import ModelValidator__Union
-from reagent.workflow.env import get_workflow_id
-from reagent.workflow.model_managers.union import ModelManager__Union
 
 
 logger = logging.getLogger(__name__)
@@ -120,7 +119,7 @@ def query_and_train(
     logger.info("Starting query")
 
     reward_options = reward_options or RewardOptions()
-    reader_options = reader_options or OssReaderOptions()
+    reader_options = reader_options or ReaderOptions()
     resource_options = resource_options or ResourceOptions()
     manager = model.value
 
