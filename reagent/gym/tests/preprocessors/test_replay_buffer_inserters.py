@@ -8,7 +8,7 @@ import gym
 import numpy as np
 import numpy.testing as npt
 import torch
-from reagent.gym.envs.env_wrapper import EnvWrapper
+from reagent.gym.envs import EnvWrapper
 from reagent.gym.preprocessors import make_replay_buffer_inserter
 from reagent.gym.types import Transition
 from reagent.replay_memory import ReplayBuffer
@@ -18,7 +18,7 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 logger = logging.getLogger(__name__)
 
 try:
-    from reagent.gym.envs.recsim import RecSim
+    from reagent.gym.envs import RecSim
 
     HAS_RECSIM = True
 except ModuleNotFoundError:

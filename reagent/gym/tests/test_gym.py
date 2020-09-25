@@ -10,13 +10,12 @@ import numpy as np
 import pytest
 import torch
 from parameterized import parameterized
-from reagent.core.types import RewardOptions
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_episode import train_post_episode
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
+from reagent.gym.envs import Env__Union
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.gym import Gym
-from reagent.gym.envs.union import Env__Union
 from reagent.gym.policies.policy import Policy
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.types import PostEpisode, PostStep
@@ -26,6 +25,7 @@ from reagent.tensorboardX import summary_writer_context
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.trainer import Trainer
 from reagent.workflow.model_managers.union import ModelManager__Union
+from reagent.workflow.types import RewardOptions
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import trange
 

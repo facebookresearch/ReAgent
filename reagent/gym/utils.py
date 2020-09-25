@@ -7,7 +7,7 @@ from typing import Dict
 from gym import spaces
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import add_replay_buffer_post_step
-from reagent.gym.envs.env_wrapper import EnvWrapper
+from reagent.gym.envs import EnvWrapper
 from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.runners.gymrunner import run_episode
 from reagent.parameters import NormalizationData, NormalizationKey
@@ -22,7 +22,7 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 try:
-    from reagent.gym.envs.recsim import RecSim  # noqa
+    from reagent.gym.envs import RecSim  # noqa
 
     HAS_RECSIM = True
 except ImportError:

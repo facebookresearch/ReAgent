@@ -14,8 +14,8 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
-from reagent.core.types import Dataset, OssDataset, TableSpec
 from reagent.workflow.spark_utils import get_spark_session, get_table_url
+from reagent.workflow.types import Dataset, TableSpec
 
 
 logger = logging.getLogger(__name__)
@@ -451,7 +451,7 @@ def upload_as_parquet(df) -> Dataset:
     df.write.mode("errorifexists").format("parquet").saveAsTable(rand_name)
     parquet_url = get_table_url(rand_name)
     logger.info(f"Saved parquet to {parquet_url}")
-    return OssDataset(parquet_url=parquet_url)
+    return Dataset(parquet_url=parquet_url)
 
 
 def query_data(
@@ -468,7 +468,7 @@ def query_data(
     other preprocessing such as sparse2dense.
     """
     sqlCtx = get_spark_session()
-    df = sqlCtx.sql(f"SELECT * FROM {input_table_spec.table}")
+    df = sqlCtx.sql(f"SELECT * FROM {input_table_spec.table_name}")
     df = set_reward_col_as_reward(
         df,
         custom_reward_expression=custom_reward_expression,
