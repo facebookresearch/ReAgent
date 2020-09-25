@@ -120,6 +120,7 @@ def build_normalizer(env: EnvWrapper) -> Dict[str, NormalizationData]:
         return env.normalization_data
     except AttributeError:
         # TODO: make this a property of EnvWrapper?
+        # pyre-fixme[16]: Module `envs` has no attribute `RecSim`.
         if HAS_RECSIM and isinstance(env, RecSim):
             return {
                 NormalizationKey.STATE: NormalizationData(

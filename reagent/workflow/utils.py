@@ -56,12 +56,8 @@ def get_petastorm_dataloader(
 ):
     """ get petastorm loader for dataset (with preprocessor) """
     data_reader = make_batch_reader(
-        # pyre-fixme[16]: `Dataset` has no attribute `parquet_url`.
-        # pyre-fixme[16]: `Dataset` has no attribute `parquet_url`.
         dataset.parquet_url,
         num_epochs=1,
-        # pyre-fixme[16]: `ReaderOptions` has no attribute `petastorm_reader_pool_type`.
-        # pyre-fixme[16]: `ReaderOptions` has no attribute `petastorm_reader_pool_type`.
         reader_pool_type=reader_options.petastorm_reader_pool_type,
     )
     # NOTE: must be wrapped by DataLoaderWrapper to call __exit__() on end of epoch
@@ -92,12 +88,8 @@ def gather_eval_data(
     device = "cuda" if use_gpu else "cpu"
     eval_data = None
     with make_batch_reader(
-        # pyre-fixme[16]: `Dataset` has no attribute `parquet_url`.
-        # pyre-fixme[16]: `Dataset` has no attribute `parquet_url`.
         eval_dataset.parquet_url,
         num_epochs=1,
-        # pyre-fixme[16]: `ReaderOptions` has no attribute `petastorm_reader_pool_type`.
-        # pyre-fixme[16]: `ReaderOptions` has no attribute `petastorm_reader_pool_type`.
         reader_pool_type=reader_options.petastorm_reader_pool_type,
     ) as reader:
         for batch in reader:
@@ -129,8 +121,6 @@ def train_and_evaluate_generic(
 ) -> None:
     reader_options = reader_options or ReaderOptions()
     epoch_iterator = EpochIterator(num_epochs=num_epochs)
-    # pyre-fixme[16]: `Dataset` has no attribute `parquet_url`.
-    # pyre-fixme[16]: `Dataset` has no attribute `parquet_url`.
     train_dataset_size = get_table_row_count(train_dataset.parquet_url)
     # pyre-fixme[16]: `EpochIterator` has no attribute `add_observer`.
     for epoch in epoch_iterator.add_observer(reporter):
