@@ -7,11 +7,11 @@ import gym
 import numpy.testing as npt
 import torch
 import torch.nn.functional as F
-from reagent.gym.envs.gym import Gym
+from reagent.gym.envs import Gym
 
 
 try:
-    from reagent.gym.envs.recsim import RecSim
+    from reagent.gym.envs import RecSim
 
     HAS_RECSIM = True
 except ModuleNotFoundError:

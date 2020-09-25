@@ -4,6 +4,7 @@ import logging
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.gym.policies.policy import Policy
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
 from reagent.net_builder.unions import (

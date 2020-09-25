@@ -2,8 +2,8 @@
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoValidationResults
-from reagent.core.types import RLTrainingOutput
 from reagent.validators.model_validator import ModelValidator
+from reagent.workflow.types import RLTrainingOutput
 
 
 @dataclass

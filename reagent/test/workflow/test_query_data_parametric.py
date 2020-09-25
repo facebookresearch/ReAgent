@@ -9,7 +9,6 @@ import pytest
 
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import asc
-from reagent.core.types import Dataset, TableSpec
 
 # pyre-fixme[21]: Could not find `workflow`.
 from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
@@ -17,6 +16,7 @@ from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
 # pyre-fixme[21]: Could not find module `reagent.test.workflow.test_data.ex_mdps`.
 from reagent.test.workflow.test_data.ex_mdps import generate_parametric_mdp_pandas_df
 from reagent.workflow.data_fetcher import query_data
+from reagent.workflow.types import Dataset, TableSpec
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class TestQueryDataParametric(ReagentSQLTestBase):
     def _parametric_read_data(
         self, custom_reward_expression=None, gamma=None, multi_steps=None
     ):
-        ts = TableSpec(table=self.table_name)
+        ts = TableSpec(table_name=self.table_name)
         dataset: Dataset = query_data(
             input_table_spec=ts,
             discrete_action=False,

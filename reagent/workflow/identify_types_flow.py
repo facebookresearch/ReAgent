@@ -8,12 +8,12 @@ import reagent.types as rlt
 # pyre-fixme[21]: Could not find `pyspark`.
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, collect_list, explode
-from reagent.core.types import PreprocessingOptions, TableSpec
 from reagent.preprocessing.normalization import (
     NormalizationParameters,
     get_feature_norm_metadata,
 )
 from reagent.workflow.spark_utils import get_spark_session
+from reagent.workflow.types import PreprocessingOptions, TableSpec
 
 
 def normalization_helper(
@@ -85,7 +85,7 @@ def identify_normalization_parameters(
 ) -> Dict[int, NormalizationParameters]:
     """ Get normalization parameters """
     sqlCtx = get_spark_session()
-    df = sqlCtx.sql(f"SELECT * FROM {table_spec.table}")
+    df = sqlCtx.sql(f"SELECT * FROM {table_spec.table_name}")
     df = create_normalization_spec_spark(
         df, column_name, preprocessing_options.num_samples, seed
     )

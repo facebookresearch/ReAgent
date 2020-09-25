@@ -1,6 +1,6 @@
 pkl_path: "/tmp/input_df.pkl"
 input_table_spec:
-  table: ecom_cb_input_data
+  table_name: ecom_cb_input_data
   table_sample: 90
   eval_table_sample: 10
 model:
