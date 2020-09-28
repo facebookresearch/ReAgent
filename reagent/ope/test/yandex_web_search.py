@@ -501,7 +501,6 @@ class TrainingDataset:
         self, query_id: int, query_terms: Tuple[int], items: Iterable[Tuple[int, int]]
     ) -> SlateItemValues:
         self._process_training_queries()
-        # pyre-fixme[16]: `None` has no attribute `__getitem__`.
         if query_id in self._query_ids:
             q = self._query_ids[query_id]
             rels = q.url_relevances
@@ -527,7 +526,6 @@ class TrainingDataset:
         return SlateItemValues(item_rels)
 
     def slot_relevances(self, slots: SlateSlots) -> SlateSlotValues:
-        # pyre-fixme[16]: `None` has no attribute `__getitem__`.
         return SlateSlotValues(self._position_relevances[: len(slots)])
 
 

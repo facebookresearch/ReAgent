@@ -81,7 +81,8 @@ class IntervalAggregatingObserver(Observer):
 
         self.intermediate_values.append(value)
         self.iteration += 1
-        # pyre-fixme[6]: Expected `int` for 1st param but got `Optional[int]`.
+        # pyre-fixme[58]: `%` is not supported for operand types `int` and
+        #  `Optional[int]`.
         if self.interval and self.iteration % self.interval == 0:
             logger.info(
                 f"Interval Agg. Update: {self.key}; iteration {self.iteration}; "

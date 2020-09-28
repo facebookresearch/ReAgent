@@ -92,7 +92,8 @@ class RankingListwiseEvaluator:
         ranking_output = self.seq2slate_net(eval_input, mode=Seq2SlateMode.RANK_MODE)
         # pyre-fixme[16]: `int` has no attribute `cpu`.
         ranked_idx = (ranking_output.ranked_tgt_out_idx - 2).cpu().numpy()
-        # pyre-fixme[6]: Expected `int` for 1st param but got `Optional[torch.Tensor]`.
+        # pyre-fixme[58]: `-` is not supported for operand types
+        #  `Optional[torch.Tensor]` and `int`.
         logged_idx = (eval_input.tgt_out_idx - 2).cpu().numpy()
         score_bar = np.arange(self.slate_size, 0, -1)
 
