@@ -80,7 +80,7 @@ class RankingPolicyGradientEvaluator:
             b = torch.zeros_like(eval_tdp.training_input.slate_reward)
 
         eval_advantage = (
-            # pyre-fixme[6]: `-` is not supported for operand types
+            # pyre-fixme[58]: `-` is not supported for operand types
             #  `Optional[torch.Tensor]` and `Any`.
             (eval_tdp.training_input.slate_reward - b)
             .flatten()

@@ -123,8 +123,8 @@ class EvaluationDataPage(NamedTuple):
         if eval_greedy:
             model_propensities = torch.ones(batch_size, 1, device=device)
             action_mask = torch.all(
-                # pyre-fixme[6]: Expected `int` for 1st param but got
-                #  `Optional[torch.Tensor]`.
+                # pyre-fixme[58]: `-` is not supported for operand types
+                #  `Optional[torch.Tensor]` and `int`.
                 (training_input.tgt_out_idx - 2)
                 == (rank_output.ranked_tgt_out_idx - 2),
                 dim=1,

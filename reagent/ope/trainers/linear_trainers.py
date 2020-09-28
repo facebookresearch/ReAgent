@@ -23,10 +23,7 @@ class LinearTrainer(Trainer):
         if self._model is not None:
             if hasattr(self._model, "predict_proba"):
                 proba = torch.as_tensor(
-                    # pyre-fixme[16]: `None` has no attribute `predict_proba`.
-                    self._model.predict_proba(x),
-                    dtype=torch.float,
-                    device=device,
+                    self._model.predict_proba(x), dtype=torch.float, device=device
                 )
                 score = (proba * torch.arange(proba.shape[1])).sum(dim=1)
                 return PredictResults(torch.argmax(proba, 1), score, proba)
@@ -34,10 +31,7 @@ class LinearTrainer(Trainer):
                 return PredictResults(
                     None,
                     torch.as_tensor(
-                        # pyre-fixme[16]: `None` has no attribute `predict`.
-                        self._model.predict(x),
-                        dtype=torch.float,
-                        device=device,
+                        self._model.predict(x), dtype=torch.float, device=device
                     ),
                     None,
                 )
@@ -55,7 +49,6 @@ class LinearTrainer(Trainer):
             )
 
     def score(self, x: Tensor, y: Tensor, weight: Optional[Tensor] = None) -> float:
-        # pyre-fixme[16]: `None` has no attribute `predict`.
         y_pred = self._model.predict(x)
         w = weight.numpy() if weight is not None else None
         return self._score(y.numpy(), y_pred, weight=w)
@@ -93,7 +86,6 @@ class LassoTrainer(LinearTrainer):
                 logging.info(f"  alpha: {alpha}, score: {score}")
                 if score > best_score:
                     best_score = score
-                    # pyre-fixme[8]: Attribute has type `None`; used as `Lasso`.
                     self._model = model
 
 
@@ -114,8 +106,6 @@ class DecisionTreeTrainer(LinearTrainer):
                 data.validation_x, data.validation_y, data.validation_weight
             )
             if self._model is None:
-                # pyre-fixme[8]: Attribute has type `None`; used as
-                #  `DecisionTreeRegressor`.
                 self._model = DecisionTreeRegressor(
                     criterion="mse",
                     splitter="random",
@@ -123,9 +113,7 @@ class DecisionTreeTrainer(LinearTrainer):
                     min_samples_split=4,
                     min_samples_leaf=4,
                 )
-                # pyre-fixme[16]: `None` has no attribute `fit`.
                 self._model.fit(x, y, sw)
-                # pyre-fixme[16]: `None` has no attribute `predict`.
                 y_pred = self._model.predict(sx)
                 best_score = self._score(sy, y_pred, weight=ssw)
                 logging.info(f"  max_depth: None, score: {best_score}")
@@ -144,8 +132,6 @@ class DecisionTreeTrainer(LinearTrainer):
                 logging.info(f"  max_depth: {depth}, score: {score}")
                 if score > best_score:
                     best_score = score
-                    # pyre-fixme[8]: Attribute has type `None`; used as
-                    #  `DecisionTreeRegressor`.
                     self._model = model
 
 
@@ -181,8 +167,6 @@ class DecisionTreeClassifierTrainer(LinearTrainer):
                 logging.info(f"  max_depth: {depth}, score: {score}")
                 if score > best_score:
                     best_score = score
-                    # pyre-fixme[8]: Attribute has type `None`; used as
-                    #  `DecisionTreeClassifier`.
                     self._model = model
 
 
@@ -220,8 +204,6 @@ class LogisticRegressionTrainer(LinearTrainer):
                 logging.info(f"  C: {c}, score: {score}")
                 if score > best_score:
                     best_score = score
-                    # pyre-fixme[8]: Attribute has type `None`; used as
-                    #  `LogisticRegression`.
                     self._model = model
 
 
@@ -258,7 +240,6 @@ class SGDClassifierTrainer(LinearTrainer):
                 logging.info(f"  alpha: {alpha}, score: {score}")
                 if score > best_score:
                     best_score = score
-                    # pyre-fixme[8]: Attribute has type `None`; used as `SGDClassifier`.
                     self._model = model
 
 
@@ -321,14 +302,11 @@ class NNTrainer(Trainer):
         logging.info(f"  d_in = {d_in}, h = {h}, d_out = {d_out}, n = {n}")
         st = time.process_time()
 
-        # pyre-fixme[8]: Attribute has type `None`; used as `LinearNet`.
         self._model = LinearNet(d_in, h, d_out)
         if self._device is not None and self._device.type == "cuda":
-            # pyre-fixme[16]: `None` has no attribute `cuda`.
             self._model = self._model.cuda()
         self._loss_fn = torch.nn.MSELoss(reduction="mean")
         learning_rate = 1e-3
-        # pyre-fixme[16]: `None` has no attribute `parameters`.
         optimizer = torch.optim.Adam(self._model.parameters(), lr=learning_rate)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, "min", patience=5, verbose=True, threshold=1e-5
@@ -342,7 +320,6 @@ class NNTrainer(Trainer):
                 y = torch.as_tensor(y, device=self._device)
                 if len(y.shape) == 1:
                     y = y.reshape(-1, 1)
-                # pyre-fixme[29]: `None` is not a function.
                 y_pred = self._model(x)
                 # pyre-fixme[29]: `Optional[torch.nn.MSELoss]` is not a function.
                 loss = self._loss_fn(y_pred, y)
@@ -358,9 +335,7 @@ class NNTrainer(Trainer):
 
     def predict(self, x: Tensor, device=None) -> PredictResults:
         if self._model is not None:
-            # pyre-fixme[16]: `None` has no attribute `eval`.
             self._model.eval()
-            # pyre-fixme[29]: `None` is not a function.
             proba = torch.as_tensor(self._model(x), dtype=torch.float, device=device)
             return PredictResults(torch.argmax(proba, 1), proba)
         else:

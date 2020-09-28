@@ -27,11 +27,15 @@ class ReporterBase(CompositeObserver):
         self.num_data_points_per_epoch = None
         super().__init__(
             list(value_list_observers.values())
-            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
-            #  got `List[IntervalAggregatingObserver]`.
+            # pyre-fixme[58]: `+` is not supported for operand types
+            #  `List[ValueListObserver]` and `List[IntervalAggregatingObserver]`.
+            # pyre-fixme[58]: `+` is not supported for operand types
+            #  `List[ValueListObserver]` and `List[IntervalAggregatingObserver]`.
             + list(aggregating_observers.values())
-            # pyre-fixme[6]: Expected `List[ValueListObserver]` for 1st param but
-            #  got `List[EpochEndObserver]`.
+            # pyre-fixme[58]: `+` is not supported for operand types
+            #  `List[ValueListObserver]` and `List[EpochEndObserver]`.
+            # pyre-fixme[58]: `+` is not supported for operand types
+            #  `List[ValueListObserver]` and `List[EpochEndObserver]`.
             + [epoch_end_observer]
         )
 
@@ -44,8 +48,6 @@ class ReporterBase(CompositeObserver):
         num_batches = len(self.td_loss.values) - self.last_epoch_end_num_batches
         self.last_epoch_end_num_batches = len(self.td_loss.values)
         if self.num_data_points_per_epoch is None:
-            # pyre-fixme[8]: Attribute has type `None`; used as `int`.
-            # pyre-fixme[8]: Attribute has type `None`; used as `int`.
             self.num_data_points_per_epoch = num_batches
         else:
             assert self.num_data_points_per_epoch == num_batches

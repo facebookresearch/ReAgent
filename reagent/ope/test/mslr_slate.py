@@ -90,11 +90,9 @@ class MSLRDatasets:
     def _add(self, qid: Optional[int], feature_list: List[Tuple[float, Tensor]]):
         if qid is None or len(feature_list) == 0:
             return
-        # pyre-fixme[16]: `None` has no attribute `__getitem__`.
         if qid in self._dict:
             self._dict[qid].extend(feature_list)
         else:
-            # pyre-fixme[16]: `None` has no attribute `__setitem__`.
             self._dict[qid] = feature_list
 
     def load(self):
@@ -164,13 +162,11 @@ class MSLRDatasets:
         if self._queries is None:
             rows = []
             c = 0
-            # pyre-fixme[16]: `None` has no attribute `items`.
             for i in self._dict.items():
                 s = len(i[1])
                 rows.append([i[0], c, s])
                 c += s
             self._queries = torch.tensor(rows, dtype=torch.int, device=self._device)
-        # pyre-fixme[7]: Expected `Tensor` but got `None`.
         return self._queries
 
     def _load_features(self):
@@ -180,7 +176,6 @@ class MSLRDatasets:
     @property
     def features(self) -> Tensor:
         self._load_features()
-        # pyre-fixme[16]: `None` has no attribute `__getitem__`.
         return self._features[:, 1:]
 
     @property
@@ -191,7 +186,6 @@ class MSLRDatasets:
     def anchor_url_features(self) -> Tensor:
         self._load_features()
         return (
-            # pyre-fixme[16]: `None` has no attribute `__getitem__`.
             self._features[:, self._anchor_url_features]
             if self._anchor_url_features is not None
             else None
@@ -201,7 +195,6 @@ class MSLRDatasets:
     def body_features(self) -> Tensor:
         self._load_features()
         return (
-            # pyre-fixme[16]: `None` has no attribute `__getitem__`.
             self._features[:, self._body_features]
             if self._body_features is not None
             else None
@@ -211,11 +204,9 @@ class MSLRDatasets:
     def relevances(self) -> Tensor:
         if self._relevances is None:
             self._relevances = torch.tensor(
-                # pyre-fixme[16]: `None` has no attribute `values`.
                 [r[0] for r in itertools.chain(self._dict.values())],
                 device=self._device,
             )
-        # pyre-fixme[7]: Expected `Tensor` but got `None`.
         return self._relevances
 
     @property
@@ -225,7 +216,6 @@ class MSLRDatasets:
             self._sample_weights = torch.repeat_interleave(
                 samples.to(dtype=torch.float).reciprocal(), samples.to(dtype=torch.long)
             )
-        # pyre-fixme[7]: Expected `Tensor` but got `None`.
         return self._sample_weights
 
     @property
