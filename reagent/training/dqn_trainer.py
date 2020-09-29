@@ -9,7 +9,7 @@ import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.tracker import observable
-from reagent.optimizer.union import Optimizer__Union
+from reagent.optimizer import Optimizer__Union, SoftUpdate
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBase
 from reagent.training.imitator_training import get_valid_actions_from_imitator
@@ -77,6 +77,10 @@ class DQNTrainer(DQNTrainerBase):
         self.q_network = q_network
         self.q_network_target = q_network_target
         self.q_network_optimizer = optimizer.make_optimizer(q_network.parameters())
+
+        self.q_network_soft_update = SoftUpdate(
+            self.q_network_target.parameters(), self.q_network.parameters(), self.tau
+        )
 
         self._initialize_cpe(
             reward_network, q_network_cpe, q_network_cpe_target, optimizer=optimizer
@@ -191,9 +195,7 @@ class DQNTrainer(DQNTrainerBase):
             )
 
         # Use the soft update rule to update target network
-        self._maybe_soft_update(
-            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
-        )
+        self._maybe_run_optimizer(self.q_network_soft_update, self.minibatches_per_step)
 
         # Get Q-values of next states, used in computing cpe
         all_next_action_scores = self.q_network(training_batch.next_state).detach()
