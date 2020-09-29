@@ -16,7 +16,17 @@ from reagent.training.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
-class RLTrainer(Trainer):
+class RLTrainerMixin:
+    @property
+    def gamma(self):
+        return self.rl_parameters.gamma
+
+    @property
+    def tau(self):
+        return self.rl_parameters.target_update_rate
+
+
+class RLTrainer(RLTrainerMixin, Trainer):
     # Q-value for action that is not possible. Guaranteed to be worse than any
     # legitimate action
     ACTION_NOT_POSSIBLE_VAL = -1e9
@@ -32,14 +42,14 @@ class RLTrainer(Trainer):
         evaluation_parameters: Optional[EvaluationParameters] = None,
         loss_reporter=None,
     ) -> None:
+        super().__init__()
         self.minibatch = 0
         self.minibatch_size: Optional[int] = None
         self.minibatches_per_step: Optional[int] = None
         self.rl_parameters = rl_parameters
+        # TODO: Move these attributes to RLTrainerMixin?
         self.rl_temperature = float(rl_parameters.temperature)
         self.maxq_learning = rl_parameters.maxq_learning
-        self.gamma = rl_parameters.gamma
-        self.tau = rl_parameters.target_update_rate
         self.use_seq_num_diff_as_time_diff = rl_parameters.use_seq_num_diff_as_time_diff
         self.time_diff_unit_length = rl_parameters.time_diff_unit_length
         self.tensorboard_logging_freq = rl_parameters.tensorboard_logging_freq
