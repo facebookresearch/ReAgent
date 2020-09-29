@@ -154,9 +154,6 @@ class SACTrainer(RLTrainer):
                 components += ["q2_network_target"]
         return components
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
-    @torch.no_grad()
     def train(self, training_batch: rlt.PolicyNetworkInput) -> None:
         """
         IMPORTANT: the input action here is assumed to match the
@@ -182,144 +179,137 @@ class SACTrainer(RLTrainer):
         if self.value_network is not None:
             self.value_network_optimizer.zero_grad()
 
-        with torch.enable_grad():
-            #
-            # First, optimize Q networks; minimizing MSE between
-            # Q(s, a) & r + discount * V'(next_s)
-            #
+        #
+        # First, optimize Q networks; minimizing MSE between
+        # Q(s, a) & r + discount * V'(next_s)
+        #
 
-            q1_value = self.q1_network(state, action)
-            if self.q2_network:
-                q2_value = self.q2_network(state, action)
-            actor_output = self.actor_network(state)
+        q1_value = self.q1_network(state, action)
+        if self.q2_network:
+            q2_value = self.q2_network(state, action)
+        actor_output = self.actor_network(state)
 
-            # Optimize Alpha
-            if self.alpha_optimizer is not None:
-                alpha_loss = -(
-                    (
-                        self.log_alpha
-                        * (actor_output.log_prob + self.target_entropy).detach()
-                    ).mean()
-                )
-                self.alpha_optimizer.zero_grad()
-                alpha_loss.backward()
-                self.alpha_optimizer.step()
-                self.entropy_temperature = self.log_alpha.exp()
-
-            with torch.no_grad():
-                if self.value_network is not None:
-                    next_state_value = self.value_network_target(
-                        training_batch.next_state.float_features
-                    )
-                else:
-                    next_state_actor_output = self.actor_network(
-                        training_batch.next_state
-                    )
-                    next_state_actor_action = (
-                        training_batch.next_state,
-                        rlt.FeatureData(next_state_actor_output.action),
-                    )
-                    next_state_value = self.q1_network_target(*next_state_actor_action)
-
-                    if self.q2_network is not None:
-                        target_q2_value = self.q2_network_target(
-                            *next_state_actor_action
-                        )
-                        next_state_value = torch.min(next_state_value, target_q2_value)
-
-                    log_prob_a = self.actor_network.get_log_prob(
-                        training_batch.next_state, next_state_actor_output.action
-                    )
-                    log_prob_a = log_prob_a.clamp(-20.0, 20.0)
-                    next_state_value -= self.entropy_temperature * log_prob_a
-
-                if self.gamma > 0.0:
-                    target_q_value = (
-                        reward + discount * next_state_value * not_done_mask.float()
-                    )
-                else:
-                    # This is useful in debugging instability issues
-                    target_q_value = reward
-
-            q1_loss = F.mse_loss(q1_value, target_q_value)
-            q1_loss.backward()
-            self._maybe_run_optimizer(
-                self.q1_network_optimizer, self.minibatches_per_step
+        # Optimize Alpha
+        if self.alpha_optimizer is not None:
+            alpha_loss = -(
+                (
+                    self.log_alpha
+                    * (actor_output.log_prob + self.target_entropy).detach()
+                ).mean()
             )
-            if self.q2_network:
-                q2_loss = F.mse_loss(q2_value, target_q_value)
-                q2_loss.backward()
-                self._maybe_run_optimizer(
-                    self.q2_network_optimizer, self.minibatches_per_step
-                )
+            self.alpha_optimizer.zero_grad()
+            alpha_loss.backward()
+            self.alpha_optimizer.step()
+            self.entropy_temperature = self.log_alpha.exp()
 
-            # Second, optimize the actor; minimizing KL-divergence between
-            # propensity & softmax of value.  Due to reparameterization trick,
-            # it ends up being log_prob(actor_action) - Q(s, actor_action)
-
-            state_actor_action = (state, rlt.FeatureData(actor_output.action))
-            q1_actor_value = self.q1_network(*state_actor_action)
-            min_q_actor_value = q1_actor_value
-            if self.q2_network:
-                q2_actor_value = self.q2_network(*state_actor_action)
-                min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
-
-            actor_loss = (
-                self.entropy_temperature * actor_output.log_prob - min_q_actor_value
-            )
-            # Do this in 2 steps so we can log histogram of actor loss
-            # pyre-fixme[16]: `float` has no attribute `mean`.
-            actor_loss_mean = actor_loss.mean()
-
-            if self.add_kld_to_loss:
-                if self.apply_kld_on_mean:
-                    action_batch_m = torch.mean(actor_output.squashed_mean, axis=0)
-                    action_batch_v = torch.var(actor_output.squashed_mean, axis=0)
-                else:
-                    action_batch_m = torch.mean(actor_output.action, axis=0)
-                    action_batch_v = torch.var(actor_output.action, axis=0)
-                kld = (
-                    0.5
-                    * (
-                        (action_batch_v + (action_batch_m - self.action_emb_mean) ** 2)
-                        / self.action_emb_variance
-                        - 1
-                        + self.action_emb_variance.log()
-                        - action_batch_v.log()
-                    ).sum()
-                )
-
-                actor_loss_mean += self.kld_weight * kld
-
-            actor_loss_mean.backward()
-            self._maybe_run_optimizer(
-                self.actor_network_optimizer, self.minibatches_per_step
-            )
-
-            #
-            # Lastly, if applicable, optimize value network; minimizing MSE between
-            # V(s) & E_a~pi(s) [ Q(s,a) - log(pi(a|s)) ]
-            #
-
+        with torch.no_grad():
             if self.value_network is not None:
-                state_value = self.value_network(state.float_features)
-
-                if self.logged_action_uniform_prior:
-                    log_prob_a = torch.zeros_like(min_q_actor_value)
-                    target_value = min_q_actor_value
-                else:
-                    with torch.no_grad():
-                        log_prob_a = actor_output.log_prob
-                        log_prob_a = log_prob_a.clamp(-20.0, 20.0)
-                        target_value = (
-                            min_q_actor_value - self.entropy_temperature * log_prob_a
-                        )
-
-                value_loss = F.mse_loss(state_value, target_value.detach())
-                value_loss.backward()
-                self._maybe_run_optimizer(
-                    self.value_network_optimizer, self.minibatches_per_step
+                next_state_value = self.value_network_target(
+                    training_batch.next_state.float_features
                 )
+            else:
+                next_state_actor_output = self.actor_network(training_batch.next_state)
+                next_state_actor_action = (
+                    training_batch.next_state,
+                    rlt.FeatureData(next_state_actor_output.action),
+                )
+                next_state_value = self.q1_network_target(*next_state_actor_action)
+
+                if self.q2_network is not None:
+                    target_q2_value = self.q2_network_target(*next_state_actor_action)
+                    next_state_value = torch.min(next_state_value, target_q2_value)
+
+                log_prob_a = self.actor_network.get_log_prob(
+                    training_batch.next_state, next_state_actor_output.action
+                )
+                log_prob_a = log_prob_a.clamp(-20.0, 20.0)
+                next_state_value -= self.entropy_temperature * log_prob_a
+
+            if self.gamma > 0.0:
+                target_q_value = (
+                    reward + discount * next_state_value * not_done_mask.float()
+                )
+            else:
+                # This is useful in debugging instability issues
+                target_q_value = reward
+
+        q1_loss = F.mse_loss(q1_value, target_q_value)
+        q1_loss.backward()
+        self._maybe_run_optimizer(self.q1_network_optimizer, self.minibatches_per_step)
+        if self.q2_network:
+            q2_loss = F.mse_loss(q2_value, target_q_value)
+            q2_loss.backward()
+            self._maybe_run_optimizer(
+                self.q2_network_optimizer, self.minibatches_per_step
+            )
+
+        # Second, optimize the actor; minimizing KL-divergence between
+        # propensity & softmax of value.  Due to reparameterization trick,
+        # it ends up being log_prob(actor_action) - Q(s, actor_action)
+
+        state_actor_action = (state, rlt.FeatureData(actor_output.action))
+        q1_actor_value = self.q1_network(*state_actor_action)
+        min_q_actor_value = q1_actor_value
+        if self.q2_network:
+            q2_actor_value = self.q2_network(*state_actor_action)
+            min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
+
+        actor_loss = (
+            self.entropy_temperature * actor_output.log_prob - min_q_actor_value
+        )
+        # Do this in 2 steps so we can log histogram of actor loss
+        # pyre-fixme[16]: `float` has no attribute `mean`.
+        actor_loss_mean = actor_loss.mean()
+
+        if self.add_kld_to_loss:
+            if self.apply_kld_on_mean:
+                action_batch_m = torch.mean(actor_output.squashed_mean, axis=0)
+                action_batch_v = torch.var(actor_output.squashed_mean, axis=0)
+            else:
+                action_batch_m = torch.mean(actor_output.action, axis=0)
+                action_batch_v = torch.var(actor_output.action, axis=0)
+            kld = (
+                0.5
+                * (
+                    (action_batch_v + (action_batch_m - self.action_emb_mean) ** 2)
+                    / self.action_emb_variance
+                    - 1
+                    + self.action_emb_variance.log()
+                    - action_batch_v.log()
+                ).sum()
+            )
+
+            actor_loss_mean += self.kld_weight * kld
+
+        actor_loss_mean.backward()
+        self._maybe_run_optimizer(
+            self.actor_network_optimizer, self.minibatches_per_step
+        )
+
+        #
+        # Lastly, if applicable, optimize value network; minimizing MSE between
+        # V(s) & E_a~pi(s) [ Q(s,a) - log(pi(a|s)) ]
+        #
+
+        if self.value_network is not None:
+            state_value = self.value_network(state.float_features)
+
+            if self.logged_action_uniform_prior:
+                log_prob_a = torch.zeros_like(min_q_actor_value)
+                target_value = min_q_actor_value
+            else:
+                with torch.no_grad():
+                    log_prob_a = actor_output.log_prob
+                    log_prob_a = log_prob_a.clamp(-20.0, 20.0)
+                    target_value = (
+                        min_q_actor_value - self.entropy_temperature * log_prob_a
+                    )
+
+            value_loss = F.mse_loss(state_value, target_value.detach())
+            value_loss.backward()
+            self._maybe_run_optimizer(
+                self.value_network_optimizer, self.minibatches_per_step
+            )
 
         # Use the soft update rule to update the target networks
         if self.value_network is not None:
