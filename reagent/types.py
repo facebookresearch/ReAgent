@@ -569,8 +569,11 @@ class BaseInput(TensorDataClass):
     step: Optional[torch.Tensor]
     not_terminal: torch.Tensor
 
-    def batch_size(self):
+    def __len__(self):
         return self.state.float_features.size()[0]
+
+    def batch_size(self):
+        return len(self)
 
     @classmethod
     def from_dict(cls, batch):
@@ -739,9 +742,6 @@ class PolicyNetworkInput(BaseInput):
             extras=batch["extras"],
         )
 
-    def batch_size(self) -> int:
-        return self.state.float_features.shape[0]
-
 
 @dataclass
 class PolicyGradientInput(TensorDataClass):
@@ -767,7 +767,7 @@ class PolicyGradientInput(TensorDataClass):
 class MemoryNetworkInput(BaseInput):
     action: torch.Tensor
 
-    def batch_size(self):
+    def __len__(self):
         if len(self.state.float_features.size()) == 2:
             return self.state.float_features.size()[0]
         elif len(self.state.float_features.size()) == 3:
