@@ -5,6 +5,7 @@ import logging
 from typing import Any, Dict, Iterable, List, Optional
 
 from reagent.core.tracker import Aggregator, Observer
+from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,16 @@ class ValueListObserver(Observer):
 
     def reset(self):
         self.values = []
+
+
+class TensorBoardScalarObserver(Observer):
+    def __init__(self, key: str, logging_key: Optional[str]):
+        super().__init__(observing_keys=[key])
+        self.key = key
+        self.logging_key = logging_key or key
+
+    def update(self, key: str, value):
+        SummaryWriterContext.add_scalar(self.logging_key, value)
 
 
 class IntervalAggregatingObserver(Observer):
