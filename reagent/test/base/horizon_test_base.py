@@ -21,6 +21,7 @@ class HorizonTestBase(unittest.TestCase):
         SummaryWriterContext._reset_globals()
         logging.basicConfig(level=logging.INFO)
         np.random.seed(SEED)
+        torch.cuda.manual_seed(60)
         torch.manual_seed(SEED)
         random.seed(SEED)
 

@@ -381,6 +381,7 @@ class TestWorldModel(HorizonTestBase):
     @staticmethod
     def verify_result(result_dict: Dict[str, float], expected_top_features: List[str]):
         top_feature = max(result_dict, key=result_dict.get)
+        logger.info(result_dict)
         assert (
             top_feature in expected_top_features
         ), f"top_feature: {top_feature}, expected_top_features: {expected_top_features}"
