@@ -33,7 +33,7 @@ from reagent.workflow.types import (
     RLTrainingReport,
     TableSpec,
 )
-from reagent.workflow.utils import train_and_evaluate_generic
+from reagent.workflow.utils import train_eval_lightning
 
 
 logger = logging.getLogger(__name__)
@@ -215,6 +215,9 @@ class ActorCriticBase(ModelManager):
             use_gpu=self.use_gpu,
         )
 
+    def get_reporter(self):
+        return ActorCriticReporter()
+
     # TODO: deprecate, once we deprecate internal page handlers
     def train(
         self,
@@ -223,36 +226,26 @@ class ActorCriticBase(ModelManager):
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:
-
-        reporter = ActorCriticReporter()
-        # pyre-fixme[16]: `RLTrainer` has no attribute `add_observer`.
-        self.trainer.add_observer(reporter)
-
-        evaluator = Evaluator(
-            action_names=None,
-            gamma=self.rl_parameters.gamma,
-            model=self.trainer,
-            metrics_to_score=self.metrics_to_score,
-        )
-        # pyre-fixme[16]: `Evaluator` has no attribute `add_observer`.
-        evaluator.add_observer(reporter)
-
         batch_preprocessor = self.build_batch_preprocessor()
-        train_and_evaluate_generic(
+        reporter = self.get_reporter()
+        # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
+        # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
+        self.trainer.set_reporter(reporter)
+
+        # assert eval_dataset is None
+
+        self._lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
-            # pyre-fixme[6]: Expected `RLTrainer` for 3rd param but got `Trainer`.
-            trainer=self.trainer,
+            trainer_module=self.trainer,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
             batch_preprocessor=batch_preprocessor,
-            reporter=reporter,
-            evaluator=evaluator,
             reader_options=self.reader_options,
+            checkpoint_path=self._lightning_checkpoint_path,
         )
         # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         training_report = RLTrainingReport.make_union_instance(
             reporter.generate_training_report()
         )
-
         return RLTrainingOutput(training_report=training_report)

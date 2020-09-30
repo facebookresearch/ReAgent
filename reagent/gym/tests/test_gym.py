@@ -8,11 +8,13 @@ from typing import Optional
 
 import numpy as np
 import pytest
+import pytorch_lightning as pl
 import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_episode import train_post_episode
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
+from reagent.gym.datasets.replay_buffer_dataset import ReplayBufferDataset
 from reagent.gym.envs import Env__Union
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.gym import Gym
@@ -193,6 +195,11 @@ def eval_policy(
     return np.array(eval_rewards)
 
 
+def identity_collate(batch):
+    assert isinstance(batch, list) and len(batch) == 1, f"Got {batch}"
+    return batch[0]
+
+
 def run_test(
     env: Env__Union,
     model: ModelManager__Union,
@@ -203,6 +210,7 @@ def run_test(
     passing_score_bar: float,
     num_eval_episodes: int,
     use_gpu: bool,
+    minibatch_size: Optional[int] = None,
 ):
     env = env.value
 
@@ -217,44 +225,73 @@ def run_test(
     )
     training_policy = manager.create_policy(serving=False)
 
+    # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
+    if not isinstance(trainer, pl.LightningModule):
+        if minibatch_size is None:
+            minibatch_size = trainer.minibatch_size
+        assert minibatch_size == trainer.minibatch_size
+
+    assert minibatch_size is not None
+
     replay_buffer = ReplayBuffer(
-        replay_capacity=replay_memory_size, batch_size=trainer.minibatch_size
+        replay_capacity=replay_memory_size, batch_size=minibatch_size
     )
 
     device = torch.device("cuda") if use_gpu else torch.device("cpu")
     # first fill the replay buffer to burn_in
-    train_after_ts = max(train_after_ts, trainer.minibatch_size)
+    train_after_ts = max(train_after_ts, minibatch_size)
     fill_replay_buffer(
         env=env, replay_buffer=replay_buffer, desired_size=train_after_ts
     )
 
-    post_step = train_with_replay_buffer_post_step(
-        replay_buffer=replay_buffer,
-        env=env,
-        trainer=trainer,
-        training_freq=train_every_ts,
-        batch_size=trainer.minibatch_size,
-        device=device,
-    )
+    # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
+    if isinstance(trainer, pl.LightningModule):
+        agent = Agent.create_for_env(env, policy=training_policy)
+        # TODO: Simplify this setup by creating LightningDataModule
+        dataset = ReplayBufferDataset.create_for_trainer(
+            trainer,
+            env,
+            agent,
+            replay_buffer,
+            batch_size=minibatch_size,
+            training_frequency=train_every_ts,
+            num_episodes=num_train_episodes,
+            max_steps=200,
+        )
+        data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+        # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
+        pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu))
+        pl_trainer.fit(trainer, data_loader)
 
-    env.seed(SEED)
-    env.action_space.seed(SEED)
+        # TODO: Also check train_reward
+    else:
+        post_step = train_with_replay_buffer_post_step(
+            replay_buffer=replay_buffer,
+            env=env,
+            trainer=trainer,
+            training_freq=train_every_ts,
+            batch_size=trainer.minibatch_size,
+            device=device,
+        )
 
-    train_rewards = train_policy(
-        env,
-        training_policy,
-        num_train_episodes,
-        post_step=post_step,
-        post_episode=None,
-        use_gpu=use_gpu,
-    )
+        env.seed(SEED)
+        env.action_space.seed(SEED)
 
-    # Check whether the max score passed the score bar; we explore during training
-    # the return could be bad (leading to flakiness in C51 and QRDQN).
-    assert np.max(train_rewards) >= passing_score_bar, (
-        f"max reward ({np.max(train_rewards)}) after training for "
-        f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
-    )
+        train_rewards = train_policy(
+            env,
+            training_policy,
+            num_train_episodes,
+            post_step=post_step,
+            post_episode=None,
+            use_gpu=use_gpu,
+        )
+
+        # Check whether the max score passed the score bar; we explore during training
+        # the return could be bad (leading to flakiness in C51 and QRDQN).
+        assert np.max(train_rewards) >= passing_score_bar, (
+            f"max reward ({np.max(train_rewards)}) after training for "
+            f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
+        )
 
     serving_policy = manager.create_policy(serving=True)
 

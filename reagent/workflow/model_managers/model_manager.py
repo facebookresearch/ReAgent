@@ -6,6 +6,7 @@ import logging
 import time
 from typing import Dict, List, Optional, Tuple
 
+import pytorch_lightning as pl
 import torch
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
@@ -50,6 +51,8 @@ class ModelManager(metaclass=RegistryMeta):
         self._reward_options: Optional[RewardOptions] = None
         self._trainer: Optional[Trainer] = None
         self._use_gpu: Optional[bool] = None
+        self._lightning_trainer: Optional[pl.Trainer] = None
+        self._lightning_checkpoint_path: Optional[str] = None
 
     @property
     def use_gpu(self) -> bool:
@@ -166,15 +169,18 @@ class ModelManager(metaclass=RegistryMeta):
             self._normalization_data_map is None
         ), "Cannot reset self._normalization_data_map"
         self._normalization_data_map = normalization_data_map
-        self._trainer = self.build_trainer()
+        trainer = self.build_trainer()
+        self._trainer = trainer
         if warmstart_path is not None:
-            trainer_state = torch.load(warmstart_path)
-            # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
-            # pyre-fixme[16]: `Optional` has no attribute `load_state_dict`.
-            self._trainer.load_state_dict(trainer_state)
-        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
-        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
-        return self._trainer
+            # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
+            # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
+            if isinstance(trainer, pl.LightningModule):
+                # Delayed until Trainer is initialized
+                self._lightning_checkpoint_path = warmstart_path
+            else:
+                trainer_state = torch.load(warmstart_path)
+                trainer.load_state_dict(trainer_state)
+        return trainer
 
     @abc.abstractmethod
     def build_trainer(self) -> Trainer:
@@ -251,5 +257,9 @@ class ModelManager(metaclass=RegistryMeta):
         """
         Save the trainer for warmstarting/checkpointing.
         """
-        trainer_state = self.trainer.state_dict()
-        torch.save(trainer_state, output_path)
+        lightning_trainer = self._lightning_trainer
+        if lightning_trainer:
+            lightning_trainer.save_checkpoint(output_path)
+        else:
+            trainer_state = self.trainer.state_dict()
+            torch.save(trainer_state, output_path)
