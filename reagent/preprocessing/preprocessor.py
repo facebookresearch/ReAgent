@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple, cast
 
 import torch
 from reagent.parameters import NormalizationParameters
-from reagent.preprocessing.identify_types import ENUM, FEATURE_TYPES
+from reagent.preprocessing.identify_types import DO_NOT_PREPROCESS, ENUM, FEATURE_TYPES
 from reagent.preprocessing.normalization import (
     EPS,
     MAX_FEATURE_VALUE,
@@ -159,20 +159,13 @@ class Preprocessor(Module):
                 )
                 ptr += 1
                 self._check_preprocessing_output(new_output, norm_params_list)
+                if feature_type != DO_NOT_PREPROCESS:
+                    new_output = torch.clamp(
+                        new_output, MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
+                    )
                 outputs.append(new_output)
 
-        if len(outputs) == 1:
-            return cast(
-                torch.Tensor,
-                torch.clamp(outputs[0], MIN_FEATURE_VALUE, MAX_FEATURE_VALUE),
-            )
-
-        return cast(
-            torch.Tensor,
-            torch.clamp(
-                torch.cat(outputs, dim=1), MIN_FEATURE_VALUE, MAX_FEATURE_VALUE
-            ),
-        )
+        return torch.cat(outputs, dim=1)
 
     def _preprocess_feature_single_column(
         self,
@@ -564,7 +557,7 @@ class Preprocessor(Module):
         feature_type = norm_params[0].feature_type
         min_value, max_value = batch.min(), batch.max()
 
-        if feature_type in ("BOXCOX", "CONTINUOUS"):
+        if feature_type in ("BOXCOX", "CONTINUOUS", "DO_NOT_PREPROCESS"):
             # Continuous features may be in range (-inf, inf)
             pass
         elif max_value.item() > MAX_FEATURE_VALUE:
