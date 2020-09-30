@@ -66,6 +66,7 @@ class TensorBoardScalarObserver(Observer):
         self.logging_key = logging_key or key
 
     def update(self, key: str, value):
+        # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
         SummaryWriterContext.add_scalar(self.logging_key, value)
 
 
