@@ -305,6 +305,36 @@ class FeatureData(TensorDataClass):
             and self.candidate_docs is None
         )
 
+    @staticmethod
+    def _concat_state_candidates(state: torch.Tensor, candidates: torch.Tensor):
+        """
+        Expect
+        state.shape = (n, state_dim),
+        candidate.shape = (n, num_candidates, candidate_dim),
+
+        Result has shape (n, state_dim + candidate_dim)
+        [state, mean of candidates]
+        """
+        n = state.shape[0]
+        assert len(state.shape) == 2, f"{state.shape} != (batch_size, user_dim)"
+        assert (
+            len(candidates.shape) == 3
+        ), f"{candidates.shape} != (batch_size, num_candidates, candidate_dim)"
+        assert candidates.shape[0] == n, f"{candidates.shape} 0th dim != {n}"
+        mean_candidates = candidates.mean(dim=1)
+        return torch.cat([state, mean_candidates], dim=1)
+
+    def get_dense_features(self):
+        """
+        Get dense feature from float and doc features.
+        """
+        if self.candidate_docs is None:
+            return self.float_features
+        else:
+            return self._concat_state_candidates(
+                self.float_features, self.candidate_docs.float_features
+            )
+
     def get_tiled_batch(self, num_tiles: int):
         assert (
             self.has_float_features_only
@@ -572,8 +602,15 @@ class BaseInput(TensorDataClass):
     def __len__(self):
         return self.state.float_features.size()[0]
 
-    def batch_size(self):
-        return len(self)
+    def as_dict_shallow(self):
+        return {
+            "state": self.state,
+            "next_state": self.next_state,
+            "reward": self.reward,
+            "time_diff": self.time_diff,
+            "step": self.step,
+            "not_terminal": self.not_terminal,
+        }
 
     @classmethod
     def from_dict(cls, batch):
@@ -587,16 +624,42 @@ class BaseInput(TensorDataClass):
         next_id_score_list_features = (
             batch.get(InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES, None) or {}
         )
+        # TODO: handle value/mask of DocList
+        filler_mask_val = None
+        doc_list = None
+        candidate_features = batch.get(InputColumn.CANDIDATE_FEATURES, None)
+        if candidate_features is not None:
+            filler_mask_val = torch.zeros(
+                (candidate_features.shape[0], candidate_features.shape[1])
+            )
+            doc_list = DocList(
+                float_features=candidate_features,
+                mask=filler_mask_val.clone().bool(),
+                value=filler_mask_val.clone().float(),
+            )
+
+        next_doc_list = None
+        next_candidate_features = batch.get(InputColumn.NEXT_CANDIDATE_FEATURES, None)
+        if next_candidate_features is not None:
+            assert filler_mask_val is not None
+            next_doc_list = DocList(
+                float_features=next_candidate_features,
+                mask=filler_mask_val.clone().bool(),
+                value=filler_mask_val.clone().float(),
+            )
+
         return BaseInput(
             state=FeatureData(
                 float_features=batch[InputColumn.STATE_FEATURES],
                 id_list_features=id_list_features,
                 id_score_list_features=id_score_list_features,
+                candidate_docs=doc_list,
             ),
             next_state=FeatureData(
                 float_features=batch[InputColumn.NEXT_STATE_FEATURES],
                 id_list_features=next_id_list_features,
                 id_score_list_features=next_id_score_list_features,
+                candidate_docs=next_doc_list,
             ),
             reward=batch[InputColumn.REWARD],
             time_diff=batch[InputColumn.TIME_DIFF],
@@ -730,16 +793,12 @@ class PolicyNetworkInput(BaseInput):
 
     @classmethod
     def from_dict(cls, batch):
+        base = super().from_dict(batch)
         return cls(
-            state=FeatureData(float_features=batch["state_features"]),
             action=FeatureData(float_features=batch["action"]),
-            next_state=FeatureData(float_features=batch["next_state_features"]),
             next_action=FeatureData(float_features=batch["next_action"]),
-            reward=batch["reward"],
-            not_terminal=batch["not_terminal"],
-            time_diff=batch["time_diff"],
-            step=batch["step"],
             extras=batch["extras"],
+            **base.as_dict_shallow(),
         )
 
 

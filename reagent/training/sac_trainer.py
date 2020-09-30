@@ -205,7 +205,7 @@ class SACTrainer(RLTrainer):
         with torch.no_grad():
             if self.value_network is not None:
                 next_state_value = self.value_network_target(
-                    training_batch.next_state.float_features
+                    training_batch.next_state.get_dense_features()
                 )
             else:
                 next_state_actor_output = self.actor_network(training_batch.next_state)
@@ -292,7 +292,7 @@ class SACTrainer(RLTrainer):
         #
 
         if self.value_network is not None:
-            state_value = self.value_network(state.float_features)
+            state_value = self.value_network(state.get_dense_features())
 
             if self.logged_action_uniform_prior:
                 log_prob_a = torch.zeros_like(min_q_actor_value)

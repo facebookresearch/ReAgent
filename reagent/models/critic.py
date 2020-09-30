@@ -45,13 +45,14 @@ class FullyConnectedCritic(ModelBase):
         )
 
     def forward(self, state: rlt.FeatureData, action: rlt.FeatureData):
+        state_features = state.get_dense_features()
         assert (
-            len(state.float_features.shape) == len(action.float_features.shape)
+            len(state_features.shape) == len(action.float_features.shape)
             and len(action.float_features.shape) == 2
-            and (state.float_features.shape[0] == action.float_features.shape[0])
+            and (state_features.shape[0] == action.float_features.shape[0])
         ), (
-            f"state shape: {state.float_features.shape}; action shape: "
+            f"state shape: {state_features.shape}; action shape: "
             f"{action.float_features.shape} not equal to (batch_size, feature_dim)"
         )
-        cat_input = torch.cat((state.float_features, action.float_features), dim=-1)
+        cat_input = torch.cat((state_features, action.float_features), dim=-1)
         return self.fc(cat_input)

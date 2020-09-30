@@ -7,7 +7,10 @@ from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData
-from reagent.prediction.predictor_wrapper import ActorWithPreprocessor
+from reagent.prediction.predictor_wrapper import (
+    ActorWithPreprocessor,
+    RankingActorWithPreprocessor,
+)
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
 
@@ -15,6 +18,7 @@ from reagent.preprocessing.preprocessor import Preprocessor
 if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
         FbActorPredictorWrapper as ActorPredictorWrapper,
+        FbRankingActorPredictorWrapper as RankingActorPredictorWrapper,
     )
 else:
     from reagent.prediction.predictor_wrapper import ActorPredictorWrapper
@@ -65,3 +69,32 @@ class ContinuousActorNetBuilder(metaclass=RegistryMeta):
             action_normalization_data.dense_normalization_parameters, use_gpu=False
         ).sorted_features
         return ActorPredictorWrapper(actor_with_preprocessor, action_features)
+
+    def build_ranking_serving_module(
+        self,
+        actor: ModelBase,
+        state_normalization_data: NormalizationData,
+        candidate_normalization_data: NormalizationData,
+        num_candidates: int,
+        action_normalization_data: NormalizationData,
+    ) -> torch.nn.Module:
+        state_preprocessor = Preprocessor(
+            state_normalization_data.dense_normalization_parameters, use_gpu=False
+        )
+        candidate_preprocessor = Preprocessor(
+            candidate_normalization_data.dense_normalization_parameters, use_gpu=False
+        )
+        postprocessor = Postprocessor(
+            action_normalization_data.dense_normalization_parameters, use_gpu=False
+        )
+        actor_with_preprocessor = RankingActorWithPreprocessor(
+            model=actor.cpu_model().eval(),
+            state_preprocessor=state_preprocessor,
+            candidate_preprocessor=candidate_preprocessor,
+            num_candidates=num_candidates,
+            action_postprocessor=postprocessor,
+        )
+        action_features = Preprocessor(
+            action_normalization_data.dense_normalization_parameters, use_gpu=False
+        ).sorted_features
+        return RankingActorPredictorWrapper(actor_with_preprocessor, action_features)

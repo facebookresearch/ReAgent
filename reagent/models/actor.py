@@ -71,7 +71,7 @@ class FullyConnectedActor(ModelBase):
         return rlt.FeatureData(torch.randn(1, self.state_dim))
 
     def forward(self, state: rlt.FeatureData) -> rlt.ActorOutput:
-        action = self.fc(state.float_features)
+        action = self.fc(state.get_dense_features())
         batch_size = action.shape[0]
         assert action.shape == (
             batch_size,
@@ -165,8 +165,8 @@ class GaussianFullyConnectedActor(ModelBase):
         """
         return (1 - squashed_action ** 2 + self.eps).log()
 
-    def _get_loc_and_scale_log(self, state):
-        loc_scale = self.fc(state.float_features)
+    def _get_loc_and_scale_log(self, state: rlt.FeatureData):
+        loc_scale = self.fc(state.get_dense_features())
         loc = loc_scale[::, : self.action_dim]
         scale_log = loc_scale[::, self.action_dim :]
 
@@ -203,7 +203,7 @@ class GaussianFullyConnectedActor(ModelBase):
         )
 
     @torch.no_grad()
-    def get_log_prob(self, state, squashed_action):
+    def get_log_prob(self, state: rlt.FeatureData, squashed_action):
         """
         Action is expected to be squashed with tanh
         """
