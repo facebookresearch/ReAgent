@@ -393,7 +393,7 @@ class TestWorldModel(HorizonTestBase):
             config_path=os.path.join(curr_dir, config_path),
             use_gpu=False,
         )
-        TestWorldModel.verify_result(feature_importance, ["state3"])
+        TestWorldModel.verify_result(feature_importance, ["state1", "state3"])
         TestWorldModel.verify_result(feature_sensitivity, ["state3"])
         logger.info("MDNRNN feature test passes!")
 
