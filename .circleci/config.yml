@@ -153,15 +153,13 @@ commands:
                 steps:
                   - run:
                       command: |
-                        pip install -e .[gym,test]
-                        pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cu101/torch_nightly.html
+                        pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cu101/torch_nightly.html
             - unless:
                 condition: << parameters.is_ubuntu_gpu >>
                 steps:
                   - run:
                       command: |
-                        sudo pip install -e .[gym,test]
-                        sudo pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cu101/torch_nightly.html
+                        sudo pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 
   run_unittest:
     description: Run unittests, coverage and save results
@@ -172,7 +170,7 @@ commands:
       - run:
           no_output_timeout: 30m
           command: |
-            tox -e << parameters.tox_env >>
+            tox -vv -e << parameters.tox_env >>
             bash <(curl -s https://codecov.io/bash)
       - run: python setup.py bdist_wheel
       - store_artifacts:
