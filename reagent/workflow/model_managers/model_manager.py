@@ -11,7 +11,7 @@ import torch
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
 from reagent.tensorboardX import summary_writer_context
-from reagent.training.trainer import Trainer
+from reagent.training import ReAgentLightningModule, Trainer
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
@@ -259,6 +259,9 @@ class ModelManager(metaclass=RegistryMeta):
         """
         lightning_trainer = self._lightning_trainer
         if lightning_trainer:
+            trainer = self.trainer
+            assert isinstance(trainer, ReAgentLightningModule)
+            trainer._cleanly_stopped[0] = True
             lightning_trainer.save_checkpoint(output_path)
         else:
             trainer_state = self.trainer.state_dict()

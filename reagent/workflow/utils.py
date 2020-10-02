@@ -18,7 +18,7 @@ from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.evaluator import Evaluator
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.torch_utils import dict_to_tensor
-from reagent.training import RLTrainer, SACTrainer, TD3Trainer
+from reagent.training import RLTrainer, SACTrainer, StoppingEpochCallback, TD3Trainer
 from reagent.workflow.spark_utils import get_spark_session
 from reagent.workflow.types import Dataset, ReaderOptions
 from reagent.workflow_utils.iterators import DataLoaderWrapper, EpochIterator
@@ -203,10 +203,11 @@ def train_eval_lightning(
     # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
     # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
     trainer = pl.Trainer(
-        max_epochs=num_epochs,
+        max_epochs=num_epochs * 1000,
         gpus=int(use_gpu),
         reload_dataloaders_every_epoch=True,
         resume_from_checkpoint=checkpoint_path,
+        callbacks=[StoppingEpochCallback(num_epochs)],
     )
     trainer.fit(trainer_module, datamodule=datamodule)
     # TODO: evaluate
