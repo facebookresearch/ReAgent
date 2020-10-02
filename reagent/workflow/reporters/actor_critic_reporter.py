@@ -2,7 +2,6 @@
 
 import itertools
 import logging
-from collections import OrderedDict
 
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
@@ -15,14 +14,25 @@ logger = logging.getLogger(__name__)
 
 class ActorCriticReporter(ReporterBase):
     def __init__(self, report_interval: int = 100):
-        self.value_list_observers = {"cpe_results": ValueListObserver("cpe_details")}
-        self.aggregating_observers = OrderedDict(
-            (name, IntervalAggregatingObserver(report_interval, aggregator))
+        self.report_interval = report_interval
+        super().__init__(self.value_list_observers, self.aggregating_observers)
+
+    @property
+    def value_list_observers(self):
+        return {"cpe_results": ValueListObserver("cpe_details")}
+
+    @property
+    def aggregating_observers(self):
+        return {
+            name: IntervalAggregatingObserver(self.report_interval, aggregator)
             for name, aggregator in itertools.chain(
                 [
                     ("td_loss", agg.MeanAggregator("td_loss")),
-                    ("reward_loss", agg.MeanAggregator("reward_loss")),
                     ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
+                    (
+                        "logged_action_q_value",
+                        agg.MeanAggregator("model_values_on_logged_actions"),
+                    ),
                 ],
                 [
                     (
@@ -37,8 +47,7 @@ class ActorCriticReporter(ReporterBase):
                     ]
                 ],
             )
-        )
-        super().__init__(self.value_list_observers, self.aggregating_observers)
+        }
 
     # TODO: write this for OSS
     def generate_training_report(self) -> ActorCriticTrainingReport:
