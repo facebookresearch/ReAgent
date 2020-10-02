@@ -14,6 +14,7 @@ import torch
 import torch.nn.functional as F
 from reagent.gym.types import Trajectory
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.trainer import Trainer
 from reagent.training.utils import rescale_actions
 
@@ -30,7 +31,10 @@ REPLAY_BUFFER_MAKER_MAP = {}
 def make_trainer_preprocessor(
     trainer: Trainer, device: torch.device, env: gym.Env, maker_map: Dict
 ):
-    sig = inspect.signature(trainer.train)
+    if isinstance(trainer, ReAgentLightningModule):
+        sig = inspect.signature(trainer.train_step_gen)
+    else:
+        sig = inspect.signature(trainer.train)
     logger.info(f"Deriving trainer_preprocessor from {sig.parameters}")
     # Assuming training_batch is in the first position (excluding self)
     assert (

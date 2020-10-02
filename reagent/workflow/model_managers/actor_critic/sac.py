@@ -23,6 +23,7 @@ from reagent.net_builder.value.fully_connected import (
 from reagent.parameters import param_hash
 from reagent.training import SACTrainer, SACTrainerParameters
 from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
+from reagent.workflow.reporters.sac_reporter import SACReporter
 
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,10 @@ class SAC(ActorCriticBase):
         self._actor_network: Optional[ModelBase] = None
         self.rl_parameters = self.trainer_param.rl
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
@@ -93,25 +98,19 @@ class SAC(ActorCriticBase):
                 self.state_normalization_data
             )
 
-        if self.use_gpu:
-            self._q1_network.cuda()
-            if q2_network:
-                q2_network.cuda()
-            if value_network:
-                value_network.cuda()
-            self._actor_network.cuda()
-
         trainer = SACTrainer(
             actor_network=self._actor_network,
             q1_network=self._q1_network,
             value_network=value_network,
             q2_network=q2_network,
-            use_gpu=self.use_gpu,
             # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
         return trainer
+
+    def get_reporter(self):
+        return SACReporter()
 
     def build_serving_module(self) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value

@@ -4,6 +4,7 @@
 import logging
 from typing import Dict, List, Optional
 
+import pytorch_lightning as pl
 import reagent.types as rlt
 
 # pyre-fixme[21]: Could not find `petastorm`.
@@ -149,3 +150,64 @@ def train_and_evaluate_generic(
             )
             # evaluator passes cpe_details to reporter via notify_observers
             evaluator.evaluate_post_training(eval_data)
+
+
+# TODO: Move this to appropriate location
+class PetastormLightningDataModule(pl.LightningDataModule):
+    def __init__(self, train_dataset, eval_dataset, batch_preprocessor, reader_options):
+        super().__init__()
+        self.train_dataset = train_dataset
+        self.eval_dataset = eval_dataset
+        self.batch_preprocessor = batch_preprocessor
+        self.reader_options = reader_options
+
+    def _closing_iter(self, dataloader):
+        yield from dataloader
+        dataloader.__exit__(None, None, None)
+
+    def train_dataloader(self):
+        dataloader = get_petastorm_dataloader(
+            dataset=self.train_dataset,
+            batch_size=self.reader_options.minibatch_size,
+            batch_preprocessor=self.batch_preprocessor,
+            use_gpu=False,
+            reader_options=self.reader_options,
+        )
+        return self._closing_iter(dataloader)
+
+    def test_dataloader(self):
+        dataloader = get_petastorm_dataloader(
+            dataset=self.eval_dataset,
+            batch_size=self.reader_options.minibatch_size,
+            batch_preprocessor=self.batch_preprocessor,
+            use_gpu=False,
+            reader_options=self.reader_options,
+        )
+        return self._closing_iter(dataloader)
+
+
+def train_eval_lightning(
+    train_dataset,
+    eval_dataset,
+    trainer_module,
+    num_epochs,
+    use_gpu,
+    batch_preprocessor=None,
+    reader_options: Optional[ReaderOptions] = None,
+    checkpoint_path: Optional[str] = None,
+) -> pl.Trainer:
+    reader_options = reader_options or ReaderOptions()
+    datamodule = PetastormLightningDataModule(
+        train_dataset, eval_dataset, batch_preprocessor, reader_options
+    )
+    # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
+    # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
+    trainer = pl.Trainer(
+        max_epochs=num_epochs,
+        gpus=int(use_gpu),
+        reload_dataloaders_every_epoch=True,
+        resume_from_checkpoint=checkpoint_path,
+    )
+    trainer.fit(trainer_module, datamodule=datamodule)
+    # TODO: evaluate
+    return trainer

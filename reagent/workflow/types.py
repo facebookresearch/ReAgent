@@ -52,6 +52,7 @@ class RewardOptions:
 
 @dataclass
 class ReaderOptions:
+    minibatch_size: int = 1024
     petastorm_reader_pool_type: str = "thread"
 
 
