@@ -22,6 +22,7 @@ from torch import nn
 
 
 logger = logging.getLogger(__name__)
+_DEFAULT_FEATURE_IDS = []
 
 
 def serving_to_feature_data(
@@ -273,9 +274,6 @@ class ActorWithPreprocessor(ModelBase):
         return (self.state_preprocessor.input_prototype(),)
 
 
-_DEFAULT_FEATURE_IDS = []
-
-
 class ActorPredictorWrapper(torch.jit.ScriptModule):
     def __init__(
         self,
@@ -299,6 +297,85 @@ class ActorPredictorWrapper(torch.jit.ScriptModule):
         self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
     ) -> torch.Tensor:
         action = self.actor_with_preprocessor(state_with_presence)
+        return action
+
+
+class RankingActorWithPreprocessor(ModelBase):
+    def __init__(
+        self,
+        model: ModelBase,
+        state_preprocessor: Preprocessor,
+        candidate_preprocessor: Preprocessor,
+        num_candidates: int,
+        action_postprocessor: Optional[Postprocessor] = None,
+    ):
+        super().__init__()
+        self.model = model
+        self.state_preprocessor = state_preprocessor
+        self.candidate_preprocessor = candidate_preprocessor
+        self.num_candidates = num_candidates
+        self.action_postprocessor = action_postprocessor
+
+    def forward(
+        self,
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        candidate_with_presence_list: List[Tuple[torch.Tensor, torch.Tensor]],
+    ):
+        assert (
+            len(candidate_with_presence_list) == self.num_candidates
+        ), f"{len(candidate_with_presence_list)} != {self.num_candidates}"
+        preprocessed_state = self.state_preprocessor(*state_with_presence)
+        # each is batch_size x candidate_dim, result is batch_size x num_candidates x candidate_dim
+        preprocessed_candidates = torch.stack(
+            [self.candidate_preprocessor(*x) for x in candidate_with_presence_list],
+            dim=1,
+        )
+        input = rlt.FeatureData(
+            float_features=preprocessed_state,
+            candidate_docs=rlt.DocList(
+                float_features=preprocessed_candidates,
+                mask=torch.tensor(-1),
+                value=torch.tensor(-1),
+            ),
+        )
+        input = rlt._embed_states(input)
+        action = self.model(input).action
+        if self.action_postprocessor is not None:
+            # pyre-fixme[29]: `Optional[Postprocessor]` is not a function.
+            action = self.action_postprocessor(action)
+        return action
+
+    def input_prototype(self):
+        return (
+            self.state_preprocessor.input_prototype(),
+            [self.candidate_preprocessor.input_prototype()] * self.num_candidates,
+        )
+
+
+class RankingActorPredictorWrapper(torch.jit.ScriptModule):
+    def __init__(
+        self,
+        actor_with_preprocessor: RankingActorWithPreprocessor,
+        action_feature_ids: List[int],
+    ) -> None:
+        super().__init__()
+        self.actor_with_preprocessor = torch.jit.trace(
+            actor_with_preprocessor,
+            actor_with_preprocessor.input_prototype(),
+            check_trace=False,
+        )
+
+    # pyre-fixme[56]: Pyre was not able to infer the type of the decorator
+    #  `torch.jit.script_method`.
+    @torch.jit.script_method
+    def forward(
+        self,
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        candidate_with_presence_list: List[Tuple[torch.Tensor, torch.Tensor]],
+    ) -> torch.Tensor:
+        action = self.actor_with_preprocessor(
+            state_with_presence, candidate_with_presence_list
+        )
         return action
 
 

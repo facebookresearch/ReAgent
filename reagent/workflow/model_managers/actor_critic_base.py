@@ -68,6 +68,7 @@ class ActorCriticBase(ModelManager):
     action_float_features: List[Tuple[int, str]] = field(default_factory=list)
     reader_options: Optional[ReaderOptions] = None
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
+    save_critic_bool: bool = True
 
     def __post_init_post_parse__(self):
         super().__init__()

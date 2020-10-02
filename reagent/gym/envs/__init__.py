@@ -35,6 +35,7 @@ for env_name, rel_module_path in ENV_CLASSES:
 
 try:
     from .recsim import RecSim  # noqa
+    from .oracle_pvm import OraclePVM  # noqa
 
     HAS_RECSIM = True
 except ImportError:
@@ -42,7 +43,14 @@ except ImportError:
 
 __all__ = list(
     filter(
-        None, ["Env__Union", "Gym", "ChangingArms", "RecSim" if HAS_RECSIM else None]
+        None,
+        [
+            "Env__Union",
+            "Gym",
+            "ChangingArms",
+            "RecSim" if HAS_RECSIM else None,
+            "OraclePVM" if HAS_RECSIM else None,
+        ],
     )
 )
 

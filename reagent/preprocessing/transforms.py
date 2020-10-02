@@ -242,7 +242,8 @@ class StackDenseFixedSizeArray:
 
 class FixedLengthSequences:
     """
-    Expects the key to be `Dict[Int, Tuple[Tensor, T]]`.
+    For loops over each key, to_key in zip(keys, to_keys).
+    Expects each key to be `Dict[Int, Tuple[Tensor, T]]`.
     The sequence_id is the key of the dict. The first element of the tuple
     is the offset for each example, which is expected to be in fixed interval.
     If `to_key` is set, extract `T` to that key. Otherwise, put `T` back to `key`
@@ -250,32 +251,35 @@ class FixedLengthSequences:
     This is mainly for FB internal use,
     see fbcode/caffe2/caffe2/fb/proto/io_metadata.thrift
     for the data format extracted from SequenceFeatureMetadata
+
+    NOTE: this is not product between two lists (keys and to_keys);
+    it's setting keys[i] to to_keys[i] in a parallel way
     """
 
     def __init__(
         self,
-        key: str,
+        keys: List[str],
         sequence_id: int,
         expected_length: int,
         *,
-        to_key: Optional[str] = None,
+        to_keys: Optional[List[str]] = None,
     ):
-        self.key = key
+        self.keys = keys
         self.sequence_id = sequence_id
-        self.to_key = to_key or key
+        self.to_keys = to_keys or keys
         self.expected_length = expected_length
 
     def __call__(self, data):
-        offsets, value = data[self.key][self.sequence_id]
+        for i, key in enumerate(self.keys):
+            offsets, value = data[key][self.sequence_id]
+            expected_offsets = torch.arange(
+                0, offsets.shape[0] * self.expected_length, self.expected_length
+            )
+            assert all(
+                expected_offsets == offsets
+            ), f"Unexpected offsets for {key} {self.sequence_id}: {offsets}"
 
-        expected_offsets = torch.arange(
-            0, offsets.shape[0] * self.expected_length, self.expected_length
-        )
-        assert all(
-            expected_offsets == offsets
-        ), f"Unexpected offsets for {self.key} {self.sequence_id}: {offsets}"
-
-        data[self.to_key] = value
+            data[self.to_keys[i]] = value
         return data
 
 
