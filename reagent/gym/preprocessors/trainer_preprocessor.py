@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from reagent.gym.types import Trajectory
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
+from reagent.preprocessing.types import InputColumn
 from reagent.training.trainer import Trainer
 from reagent.training.utils import rescale_actions
 
@@ -190,23 +191,39 @@ class PolicyNetworkInputMaker:
             prev_min=self.action_low,
             prev_max=self.action_high,
         )
-        return rlt.PolicyNetworkInput(
-            state=rlt.FeatureData(float_features=batch.state),
-            action=rlt.FeatureData(float_features=action),
-            next_state=rlt.FeatureData(float_features=batch.next_state),
-            next_action=rlt.FeatureData(float_features=next_action),
-            reward=batch.reward,
-            not_terminal=not_terminal,
-            step=None,
-            time_diff=None,
-            extras=rlt.ExtraData(
+        dict_batch = {
+            InputColumn.STATE_FEATURES: batch.state,
+            InputColumn.NEXT_STATE_FEATURES: batch.next_state,
+            InputColumn.ACTION: action,
+            InputColumn.NEXT_ACTION: next_action,
+            InputColumn.REWARD: batch.reward,
+            InputColumn.NOT_TERMINAL: not_terminal,
+            InputColumn.STEP: None,
+            InputColumn.TIME_DIFF: None,
+            InputColumn.EXTRAS: rlt.ExtraData(
                 mdp_id=None,
                 sequence_number=None,
                 action_probability=batch.log_prob.exp(),
                 max_num_actions=None,
                 metrics=None,
             ),
-        )
+        }
+        has_candidate_features = False
+        try:
+            dict_batch.update(
+                {
+                    InputColumn.CANDIDATE_FEATURES: batch.doc,
+                    InputColumn.NEXT_CANDIDATE_FEATURES: batch.next_doc,
+                }
+            )
+            has_candidate_features = True
+        except AttributeError:
+            pass
+        output = rlt.PolicyNetworkInput.from_dict(dict_batch)
+        if has_candidate_features:
+            output.state = rlt._embed_states(output.state)
+            output.next_state = rlt._embed_states(output.next_state)
+        return output
 
 
 class SlateQInputMaker:
