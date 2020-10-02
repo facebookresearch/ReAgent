@@ -6,11 +6,16 @@ from reagent.training.cem_trainer import CEMTrainer
 from reagent.training.dqn_trainer import DQNTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 from reagent.training.qrdqn_trainer import QRDQNTrainer
+from reagent.training.reagent_lightning_module import (
+    ReAgentLightningModule,
+    StoppingEpochCallback,
+)
 from reagent.training.reward_network_trainer import RewardNetTrainer
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.sac_trainer import SACTrainer
 from reagent.training.slate_q_trainer import SlateQTrainer
 from reagent.training.td3_trainer import TD3Trainer
+from reagent.training.trainer import Trainer
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 from .parameters import (
@@ -47,4 +52,7 @@ __all__ = [
     "TD3TrainerParameters",
     "RewardNetworkTrainerParameters",
     "Seq2SlateTrainerParameters",
+    "ReAgentLightningModule",
+    "StoppingEpochCallback",
+    "Trainer",
 ]

@@ -96,9 +96,11 @@ class IntervalAggregatingObserver(Observer):
         # pyre-fixme[58]: `%` is not supported for operand types `int` and
         #  `Optional[int]`.
         if self.interval and self.iteration % self.interval == 0:
-            logger.info(
-                f"Interval Agg. Update: {self.key}; iteration {self.iteration}; "
-                f"aggregator: {self.aggregator.__class__.__name__}"
+            logger.debug(
+                "Interval Agg. Update: %s; iteration %s; aggregator: %s",
+                self.key,
+                self.iteration,
+                self.aggregator.__class__.__name__,
             )
             self.aggregator(self.key, self.intermediate_values)
             self.intermediate_values = []

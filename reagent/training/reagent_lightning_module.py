@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
+import logging
+
 import pytorch_lightning as pl
 import torch
 from reagent.core.utils import lazy_property
 from reagent.tensorboardX import SummaryWriterContext
+
+
+logger = logging.getLogger(__name__)
 
 
 class ReAgentLightningModule(pl.LightningModule):
@@ -11,10 +16,16 @@ class ReAgentLightningModule(pl.LightningModule):
         super().__init__()
         self._training_step_generator = None
         self._reporter = pl.loggers.base.DummyExperiment()
+        # For the generator API
         self._verified_steps = False
         # For summary_writer property
         self._summary_writer_logger = None
         self._summary_writer = None
+        # To enable incremental training
+        self.register_buffer("_next_stopping_epoch", None)
+        self.register_buffer("_cleanly_stopped", None)
+        self._next_stopping_epoch = torch.tensor([-1]).int()
+        self._cleanly_stopped = torch.ones(1).bool()
 
     def set_reporter(self, reporter):
         if reporter is None:
@@ -25,6 +36,11 @@ class ReAgentLightningModule(pl.LightningModule):
     @property
     def reporter(self):
         return self._reporter
+
+    def increase_next_stopping_epochs(self, num_epochs: int):
+        self._next_stopping_epoch += num_epochs
+        self._cleanly_stopped[0] = False
+        return self
 
     def train_step_gen(self, training_batch, batch_idx: int):
         """
@@ -95,4 +111,31 @@ class ReAgentLightningModule(pl.LightningModule):
     def training_epoch_end(self, training_step_outputs):
         # Flush the reporter
         self.reporter.flush(self.current_epoch)
+
+        # Tell the trainer to stop.
+        if self.current_epoch == self._next_stopping_epoch.item():
+            self.trainer.should_stop = True
         return pl.TrainResult()
+
+
+class StoppingEpochCallback(pl.Callback):
+    """
+    We use this callback to control the number of training epochs in incremental
+    training. Epoch & step counts are not reset in the checkpoint. If we were to set
+    `max_epochs` on the trainer, we would have to keep track of the previous `max_epochs`
+    and add to it manually. This keeps the infomation in one place.
+
+    Note that we need to set `_cleanly_stopped` back to True before saving the checkpoint.
+    This is done in `ModelManager.save_trainer()`.
+    """
+
+    def __init__(self, num_epochs):
+        super().__init__()
+        self.num_epochs = num_epochs
+
+    def on_pretrain_routine_end(self, trainer, pl_module):
+        assert isinstance(pl_module, ReAgentLightningModule)
+        cleanly_stopped = pl_module._cleanly_stopped.item()
+        logger.info(f"cleanly stopped: {cleanly_stopped}")
+        if cleanly_stopped:
+            pl_module.increase_next_stopping_epochs(self.num_epochs)
