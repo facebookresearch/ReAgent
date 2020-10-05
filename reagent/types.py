@@ -54,13 +54,15 @@ class TensorDataClass(BaseDataClass):
 
         if tensor_attr is None or not callable(tensor_attr):
             logger.error(
-                f"Attemping to call torch.Tensor.{attr} on "
+                f"Attemping to call {self.__class__.__name__}.{attr} on "
                 f"{type(self)} (instance of TensorDataClass)."
             )
             if tensor_attr is None:
-                raise AttributeError(f"torch.Tensor doesn't have {attr} attribute.")
+                raise AttributeError(
+                    f"{self.__class__.__name__}doesn't have {attr} attribute."
+                )
             else:
-                raise RuntimeError(f"Tensor.{attr} is not callable.")
+                raise RuntimeError(f"{self.__class__.__name__}.{attr} is not callable.")
 
         def continuation(*args, **kwargs):
             def f(v):
