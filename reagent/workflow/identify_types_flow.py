@@ -85,7 +85,6 @@ def identify_normalization_parameters(
 ) -> Dict[int, NormalizationParameters]:
     """ Get normalization parameters """
     sqlCtx = get_spark_session()
-    # pyre-fixme[16]: `TableSpec` has no attribute `table_name`.
     df = sqlCtx.sql(f"SELECT * FROM {table_spec.table_name}")
     df = create_normalization_spec_spark(
         df, column_name, preprocessing_options.num_samples, seed

@@ -468,8 +468,6 @@ def query_data(
     other preprocessing such as sparse2dense.
     """
     sqlCtx = get_spark_session()
-    # pyre-fixme[16]: `TableSpec` has no attribute `table_name`.
-    # pyre-fixme[16]: `TableSpec` has no attribute `table_name`.
     df = sqlCtx.sql(f"SELECT * FROM {input_table_spec.table_name}")
     df = set_reward_col_as_reward(
         df,
