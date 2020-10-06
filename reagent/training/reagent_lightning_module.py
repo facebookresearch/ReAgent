@@ -48,14 +48,12 @@ class ReAgentLightningModule(pl.LightningModule):
         """
         raise NotImplementedError
 
-    def soft_update_result(self) -> pl.TrainResult:
+    def soft_update_result(self) -> torch.Tensor:
         """
         A dummy loss to trigger soft-update
         """
         one = torch.ones(1, requires_grad=True)
-        # Create a fake graph to satisfy TrainResult
-        # pyre-fixme[16]: Module `pl` has no attribute `TrainResult`.
-        return pl.TrainResult(one + one)
+        return one + one
 
     @property
     def summary_writer(self):
@@ -115,7 +113,6 @@ class ReAgentLightningModule(pl.LightningModule):
         # Tell the trainer to stop.
         if self.current_epoch == self._next_stopping_epoch.item():
             self.trainer.should_stop = True
-        return pl.TrainResult()
 
 
 class StoppingEpochCallback(pl.Callback):
