@@ -70,8 +70,6 @@ def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
     pd_df = pd.read_pickle(pkl_path)
     spark = get_spark_session()
     df = spark.createDataFrame(pd_df)
-    # pyre-fixme[16]: `TableSpec` has no attribute `table_name`.
-    # pyre-fixme[16]: `TableSpec` has no attribute `table_name`.
     input_name = f"{input_table_spec.table_name}{PRE_TIMELINE_SUFFIX}"
     df.createTempView(input_name)
 
