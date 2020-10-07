@@ -3,5 +3,6 @@
 
 from setuptools import setup
 
+
 # see config.cfg
 setup()

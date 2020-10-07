@@ -14,8 +14,8 @@ import torch
 import torch.nn.functional as F
 from reagent.gym.types import Trajectory
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
-from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.preprocessing.types import InputColumn
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.trainer import Trainer
 from reagent.training.utils import rescale_actions
 

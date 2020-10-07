@@ -4,7 +4,6 @@ import random
 import unittest
 
 import torch
-
 from reagent.ope.estimators.slate_estimators import (
     DCGSlateMetric,
     NDCGSlateMetric,
