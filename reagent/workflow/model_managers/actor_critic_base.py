@@ -242,12 +242,6 @@ class ActorCriticBase(ModelManager):
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
             batch_preprocessor=batch_preprocessor,
-            # pyre-fixme[6]: Expected
-            #  `Optional[fblearner.flow.projects.rl.core.types.ReaderOptions]` for 7th
-            #  param but got `Optional[ReaderOptions]`.
-            # pyre-fixme[6]: Expected
-            #  `Optional[fblearner.flow.projects.rl.core.types.ReaderOptions]` for 7th
-            #  param but got `Optional[ReaderOptions]`.
             reader_options=self.reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
         )
