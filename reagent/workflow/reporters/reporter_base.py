@@ -27,8 +27,6 @@ class ReporterBase(CompositeObserver):
         aggregating_observers: Dict[str, IntervalAggregatingObserver],
     ):
         epoch_end_observer = EpochEndObserver(self.flush)
-        self.last_epoch_end_num_batches: int = 0
-        self.num_data_points_per_epoch: Optional[int] = None
         self._value_list_observers = value_list_observers
         self._aggregating_observers = aggregating_observers
         super().__init__(
@@ -57,18 +55,14 @@ class ReporterBase(CompositeObserver):
         for observer in self._aggregating_observers.values():
             observer.flush()
 
-        num_batches = len(self.td_loss.values) - self.last_epoch_end_num_batches
-        self.last_epoch_end_num_batches = len(self.td_loss.values)
-        if self.num_data_points_per_epoch is None:
-            self.num_data_points_per_epoch = num_batches
-        else:
-            assert self.num_data_points_per_epoch == num_batches
-        logger.info(f"Epoch {epoch} contains {num_batches} aggregated data points")
-
     def __getattr__(self, key: str):
-        if key in self._value_list_observers:
-            return self._value_list_observers[key]
-        return self._aggregating_observers[key].aggregator
+        val = self._value_list_observers.get(key, None)
+        if val is not None:
+            return val
+        val = self._aggregating_observers.get(key, None)
+        if val is not None:
+            return val.aggregator
+        raise AttributeError
 
     # TODO: write this for OSS
     @abc.abstractmethod
