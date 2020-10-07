@@ -4,7 +4,6 @@ import unittest
 
 import numpy as np
 import torch
-
 from reagent.ope.utils import Clamper, RunningAverage
 
 

@@ -2,8 +2,8 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 from collections import OrderedDict
-from typing import Dict, List, Union
 from enum import Enum
+from typing import Dict, List, Union
 
 
 class ConfigBaseMeta(type):
@@ -106,9 +106,9 @@ class Constant(ConfigBase):
 
 
 class DecisionRewardAggreation(Enum):
-    DRA_INVALID = None,
-    DRA_SUM = 'sum',
-    DRA_MAX = 'max',
+    DRA_INVALID = (None,)
+    DRA_SUM = ("sum",)
+    DRA_MAX = ("max",)
 
 
 class DecisionConfig(ConfigBase):
