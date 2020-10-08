@@ -310,5 +310,5 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
 
         # Use the soft update rule to update the target networks
         result = self.soft_update_result()
-        result.log("td_loss", q1_loss, prog_bar=True)
+        self.log("td_loss", q1_loss, prog_bar=True)
         yield result
