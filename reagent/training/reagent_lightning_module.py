@@ -105,7 +105,6 @@ class ReAgentLightningModule(pl.LightningModule):
 
     @lazy_property
     def _num_optimizing_steps(self) -> int:
-        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Union[None, typing.D...
         return len(self.configure_optimizers())
 
     def training_epoch_end(self, training_step_outputs):
