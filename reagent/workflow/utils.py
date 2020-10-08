@@ -19,9 +19,10 @@ from reagent.evaluation.evaluator import Evaluator
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.torch_utils import dict_to_tensor
 from reagent.training import RLTrainer, SACTrainer, StoppingEpochCallback, TD3Trainer
-from reagent.workflow.spark_utils import get_spark_session
-from reagent.workflow.types import Dataset, ReaderOptions
 from reagent.workflow_utils.iterators import DataLoaderWrapper, EpochIterator
+
+from .spark_utils import get_spark_session
+from .types import Dataset, ReaderOptions
 
 
 logger = logging.getLogger(__name__)

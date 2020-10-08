@@ -12,8 +12,9 @@ from reagent.preprocessing.normalization import (
     NormalizationParameters,
     get_feature_norm_metadata,
 )
-from reagent.workflow.spark_utils import get_spark_session
-from reagent.workflow.types import PreprocessingOptions, TableSpec
+
+from .spark_utils import get_spark_session
+from .types import PreprocessingOptions, TableSpec
 
 
 def normalization_helper(

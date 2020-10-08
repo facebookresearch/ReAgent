@@ -18,9 +18,10 @@ from reagent.gym.utils import fill_replay_buffer
 from reagent.publishers.union import FileSystemPublisher, ModelPublisher__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.replay_memory.utils import replay_buffer_to_pre_timeline_df
-from reagent.workflow.model_managers.union import ModelManager__Union
-from reagent.workflow.spark_utils import call_spark_class, get_spark_session
-from reagent.workflow.types import TableSpec
+
+from .model_managers.union import ModelManager__Union
+from .spark_utils import call_spark_class, get_spark_session
+from .types import TableSpec
 
 
 logger = logging.getLogger(__name__)

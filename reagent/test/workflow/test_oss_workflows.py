@@ -9,6 +9,8 @@ from typing import Dict
 from unittest.mock import patch
 
 import reagent
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.cli`.
 import reagent.workflow.cli as cli
 import torch
 from click.testing import CliRunner
