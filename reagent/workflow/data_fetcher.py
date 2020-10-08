@@ -14,8 +14,9 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
-from reagent.workflow.spark_utils import get_spark_session, get_table_url
-from reagent.workflow.types import Dataset, TableSpec
+
+from .spark_utils import get_spark_session, get_table_url
+from .types import Dataset, TableSpec
 
 
 logger = logging.getLogger(__name__)
