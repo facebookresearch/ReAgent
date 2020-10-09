@@ -51,6 +51,8 @@ def make_trainer_preprocessor(
 
     def trainer_preprocessor(batch):
         retval = maker(batch)
+        if isinstance(retval, dict):
+            return retval
         return retval.to(device)
 
     return trainer_preprocessor
@@ -219,6 +221,10 @@ class PolicyNetworkInputMaker:
             has_candidate_features = True
         except AttributeError:
             pass
+
+        if True:
+            return dict_batch
+
         output = rlt.PolicyNetworkInput.from_dict(dict_batch)
         if has_candidate_features:
             output.state = rlt._embed_states(output.state)
