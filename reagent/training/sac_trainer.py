@@ -284,7 +284,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             # model_values=min_q_actor_value,
         )
 
-        if batch_idx % self.trainer.row_log_interval == 0:
+        if batch_idx % self.trainer.log_every_n_steps == 0:
             self.reporter.log(
                 q1_value=q1_value,
                 entropy_temperature=self.entropy_temperature,
