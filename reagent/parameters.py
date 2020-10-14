@@ -64,15 +64,13 @@ class MDNRNNTrainerParameters(BaseDataClass):
 class Seq2RewardTrainerParameters(BaseDataClass):
     __hash__ = param_hash
 
-    minibatch_size: int = 16
     learning_rate: float = 0.001
-    train_data_percentage: float = 60.0
-    validation_data_percentage: float = 20.0
-    test_data_percentage: float = 20.0
     multi_steps: int = 1
     action_names: List[str] = field(default_factory=lambda: [])
-    batch_size: int = 32
-    gamma: float = 0.9
+    batch_size: int = 1024
+    compress_model_batch_size: int = 32
+    compress_model_learning_rate: float = 0.001
+    gamma: float = 1.0
     view_q_value: bool = False
 
 

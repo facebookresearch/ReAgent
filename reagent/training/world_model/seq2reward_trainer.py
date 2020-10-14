@@ -8,12 +8,48 @@ import torch
 import torch.nn.functional as F
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.parameters import Seq2RewardTrainerParameters
+from reagent.torch_utils import get_device
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.trainer import Trainer
 from reagent.training.utils import gen_permutations
 
 
 logger = logging.getLogger(__name__)
+
+
+# pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+#  its type `no_grad` is not callable.
+@torch.no_grad()
+def get_Q(
+    seq2reward_network, batch: rlt.MemoryNetworkInput, all_permut: torch.Tensor
+) -> torch.Tensor:
+    batch_size = batch.state.float_features.shape[1]
+    _, num_permut, num_action = all_permut.shape
+    num_permut_per_action = int(num_permut / num_action)
+
+    preprocessed_state = (
+        batch.state.float_features[0].unsqueeze(0).repeat_interleave(num_permut, dim=1)
+    )
+    state_feature_vector = rlt.FeatureData(preprocessed_state)
+
+    # expand action to match the expanded state sequence
+    action = rlt.FeatureData(all_permut.repeat(1, batch_size, 1))
+    acc_reward = seq2reward_network(state_feature_vector, action).acc_reward.reshape(
+        batch_size, num_action, num_permut_per_action
+    )
+
+    # The permuations are generated with lexical order
+    # the output has shape [num_perm, num_action,1]
+    # that means we can aggregate on the max reward
+    # then reshape it to (BATCH_SIZE, ACT_DIM)
+    max_acc_reward = (
+        # pyre-fixme[16]: `Tuple` has no attribute `values`.
+        torch.max(acc_reward, dim=2)
+        .values.detach()
+        .reshape(batch_size, num_action)
+    )
+
+    return max_acc_reward
 
 
 class Seq2RewardTrainer(Trainer):
@@ -34,6 +70,11 @@ class Seq2RewardTrainer(Trainer):
         self.calc_cpe_in_training = True
         # Turning off Q value output during training:
         self.view_q_value = params.view_q_value
+        # permutations used to do planning
+        device = get_device(self.seq2reward_network)
+        self.all_permut = gen_permutations(
+            params.multi_steps, len(self.params.action_names)
+        ).to(device)
 
     def train(self, training_batch: rlt.MemoryNetworkInput):
         self.optimizer.zero_grad()
@@ -41,17 +82,18 @@ class Seq2RewardTrainer(Trainer):
         loss.backward()
         self.optimizer.step()
         detached_loss = loss.cpu().detach().item()
-        q_values = (
-            self.get_Q(
-                training_batch,
-                training_batch.batch_size(),
-                self.params.multi_steps,
-                len(self.params.action_names),
-            )
-            .mean(0)
-            .tolist()
-        )
 
+        if self.view_q_value:
+            q_values = (
+                get_Q(self.seq2reward_network, training_batch, self.all_permut)
+                .cpu()
+                .mean(0)
+                .tolist()
+            )
+        else:
+            q_values = [0] * len(self.params.action_names)
+
+        logger.info(f"Seq2Reward trainer output: {(detached_loss, q_values)}")
         return (detached_loss, q_values)
 
     def get_loss(self, training_batch: rlt.MemoryNetworkInput):
@@ -67,19 +109,31 @@ class Seq2RewardTrainer(Trainer):
 
         :returns: mse loss on reward
         """
+        # pyre-fixme[16]: Optional type has no attribute `flatten`.
+        valid_reward_len = training_batch.valid_next_seq_len.flatten()
 
         seq2reward_output = self.seq2reward_network(
-            training_batch.state, rlt.FeatureData(training_batch.action)
+            training_batch.state,
+            rlt.FeatureData(training_batch.action),
+            valid_reward_len,
+        )
+        predicted_acc_reward = seq2reward_output.acc_reward
+
+        seq_len, batch_size = training_batch.reward.size()
+        gamma = self.params.gamma
+        gamma_mask = (
+            torch.Tensor(
+                [[gamma ** i for i in range(seq_len)] for _ in range(batch_size)]
+            )
+            .transpose(0, 1)
+            .to(training_batch.reward.device)
         )
 
-        predicted_acc_reward = seq2reward_output.acc_reward
-        target_rewards = training_batch.reward
-        seq_len, batch_size = target_rewards.size()
-        gamma = self.params.gamma
-        gamma_mask = torch.Tensor(
-            [[gamma ** i for i in range(seq_len)] for _ in range(batch_size)]
-        ).transpose(0, 1)
-        target_acc_reward = torch.sum(target_rewards * gamma_mask, 0).unsqueeze(1)
+        target_acc_rewards = torch.cumsum(training_batch.reward * gamma_mask, dim=0)
+        target_acc_reward = target_acc_rewards[
+            valid_reward_len - 1, torch.arange(batch_size)
+        ].unsqueeze(1)
+
         # make sure the prediction and target tensors have the same size
         # the size should both be (BATCH_SIZE, 1) in this case.
         assert (
@@ -91,46 +145,3 @@ class Seq2RewardTrainer(Trainer):
     def warm_start_components(self):
         components = ["seq2reward_network"]
         return components
-
-    def get_Q(
-        self,
-        batch: rlt.MemoryNetworkInput,
-        batch_size: int,
-        seq_len: int,
-        num_action: int,
-    ) -> torch.Tensor:
-        if not self.view_q_value:
-            return torch.zeros(batch_size, num_action)
-        try:
-            # pyre-fixme[16]: `Seq2RewardTrainer` has no attribute `all_permut`.
-            self.all_permut
-        except AttributeError:
-            self.all_permut = gen_permutations(seq_len, num_action)
-            # pyre-fixme[16]: `Seq2RewardTrainer` has no attribute `num_permut`.
-            self.num_permut = self.all_permut.size(1)
-
-        # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
-        preprocessed_state = batch.state.float_features.repeat_interleave(
-            self.num_permut, dim=1
-        )
-        state_feature_vector = rlt.FeatureData(preprocessed_state)
-
-        # expand action to match the expanded state sequence
-        action = self.all_permut.repeat(1, batch_size, 1)
-        reward = self.seq2reward_network(
-            state_feature_vector, rlt.FeatureData(action)
-        ).acc_reward.reshape(batch_size, num_action, self.num_permut // num_action)
-
-        # The permuations are generated with lexical order
-        # the output has shape [num_perm, num_action,1]
-        # that means we can aggregate on the max reward
-        # then reshape it to (BATCH_SIZE, ACT_DIM)
-        max_reward = (
-            # pyre-fixme[16]: `Tuple` has no attribute `values`.
-            torch.max(reward, 2)
-            .values.cpu()
-            .detach()
-            .reshape(batch_size, num_action)
-        )
-
-        return max_reward

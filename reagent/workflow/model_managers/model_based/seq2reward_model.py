@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
@@ -10,6 +11,7 @@ from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
 from reagent.parameters import Seq2RewardTrainerParameters, param_hash
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
 from reagent.workflow.model_managers.world_model_base import WorldModelBase
+from reagent.workflow.types import PreprocessingOptions
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,8 @@ class Seq2RewardModel(WorldModelBase):
     trainer_param: Seq2RewardTrainerParameters = field(
         default_factory=Seq2RewardTrainerParameters
     )
+
+    preprocessing_options: Optional[PreprocessingOptions] = None
 
     def build_trainer(self) -> Seq2RewardTrainer:
         seq2reward_network = self.net_builder.value.build_value_network(

@@ -91,12 +91,10 @@ class StringGameEnv(Env):
         """
         The function you can write to customize transitions. In this
         specific environment, the next state is exactly the latest action taken.
-        The initial observation is character "A".
+        The initial observation is all zeros.
         """
         ob = np.zeros(STATE_DIM)
-        if len(self.recent_actions) == 0:
-            ob[0] = 1
-        else:
+        if len(self.recent_actions) > 0:
             ob[self.recent_actions[-1]] = 1
         return ob
 
