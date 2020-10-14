@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 # Triggering registration to registries
 import reagent.core.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
-from reagent.core.dataclasses import dataclass
+from reagent.core.dataclasses import dataclass, field
 from reagent.core.tagged_union import TaggedUnion
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
@@ -30,6 +30,9 @@ try:
     )
 except ImportError:
     pass
+
+
+ModuleNameToEntityId = Dict[str, int]
 
 
 @dataclass
@@ -98,7 +101,7 @@ class RLTrainingReport(TaggedUnion):
 
 @dataclass
 class RLTrainingOutput:
-    output_path: Optional[str] = None
+    output_paths: Dict[str, str] = field(default_factory=dict)
     validation_result: Optional[ValidationResult__Union] = None
     publishing_result: Optional[PublishingResult__Union] = None
     training_report: Optional[RLTrainingReport] = None

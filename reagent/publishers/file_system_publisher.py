@@ -2,13 +2,17 @@
 
 import logging
 import os
-from typing import Optional
+from typing import Dict, Optional
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoPublishingResults
 from reagent.publishers.model_publisher import ModelPublisher
 from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.types import RecurringPeriod, RLTrainingOutput
+from reagent.workflow.types import (
+    ModuleNameToEntityId,
+    RecurringPeriod,
+    RLTrainingOutput,
+)
 
 
 try:
@@ -48,9 +52,12 @@ if HAS_TINYDB:
             self.db: TinyDB = TinyDB(self.publishing_file)
             logger.info(f"Using TinyDB at {self.publishing_file}.")
 
-        def get_latest_published_model(self, model_manager: ModelManager) -> str:
+        def get_latest_published_model(
+            self, model_manager: ModelManager, module_name: str
+        ) -> str:
             Model = Query()
-            key = str(model_manager)
+            # TODO: make this take in a
+            key = f"{module_name}_{str(model_manager)}"
             # pyre-fixme[16]: `FileSystemPublisher` has no attribute `db`.
             results = self.db.search(Model[KEY_FIELD] == key)
             if len(results) != 1:
@@ -68,26 +75,25 @@ if HAS_TINYDB:
             self,
             model_manager: ModelManager,
             training_output: RLTrainingOutput,
-            recurring_workflow_id: int,
+            recurring_workflow_ids: ModuleNameToEntityId,
             child_workflow_id: int,
             recurring_period: Optional[RecurringPeriod],
         ) -> NoPublishingResults:
-            path = training_output.output_path
-            assert path is not None, f"Given path is None."
-            assert os.path.exists(path), f"Given path {path} doesn't exist."
-            Model = Query()
-            # find if there's already been something stored
-            key = str(model_manager)
-            # pyre-fixme[16]: `FileSystemPublisher` has no attribute `db`.
-            results = self.db.search(Model[KEY_FIELD] == key)
-            if len(results) == 0:
-                # this is a first
-                self.db.insert({KEY_FIELD: key, VALUE_FIELD: path})
-            else:
-                # replace it
-                if len(results) > 1:
-                    raise RuntimeError(
-                        f"Got {len(results)} results for model_manager. {results}"
-                    )
-                self.db.update({VALUE_FIELD: path}, Model[KEY_FIELD] == key)
+            for module_name, path in training_output.output_paths.items():
+                assert os.path.exists(path), f"Given path {path} doesn't exist."
+                Model = Query()
+                # find if there's already been something stored
+                key = f"{module_name}_{str(model_manager)}"
+                # pyre-fixme[16]: `FileSystemPublisher` has no attribute `db`.
+                results = self.db.search(Model[KEY_FIELD] == key)
+                if len(results) == 0:
+                    # this is a first
+                    self.db.insert({KEY_FIELD: key, VALUE_FIELD: path})
+                else:
+                    # replace it
+                    if len(results) > 1:
+                        raise RuntimeError(
+                            f"Got {len(results)} results for model_manager. {results}"
+                        )
+                    self.db.update({VALUE_FIELD: path}, Model[KEY_FIELD] == key)
             return NoPublishingResults(success=True)
