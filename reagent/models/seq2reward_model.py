@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from reagent import types as rlt
@@ -28,7 +30,12 @@ class Seq2RewardNetwork(ModelBase):
             rlt.FeatureData(torch.randn(1, 1, self.action_dim)),
         )
 
-    def forward(self, state: rlt.FeatureData, action: rlt.FeatureData):
+    def forward(
+        self,
+        state: rlt.FeatureData,
+        action: rlt.FeatureData,
+        valid_reward_len: Optional[torch.Tensor] = None,
+    ):
         """ Forward pass of Seq2Reward
 
         Takes in the current state and use it as init hidden
@@ -37,22 +44,28 @@ class Seq2RewardNetwork(ModelBase):
 
         :param actions: (SEQ_LEN, BATCH_SIZE, ACTION_DIM) torch tensor
         :param states: (SEQ_LEN, BATCH_SIZE, STATE_DIM) torch tensor
+        :param valid_reward_len: (BATCH_SIZE,) torch tensor
 
         :returns: predicated accumulated rewards at last step for the given sequence
-            - reward: (BATCH_SIZE, 1) torch tensor
+            - acc_reward: (BATCH_SIZE, 1) torch tensor
         """
         states = state.float_features
         actions = action.float_features
+        batch_size = states.shape[1]
         hidden = self.get_initial_hidden_state(
-            states[0][None, :, :], batch_size=states.size(1)
+            states[0][None, :, :], batch_size=batch_size
         )
-        # use last hidden from the topmost hidden layer to predict reward
-        # the size of reward should be converted to (BATCH_SIZE, 1)
-        all_steps_hidden, last_step_hidden_and_cell = self.rnn(actions, hidden)
-        lstm_outs = self.lstm_linear(last_step_hidden_and_cell[0])
-        reward = lstm_outs[-1, :, -1].unsqueeze(1)
+        # all_steps_hidden shape: seq_len, batch_size, hidden_size
+        all_steps_hidden, _ = self.rnn(actions, hidden)
+        if valid_reward_len is None:
+            acc_reward = self.lstm_linear(all_steps_hidden[-1])
+        else:
+            valid_step_hidden = all_steps_hidden[
+                valid_reward_len - 1, torch.arange(batch_size)
+            ]
+            acc_reward = self.lstm_linear(valid_step_hidden)
 
-        return rlt.Seq2RewardOutput(acc_reward=reward)
+        return rlt.Seq2RewardOutput(acc_reward=acc_reward)
 
     def get_initial_hidden_state(self, state, batch_size=1):
         # state embedding with linear mapping
@@ -69,7 +82,9 @@ class Seq2RewardNetwork(ModelBase):
         # ) torch tensor
         hidden = (
             state_embed,
-            torch.zeros(self.num_hidden_layers, batch_size, self.num_hiddens),
+            torch.zeros(self.num_hidden_layers, batch_size, self.num_hiddens).to(
+                state.device
+            ),
         )
 
         return hidden

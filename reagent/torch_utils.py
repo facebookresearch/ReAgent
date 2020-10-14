@@ -91,3 +91,7 @@ def gather(data, index_2d):
         index_2d.flatten(),
     ].view(batch_size, index_len, *data_shape)
     return res
+
+
+def get_device(model):
+    return next(model.parameters()).device
