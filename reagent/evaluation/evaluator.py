@@ -66,8 +66,8 @@ class Evaluator:
 
         self.doubly_robust_estimator = DoublyRobustEstimator()
         self.sequential_doubly_robust_estimator = SequentialDoublyRobustEstimator(gamma)
-        self.weighted_sequential_doubly_robust_estimator = WeightedSequentialDoublyRobustEstimator(
-            gamma
+        self.weighted_sequential_doubly_robust_estimator = (
+            WeightedSequentialDoublyRobustEstimator(gamma)
         )
 
     def evaluate_post_training(self, edp: EvaluationDataPage) -> CpeDetails:
@@ -127,8 +127,10 @@ class Evaluator:
             doubly_robust,
         ) = self.doubly_robust_estimator.estimate(edp)
         sequential_doubly_robust = self.sequential_doubly_robust_estimator.estimate(edp)
-        weighted_doubly_robust = self.weighted_sequential_doubly_robust_estimator.estimate(
-            edp, num_j_steps=1, whether_self_normalize_importance_weights=True
+        weighted_doubly_robust = (
+            self.weighted_sequential_doubly_robust_estimator.estimate(
+                edp, num_j_steps=1, whether_self_normalize_importance_weights=True
+            )
         )
         magic = self.weighted_sequential_doubly_robust_estimator.estimate(
             edp,

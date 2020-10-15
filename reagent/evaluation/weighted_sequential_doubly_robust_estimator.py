@@ -70,8 +70,10 @@ class WeightedSequentialDoublyRobustEstimator:
 
         importance_weights = target_propensity_for_logged_action / logged_propensities
         importance_weights = np.cumprod(importance_weights, axis=1)
-        importance_weights = WeightedSequentialDoublyRobustEstimator.normalize_importance_weights(
-            importance_weights, whether_self_normalize_importance_weights
+        importance_weights = (
+            WeightedSequentialDoublyRobustEstimator.normalize_importance_weights(
+                importance_weights, whether_self_normalize_importance_weights
+            )
         )
 
         importance_weights_one_earlier = (

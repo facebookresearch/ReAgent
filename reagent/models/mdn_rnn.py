@@ -43,7 +43,7 @@ class MDNRNN(nn.Module):
         )
 
     def forward(self, actions: torch.Tensor, states: torch.Tensor, hidden=None):
-        """ Forward pass of MDN-RNN
+        """Forward pass of MDN-RNN
 
         :param actions: (SEQ_LEN, BATCH_SIZE, ACTION_DIM) torch tensor
         :param states: (SEQ_LEN, BATCH_SIZE, STATE_DIM) torch tensor
@@ -184,7 +184,7 @@ def transpose(*args):
 
 
 def gmm_loss(batch, mus, sigmas, logpi, reduce=True):
-    """ Computes the gmm loss.
+    """Computes the gmm loss.
 
     Compute minus the log probability of batch under the GMM model described
     by mus, sigmas, pi. Precisely, with bs1, bs2, ... the sizes of the batch

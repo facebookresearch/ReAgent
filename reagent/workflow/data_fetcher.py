@@ -65,7 +65,7 @@ def set_reward_col_as_reward(
 
 
 def hash_mdp_id_and_subsample(df, sample_range: Optional[Tuple[float, float]] = None):
-    """ Since mdp_id is a string but Pytorch Tensors do not store strings,
+    """Since mdp_id is a string but Pytorch Tensors do not store strings,
     we hash them with crc32, which is treated as a cryptographic hash
     (with range [0, MAX_UINT32-1]). We also perform an optional subsampling
     based on this hash value.
@@ -95,8 +95,8 @@ def hash_mdp_id_and_subsample(df, sample_range: Optional[Tuple[float, float]] = 
 
 
 def make_sparse2dense(df, col_name: str, possible_keys: List):
-    """ Given a list of possible keys, convert sparse map to dense array.
-        In our example, both value_type is assumed to be a float.
+    """Given a list of possible keys, convert sparse map to dense array.
+    In our example, both value_type is assumed to be a float.
     """
     output_type = StructType(
         [
@@ -207,7 +207,7 @@ def misc_column_preprocessing(df, multi_steps: Optional[int]):
 def state_and_metrics_sparse2dense(
     df, states: List[int], metrics: List[str], multi_steps: Optional[int]
 ):
-    """ Sparse-to-dense preprocessing of Map columns, which are states and metrics.
+    """Sparse-to-dense preprocessing of Map columns, which are states and metrics.
     For each column of type Map, w/ name X, output two columns.
         Map values are assumed to be scalar. This process is called sparse-to-dense.
         X = {"state_features", "next_state_features", "metrics"}.
@@ -387,9 +387,9 @@ def select_relevant_columns(
 
 
 def get_distinct_keys(df, col_name, is_col_arr_map=False):
-    """ Return list of distinct keys.
-        Set is_col_arr_map to be true if column is an array of Maps.
-        Otherwise, assume column is a Map.
+    """Return list of distinct keys.
+    Set is_col_arr_map to be true if column is an array of Maps.
+    Otherwise, assume column is a Map.
     """
     if is_col_arr_map:
         df = df.select(explode(col_name).alias(col_name))
@@ -417,7 +417,7 @@ def infer_action_names(df, multi_steps: Optional[int]):
 
 
 def infer_metrics_names(df, multi_steps: Optional[int]):
-    """ Infer possible metrics names.
+    """Infer possible metrics names.
     Assume in multi-step case, metrics is an array of maps.
     """
     is_col_arr_map = not (multi_steps is None)
@@ -465,7 +465,7 @@ def query_data(
     multi_steps: Optional[int] = None,
     gamma: Optional[float] = None,
 ) -> Dataset:
-    """ Perform reward calculation, hashing mdp + subsampling and
+    """Perform reward calculation, hashing mdp + subsampling and
     other preprocessing such as sparse2dense.
     """
     sqlCtx = get_spark_session()

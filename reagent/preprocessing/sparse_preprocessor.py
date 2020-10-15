@@ -49,12 +49,12 @@ def make_sparse_preprocessor(
 
 
 class SparsePreprocessor(torch.nn.Module):
-    """ Performs preprocessing for sparse features (i.e. id_list, id_score_list)
+    """Performs preprocessing for sparse features (i.e. id_list, id_score_list)
 
-        Functionality includes:
-        (1) changes keys from feature_id to feature_name, for better debuggability
-        (2) maps sparse ids to embedding table indices based on id_mapping
-        (3) filters out ids which aren't in the id2name
+    Functionality includes:
+    (1) changes keys from feature_id to feature_name, for better debuggability
+    (2) maps sparse ids to embedding table indices based on id_mapping
+    (3) filters out ids which aren't in the id2name
     """
 
     def __init__(

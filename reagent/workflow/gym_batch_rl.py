@@ -64,8 +64,8 @@ PRE_TIMELINE_SUFFIX = "_pre_timeline_operator"
 
 
 def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
-    """ Loads a pandas parquet, converts to pyspark, and uploads df to Hive.
-        Then call the timeline operator.
+    """Loads a pandas parquet, converts to pyspark, and uploads df to Hive.
+    Then call the timeline operator.
     """
 
     pd_df = pd.read_pickle(pkl_path)
