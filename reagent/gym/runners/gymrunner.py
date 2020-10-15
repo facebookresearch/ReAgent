@@ -69,9 +69,9 @@ def evaluate_for_n_episodes(
     gammas: Sequence[float] = (1.0,),
     num_processes: int = 4,
 ) -> np.ndarray:
-    """ Return an np array A of shape n x len(gammas)
-        where A[i, j] = ith episode evaluated with gamma=gammas[j].
-        Runs environments on num_processes, via multiprocessing.Pool.
+    """Return an np array A of shape n x len(gammas)
+    where A[i, j] = ith episode evaluated with gamma=gammas[j].
+    Runs environments on num_processes, via multiprocessing.Pool.
     """
     num_processes = min(num_processes, n)
 

@@ -136,7 +136,7 @@ class RLTrainer(RLTrainerMixin, Trainer):
     #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _soft_update(self, network, target_network, tau) -> None:
-        """ Target network update logic as defined in DDPG paper
+        """Target network update logic as defined in DDPG paper
         updated_params = tau * network_params + (1 - tau) * target_network_params
         :param network network with parameters to include in soft update
         :param target_network target network with params to soft update

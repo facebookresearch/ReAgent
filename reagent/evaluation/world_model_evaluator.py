@@ -59,8 +59,8 @@ class FeatureImportanceEvaluator(object):
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
     def evaluate(self, batch: MemoryNetworkInput):
-        """ Calculate feature importance: setting each state/action feature to
-        the mean value and observe loss increase. """
+        """Calculate feature importance: setting each state/action feature to
+        the mean value and observe loss increase."""
 
         self.trainer.memory_network.mdnrnn.eval()
         state_features = batch.state.float_features
@@ -185,9 +185,9 @@ class FeatureSensitivityEvaluator(object):
         self.sorted_state_feature_start_indices = sorted_state_feature_start_indices
 
     def evaluate(self, batch: MemoryNetworkInput):
-        """ Calculate state feature sensitivity due to actions:
+        """Calculate state feature sensitivity due to actions:
         randomly permutating actions and see how much the prediction of next
-        state feature deviates. """
+        state feature deviates."""
         assert isinstance(batch, MemoryNetworkInput)
 
         self.trainer.memory_network.mdnrnn.eval()

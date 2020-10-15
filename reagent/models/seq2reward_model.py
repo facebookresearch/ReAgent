@@ -36,7 +36,7 @@ class Seq2RewardNetwork(ModelBase):
         action: rlt.FeatureData,
         valid_reward_len: Optional[torch.Tensor] = None,
     ):
-        """ Forward pass of Seq2Reward
+        """Forward pass of Seq2Reward
 
         Takes in the current state and use it as init hidden
         The input sequence are pure actions only

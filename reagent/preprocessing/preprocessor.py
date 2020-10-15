@@ -113,7 +113,7 @@ class Preprocessor(Module):
     def forward(
         self, input: torch.Tensor, input_presence_byte: torch.Tensor
     ) -> torch.Tensor:
-        """ Preprocess the input matrix
+        """Preprocess the input matrix
         :param input tensor
         """
         assert (

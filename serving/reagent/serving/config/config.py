@@ -50,9 +50,9 @@ class ConfigBase(metaclass=ConfigBaseMeta):
 
     def __init__(self, **kwargs):
         """Configs can be constructed by specifying values by keyword.
-      If a keyword is supplied that isn't in the config, or if a config requires
-      a value that isn't specified and doesn't have a default, a TypeError will be
-      raised."""
+        If a keyword is supplied that isn't in the config, or if a config requires
+        a value that isn't specified and doesn't have a default, a TypeError will be
+        raised."""
         specified = kwargs.keys() | type(self)._field_defaults.keys()
         required = type(self).__annotations__.keys()
         # Unspecified fields have no default and weren't provided by the caller

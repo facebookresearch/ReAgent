@@ -407,8 +407,7 @@ class ReplayBuffer(object):
         self._is_index_valid[idx] = is_valid
 
     def _create_storage(self) -> None:
-        """Creates the numpy arrays used to store transitions.
-        """
+        """Creates the numpy arrays used to store transitions."""
         for storage_element in self.get_storage_signature():
             self._store[storage_element.name] = storage_element.metadata.create_storage(
                 self._replay_capacity
@@ -432,8 +431,7 @@ class ReplayBuffer(object):
         return self._storage_types
 
     def _add_zero_transition(self) -> None:
-        """Adds a padding transition filled with zeros (Used in episode beginnings).
-        """
+        """Adds a padding transition filled with zeros (Used in episode beginnings)."""
         self._add(**self._zero_transition)
 
     def add(self, **kwargs):
@@ -679,22 +677,22 @@ class ReplayBuffer(object):
     def _get_batch_for_indices(
         self, key: str, indices: torch.Tensor, steps: Optional[torch.Tensor] = None
     ):
-        """ Get batch for given key.
-            There are two orthogonal special cases.
-            - returning a stack of features:
-                View this case as adding an extra "stack" dimension to feature,
-                causing the shape to be (*feature.shape, stack_size)
-            - returning next_features as a list (same as timeline output):
-                This should only be on if update_horizon is > 1.
-                If this is the case then we don't return a torch.Tensor,
-                but instead return List[List[features]] where the ith
-                element is torch.tensor([feat_{t+1}, ..., feat_{t+k}]);
-                where k <= multi_steps could be strictly less if there's a
-                terminal state.
-                NOTE: this option is activated by using the optional steps parameter.
+        """Get batch for given key.
+        There are two orthogonal special cases.
+        - returning a stack of features:
+            View this case as adding an extra "stack" dimension to feature,
+            causing the shape to be (*feature.shape, stack_size)
+        - returning next_features as a list (same as timeline output):
+            This should only be on if update_horizon is > 1.
+            If this is the case then we don't return a torch.Tensor,
+            but instead return List[List[features]] where the ith
+            element is torch.tensor([feat_{t+1}, ..., feat_{t+k}]);
+            where k <= multi_steps could be strictly less if there's a
+            terminal state.
+            NOTE: this option is activated by using the optional steps parameter.
 
-            Otherwise, we just return the indexed features in the replay buffer.
-            In all of the cases, we assume indices is 1-dimensional.
+        Otherwise, we just return the indexed features in the replay buffer.
+        In all of the cases, we assume indices is 1-dimensional.
         """
         assert len(indices.shape) == 1, f"{indices.shape} isn't 1-dimensional."
         if steps is not None:
@@ -729,7 +727,7 @@ class ReplayBuffer(object):
         return self._key_to_replay_elem[key].metadata.sample_to_output(retval)
 
     def _get_steps(self, multistep_indices: torch.Tensor) -> torch.Tensor:
-        """ Calculate trajectory length, defined to be the number of states
+        """Calculate trajectory length, defined to be the number of states
         in this multi_step transition until terminal state or until
         end of multi_step (a.k.a. update_horizon).
         """

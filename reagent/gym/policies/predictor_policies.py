@@ -83,8 +83,8 @@ class DiscreteDQNPredictorPolicy(Policy):
         obs: Union[rlt.ServingFeatureData, Tuple[torch.Tensor, torch.Tensor]],
         possible_actions_mask: Optional[np.ndarray],
     ) -> rlt.ActorOutput:
-        """ Input is either state_with_presence, or
-        ServingFeatureData (in the case of sparse features) """
+        """Input is either state_with_presence, or
+        ServingFeatureData (in the case of sparse features)"""
         assert isinstance(obs, tuple)
         if isinstance(obs, rlt.ServingFeatureData):
             state: rlt.ServingFeatureData = obs

@@ -61,7 +61,7 @@ class ConvolutionalNetwork(nn.Module):
         return x
 
     def forward(self, input) -> torch.FloatTensor:
-        """ Forward pass for generic convnet DNNs. Assumes activation names
+        """Forward pass for generic convnet DNNs. Assumes activation names
         are valid pytorch activation names.
         :param input image tensor
         """

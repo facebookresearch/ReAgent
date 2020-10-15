@@ -61,9 +61,7 @@ class FullyConnectedNetwork(ModelBase):
             modules.append(linear)
             # Add LayerNorm
             if use_layer_norm and (normalize_output or i < len(activations) - 1):
-                modules.append(
-                    nn.LayerNorm(out_dim)  # type: ignore
-                )
+                modules.append(nn.LayerNorm(out_dim))  # type: ignore
             # Add activation
             if activation in ACTIVATION_MAP:
                 modules.append(ACTIVATION_MAP[activation]())
@@ -80,7 +78,7 @@ class FullyConnectedNetwork(ModelBase):
         return torch.randn(1, self.input_dim)
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        """ Forward pass for generic feed-forward DNNs. Assumes activation names
+        """Forward pass for generic feed-forward DNNs. Assumes activation names
         are valid pytorch activation names.
         :param input tensor
         """

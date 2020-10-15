@@ -61,9 +61,7 @@ class QRDQNNetBuilder(metaclass=RegistryMeta):
             state_normalization_data.dense_normalization_parameters, False
         )
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
-            Sequential(  # type: ignore
-                q_network.cpu_model().eval(), _Mean()
-            ),
+            Sequential(q_network.cpu_model().eval(), _Mean()),  # type: ignore
             state_preprocessor,
             state_feature_config,
         )

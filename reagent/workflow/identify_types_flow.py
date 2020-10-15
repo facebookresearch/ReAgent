@@ -27,7 +27,7 @@ def normalization_helper(
     whitelist_features: Optional[List[int]] = None,
     assert_whitelist_feature_coverage: bool = True,
 ):
-    """ Construct a preprocessing closure to obtain normalization parameters
+    """Construct a preprocessing closure to obtain normalization parameters
     from rows of feature_name and a sample of feature_values.
     """
 
@@ -50,12 +50,11 @@ def normalization_helper(
             return
         whitelist_feature_set = {int(fid) for fid in whitelist_features}
         available_features = set(params.keys())
-        assert whitelist_feature_set == available_features, (
-            "Could not identify preprocessing type for these features: {}; "
-            "extra features: {}".format(
-                whitelist_feature_set - available_features,
-                available_features - whitelist_feature_set,
-            )
+        assert (
+            whitelist_feature_set == available_features
+        ), "Could not identify preprocessing type for these features: {}; " "extra features: {}".format(
+            whitelist_feature_set - available_features,
+            available_features - whitelist_feature_set,
         )
 
     def process(rows: List) -> Dict[int, NormalizationParameters]:

@@ -44,7 +44,7 @@ def get_batch_size(batch):
 
 class DataLoaderWrapper(IterableDataset):
     def __init__(self, dataloader: IterableDataset, dataloader_size: int):
-        """ Wraps around an Iterable Dataloader to report progress bars and
+        """Wraps around an Iterable Dataloader to report progress bars and
         increase global step of SummaryWriter. At last iteration, will call
         dataloader.__exit__ if needed (e.g. Petastorm DataLoader).
 

@@ -45,12 +45,12 @@ def train_with_replay_buffer_post_step(
     device: Union[str, torch.device] = "cpu",
     replay_buffer_inserter=None,
 ) -> PostStep:
-    """ Called in post_step of agent to train based on replay buffer (RB).
-        Args:
-            trainer: responsible for having a .train method to train the model
-            trainer_preprocessor: format RB output for trainer.train
-            training_freq: how many steps in between trains
-            batch_size: how big of a batch to sample
+    """Called in post_step of agent to train based on replay buffer (RB).
+    Args:
+        trainer: responsible for having a .train method to train the model
+        trainer_preprocessor: format RB output for trainer.train
+        training_freq: how many steps in between trains
+        batch_size: how big of a batch to sample
     """
     if isinstance(device, str):
         device = torch.device(device)

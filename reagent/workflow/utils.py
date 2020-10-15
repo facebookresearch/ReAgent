@@ -34,7 +34,7 @@ def get_table_row_count(parquet_url: str):
 
 
 def collate_and_preprocess(batch_preprocessor: BatchPreprocessor, use_gpu: bool):
-    """ Helper for Petastorm's DataLoader to preprocess.
+    """Helper for Petastorm's DataLoader to preprocess.
     TODO(kaiwenw): parallelize preprocessing by using transform of Petastorm reader
     Should pin memory and preprocess in reader and convert to gpu in collate_fn.
     """

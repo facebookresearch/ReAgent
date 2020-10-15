@@ -136,7 +136,7 @@ class MapIDListFeatures:
 
 
 class OneHotActions:
-    """ Keys should be in the set {0,1,2,...,num_actions}, where
+    """Keys should be in the set {0,1,2,...,num_actions}, where
     a value equal to num_actions denotes that it's not valid.
     """
 
