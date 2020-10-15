@@ -24,17 +24,20 @@ class Seq2RewardEvaluator:
         loss = self.trainer.get_loss(eval_batch)
         detached_loss = loss.cpu().detach().item()
 
-        if self.trainer.view_q_value:
-            q_values = (
-                get_Q(
-                    self.trainer.seq2reward_network, eval_batch, self.trainer.all_permut
-                )
-                .cpu()
-                .mean(0)
-                .tolist()
-            )
-        else:
-            q_values = [0] * len(self.trainer.params.action_names)
+        # shape: batch_size, action_dim
+        q_values_all_action_all_data = get_Q(
+            self.trainer.seq2reward_network, eval_batch, self.trainer.all_permut
+        ).cpu()
+        q_values = q_values_all_action_all_data.mean(0).tolist()
+
+        action_distribution = torch.bincount(
+            torch.argmax(q_values_all_action_all_data, dim=1),
+            minlength=len(self.trainer.params.action_names),
+        )
+        # normalize
+        action_distribution = (
+            action_distribution.float() / torch.sum(action_distribution)
+        ).tolist()
 
         self.reward_net.train(reward_net_prev_mode)
-        return (detached_loss, q_values)
+        return (detached_loss, q_values, action_distribution)
