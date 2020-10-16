@@ -7,6 +7,8 @@ from os.path import abspath, dirname, join
 from typing import Dict, Optional
 
 import reagent
+
+# pyre-fixme[21]: Could not find module `pyspark.sql`.
 from pyspark.sql import SparkSession
 
 # pyre-fixme[21]: Could not find module `pyspark.sql.functions`.
@@ -72,8 +74,6 @@ def get_table_url(table_name: str) -> str:
     spark = get_spark_session()
     url = (
         spark.sql(f"DESCRIBE FORMATTED {table_name}")
-        # pyre-fixme[16]: Module `functions` has no attribute `col`.
-        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         .filter((col("col_name") == "Location"))
         .select("data_type")
         .toPandas()

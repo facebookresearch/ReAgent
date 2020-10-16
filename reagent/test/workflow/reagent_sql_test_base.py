@@ -8,6 +8,8 @@ import shutil
 
 import numpy as np
 import torch
+
+# pyre-fixme[21]: Could not find module `pyspark`.
 from pyspark import SparkConf
 
 # pyre-fixme[21]: Could not find module `reagent.workflow.spark_utils`.
