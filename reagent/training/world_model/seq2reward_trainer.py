@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 #  its type `no_grad` is not callable.
 @torch.no_grad()
 def get_Q(
-    seq2reward_network, batch: rlt.MemoryNetworkInput, all_permut: torch.Tensor
+    seq2reward_network: Seq2RewardNetwork,
+    batch: rlt.MemoryNetworkInput,
+    all_permut: torch.Tensor,
 ) -> torch.Tensor:
     batch_size = batch.state.float_features.shape[1]
     _, num_permut, num_action = all_permut.shape
