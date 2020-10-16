@@ -22,8 +22,9 @@ class CompressModelEvaluator:
     def evaluate(self, eval_batch: MemoryNetworkInput):
         prev_mode = self.compress_model_network.training
         self.compress_model_network.eval()
-        loss = self.trainer.get_loss(eval_batch)
-        detached_loss = loss.cpu().detach().item()
+        mse, acc = self.trainer.get_loss(eval_batch)
+        detached_loss = mse.cpu().detach().item()
+        acc = acc.item()
 
         # shape: batch_size, action_dim
         q_values_all_action_all_data = get_Q(
@@ -41,4 +42,4 @@ class CompressModelEvaluator:
         ).tolist()
 
         self.compress_model_network.train(prev_mode)
-        return (detached_loss, q_values, action_distribution)
+        return (detached_loss, q_values, action_distribution, acc)

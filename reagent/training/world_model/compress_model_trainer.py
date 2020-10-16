@@ -48,14 +48,18 @@ class CompressModelTrainer(Trainer):
 
     def train(self, training_batch: rlt.MemoryNetworkInput):
         self.optimizer.zero_grad()
-        loss = self.get_loss(training_batch)
+        loss, accuracy = self.get_loss(training_batch)
         loss.backward()
         self.optimizer.step()
         detached_loss = loss.cpu().detach().item()
-        logger.info(f"Seq2Reward Compress trainer output: {detached_loss}")
-        return detached_loss
+        accuracy = accuracy.item()
+        logger.info(
+            f"Seq2Reward Compress trainer MSE/Accuracy: {detached_loss}, {accuracy}"
+        )
+        return detached_loss, accuracy
 
     def get_loss(self, training_batch: rlt.MemoryNetworkInput):
+        # shape: batch_size, num_action
         compress_model_output = self.compress_model_network(
             training_batch.state.float_features[0]
         )
@@ -64,7 +68,14 @@ class CompressModelTrainer(Trainer):
             compress_model_output.size() == target.size()
         ), f"{compress_model_output.size()}!={target.size()}"
         mse = F.mse_loss(compress_model_output, target)
-        return mse
+
+        with torch.no_grad():
+            # pyre-fixme[16]: `Tuple` has no attribute `indices`.
+            target_action = torch.max(target, dim=1).indices
+            model_action = torch.max(compress_model_output, dim=1).indices
+            accuracy = torch.mean((target_action == model_action).float())
+
+        return mse, accuracy
 
     def warm_start_components(self):
         logger.info("No warm start components yet...")
