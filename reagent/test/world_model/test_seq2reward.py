@@ -83,13 +83,15 @@ class TestSeq2Reward(unittest.TestCase):
         logger.info(f"q_values: {q_values}")
         assert torch.all(expected_q_values == q_values)
 
-    def test_gen_permutations(self):
+    def test_gen_permutations_seq_len_1_action_6(self):
+        SEQ_LEN = 1
+        NUM_ACTION = 6
+        expected_outcome = torch.tensor([[0], [1], [2], [3], [4], [5]])
+        self._test_gen_permutations(SEQ_LEN, NUM_ACTION, expected_outcome)
+
+    def test_gen_permutations_seq_len_3_num_action_2(self):
         SEQ_LEN = 3
         NUM_ACTION = 2
-        # expected shape: SEQ_LEN, PERM_NUM, ACTION_DIM
-        result = gen_permutations(SEQ_LEN, NUM_ACTION)
-        assert result.shape == (SEQ_LEN, NUM_ACTION ** SEQ_LEN, NUM_ACTION)
-        outcome = torch.argmax(result.transpose(0, 1), dim=-1)
         expected_outcome = torch.tensor(
             [
                 [0, 0, 0],
@@ -102,4 +104,11 @@ class TestSeq2Reward(unittest.TestCase):
                 [1, 1, 1],
             ]
         )
+        self._test_gen_permutations(SEQ_LEN, NUM_ACTION, expected_outcome)
+
+    def _test_gen_permutations(self, SEQ_LEN, NUM_ACTION, expected_outcome):
+        # expected shape: SEQ_LEN, PERM_NUM, ACTION_DIM
+        result = gen_permutations(SEQ_LEN, NUM_ACTION)
+        assert result.shape == (SEQ_LEN, NUM_ACTION ** SEQ_LEN, NUM_ACTION)
+        outcome = torch.argmax(result.transpose(0, 1), dim=-1)
         assert torch.all(outcome == expected_outcome)
