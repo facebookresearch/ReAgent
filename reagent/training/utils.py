@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Union
-
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -57,5 +55,7 @@ def gen_permutations(seq_len: int, num_action: int) -> torch.Tensor:
     the return shape is (SEQ_LEN, PERM_NUM, ACTION_DIM)
     """
     all_permut = torch.cartesian_prod(*[torch.arange(num_action)] * seq_len)
+    if seq_len == 1:
+        all_permut = all_permut.unsqueeze(1)
     all_permut = F.one_hot(all_permut, num_action).transpose(0, 1)
     return all_permut.float()
