@@ -8,6 +8,7 @@ import torch
 from reagent.parameters import NormalizationData
 from reagent.publishers.union import ModelPublisher__Union
 from reagent.validators.union import ModelValidator__Union
+from reagent.workflow.async_wrapper import AsyncWrapper
 from reagent.workflow.env import get_workflow_id
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import (
@@ -23,6 +24,7 @@ from reagent.workflow.types import (
 logger = logging.getLogger(__name__)
 
 
+@AsyncWrapper(add_adapters=True, register=True)
 def identify_and_train_network(
     input_table_spec: TableSpec,
     model: ModelManager__Union,
@@ -97,6 +99,7 @@ def get_sample_range(
     )
 
 
+@AsyncWrapper(add_adapters=True, register=True)
 def query_and_train(
     input_table_spec: TableSpec,
     model: ModelManager__Union,
@@ -169,6 +172,7 @@ def query_and_train(
     return results
 
 
+@AsyncWrapper(add_adapters=True, register=True)
 def run_validator(
     validator: ModelValidator__Union, training_output: RLTrainingOutput
 ) -> RLTrainingOutput:
@@ -180,6 +184,7 @@ def run_validator(
     return dataclasses.replace(training_output, validation_result=validation_result)
 
 
+@AsyncWrapper(add_adapters=True, register=True)
 def run_publisher(
     publisher: ModelPublisher__Union,
     model_chooser: ModelManager__Union,
