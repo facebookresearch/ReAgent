@@ -22,116 +22,24 @@ from reagent.model_utils.seq2slate_utils import (
     per_symbol_to_per_seq_probs,
     subsequent_mask,
 )
-from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
-from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import Seq2SlateParameters
-from reagent.torch_utils import gather
-from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
+from reagent.test.ranking.test_seq2slate_utils import (
+    MODEL_TRANSFORMER,
+    ON_POLICY,
+    create_batch,
+    create_seq2slate_net,
+    rank_on_policy,
+    run_seq2slate_tsp,
+)
 
 
 logger = logging.getLogger(__name__)
 
-MODEL_TRANSFORMER = "transformer"
 
 output_arch_list = [
     Seq2SlateOutputArch.FRECHET_SORT,
     Seq2SlateOutputArch.AUTOREGRESSIVE,
 ]
 temperature_list = [1.0, 2.0]
-
-
-def create_batch(batch_size, candidate_num, candidate_dim, device, diverse_input=False):
-    state = torch.zeros(batch_size, 1)  # fake state, we only use candidates
-    # # city coordinates are spread in [0, 4]
-    candidates = torch.randint(5, (batch_size, candidate_num, candidate_dim)).float()
-    if not diverse_input:
-        # every training data has the same nodes as the input cities
-        candidates[1:] = candidates[0]
-    batch = rlt.PreprocessedRankingInput.from_input(
-        state=state.to(device), candidates=candidates.to(device), device=device
-    )
-    return batch
-
-
-def compute_reward(ranked_cities):
-    assert len(ranked_cities.shape) == 3
-    ranked_cities_offset = torch.roll(ranked_cities, shifts=1, dims=1)
-    return (
-        torch.sqrt(((ranked_cities_offset - ranked_cities) ** 2).sum(-1))
-        .sum(-1)
-        .unsqueeze(1)
-    )
-
-
-def compute_best_reward(input_cities):
-    batch_size, candidate_num, _ = input_cities.shape
-    all_perm = torch.tensor(
-        list(permutations(torch.arange(candidate_num), candidate_num))
-    )
-    res = [
-        compute_reward(gather(input_cities, perm.repeat(batch_size, 1)))
-        for perm in all_perm
-    ]
-    # res shape: batch_size, num_perm
-    res = torch.cat(res, dim=1)
-    best_possible_reward = torch.min(res, dim=1).values
-    best_possible_reward_mean = torch.mean(best_possible_reward)
-    return best_possible_reward_mean
-
-
-@torch.no_grad()
-def rank_on_policy(
-    model, batch: rlt.PreprocessedRankingInput, tgt_seq_len: int, greedy: bool
-):
-    model.eval()
-    rank_output = model(
-        batch, mode=Seq2SlateMode.RANK_MODE, tgt_seq_len=tgt_seq_len, greedy=greedy
-    )
-    ranked_slate_prob = rank_output.ranked_per_seq_probs
-    ranked_order = rank_output.ranked_tgt_out_idx - 2
-    model.train()
-    return ranked_slate_prob, ranked_order
-
-
-@torch.no_grad()
-def rank_on_policy_and_eval(
-    seq2slate_net, batch: rlt.PreprocessedRankingInput, tgt_seq_len: int, greedy: bool
-):
-    model_propensity, model_action = rank_on_policy(
-        seq2slate_net, batch, tgt_seq_len, greedy=greedy
-    )
-    ranked_cities = gather(batch.src_seq.float_features, model_action)
-    reward = compute_reward(ranked_cities)
-    return model_propensity, model_action, reward
-
-
-def create_seq2slate_transformer(
-    candidate_num, candidate_dim, hidden_size, output_arch, temperature, device
-):
-    return Seq2SlateTransformerNet(
-        state_dim=1,
-        candidate_dim=candidate_dim,
-        num_stacked_layers=2,
-        num_heads=2,
-        dim_model=hidden_size,
-        dim_feedforward=hidden_size,
-        max_src_seq_len=candidate_num,
-        max_tgt_seq_len=candidate_num,
-        output_arch=output_arch,
-        temperature=temperature,
-    ).to(device)
-
-
-def create_trainer(seq2slate_net, batch_size, learning_rate, device, on_policy):
-    use_gpu = False if device == torch.device("cpu") else True
-    return Seq2SlateTrainer(
-        seq2slate_net=seq2slate_net,
-        minibatch_size=batch_size,
-        parameters=Seq2SlateParameters(on_policy=on_policy),
-        policy_optimizer=Optimizer__Union.default(lr=learning_rate),
-        use_gpu=use_gpu,
-        print_interval=100,
-    )
 
 
 class TestSeq2Slate(unittest.TestCase):
@@ -251,8 +159,14 @@ class TestSeq2Slate(unittest.TestCase):
         batch_size = len(all_perm)
         device = torch.device("cpu")
 
-        seq2slate_net = create_seq2slate_transformer(
-            candidate_num, candidate_dim, hidden_size, output_arch, temperature, device
+        seq2slate_net = create_seq2slate_net(
+            MODEL_TRANSFORMER,
+            candidate_num,
+            candidate_dim,
+            hidden_size,
+            output_arch,
+            temperature,
+            device,
         )
         batch = create_batch(
             batch_size, candidate_num, candidate_dim, device, diverse_input=False
@@ -291,8 +205,14 @@ class TestSeq2Slate(unittest.TestCase):
         candidate_dim = 2
         batch_size = 4096
         hidden_size = 32
-        seq2slate_net = create_seq2slate_transformer(
-            candidate_num, candidate_dim, hidden_size, output_arch, temperature, device
+        seq2slate_net = create_seq2slate_net(
+            MODEL_TRANSFORMER,
+            candidate_num,
+            candidate_dim,
+            hidden_size,
+            output_arch,
+            temperature,
+            device,
         )
         batch = create_batch(
             batch_size, candidate_num, candidate_dim, device, diverse_input=False
@@ -351,7 +271,8 @@ class TestSeq2Slate(unittest.TestCase):
         num_candidates = 6
         diverse_input = False
         learning_rate = 0.001
-        self._test_seq2slate_on_policy_tsp(
+        learning_method = ON_POLICY
+        run_seq2slate_tsp(
             MODEL_TRANSFORMER,
             batch_size,
             epochs,
@@ -361,6 +282,7 @@ class TestSeq2Slate(unittest.TestCase):
             diverse_input,
             learning_rate,
             expect_reward_threshold,
+            learning_method,
             device,
         )
 
@@ -387,7 +309,8 @@ class TestSeq2Slate(unittest.TestCase):
         num_candidates = 4
         diverse_input = True
         learning_rate = 0.00005
-        self._test_seq2slate_on_policy_tsp(
+        learning_method = ON_POLICY
+        run_seq2slate_tsp(
             MODEL_TRANSFORMER,
             batch_size,
             epochs,
@@ -397,107 +320,6 @@ class TestSeq2Slate(unittest.TestCase):
             diverse_input,
             learning_rate,
             expect_reward_threshold,
+            learning_method,
             device,
-        )
-
-    def _test_seq2slate_on_policy_tsp(
-        self,
-        model_str,
-        batch_size,
-        epochs,
-        candidate_num,
-        num_batches,
-        hidden_size,
-        diverse_input,
-        learning_rate,
-        expect_reward_threshold,
-        device,
-    ):
-        candidate_dim = 2
-        eval_sample_size = 1
-
-        batch_list = [
-            create_batch(
-                batch_size,
-                candidate_num,
-                candidate_dim,
-                device,
-                diverse_input=diverse_input,
-            )
-            for _ in range(num_batches)
-        ]
-
-        if diverse_input:
-            test_batch = create_batch(
-                batch_size,
-                candidate_num,
-                candidate_dim,
-                device,
-                diverse_input=diverse_input,
-            )
-        else:
-            test_batch = batch_list[0]
-
-        best_test_possible_reward = compute_best_reward(
-            test_batch.src_seq.float_features
-        )
-
-        if model_str == MODEL_TRANSFORMER:
-            seq2slate_net = create_seq2slate_transformer(
-                candidate_num,
-                candidate_dim,
-                hidden_size,
-                Seq2SlateOutputArch.AUTOREGRESSIVE,
-                1.0,
-                device,
-            )
-        else:
-            raise NotImplementedError(f"unknown model type {model_str}")
-
-        trainer = create_trainer(
-            seq2slate_net, batch_size, learning_rate, device, on_policy=True
-        )
-
-        for e in range(epochs):
-            for batch in batch_list:
-                model_propensity, model_action, reward = rank_on_policy_and_eval(
-                    seq2slate_net, batch, candidate_num, greedy=False
-                )
-                on_policy_batch = rlt.PreprocessedRankingInput.from_input(
-                    state=batch.state.float_features,
-                    candidates=batch.src_seq.float_features,
-                    device=device,
-                    action=model_action,
-                    logged_propensities=model_propensity,
-                    slate_reward=-reward,  # negate because we want to minimize
-                )
-                trainer.train(
-                    rlt.PreprocessedTrainingBatch(training_input=on_policy_batch)
-                )
-                logger.info(f"Epoch {e} mean on_policy reward: {torch.mean(reward)}")
-                logger.info(
-                    f"Epoch {e} mean model_propensity: {torch.mean(model_propensity)}"
-                )
-
-            # evaluation
-            best_test_reward = torch.full((batch_size,), 1e9).to(device)
-            for _ in range(eval_sample_size):
-                _, _, reward = rank_on_policy_and_eval(
-                    seq2slate_net, test_batch, candidate_num, greedy=True
-                )
-                best_test_reward = torch.where(
-                    reward < best_test_reward, reward, best_test_reward
-                )
-            logger.info(
-                f"Test mean reward: {torch.mean(best_test_reward)}, "
-                f"best possible reward {best_test_possible_reward}"
-            )
-            if (
-                torch.mean(best_test_reward)
-                < best_test_possible_reward * expect_reward_threshold
-            ):
-                return
-
-        raise AssertionError(
-            "Test failed because it did not reach expected test reward"
         )
