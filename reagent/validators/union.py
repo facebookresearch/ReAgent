@@ -9,6 +9,7 @@ from .no_validation import NoValidation  # noqa
 
 if IS_FB_ENVIRONMENT:
     import fblearner.flow.projects.rl.validation.clients  # noqa
+    import fblearner.flow.projects.rl.validation.common  # noqa
 
 
 @ModelValidator.fill_union()
