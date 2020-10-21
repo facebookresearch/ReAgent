@@ -1,13 +1,17 @@
 import logging
+import tempfile
 from itertools import permutations
 
 import reagent.types as rlt
 import torch
+import torch.nn as nn
 from reagent.model_utils.seq2slate_utils import Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
+from reagent.parameters_seq2slate import LearningMethod, SimulationParameters
 from reagent.torch_utils import gather
+from reagent.training.ranking.seq2slate_sim_trainer import Seq2SlateSimulationTrainer
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 
 
@@ -19,17 +23,43 @@ ON_POLICY = "on_policy"
 SIMULATION = "simulation"
 
 
+class TSPRewardModel(nn.Module):
+    def forward(self, state, candidates, ranked_cities, src_src_mask, tgt_out_idx):
+        reward = compute_reward(ranked_cities)
+        # negate because we want to minimize
+        return -reward
+
+
 def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, device):
     use_gpu = False if device == torch.device("cpu") else True
     if learning_method == ON_POLICY:
-        return Seq2SlateTrainer(
-            seq2slate_net=seq2slate_net,
-            minibatch_size=batch_size,
-            parameters=Seq2SlateParameters(on_policy=True),
-            policy_optimizer=Optimizer__Union.default(lr=learning_rate),
-            use_gpu=use_gpu,
-            print_interval=100,
+        seq2slate_params = Seq2SlateParameters(
+            on_policy=True, learning_method=LearningMethod.REINFORCEMENT_LEARNING
         )
+        trainer_cls = Seq2SlateTrainer
+    elif learning_method == SIMULATION:
+        temp_reward_model_path = tempfile.mkstemp(suffix=".pt")[1]
+        reward_model = torch.jit.script(TSPRewardModel())
+        torch.jit.save(reward_model, temp_reward_model_path)
+        seq2slate_params = Seq2SlateParameters(
+            on_policy=True,
+            learning_method=LearningMethod.SIMULATION,
+            simulation=SimulationParameters(
+                reward_name_weight={"tour_length": 1.0},
+                reward_name_path={"tour_length": temp_reward_model_path},
+            ),
+        )
+        trainer_cls = Seq2SlateSimulationTrainer
+
+    param_dict = {
+        "seq2slate_net": seq2slate_net,
+        "minibatch_size": batch_size,
+        "parameters": seq2slate_params,
+        "policy_optimizer": Optimizer__Union.default(lr=learning_rate),
+        "use_gpu": use_gpu,
+        "print_interval": 100,
+    }
+    return trainer_cls(**param_dict)
 
 
 def create_seq2slate_net(
@@ -220,13 +250,14 @@ def run_seq2slate_tsp(
         # evaluation
         best_test_reward = torch.full((batch_size,), 1e9).to(device)
         for _ in range(eval_sample_size):
-            _, _, reward = rank_on_policy_and_eval(
+            model_propensities, _, reward = rank_on_policy_and_eval(
                 seq2slate_net, test_batch, candidate_num, greedy=True
             )
             best_test_reward = torch.where(
                 reward < best_test_reward, reward, best_test_reward
             )
         logger.info(
+            f"Test mean model_propensities {torch.mean(model_propensities)}, "
             f"Test mean reward: {torch.mean(best_test_reward)}, "
             f"best possible reward {best_test_possible_reward}"
         )
