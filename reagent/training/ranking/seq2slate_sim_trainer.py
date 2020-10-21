@@ -9,13 +9,10 @@ import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
-from reagent.models.seq2slate import (
-    DECODER_START_SYMBOL,
-    BaselineNet,
-    Seq2SlateTransformerNet,
-)
+from reagent.models.seq2slate import BaselineNet, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
+from reagent.torch_utils import gather
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 from reagent.training.trainer import Trainer
 
@@ -148,45 +145,17 @@ class Seq2SlateSimulationTrainer(Trainer):
         return components
 
     def _simulated_training_input(
-        self, training_input, sim_tgt_out_idx, sim_distance, device
+        self, training_input, simulation_action, sim_distance
     ):
-        batch_size, max_tgt_seq_len = sim_tgt_out_idx.shape
-        (
-            _,
-            max_src_seq_len,
-            candidate_feat_dim,
-        ) = training_input.src_seq.float_features.shape
-
-        # candidates + padding_symbol + decoder_start_symbol
-        candidate_size = max_src_seq_len + 2
-        src_seq_augment = torch.zeros(
-            batch_size, candidate_size, candidate_feat_dim, device=device
+        batch_size, max_tgt_seq_len = simulation_action.shape
+        simulate_slate_features = rlt.FeatureData(
+            float_features=gather(
+                training_input.src_seq.float_features, simulation_action
+            )
         )
-        src_seq_augment[:, 2:, :] = training_input.src_seq.float_features
-
-        sim_tgt_in_idx = torch.zeros_like(sim_tgt_out_idx).long()
-        sim_tgt_in_idx[:, 0] = DECODER_START_SYMBOL
-        sim_tgt_in_idx[:, 1:] = sim_tgt_out_idx[:, :-1]
-
-        sim_tgt_in_seq = rlt.FeatureData(
-            float_features=src_seq_augment[
-                torch.arange(batch_size, device=device).repeat_interleave(
-                    max_tgt_seq_len
-                ),
-                sim_tgt_in_idx.flatten(),
-            ].view(batch_size, max_tgt_seq_len, candidate_feat_dim)
-        )
-        sim_tgt_out_seq = rlt.FeatureData(
-            float_features=src_seq_augment[
-                torch.arange(batch_size, device=device).repeat_interleave(
-                    max_tgt_seq_len
-                ),
-                sim_tgt_out_idx.flatten(),
-            ].view(batch_size, max_tgt_seq_len, candidate_feat_dim)
-        )
-        sim_tgt_out_probs = torch.tensor(
+        simulation_sample_propensities = torch.tensor(
             [1.0 / len(self.permutation_index)], device=self.device
-        ).repeat(batch_size)
+        ).repeat(batch_size, 1)
 
         if not self.reward_name_and_net:
             self.reward_name_and_net = _load_reward_net(
@@ -199,9 +168,9 @@ class Seq2SlateSimulationTrainer(Trainer):
             sr = reward_net(
                 training_input.state.float_features,
                 training_input.src_seq.float_features,
-                sim_tgt_out_seq.float_features,
+                simulate_slate_features.float_features,
                 training_input.src_src_mask,
-                sim_tgt_out_idx,
+                simulation_action + 2,  # offset by 2 reserved symbols
             ).detach()
             assert sr.ndim == 2, f"Slate reward {name} output should be 2-D tensor"
             sim_slate_reward += weight * sr
@@ -221,19 +190,15 @@ class Seq2SlateSimulationTrainer(Trainer):
             len(sim_slate_reward.shape) == 2 and sim_slate_reward.shape[1] == 1
         ), f"{sim_slate_reward.shape}"
 
-        on_policy_input = rlt.PreprocessedRankingInput(
-            state=training_input.state,
-            src_seq=training_input.src_seq,
-            src_src_mask=training_input.src_src_mask,
-            tgt_in_seq=sim_tgt_in_seq,
-            tgt_out_seq=sim_tgt_out_seq,
-            tgt_tgt_mask=training_input.tgt_tgt_mask,
+        on_policy_input = rlt.PreprocessedRankingInput.from_input(
+            state=training_input.state.float_features,
+            candidates=training_input.src_seq.float_features,
+            device=self.device,
+            action=simulation_action,
             slate_reward=sim_slate_reward,
-            src_in_idx=training_input.src_in_idx,
-            tgt_in_idx=sim_tgt_in_idx,
-            tgt_out_idx=sim_tgt_out_idx,
-            tgt_out_probs=sim_tgt_out_probs,
+            logged_propensities=simulation_sample_propensities,
         )
+
         return on_policy_input
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
@@ -245,7 +210,7 @@ class Seq2SlateSimulationTrainer(Trainer):
 
         # randomly pick a permutation for every slate
         random_indices = torch.randint(0, len(self.permutation_index), (batch_size,))
-        sim_tgt_out_idx = self.permutation_index[random_indices] + 2
+        simulation_action = self.permutation_index[random_indices]
         if self.sim_param.distance_penalty is not None:
             sim_distance = self.permutation_distance[random_indices]
         else:
@@ -254,7 +219,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         with torch.no_grad():
             # format data according to the new ordering
             training_input = self._simulated_training_input(
-                training_input, sim_tgt_out_idx, sim_distance, self.device
+                training_input, simulation_action, sim_distance
             )
 
         return self.trainer.train(

@@ -109,9 +109,15 @@ class StringGameEnv(Env):
 
     def print_internal_state(self):
         print("Step", self.step_cnt)
-        state_str = "".join(
-            [CHARACTERS[np.nonzero(c)[0].item()] for c in self.recent_states]
-        )
+
+        def state_to_chr(s):
+            state_index = np.nonzero(s)[0]
+            if len(state_index) != 1:
+                # initial state
+                return "I"
+            return CHARACTERS[state_index.item()]
+
+        state_str = "".join([state_to_chr(s) for s in self.recent_states])
         action_str = "".join([CHARACTERS[c] for c in self.recent_actions])
         print(
             "Internal state: recent states {}, recent actions {}".format(
