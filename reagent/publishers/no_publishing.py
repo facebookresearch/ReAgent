@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
-from typing import Optional
+from typing import Dict, Optional
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoPublishingResults
 from reagent.publishers.model_publisher import ModelPublisher
 from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.types import RecurringPeriod, RLTrainingOutput
+from reagent.workflow.types import (
+    ModuleNameToEntityId,
+    RecurringPeriod,
+    RLTrainingOutput,
+)
 
 
 @dataclass
@@ -21,7 +25,7 @@ class NoPublishing(ModelPublisher):
         self,
         model_manager: ModelManager,
         training_output: RLTrainingOutput,
-        recurring_workflow_id: int,
+        recurring_workflow_ids: ModuleNameToEntityId,
         child_workflow_id: int,
         recurring_period: Optional[RecurringPeriod],
     ) -> NoPublishingResults:

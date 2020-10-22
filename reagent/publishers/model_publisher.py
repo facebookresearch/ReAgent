@@ -2,12 +2,16 @@
 
 import abc
 import inspect
-from typing import Optional
+from typing import Dict, Optional
 
 from reagent.core.registry_meta import RegistryMeta
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.result_registries import PublishingResult
-from reagent.workflow.types import RecurringPeriod, RLTrainingOutput
+from reagent.workflow.types import (
+    ModuleNameToEntityId,
+    RecurringPeriod,
+    RLTrainingOutput,
+)
 
 
 class ModelPublisher(metaclass=RegistryMeta):
@@ -20,7 +24,8 @@ class ModelPublisher(metaclass=RegistryMeta):
         self,
         model_manager: ModelManager,
         training_output: RLTrainingOutput,
-        recurring_workflow_id: int,
+        # Mapping from serving_module name -> recurring_workflow_id
+        recurring_workflow_ids: ModuleNameToEntityId,
         child_workflow_id: int,
         recurring_period: Optional[RecurringPeriod],
     ):
@@ -33,7 +38,7 @@ class ModelPublisher(metaclass=RegistryMeta):
         result = self.do_publish(
             model_manager,
             training_output,
-            recurring_workflow_id,
+            recurring_workflow_ids,
             child_workflow_id,
             recurring_period,
         )
@@ -55,7 +60,7 @@ class ModelPublisher(metaclass=RegistryMeta):
         self,
         model_manager: ModelManager,
         training_output: RLTrainingOutput,
-        recurring_workflow_id: int,
+        recurring_workflow_ids: ModuleNameToEntityId,
         child_workflow_id: int,
         recurring_period: Optional[RecurringPeriod],
     ) -> PublishingResult:

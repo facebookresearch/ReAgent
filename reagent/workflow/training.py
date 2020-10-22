@@ -8,9 +8,10 @@ import torch
 from reagent.parameters import NormalizationData
 from reagent.publishers.union import ModelPublisher__Union
 from reagent.validators.union import ModelValidator__Union
-from reagent.workflow.env import get_workflow_id
+from reagent.workflow.env import get_new_named_entity_ids, get_workflow_id
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import (
+    ModuleNameToEntityId,
     ReaderOptions,
     RecurringPeriod,
     ResourceOptions,
@@ -109,12 +110,12 @@ def query_and_train(
     warmstart_path: Optional[str] = None,
     validator: Optional[ModelValidator__Union] = None,
     publisher: Optional[ModelPublisher__Union] = None,
-    parent_workflow_id: Optional[int] = None,
+    named_model_ids: Optional[ModuleNameToEntityId] = None,
     recurring_period: Optional[RecurringPeriod] = None,
 ) -> RLTrainingOutput:
     child_workflow_id = get_workflow_id()
-    if parent_workflow_id is None:
-        parent_workflow_id = child_workflow_id
+    if named_model_ids is None:
+        named_model_ids = get_new_named_entity_ids(model.value.serving_module_names())
 
     logger.info("Starting query")
 
@@ -145,7 +146,7 @@ def query_and_train(
         normalization_data_map,
         num_epochs,
         use_gpu,
-        parent_workflow_id=parent_workflow_id,
+        named_model_ids=named_model_ids,
         child_workflow_id=child_workflow_id,
         reward_options=reward_options,
         reader_options=reader_options,
@@ -161,7 +162,7 @@ def query_and_train(
             publisher,
             model,
             results,
-            parent_workflow_id,
+            named_model_ids,
             child_workflow_id,
             recurring_period,
         )
@@ -184,7 +185,7 @@ def run_publisher(
     publisher: ModelPublisher__Union,
     model_chooser: ModelManager__Union,
     training_output: RLTrainingOutput,
-    recurring_workflow_id: int,
+    recurring_workflow_ids: ModuleNameToEntityId,
     child_workflow_id: int,
     recurring_period: Optional[RecurringPeriod],
 ) -> RLTrainingOutput:
@@ -196,7 +197,7 @@ def run_publisher(
     publishing_result = model_publisher.publish(
         model_manager,
         training_output,
-        recurring_workflow_id,
+        recurring_workflow_ids,
         child_workflow_id,
         recurring_period,
     )
