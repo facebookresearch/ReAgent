@@ -8,12 +8,14 @@ from typing import Dict, List, Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
+from fvcore.common.file_io import PathManager
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
 from reagent.tensorboardX import summary_writer_context
 from reagent.training import ReAgentLightningModule, Trainer
 from reagent.workflow.types import (
     Dataset,
+    ModuleNameToEntityId,
     ReaderOptions,
     ResourceOptions,
     RewardOptions,
@@ -196,7 +198,7 @@ class ModelManager(metaclass=RegistryMeta):
         normalization_data_map: Dict[str, NormalizationData],
         num_epochs: int,
         use_gpu: bool,
-        parent_workflow_id: int,
+        named_model_ids: ModuleNameToEntityId,
         child_workflow_id: int,
         reward_options: Optional[RewardOptions] = None,
         reader_options: Optional[ReaderOptions] = None,
@@ -226,12 +228,15 @@ class ModelManager(metaclass=RegistryMeta):
                 train_dataset, eval_dataset, num_epochs, reader_options
             )
 
-        # TODO: make this a parameter
-        torchscript_output_path = f"model_{round(time.time())}.torchscript"
-        serving_module = self.build_serving_module()
-        torch.jit.save(serving_module, torchscript_output_path)
-        logger.info(f"Saved torchscript model to {torchscript_output_path}")
-        return dataclasses.replace(train_output, output_path=torchscript_output_path)
+        output_paths = {}
+        for module_name, serving_module in self.build_serving_modules().items():
+            # TODO: make this a parameter
+            torchscript_output_path = f"model_{round(time.time())}.torchscript"
+            serving_module = self.build_serving_module()
+            torch.jit.save(serving_module, torchscript_output_path)
+            logger.info(f"Saved {module_name} to {torchscript_output_path}")
+            output_paths[module_name] = torchscript_output_path
+        return dataclasses.replace(train_output, output_paths=output_paths)
 
     @abc.abstractmethod
     def train(
@@ -246,12 +251,15 @@ class ModelManager(metaclass=RegistryMeta):
         """
         pass
 
-    @abc.abstractmethod
-    def build_serving_module(self) -> torch.nn.Module:
-        """
-        Returns TorchScript module to be used in predictor
-        """
-        pass
+    # TODO: make abstract
+    def build_serving_modules(self) -> Dict[str, torch.nn.Module]:
+        # eventually move to this method to be more generic
+        return {"default_model": self.build_serving_module()}
+
+    # TODO: make abstract
+    def serving_module_names(self) -> List[str]:
+        # should match sorted(self.build_serving_modules.keys())
+        return ["default_model"]
 
     def save_trainer(self, output_path: str) -> None:
         """
@@ -262,7 +270,15 @@ class ModelManager(metaclass=RegistryMeta):
             trainer = self.trainer
             assert isinstance(trainer, ReAgentLightningModule)
             trainer._cleanly_stopped[0] = True
-            lightning_trainer.save_checkpoint(output_path)
+            # HACK: since lightning_trainer.save_checkpoint can only deal with
+            # local file paths (not even file handlers), we save to local file
+            # first, and then use PathManager
+            local_path = "/tmp/lightning_save_checkpoint_local_copy"
+            lightning_trainer.save_checkpoint(local_path)
+            with open(local_path, "rb") as local_f:
+                checkpoint_contents = local_f.read()
+            with PathManager.open(output_path, "wb") as output_f:
+                output_f.write(checkpoint_contents)
         else:
             trainer_state = self.trainer.state_dict()
             torch.save(trainer_state, output_path)

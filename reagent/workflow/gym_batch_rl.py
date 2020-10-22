@@ -96,6 +96,7 @@ def evaluate_gym(
     publisher: ModelPublisher__Union,
     num_eval_episodes: int,
     passing_score_bar: float,
+    module_name: str = "default_model",
     max_steps: Optional[int] = None,
 ):
     publisher_manager = publisher.value
@@ -103,7 +104,11 @@ def evaluate_gym(
         publisher_manager, FileSystemPublisher
     ), f"publishing manager is type {type(publisher_manager)}, not FileSystemPublisher"
     env = Gym(env_name=env_name)
-    torchscript_path = publisher_manager.get_latest_published_model(model.value)
+    module_names = model.value.serving_module_names()
+    assert module_name in module_names, f"{module_name} not in {module_names}"
+    torchscript_path = publisher_manager.get_latest_published_model(
+        model.value, module_name
+    )
     jit_model = torch.jit.load(torchscript_path)
     policy = create_predictor_policy_from_model(jit_model)
     agent = Agent.create_for_env_with_serving_policy(env, policy)

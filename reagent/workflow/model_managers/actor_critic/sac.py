@@ -3,7 +3,7 @@
 
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
@@ -112,12 +112,20 @@ class SAC(ActorCriticBase):
     def get_reporter(self):
         return SACReporter()
 
-    def build_serving_module(self) -> torch.nn.Module:
-        net_builder = self.actor_net_builder.value
+    def build_serving_module(self) -> Dict[str, torch.nn.Module]:
         assert self._actor_network is not None
-        return net_builder.build_serving_module(
+        actor_serving_module = self.actor_net_builder.value.build_serving_module(
             self._actor_network,
             self.state_normalization_data,
             self.action_normalization_data,
             serve_mean_policy=self.serve_mean_policy,
         )
+        return actor_serving_module
+
+    # TODO: add in critic
+    # assert self._q1_network is not None
+    # _critic_serving_module = self.critic_net_builder.value.build_serving_module(
+    #     self._q1_network,
+    #     self.state_normalization_data,
+    #     self.action_normalization_data,
+    # )
